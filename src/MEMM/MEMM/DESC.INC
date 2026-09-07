@@ -8,25 +8,8 @@
 ;
 ;   Module:   DESC.INC - Descriptor Table Definitions for 286/386
 ;
-;   Version:  0.02
-;
-;   Date:     January 31, 1986
-;
-;   Author:
-;
 ;******************************************************************************
 ;
-;   Change log:
-;
-;     DATE    REVISION			DESCRIPTION
-;   --------  --------	-------------------------------------------------------
-;   01/31/86  Original
-;   04/07/86  A 	added bit map base to 386 TSS
-;   05/12/86  B 	Cleanup and segment reorganization
-;   06/25/86  0.02	removed A0 macros
-;   06/28/86  0.02	Name change from MEMM386 to MEMM
-;
-;******************************************************************************
 ifndef INC_LIST
 .xlist
 endif

@@ -1,14 +1,5 @@
-;	SCCSID = @(#)IBMEXTRN.ASM	1.11 85/11/18
 ;This is for IBMINIT module.
 ;=======================================================
-;REVISION HISTORY:
-;AN000; - NEW Version 4.00. J.K.
-;AC000; - Modified Line 4.00. J.K.
-;ANxxx; - PTMyyy
-;==============================================================================
-;AN001; D486 SHARE installation for large media 		   2/23/88 J.K.
-;==============================================================================
-
 	EXTRN	ORIG13:DWORD,ORIG19:DWORD
 	EXTRN Int19BootVectors:BYTE
 	EXTRN	COM2DEV:WORD,COM1DEV:WORD
@@ -80,7 +71,7 @@ SYSINITSEG SEGMENT PUBLIC 'SYSTEM_INIT'
 	EXTRN	DEFAULT_DRIVE:BYTE
 	EXTRN	BUFFERS:WORD
 	EXTRN	SYSINIT:FAR
-	extrn	Big_Media_Flag:Byte		;AN001;
+	extrn	Big_Media_Flag:Byte
 SYSINITSEG ENDS
 
 	ASSUME	CS:CODE

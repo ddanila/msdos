@@ -11,25 +11,13 @@
 ;
 ;   Module:	EXTPOOL - Manage a pool of extended memory.
 ;
-;   Version:	0.01
-;
-;   Date:	Sep 1, 1988
-;
-;   Author:	ISP (ISP)
-;
 ;******************************************************************************
 ;
-;	Change Log:
-;
-;	DATE	 REVISION	Description
-;	-------- --------	--------------------------------------------
 ;******************************************************************************
 ;   Functional Description:
 ;
-;   "Fixit Orders"  Crisis mode file.  We need to ship data structures up hi.
-;    So at init time we get a pool of extended memory and manage it for the
-;    fixit routine.  Services provided include initialise, allocate and
-;    blkmov to the memory.
+;   Manages the extended-memory pool used to relocate data structures during
+;   initialization. Provides pool initialization, allocation, and block moves.
 ;
 ;******************************************************************************
 .lfcond

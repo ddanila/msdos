@@ -1,4 +1,3 @@
-;	SCCSID = @(#)time.asm	1.1 85/04/10
 TITLE	TIME - time and date functions
 NAME	TIME
 ;
@@ -15,11 +14,6 @@ NAME	TIME
 ;   DODATE
 ;   DSUM
 ;
-;   Modification history:
-;
-;	Created: ARR 30 March 1983
-;
-
 .xlist
 ;
 ; get the appropriate segment definitions

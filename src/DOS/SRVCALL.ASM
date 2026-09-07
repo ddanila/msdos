@@ -1,4 +1,3 @@
-;	SCCSID = @(#)srvcall.asm	1.4 85/08/02
 TITLE SRVCALL - Server DOS call
 NAME  SRVCALL
 ;
@@ -7,11 +6,6 @@ NAME  SRVCALL
 ;
 ;   $ServerCall
 ;
-;   Modification history:
-;
-;	Created: ARR 08 August 1983
-;
-
 .xlist
 ;
 ; get the appropriate segment definitions
@@ -110,15 +104,15 @@ ASSUME	DS:NOTHING,ES:NOTHING
 	JB	SET_STUFF
 	CMP	AL,9
 	JBE	NO_SET_ID		; No DPL on calls 7,8,9
-	CMP	AL,11				   ;IFS.			;AN000;
-	JNZ	SET_STUFF			   ;IFS.			;AN000;
-	MOV	DI,OFFSET DOSGROUP:SWAP_AREA_TABLE ;IFS.			;AN000;
-	PUSH	SS				   ;IFS.			;AN000;
-	POP	ES				   ;IFS.			;AN000;
-	invoke	GET_USER_STACK			   ;IFS.			;AN000;
-	MOV	[SI.user_DS],ES 		   ;IFS.   ds:si -> swap tab	;AN000;
-	MOV	[SI.user_SI],DI 		   ;IFS.			;AN000;
-	transfer SYS_RET_OK			   ;IFS.			;AN000;
+	CMP	AL,11				   ;IFS.
+	JNZ	SET_STUFF			   ;IFS.
+	MOV	DI,OFFSET DOSGROUP:SWAP_AREA_TABLE ;IFS.
+	PUSH	SS				   ;IFS.
+	POP	ES				   ;IFS.
+	invoke	GET_USER_STACK			   ;IFS.
+	MOV	[SI.user_DS],ES 		   ;IFS.   ds:si -> swap tab
+	MOV	[SI.user_SI],DI 		   ;IFS.
+	transfer SYS_RET_OK			   ;IFS.
 SET_STUFF:
 	MOV	SI,DX			; Point to DPL with DS:SI
 	MOV	BX,[SI.DPL_UID]
@@ -152,7 +146,7 @@ CommitLoop:
 	CMP	ES:[DI].sf_Ref_Count,sf_busy  ; BUSY SFTs have god knows what
 	JZ	CommitNext		      ;   in them.
 ;	TEST	ES:[DI].sf_flags,sf_isnet
-	invoke	Test_IFS_Remote 	;IFS.					;AN000;
+	invoke	Test_IFS_Remote 	;IFS.
 	JNZ	CommitNext		;  Skip Network SFTs so the SERVER
 					;	doesn't deadlock
 	MOV	WORD PTR ThisSFT,DI
@@ -262,15 +256,15 @@ ASSUME	DS:NOTHING,ES:NOTHING
 
 GET_DOS_DATA:
 ASSUME	DS:NOTHING,ES:NOTHING
-	LES	DI,[SWAP_ALWAYS_AREA]	     ;IFS. get beginning addr of swap ;AC000;
-	MOV	DX,[SWAP_ALWAYS_AREA_LEN]    ;IFS. get swap always area len   ;AC000;
-	AND	DX,7FFFH		     ;IFS. clear high bit	      ;AC000;
-	MOV	CX,[SWAP_AREA_LEN]	     ;IFS. get swap len 	      ;AC000;
+	LES	DI,[SWAP_ALWAYS_AREA]	     ;IFS. get beginning addr of swap
+	MOV	DX,[SWAP_ALWAYS_AREA_LEN]    ;IFS. get swap always area len
+	AND	DX,7FFFH		     ;IFS. clear high bit
+	MOV	CX,[SWAP_AREA_LEN]	     ;IFS. get swap len
 	invoke	GET_USER_STACK
 	MOV	[SI.user_DS],ES 	     ;	set user regs
 	MOV	[SI.user_SI],DI 	     ;
 	MOV	[SI.user_DX],DX 	     ;
-	JMP	SetCXOK 		     ;				      ;AN000;
+	JMP	SetCXOK 		     ;
 
 SPOOL_OPER:
 ASSUME	DS:NOTHING,ES:NOTHING

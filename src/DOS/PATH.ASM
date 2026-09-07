@@ -1,4 +1,3 @@
-;	SCCSID = @(#)path.asm	1.1 85/04/10
 TITLE	PATH - Directory related system calls
 NAME	PATH
 
@@ -14,15 +13,8 @@ NAME	PATH
 ;   $MKDIR	  Written
 ;
 ;
-;   Modification history:
-;
-;	Created: ARR 4 April 1983
-;		 MZ 10 May 1983     CurrentDir implemented
-;		 MZ 11 May 1983     RmDir, ChDir, MkDir implemented
-;		 EE 19 Oct 1983     RmDir no longer allows you to delete a
-;				    current directory.
-;		 MZ 19 Jan 1983     Brain damaged applications rely on success
-;				    values of AL.
+; Compatibility: applications depend on AL after successful directory calls.
+
 .xlist
 ;
 ; get the appropriate segment definitions
@@ -47,7 +39,7 @@ INCLUDE DEVSYM.INC
 	I_need	fSplice,BYTE		; TRUE => do splice
 	I_Need	NoSetDir,BYTE		; TRUE => no exact match on splice
 	I_Need	cMeta,BYTE
-	I_Need	DrvErr,BYTE							;AN000;
+	I_Need	DrvErr,BYTE
 
 BREAK <$CURRENT_DIR - dump the current directory into user space>
 ;
@@ -69,8 +61,8 @@ BREAK <$CURRENT_DIR - dump the current directory into user space>
 	JNC	CurrentValidate 	; no error -> go and validate dir
 CurdirErr:
 	LeaveCrit   critDisk
-	MOV	AL,[DrvErr]		;IFS.					;AN000;
-	transfer SYS_RET_ERR		;IFS. make noise			;AN000;
+	MOV	AL,[DrvErr]		;IFS.
+	transfer SYS_RET_ERR		;IFS. make noise
 CurrentValidate:
 	SaveReg <DS,SI> 		; save destination
 	LDS	SI,ThisCDS
@@ -278,13 +270,13 @@ GotCDS:
 ;
 ; wfp_start points to the text.  See if it is long enough
 ;
-	CALL	Check_PathLen		;PTM.					;AN000;
+	CALL	Check_PathLen		;PTM.
 	JA	ChDirErrP
 	TEST	ES:[DI].curdir_flags,curdir_isnet
 	JNZ	SkipRecency
-	TEST	ES:[DI].curdir_flags,curdir_splice   ;PTM. for Join and Subst	;AN000;
-	JZ	setdirclus			     ;PTM.			;AN000;
-	MOV	CX,-1				     ;PTM.			;AN000;
+	TEST	ES:[DI].curdir_flags,curdir_splice   ;PTM. for Join and Subst
+	JZ	setdirclus			     ;PTM.
+	MOV	CX,-1				     ;PTM.
 setdirclus:
 	MOV	ES:[DI].curdir_id,CX
 	LES	DI,ThisCDS		; get logical CDS
@@ -326,10 +318,10 @@ MkDirCrack:
 	CMP	cMeta,-1
 	JNZ	MkErrP
 
-	PUSH	SI			;PTM.					;AN000;
-	CALL	Check_PathLen		;PTM.  check path len > 67 ?		;AN000;
-	POP	SI			;PTM.					;AN000;
-	JBE	pathok			;PTM.					;AN000;
+	PUSH	SI			;PTM.
+	CALL	Check_PathLen		;PTM.  check path len > 67 ?
+	POP	SI			;PTM.
+	JBE	pathok			;PTM.
 	MOV	AL,error_Access_Denied	;PTM. ops!
 	transfer Sys_Ret_Err		;PTM.
 pathok:

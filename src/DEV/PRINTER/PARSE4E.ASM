@@ -45,10 +45,6 @@
 ;              FIND_RIGHT_BR:  Looks for a right bracket.
 ;
 ;
-; Change history:
-; ---------------
-;
-;
 ;LOGIC:
 ;------
 ;        Establish addressability to parameters.

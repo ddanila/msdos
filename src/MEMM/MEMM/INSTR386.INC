@@ -8,24 +8,8 @@
 ;
 ;   Module:   INSTR386 - 386 Instruction Macro Declaration file
 ;
-;   Version:  0.03
-;
-;   Date:     May 11, 1986
-;
-;   Author:
-;
 ;******************************************************************************
 ;
-;   Change log:
-;
-;     DATE    REVISION			DESCRIPTION
-;   --------  --------	-------------------------------------------------------
-;   05/11/86  Original
-;   06/01/86		Added operand/address size overide defines
-;   06/28/86  0.02	Name change from MEMM386 to MEMM
-;   07/01/86  0.03	Added 32 arithmetic defines
-;
-;******************************************************************************
 ifndef INC_LIST
 .xlist
 endif

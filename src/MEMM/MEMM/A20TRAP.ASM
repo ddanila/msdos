@@ -11,21 +11,8 @@ page	58,132
 ;
 ;   Module:   A20TRAP.ASM - I/O trap handlers for watching the A20 line.
 ;
-;   Version:  0.03
-;
-;   Date:     June 1, 1986
-;
-;   Author:
-;
 ;******************************************************************************
 ;
-;   Change log:
-;
-;     DATE    REVISION			DESCRIPTION
-;   --------  --------	-------------------------------------------------------
-;   07/03/86  0.03	From ChkDisA20 routine in VMINST.
-;
-;******************************************************************************
 ;
 ;   Functional Description:
 ;	This module contains the I/O trap handlers for the A20 line watching

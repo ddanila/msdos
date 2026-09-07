@@ -274,7 +274,7 @@ ent9: pop ds
    push ds
    push es
    push di
-;;;call CSL				; clear SFT locks		       ;AC008;
+;;;call CSL				; clear SFT locks
 
    ASSUME DS:NOTHING
 
@@ -295,7 +295,7 @@ ent9: pop ds
    inc	ax				; -1 + 1 = 0.  Busy sft.
    jnz	mcl9
 mcl85:
-   call CSL				; clear SFT locks		       ;AC008;
+   call CSL				; clear SFT locks
    call RSC				; remove sft from chain
    jnz	mcl9				; not the last sft for this name
    call RMN				; remove name record
@@ -571,9 +571,9 @@ mclo9: pop si				; clean stack
 
 
 
-   EnterCrit critShare			;				       ;AN000;
+   EnterCrit critShare			;
 
-   ASSUME ES:NOTHING,DS:NOTHING 	;				       ;AN000;
+   ASSUME ES:NOTHING,DS:NOTHING 	;
 ;	      set up for loop
 
 ;      WE HAVE:   (from IBMDOS) 	|	  WE NEED:   (for Set_Block)
@@ -590,22 +590,22 @@ mclo9: pop si				; clean stack
 
    mov	DS_Org,ds			;an000;save entry DS
 
-   Context DS				;				       ;AN000;
-   CMP	CX,01h				;DO WE HAVE A COUNT?		       ;AN000;
+   Context DS				;
+   CMP	CX,01h				;DO WE HAVE A COUNT?
 
-;; $if	ae				; if the count was valid	       ;AN000;
-;  $if	e				; if the count was valid	       ;AC006;
+;; $if	ae				; if the count was valid
+;  $if	e				; if the count was valid
    JNE $$IF1
 
-;;     PUSH CX				; count = start_count		       ;AN000;
-;;     PUSH DX				; save pointer to range list	       ;AN000;
-       MOV  BP,DX			; save current index into list	       ;AN000;
-;;     AND  AX,0080H			; clear high byte and be sure low is   ;AN000;
+;;     PUSH CX				; count = start_count
+;;     PUSH DX				; save pointer to range list
+       MOV  BP,DX			; save current index into list
+;;     AND  AX,0080H			; clear high byte and be sure low is
 					; set if applicable
 ;;     ROL  AL,1			; move high bit to bit 0
-;;     MOV  BX,AX			; SET UP TYPE OF LOCK		       ;AN000;
+;;     MOV  BX,AX			; SET UP TYPE OF LOCK
 
-;;     $do				; loop till count = 0		       ;AN000;
+;;     $do				; loop till count = 0
 ;;	   cmp	cx,00			;an000;see if at end
 ;;     $leave e 			;an000;exit if at end
 ;;	   push cx			;an000;save cx - our counter
@@ -637,24 +637,24 @@ mclo9: pop si				; clean stack
 ;;	       pop  cx			;an000;restore cx - our counter
 ;;	   $leave c			;an000;on error exit
 ;;	       dec  cx			;an000;decrease counter
-;;	   $enddo			;an000;
+;;	   $enddo
 ;;	   stc				;an000;signal an error occurred
 ;;     $else				;an000;no error occurred in locking
 ;;	   pop	ax			;an000;clear off the stack
 ;;	   pop	ax			;an000;   to balance it
 ;;	   clc				;an000;signal no error occurred
-;;     $endif				;an000;
+;;     $endif
 ;  $else				;an000;cx was 0 - this is an error
    JMP SHORT $$EN1
 $$IF1:
        MOV  AX,error_lock_violation	; invalid range count
        stc				;an000;signal an error occurred
-;  $endif				;				       ;an000;
+;  $endif				;
 $$EN1:
 
-   LeaveCrit critShare			;				       ;AN000;
+   LeaveCrit critShare			;
 
-   ret					; return - all set		       ;AN000;
+   ret					; return - all set
 
    EndProc Set_Mult_Block
 
@@ -710,17 +710,17 @@ $$EN1:
 
    Procedure Load_Regs,NEAR
 
-   push ds				; save our DS			       ;an000;
-   mov	ds,DS_Org			; get range list segment	       ;an000;
-   mov	si,bp				; recover pointer		       ;AN000;
-   ADD	BP,08h				; move to next entry in list	       ;AN000;
-   MOV	DX,[SI] 			; low position			       ;AN000;
-   MOV	CX,[SI+2]			; high position 		       ;AN000;
-   MOV	AX,[SI+4]			; low length			       ;AN000;
-   MOV	SI,[SI+6]			; high length			       ;AN000;
-   pop	ds				; restore DS			       ;an000;
+   push ds				; save our DS
+   mov	ds,DS_Org			; get range list segment
+   mov	si,bp				; recover pointer
+   ADD	BP,08h				; move to next entry in list
+   MOV	DX,[SI] 			; low position
+   MOV	CX,[SI+2]			; high position
+   MOV	AX,[SI+4]			; low length
+   MOV	SI,[SI+6]			; high length
+   pop	ds				; restore DS
 
-   ret					;				       ;AN000;
+   ret					;
 
    EndProc Load_Regs
 
@@ -833,9 +833,9 @@ lock_all equ 0h
 ;	pop	bx			;ICE
 ;	POP	DS			;ICE
 
-   EnterCrit critShare			;				       ;AN000;
+   EnterCrit critShare			;
 
-   ASSUME ES:NOTHING,DS:NOTHING 	;				       ;AN000;
+   ASSUME ES:NOTHING,DS:NOTHING 	;
 
 ;  int 3
    nop
@@ -843,13 +843,13 @@ lock_all equ 0h
 
    mov	DS_Org,DS			;an000;save entry DS
 
-   Context DS				;				       ;AN000;
+   Context DS				;
 
-   CMP	CX,01h				; do we have a count?		       ;AN000;
+   CMP	CX,01h				; do we have a count?
 ;; $IF	AE,AND				; IF A VALID COUNT
-;  $IF	E,AND				; IF A VALID COUNT		       ;AC006;
+;  $IF	E,AND				; IF A VALID COUNT
    JNE $$IF6
-   cmp	es:[di].sf_mft,0		; is this SFT shared?		       ;AN000;
+   cmp	es:[di].sf_mft,0		; is this SFT shared?
 ;  $IF	NE				; AND IF FILE IS 'SHARED' THEN
    JE $$IF6
 
@@ -862,80 +862,80 @@ lock_all equ 0h
 ;					|    (DS:SI) = current RLR
 ; (ES:DI) = current SFT 		|
 
-;;     and  ax,0080h			;be sure it is set right (mask 80 bit) ;AC002;
+;;     and  ax,0080h			;be sure it is set right (mask 80 bit)
 					;    existing interface
-;;     rol  al,1			;put high bit in bit 0		       ;AC002;
+;;     rol  al,1			;put high bit in bit 0
 
-;;     CMP  CX,-1h			;				       ;AN000;
-;;     $IF  E				; IF unlock all locks then	       ;AN000;
+;;     CMP  CX,-1h			;
+;;     $IF  E				; IF unlock all locks then
 
-;;	   push cs			;				       ;AN000;
-;;	   pop	ds			;				       ;AN000;
-;;	   mov	cx,di			; ES:CX is the SFT		       ;AN004;
+;;	   push cs			;
+;;	   pop	ds			;
+;;	   mov	cx,di			; ES:CX is the SFT
 
 ;	   ASSUME ds:nothing
 
-;;	   mov	si,es:[di].sf_mft	; DS:SI points to MFT		       ;AN000;
+;;	   mov	si,es:[di].sf_mft	; DS:SI points to MFT
 
-;;	   lea	di,[si].mft_lptr	; DS:DI = addr of ptr to lock record   ;AN000;
-;;	   mov	si,[di] 		; DS:SI = address of 1st lock record   ;AN000;
+;;	   lea	di,[si].mft_lptr	; DS:DI = addr of ptr to lock record
+;;	   mov	si,[di] 		; DS:SI = address of 1st lock record
 
-;;	   $DO				; loop through the RLR's               ;AN000;
+;;	   $DO				; loop through the RLR's
 
 ;	DS:DI = points to previous RLR or MFT if no RLR.
 ;	DS:SI = points to current RLR
 ;	ES:CX = SFT address
 ;	AX    = lock type
 
-;;	       and  si,si		; are we at the end of the chain?      ;AN000;
-;;	   $LEAVE Z			; we'er done with CF = 0               ;AN000;
+;;	       and  si,si		; are we at the end of the chain?
+;;	   $LEAVE Z			; we'er done with CF = 0
 
-;;	       mov  bp,[si].rlr_pid	; get PROC_ID			       ;AN000;
-;;	       cmp  bp,PROC_ID		; is it ours?			       ;AN000;
-;;	       $IF  E,AND		;				       ;AN000;
-;;	       mov  bp,es		;				       ;AN000;
-;;	       cmp  bp,WORD PTR [si].rlr_sptr+2 ;			       ;AC004;
-;;	       $IF  E,AND		;				       ;AN000;
-;;	       cmp  cx,WORD PTR [si].rlr_sptr ; 			       ;AC004;
-;;	       mov  si,[di]		; restore pointer to current (using    ;AN000;
+;;	       mov  bp,[si].rlr_pid	; get PROC_ID
+;;	       cmp  bp,PROC_ID		; is it ours?
+;;	       $IF  E,AND		;
+;;	       mov  bp,es		;
+;;	       cmp  bp,WORD PTR [si].rlr_sptr+2 ;
+;;	       $IF  E,AND		;
+;;	       cmp  cx,WORD PTR [si].rlr_sptr ;
+;;	       mov  si,[di]		; restore pointer to current (using
 					;			     previous)
-;;	       $IF  E			; if it is ours 		       ;AN000;
+;;	       $IF  E			; if it is ours
 
 ;	this is it. its OURS !
 
-;;		   cmp	ax,lock_all	;				       ;AN000;
+;;		   cmp	ax,lock_all	;
 
-;;		   $IF	E,OR		; if unlocking all or		       ;AN000;
+;;		   $IF	E,OR		; if unlocking all or
 
-;;		   mov	bp,[si].rlr_type ; get lock type		       ;AN000;
-;;		   cmp	bp,rlr_lall	; is it lock all?		       ;AN000;
+;;		   mov	bp,[si].rlr_type ; get lock type
+;;		   cmp	bp,rlr_lall	; is it lock all?
 
-;;		   $IF	NE		; if not a LOCK ALL lock	       ;AN000;
+;;		   $IF	NE		; if not a LOCK ALL lock
 
 ;	remove the RLR from the chain
 
-;;		       mov  bx,[si].rlr_next ; get the pointer to the next RLR ;AN000;
-;;		       mov  [di],bx	; install it in the last	       ;AN000;
+;;		       mov  bx,[si].rlr_next ; get the pointer to the next RLR
+;;		       mov  [di],bx	; install it in the last
 
 ;	put defunct lock record on the free chain
 
-;;		       mov  bx,Frelock	;				       ;AN000;
-;;		       mov  [si].rlr_next,bx ;				       ;AN000;
-;;		       mov  Frelock,si	;				       ;AN000;
-;;		       mov  si,di	; back up to last		       ;AN000;
+;;		       mov  bx,Frelock	;
+;;		       mov  [si].rlr_next,bx ;
+;;		       mov  Frelock,si	;
+;;		       mov  si,di	; back up to last
 
-;;		   $ENDIF		; should we unlock it		       ;AN000;
+;;		   $ENDIF		; should we unlock it
 
-;;	       $ENDIF			; it was ours!			       ;AN000;
+;;	       $ENDIF			; it was ours!
 
 ;	advance to next RLR
 
-;;	       mov  di,si		; load address of next RLR	       ;AN000;
-;;	       mov  si,[di]		; update pointer to next RLR	       ;AN000;
+;;	       mov  di,si		; load address of next RLR
+;;	       mov  si,[di]		; update pointer to next RLR
 
-;;	   $ENDDO			; loop back to the start	       ;AN000;
+;;	   $ENDDO			; loop back to the start
 
-;;     $ELSE				; else, its a LIST !		       ;AN000;
+;;     $ELSE				; else, its a LIST !
 
 ;	      set up for loop
 
@@ -947,33 +947,33 @@ lock_all equ 0h
 ; (DS:DX) = pointer to the range list	|    (SI:AX) = length of area
 ; (ES:DI) = SFT address 		|    (ES:DI) = SFT address
 
-;;	   PUSH CX			; count = start_count		       ;AN000;
-;;	   PUSH DX			; save pointer to range list	       ;AN000;
-       MOV  BP,DX			; save current index into list	       ;AN000;
-;;	   MOV	BX,AX			; SET UP TYPE OF LOCK		       ;AN000;
+;;	   PUSH CX			; count = start_count
+;;	   PUSH DX			; save pointer to range list
+       MOV  BP,DX			; save current index into list
+;;	   MOV	BX,AX			; SET UP TYPE OF LOCK
 
-       call Clr_List			; call Clr_List to process the list    ;AN000;
+       call Clr_List			; call Clr_List to process the list
 
-;;     $ENDIF				;				       ;AN000;
+;;     $ENDIF				;
 
 ;  $ELSE				; NOT VALID
    JMP SHORT $$EN6
 $$IF6:
 
-       STC				;				       ;AN000;
+       STC				;
 
-;  $ENDIF				; VALID/INVALID 		       ;AN000;
+;  $ENDIF				; VALID/INVALID
 $$EN6:
 
-;  $IF	C				; if carry is set		       ;AN000;
+;  $IF	C				; if carry is set
    JNC $$IF9
-       MOV  AX,error_lock_violation	; load error condition		       ;AN000;
-;  $ENDIF				; carry not set 		       ;AN000;
+       MOV  AX,error_lock_violation	; load error condition
+;  $ENDIF				; carry not set
 $$IF9:
 
-   LeaveCrit critShare			;				       ;AN000;
+   LeaveCrit critShare			;
 
-   ret					; return - all set		       ;AN000;
+   ret					; return - all set
 
    EndProc clr_mult_block
 
@@ -1051,26 +1051,26 @@ $$IF9:
 ;;     push cx				;an000;save cx - our counter
 ;;     push di				;an000;save di - our SFT pointer
    call load_regs			;an000;set up for clr_block call
-;;     push bp				; save pointer to range entry	       ;AN000;
+;;     push bp				; save pointer to range entry
    call clr_block			;an000;remove the lock
-;;     pop  bp				; recover pointer to range entry       ;AN000;
+;;     pop  bp				; recover pointer to range entry
 ;;     pop  di				;an000;restore our SFT pointer
 ;;     pop  cx				;an000;restore cx - our counter
 ;; $leave c				;an000;leave on error
 ;;     dec  cx				;an000;decrease counter
-;; $enddo				;an000;
+;; $enddo
 
 ;; $if	c				;an000;an error occurred
 ;;     push bp				;an000;save bp
 ;;     mov  bp,sp			;an000;get sp
 ;;     mov  dx,[bp].parm_1		;an000;recover original index
-;;     mov  ax,[bp].Parm_2		; original count		       ;AN000;
+;;     mov  ax,[bp].Parm_2		; original count
 ;;     pop  bp
-;;     SUB  AX,CX			; how many did we do?		       ;AN000;
-;;     MOV  CX,AX			; set up the loop		       ;AN000;
-;;     MOV  BP,DX			; save the index		       ;AN000;
+;;     SUB  AX,CX			; how many did we do?
+;;     MOV  CX,AX			; set up the loop
+;;     MOV  BP,DX			; save the index
 
-;;     $DO				;				       ;AN000;
+;;     $DO				;
 ;;	   cmp	cx,00			;an000;at end?
 ;;     $leave e 			;an000;yes
 ;;	   push cx			;an000;save cx - our counter
@@ -1081,14 +1081,14 @@ $$IF9:
 ;;	   pop	cx			;an000;restore cx - our counter
 ;;     $leave c 			;an000;leave on error
 ;;	   dec	cx			;an000;decrease counter
-;;     $enddo				;an000;
+;;     $enddo
 ;;     stc				;an000;signal an error
-;; $else				;an000;
+;; $else
 ;;     clc				;an000;signal no error
-;; $endif				;an000;
+;; $endif
 
-;; ret	4				; return (clear Parm_1 & Parm_2)       ;AN000;
-   ret					; return (clear Parm_1 & Parm_2)       ;AC006;
+;; ret	4				; return (clear Parm_1 & Parm_2)
+   ret					; return (clear Parm_1 & Parm_2)
 
    EndProc Clr_List
 
@@ -1162,11 +1162,11 @@ $$IF9:
 
    Context DS
 
-   push bp				; preserve (bp) 		       ;AN000;
+   push bp				; preserve (bp)
    push ds				; preserve (ds)
-;; push bx				; preserve (bx) 		       ;AN000;
+;; push bx				; preserve (bx)
    cmp	es:[di].sf_mft,ZERO
-;  $if	nz,and				; if file is SHARED and 	       ;AC000;
+;  $if	nz,and				; if file is SHARED and
    JZ $$IF11
    push di
    call clp				; do common setup code
@@ -1174,7 +1174,7 @@ $$IF9:
    ASSUME DS:NOTHING
 
    pop	bp
-;  $if	nc,and				; if no (lock conflict) error and      ;AC000;
+;  $if	nc,and				; if no (lock conflict) error and
    JC $$IF11
 
 ;	Its ok to set this lock.  Get a free block and fill it in
@@ -1188,7 +1188,7 @@ $$IF9:
 ;	(TOS+2) = saved (bp)
 
    call OFL				; (ds:di) = pointer to new, orphan lock record
-;  $if	nc				; if space available		       ;AC000;
+;  $if	nc				; if space available
    JC $$EN11				; preserve sharing-buffer-exceeded
        mov  WORD PTR [di].rlr_sptr,bp	; store SFT offset
        mov  WORD PTR [di].rlr_sptr+2,es ; store SFT offset
@@ -1211,24 +1211,24 @@ $$IF9:
        mov  [di].rlr_pid,ax
 
 ;
-;;     pop  bx				; recover lock type		       ;AN000;
-;;     push bx				; restore the stack		       ;AN000;
-;;     mov  [di].rlr_type,bx		; set the rlr_type field	       ;AN000;
+;;     pop  bx				; recover lock type
+;;     push bx				; restore the stack
+;;     mov  [di].rlr_type,bx		; set the rlr_type field
        clc				; we finished OK
 
-;  $else				;				       ;AC000;
+;  $else				;
    JMP SHORT $$EN11
 $$IF11:
 
        mov  ax,error_lock_violation
        stc
 
-;  $endif				;				       ;AC000;
+;  $endif				;
 $$EN11:
 
-;; pop	bx				;				       ;AN000;
+;; pop	bx				;
    pop	ds
-   pop	bp				;				       ;AC000;
+   pop	bp				;
 
    ret					; return - all set
 
@@ -1308,10 +1308,10 @@ $$EN11:
 
    Context DS
    push ds
-;; push bx				; save type of operation	       ;AN000;
+;; push bx				; save type of operation
    cmp	es:[di].sf_mft,ZERO
 
-;  $if	nz,and				; if file is SHARED and 	       ;AC000;
+;  $if	nz,and				; if file is SHARED and
    JZ $$IF14
 
    push di
@@ -1320,11 +1320,11 @@ $$EN11:
    ASSUME DS:NOTHING
 
    pop	bp				; ES:BP points to sft.
-;; pop	bx				; recover the type of operation        ;AN000;
+;; pop	bx				; recover the type of operation
 
-;  $if	c,and				; if lock exists and		       ;AC000;
+;  $if	c,and				; if lock exists and
    JNC $$IF14
-;  $if	z,and				; if range given correctly and	       ;AC000;
+;  $if	z,and				; if range given correctly and
    JNZ $$IF14
 ;
 ;	We've got the lock
@@ -1338,30 +1338,30 @@ $$EN11:
    mov	si,[di] 			; (DS:SI) = address of lock record
    cmp	word ptr [si].rlr_sptr,bp
 
-;  $if	z,and				; if SFT matches and		       ;AC000;
+;  $if	z,and				; if SFT matches and
    JNZ $$IF14
 
    mov	bp,es
    cmp	word ptr [si].rlr_sptr+2,bp
-;  $if	z,and				; (check both words of SFT pointer)    ;AC000;
+;  $if	z,and				; (check both words of SFT pointer)
    JNZ $$IF14
    mov	bp,proc_id
    cmp	[si].rlr_pid,bp
 
-;; $if	z,and				; if PROC_ID matches		       ;AC000;
-;  $if	z				; if PROC_ID matches		       ;AC006;
+;; $if	z,and				; if PROC_ID matches
+;  $if	z				; if PROC_ID matches
    JNZ $$IF14
 ;
 ; Make sure that the type of request and the lock type match
 ;
-;; cmp	bx,lock_all			;				       ;AN000;
+;; cmp	bx,lock_all			;
 
-;; $IF	E,OR				; if unlocking all or		       ;AN000;
+;; $IF	E,OR				; if unlocking all or
 
-;; mov	bp,[si].rlr_type		; get lock type 		       ;AN000;
-;; cmp	bp,rlr_lall			; is it lock all?		       ;AN000;
+;; mov	bp,[si].rlr_type		; get lock type
+;; cmp	bp,rlr_lall			; is it lock all?
 
-;; $IF	NE				; if not a LOCK ALL lock	       ;AN000;
+;; $IF	NE				; if not a LOCK ALL lock
 ;
 ; The locks match the proper open invocation.  Unchain the lock
 ;
@@ -1377,21 +1377,21 @@ $$EN11:
        mov  Frelock,si
        clc
 
-;  $else				; we have an error		       ;AC000;
+;  $else				; we have an error
    JMP SHORT $$EN14
 $$IF14:
 
        stc
 
-;  $endif				; Endif - an error		       ;AC000;
+;  $endif				; Endif - an error
 $$EN14:
 
-;  $if	c				; If an error was found 	       ;AC000;
+;  $if	c				; If an error was found
    JNC $$IF17
 
        mov  ax,error_lock_violation
 
-;  $endif				; Endif - an error was found	       ;AC000;
+;  $endif				; Endif - an error was found
 $$IF17:
 
    pop	ds				; restore DS
@@ -1465,19 +1465,19 @@ $$IF17:
 
    or	si,dx				; see if length is 0
 
-;  $if	nz,and				; if length is > 0 and		       ;AC000;
+;  $if	nz,and				; if length is > 0 and
    JZ $$IF19
 
    add	dx,bx
    adc	cx,ax				; (cx:dx) = lba+1
 
-;  $if	nc,or				; no carry is ok		       ;AC000;
+;  $if	nc,or				; no carry is ok
    JNC $$LL19
 
    mov	si,dx
    or	si,cx
 
-;  $if	z				; if !> 0 then			       ;AC000;
+;  $if	z				; if !> 0 then
    JNZ $$IF19
 $$LL19:
 
@@ -1496,7 +1496,7 @@ $$LL19:
        pop  si
        pop  bp
 
-;  $else				; we have an error		       ;AC000;
+;  $else				; we have an error
    JMP SHORT $$EN19
 $$IF19:
 
@@ -1505,7 +1505,7 @@ $$IF19:
        mov  ax,error_lock_violation	; assume error
        stc
 
-;  $endif				; endif - we have an error	       ;AC000;
+;  $endif				; endif - we have an error
 $$EN19:
 
    ret
@@ -1580,8 +1580,8 @@ $$EN19:
 
    ASSUME DS:NOTHING,ES:NOTHING,SS:DOSGROUP
 
-write_op equ 080h			; write operation requested	       ;AN000;
-lock_all equ 0h 			; lock all specified		       ;AN000;
+write_op equ 080h			; write operation requested
+lock_all equ 0h 			; lock all specified
 
 ;	PUSH	DS			;ICE
 ;	push	bx			;ICE
@@ -1608,7 +1608,7 @@ lock_all equ 0h 			; lock all specified		       ;AN000;
    PUSH DS
    cmp	es:[di].sf_mft,0
 
-;  $if	nz,and				; if the file is SHARED and	       ;AC000;
+;  $if	nz,and				; if the file is SHARED and
    JZ $$IF22
 
    push cs
@@ -1616,16 +1616,16 @@ lock_all equ 0h 			; lock all specified		       ;AN000;
    mov	si,es:[di].sf_MFT		; (DS:SI) = address of MFT record
    test [si].mft_lptr,-1
 
-;  $if	nz,and				; if there are locks on this file and  ;AC000;
+;  $if	nz,and				; if there are locks on this file and
    JZ $$IF22
 
    sub	cx,1				; (cx) = count-1
    cmc
 
-;  $if	c				; there are bytes to lock	       ;AC000;
+;  $if	c				; there are bytes to lock
    JNC $$IF22
 
-;;     push ax				; preserve type of operation	       ;AN000;
+;;     push ax				; preserve type of operation
 					; DOS passes AL = 80 for writes
 					;		= 00 for reads
 
@@ -1637,37 +1637,37 @@ lock_all equ 0h 			; lock all specified		       ;AN000;
        adc  cx,ax			; (cx:dx) = lba of lock area
        sub  di,di			; ignore own locks
        call SLE
-;;     pop  ax				; recover type of opperation	       ;AN000;
+;;     pop  ax				; recover type of opperation
 
 ;   upon return DS:SI points to the RLR with the conflict
 
-;;     $if  c				; if lock conflicts occur - error      ;AC000;
+;;     $if  c				; if lock conflicts occur - error
 
 ;   now we must check what type of lock exists
 ;   and the type of operation in progress.
 
-;;	   cmp	al,write_op		;				       ;AN000;
+;;	   cmp	al,write_op		;
 
-;;	   $if	ne,and			; if NOT a write operation and	       ;AN000;
+;;	   $if	ne,and			; if NOT a write operation and
 
-;;	   cmp	[si].rlr_type,rlr_lwr	;				       ;AN000;
+;;	   cmp	[si].rlr_type,rlr_lwr	;
 
-;;	   $if	e			; if write locked (NOT all locked)     ;AN000;
+;;	   $if	e			; if write locked (NOT all locked)
 
-;;	       clc			; then not true conflict - clear error ;AN000;
+;;	       clc			; then not true conflict - clear error
 
-;;	   $else			; else it IS a valid conflict	       ;AC000;
+;;	   $else			; else it IS a valid conflict
 
 ;;	       stc			; true error - set error status
 
-;;	   $endif			; endif - a valid conflict	       ;AC000;
+;;	   $endif			; endif - a valid conflict
 
 
-;;     $endif				; endif -  conflicts		       ;AC000;
+;;     $endif				; endif -  conflicts
 
        mov  ax,error_lock_violation	; assume error
 
-;  $endif				; endif - no need to check	       ;AC000;
+;  $endif				; endif - no need to check
 $$IF22:
 
 ;	exit

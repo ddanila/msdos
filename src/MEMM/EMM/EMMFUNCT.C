@@ -7,37 +7,6 @@
  *
  *    MODULE:	EMMFUNCT.C - EMM functions code.
  *
- *    VERSION:	0.10
- *
- *    DATE:	June 14,1986
- *
- *******************************************************************************
- *	CHANGE LOG
- *  Date     Version	   Description
- * --------  --------	-------------------------------------------------------
- * 06/14/86		Changed status return to return only AH.  And added
- *			PFlag to decide on selector versus segment on long
- *			address generation (SBP).
- * 06/14/86		Moved save_current_map and restore_map to ASM (SBP).
- * 06/15/86		Changed NULL_HANDLE to 0x0FFF (see emm.h) (SBP).
- * 06/21/86		Moved MapHandlePage to ASM (SBP).
- *			Handle # passed to client has high byte = NOT (low byte)
- *			as in the Above Board (SBP).
- *			Valid_Handle -> ASM (SBP).
- * 06/23/86		Make_Addr removed. source_addr and dest_addr added(SBP).
- * 06/25/86   0.02	Dealloc checks for save area in use (SBP).
- * 06/28/86   0.02	Name change from CEMM386 to CEMM (SBP).
- * 06/29/86   0.02	Return after NOT_ENOUGH_FREE_MEM error in Allocate(SBP).
- * 07/06/86   0.04	Changed _emm_page,_emm_free, & _pft386 to ptrs (SBP).
- * 07/06/86   0.04	moved SavePageMap and RestorePageMap to .ASM (SBP).
- * 07/08/86   0.04	moved GetSetPageMap to .ASM (SBP).
- * 07/09/86   0.04	removed code which places handle # in _pft386
- *			entry (SBP).
- * 07/09/86   0.05	fixed bug in deallocate (SBP).
- * 05/09/88   0.10	modified for MEMM, modifications are indicated in
- *			individual routines (ISP).
- *
- *******************************************************************************
  *     FUNCTIONAL DESCRIPTION
  *
  * Paged EMM Driver for the iAPX 386.

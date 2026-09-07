@@ -1,5 +1,3 @@
-;	SCCSID = @(#)dosseg.asm	1.1 85/04/10
-;	SCCSID = @(#)dosseg.asm	1.1 85/04/10
 ;
 ; segment ordering for MSDOS
 ;

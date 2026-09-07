@@ -13,12 +13,6 @@
 ;;       External declarations and equates for procedures in file
 ;;       KEYBI48.ASM
 ;;
-;; Change History:
-;; ---------------
-;;
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                                       ;;
         EXTRN    KEYB_INT_48:NEAR      ;;
                                        ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

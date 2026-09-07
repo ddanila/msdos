@@ -2,12 +2,6 @@
 	TITLE MSCON - BIOS
 	%OUT	...MSCON.ASM
 ;==============================================================================
-;REVISION HISTORY:
-;AN000 - New for DOS Version 4.00 - J.K.
-;AC000 - Changed for DOS Version 4.00 - J.K.
-;AN00x - PTM number for DOS Version 4.00 - J.K.
-;==============================================================================
-
 	itest=0
 	INCLUDE CHARSEG.INC	;normal or shared high character owner
 	INCLUDE JUMPMAC.INC
@@ -69,10 +63,9 @@ CON$READ ENDP
 
 
 CHRIN	PROC	NEAR
-;AN000;
 ;	 XOR	 AX,AX
 	mov	ah,KEYRD_Func		;AN000; Set by MSINIT. 0 or 10h
-	xor	al,al			;AN000;
+	xor	al,al
 	XCHG	AL,ALTAH		;GET CHARACTER & ZERO ALTAH
 
 	OR	AL,AL
@@ -88,9 +81,9 @@ ALT10:
 	OR	AX,AX			;CHECK FOR NON-KEY AFTER BREAK
 	JZ	CHRIN
 	CMP	AX,7200H		;CHECK FOR CTRL-PRTSC
-	JNZ	ALT_Ext_Chk		;AN000;
+	JNZ	ALT_Ext_Chk
 	MOV	AL,16
-	jmp	KeyRet			;AN000;
+	jmp	KeyRet
 ALT_Ext_Chk:
 ;SB34CON001**************************************************************
 ;SB  IF operation was extended function (i.e. KEYRD_Func != 0) THEN
@@ -193,14 +186,14 @@ GOTCHR:
 	JUMP	CON$RDND		;AND GET A REAL STATUS
 NOTBRK:
 	CMP	AX,7200H		;CHECK FOR CTRL-PRTSC
-	JNZ	RD_Ext_Chk		;AN000;
+	JNZ	RD_Ext_Chk
 	MOV	AL,16
-	jmp	RDEXIT			;AN000;
-RD_Ext_Chk:				;AN000;
+	jmp	RDEXIT
+RD_Ext_Chk:
 	cmp	KEYRD_Func, 0		;AN000; Extended Keyboard function?
 	jz	RDEXIT			;AN000; No. Normal exit.
 	cmp	al,0E0h 		;AN000; Extended key value or Greek Alpha?
-	jne	RDEXIT			;AN000;
+	jne	RDEXIT
 	cmp	ah, 0			;AN000; Scan code exist?
 	jz	RDEXIT			;AN000; Yes. Greek Alpha char.
 	mov	al, 0			;AN000; No. Extended key stroke. Change it for compatibility

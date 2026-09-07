@@ -10,14 +10,14 @@
 
 	.ALPHA		; arrange segments alphabetically
 
-	INCLUDE    SEL-PAN.INC		;AN000;
+	INCLUDE    SEL-PAN.INC
 					;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; Color Index Structure
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-CCB_PB	       STRUC			;AN000;
+CCB_PB	       STRUC
 CCB_A1	       DB   0			;AN000;Normal/Base Panel
 CCB_A2	       DB   0			;AN000;Selection Bar/Field Highlight
 CCB_A3	       DB   0			;AN000;Selected Options
@@ -30,11 +30,11 @@ CCB_A9	       DB   0			;AN000;Function Keys
 CCB_AA	       DB   0			;AN000;Mnemonic Highlight
 CCB_AB	       DB   0			;AN000;Reserved
 CCB_AC	       DB   0			;AN000;Reserved
-CCB_PB	       ENDS			;AN000;
+CCB_PB	       ENDS
 					;
-	PUBLIC	WR_CIS,WR_CIS2,L_WR_CIS,L_WR_CIS2;AN000;
+	PUBLIC	WR_CIS,WR_CIS2,L_WR_CIS,L_WR_CIS2
 					;
-CODE	SEGMENT PARA PUBLIC 'CODE'      ;AN000;
+CODE	SEGMENT PARA PUBLIC 'CODE'
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; Color Index Structure (Actual color values)
@@ -58,13 +58,13 @@ CODE	SEGMENT PARA PUBLIC 'CODE'      ;AN000;
 ;		      -   -   -   -   -   -   -   -   -   -   -   -
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 WR_CIS	       DB    31,113, 48,113, 31, 31, 30, 30,112, 28, 00, 00  ;AN000;Logo Scr
-WR_CIS_W       EQU   $-WR_CIS					     ;AN000;
+WR_CIS_W       EQU   $-WR_CIS
 	       DB    31,127, 48,113, 31, 31, 30, 30,112, 28, 00, 00  ;AN000;Inactive scroll
 	       DB   112,112,112,112,112,112,112,112,112,112, 00, 00  ;AN000;Ctxt Help
 	       DB   112,112,112,112,112,112,112,112,112,112, 00, 00  ;AN000;Ctxt Help
 ;		DB   4Fh,112,112,112,112,112,112,112,112,112, 00, 00  ;Indx Help
 	       DB   112,112,112,112,112,112,112,112,112,112, 00, 00  ;AN000;Indx Help
-L_WR_CIS       EQU  ($-WR_CIS)/WR_CIS_W 			     ;AN000;
+L_WR_CIS       EQU  ($-WR_CIS)/WR_CIS_W
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; Color Index Structure (Actual MONO values)
@@ -73,11 +73,11 @@ L_WR_CIS       EQU  ($-WR_CIS)/WR_CIS_W 			     ;AN000;
 ;		      -   -   -   -   -   -   -   -   -   -   -   -
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 WR_CIS2        DB     7,112, 48,112,  7,  7,  7,  7,112, 28, 00, 00  ;AN000;Logo Scr
-WR_CIS2_W      EQU   $-WR_CIS2					     ;AN000;
+WR_CIS2_W      EQU   $-WR_CIS2
 	       DB     7,127, 48,112,  7,  7,  7,  7,112, 28, 00, 00  ;AN000;Logo Scr
 	       DB   112,112,112,112,112,112,112,112,112,112, 00, 00  ;AN000;Ctxt Help
 	       DB   112,112,112,112,112,112,112,112,112,112, 00, 00  ;AN000;Ctxt Help
 	       DB   112,112,112,112,112,112,112,112,112,112, 00, 00  ;AN000;Indx Help
-L_WR_CIS2      EQU  ($-WR_CIS2)/WR_CIS2_W			     ;AN000;
-CODE	ENDS							     ;AN000;
-	END							     ;AN000;
+L_WR_CIS2      EQU  ($-WR_CIS2)/WR_CIS2_W
+CODE	ENDS
+	END

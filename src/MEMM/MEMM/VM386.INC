@@ -8,28 +8,8 @@
 ;
 ;   Module:   VM386.INC
 ;
-;   Version:  0.03
-;
-;   Date:     May 12, 1986
-;
-;   Author:
-;
 ;******************************************************************************
 ;
-;   Change log:
-;
-;     DATE    REVISION			DESCRIPTION
-;   --------  --------	-------------------------------------------------------
-;	      Original
-;   05/12/86  A 	Cleanup and segment reorganization
-;   06/08/86  B 	Added Disable A20 equates
-;   06/14/86  C 	Added MOV_CDTR_FRAME, PROT_INS_FRAME, and changed
-;			VTFO from 2 to 4 to reflect push of EBP from BP
-;   06/15/86  D 	Added GPFAULT_FRAME
-;   06/28/86  0.02	Name change from MEMM386 to MEMM
-;   07/01/86  0.03	Added structures for accessing memory
-;
-;******************************************************************************
 ifndef INC_LIST
 .xlist
 endif

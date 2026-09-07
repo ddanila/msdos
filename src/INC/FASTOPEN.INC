@@ -10,17 +10,17 @@ FONC_update	equ	4
 FONC_purge	equ	5		;reserved for the future use.
 
 ;FASTOPEN EXTENT  CACHING Subfunctions
-FSK_Open       equ     11					       ;AN000;
-FSK_Close      equ     12					       ;AN000;
-FSK_Delete     equ     13					       ;AN000;
-FSK_Lookup     equ     14					       ;AN000;
-FSK_Insert     equ     15					       ;AN000;
-FSK_Trunc      equ     16					       ;AN000;
+FSK_Open       equ     11
+FSK_Close      equ     12
+FSK_Delete     equ     13
+FSK_Lookup     equ     14
+FSK_Insert     equ     15
+FSK_Trunc      equ     16
 
-HeaderSize     equ    8        ; size of file header (8 bytes)	       ;AN000;
-ExtendSize     equ    8        ; size of extend (8 bytes)	       ;AN000;
-Num_Of_Pages   equ    1        ; number of pages		       ;AN000;
-Num_Of_Segs    equ    2        ; number of frame segments	       ;AN000;
+HeaderSize     equ    8        ; size of file header (8 bytes)
+ExtendSize     equ    8        ; size of extend (8 bytes)
+Num_Of_Pages   equ    1        ; number of pages
+Num_Of_Segs    equ    2        ; number of frame segments
 Stayresident  equ    04ch     ; terminate and stay resident function code
 
 
@@ -107,38 +107,38 @@ DRIVE_CACHE_HEADER	ENDS
 
 ;======== FAST SEEK FUNCTION  DATA  STRUCTURES =======================
 
-DRIVE_HEADER	STRUC		   ; Drive header structure		;AN000;
-Drive_Number	     dw     0	   ; drive number			;AN000;
+DRIVE_HEADER	STRUC		   ; Drive header structure
+Drive_Number	     dw     0	   ; drive number
 Extent_Count	     dw     0	   ; reserved for debugging
 MRU_Hdr_Ptr	     dw     0	   ; pointer to OPEN Queue
-Free_ptr	     dw     0	   ; pointer to FREE buffer		;AN000;
-Close_Ptr	     dw     0	   ; pointer to CLOSE Queue	     ;AN000;
-Buff_Size	     dw     0	   ; cache buffer size including header ;AN000;
+Free_ptr	     dw     0	   ; pointer to FREE buffer
+Close_Ptr	     dw     0	   ; pointer to CLOSE Queue
+Buff_Size	     dw     0	   ; cache buffer size including header
 Free_Size	     dw     0	   ; size of Free area in bytes
 Next_Drv_Hdr_Ptr     dw     0	   ; pointer to next drive header
 DRIVE_HEADER   ENDS
 
 
 
-FILE_HEADER	STRUC		   ; File header structure		;AN000;
-FH_Phys_Clus_Num     dw     0	   ; starting physcial clustnum of file ;AN000;
-FH_Refer_Count	     dw     0	   ; reference count			;AN000;
-FH_Next_Extn_Ptr     dw     0	   ; pointer to first extent of the file;AN000;
-FH_Next_Hdr_Ptr      dw     0	   ; pointer to next file header	;AN000;
+FILE_HEADER	STRUC		   ; File header structure
+FH_Phys_Clus_Num     dw     0	   ; starting physcial clustnum of file
+FH_Refer_Count	     dw     0	   ; reference count
+FH_Next_Extn_Ptr     dw     0	   ; pointer to first extent of the file
+FH_Next_Hdr_Ptr      dw     0	   ; pointer to next file header
 FH_MRU_Extn_Ptr      dw     0	   ; pointer to  MRU extent
 		     dw     0
 		     dw     0
 		     dw     0
-FILE_HEADER	ENDS							;AN000;
+FILE_HEADER	ENDS
 
 
 
-EXTENT_HEADER	STRUC		   ; extend header structure		;AN000;
-EH_Logic_Clus_Num    dw     0	   ; starting logical clus num of extent;AN000;
-EH_Phys_Clus_Num     dw     0	   ; starting physical clus numof  extnt;AN000;
+EXTENT_HEADER	STRUC		   ; extend header structure
+EH_Logic_Clus_Num    dw     0	   ; starting logical clus num of extent
+EH_Phys_Clus_Num     dw     0	   ; starting physical clus numof  extnt
 EH_Count	     dw     0	   ; range of logical clusnum in the extnt
-EH_Next_Extn_Ptr     dw     0	   ; pointer to next extent		;AN000;
-EH_Prev_Extn_Ptr     dw     0	   ; pointer to previous extent  ;AN000;
+EH_Next_Extn_Ptr     dw     0	   ; pointer to next extent
+EH_Prev_Extn_Ptr     dw     0	   ; pointer to previous extent
 EH_Next_LRU_Ptr      dw     0	   ; pointer to next LRU extent
 EH_Prev_LRU_Ptr      dw     0	   ; pointer tp previous LRU extent
 		     dw     0

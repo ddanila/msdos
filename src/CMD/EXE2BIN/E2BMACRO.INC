@@ -16,12 +16,12 @@
 
 ;-----------------------------------------------------------------------------
 
-MESSAGE macro   Message_Name                    ;                               ;AN000;
+MESSAGE macro   Message_Name                    ;
                                                 ;
-        mov     dx,offset Message_Name          ;                               ;AN000;
-        call    Display_Interface               ;                               ;AN000;
+        mov     dx,offset Message_Name          ;
+        call    Display_Interface               ;
                                                 ;
-        endm                                    ;                               ;AN000;
+        endm                                    ;
 
 
 ;
@@ -46,35 +46,35 @@ DOS_Call        macro   Function
         endm
 ;-----------------------------------------------------------------------------
 
-Parse_Message macro                                                             ;AN000;
+Parse_Message macro
 
 
-        push    ds                                                              ;AN000;
-        mov     dx,SEG parse_ptr                                                ;AN000;
-        mov     ds,dx                                                           ;AN000;
-        ASSUME  DS:DATA                                                         ;AN000;
-        ASSUME  ES:DATA                                                         ;AN000;
-        mov     word ptr Parse_Error_Msg,ax                                     ;AN000;
-        mov     dx,offset Parse_Error_Msg       ;                               ;AN000;
-        call    Display_Interface               ;                               ;AN000;
+        push    ds
+        mov     dx,SEG parse_ptr
+        mov     ds,dx
+        ASSUME  DS:DATA
+        ASSUME  ES:DATA
+        mov     word ptr Parse_Error_Msg,ax
+        mov     dx,offset Parse_Error_Msg       ;
+        call    Display_Interface               ;
         pop     ds
-        endm                                    ;                               ;AN000;
+        endm                                    ;
 
 ;-----------------------------------------------------------------------------
 
-Extend_Message macro                            ;                               ;AN001;
+Extend_Message macro                            ;
 
                                                 ;
-        push    ds                                                              ;AN001;
-        mov     dx,SEG parse_ptr                                                ;AN001;
-        mov     ds,dx                                                           ;AN001;
-        ASSUME  DS:DATA                                                         ;AN001;
-        ASSUME  ES:DATA                                                         ;AN001;
-        mov     word ptr Extend_Error_Msg,ax     ;                              ;AN001;
-        mov     dx,offset Extend_Error_Msg       ;                              ;AN001;
-        call    Display_Interface               ;                               ;AN001;
-        pop     ds                                                              ;AN001;
-        endm                                    ;                               ;AN001;
+        push    ds
+        mov     dx,SEG parse_ptr
+        mov     ds,dx
+        ASSUME  DS:DATA
+        ASSUME  ES:DATA
+        mov     word ptr Extend_Error_Msg,ax     ;
+        mov     dx,offset Extend_Error_Msg       ;
+        call    Display_Interface               ;
+        pop     ds
+        endm                                    ;
 
 ;-----------------------------------------------------------------------------
 

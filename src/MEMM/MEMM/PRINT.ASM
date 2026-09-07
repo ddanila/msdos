@@ -11,29 +11,8 @@ page	58,132
 ;
 ;   Module:   PRINT.ASM - Protected Mode Print Routines
 ;
-;   Version:  0.04
-;
-;   Date:     January 31, 1986
-;
-;   Author:
-;
 ;******************************************************************************
 ;
-;   Change log:
-;
-;     DATE    REVISION			DESCRIPTION
-;   --------  --------	-------------------------------------------------------
-;   01/31/86  Original
-;   05/12/86  A	Cleanup and segment reorganization
-;   06/28/86  0.02	Name changed from MEMM386 to MEMM
-;   07/05/86  0.04	Moved to DCODE segment
-;   07/06/86  0.04	moved data to DDATA segment
-;
-;******************************************************************************
-;
-;   Functional Description:
-;
-;******************************************************************************
 .lfcond 				; list false conditionals
 .386p
 

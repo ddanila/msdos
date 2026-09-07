@@ -11,56 +11,14 @@ page	58,132
 ;
 ;   Module:   VMINST.ASM - Virtual Mode GP fault instruction emulation
 ;
-;   Version:  0.07
-;
-;   Date:     February 11, 1986
-;
-;   Author:
-;
 ;******************************************************************************
 ;
-;   Change log:
-;
-;     DATE    REVISION			DESCRIPTION
-;   --------  --------	-------------------------------------------------------
-;   02/12/86  Original
-;   04/07/86  A-	Added call to LIM emulation routines for all I/O.
-;			Bit Map set up to trap only LIM related ports. SBP.
-;   05/12/86  B 	Cleanup and segment reorganization
-;   05/18/86  C 	Added VM privileged instruction emulation
-;   06/08/86  D 	Added calls to RRTrap.
-;   06/14/86  E 	Changed stack saves from BP, BX, SI to EBP, EBX, ESI
-;   06/15/86  F 	Changed inc [bp.VTFOE+VMTF_EIP] to inc SI in Prefix
-;			Handlers
-;   06/15/86  G 	Added MOVSB and MOVSW for Rash Rule emulation
-;   06/16/86  H 	Added Error Handler interfaces, BugMode conditional
-;			assembly constructs, and Error Handler return logic
-;   06/19/86  0.01	Changed call JumpReal to jmp JumpReal
-;   06/19/86  0.01	Clear TF bit on all INT reflects, but not on emulations.
-;   06/19/86  0.01	CLTS now does a clts for the VM client.
-;   06/27/86  0.02	INT3 emulation now ALLWAYS reflects
-;   06/28/86  0.02	Name change from MEMM386 to MEMM
-;   07/01/86  0.03	Call to IO_Trap instead of LIM_Trap
-;   07/03/86  0.03	Let IO_Trap handle A20 and Return to real logic
-;   07/05/86  0.04	JumpReal in R_CODE
-;   07/06/86  0.04	changed assume to DGROUP
-;   07/10/86  0.05	added MB_Flag check for move block emulator
-;   07/30/86  0.06	removed PortClear reference
-;   08/05/86  0.07	Changed EmHalt to really HLT if user IF=0
-;   07/20/88		Removed debugger codes (pc)
-;
-;******************************************************************************
 ;
 ;   Functional Description:
 ;
 ;   This module contains the routines that handle GP faults fielded from
 ;   Virtual Mode.  The offending instruction is either emulated or we exit
 ;   to the debugger.
-;
-;   NOTE: The current implementation is sufficient for breadboard - see
-;	'to do' notes in various header for holes.  Specifically, the only
-;	override that is handled is REP, and only for INS/OUTS.  Segment
-;	overrides are not yet supported.
 ;
 ;******************************************************************************
 .lfcond 				; list false conditionals

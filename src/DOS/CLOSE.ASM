@@ -1,4 +1,3 @@
-;	SCCSID = @(#)close.asm	1.1 85/04/09
 TITLE	DOS_CLOSE/COMMIT - Internal SFT close and commit call for MSDOS
 NAME	DOS_CLOSE
 ; Internal Close and Commit calls to close a local or NET SFT.
@@ -7,15 +6,6 @@ NAME	DOS_CLOSE
 ;   DOS_COMMIT
 ;   FREE_SFT
 ;   SetSFTTimes
-;
-;   Revision history:
-;
-;	AN000  version 4.00  Jan. 1988
-;	A005   PTM 3718 --- lost clusters when fastopen installed
-;	A011   PTM 4766 --- C2 fastopen problem
-
-;
-; get the appropriate segment definitions
 ;
 .xlist
 include dosseg.asm
@@ -74,17 +64,17 @@ Break <DOS_CLOSE -- CLOSE FILE from SFT>
 ;
 	TEST	BX,sf_isnet
 	JZ	LocalClose
-;	invoke	OWN_SHARE		    ;IFS. IFS owns share ?		;AN000;
-;	JZ	noshare 		    ;IFS. yes				;AN000;
-;	EnterCrit   critDisk		    ;IFS.				;AN000;
-;	CALL	SetSFTTimes		    ;IFS. set time for all SFT		;AN000;
-;	LeaveCrit   critDisk		    ;IFS.				;AN000;
+;	invoke	OWN_SHARE		    ;IFS. IFS owns share ?
+;	JZ	noshare 		    ;IFS. yes
+;	EnterCrit   critDisk		    ;IFS.
+;	CALL	SetSFTTimes		    ;IFS. set time for all SFT
+;	LeaveCrit   critDisk		    ;IFS.
 noshare:
 	CallInstall Net_Close,multnet,6
-;	JC	nomore			    ;IFS. error 			;AN000;
-;	invoke	OWN_SHARE		    ;IFS. IFS owns share ?		;AN000;
-;	JZ	nomore			    ;IFS. yes				;AN000;
-;	invoke	ShareEnd		    ;IFS. remove SFT entry from share	;AN000;
+;	JC	nomore			    ;IFS. error
+;	invoke	OWN_SHARE		    ;IFS. IFS owns share ?
+;	JZ	nomore			    ;IFS. yes
+;	invoke	ShareEnd		    ;IFS. remove SFT entry from share
 nomore:
 	return
 
@@ -100,14 +90,14 @@ LocalClose:
 	CALL	SetSFTTimes
 	CALL	Free_SFT		; dec ref count or mark as busy
 
-	TEST	BX,devid_device        ;FS. device ?				;AN000;
-	JNZ	nofastsk	       ;FS. yes 				;AN000;
-	MOV	CX,ES:[DI.sf_firclus]  ;FS. cx= first cluster			;AN000;
-	OR	CX,CX		       ;FS. cx=0 ?				;AN000;
-	JZ	nofastsk	       ;FS. yes, dont do it			;AN000;
-	LDS	SI,ES:[DI.sf_devptr]   ;FS.					;AN000;
-	MOV	DL,[SI.dpb_drive]      ;FS. dl= drive				;AN000;
-	invoke	FastSeek_Close	       ;FS. invoke fastseek			;AN000;
+	TEST	BX,devid_device        ;FS. device ?
+	JNZ	nofastsk	       ;FS. yes
+	MOV	CX,ES:[DI.sf_firclus]  ;FS. cx= first cluster
+	OR	CX,CX		       ;FS. cx=0 ?
+	JZ	nofastsk	       ;FS. yes, dont do it
+	LDS	SI,ES:[DI.sf_devptr]   ;FS.
+	MOV	DL,[SI.dpb_drive]      ;FS. dl= drive
+	invoke	FastSeek_Close	       ;FS. invoke fastseek
 nofastsk:
 	Context DS
 	SaveReg <AX,BX>
@@ -173,8 +163,8 @@ CLOSE_GO:
 	JNZ	Bye			; attributes do not match
 	JMP	SHORT setattr		;FT.
 nofcb:
-	MOV	AL,[SI].sf_attr 	;FT.					;AN000;
-	MOV	ES:[DI].dir_attr,AL	;FT.					;AN000;
+	MOV	AL,[SI].sf_attr 	;FT.
+	MOV	ES:[DI].dir_attr,AL	;FT.
 setattr:
 	OR	BYTE PTR ES:[DI.dir_attr],attr_archive	;Set archive
 	MOV	AX,WORD PTR [SI.sf_size]
@@ -187,17 +177,17 @@ setattr:
 	MOV	ES:[DI.dir_time],AX	;Set time
 ;; File Tagging
 
-;	MOV	AX,[SI.sf_codepage]	   ;AN000;
+;	MOV	AX,[SI.sf_codepage]
 ;	MOV	ES:[DI.dir_codepg],AX	   ;AN000;Set code page
-;	MOV	AX,[SI.sf_extcluster]	   ;AN000;
+;	MOV	AX,[SI.sf_extcluster]
 ;	MOV	ES:[DI.dir_extcluster],AX  ;AN000;   ;Set XA cluster
-;	MOV	AL,[SI.sf_attr_hi]	   ;AN000;
+;	MOV	AL,[SI.sf_attr_hi]
 ;	MOV	ES:[DI.dir_attr2],AL	   ;AN000;   ;Set high attr
 
 ;; File Tagging
-	TEST	ES:[BX.buf_flags],buf_dirty  ;LB. if already dirty		;AN000;
-	JNZ	yesdirty		  ;LB.	  don't increment dirty count   ;AN000;
-	invoke	INC_DIRTY_COUNT 	  ;LB.					;AN000;
+	TEST	ES:[BX.buf_flags],buf_dirty  ;LB. if already dirty
+	JNZ	yesdirty		  ;LB.	  don't increment dirty count
+	invoke	INC_DIRTY_COUNT 	  ;LB.
 	OR	ES:[BX.buf_flags],buf_dirty ;Buffer dirty
 yesdirty:
 	SaveReg  <DS,SI>
@@ -212,7 +202,7 @@ yesdirty:
 	MOV	ES:[DI.dir_first],CX	  ;AN011; install the zero first cluster
 	MOV	AH,3			  ;AN005; do a delete cache entry
 	MOV	DI,WORD PTR [SI.sf_dirsec]   ;AN005; cx:di = dir sector
-	MOV	CX,WORD PTR [SI.sf_dirsec+2] ;AN005;
+	MOV	CX,WORD PTR [SI.sf_dirsec+2]
 	MOV	DH,[SI.sf_dirpos]	     ;AN005; dh= dir pos
 	JMP	SHORT do_update 	;AN011;F.O.
 do_update2:				;AN011;F.O.
@@ -220,7 +210,7 @@ do_update2:				;AN011;F.O.
 	JZ	do_update		;AN011;F.O. yes
 	MOV	AH,2			;AN011;F.O. delete the old entry
 	XCHG	CX,ES:[DI.dir_first]	;AN011;F.O. install new, report old
-do_update:				  ;AN005;
+do_update:
 	Context DS
 	invoke	FastOpen_Update 	; invoke fastopen
 	POP	DX
@@ -373,14 +363,14 @@ ENDIF
 ;
 LOCAL_COMMIT:
 	EnterCrit   critDisk
-	EnterCrit   critDisk		;PTM.					;AN000;
+	EnterCrit   critDisk		;PTM.
 	call	SetSFTTimes
 	MOV	AX,-1
 	call	CloseEntry
-	PUSHF				;PTM.					;AN000;
-	invoke	DEV_OPEN_SFT		;PTM.  increment device count		;AN000;
-	POPF				;PTM.					;AN000;
-	LeaveCrit CritDisk		;PTM.					;AN000;
+	PUSHF				;PTM.
+	invoke	DEV_OPEN_SFT		;PTM.  increment device count
+	POPF				;PTM.
+	LeaveCrit CritDisk		;PTM.
 	return
 
 EndProc DOS_COMMIT

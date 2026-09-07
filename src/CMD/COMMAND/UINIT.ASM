@@ -1,6 +1,4 @@
  page 80,132
-;	SCCSID = @(#)uinit.asm	4.5 85/12/04
-;	SCCSID = @(#)uinit.asm	4.5 85/12/04
 TITLE	COMMAND Initialization messages
 
 .XCREF
@@ -23,17 +21,17 @@ name	    dw	offset resgroup:sym
      endm
 
 
-ENVIRONMENT	SEGMENT PUBLIC PARA		;AC000;
+ENVIRONMENT	SEGMENT PUBLIC PARA
 	EXTRN	ECOMSPEC:BYTE
 ENVIRONMENT ENDS
 
-TRANCODE	SEGMENT PUBLIC BYTE		;AC000;
+TRANCODE	SEGMENT PUBLIC BYTE
 	extrn	Printf_init:FAR
 	extrn	Triage_Init:FAR
-	extrn	append_parse:FAR		;AN054;
+	extrn	append_parse:FAR
 TranCode    ENDS
 
-INIT		SEGMENT PUBLIC PARA		;AC000;
+INIT		SEGMENT PUBLIC PARA
 
 
 	public	icondev
@@ -58,8 +56,8 @@ INIT		SEGMENT PUBLIC PARA		;AC000;
 	public	EnvMax
 	public	initend
 	public	trnsize
-	public	resetenv			;AC000;
-	public	ext_msg 			;AC000;
+	public	resetenv
+	public	ext_msg
 	public	num_positionals
 	public	internat_info
 	public	parsemes_ptr
@@ -68,14 +66,14 @@ INIT		SEGMENT PUBLIC PARA		;AC000;
 	PUBLIC	oldenv
 	PUBLIC	usedenv
 	PUBLIC	KAUTOBAT			;AN000;  3/3/KK
-	public	eswitch 			;AN018;
-	public	dswitch 			;AN018;
-	public	init_parse			;AN054;
-	public	old_parse_ptr			;AN057;
-	PUBLIC	pars_msg_off			;AN060;
-	PUBLIC	pars_msg_seg			;AN060;
+	public	eswitch
+	public	dswitch
+	public	init_parse
+	public	old_parse_ptr
+	PUBLIC	pars_msg_off
+	PUBLIC	pars_msg_seg
 
-include resmsg.equ				;AC000;
+include resmsg.equ
 
 
 ICONDEV LABEL BYTE
@@ -83,7 +81,7 @@ ICONDEV LABEL BYTE
 		DB	"CON",0,0,0,0,0,0               ; Room for 8 char device
 BADCSPFL	DB	0
 COMSPECT	DB	"/COMMAND.COM",0,0
-AUTOBAT 	DB	0,":\AUTOEXEC.BAT",0,0DH        ;AC027;
+AUTOBAT 	DB	0,":\AUTOEXEC.BAT",0,0DH
 KAUTOBAT	DB	0,":\KAUTOEXE.BAT",0,0DH        ;AC027;  3/3/KK
 
 PRDATTM 	DB	-1				;Init not to prompt for date time
@@ -117,8 +115,8 @@ PARS_MSG_SEG	DW	0				;AN060;  SAVED PARSE ERROR MESSAGE SEGMENT
 
 ;Do not separate the following two words.  Used to call transient PARSE routine
 
-init_parse	label	dword				;AN054;
-init_p		DW	TRANGROUP:APPEND_PARSE		;AN054;
+init_parse	label	dword
+init_p		DW	TRANGROUP:APPEND_PARSE
 initend 	DW	0				;eg segment address of end of init
 
 ;End of data that shouldn't be separated.
@@ -133,20 +131,20 @@ parsemes_ptr	dw	0			;AN000; word to store parse error number
 ;
 ; PARSE BLOCK FOR COMMAND
 ;
-PUBLIC	PARSE_COMMAND				;AN000;
-PUBLIC	COMND1_OUTPUT				;AN000;
-PUBLIC	COMND1_TYPE				;AN000;
-PUBLIC	COMND1_CODE				;AN000;
-PUBLIC	COMND1_SYN				;AN000;
-PUBLIC	COMND1_ADDR				;AN000;
-PUBLIC	COMMAND_F_SYN				;AN000;
-PUBLIC	COMMAND_P_SYN				;AN000;
-PUBLIC	COMMAND_C_SYN				;AN000;
+PUBLIC	PARSE_COMMAND
+PUBLIC	COMND1_OUTPUT
+PUBLIC	COMND1_TYPE
+PUBLIC	COMND1_CODE
+PUBLIC	COMND1_SYN
+PUBLIC	COMND1_ADDR
+PUBLIC	COMMAND_F_SYN
+PUBLIC	COMMAND_P_SYN
+PUBLIC	COMMAND_C_SYN
 PUBLIC	COMMAND_K_SYN
 PUBLIC	COMMAND_Y_SYN
-PUBLIC	COMMAND_D_SYN				;AN000;
-PUBLIC	COMMAND_E_SYN				;AN000;
-PUBLIC	COMMAND_M_SYN				;AN000;
+PUBLIC	COMMAND_D_SYN
+PUBLIC	COMMAND_E_SYN
+PUBLIC	COMMAND_M_SYN
 
 ;
 ;  The following parse control block is used for COMMAND.  This block is
@@ -161,56 +159,56 @@ ENVBIG	EQU	32768				;AN000; maximum environment size
 ENVSML	EQU	160				;AN000; minimum environment size
 
 INTERNAT_INFO	LABEL	BYTE			;AN000; used for country info after parsing is completed
-PARSE_COMMAND	LABEL	BYTE			;AN000;
-		DW	RESGROUP:COMMAND_PARMS	;AN000;
+PARSE_COMMAND	LABEL	BYTE
+		DW	RESGROUP:COMMAND_PARMS
 		DB	0			;AN000; no extra delimiter
 
-COMMAND_PARMS	LABEL	BYTE			;AN000;
+COMMAND_PARMS	LABEL	BYTE
 		DB	0,1			;AN000; 1 positional parm
-		DW	RESGROUP:COMMAND_FILE	;AN000;
+		DW	RESGROUP:COMMAND_FILE
 		DB	8			; 8 switches
-		DW	RESGROUP:COMMAND_SWITCH1 ;AN000;
-		DW	RESGROUP:COMMAND_SWITCH2 ;AN000;
-		DW	RESGROUP:COMMAND_SWITCH3 ;AN000;
-		DW	RESGROUP:COMMAND_SWITCH4 ;AN000;
-		DW	RESGROUP:COMMAND_SWITCH5 ;AN000;
-		DW	RESGROUP:COMMAND_SWITCH6 ;AN000;
+		DW	RESGROUP:COMMAND_SWITCH1
+		DW	RESGROUP:COMMAND_SWITCH2
+		DW	RESGROUP:COMMAND_SWITCH3
+		DW	RESGROUP:COMMAND_SWITCH4
+		DW	RESGROUP:COMMAND_SWITCH5
+		DW	RESGROUP:COMMAND_SWITCH6
 		DW	RESGROUP:COMMAND_SWITCH7
 		DW	RESGROUP:COMMAND_SWITCH8
 		DB	0			;AN000; no keywords
 
-COMMAND_FILE	LABEL	BYTE			;AN000;
+COMMAND_FILE	LABEL	BYTE
 		DW	0201H			;AN000; filespec - optional
 		DW	1			;AN000; capitalize - file table
 		DW	RESGROUP:COMND1_OUTPUT	;AN000; result buffer
-		DW	RESGROUP:NO_VAL 	;AN000;
+		DW	RESGROUP:NO_VAL
 		DB	0			;AN000; no keywords
 
-COMMAND_SWITCH1 LABEL	BYTE			;AN000;
+COMMAND_SWITCH1 LABEL	BYTE
 		DW	0			;AN000; no match flags
 		DW	2			;AN000; capitalize by char table
 		DW	RESGROUP:COMND1_OUTPUT	;AN000; result buffer
-		DW	RESGROUP:NO_VAL 	;AN000;
+		DW	RESGROUP:NO_VAL
 		DB	1			;AN000; 1 keyword
 COMMAND_P_SYN	DB	"/P",0                  ;AN000; /P switch
 
-COMMAND_SWITCH2 LABEL	BYTE			;AN000;
+COMMAND_SWITCH2 LABEL	BYTE
 		DW	0			;AN000; no match flags
 		DW	2			;AN000; capitalize by char table
 		DW	RESGROUP:COMND1_OUTPUT	;AN000; result buffer
-		DW	RESGROUP:NO_VAL 	;AN000;
+		DW	RESGROUP:NO_VAL
 		DB	1			;AN000; 1 keyword
 COMMAND_F_SYN	DB	"/F",0                  ;AN000; /F switch
 
-COMMAND_SWITCH3 LABEL	BYTE			;AN000;
+COMMAND_SWITCH3 LABEL	BYTE
 		DW	0			;AN000; no match flags
 		DW	2			;AN000; capitalize by char table
 		DW	RESGROUP:COMND1_OUTPUT	;AN000; result buffer
-		DW	RESGROUP:NO_VAL 	;AN000;
+		DW	RESGROUP:NO_VAL
 		DB	1			;AN000; 1 keyword
 COMMAND_D_SYN	DB	"/D",0                  ;AN000; /D switch
 
-COMMAND_SWITCH4 LABEL	BYTE			;AN000;
+COMMAND_SWITCH4 LABEL	BYTE
 		DW	8000H			;AN000; numeric value - required
 		DW	0			;AN000; no function flags
 		DW	RESGROUP:COMND1_OUTPUT	;AN000; result buffer
@@ -218,27 +216,27 @@ COMMAND_SWITCH4 LABEL	BYTE			;AN000;
 		DB	1			;AN000; 1 keyword
 COMMAND_E_SYN	DB	"/E",0                  ;AN000; /E switch
 
-COMMAND_E_VAL	LABEL	BYTE			;AN000;
-		DB	1			;AN000;
+COMMAND_E_VAL	LABEL	BYTE
+		DB	1
 		DB	1			;AN000; 1 range
 		DB	1			;AN000; returned if result
 		DD	ENVSML,ENVBIG		;AN000; minimum & maximum value
 		DB	0			;AN000; no numeric values
 		DB	0			;AN000; no string values
 
-COMMAND_SWITCH5 LABEL	BYTE			;AN000;
+COMMAND_SWITCH5 LABEL	BYTE
 		DW	0			;AN000; no match flags
 		DW	2			;AN000; capitalize by char table
 		DW	RESGROUP:COMND1_OUTPUT	;AN000; result buffer
-		DW	RESGROUP:NO_VAL 	;AN000;
+		DW	RESGROUP:NO_VAL
 		DB	1			;AN000; 1 keyword
 COMMAND_C_SYN	DB	"/C",0                  ;AN000; /C switch
 
-COMMAND_SWITCH6 LABEL	BYTE			;AN000;
+COMMAND_SWITCH6 LABEL	BYTE
 		DW	0			;AN000; no match flags
 		DW	2			;AN000; capitalize by char table
 		DW	RESGROUP:COMND1_OUTPUT	;AN000; result buffer
-		DW	RESGROUP:NO_VAL 	;AN000;
+		DW	RESGROUP:NO_VAL
 		DB	1			;AN000; 1 keyword
 COMMAND_M_SYN	DB	"/MSG",0                ;AN000; /MSG switch
 
@@ -258,7 +256,7 @@ COMMAND_SWITCH8 LABEL BYTE
 		DB	1
 COMMAND_Y_SYN	DB	"/Y",0
 
-COMND1_OUTPUT	LABEL	BYTE			;AN000;
+COMND1_OUTPUT	LABEL	BYTE
 COMND1_TYPE	DB	0			;AN000; type
 COMND1_CODE	DB	0			;AN000; return value
 COMND1_SYN	DW	0			;AN000; synonym pointer

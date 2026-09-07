@@ -1,4 +1,3 @@
-;	SCCSID = @(#)util.asm	1.1 85/04/10
 TITLE   UTIL - Handle utilities
 NAME    UTIL
 ;
@@ -10,11 +9,6 @@ NAME    UTIL
 ;   JFNFree         written
 ;   SFNFree         written
 ;
-;   Modification history:
-;
-;       Created: MZ 1 April 1983
-;
-
 .xlist
 ;
 ; get the appropriate segment definitions

@@ -41,11 +41,11 @@ INT_2F_COM	PROC  FAR		;
 	CMP	AH,0ADH 		; TEST THE SUBFUNCTION CALL
 	JNE	I2C_6			; RESERVED FOR THE COM PATH!
 					;
-	CMP	AL,10H			; WGR				       ;AN000;
-	JNE	I2C_0			; WGR				       ;AN000;
-	CALL	CHECK_VALID		; WGR				       ;AN000;
-	PUSH	SI			; WGR				       ;AN000;
-	JMP	I2C_1			; WGR				       ;AN000;
+	CMP	AL,10H			; WGR
+	JNE	I2C_0			; WGR
+	CALL	CHECK_VALID		; WGR
+	PUSH	SI			; WGR
+	JMP	I2C_1			; WGR
 I2C_0:					; WGR
 	CMP	AL,CON_MAX		; TEST IF IT IS ABOVE HIGH
 	JAE	I2C_6			; CON CALL?
@@ -114,46 +114,46 @@ CON_INSTALL	ENDP			;
 ;	AUTHOR: WGR
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-CHECK_VALID	PROC			;				       ;AN000;
-	CMP	CS:CPD_ACTIVE,-1	; see if a code page has been..        ;AN000;
-	JNE	CV_1			; selected?			       ;AN000;
-	CLC				; no..therefore hardware code page..   ;AN000;
-	JMP	CV_4			; okay...exit with carry clear.        ;AN000;
-CV_1:					;				       ;AN000;
-	PUSH	BX			; s				       ;AN000;
-	PUSH	CX			;  a				       ;AN000;
-	PUSH	DX			;   v				       ;AN000;
-	PUSH	DI			;    e				       ;AN000;
-	PUSH	SI			;	r			       ;AN000;
-	PUSH	DS			;	 e			       ;AN000;
-	PUSH	ES			;	  g			       ;AN000;
-	PUSH	CS			;	   s.			       ;AN000;
-	POP	DS			; establish addressibility to data     ;AN000;
-	MOV	CX,CPD_ACTIVE		; use active code page...	       ;AN000;
-	CALL	FIND_CP 		; is the code page prepared?	       ;AN000;
-	JC	CV_3			; no....problem..exit with carry set.  ;AN000;
-	CMP	CX,0			; okay...check if hardware code page?  ;AN000;
-	JNE	CV_2			;				       ;AN000;
-	CLC				; yes...so okay...exit with carry clear;AN000;
-	JMP	CV_3			;				       ;AN000;
-CV_2:					;				       ;AN000;
-	MOV	DL,CS:BYTES_PER_CHAR	; save current box size..	       ;AN000;
-	PUSH	DX			;				       ;AN000;
-	MOV	CS:BYTES_PER_CHAR,8	; check for 8x8 box (>25 line support) ;AN000;
-	CALL	FIND_FONT		; is font size there??		       ;AN000;
-	POP	DX			;				       ;AN000;
-	MOV	CS:BYTES_PER_CHAR,DL	; restore old box size...FIND_FONT...  ;AN000;
-CV_3:					; will have returned..		       ;AN000;
-	POP	ES			; with carry set appropriately	       ;AN000;
-	POP	DS			;				       ;AN000;
-	POP	SI			; restore			       ;AN000;
-	POP	DI			;				       ;AN000;
-	POP	DX			;      registers.		       ;AN000;
-	POP	CX			;				       ;AN000;
-	POP	BX			;				       ;AN000;
-CV_4:					;				       ;AN000;
-	RET				; return.			       ;AN000;
-CHECK_VALID	ENDP			;				       ;AN000;
+CHECK_VALID	PROC			;
+	CMP	CS:CPD_ACTIVE,-1	; see if a code page has been..
+	JNE	CV_1			; selected?
+	CLC				; no..therefore hardware code page..
+	JMP	CV_4			; okay...exit with carry clear.
+CV_1:					;
+	PUSH	BX			; s
+	PUSH	CX			;  a
+	PUSH	DX			;   v
+	PUSH	DI			;    e
+	PUSH	SI			;	r
+	PUSH	DS			;	 e
+	PUSH	ES			;	  g
+	PUSH	CS			;	   s.
+	POP	DS			; establish addressibility to data
+	MOV	CX,CPD_ACTIVE		; use active code page...
+	CALL	FIND_CP 		; is the code page prepared?
+	JC	CV_3			; no....problem..exit with carry set.
+	CMP	CX,0			; okay...check if hardware code page?
+	JNE	CV_2			;
+	CLC				; yes...so okay...exit with carry clear
+	JMP	CV_3			;
+CV_2:					;
+	MOV	DL,CS:BYTES_PER_CHAR	; save current box size..
+	PUSH	DX			;
+	MOV	CS:BYTES_PER_CHAR,8	; check for 8x8 box (>25 line support)
+	CALL	FIND_FONT		; is font size there??
+	POP	DX			;
+	MOV	CS:BYTES_PER_CHAR,DL	; restore old box size...FIND_FONT...
+CV_3:					; will have returned..
+	POP	ES			; with carry set appropriately
+	POP	DS			;
+	POP	SI			; restore
+	POP	DI			;
+	POP	DX			;      registers.
+	POP	CX			;
+	POP	BX			;
+CV_4:					;
+	RET				; return.
+CHECK_VALID	ENDP			;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ;	CON_INVOKE

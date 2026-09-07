@@ -172,8 +172,8 @@ INDEINI LABEL	NEAR
 	EXTRN	GOODLOAD:BYTE	  ; Message saying we loaded OK
 	EXTRN	NO_80386:BYTE	  ; Error message for not running on a model_80
 	EXTRN	WAS_INST:BYTE	  ; Error message for protect mode in use
-	Extrn	Small_Parm:Byte   ; Parm value < 64 and > 0			;an000; dms;
-	Extrn	No_Mem:Byte	  ; Parm value > memory available		;an000; dms;
+	Extrn	Small_Parm:Byte   ; Parm value < 64 and > 0
+	Extrn	No_Mem:Byte	  ; Parm value > memory available
 
 	; These entries are located in external procedures
 
@@ -697,7 +697,7 @@ LEAVEBW:
 	SUB	AX,BUFF_SIZE	      ; Can't use the MOVEBLOCK buffer for  @D0A
 				      ;   XMA memory.  AX = number of K      D0A
 				      ;   available.			     D0A
-	SUB	AX,(1024-640) +128    ; Subtract 128k for the Emulator code	;an000; dms;
+	SUB	AX,(1024-640) +128    ; Subtract 128k for the Emulator code
 	SHR	AX,2		      ; Divide by four to get the number of @D0A
 				      ;   4K blocks			     D0A
 	DEC	AX		      ; Subtract 1.  This converts the	    @P3A
@@ -1268,7 +1268,7 @@ PAGE
 GET_PARMS PROC
 
 	PUSH	DS		; Save DS
-	push	bx		; save bx					;an000; dms;
+	push	bx		; save bx
 
 	LDS	SI,RH.RH0_BPBA	; DS:SI point to all text after "DEVICE="
 				;   in CONFIG.SYS
@@ -1313,55 +1313,55 @@ GET_PARMS_B:			; Now pointing to first delimiter
 
 Get_Parms_Null:
 
-	xor	cx,cx		; set cx to 0					;an000; dms;
+	xor	cx,cx		; set cx to 0
 
 Get_Parms_Found:
 
-	mov	bx,cx		; put cx value in bx				;an000; dms;
+	mov	bx,cx		; put cx value in bx
 
-	cmp	cx,0		; 0 pages requested?				;an000; dms;
-	jne	Get_Parm_Max	; allocate maximum number			;an000; dms;
+	cmp	cx,0		; 0 pages requested?
+	jne	Get_Parm_Max	; allocate maximum number
 		MOV	CS:BUFF_SIZE,0; Store buffer size
 		jmp	Get_Parms_C
 
 Get_Parm_Max:
 
-	cmp	bx,64		; >= 64 pages requested?			;an000; dms;
-	jnb	Get_Parms_64_Pg ; yes - continue				;an000; dms;
-		mov	dx,offset Small_Parm	; Parm < 64 and > 0		;an000; dms;
-		mov	ah,Dispstrg		; Display the welcome message.	;an000; dms;
-		push	ds			; Save DS			;an000; dms;
-		push	cs			;				;an000; dms;
-		pop	ds			; DS:DX points to the message	;an000; dms;
-		int	21h			; Display the message		;an000; dms;
-		pop	ds			; Restore DS			;an000; dms;
-		stc				; flag an error occurred	;an000; dms;
-		jmp	Get_Parms_C		; exit routine			;an000; dms;
+	cmp	bx,64		; >= 64 pages requested?
+	jnb	Get_Parms_64_Pg ; yes - continue
+		mov	dx,offset Small_Parm	; Parm < 64 and > 0
+		mov	ah,Dispstrg		; Display the welcome message.
+		push	ds			; Save DS
+		push	cs			;
+		pop	ds			; DS:DX points to the message
+		int	21h			; Display the message
+		pop	ds			; Restore DS
+		stc				; flag an error occurred
+		jmp	Get_Parms_C		; exit routine
 
 Get_Parms_64_Pg:
 
-	mov	ax,bx		; prepare to adjust to Kb value 		;an000; dms;
-	mov	cx,10h		; 16Kb per page 				;an000; dms;
-	xor	dx,dx		; clear high word				;an000; dms;
-	mul	cx		; get Kb value					;an000; dms;
+	mov	ax,bx		; prepare to adjust to Kb value
+	mov	cx,10h		; 16Kb per page
+	xor	dx,dx		; clear high word
+	mul	cx		; get Kb value
 
-	mov	bx,ax		; store page Kb value in bx			;an000; dms;
+	mov	bx,ax		; store page Kb value in bx
 	add	bx,128		; adjust for emulator code
 
-	mov	ah,88h		; get number of 1k blocks above 1Mb		;an000; dms;
+	mov	ah,88h		; get number of 1k blocks above 1Mb
 	int	15h		;
 
-	sub	ax,bx		; get number of blocks to allocate for extended ;an000; dms;
-	jnc	Get_Parms_Ext	; set extended memory value in buff size	;an000; dms;
+	sub	ax,bx		; get number of blocks to allocate for extended
+	jnc	Get_Parms_Ext	; set extended memory value in buff size
 		mov	dx,offset No_Mem	; not enough memory for parm
-		mov	ah,Dispstrg		; Display the welcome message.	;an000; dms;
-		push	ds			; Save DS			;an000; dms;
-		push	cs			;				;an000; dms;
-		pop	ds			; DS:DX points to the message	;an000; dms;
-		int	21h			; Display the message		;an000; dms;
-		pop	ds			; Restore DS			;an000; dms;
-		stc				; flag an error 		;an000; dms;
-		jmp	Get_Parms_C		; exit routine			;an000; dms;
+		mov	ah,Dispstrg		; Display the welcome message.
+		push	ds			; Save DS
+		push	cs			;
+		pop	ds			; DS:DX points to the message
+		int	21h			; Display the message
+		pop	ds			; Restore DS
+		stc				; flag an error
+		jmp	Get_Parms_C		; exit routine
 
 Get_Parms_Ext:
 
@@ -1369,7 +1369,7 @@ Get_Parms_Ext:
 	clc
 
 GET_PARMS_C:
-	pop	bx		; restore bx					;an000; dms;
+	pop	bx		; restore bx
 	POP	DS		; Restore DS
 
 	RET

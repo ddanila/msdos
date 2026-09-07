@@ -15,7 +15,7 @@
 ;;	 purpose of changing the ASCII-N string to an ASCII-Z string.
 ;;
 ;;****************************************************************************
-page					;;AN000;
+page					;
 ;;****************************************************************************
 ;;
 ;;   GET_DATE: Get the current system date.
@@ -35,24 +35,24 @@ page					;;AN000;
 ;;		 carry flag is set.
 ;;
 ;;****************************************************************************
-GET_DATE	MACRO	VAR_YEAR, VAR_MONTH, VAR_DAY ;;AN000;
+GET_DATE	MACRO	VAR_YEAR, VAR_MONTH, VAR_DAY ;
 
 	MOV	AH,2AH			;;AN000; get time dos interrupt
-	DOSCALL 			;;AN000;
+	DOSCALL 			;
 	MOV	VAR_YEAR, CX		;;AN000; Save the date.
 	MOV	CH,0			;;AN000; Clear the byte
-	MOV	CL,DH			;;AN000;
-	MOV	VAR_MONTH, CX		;;AN000;
-	MOV	CL,DL			;;AN000;
-	MOV	VAR_DAY, CX		;;AN000;
+	MOV	CL,DH			;
+	MOV	VAR_MONTH, CX		;
+	MOV	CL,DL			;
+	MOV	VAR_DAY, CX		;
 	.IF < VAR_YEAR EQ 1980 > AND	;;AN000; See if it is the base year.
 	.IF < DX EQ 0101H>		;;AN000; i.e. 1/1/80
 	   CLC				;;AN000; Yes it is.
-	.ELSE				;;AN000;
-	   STC				;;AN000;
-	.ENDIF				;;AN000;
+	.ELSE				;
+	   STC				;
+	.ENDIF				;
 
-	ENDM				;;AN000;
+	ENDM				;
 ;;****************************************************************************
 ;;
 ;;   GET_TIME: Get current system time.
@@ -70,22 +70,22 @@ GET_DATE	MACRO	VAR_YEAR, VAR_MONTH, VAR_DAY ;;AN000;
 ;;
 ;;
 ;;****************************************************************************
-GET_TIME   MACRO	VAR_HOUR, VAR_MINUTES, VAR_SECONDS ;;AN000;
+GET_TIME   MACRO	VAR_HOUR, VAR_MINUTES, VAR_SECONDS ;
 
 
 	MOV	AH,2CH			;;AN000; get time dos interrupt
-	DOSCALL 			;;AN000;
+	DOSCALL 			;
 
-	MOV	AH, 0			;;AN000;
-	MOV	AL, CH			;;AN000;
-	MOV	VAR_HOUR, AX		;;AN000;
-	MOV	AL, CL			;;AN000;
-	MOV	VAR_MINUTES, AX 	;;AN000;
-	MOV	AL, DH			;;AN000;
-	MOV	VAR_SECONDS, AX 	;;AN000;
+	MOV	AH, 0			;
+	MOV	AL, CH			;
+	MOV	VAR_HOUR, AX		;
+	MOV	AL, CL			;
+	MOV	VAR_MINUTES, AX 	;
+	MOV	AL, DH			;
+	MOV	VAR_SECONDS, AX 	;
 
 
-	ENDM				;;AN000;
+	ENDM				;
 ;;************************************************************************;;
 ;;   SET_DATE: Sets the system date
 ;;
@@ -102,20 +102,20 @@ GET_TIME   MACRO	VAR_HOUR, VAR_MINUTES, VAR_SECONDS ;;AN000;
 ;;	 If the date is not valid, the carry flag is set.
 ;;
 ;;************************************************************;;
-SET_DATE   MACRO	VAR_YEAR, VAR_MONTH, VAR_DAY ;;AN000;
-	MOV	CX, VAR_YEAR		;;AN000;
-	MOV	AX, VAR_MONTH		;;AN000;
-	MOV	DH, AL			;;AN000;
-	MOV	AX, VAR_DAY		;;AN000;
-	MOV	DL, AL			;;AN000;
+SET_DATE   MACRO	VAR_YEAR, VAR_MONTH, VAR_DAY ;
+	MOV	CX, VAR_YEAR		;
+	MOV	AX, VAR_MONTH		;
+	MOV	DH, AL			;
+	MOV	AX, VAR_DAY		;
+	MOV	DL, AL			;
 	MOV	AH,2BH			;;AN000; set date dos interrupt
-	DOSCALL 			;;AN000;
-	.IF < ZERO AL > 		;;AN000;
-	   CLC				;;AN000;
-	.ELSE				;;AN000;
-	   STC				;;AN000;
-	.ENDIF				;;AN000;
-	ENDM				;;AN000;
+	DOSCALL 			;
+	.IF < ZERO AL > 		;
+	   CLC				;
+	.ELSE				;
+	   STC				;
+	.ENDIF				;
+	ENDM				;
 ;;****************************************************************************
 ;;
 ;;   SET_TIME: Sets the current system time.
@@ -134,23 +134,23 @@ SET_DATE   MACRO	VAR_YEAR, VAR_MONTH, VAR_DAY ;;AN000;
 ;;		 time.	If the time is not valid, the carry flag will be set.
 ;;
 ;;****************************************************************************
-SET_TIME   MACRO	VAR_HOUR, VAR_MINUTES, VAR_SECONDS ;;AN000;
+SET_TIME   MACRO	VAR_HOUR, VAR_MINUTES, VAR_SECONDS ;
 
-	MOV	AX, VAR_HOUR		;;AN000;
-	MOV	CH, AL			;;AN000;
-	MOV	AX, VAR_MINUTES 	;;AN000;
-	MOV	CL, AL			;;AN000;
-	MOV	AX, VAR_SECONDS 	;;AN000;
-	MOV	DH, AL			;;AN000;
+	MOV	AX, VAR_HOUR		;
+	MOV	CH, AL			;
+	MOV	AX, VAR_MINUTES 	;
+	MOV	CL, AL			;
+	MOV	AX, VAR_SECONDS 	;
+	MOV	DH, AL			;
 	MOV	DL, 0			;;AN000; Hundredths of seconds is 0
 	MOV	AH,2DH			;;AN000; set time dos interrupt
-	DOSCALL 			;;AN000;
-	.IF < ZERO AL > 		;;AN000;
-	   CLC				;;AN000;
-	.ELSE				;;AN000;
-	   STC				;;AN000;
-	.ENDIF				;;AN000;
-	ENDM				;;AN000;
+	DOSCALL 			;
+	.IF < ZERO AL > 		;
+	   CLC				;
+	.ELSE				;
+	   STC				;
+	.ENDIF				;
+	ENDM				;
 ;;****************************************************************************
 ;;
 ;;   CHECK_TIME_CHANGE: Check if user entered time is different from the
@@ -173,22 +173,22 @@ SET_TIME   MACRO	VAR_HOUR, VAR_MINUTES, VAR_SECONDS ;;AN000;
 ;;		 flag is updated as specified above.
 ;;
 ;;************************************************************************;;
-CHECK_TIME_CHANGE	MACRO	VAR_U_HOUR, VAR_U_MIN, VAR_U_SEC, VAR_S_HOUR, VAR_S_MIN, VAR_S_SEC ;;AN000;
-	 LOCAL	   EXIT_CHECK_TIME_CHANGE ;;AN000;
-	 MOV  AX, VAR_S_HOUR		;;AN000;
-	.IF < VAR_U_HOUR EQ AX >	;;AN000;
-	      MOV  AX, VAR_S_MIN	;;AN000;
-	     .IF < VAR_U_MIN  EQ AX >	;;AN000;
-		   MOV	AX, VAR_S_SEC	;;AN000;
-		  .IF < VAR_U_SEC  EQ AX > ;;AN000;
-		       CLC		;;AN000;
-		       JMP   EXIT_CHECK_TIME_CHANGE;AN000;
-		   .ENDIF		;;AN000;
-	      .ENDIF			;;AN000;
-	 .ENDIF 			;;AN000;
-	 STC				;;AN000;
-EXIT_CHECK_TIME_CHANGE: 		;;AN000;
-	ENDM					;;AN000;
+CHECK_TIME_CHANGE	MACRO	VAR_U_HOUR, VAR_U_MIN, VAR_U_SEC, VAR_S_HOUR, VAR_S_MIN, VAR_S_SEC ;
+	 LOCAL	   EXIT_CHECK_TIME_CHANGE ;
+	 MOV  AX, VAR_S_HOUR		;
+	.IF < VAR_U_HOUR EQ AX >	;
+	      MOV  AX, VAR_S_MIN	;
+	     .IF < VAR_U_MIN  EQ AX >	;
+		   MOV	AX, VAR_S_SEC	;
+		  .IF < VAR_U_SEC  EQ AX > ;
+		       CLC		;
+		       JMP   EXIT_CHECK_TIME_CHANGE
+		   .ENDIF		;
+	      .ENDIF			;
+	 .ENDIF 			;
+	 STC				;
+EXIT_CHECK_TIME_CHANGE: 		;
+	ENDM					;
 ;;****************************************************************************
 ;;
 ;;   CHECK_DATE_CHANGE: Check if user entered date is different from the
@@ -211,22 +211,22 @@ EXIT_CHECK_TIME_CHANGE: 		;;AN000;
 ;;		 flag is updated as specified above.
 ;;
 ;;************************************************************************;;
-CHECK_DATE_CHANGE	MACRO	VAR_U_YEAR, VAR_U_MONTH, VAR_U_DAY, VAR_S_YEAR, VAR_S_MONTH, VAR_S_DAY ;;AN000;
-	 LOCAL	   EXIT_CHECK_DATE_CHANGE	;;AN000;
-	 MOV  AX, VAR_S_YEAR			;;AN000;
-	.IF < VAR_U_YEAR  EQ AX >		;;AN000;
-	      MOV  AX, VAR_S_MONTH		;;AN000;
-	      .IF < VAR_U_MONTH EQ AX > 	;;AN000;
-		   MOV	AX, VAR_S_DAY		;;AN000;
-		   .IF < VAR_U_DAY   EQ AX >	;;AN000;
-		       CLC			;;AN000;
-		       JMP   EXIT_CHECK_DATE_CHANGE ;;AN000;
-		   .ENDIF			;;AN000;
-	      .ENDIF				;;AN000;
-	 .ENDIF 				;;AN000;
-	STC					;;AN000;
-EXIT_CHECK_DATE_CHANGE: 			;;AN000;
-	ENDM					;;AN000;
+CHECK_DATE_CHANGE	MACRO	VAR_U_YEAR, VAR_U_MONTH, VAR_U_DAY, VAR_S_YEAR, VAR_S_MONTH, VAR_S_DAY ;
+	 LOCAL	   EXIT_CHECK_DATE_CHANGE	;
+	 MOV  AX, VAR_S_YEAR			;
+	.IF < VAR_U_YEAR  EQ AX >		;
+	      MOV  AX, VAR_S_MONTH		;
+	      .IF < VAR_U_MONTH EQ AX > 	;
+		   MOV	AX, VAR_S_DAY		;
+		   .IF < VAR_U_DAY   EQ AX >	;
+		       CLC			;
+		       JMP   EXIT_CHECK_DATE_CHANGE ;
+		   .ENDIF			;
+	      .ENDIF				;
+	 .ENDIF 				;
+	STC					;
+EXIT_CHECK_DATE_CHANGE: 			;
+	ENDM					;
 ;;****************************************************************************
 ;;
 ;;   SET_FILE_DATE_TIME:  Set a files date and time.
@@ -269,43 +269,43 @@ EXIT_CHECK_DATE_CHANGE: 			;;AN000;
 ;;		 d - 1 - 31
 ;;
 ;;****************************************************************************
-SET_FILE_DATE_TIME	MACRO	FILE_HANDLE, VAR_HOUR, VAR_MINUTES, VAR_SECONDS, VAR_YEAR, VAR_MONTH, VAR_DAY ;;AN000;
-    CALL HOOK_INT_24				;;AN000;
+SET_FILE_DATE_TIME	MACRO	FILE_HANDLE, VAR_HOUR, VAR_MINUTES, VAR_SECONDS, VAR_YEAR, VAR_MONTH, VAR_DAY ;
+    CALL HOOK_INT_24				;
 	;;
 	;; Handle the file's time first
 	;;
 	MOV	BX, VAR_SECONDS 	;;AN000; Get the number of seconds
 	SHR	BX, 1			;;AN000; Need the number of 2 seconds
 	MOV	AX, VAR_MINUTES 	;;AN000; Get the number of minutes
-	MOV	CL, 5			;;AN000;
+	MOV	CL, 5			;
 	SHL	AX, CL			;;AN000; Least significant bit #5
-	OR	BX, AX			;;AN000;
+	OR	BX, AX			;
 	MOV	AX, VAR_HOUR		;;AN000; Get the number of hours
-	XCHG	AH, AL			;;AN000;
-	MOV	CL, 3			;;AN000;
+	XCHG	AH, AL			;
+	MOV	CL, 3			;
 	SHL	AX, CL			;;AN000; Put hours at bit #11
-	OR	BX, AX			;;AN000;
+	OR	BX, AX			;
 	;;
 	;; Handle the file's date now
 	;;
 	MOV	DX, VAR_DAY		;;AN000; Get the day.
-	MOV	AX, VAR_MONTH		;;AN000;
-	MOV	CL, 5			;;AN000;
+	MOV	AX, VAR_MONTH		;
+	MOV	CL, 5			;
 	SHL	AX, CL			;;AN000; Least significant month bit #5
-	OR	DX, AX			;;AN000;
+	OR	DX, AX			;
 	MOV	AX, VAR_YEAR		;;AN000; Get the year (1980 - 2099)
 	SUB	AX, 1980		;;AN000; Put in the range 0 - 119
-	XCHG	AL, AH			;;AN000;
-	SHL	AX, 1			;;AN000;
-	OR	DX, AX			;;AN000;
+	XCHG	AL, AH			;
+	SHL	AX, 1			;
+	OR	DX, AX			;
 
-	MOV	CX, BX			;;AN000;
-	MOV	BX, FILE_HANDLE 	;;AN000;
-	MOV	AX, 5701H		;;AN000;
-	DOSCALL 			;;AN000;
-	CALL  RESTORE_INT_24		;;AN000;
+	MOV	CX, BX			;
+	MOV	BX, FILE_HANDLE 	;
+	MOV	AX, 5701H		;
+	DOSCALL 			;
+	CALL  RESTORE_INT_24		;
 
-	ENDM				;;AN000;
+	ENDM				;
 ;;************************************************************************;;
 ;;
 ;;   CHECK_CLOCK:  Check if the real time clock is operating.
@@ -329,17 +329,17 @@ SET_FILE_DATE_TIME	MACRO	FILE_HANDLE, VAR_HOUR, VAR_MINUTES, VAR_SECONDS, VAR_YE
 ;;	 non-zero on return.
 ;;
 ;;****************************************************************************
-CHECK_CLOCK	MACRO		;;AN000;
+CHECK_CLOCK	MACRO		;
 	MOV	CX, 0		;;AN000; Zero the registers for later comparison
-	MOV	DX, 0		;;AN000;
-	MOV	AH, 02		;;AN000;
+	MOV	DX, 0		;
+	MOV	AH, 02		;
 	INT	1AH		;;AN000; Time of day service routine
 	.IF < ZERO CX > AND	;;AN000; If CX and DH are zero, clock is not there.
-	.IF < ZERO DH > 	;;AN000;
-	   STC			;;AN000;
-	.ELSE			;;AN000;
+	.IF < ZERO DH > 	;
+	   STC			;
+	.ELSE			;
 	   CLC			;;AN000; The clock is there!
-	.ENDIF			;;AN000;
+	.ENDIF			;
 
-	ENDM			;;AN000;
-INCLUDE  MACROS5.INC		;;AN000;
+	ENDM			;
+INCLUDE  MACROS5.INC		;

@@ -1,9 +1,3 @@
-;       SCCSID = @(#)mstable.asm        1.3 85/07/25
-;       Revision history:
-;         A000   version 4.0  Jan. 1988
-;         A001   DCR 486 - Share installation for >32mb drives
-;         A006   DCR 503 - fake version for IBMCACHE
-;         A008   PTM 4070 - fake version for MS WINDOWS
 .xlist
 .xcref
 include dosseg.asm
@@ -170,9 +164,9 @@ ERR_TABLE_21    LABEL   BYTE
     ErrTab  Invalid_Parameter,      BadFmt,     User,       Unk
     ErrTab  FAIL_I24,               Unk,        Abort,      Unk
     ErrTab  Sharing_buffer_exceeded,OutRes,     Abort,      Mem
-    ErrTab  Handle_EOF,             OutRes,     Abort,      Unk     ;AN000;
-    ErrTab  Handle_DISK_FULL,       OutRes,     Abort,      Unk     ;AN000;
-    ErrTab  sys_comp_not_loaded,    Unk,        Abort,      Disk    ;AN001;
+    ErrTab  Handle_EOF,             OutRes,     Abort,      Unk
+    ErrTab  Handle_DISK_FULL,       OutRes,     Abort,      Unk
+    ErrTab  sys_comp_not_loaded,    Unk,        Abort,      Disk
     DB      0FFh,                   0FFH,       0FFH,       0FFh
 
 ;
@@ -406,10 +400,10 @@ VAL1    =       ($-DISPATCH)/2 - 1
         short_addr  $GetSetCdPg                     ; 102    66
         short_addr  $ExtHandle                      ; 103    67
         short_addr  $Commit                         ; 104    68
-        short_addr  $GSetMediaID                    ; 105    69   ;AN000;
-        short_addr  $Commit                         ; 106    6A   ;AN000;
-        short_addr  $IFS_IOCTL                      ; 107    6B   ;AN000;
-        short_addr  $Extended_Open                  ; 108    6C   ;AN000;
+        short_addr  $GSetMediaID                    ; 105    69
+        short_addr  $Commit                         ; 106    6A
+        short_addr  $IFS_IOCTL                      ; 107    6B
+        short_addr  $Extended_Open                  ; 108    6C
 ;
 VAL2    =       ($-DISPATCH)/2 - 1
 PUBLIC DOS_DISPATCH_TABLE_END
@@ -468,12 +462,12 @@ DOSTable    LABEL   WORD
         Short_addr  $CLOSE              ;   39  $CLOSE        DOS 3.3
         Short_addr  NLS_LSEEK           ;   40  NLS_LSEEK     DOS 3.3
         Short_addr  $READ               ;   41  $READ         DOS 3.3
-        Short_addr  FastInit            ;   42  FastInit      DOS 3.4  ;AN000;
+        Short_addr  FastInit            ;   42  FastInit      DOS 3.4
         Short_addr  NLS_IOCTL           ;   43  NLS_IOCTL     DOS 3.3
         Short_addr  GetDevList          ;   44  GetDevList    DOS 3.3
         Short_addr  NLS_GETEXT          ;   45  NLS_GETEXT    DOS 3.3
-        Short_addr  MSG_RETRIEVAL       ;   46  MSG_RETRIEVAL DOS 4.0  ;AN000;
-        Short_addr  Fake_Version        ;   47  Fake_Version  DOS 4.0  ;AN006;
+        Short_addr  MSG_RETRIEVAL       ;   46  MSG_RETRIEVAL DOS 4.0
+        Short_addr  Fake_Version        ;   47  Fake_Version  DOS 4.0
         Short_addr  DOS_HMA_RELOCATE    ;   48  internal SYSINIT callback
         Short_addr  DOSGetVersionTable  ;   49  SETVER resident table
         Short_addr  DOS_HMA_PREPARE     ;   50  reserve HMA before final tables
@@ -500,14 +494,13 @@ TABLE SEGMENT BYTE PUBLIC 'TABLE'
 ; as IBM-DOS and MS-DOS.
 ;
 
-        I_AM    InterChar, byte         ; Interim character flag ( 1= interim)  ;AN000;
-                                                                                ;AN000;
+        I_AM    InterChar, byte         ; Interim character flag ( 1= interim)
 ;------- NOTE: NEXT TWO BYTES SOMETIMES USED AS A WORD !! ---------------------
-DUMMY   LABEL   WORD                                                            ;AN000;
-        PUBLIC  InterCon                ; Console in Interim mode ( 1= interim) ;AN000;
-InterCon        db      0                                                       ;AN000;
-        PUBLIC  SaveCurFlg              ; Print, do not advance cursor flag     ;AN000;
-SaveCurFlg      db      0                                                       ;AN000;
+DUMMY   LABEL   WORD
+        PUBLIC  InterCon                ; Console in Interim mode ( 1= interim)
+InterCon        db      0
+        PUBLIC  SaveCurFlg              ; Print, do not advance cursor flag
+SaveCurFlg      db      0
 ;-----------------------------------------End of Korean support  2/11/KK
 
 
@@ -570,8 +563,8 @@ FastOpenTable  label  byte
 ; DOS 3.3 F.C. 6/12/86
       PUBLIC   FastFlg                  ;AN000; flags
 FastFlg        label  byte              ;AN000; don't change the following order
-        I_am   FastOpenFlg,BYTE,<0>     ;AN000;
-        I_am   FastSeekFlg,BYTE,<0>     ;AN000;
+        I_am   FastOpenFlg,BYTE,<0>
+        I_am   FastSeekFlg,BYTE,<0>
 
        PUBLIC   FastOpen_Ext_Info
 
@@ -616,7 +609,7 @@ DOS_TEMP         label  word
 FAKE_STACK_2F   dw   14 dup (0)          ; 12 register temporary storage
 
        PUBLIC   Hash_Temp                ;AN000; temporary word
-Hash_Temp        label  word             ;AN000;
+Hash_Temp        label  word
                 dw    4 dup (0)          ;AN000; temporary hash table during config.sys
 
       PUBLIC   SCAN_FLAG                 ; flag to indicate key ALT_Q
@@ -633,87 +626,87 @@ FETCHI_TAG     label  word               ; TAG to make DOS 3.3 work
                dw     0                  ; must be 22642
 ;;; The above  2 words must be adjacent for IBMDOS reasons
 ; DOS 3.3 F.C. 6/12/86
-      PUBLIC   MSG_EXTERROR              ; for system message addr              ;AN000;
-MSG_EXTERROR   label  DWORD                                                     ;AN000;
-               dd     0                  ; for extended error                   ;AN000;
-               dd     0                  ; for parser                           ;AN000;
-               dd     0                  ; for critical errror                  ;AN000;
-               dd     0                  ; for IFS                              ;AN000;
-               dd     0                  ; for code reduction                   ;AN000;
+      PUBLIC   MSG_EXTERROR              ; for system message addr
+MSG_EXTERROR   label  DWORD
+               dd     0                  ; for extended error
+               dd     0                  ; for parser
+               dd     0                  ; for critical errror
+               dd     0                  ; for IFS
+               dd     0                  ; for code reduction
 
-      PUBLIC   SEQ_SECTOR                ; last sector read                     ;AN000;
-SEQ_SECTOR     label  DWORD                                                     ;AN000;
-               dd     -1                                                        ;AN000;
+      PUBLIC   SEQ_SECTOR                ; last sector read
+SEQ_SECTOR     label  DWORD
+               dd     -1
 
-;     I_am     XA_ES,WORD                ; for extended find                    ;AN000;
-;     I_am     XA_BP,WORD                ; for extended find                    ;AN000;
-;     I_am     XA_handle,WORD            ; for get/set EA                       ;AN000;
-      I_am     XA_type,BYTE              ; for get/set EA                       ;AN000;
-;     I_am     XA_device,BYTE            ; for get/set EA                       ;AN000;
-      I_am     XA_from,BYTE              ; for get/set EA                       ;AN000;
-;     I_am     XA_VAR,WORD               ; for get/set EA                       ;AN000;
-;     I_am     XA_TEMP,WORD              ; for get/set EA                       ;AN000;
-;     I_am     XA_TEMP2,WORD             ; for get/set EA                       ;AN000;
+;     I_am     XA_ES,WORD                ; for extended find
+;     I_am     XA_BP,WORD                ; for extended find
+;     I_am     XA_handle,WORD            ; for get/set EA
+      I_am     XA_type,BYTE              ; for get/set EA
+;     I_am     XA_device,BYTE            ; for get/set EA
+      I_am     XA_from,BYTE              ; for get/set EA
+;     I_am     XA_VAR,WORD               ; for get/set EA
+;     I_am     XA_TEMP,WORD              ; for get/set EA
+;     I_am     XA_TEMP2,WORD             ; for get/set EA
 ;
 
-;     I_am     MAX_EA_SIZE,WORD,<29>     ; max EA list size                     ;AN000;
-;     I_am     MAX_EANAME_SIZE,WORD,<20> ; max EA name list size                ;AN000;
-;     I_am     XA_COUNT,WORD,<2>         ; number of EA entries                 ;AN000;
+;     I_am     MAX_EA_SIZE,WORD,<29>     ; max EA list size
+;     I_am     MAX_EANAME_SIZE,WORD,<20> ; max EA name list size
+;     I_am     XA_COUNT,WORD,<2>         ; number of EA entries
 
 
-;     PUBLIC   XA_TABLE                       ; for get/set EA                  ;AN000;
+;     PUBLIC   XA_TABLE                       ; for get/set EA
 ;
-;XA_TABLE       label  byte                                                      ;AN000;
-;              db EAISBINARY                                       ;Code Page   ;AN000;
-;              dw EASYSTEM                                                      ;AN000;
-;              db 0,2                                                           ;AN000;
-;              dw 2                                                             ;AN000;
-;              db 'CP'                                                          ;AN000;
+;XA_TABLE       label  byte
+;              db EAISBINARY                                       ;Code Page
+;              dw EASYSTEM
+;              db 0,2
+;              dw 2
+;              db 'CP'
 ;
-;              db EAISBINARY                                       ;File Type   ;AN000;
-;              dw EASYSTEM                                                      ;AN000;
-;              db 0,8                                                           ;AN000;
-;              dw 1                                                             ;AN000;
-;              db 'FILETYPE'                                                    ;AN000;
+;              db EAISBINARY                                       ;File Type
+;              dw EASYSTEM
+;              db 0,8
+;              dw 1
+;              db 'FILETYPE'
 ;
 
-;         PUBLIC XA_PACKET                                                            ;AN000;
-;XA_PACKET        label byte                                                           ;AN000;
-;IF  DBCS                                                                             ;AN000;
-;                dw   18                                                              ;AN000;
-;                db   18 dup(0)                                                       ;AN000;
-;         PUBLIC DBCS_PACKET                                                          ;AN000;
-;DBCS_PACKET      label byte                                                           ;AN000;
+;         PUBLIC XA_PACKET
+;XA_PACKET        label byte
+;IF  DBCS
+;                dw   18
+;                db   18 dup(0)
+;         PUBLIC DBCS_PACKET
+;DBCS_PACKET      label byte
 ;                db   5 dup(0)
 ;ELSE
-;                dw   2, 0                       ; get/set device code page           ;AN000;
+;                dw   2, 0                       ; get/set device code page
 ;ENDIF
-        I_am    CurHashEntry,DWORD               ; current hash buffer entry          ;AN000;
-;;      I_am    ACT_PAGE,WORD,<-1>               ;BL ; active EMS page                       ;AN000;
-        I_am    SC_SECTOR_SIZE,WORD              ; sector size for SC                 ;AN000;
-        I_am    SC_DRIVE,BYTE                    ; drive # for secondary cache        ;AN000;
-        I_am    CurSC_DRIVE,BYTE,<-1>            ; current SC drive                   ;AN000;
-        I_am    CurSC_SECTOR,DWORD               ; current SC starting sector         ;AN000;
-        I_am    SC_STATUS,WORD,<0>               ; SC status word                     ;AN000;
-        I_am    SC_FLAG,BYTE,<0>                 ; SC flag                            ;AN000;
-        I_am    IFS_DRIVER_ERR,WORD,<0>          ; driver error for IFS               ;AN000;
+        I_am    CurHashEntry,DWORD               ; current hash buffer entry
+;;      I_am    ACT_PAGE,WORD,<-1>               ;BL ; active EMS page
+        I_am    SC_SECTOR_SIZE,WORD              ; sector size for SC
+        I_am    SC_DRIVE,BYTE                    ; drive # for secondary cache
+        I_am    CurSC_DRIVE,BYTE,<-1>            ; current SC drive
+        I_am    CurSC_SECTOR,DWORD               ; current SC starting sector
+        I_am    SC_STATUS,WORD,<0>               ; SC status word
+        I_am    SC_FLAG,BYTE,<0>                 ; SC flag
+        I_am    IFS_DRIVER_ERR,WORD,<0>          ; driver error for IFS
 
-          PUBLIC NO_NAME_ID                                                           ;AN000;
-NO_NAME_ID       label byte                                                           ;AN000;
-                 db   'NO NAME    '              ; null media id                      ;AN000;
+          PUBLIC NO_NAME_ID
+NO_NAME_ID       label byte
+                 db   'NO NAME    '              ; null media id
 
-          PUBLIC SWAP_AREA_TABLE                                                      ;AN000;
-SWAP_AREA_TABLE  label byte                                                           ;AN000;
-        I_am    NUM_SWAP_AREA,WORD,<2>           ; number of swap areas               ;AN000;
-        I_am    SWAP_IN_DOS,DWORD                ; swap in dos area                   ;AN000;
-        I_am    SWAP_IN_DOS_LEN,WORD             ; swap in dos area length            ;AN000;
-        I_am    SWAP_ALWAYS_AREA,DWORD           ; swap always area                   ;AN000;
-        I_am    SWAP_ALWAYS_AREA_LEN,WORD        ; swap always area length            ;AN000;
-        I_am    IFSFUNC_SWAP_IN_DOS,DWORD        ; ifsfunc swap in dos area           ;AN000;
-        I_am    IFSFUNC_SWAP_IN_DOS_LEN,WORD     ; ifsfunc swap in dos area length    ;AN000;
+          PUBLIC SWAP_AREA_TABLE
+SWAP_AREA_TABLE  label byte
+        I_am    NUM_SWAP_AREA,WORD,<2>           ; number of swap areas
+        I_am    SWAP_IN_DOS,DWORD                ; swap in dos area
+        I_am    SWAP_IN_DOS_LEN,WORD             ; swap in dos area length
+        I_am    SWAP_ALWAYS_AREA,DWORD           ; swap always area
+        I_am    SWAP_ALWAYS_AREA_LEN,WORD        ; swap always area length
+        I_am    IFSFUNC_SWAP_IN_DOS,DWORD        ; ifsfunc swap in dos area
+        I_am    IFSFUNC_SWAP_IN_DOS_LEN,WORD     ; ifsfunc swap in dos area length
 
-        I_am    SWAP_AREA_LEN,WORD               ; swap area length                   ;AN000;
-        I_am    FIRST_BUFF_ADDR,WORD             ; first buffer address               ;AN000;
+        I_am    SWAP_AREA_LEN,WORD               ; swap area length
+        I_am    FIRST_BUFF_ADDR,WORD             ; first buffer address
         I_am    SPECIAL_VERSION,WORD,<0>         ;AN006; used by INT 2F 47H
         I_am    FAKE_COUNT,<255>                 ;AN008; fake version count
 

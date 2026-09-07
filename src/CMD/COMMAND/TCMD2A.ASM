@@ -1,6 +1,4 @@
  page 80,132
-;	SCCSID = @(#)tcmd2a.asm 4.1 85/06/25
-;	SCCSID = @(#)tcmd2a.asm 4.1 85/06/25
 TITLE	PART5 COMMAND Transient routines.
 
 	INCLUDE comsw.asm
@@ -15,36 +13,36 @@ TITLE	PART5 COMMAND Transient routines.
 .cref
 
 
-CODERES 	SEGMENT PUBLIC BYTE	;AC000;
+CODERES 	SEGMENT PUBLIC BYTE
 CODERES 	ENDS
 
-DATARES 	SEGMENT PUBLIC BYTE	;AC000;
+DATARES 	SEGMENT PUBLIC BYTE
 DATARES 	ENDS
 
-TRANDATA	SEGMENT PUBLIC BYTE	;AC000;
+TRANDATA	SEGMENT PUBLIC BYTE
 	EXTRN	arg_buf_ptr:word
-	EXTRN	BadCurDrv:byte		;AC000;
+	EXTRN	BadCurDrv:byte
 	EXTRN	clsstring:byte
 	EXTRN	dback_ptr:word
-	EXTRN	display_ioctl:word	;AN000;
-	EXTRN	display_width:word	;AN000;
-	EXTRN	Extend_buf_ptr:word	;AN049;
-	EXTRN	linperpag:word		;AN000;
-	EXTRN	msg_disp_class:byte	;AN049;
+	EXTRN	display_ioctl:word
+	EXTRN	display_width:word
+	EXTRN	Extend_buf_ptr:word
+	EXTRN	linperpag:word
+	EXTRN	msg_disp_class:byte
 	EXTRN	nulpath_ptr:word
 	EXTRN	prompt_table:word
-	EXTRN	string_buf_ptr:word	;AC000;
+	EXTRN	string_buf_ptr:word
 	EXTRN	vermes_ptr:word
 TRANDATA	ENDS
 
-TRANSPACE	SEGMENT PUBLIC BYTE	;AC000;
+TRANSPACE	SEGMENT PUBLIC BYTE
 	EXTRN	Arg_Buf:byte
 	EXTRN	bwdbuf:byte
 	EXTRN	curdrv:byte
 	EXTRN	dirchar:byte
 	EXTRN	major_ver_num:word
 	EXTRN	minor_ver_num:word
-	EXTRN	srcxname:byte		;AN049;
+	EXTRN	srcxname:byte
 	EXTRN	string_ptr_2:word
 TRANSPACE	ENDS
 
@@ -54,12 +52,12 @@ ASSUME	CS:TRANGROUP,DS:NOTHING,ES:NOTHING,SS:NOTHING
 
 ;---------------
 
-TRANSPACE	SEGMENT PUBLIC BYTE	;AC000;
+TRANSPACE	SEGMENT PUBLIC BYTE
 	EXTRN	arg:byte		; the arg structure!
 transpace	ends
 ;---------------
 
-	EXTRN	cerror:near		;AN049;
+	EXTRN	cerror:near
 	EXTRN	crlf2:near
 	EXTRN	drvbad:near
 	EXTRN	std_printf:near
@@ -217,7 +215,7 @@ print_char:
 	push	dx
 	mov	dl,al				;AC000; Get char into al
 	mov	ah,Std_CON_output		;AC000; print the char to stdout
-	int	int_command			;AC000;
+	int	int_command
 	pop	dx
 	pop	di
 	pop	es
@@ -332,7 +330,7 @@ PATH_NORM:
 	invoke	PGetarg 			; Pre scan for arguments
 	jz	disppath			; Print the current path
 	cmp	al,semicolon			;AC049; NUL path argument?
-	jnz	pathslp 			;AC049;
+	jnz	pathslp
 	inc	si				;AN049; point past semicolon
 	jmp	short scan_white		;AC049; Yes - make sure nothing else on line
 
@@ -346,7 +344,7 @@ pathslp:					; Get the user specified path
 	stosb					;AC049; Yes - store the first byte
 	lodsb					;skip second byte of DBCS
 
-path_hold:					;AN049;
+path_hold:
 	stosb					;AC049; Store a byte in the PATH buffer
 	jmp	short pathslp			;continue parsing
 
@@ -369,7 +367,7 @@ scan_white:					;AN049; make sure were at EOL
 	mov	dx,offset TranGroup:Extend_Buf_ptr ;AN049; no - set up error message
 	mov	Extend_Buf_ptr,MoreArgs_ptr	;AN049; get "Too many parameters" message number
 	mov	msg_disp_class,parse_msg_class	;AN049; set up parse error msg class
-	jmp	cerror				;AN049;
+	jmp	cerror
 
 path_eol:					;AN049; Parsing was clean
 	xor	al,al				;AN049; null terminate the PATH
@@ -393,7 +391,7 @@ got_paths:					;AN049; we're finished
 	return
 
 disppath:
-	invoke	find_path			;AN049;
+	invoke	find_path
 	call	print_path
 	call	crlf2
 	return
@@ -479,9 +477,9 @@ CLS_CSW:
 	return
 CLS_NORM:
 	mov	ah,Mult_ANSI			;AN000; see if ANSI.SYS installed
-	mov	al,0				;AN000;
-	int	2fh				;AN000;
-	cmp	al,ANSI_installed		;AN000;
+	mov	al,0
+	int	2fh
+	cmp	al,ANSI_installed
 	jz	ansicls 			;AN000; installed - go do ANSI CLS
 
 check_lines:
@@ -489,8 +487,8 @@ check_lines:
 	mov	bx,stdout			;AN000; lines for stdout
 	mov	ch,ioc_sc			;AN000; type is display
 	mov	cl,get_generic			;AN000; get information
-	mov	dx,offset trangroup:display_ioctl ;AN000;
-	int	int_command			;AN000;
+	mov	dx,offset trangroup:display_ioctl
+	int	int_command
 	jc	no_variable			;AN000; function had error, use default
 	mov	ax,linperpag			;AN000; get number of rows returned
 	mov	dh,al				;AN000; set number of rows
@@ -504,7 +502,7 @@ no_variable:
 	int	int_command			;AC000;    info
 	test	dl,devid_ISDEV			;AC000; is handle a device
 	jz	ANSICLS 			;AC000; If a file put out ANSI
-	test	dl,devid_SPECIAL		;AC000;
+	test	dl,devid_SPECIAL
 	jnz	cls_normal			;AC000; If not special CON, do ANSI
 
 ansicls:
@@ -515,7 +513,7 @@ ansicls:
 ; Get video mode
 ;
 
-cls_normal:					;AC000;
+cls_normal:
 
 	mov	ah,get_video_state		;AC000; set up to get video state
 	int	video_io_int			;AC000; do int 10h - BIOS video IO
@@ -560,7 +558,7 @@ cls_ret:
 ; *
 ; ****************************************************************
 
-reg_cls proc	near				;AC000;
+reg_cls proc	near
 
 ;
 ; Set overscan to black.
@@ -588,12 +586,12 @@ reg_cls proc	near				;AC000;
 ;
 	mov	ah,set_cursor_position		;AC000; set up to set cursor position
 	xor	dx,dx				;AC000; row and column 0
-	mov	bh,0				;AC000;
+	mov	bh,0
 	int	video_io_int			;AC000; do into 10h - BIOS video IO
 
-	ret					;AC000;
+	ret
 
-reg_cls endp					;AC000;
+reg_cls endp
 
 
 
@@ -610,7 +608,7 @@ reg_cls endp					;AC000;
 ; *
 ; ****************************************************************
 
-ansi_cls proc	near				;AC000;
+ansi_cls proc	near
 
 	mov	si,offset trangroup:clsstring
 	lodsb
@@ -624,7 +622,7 @@ clrloop:
 	loop	clrloop
 	return
 
-ansi_cls	endp				;AC000;
+ansi_cls	endp
 
 trancode    ends
 	    end

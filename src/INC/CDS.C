@@ -93,11 +93,6 @@ int i ;
  * quantity
  */
 
-/*      MODIFICATION HISTORY
- *
- *  M000        June 5/85       Barrys
- *  Removed extra net check.
- */
 
 char fNet(i)
 int i ;

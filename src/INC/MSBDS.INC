@@ -1,13 +1,5 @@
 
 %OUT MSBDS.INC...
-;	SCCSID = @(#)IBMBDS.ASM 1.9 85/09/16
-;==============================================================================
-;REVISION HISTORY:
-;AN000 - New for DOS Version 4.00 - J.K.
-;AC000 - Changed for DOS Version 4.00 - J.K.
-;AN00x - PTM number for DOS Version 4.00 - J.K.
-;==============================================================================
-;AN001; D113 Disable I/O access to unformatted media		    9/03/87 J.K.
 ;==============================================================================
 
 ; VALUES FOR VARIOUS FLAGS IN BDS.FLAGS.

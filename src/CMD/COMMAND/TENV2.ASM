@@ -1,6 +1,4 @@
  page 80,132
-;	SCCSID = @(#)tenv2.asm	1.1 85/05/14
-;	SCCSID = @(#)tenv2.asm	1.1 85/05/14
 TITLE	Part6 COMMAND Transient routines.
 
 ;	Environment utilities and misc. routines
@@ -16,39 +14,39 @@ TITLE	Part6 COMMAND Transient routines.
 .cref
 
 
-DATARES SEGMENT PUBLIC BYTE		;AC000;
+DATARES SEGMENT PUBLIC BYTE
 	EXTRN	pipeflag:byte
 DATARES ENDS
 
-TRANDATA	SEGMENT PUBLIC BYTE	;AC000;
+TRANDATA	SEGMENT PUBLIC BYTE
 	EXTRN	ACRLF_PTR:WORD
 	EXTRN	BadCD_Ptr:WORD
 	EXTRN	Badmkd_ptr:word
 	EXTRN	BADRMD_PTR:WORD
-	EXTRN	Extend_buf_ptr:word	;AN000;
-	EXTRN	Extend_buf_sub:byte	;AN022;
-	EXTRN	MD_exists_ptr:word	;AN006;
-	EXTRN	msg_disp_class:byte	;AC000;
+	EXTRN	Extend_buf_ptr:word
+	EXTRN	Extend_buf_sub:byte
+	EXTRN	MD_exists_ptr:word
+	EXTRN	msg_disp_class:byte
 	EXTRN	NOSPACE_PTR:WORD
-	EXTRN	parse_chdir:byte	;AC000;
-	EXTRN	parse_mrdir:byte	;AC000;
+	EXTRN	parse_chdir:byte
+	EXTRN	parse_mrdir:byte
 	EXTRN	PIPEEMES_PTR:WORD
 	EXTRN	string_buf_ptr:word
 TRANDATA	ENDS
 
-TRANSPACE	SEGMENT PUBLIC BYTE	;AC000;
+TRANSPACE	SEGMENT PUBLIC BYTE
 	EXTRN	CURDRV:BYTE
 	EXTRN	DESTINFO:BYTE
 	EXTRN	DESTTAIL:WORD
 	EXTRN	DIRCHAR:BYTE
-	EXTRN	dirflag:byte		;AN015;
+	EXTRN	dirflag:byte
 	EXTRN	KPARSE:BYTE		;AC000;  3/3/KK
-	EXTRN	msg_numb:word		;AN022;
-	EXTRN	parse1_addr:dword	;AC000;
-	EXTRN	parse1_type:byte	;AC000;
+	EXTRN	msg_numb:word
+	EXTRN	parse1_addr:dword
+	EXTRN	parse1_type:byte
 	EXTRN	PATHPOS:WORD
 	EXTRN	RESSEG:WORD
-	EXTRN	srcxname:byte		;AC000;
+	EXTRN	srcxname:byte
 	EXTRN	string_ptr_2:word
 	EXTRN	SWITCHAR:BYTE
 	EXTRN	USERDIR1:BYTE
@@ -131,7 +129,7 @@ CD_NORM:
 	mov	si,81H
 	mov	di,offset trangroup:parse_chdir ;AN000; Get adderss of PARSE_CHDIR
 	xor	cx,cx				;AN000; clear cx,dx
-	xor	dx,dx				;AN000;
+	xor	dx,dx
 	invoke	parse_with_msg			;AC018; call parser
 
 	cmp	ax,end_of_line			;AC000; are we at end of line?
@@ -145,9 +143,9 @@ CD_NORM:
 ; D: was found.  See if there is anything more.
 ;
 	mov	di,offset trangroup:parse_chdir ;AC000; get address of parse_chdir
-	xor	dx,dx				;AC000;
+	xor	dx,dx
 	invoke	parse_check_eol 		;AC000; call parser
-	jnz	ChDirErr			;AC000;
+	jnz	ChDirErr
 
 bwdJ:
 	invoke	build_dir_for_chdir		; Drive only specified
@@ -161,9 +159,9 @@ REALCD:
 	invoke	move_to_srcbuf			;AN000; move to srcbuf
 	pop	si				;AN000; restore position in line
 	mov	di,offset trangroup:parse_chdir ;AC000; get address of parse_chdir
-	xor	dx,dx				;AC000;
+	xor	dx,dx
 	invoke	parse_check_eol 		;AC000; call parser
-	jnz	ChDirErr			;AC000;
+	jnz	ChDirErr
 
 	invoke	SETPATH
 	TEST	[DESTINFO],2
@@ -175,8 +173,8 @@ REALCD:
 	invoke	get_ext_error_number		;AN022; get the extended error
 	cmp	ax,error_path_not_found 	;AN022; see if path not found
 	jz	BadChDir			;AN022; yes - issue old message
-	call	Set_Ext_Error_Subst		;AN022;
-	jmp	short  chdirerr 		;AN022;
+	call	Set_Ext_Error_Subst
+	jmp	short  chdirerr
 
 BadChDir:
 	MOV	DX,OFFSET TRANGROUP:BADCD_ptr
@@ -227,23 +225,23 @@ MD_NORM:
 	cmp	ax,error_access_denied		;AN022; access denied?
 	jz	badmderr			;AN022; yes - see if file exists
 
-	call	Set_Ext_Error_Subst		;AN022;
+	call	Set_Ext_Error_Subst
 	jmp	short MkDirerr			;AC022; yes - go print it
 
 BADMDERR:
 	mov	dx,offset trangroup:srcxname	;AN006; Set Disk transfer address
-	mov	ah,Set_DMA			;AN006;
-	int	int_command			;AN006;
+	mov	ah,Set_DMA
+	int	int_command
 	MOV	AH,Find_First			;AN006; see if file/dir exists
 	mov	cx,attr_directory		;AN006;   search for directory
-	INT	int_command			;AN006;
+	INT	int_command
 	jc	MD_other_err			;AN006; doesn't exist - must be something else
 	mov	dl,srcxname.find_buf_attr	;AN006; we found a file/dir
 	test	dl,attr_directory		;AN006; was it a directory?
 	jz	MD_other_err			;AN006; no - must have been a file
 	mov	dx,offset trangroup:MD_exists_ptr ;AN006; set up already exists error
 	jmp	short MkDirErr			;AN006; make sure we didn't have network error
-MD_other_err:					;AN006;
+MD_other_err:
 	MOV	DX,OFFSET TRANGROUP:BADMKD_ptr
 MkDirErr:
 	invoke	Std_Eprintf
@@ -272,7 +270,7 @@ SETRMMK:
 	mov	si,81H
 	mov	di,offset trangroup:parse_mrdir ;AN000; Get adderss of PARSE_MRDIR
 	xor	cx,cx				;AN000; clear cx,dx
-	xor	dx,dx				;AN000;
+	xor	dx,dx
 	invoke	parse_with_msg			;AC000; call parser
 	cmp	ax,result_no_error		;AC000; did we have an error?
 	jnz	 NOARGERR			;AC000; yes - exit
@@ -346,7 +344,7 @@ RD_NORM:
 	cmp	ax,error_access_denied		;AN022; access denied?
 	jz	badrderr			;AN022; yes - issue old message
 
-	call	Set_Ext_Error_Subst		;AN022;
+	call	Set_Ext_Error_Subst
 	jmp	short RmDirerr			;AC022; yes - go print it
 
 BADRDERR:
@@ -369,7 +367,7 @@ RmDirErr:
 ;*
 ;****************************************************************
 
-Set_ext_error_subst  proc near			;AN022;
+Set_ext_error_subst  proc near
 
 	mov	msg_disp_class,ext_msg_class	;AN022; set up extended error msg class
 	mov	string_ptr_2,dx 		;AN022; get address of failed string
@@ -379,7 +377,7 @@ Set_ext_error_subst  proc near			;AN022;
 
 	ret					;AN022; return
 
-Set_ext_error_subst  endp			;AN022;
+Set_ext_error_subst  endp
 
 
 
@@ -633,7 +631,7 @@ chdir_worked:
 	return
 
 pcrunch_cderrj: 				;AN022; need this for long jmp
-	jmp	pcrunch_cderr			;AN022;
+	jmp	pcrunch_cderr
 
 TRYPEEL:
 	MOV	SI,[PATHPOS]
@@ -731,7 +729,7 @@ CDSUCC:
 	MOV	[DESTTAIL],SI
 	pushf					;AN015; save flags
 	cmp	dirflag,-1			;AN015; don't do parse if in DIR
-	jz	pcrunch_end			;AN015;
+	jz	pcrunch_end
 	MOV	DI,FCB
 	MOV	AX,(PARSE_FILE_DESCRIPTOR SHL 8) OR 02H ; Parse with default drive
 	INT	int_command

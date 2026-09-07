@@ -1,4 +1,3 @@
-;       SCCSID = @(#)locate.asm 4.3 85/09/13
 Title   LOCATE (EXE2BIN)
 
 ;   Loader for EXE files under 86-DOS
@@ -139,7 +138,7 @@ LOCSTRT:
         jnc     sj01                    ;   if (p == NULL)
         push    es
         pop     ds
-        MESSAGE msgNoFile               ;AC000;
+        MESSAGE msgNoFile
 sj01:
         mov     di,offset file1         ;   d = file1;
 sj0:
@@ -284,12 +283,12 @@ file2_ok:
         jmp     exeload
 
 bad_file:
-        MESSAGE msgNoFile               ;AC000;
+        MESSAGE msgNoFile
         call    TriageError
 BADEXE:
-        MESSAGE msgNoConvert            ;AC000;
+        MESSAGE msgNoConvert
 TOOBIG:
-        MESSAGE msgOutOfMemory          ;AC000;
+        MESSAGE msgOutOfMemory
 
 EXELOAD:
         MOV     DX,OFFSET RUNVAR        ;Read header in here
@@ -351,7 +350,7 @@ WHOLEP:
         ADD     DX,BP                   ;Size + start = minimum memory (paragr.)
         CMP     DX,BX                   ;Enough memory?
         JA      TOOBIG
-        MESSAGE msgNoConvert            ;AC000;
+        MESSAGE msgNoConvert
         MOV     AX,[INITSS]
         OR      AX,[INITSP]
         OR      AX,[INITCS]
@@ -388,7 +387,7 @@ BINFIX:
         CMP     [RELCNT],0
         JZ      LOADEXE
 GETSEG:
-        MESSAGE msgFixUp                ;AC000;
+        MESSAGE msgFixUp
         MOV     AH,STD_CON_STRING_INPUT
         MOV     DX,OFFSET INBUF
         INT     21H                      ;Get user response
@@ -435,7 +434,7 @@ LOADEXE:
         POP     DS
         pop     di
         Jnc     HAVEXE                  ;Did we get it all?
-        MESSAGE msgReadError            ;AC000;
+        MESSAGE msgReadError
 HAVEXE:
         CMP     [RELCNT],0              ;Any fixups to do?
         JZ      STORE
@@ -504,10 +503,10 @@ STORE:
         RET
 
 WRTERR:
-        MESSAGE msgOutOfMemory          ;AC000;
+        MESSAGE msgOutOfMemory
 
 MKERR:
-        MESSAGE msgFileCreateError      ;AC000;
+        MESSAGE msgFileCreateError
         Call    TriageError
 
 
@@ -577,7 +576,7 @@ Procedure TriageError,near
         MOV     AH,GetExtendedError
         INT     21h
         RestoreReg  <CX,BX>             ; restore original AX
-        MESSAGE msgNoAccess             ;AC000;
+        MESSAGE msgNoAccess
         CMP     AX,65                   ; network access denied?
         JZ      NoMove                  ; Yes, return it.
         MOV     AX,BX

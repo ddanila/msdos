@@ -21,7 +21,7 @@ GET_PARMS PROC
 
 	LDS	SI,RH.RH0_BPBA		;make ds:si point to bios paramter buffer
 	CLD
-	mov	cs:EMS_Pgs_Parm,E_Parm_Def ;default to all of memory		;an000; dms;
+	mov	cs:EMS_Pgs_Parm,E_Parm_Def ;default to all of memory
 
 ;-------------------------------------------------------------------
 ;	parser support added by GGA
@@ -234,15 +234,15 @@ do_p255:
 	jmp	get_args		; go get another argument
 
 Check_X:
-	cmp	es:X_Result.$P_SYNONYM_Ptr,offset es:X_Switch.$P_KeyorSW ; switch Ptr	   ;an000; dms;
+	cmp	es:X_Result.$P_SYNONYM_Ptr,offset es:X_Switch.$P_KeyorSW ; switch Ptr
 	je	Do_X			; yes, process it
 	jmp	get_args		; no, must have been the positional, ignore it and go on
 
 Do_X:
 
 	push	ax			; save regs
-	mov	ax,es:word ptr X_Result.$P_Picked_Val ;get low word of result	 ;an000; dms;
-	mov	cs:EMS_Pgs_Parm,ax	; pass to program			;an000; dms;
+	mov	ax,es:word ptr X_Result.$P_Picked_Val ;get low word of result
+	mov	cs:EMS_Pgs_Parm,ax	; pass to program
 	pop	ax			; restore regs
 
 	jmp	get_args		; go get another argument
@@ -295,7 +295,7 @@ cmd_line_args:
 
 	mov	map_table.phys_page_segment[di],ax	; store p0 segment
 	mov	map_table.phys_page_number[di],0	    ; p0 page number
-	mov	cs:Page_Frame_Sta,ax			;save our page for XMA1 ;an000; dms;
+	mov	cs:Page_Frame_Sta,ax			;save our page for XMA1
 							;  diags.
 
 	add	ax,400h 		; increase segment ID by 16K
@@ -346,7 +346,7 @@ chk_p0:
 
 	mov	map_table.phys_page_segment[di],ax	; store p0 segment
 	mov	map_table.phys_page_number[di],0	    ; p0 page number
-	mov	cs:Page_Frame_Sta,ax			;save our page for XMA1 ;an000; dms;
+	mov	cs:Page_Frame_Sta,ax			;save our page for XMA1
 							;  diags.
 
 ;	do some math with di, this will be used as a pointer into map_table
@@ -378,7 +378,7 @@ chk_p1:
 
 	mov	map_table.phys_page_segment[di],ax	; store p1 segment
 	mov	map_table.phys_page_number[di],1	    ; p0 page number
-	mov	cs:Page_Frame_Sta,ax			;save our page for XMA1 ;an000; dms;
+	mov	cs:Page_Frame_Sta,ax			;save our page for XMA1
 							;  diags.
 
 ;	do some math with di, this will be used as a pointer into map_table
@@ -410,7 +410,7 @@ chk_p2:
 
 	mov	map_table.phys_page_segment[di],ax	; store p2 segment
 	mov	map_table.phys_page_number[di],2	    ; p2 page number
-	mov	cs:Page_Frame_Sta,ax			;save our page for XMA1 ;an000; dms;
+	mov	cs:Page_Frame_Sta,ax			;save our page for XMA1
 							;  diags.
 
 ;	do some math with di, this will be used as a pointer into map_table
@@ -442,7 +442,7 @@ chk_p3:
 
 	mov	map_table.phys_page_segment[di],ax	; store p3 segment
 	mov	map_table.phys_page_number[di],3	    ; p3 page number
-	mov	cs:Page_Frame_Sta,ax			;save our page for XMA1 ;an000; dms;
+	mov	cs:Page_Frame_Sta,ax			;save our page for XMA1
 							;  diags.
 
 ;	do some math with di, this will be used as a pointer into map_table
@@ -474,7 +474,7 @@ chk_p254:
 
 	mov	map_table.phys_page_segment[di],ax	; store p254 segment
 	mov	map_table.phys_page_number[di],0feh	    ; p254 page number
-	mov	cs:Page_Frame_Sta,ax			;save our page for XMA1 ;an000; dms;
+	mov	cs:Page_Frame_Sta,ax			;save our page for XMA1
 							;  diags.
 
 ;	do some math with di, this will be used as a pointer into map_table
@@ -506,7 +506,7 @@ chk_p255:
 
 	mov	map_table.phys_page_segment[di],ax	; store p255 segment
 	mov	map_table.phys_page_number[di],0ffh	    ; p255 page number
-	mov	cs:Page_Frame_Sta,ax			;save our page for XMA1 ;an000; dms;
+	mov	cs:Page_Frame_Sta,ax			;save our page for XMA1
 							;  diags.
 
 ;	do some math with di, this will be used as a pointer into map_table

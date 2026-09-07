@@ -5,11 +5,10 @@ TITLE MODESCRN.ASM - SCREEN SUPPORT FOR THE MODE COMMAND
 INCLUDE STRUC.INC
 .LIST
 
-INCLUDE  COMMON.STC	;definitions of message sublist blocks ;AC001;
+INCLUDE  COMMON.STC	;definitions of message sublist blocks
 
-;ษออออออออออออออออออออออออออออออออ  P R O L O G  อออออออออออออออออออออออออออออออออออออออออป				   ;AN000;
-;บ											  บ				   ;AN000;
-															   ;AN000;
+;ษออออออออออออออออออออออออออออออออ  P R O L O G  อออออออออออออออออออออออออออออออออออออออออป
+;บ											  บ
 ;  AC000 - P3200: Was displaying a message that Sam Nunn had deleted from the
 ;		  USA.MSG file because it looked like a common message.  Now
 ;		  I use a different (better) message.  It was "Invalid paramters",
@@ -25,8 +24,8 @@ INCLUDE  COMMON.STC	;definitions of message sublist blocks ;AC001;
 ;  AX002 - P5159: Need to use get extended country call (6523) to get the yes
 ;     7-14-88	  no answer
 
-;บ											  บ				   ;AN000;
-;ศออออออออออออออออออออออออออออออออ  P R O L O G  อออออออออออออออออออออออออออออออออออออออออผ				   ;AN000;
+;บ											  บ
+;ศออออออออออออออออออออออออออออออออ  P R O L O G  อออออออออออออออออออออออออออออออออออออออออผ
 
 ;ษออออออออออออออออออออออออออออออออ  M A C R O S  อออออออออออออออออออออออออออออออออออออออออป
 ;บ											  บ
@@ -74,12 +73,12 @@ ENDM
 
 set_submessage_ptr   MACRO submessage,message ;PUT pointer to "subMESSAGE" into submessage pointer field of "message".
 
-MOV   AX,submessage			     ;AX=message number 		;AN001;
-MOV   DH,utility_msg_class		     ;DH=message class=utility class	;AN001;
-CALL  SYSGETMSG 			     ;DS:SI=>message piece				  ;AN001;
-MOV   BP,OFFSET sublist_&message	     ;address the sublist control block ;AN001;
-MOV   [BP].sublist_off,SI		     ;the sublist now points to the desired message piece ;AN001;
-ENDM												  ;AN001;
+MOV   AX,submessage			     ;AX=message number
+MOV   DH,utility_msg_class		     ;DH=message class=utility class
+CALL  SYSGETMSG 			     ;DS:SI=>message piece
+MOV   BP,OFFSET sublist_&message	     ;address the sublist control block
+MOV   [BP].sublist_off,SI		     ;the sublist now points to the desired message piece
+ENDM
 
 
 ;---------------------------------------------------------------------------
@@ -201,23 +200,23 @@ SWITCH	  DB	 0		  ;LOOP CONTROLLER
 ;AC000;OK	 DB	1		 ;INDICATOR OF VALID REQUEST:
 ;				     1=BAD, 0=GOOD
 ;
-EXTRN L_item_tag:ABS			  ;see MODEpars.asm	  ;AN000;
-EXTRN R_item_tag:ABS			  ;see MODEpars.asm	  ;AN000;
-EXTRN T_item_tag:ABS			  ;see MODEpars.asm	  ;AN000;
+EXTRN L_item_tag:ABS			  ;see MODEpars.asm
+EXTRN R_item_tag:ABS			  ;see MODEpars.asm
+EXTRN T_item_tag:ABS			  ;see MODEpars.asm
 
-EXTRN RIGHTMOST:WORD	;message number for "rightmost 9",EOM	;AC001;
-EXTRN LEFTMOST:WORD    ;message number for "leftmost 0",EOM	;AC001;
+EXTRN RIGHTMOST:WORD	;message number for "rightmost 9",EOM
+EXTRN LEFTMOST:WORD    ;message number for "leftmost 0",EOM
 ;AC001;EXTRN LFTM_OR_RGHTM_PTR:WORD
-EXTRN SHIFT_MSG:WORD	    ;CR,LF,"Do you see the ...",CR,LF,EOM ;AX000;
-;AC000;EXTRN MSGI:WORD	  ;CR,LF,"Invalid parameters",BEEP,CR,LF,"$"	 ;AX000;
-EXTRN NUMBERS:WORD   ;"0123456789"				  ;AX000;
-EXTRN LEFT:WORD 		;message number for "left",EOM	  ;AC001;
-EXTRN RIGHT:WORD		;message number for "right",EOM   ;AC001;
+EXTRN SHIFT_MSG:WORD	    ;CR,LF,"Do you see the ...",CR,LF,EOM
+;AC000;EXTRN MSGI:WORD	  ;CR,LF,"Invalid parameters",BEEP,CR,LF,"$"
+EXTRN NUMBERS:WORD   ;"0123456789"
+EXTRN LEFT:WORD 		;message number for "left",EOM
+EXTRN RIGHT:WORD		;message number for "right",EOM
 ;AC001;EXTRN LEFT_OR_RIGHT_PTR:WORD	      ;PART OF MESSAGE "Unable to shift screen ..."
-EXTRN sublist_cant_shift:BYTE	 ;definition of submessage ;AC001;
-EXTRN sublist_shift_msg:BYTE	 ;definition of submessage ;AC001;
-EXTRN SYSGETMSG:NEAR		 ;used to get the address of a message part ;AC001;
-EXTRN utility_msg_class:ABS	 ;input for sysgetmsg	;AC001;
+EXTRN sublist_cant_shift:BYTE	 ;definition of submessage
+EXTRN sublist_shift_msg:BYTE	 ;definition of submessage
+EXTRN SYSGETMSG:NEAR		 ;used to get the address of a message part
+EXTRN utility_msg_class:ABS	 ;input for sysgetmsg
 
 
 ;บ											  บ
@@ -228,7 +227,7 @@ EXTRN utility_msg_class:ABS	 ;input for sysgetmsg	;AC001;
 ;----------------------------------------------------------------------------
 
 
-HANDLE_40_OR_80   PROC	NEAR	    ;AN000;
+HANDLE_40_OR_80   PROC	NEAR
 
 ;      SCREEN WIDTH IN BL
 ;
@@ -330,9 +329,9 @@ ENDIF02:
 ENDIF01:
 
 
-RET		     ;AN000;
+RET
 
-HANDLE_40_OR_80   ENDP			  ;AN000;
+HANDLE_40_OR_80   ENDP
 
 
 ;------------------------------------------------------------------------------
@@ -344,7 +343,7 @@ SHIFT_SCREEN	PROC  NEAR		      ;AN000;shift the screen
      MOV    SWITCH,NOEXIT	  ;SET TO REPEAT NEXT LOOP
 DO01:
 ;    : IF second PARM (sd) IS AN "R"?
-       CMP   DS:PARM2,R_item_tag		;AC000;
+       CMP   DS:PARM2,R_item_tag
        JE    SKIP03				;IT'S AN R SO TRY TO SHIFT RIGHT
        JMP   ELSE03				;NOT AN R SO CHECK FOR L
 ;
@@ -405,7 +404,7 @@ TRY_TO_SHIFT:
        JMP ENDIF03
 ELSE03:
 ;    : : IF THIS CHAR IS AN "L"?
-	 CMP DS:PARM2,L_item_tag		;AC000;
+	 CMP DS:PARM2,L_item_tag
 	 JE  SKIP05				;L WAS SPECIFIED SO TRY TO SHIFT LEFT
 	 JMP	ELSE05				;WASN'T "L" OR "R" SO DONT'T TRY TO SHIFT
 ;	     SINCE IT IS "L",
@@ -416,7 +415,7 @@ ELSE03:
 	   CMP	AL,MONO_MODE			;IF mode >= mono THEN must be EGA or mono so ...
 	   JB	CHK_FOR_EGA
 ;AC001;      MOV	LEFT_OR_RIGHT_PTR,OFFSET LEFT	  ;YELL BECAUSE CAN'T SHIFT AN EGA
-	     set_submessage_ptr left,cant_shift    ;set up message sublist with pointer to "left" ;AC001;
+	     set_submessage_ptr left,cant_shift    ;set up message sublist with pointer to "left"
 	     DISPLAY	CANT_SHIFT
 	     JMP	ELSE05				  ;JUMP PAST SHIFT LOOP
 ;
@@ -431,7 +430,7 @@ ELSE03:
 	       CMP	  BH,COLOR_ON_IT   ;IF COLOR HOOKED TO EGA THEN
 	       JNE	  TRY_TO_SHIFT_LEFT
 ;AC001; 	 MOV	LEFT_OR_RIGHT_PTR,OFFSET LEFT	;  YELL BECAUSE CAN'T SHIFT AN EGA
-		 set_submessage_ptr left,cant_shift    ;set up message sublist with pointer to "left"  ;AC001;
+		 set_submessage_ptr left,cant_shift    ;set up message sublist with pointer to "left"
 		 DISPLAY	CANT_SHIFT
 		 JMP	ELSE05				;  JUMP PAST SHIFT LOOP
 ;
@@ -447,7 +446,7 @@ TRY_TO_SHIFT_LEFT:
 	     JL 	  SHIFT_LEFT
 	     SET_UP_FOR_PRINTF
 ;AC001;      MOV	LEFT_OR_RIGHT_PTR,OFFSET LEFT
-	     set_submessage_ptr left,cant_shift    ;set up message sublist with pointer to "left"  ;AC001;
+	     set_submessage_ptr left,cant_shift    ;set up message sublist with pointer to "left"
 	     DISPLAY	CANT_SHIFT
 	     REPLACE_DS
 	     JMP	ELSE05
@@ -486,21 +485,21 @@ PUBLIC	 ENDIF03
 ;	     LEAVING CURRENT MODE IN AL,
        SCRN   SET_SCREEN_MODE	  ;RESET IN CURRENT MODE
 ;    : IF THIS IS "T"
-       CMP    DS:PARM3,T_item_tag	  ;AC000;
+       CMP    DS:PARM3,T_item_tag
        JNE    ELSE06
 ;
 ;	 DECIDE WHICH QUESTION TO DISPLAY...
 ;    : : IF REQUESTED FUNCTION IS "R"
-	 CMP	 DS:PARM2,R_item_tag	     ;AC000;
+	 CMP	 DS:PARM2,R_item_tag
 	 JNE	 ELSE08
 
 ;AC001;    MOV	   LFTM_OR_RGHTM_PTR,OFFSET LEFTMOST
-	   set_submessage_ptr leftmost,shift_msg   ;set up message sublist with pointer to "leftmost"  ;AC001;
+	   set_submessage_ptr leftmost,shift_msg   ;set up message sublist with pointer to "leftmost"
 ;    : : ELSE ,SINCE WAS NOT "R"
 	 JMP	 SHORT ENDIF08
 ELSE08:
 ;AC001;    MOV	   LFTM_OR_RGHTM_PTR,OFFSET RIGHTMOST
-	   set_submessage_ptr rightmost,shift_msg   ;set up message sublist with pointer to "rightmost"  ;AC001;
+	   set_submessage_ptr rightmost,shift_msg   ;set up message sublist with pointer to "rightmost"
 ;    : : ENDIF END FUNCTION IS "R"? TEST
 ENDIF08:
 
@@ -558,7 +557,7 @@ ENDDO01:
 ;    ENDIF ,END ARE NO LEGAL FUNCTIONS DONE? TEST
 ;AC000;ENDIF10:
      RET			  ;RETURN TO MODE MAIN ROUTINE
-SHIFT_SCREEN	ENDP			;AN000;
+SHIFT_SCREEN	ENDP
 PRINTF_CODE    ENDS
 	 END
 

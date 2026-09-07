@@ -84,8 +84,8 @@ INDEMSG    LABEL   NEAR 						;   D0A
 	   PUBLIC  GOODLOAD						;   P2A
 	   PUBLIC  NO_80386						;   P2A
 	   PUBLIC  WAS_INST						;   P2A
-	   Public  Small_Parm							;an000; dms;
-	   Public  No_Mem							;an000; dms;
+	   Public  Small_Parm
+	   Public  No_Mem
 									;   P2A
 CR	   EQU	   13	     ; ASCII for a carriage return		;  @P2A
 LF	   EQU	   10	     ; ASCII for a line feed			;  @P2A

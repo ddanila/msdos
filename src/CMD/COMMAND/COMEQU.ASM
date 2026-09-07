@@ -1,5 +1,3 @@
-;	SCCSID = @(#)comequ.asm 1.1 85/05/14
-;	SCCSID = @(#)comequ.asm 1.1 85/05/14
 ;*************************************
 ; COMMAND EQUs which are not switch dependant
 
@@ -72,24 +70,24 @@ file_inv_cpage	equ	-1		;AN000; file has invalid code page tag
 do_xa		equ	-1		;AN000; flag to get extended attributes
 inv_cp_tag	equ	0		;AC039; tag for invalid code page
 no_xa_seg	equ	-1		;AN000; no segment for extended attributes - COPY
-capital_A	equ	'A'             ;AC000;
-vbar		equ	'|'             ;AC000;
-labracket	equ	'<'             ;AC000;
-rabracket	equ	'>'             ;AC000;
-dollar		equ	'$'             ;AC000;
-lparen		equ	'('             ;AC000;
-rparen		equ	')'             ;AC000;
-nullrparen	equ	29h		;AC000;
+capital_A	equ	'A'
+vbar		equ	'|'
+labracket	equ	'<'
+rabracket	equ	'>'
+dollar		equ	'$'
+lparen		equ	'('
+rparen		equ	')'
+nullrparen	equ	29h
 in_word 	equ	4e49h		;AC000; 'NI'  ('IN' backwards)
 do_word 	equ	4f44h		;AC000; 'OD'  ('DO' backwards)
-star		equ	'*'             ;AC000;
-plus_chr	equ	'+'             ;AC000;
-small_a 	equ	'a'             ;AC000;
-small_z 	equ	'z'             ;AC000;
-dot_chr 	equ	'.'             ;AC000;
-tab_chr 	equ	9		;AN032;
-equal_chr	equ	'='             ;AN032;
-semicolon	equ	';'             ;AN049;
+star		equ	'*'
+plus_chr	equ	'+'
+small_a 	equ	'a'
+small_z 	equ	'z'
+dot_chr 	equ	'.'
+tab_chr 	equ	9
+equal_chr	equ	'='
+semicolon	equ	';'
 dot_qmark	equ	2e3fh		;AC000; '.?'
 dot_colon	equ	2e3ah		;AC000; '.:'
 capital_n	equ	0		;AC000; result from Y/N call if N entered
@@ -99,7 +97,7 @@ AppendDOS	equ	0B702H		;AN020; append DOS version check
 AppendGetState	equ	0B706H		;AN020; append get current state
 AppendSetState	equ	0B707H		;AN020; append set current state
 AppendTruename	equ	0B711H		;AN042; Get file's real location for Batch
-search_attr	equ	attr_read_only+attr_hidden+attr_directory  ;AC042;
+search_attr	equ	attr_read_only+attr_hidden+attr_directory
 
 ;*************************************
 ;* PARSE ERROR MESSAGES

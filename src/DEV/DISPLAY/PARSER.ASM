@@ -36,20 +36,11 @@ TITLE	    PARSE CODE AND CONTROL BLOCKS FOR DISPLAY.SYS
 ;
 ;  NOTES:
 ;
-;  REVISION HISTORY:
-;	AN000; - DOS Version 4.00
-;	AN001 - GHG P897 - Changes to the parser forced the inclusion
-;			   of the '=' in the device ID.
-;
 ;      Label: "The DOS DISPLAY.SYS Device Driver"
 ;	      "Version 4.00 (C) Copyright 1988 Microsoft
 ;	      "Licensed Material - Program Property of Microsoft"
 ;
 ;****************** END OF SPECIFICATIONS ****************************
-;Modification history *********************************************************
-;AN002; P1895 DISPLAY.SYS rejects command CON=(cga,(437),(0,0))   10/22/87 J.K.
-;******************************************************************************
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; The following is the table structure of the parser.	All fields are
 ; two bytes field (accept for the device and id name)
@@ -182,15 +173,15 @@ TITLE	    PARSE CODE AND CONTROL BLOCKS FOR DISPLAY.SYS
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-INCLUDE     DEF-EQU.INC      ; structures and equates					 ;AN000;
+INCLUDE     DEF-EQU.INC      ; structures and equates
 
 .XLIST
-INCLUDE     STRUC.INC	     ; Structured macros					 ;AN000;
+INCLUDE     STRUC.INC	     ; Structured macros
 .LIST
 
-PUBLIC	    PARSER	     ; near procedure for parsing DEVICE= statement		 ;AN000;
-PUBLIC	    TABLE	     ; table for variable storage used by INIT module.		 ;AN000;
-PUBLIC	    GET_DEVICE_ID    ; procedure to determine device adapter			 ;AN000;
+PUBLIC	    PARSER	     ; near procedure for parsing DEVICE= statement
+PUBLIC	    TABLE	     ; table for variable storage used by INIT module.
+PUBLIC	    GET_DEVICE_ID    ; procedure to determine device adapter
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
@@ -198,12 +189,12 @@ PUBLIC	    GET_DEVICE_ID    ; procedure to determine device adapter			 ;AN000;
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-DateSW	      EQU     0 								 ;AN000;
-DrvSW	      EQU     0 								 ;AN000;
-SwSW	      EQU     0 								 ;AN000;
-Val1SW	      EQU     0 								 ;AN000;
-Val2SW	      EQU     0 								 ;AN000;
-Val3SW	      EQU     0 								 ;AN000;
+DateSW	      EQU     0
+DrvSW	      EQU     0
+SwSW	      EQU     0
+Val1SW	      EQU     0
+Val2SW	      EQU     0
+Val3SW	      EQU     0
 
 
 CODE	      SEGMENT  PUBLIC BYTE 'CODE'
@@ -211,7 +202,7 @@ CODE	      SEGMENT  PUBLIC BYTE 'CODE'
 
 
 .XLIST
-INCLUDE     PARSE.ASM	    ; Parsing code						 ;AN000;
+INCLUDE     PARSE.ASM	    ; Parsing code
 .LIST
 
 
@@ -238,32 +229,32 @@ INCLUDE     PARSE.ASM	    ; Parsing code						 ;AN000;
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-PARMS1	       LABEL WORD								 ;AN000;
-	       DW	PARMSX1 							 ;AN000;
-	       DB	0		   ; no extra delimeters or EOLs.		 ;AN000;
+PARMS1	       LABEL WORD
+	       DW	PARMSX1
+	       DB	0		   ; no extra delimeters or EOLs.
 
-PARMSX1        LABEL BYTE								 ;AN000;
-	       DB	1,1		   ; min,max positional operands		 ;AN000;
-	       DW	D_NAME		   ; pointer to control block			 ;AN000;
-	       DB	0		   ; no switches				 ;AN000;
-	       DB	1		   ; 1 keywords 				 ;AN000;
-	       DW	DSP_LIST	   ; pointer to control block			 ;AN000;
+PARMSX1        LABEL BYTE
+	       DB	1,1		   ; min,max positional operands
+	       DW	D_NAME		   ; pointer to control block
+	       DB	0		   ; no switches
+	       DB	1		   ; 1 keywords
+	       DW	DSP_LIST	   ; pointer to control block
 
-D_NAME	       LABEL WORD								 ;AN000;
-	       DW	0200H		   ; file spec					 ;AN000;
-	       DW	0001H		   ; cap result by file table			 ;AN000;
-	       DW	RESULT_BUF	   ; result					 ;AN000;
-	       DW	NOVALS		   ; no value checking done			 ;AN000;
-	       DB	0		   ; no keyword/switch synonyms 		 ;AN000;
+D_NAME	       LABEL WORD
+	       DW	0200H		   ; file spec
+	       DW	0001H		   ; cap result by file table
+	       DW	RESULT_BUF	   ; result
+	       DW	NOVALS		   ; no value checking done
+	       DB	0		   ; no keyword/switch synonyms
 
-DSP_LIST       LABEL WORD								 ;AN000;
-	       DW	0400H		   ; complex list, ignore colon 		 ;AN000;
-	       DW	0012H		   ; cap result by char table			 ;AN000;
-	       DW	RESULT_BUF	   ; result					 ;AN000;
-	       DW	NOVALS		   ; no value checking done			 ;AN000;
-	       DB	2		   ; 1 keyword					 ;AN000;
-	       DB	"CON=",0           ;GHG CON[:]= keyword                          ;AN001;
-	       DB	"CON:=",0          ;GHG                                          ;AN001;
+DSP_LIST       LABEL WORD
+	       DW	0400H		   ; complex list, ignore colon
+	       DW	0012H		   ; cap result by char table
+	       DW	RESULT_BUF	   ; result
+	       DW	NOVALS		   ; no value checking done
+	       DB	2		   ; 1 keyword
+	       DB	"CON=",0           ;GHG CON[:]= keyword
+	       DB	"CON:=",0          ;GHG
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
@@ -275,39 +266,39 @@ DSP_LIST       LABEL WORD								 ;AN000;
 ; (type, (hwcp), n or complex list)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-PARMS2	       LABEL WORD								 ;AN000;
-	       DW	PARMSX2 							 ;AN000;
-	       DB	0		   ; no extra delimeters or EOLs.		 ;AN000;
+PARMS2	       LABEL WORD
+	       DW	PARMSX2
+	       DB	0		   ; no extra delimeters or EOLs.
 
-PARMSX2        LABEL BYTE								 ;AN000;
-	       DB	0,3		   ; min,max positional operands		 ;AN000;
-	       DW	DSP_TYPE	   ; pointer to control block			 ;AN000;
-	       DW	HWCP		   ; pointer to control block			 ;AN000;
-	       DW	CP_PREPS	   ; pointer to control block			 ;AN000;
-	       DB	0		   ; no switches				 ;AN000;
-	       DB	0		   ; no keywords				 ;AN000;
+PARMSX2        LABEL BYTE
+	       DB	0,3		   ; min,max positional operands
+	       DW	DSP_TYPE	   ; pointer to control block
+	       DW	HWCP		   ; pointer to control block
+	       DW	CP_PREPS	   ; pointer to control block
+	       DB	0		   ; no switches
+	       DB	0		   ; no keywords
 
-DSP_TYPE       LABEL BYTE								 ;AN000;
-	       DW	2001H		   ; sstring (optional) 			 ;AN000;
-	       DW	0002H		   ; cap by char table				 ;AN000;
-	       DW	RESULT_BUF	   ; result					 ;AN000;
-	       DW	NOVALS		   ; value list 				 ;AN000;
-	       DB	0		   ; no keyword/switch synonyms 		 ;AN000;
+DSP_TYPE       LABEL BYTE
+	       DW	2001H		   ; sstring (optional)
+	       DW	0002H		   ; cap by char table
+	       DW	RESULT_BUF	   ; result
+	       DW	NOVALS		   ; value list
+	       DB	0		   ; no keyword/switch synonyms
 
 
-HWCP	       LABEL BYTE								 ;AN000;
+HWCP	       LABEL BYTE
 	       DW	8401H		   ;AN002; numeric or complex list (optional)
-	       DW	0		   ; no functions				 ;AN000;
-	       DW	RESULT_BUF	   ; result					 ;AN000;
-	       DW	NOVALS		   ; no value checking done			 ;AN000;
-	       DB	0		   ; no keyword/switch synonyms 		 ;AN000;
+	       DW	0		   ; no functions
+	       DW	RESULT_BUF	   ; result
+	       DW	NOVALS		   ; no value checking done
+	       DB	0		   ; no keyword/switch synonyms
 
-CP_PREPS       LABEL BYTE								 ;AN000;
-	       DW	8401H		   ; numeric or complex list (optional) 	 ;AN000;
-	       DW	0		   ; no functions				 ;AN000;
-	       DW	RESULT_BUF	   ; result					 ;AN000;
-	       DW	NOVALS		   ; value list 				 ;AN000;
-	       DB	0		   ; no keyword/switch synonyms 		 ;AN000;
+CP_PREPS       LABEL BYTE
+	       DW	8401H		   ; numeric or complex list (optional)
+	       DW	0		   ; no functions
+	       DW	RESULT_BUF	   ; result
+	       DW	NOVALS		   ; value list
+	       DB	0		   ; no keyword/switch synonyms
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -319,11 +310,11 @@ CP_PREPS       LABEL BYTE								 ;AN000;
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-PARMS3_X       LABEL WORD		   ;AN002;
-	       DW	PARMSX3_X	   ;AN002;
+PARMS3_X       LABEL WORD
+	       DW	PARMSX3_X
 	       DB	0		   ;AN002; no extra delimeters or EOLs.
 
-PARMSX3_X      LABEL BYTE		   ;AN002;
+PARMSX3_X      LABEL BYTE
 	       DB	1,1		   ;AN002; min,max positional operands
 	       DW	PREPS		   ;AN002; pointer to control block
 	       DB	0		   ;AN002; no switches
@@ -338,41 +329,41 @@ PARMSX3_X      LABEL BYTE		   ;AN002;
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-PARMS3	       LABEL WORD								 ;AN000;
-	       DW	PARMSX3 							 ;AN000;
-	       DB	0		   ; no extra delimeters or EOLs.		 ;AN000;
+PARMS3	       LABEL WORD
+	       DW	PARMSX3
+	       DB	0		   ; no extra delimeters or EOLs.
 
-PARMSX3        LABEL BYTE								 ;AN000;
-	       DB	1,2		   ; min,max positional operands		 ;AN000;
-	       DW	PREPS		   ; pointer to control block			 ;AN000;
-	       DW	SUBFONTS	   ; pointer to control block			 ;AN000;
-	       DB	0		   ; no switches				 ;AN000;
-	       DB	0		   ; no keywords				 ;AN000;
+PARMSX3        LABEL BYTE
+	       DB	1,2		   ; min,max positional operands
+	       DW	PREPS		   ; pointer to control block
+	       DW	SUBFONTS	   ; pointer to control block
+	       DB	0		   ; no switches
+	       DB	0		   ; no keywords
 
-PREPS	       LABEL BYTE								 ;AN000;
-	       DW	8000H		   ; numeric					 ;AN000;
-	       DW	0		   ; no functions				 ;AN000;
-	       DW	RESULT_BUF	   ; result					 ;AN000;
-	       DW	NOVALS		   ; value list 				 ;AN000;
-	       DB	0		   ; no keyword/switch synonyms 		 ;AN000;
+PREPS	       LABEL BYTE
+	       DW	8000H		   ; numeric
+	       DW	0		   ; no functions
+	       DW	RESULT_BUF	   ; result
+	       DW	NOVALS		   ; value list
+	       DB	0		   ; no keyword/switch synonyms
 
-SUBFONTS       LABEL BYTE								 ;AN000;
-	       DW	8001H		   ; numeric (optional) 			 ;AN000;
-	       DW	0		   ; no functions				 ;AN000;
-	       DW	RESULT_BUF	   ; result					 ;AN000;
-	       DW	NOVALS		   ; no value checking done			 ;AN000;
-	       DB	0		   ; no keyword/switch synonyms 		 ;AN000;
+SUBFONTS       LABEL BYTE
+	       DW	8001H		   ; numeric (optional)
+	       DW	0		   ; no functions
+	       DW	RESULT_BUF	   ; result
+	       DW	NOVALS		   ; no value checking done
+	       DB	0		   ; no keyword/switch synonyms
 
-; Null VALUE LIST and RESULT BUFFER for all PARSE control blocks			 ;AN000;
+; Null VALUE LIST and RESULT BUFFER for all PARSE control blocks
 
-NOVALS	       LABEL BYTE								 ;AN000;
-	       DB	0		   ; no value checking done			 ;AN000;
+NOVALS	       LABEL BYTE
+	       DB	0		   ; no value checking done
 
-RESULT_BUF     LABEL BYTE								 ;AN000;
-RESULT_TYPE    DB	?		   ; type returned (number, string, etc.)	 ;AN000;
-	       DB	?		   ; matched item tag (if applicable)		 ;AN000;
-	       DW	?		   ; synonym ptr (if applicable)		 ;AN000;
-RESULT_VAL     DD	?		   ; value					 ;AN000;
+RESULT_BUF     LABEL BYTE
+RESULT_TYPE    DB	?		   ; type returned (number, string, etc.)
+	       DB	?		   ; matched item tag (if applicable)
+	       DW	?		   ; synonym ptr (if applicable)
+RESULT_VAL     DD	?		   ; value
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
@@ -381,38 +372,38 @@ RESULT_VAL     DD	?		   ; value					 ;AN000;
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-TABLE	       LABEL	BYTE		   ; table header				 ;AN000;
-DEVICE_NUM     DW	ONE		   ; should only be one device			 ;AN000;
-TABLE2_PTR     DW	TABLE2		   ; pointer to table 2 			 ;AN000;
+TABLE	       LABEL	BYTE		   ; table header
+DEVICE_NUM     DW	ONE		   ; should only be one device
+TABLE2_PTR     DW	TABLE2		   ; pointer to table 2
 
-TABLE2	       LABEL	WORD								 ;AN000;
-OFFSET_NUM     DW	FOUR		   ; 4 pointer follow				 ;AN000;
-TABLE3_PTR     DW	TABLE3		   ; pointer to table 3 (device name)		 ;AN000;
-TABLE4_PTR     DW	TABLE4		   ; pointer to table 4 (device id)		 ;AN000;
-TABLE5_PTR     DW	TABLE5		   ; pointer to table 5 (hwcp's)                 ;AN000;
-TABLE6_PTR     DW	TABLE6		   ; pointer to table 6 (num desg's and fonts)   ;AN000;
+TABLE2	       LABEL	WORD
+OFFSET_NUM     DW	FOUR		   ; 4 pointer follow
+TABLE3_PTR     DW	TABLE3		   ; pointer to table 3 (device name)
+TABLE4_PTR     DW	TABLE4		   ; pointer to table 4 (device id)
+TABLE5_PTR     DW	TABLE5		   ; pointer to table 5 (hwcp's)
+TABLE6_PTR     DW	TABLE6		   ; pointer to table 6 (num desg's and fonts)
 
-TABLE3	       LABEL	WORD		   ; device name (ie. CON)			 ;AN000;
-T3_LENGTH      DW	EIGHT		   ; length					 ;AN000;
-T3_NAME        DB	"CON     "         ; value                                       ;AN000;
+TABLE3	       LABEL	WORD		   ; device name (ie. CON)
+T3_LENGTH      DW	EIGHT		   ; length
+T3_NAME        DB	"CON     "         ; value
 
-TABLE4	       LABEL	WORD		   ; device id. (eg. EGA,MONO...)		 ;AN000;
-T4_LENGTH      DW	ZERO		   ; length					 ;AN000;
-T4_NAME        DB	"        "         ; value                                       ;AN000;
+TABLE4	       LABEL	WORD		   ; device id. (eg. EGA,MONO...)
+T4_LENGTH      DW	ZERO		   ; length
+T4_NAME        DB	"        "         ; value
 
-TABLE5	       LABEL	WORD		   ; hardware code pages			 ;AN000;
-T5_NUM	       DW	ZERO		   ; only 1 for CON				 ;AN000;
-T5_VALUE       DW	?		   ; value					 ;AN000;
+TABLE5	       LABEL	WORD		   ; hardware code pages
+T5_NUM	       DW	ZERO		   ; only 1 for CON
+T5_VALUE       DW	?		   ; value
 
-TABLE6	       LABEL	WORD		   ; Designates and fonts			 ;AN000;
-T6_NUM	       DW	ZERO		   ; values given (0 - 2 valid) 		 ;AN000;
-T6_DESG        DW	?		   ; n value					 ;AN000;
-T6_FONT        DW	?		   ; m value					 ;AN000;
+TABLE6	       LABEL	WORD		   ; Designates and fonts
+T6_NUM	       DW	ZERO		   ; values given (0 - 2 valid)
+T6_DESG        DW	?		   ; n value
+T6_FONT        DW	?		   ; m value
 
 
-OK_FLAG        DB	ON		   ; FLAG INDICATING PARSE STATUS		 ;AN000;
-LOOP1	       DB	ZERO								 ;AN000;
-LOOP2	       DB	ZERO								 ;AN000;
+OK_FLAG        DB	ON		   ; FLAG INDICATING PARSE STATUS
+LOOP1	       DB	ZERO
+LOOP2	       DB	ZERO
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
@@ -433,51 +424,51 @@ LOOP2	       DB	ZERO								 ;AN000;
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-PARSER	PROC	 NEAR									 ;AN000;
-	PUSH	 ES									 ;AN000;
-	PUSH	 BX									 ;AN000;
-	PUSH	 DS			  ;						 ;AN000;
-	PUSH	 SI			  ;						 ;AN000;
-	LDS	 SI,RH.RH0_BPBA 	  ;						 ;AN000;
-	PUSH	 CS			  ; establish ES ..				 ;AN000;
-	POP	 ES			  ; addressability to data			 ;AN000;
-	LEA	 DI,PARMS1		  ; point to PARMS control block		 ;AN000;
-	XOR	 CX,CX			  ; clear both CX and DX for			 ;AN000;
-	XOR	 DX,DX			  ;  SYSPARSE					 ;AN000;
-	CALL	 SYSPARSE		  ; move pointer past file spec 		 ;AN000;
-	CALL	 SYSPARSE		  ; do first parse				 ;AN000;
-	.WHILE <AX NE RC_EOL> AND	  ; EOL?...then end parse...and..		 ;AN000;
-	.WHILE <OK_FLAG EQ ON>		  ; make sure that flag still ok..		 ;AN000;
-	  .IF <AX NE RC_NO_ERROR>	  ; parse error?				 ;AN000;
-	    MOV     OK_FLAG,OFF 	  ; yes...reset flag				 ;AN000;
-	  .ELSE 			  ; no...process..				 ;AN000;
-	    .SELECT			  ;						 ;AN000;
-	    .WHEN <RESULT_TYPE EQ COMPLEX> ; complex string found?			 ;AN000;
-	      INC    LOOP1		  ; increment count				 ;AN000;
-	      .IF <LOOP1 GT ONE>	  ; more than one?				 ;AN000;
-		MOV    OK_FLAG,OFF	  ; yes....we have an error			 ;AN000;
-	      .ELSE			  ; no ..					 ;AN000;
-		CALL   PARSE_MAIN	  ; process complex string..			 ;AN000;
-	      .ENDIF			  ;						 ;AN000;
-	    .OTHERWISE			  ; not a complex string so..			 ;AN000;
-	      MOV    OK_FLAG,OFF	  ; we have a problem...reset flag		 ;AN000;
-	    .ENDSELECT			  ;						 ;AN000;
-	    CALL   SYSPARSE		  ; continue parsing..				 ;AN000;
-	  .ENDIF			  ;						 ;AN000;
-	.ENDWHILE			  ;						 ;AN000;
-	.IF <OK_FLAG EQ OFF> OR 	  ; flag indicating error?			 ;AN000;
-	.IF <LOOP1 EQ ZERO>		  ; or no parameters specified? 		 ;AN000;
-	  MOV	DEVICE_NUM,ZERO 	  ; yes...set device number to 0		 ;AN000;
-	  STC				  ;						 ;AN000;
-	.ELSE				  ;						 ;AN000;
-	  CLC				  ;						 ;AN000;
-	.ENDIF				  ;						 ;AN000;
-	POP    SI			  ;						 ;AN000;
-	POP    DS			  ;						 ;AN000;
-	POP    BX			  ;						 ;AN000;
-	POP    ES			  ;						 ;AN000;
-	RET				  ;						 ;AN000;
-PARSER	ENDP										 ;AN000;
+PARSER	PROC	 NEAR
+	PUSH	 ES
+	PUSH	 BX
+	PUSH	 DS			  ;
+	PUSH	 SI			  ;
+	LDS	 SI,RH.RH0_BPBA 	  ;
+	PUSH	 CS			  ; establish ES ..
+	POP	 ES			  ; addressability to data
+	LEA	 DI,PARMS1		  ; point to PARMS control block
+	XOR	 CX,CX			  ; clear both CX and DX for
+	XOR	 DX,DX			  ;  SYSPARSE
+	CALL	 SYSPARSE		  ; move pointer past file spec
+	CALL	 SYSPARSE		  ; do first parse
+	.WHILE <AX NE RC_EOL> AND	  ; EOL?...then end parse...and..
+	.WHILE <OK_FLAG EQ ON>		  ; make sure that flag still ok..
+	  .IF <AX NE RC_NO_ERROR>	  ; parse error?
+	    MOV     OK_FLAG,OFF 	  ; yes...reset flag
+	  .ELSE 			  ; no...process..
+	    .SELECT			  ;
+	    .WHEN <RESULT_TYPE EQ COMPLEX> ; complex string found?
+	      INC    LOOP1		  ; increment count
+	      .IF <LOOP1 GT ONE>	  ; more than one?
+		MOV    OK_FLAG,OFF	  ; yes....we have an error
+	      .ELSE			  ; no ..
+		CALL   PARSE_MAIN	  ; process complex string..
+	      .ENDIF			  ;
+	    .OTHERWISE			  ; not a complex string so..
+	      MOV    OK_FLAG,OFF	  ; we have a problem...reset flag
+	    .ENDSELECT			  ;
+	    CALL   SYSPARSE		  ; continue parsing..
+	  .ENDIF			  ;
+	.ENDWHILE			  ;
+	.IF <OK_FLAG EQ OFF> OR 	  ; flag indicating error?
+	.IF <LOOP1 EQ ZERO>		  ; or no parameters specified?
+	  MOV	DEVICE_NUM,ZERO 	  ; yes...set device number to 0
+	  STC				  ;
+	.ELSE				  ;
+	  CLC				  ;
+	.ENDIF				  ;
+	POP    SI			  ;
+	POP    DS			  ;
+	POP    BX			  ;
+	POP    ES			  ;
+	RET				  ;
+PARSER	ENDP
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -497,49 +488,49 @@ PARSER	ENDP										 ;AN000;
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-PARSE_MAIN  PROC   NEAR 								 ;AN000;
-	    PUSH   DI			  ; setup to parse the nested.. 		 ;AN000;
-	    PUSH   DS			  ; complex string...but save.. 		 ;AN000;
-	    PUSH   SI			  ; current parsing status.			 ;AN000;
-	    PUSH   CX			  ;						 ;AN000;
-	    XOR    CX,CX		  ;						 ;AN000;
-	    LEA    DI,PARMS2		  ; next control block..			 ;AN000;
-	    LDS    SI,RESULT_VAL	  ; point to stored string			 ;AN000;
-	    CALL   SYSPARSE		  ;						 ;AN000;
-	    .WHILE <AX NE RC_EOL> AND	  ; not EOL?   and..				 ;AN000;
-	    .WHILE <OK_FLAG EQ ON>	  ; error flag still ok?			 ;AN000;
-	      .IF <AX NE RC_NO_ERROR>	  ; check for parse errors			 ;AN000;
-		MOV    OK_FLAG,OFF	  ; yes....reset error flag			 ;AN000;
-	      .ELSE			  ; no...process				 ;AN000;
-		INC    LOOP2		  ;						 ;AN000;
-		.SELECT 		  ;						 ;AN000;
-		.WHEN <RESULT_TYPE EQ STRING> ; simple string				 ;AN000;
-		  CALL	 PARSE_STR	  ; yes...process				 ;AN000;
-		.WHEN <RESULT_TYPE EQ NUMBER> ; number?..				 ;AN000;
-		  CALL	 PARSE_NUM	  ; yes...process				 ;AN000;
-		.WHEN <RESULT_TYPE EQ COMPLEX> ; complex string?			 ;AN000;
-		  CALL	 PARSE_COMPLEX	  ;AN002;
-		.OTHERWISE		  ; anything else is..				 ;AN000;
-		  MOV	 OK_FLAG,OFF	  ; an error...reset flag.			 ;AN000;
-		.ENDSELECT		  ;						 ;AN000;
-		CALL   SYSPARSE 	  ; continue parsing				 ;AN000;
-	      .ENDIF			  ;						 ;AN000;
-	    .ENDWHILE			  ;						 ;AN000;
-	    POP    CX			  ; restore original parse..			 ;AN000;
-	    POP    SI			  ; registers.					 ;AN000;
-	    POP    DS			  ;						 ;AN000;
-	    POP    DI			  ;						 ;AN000;
-	    RET 			  ;						 ;AN000;
+PARSE_MAIN  PROC   NEAR
+	    PUSH   DI			  ; setup to parse the nested..
+	    PUSH   DS			  ; complex string...but save..
+	    PUSH   SI			  ; current parsing status.
+	    PUSH   CX			  ;
+	    XOR    CX,CX		  ;
+	    LEA    DI,PARMS2		  ; next control block..
+	    LDS    SI,RESULT_VAL	  ; point to stored string
+	    CALL   SYSPARSE		  ;
+	    .WHILE <AX NE RC_EOL> AND	  ; not EOL?   and..
+	    .WHILE <OK_FLAG EQ ON>	  ; error flag still ok?
+	      .IF <AX NE RC_NO_ERROR>	  ; check for parse errors
+		MOV    OK_FLAG,OFF	  ; yes....reset error flag
+	      .ELSE			  ; no...process
+		INC    LOOP2		  ;
+		.SELECT 		  ;
+		.WHEN <RESULT_TYPE EQ STRING> ; simple string
+		  CALL	 PARSE_STR	  ; yes...process
+		.WHEN <RESULT_TYPE EQ NUMBER> ; number?..
+		  CALL	 PARSE_NUM	  ; yes...process
+		.WHEN <RESULT_TYPE EQ COMPLEX> ; complex string?
+		  CALL	 PARSE_COMPLEX
+		.OTHERWISE		  ; anything else is..
+		  MOV	 OK_FLAG,OFF	  ; an error...reset flag.
+		.ENDSELECT		  ;
+		CALL   SYSPARSE 	  ; continue parsing
+	      .ENDIF			  ;
+	    .ENDWHILE			  ;
+	    POP    CX			  ; restore original parse..
+	    POP    SI			  ; registers.
+	    POP    DS			  ;
+	    POP    DI			  ;
+	    RET 			  ;
 PARSE_MAIN  ENDP
 
 ;
-PARSE_COMPLEX	PROC		 ;AN002;
+PARSE_COMPLEX	PROC
 	.IF  <LOOP2 EQ TWO>	 ;AN002; Should be for HWCP
 	     CALL  PARSE_COMP_X  ;AN002; for (hwcp)
-	.ELSE			 ;AN002;
-	     CALL   PARSE_COMP	 ; yes...process for (n,m)				 ;AN000;
-	.ENDIF			 ;AN002;
-	ret			 ;AN002;
+	.ELSE
+	     CALL   PARSE_COMP	 ; yes...process for (n,m)
+	.ENDIF
+	ret
 PARSE_COMPLEX	ENDP
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -559,15 +550,15 @@ PARSE_COMPLEX	ENDP
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-PARSE_COMP_X PROC   NEAR		  ;AN002;
+PARSE_COMP_X PROC   NEAR
 	     PUSH   DI			  ;AN002; setup ro parse the nested..
 	     PUSH   DS			  ;AN002; complex string..saving the..
 	     PUSH   SI			  ;AN002; current parse status.
-	     PUSH   CX			  ;AN002;
-	     XOR    CX,CX		  ;AN002;
+	     PUSH   CX
+	     XOR    CX,CX
 	     LEA    DI,PARMS3_X 	  ;AN002; next control block
 	     LDS    SI,RESULT_VAL	  ;AN002; point to stored string.
-	     CALL   SYSPARSE		  ;AN002;
+	     CALL   SYSPARSE
 	     .WHILE <AX NE RC_EOL> AND	  ;AN002; not EOL?...and..
 	     .WHILE <OK_FLAG EQ ON>	  ;AN002; error flag still okay?
 	       .IF <AX NE RC_NO_ERROR> OR ;AN002; parse error?...or..
@@ -578,14 +569,14 @@ PARSE_COMP_X PROC   NEAR		  ;AN002;
 		 MOV	AX,WORD PTR RESULT_VAL ;AN002; get numeric value into word
 		 MOV	T5_VALUE,AX	  ;AN002; yes...number of designates.
 		 CALL	SYSPARSE	  ;AN002; continue parsing
-	       .ENDIF			  ;AN002;
-	     .ENDWHILE			  ;AN002;
+	       .ENDIF
+	     .ENDWHILE
 	     POP    CX			  ;AN002; restore previous parse..
 	     POP    SI			  ;AN002; registers.
-	     POP    DS			  ;AN002;
-	     POP    DI			  ;AN002;
-	     RET			  ;AN002;
-PARSE_COMP_X ENDP			  ;AN002;
+	     POP    DS
+	     POP    DI
+	     RET
+PARSE_COMP_X ENDP
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -605,36 +596,36 @@ PARSE_COMP_X ENDP			  ;AN002;
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-PARSE_COMP   PROC   NEAR								 ;AN000;
-	     PUSH   DI			  ; setup ro parse the nested.. 		 ;AN000;
-	     PUSH   DS			  ; complex string..saving the..		 ;AN000;
-	     PUSH   SI			  ; current parse status.			 ;AN000;
-	     PUSH   CX			  ;						 ;AN000;
-	     XOR    CX,CX		  ;						 ;AN000;
-	     LEA    DI,PARMS3		  ; next control block				 ;AN000;
-	     LDS    SI,RESULT_VAL	  ; point to stored string.			 ;AN000;
-	     CALL   SYSPARSE		  ;						 ;AN000;
-	     .WHILE <AX NE RC_EOL> AND	  ; not EOL?...and..				 ;AN000;
-	     .WHILE <OK_FLAG EQ ON>	  ; error flag still okay?			 ;AN000;
-	       .IF <AX NE RC_NO_ERROR> OR ; parse error?...or.. 			 ;AN000;
-	       .IF <RESULT_TYPE NE NUMBER> ; something other than a number..		 ;AN000;
-		 MOV	OK_FLAG,OFF	  ; found?....yes..reset flag.			 ;AN000;
-	       .ELSE			  ; no...process..				 ;AN000;
-		 INC	T6_NUM		  ; increment counter				 ;AN000;
-		 MOV	AX,WORD PTR RESULT_VAL ; get numeric value into word		 ;AN000;
-		 .IF <T6_NUM EQ ONE>	  ; first value found?				 ;AN000;
-		   MOV	  T6_DESG,AX	  ; yes...number of designates. 		 ;AN000;
-		 .ELSE			  ; else..					 ;AN000;
-		   MOV	  T6_FONT,AX	  ; second number...number of fonts.		 ;AN000;
-		 .ENDIF 		  ;						 ;AN000;
-		 CALL	SYSPARSE	  ; continue parsing				 ;AN000;
-	       .ENDIF			  ;						 ;AN000;
-	     .ENDWHILE			  ;						 ;AN000;
-	     POP    CX			  ; restore previous parse..			 ;AN000;
-	     POP    SI			  ; registers.					 ;AN000;
-	     POP    DS			  ;						 ;AN000;
-	     POP    DI			  ;						 ;AN000;
-	     RET			  ;						 ;AN000;
+PARSE_COMP   PROC   NEAR
+	     PUSH   DI			  ; setup ro parse the nested..
+	     PUSH   DS			  ; complex string..saving the..
+	     PUSH   SI			  ; current parse status.
+	     PUSH   CX			  ;
+	     XOR    CX,CX		  ;
+	     LEA    DI,PARMS3		  ; next control block
+	     LDS    SI,RESULT_VAL	  ; point to stored string.
+	     CALL   SYSPARSE		  ;
+	     .WHILE <AX NE RC_EOL> AND	  ; not EOL?...and..
+	     .WHILE <OK_FLAG EQ ON>	  ; error flag still okay?
+	       .IF <AX NE RC_NO_ERROR> OR ; parse error?...or..
+	       .IF <RESULT_TYPE NE NUMBER> ; something other than a number..
+		 MOV	OK_FLAG,OFF	  ; found?....yes..reset flag.
+	       .ELSE			  ; no...process..
+		 INC	T6_NUM		  ; increment counter
+		 MOV	AX,WORD PTR RESULT_VAL ; get numeric value into word
+		 .IF <T6_NUM EQ ONE>	  ; first value found?
+		   MOV	  T6_DESG,AX	  ; yes...number of designates.
+		 .ELSE			  ; else..
+		   MOV	  T6_FONT,AX	  ; second number...number of fonts.
+		 .ENDIF 		  ;
+		 CALL	SYSPARSE	  ; continue parsing
+	       .ENDIF			  ;
+	     .ENDWHILE			  ;
+	     POP    CX			  ; restore previous parse..
+	     POP    SI			  ; registers.
+	     POP    DS			  ;
+	     POP    DI			  ;
+	     RET			  ;
 PARSE_COMP   ENDP
 
 
@@ -654,24 +645,24 @@ PARSE_COMP   ENDP
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-PARSE_STR    PROC   NEAR								 ;AN000;
-	     PUSH   DI			  ; get source and..				 ;AN000;
-	     PUSH   DS			  ; destination registers..			 ;AN000;
-	     PUSH   SI			  ; setup.					 ;AN000;
-	     LDS    SI,RESULT_VAL	  ;						 ;AN000;
-	     .IF <<BYTE PTR DS:[SI]> NE ZERO> ; check for null string			 ;AN000;
-	       LEA    DI,T4_NAME	  ;						 ;AN000;
-	       LODSB			  ; load first character.			 ;AN000;
-	       .WHILE <AL NE ZERO>	  ; while not at end of ASCIIZ do..		 ;AN000;
-		 STOSB			  ; store..					 ;AN000;
-		 LODSB			  ; load next character..			 ;AN000;
-	       .ENDWHILE		  ;						 ;AN000;
-	       MOV    T4_LENGTH,EIGHT	  ; value found.				 ;AN000;
-	     .ENDIF			  ;						 ;AN000;
-	     POP    SI			  ; restore registers.				 ;AN000;
-	     POP    DS			  ;						 ;AN000;
-	     POP    DI			  ;						 ;AN000;
-	     RET									 ;AN000;
+PARSE_STR    PROC   NEAR
+	     PUSH   DI			  ; get source and..
+	     PUSH   DS			  ; destination registers..
+	     PUSH   SI			  ; setup.
+	     LDS    SI,RESULT_VAL	  ;
+	     .IF <<BYTE PTR DS:[SI]> NE ZERO> ; check for null string
+	       LEA    DI,T4_NAME	  ;
+	       LODSB			  ; load first character.
+	       .WHILE <AL NE ZERO>	  ; while not at end of ASCIIZ do..
+		 STOSB			  ; store..
+		 LODSB			  ; load next character..
+	       .ENDWHILE		  ;
+	       MOV    T4_LENGTH,EIGHT	  ; value found.
+	     .ENDIF			  ;
+	     POP    SI			  ; restore registers.
+	     POP    DS			  ;
+	     POP    DI			  ;
+	     RET
 PARSE_STR    ENDP
 
 
@@ -692,17 +683,17 @@ PARSE_STR    ENDP
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-PARSE_NUM    PROC   NEAR								 ;AN000;
-	     MOV    AX,WORD PTR RESULT_VAL   ; get value into word form 		 ;AN000;
-	     .IF <LOOP2 EQ TWO> 	     ; if this is the code page then..		 ;AN000;
-		MOV   T5_VALUE,AX	     ; load that value. 			 ;AN000;
-		INC   T5_NUM		     ;						 ;AN000;
-	     .ELSEIF <LOOP2 EQ THREE>	     ;						 ;AN000;
-		MOV   T6_DESG,AX	     ; must be number of designates..		 ;AN000;
-		INC   T6_NUM		     ; load and increment count 		 ;AN000;
-	     .ENDIF			     ;						 ;AN000;
-	     RET			     ;						 ;AN000;
-PARSE_NUM    ENDP									 ;AN000;
+PARSE_NUM    PROC   NEAR
+	     MOV    AX,WORD PTR RESULT_VAL   ; get value into word form
+	     .IF <LOOP2 EQ TWO> 	     ; if this is the code page then..
+		MOV   T5_VALUE,AX	     ; load that value.
+		INC   T5_NUM		     ;
+	     .ELSEIF <LOOP2 EQ THREE>	     ;
+		MOV   T6_DESG,AX	     ; must be number of designates..
+		INC   T6_NUM		     ; load and increment count
+	     .ENDIF			     ;
+	     RET			     ;
+PARSE_NUM    ENDP
 
 
 	     ASSUME CS:CODE,DS:CODE
@@ -726,81 +717,81 @@ PARSE_NUM    ENDP									 ;AN000;
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-FUNC_INFO	  INFO_BLOCK <> 							 ;AN000;
+FUNC_INFO	  INFO_BLOCK <>
 
-DEVICE_N_LENGTH   EQU	EIGHT								 ;AN000;
+DEVICE_N_LENGTH   EQU	EIGHT
 
-DEVICE_TYPES	  DB	"EGA     "                                                       ;AN000;
-		  DB	"LCD     "                                                       ;AN000;
+DEVICE_TYPES	  DB	"EGA     "
+		  DB	"LCD     "
 
-NUM_DEVICE_TYPES  EQU ($-DEVICE_TYPES)/DEVICE_N_LENGTH					 ;AN000;
+NUM_DEVICE_TYPES  EQU ($-DEVICE_TYPES)/DEVICE_N_LENGTH
 
-DEVICE_FLAG	  DB	00000000B							 ;AN000;
+DEVICE_FLAG	  DB	00000000B
 
 
-GET_DEVICE_ID  PROC   NEAR								 ;AN000;
-	       PUSH   AX								 ;AN000;
-	       PUSH   BX			  ;					 ;AN000;
-	       PUSH   CX			  ; s					 ;AN000;
-	       PUSH   DX			  ;  a	 r				 ;AN000;
-	       PUSH   DI			  ;   v   e				 ;AN000;
-	       PUSH   SI			  ;    e   g				 ;AN000;
-	       PUSH   ES			  ;	    i				 ;AN000;
-	       PUSH   DS			  ;	     s				 ;AN000;
-	       PUSH   CS			  ;	      t 			 ;AN000;
-	       POP    DS			  ;	       e			 ;AN000;
-	       PUSH   CS			  ;		r			 ;AN000;
-	       POP    ES			  ;		 s			 ;AN000;
-	       XOR    AX,AX			  ;					 ;AN000;
-	       MOV    AH,FUNC_CALL		  ;					 ;AN000;
-	       LEA    DI,FUNC_INFO		  ;					 ;AN000;
-	       XOR    BX,BX			  ;					 ;AN000;
-	       INT    10H			  ; try VGA functionality call		 ;AN000;
-	       .IF <AL EQ FUNC_CALL>		  ; worked?....then			 ;AN000;
-		 OR	DEVICE_FLAG,VGA_FOUND	  ; VGA found.				 ;AN000;
-	       .ELSE				  ; no VGA...try EGA			 ;AN000;
-		 MOV	AH,ALT_SELECT		  ;					 ;AN000;
-		 MOV	BL,EGA_INFO_CALL	  ;					 ;AN000;
-		 INT	10H			  ;					 ;AN000;
-		 .IF <BL NE EGA_INFO_CALL>	  ; if changed then EGA present..	 ;AN000;
-		   OR	  DEVICE_FLAG,EGA_FOUND   ; mark as found.			 ;AN000;
-		 .ELSE				  ; no EGA...try LCD.			 ;AN000;
-		   MOV	  AH,GET_SYS_ID 	  ; get system id..			 ;AN000;
-		   INT	  15H			  ; yup....its a convertible..so	 ;AN000;
-		   .IF <ES:[BX].MODEL_BYTE EQ LCD_MODEL> AND				 ;AN000;
-		   MOV	  AH,GET_STATUS 	  ; check for LCD..			 ;AN000;
-		   INT	  15H			  ;					 ;AN000;
-		   .IF <BIT AL NAND ON> 	  ; yes....bit says LCD..so..		 ;AN000;
-		     OR     DEVICE_FLAG,LCD_FOUND ; mark as LCD.			 ;AN000;
-		   .ENDIF			  ;					 ;AN000;
-		 .ENDIF 			  ;					 ;AN000;
-	       .ENDIF				  ;					 ;AN000;
-	       .IF <DEVICE_FLAG NE ZERO>	  ; nothing found?..then exit (eg. MONO) ;AN000;
-		 LEA	SI,DEVICE_TYPES 	  ; start of new id's                    ;AN000;
-		 SAR	DEVICE_FLAG,ONE 	  ; shift flag into carry bit		 ;AN000;
-		 .WHILE NC			  ; carry not set yet.. 		 ;AN000;
-		   ADD	  SI,DEVICE_N_LENGTH	  ; next id				 ;AN000;
-		   SAR	  DEVICE_FLAG,ONE	  ; next flag...			 ;AN000;
-		 .ENDWHILE			  ;					 ;AN000;
-		 PUSH	CS			  ; found....transfer id..		 ;AN000;
-		 POP	ES			  ; into the table..			 ;AN000;
-		 LEA	DI,T4_NAME		  ;					 ;AN000;
-		 MOV	CX,DEVICE_N_LENGTH	  ;					 ;AN000;
-		 REP	MOVSB			  ;					 ;AN000;
-		 MOV	T4_LENGTH,EIGHT 	  ;					 ;AN000;
-		 CLC				  ; clear error flag			 ;AN000;
-	       .ELSE				  ;					 ;AN000;
-		 STC				  ; set error (ie. MONO or CGA found)	 ;AN000;
-	       .ENDIF				  ;					 ;AN000;
-	       POP    DS			  ; r					 ;AN000;
-	       POP    ES			  ;  e	  r				 ;AN000;
-	       POP    SI			  ;   s    e				 ;AN000;
-	       POP    DI			  ;    t    g				 ;AN000;
-	       POP    DX			  ;	o    i				 ;AN000;
-	       POP    CX			  ;	 r    s 			 ;AN000;
-	       POP    BX			  ;	  e    t			 ;AN000;
-	       POP    AX			  ;		e			 ;AN000;
-	       RET				  ;		 r			 ;AN000;
+GET_DEVICE_ID  PROC   NEAR
+	       PUSH   AX
+	       PUSH   BX			  ;
+	       PUSH   CX			  ; s
+	       PUSH   DX			  ;  a	 r
+	       PUSH   DI			  ;   v   e
+	       PUSH   SI			  ;    e   g
+	       PUSH   ES			  ;	    i
+	       PUSH   DS			  ;	     s
+	       PUSH   CS			  ;	      t
+	       POP    DS			  ;	       e
+	       PUSH   CS			  ;		r
+	       POP    ES			  ;		 s
+	       XOR    AX,AX			  ;
+	       MOV    AH,FUNC_CALL		  ;
+	       LEA    DI,FUNC_INFO		  ;
+	       XOR    BX,BX			  ;
+	       INT    10H			  ; try VGA functionality call
+	       .IF <AL EQ FUNC_CALL>		  ; worked?....then
+		 OR	DEVICE_FLAG,VGA_FOUND	  ; VGA found.
+	       .ELSE				  ; no VGA...try EGA
+		 MOV	AH,ALT_SELECT		  ;
+		 MOV	BL,EGA_INFO_CALL	  ;
+		 INT	10H			  ;
+		 .IF <BL NE EGA_INFO_CALL>	  ; if changed then EGA present..
+		   OR	  DEVICE_FLAG,EGA_FOUND   ; mark as found.
+		 .ELSE				  ; no EGA...try LCD.
+		   MOV	  AH,GET_SYS_ID 	  ; get system id..
+		   INT	  15H			  ; yup....its a convertible..so
+		   .IF <ES:[BX].MODEL_BYTE EQ LCD_MODEL> AND
+		   MOV	  AH,GET_STATUS 	  ; check for LCD..
+		   INT	  15H			  ;
+		   .IF <BIT AL NAND ON> 	  ; yes....bit says LCD..so..
+		     OR     DEVICE_FLAG,LCD_FOUND ; mark as LCD.
+		   .ENDIF			  ;
+		 .ENDIF 			  ;
+	       .ENDIF				  ;
+	       .IF <DEVICE_FLAG NE ZERO>	  ; nothing found?..then exit (eg. MONO)
+		 LEA	SI,DEVICE_TYPES 	  ; start of new id's
+		 SAR	DEVICE_FLAG,ONE 	  ; shift flag into carry bit
+		 .WHILE NC			  ; carry not set yet..
+		   ADD	  SI,DEVICE_N_LENGTH	  ; next id
+		   SAR	  DEVICE_FLAG,ONE	  ; next flag...
+		 .ENDWHILE			  ;
+		 PUSH	CS			  ; found....transfer id..
+		 POP	ES			  ; into the table..
+		 LEA	DI,T4_NAME		  ;
+		 MOV	CX,DEVICE_N_LENGTH	  ;
+		 REP	MOVSB			  ;
+		 MOV	T4_LENGTH,EIGHT 	  ;
+		 CLC				  ; clear error flag
+	       .ELSE				  ;
+		 STC				  ; set error (ie. MONO or CGA found)
+	       .ENDIF				  ;
+	       POP    DS			  ; r
+	       POP    ES			  ;  e	  r
+	       POP    SI			  ;   s    e
+	       POP    DI			  ;    t    g
+	       POP    DX			  ;	o    i
+	       POP    CX			  ;	 r    s
+	       POP    BX			  ;	  e    t
+	       POP    AX			  ;		e
+	       RET				  ;		 r
 GET_DEVICE_ID  ENDP				  ;		  s
 
 

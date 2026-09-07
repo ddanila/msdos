@@ -1,5 +1,3 @@
-;	SCCSID = @(#)dpl.asm	1.1 85/04/10
-;	SCCSID = @(#)dpl.asm	1.1 85/04/10
 DPL	STRUC
 DPL_AX	DW	?	; AX register
 DPL_BX	DW	?	; BX register

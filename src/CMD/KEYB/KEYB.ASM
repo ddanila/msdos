@@ -46,13 +46,6 @@
 ;;            COMMSUBS+KEYBTBBL+KEYBCMD;
 ;;       EXE2BIN KEYB.EXE KEYB.COM
 ;;
-;; Change History:
-;; ---------------
-;;
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                                       ;;
-                                       ;;
 CODE    SEGMENT PUBLIC 'CODE' BYTE     ;;
                                        ;;
         INCLUDE KEYBCMD.INC            ;; Bring in external declarations

@@ -1,5 +1,3 @@
-;	SCCSID = @(#)disk2.asm	1.3 85/06/19
-;	SCCSID = @(#)disk2.asm	1.3 85/06/19
 TITLE	DISK2 - Disk utility routines
 NAME	Disk2
 ; Low level Read and write routines for local SFT I/O on files and devs
@@ -18,14 +16,6 @@ NAME	Disk2
 ;   SETSFT
 ;   SETCLUS
 ;   AddRec
-;
-;   Revision history:
-;
-;    AN000  version 4.00 Jan. 1988
-;
-
-;
-; get the appropriate segment definitions
 ;
 .xlist
 include dosseg.asm
@@ -51,7 +41,7 @@ Installed = TRUE
 	i_need	ReadOp,BYTE
 	i_need	Trans,BYTE
 	i_need	BytPos,4
-	i_need	SecPos,DWORD		 ; DOS 4.00 >32mb			;AN000;
+	i_need	SecPos,DWORD		 ; DOS 4.00 >32mb
 	i_need	BytSecPos,WORD
 	i_need	BytCnt1,WORD
 	i_need	BytCnt2,WORD
@@ -64,17 +54,17 @@ Installed = TRUE
 	i_need	DEVCALL,BYTE
 	i_need	CALLSCNT,WORD
 	i_need	DISK_FULL,BYTE		  ; disk full flag for ran blk wrt
-	i_need	FSeek_drive,BYTE	  ; DOS 4.00	  ;AN000;
-	i_need	FSeek_firclus,WORD	  ; DOS 4.00	  ;AN000;
-	i_need	HIGH_SECTOR,WORD	  ; F.C. >32mb	  ;AN000;
-	i_need	TEMP_VAR2,WORD		  ; LB. 	  ;AN000;
-	i_need	TEMP_VAR,WORD		  ; LB. 	  ;AN000;
-	i_need	IFS_DRIVER_ERR,WORD	  ; LB. 	  ;AN000;
-	i_need	CurHashEntry,DWORD	     ; DOS 4.00 current Hash entry	;AN000;
-	i_need	BUF_HASH_PTR,DWORD	     ; DOS 4.00 Hash table pointer	;AN000;
-	i_need	BUF_HASH_COUNT,WORD	     ; DOS 4.00 Hash table entries	;AN000;
+	i_need	FSeek_drive,BYTE	  ; DOS 4.00
+	i_need	FSeek_firclus,WORD	  ; DOS 4.00
+	i_need	HIGH_SECTOR,WORD	  ; F.C. >32mb
+	i_need	TEMP_VAR2,WORD		  ; LB.
+	i_need	TEMP_VAR,WORD		  ; LB.
+	i_need	IFS_DRIVER_ERR,WORD	  ; LB.
+	i_need	CurHashEntry,DWORD	     ; DOS 4.00 current Hash entry
+	i_need	BUF_HASH_PTR,DWORD	     ; DOS 4.00 Hash table pointer
+	i_need	BUF_HASH_COUNT,WORD	     ; DOS 4.00 Hash table entries
 	i_need	LastBuffer,DWORD
-	i_need	FIRST_BUFF_ADDR,WORD	     ; first buffer address		;AN000;
+	i_need	FIRST_BUFF_ADDR,WORD	     ; first buffer address
 
 IF	BUFFERFLAG
 	EXTRN	SAVE_MAP:NEAR
@@ -192,7 +182,7 @@ DODSKOP:
 	SUB	CX,DI
 	NEG	CX		; Number of sectors not transferred
 	MOV	AX,[DEVCALL.REQSTAT]
-	MOV	[IFS_DRIVER_ERR],AX ;IFS. save it for IFS			;AN000;
+	MOV	[IFS_DRIVER_ERR],AX ;IFS. save it for IFS
 	TEST	AX,STERR
 	return
 EndProc DskRead
@@ -290,10 +280,10 @@ ASSUME	DS:NOTHING
 ;	CMP	DX,BX		; See if divide will overflow
 ;	JNC	EOFERR		; for 16 bit sector
 ;; 32 bit divide
-	invoke	DIV32			      ; F.C. >32mb   ;AN000;
-	MOV	WORD PTR [SECPOS],AX	      ; F.C. >32mb   ;AN000;
-	MOV	BX,[HIGH_SECTOR]	      ; F.C. >32mb   ;AN000;
-	MOV	WORD PTR [SECPOS+2],BX	      ; F.C. >32mb   ;AN000;
+	invoke	DIV32			      ; F.C. >32mb
+	MOV	WORD PTR [SECPOS],AX	      ; F.C. >32mb
+	MOV	BX,[HIGH_SECTOR]	      ; F.C. >32mb
+	MOV	WORD PTR [SECPOS+2],BX	      ; F.C. >32mb
 
 	MOV	[BYTSECPOS],DX
 	MOV	DX,AX
@@ -301,17 +291,17 @@ ASSUME	DS:NOTHING
 	MOV	[SECCLUSPOS],AL
 	MOV	AX,CX		; Save byte count
 ;	MOV	CL,ES:[BP.dpb_cluster_shift]
-	PUSH	WORD PTR [SECPOS+2]	     ; F.C. >32mb	   ;AN000;
-	POP	[HIGH_SECTOR]		     ; F.C. >32mb	   ;AN000;
-	PUSH	AX			     ; F.C. >32mb save ax  ;AN000;
-	MOV	AX,DX			     ; F.C. >32mb ax=dx    ;AN000;
-	invoke	SHR32			     ; F.C. >32mb shift ax ;AN000;
-	MOV	DX,AX			     ; F.C. >32mb dx=ax    ;AN000;
-	POP	AX			     ; F.C. >32mb restore dx ;AN000;
+	PUSH	WORD PTR [SECPOS+2]	     ; F.C. >32mb
+	POP	[HIGH_SECTOR]		     ; F.C. >32mb
+	PUSH	AX			     ; F.C. >32mb save ax
+	MOV	AX,DX			     ; F.C. >32mb ax=dx
+	invoke	SHR32			     ; F.C. >32mb shift ax
+	MOV	DX,AX			     ; F.C. >32mb dx=ax
+	POP	AX			     ; F.C. >32mb restore dx
 
 ;	SHR	DX,CL
-	CMP	DX,ES:[BP.dpb_max_cluster]   ;>32mb  if > disk size ;AN000;	;AN000;
-	JA	EOFERR			     ;>32mb    then EOF     ;AN000;	;AN000;
+	CMP	DX,ES:[BP.dpb_max_cluster]   ;>32mb  if > disk size
+	JA	EOFERR			     ;>32mb    then EOF
 
 	MOV	[CLUSNUM],DX
 	POP	ES		; ES:DI point to SFT
@@ -470,7 +460,7 @@ Break	<DISKREAD -- PERFORM USER DISK READ>
 	JAE	ENUF			;I/O fits
 	MOV	CX,AX			;Limit read to up til EOF
 ENUF:
-	invoke	CHECK_READ_LOCK 	;IFS. check read lock			 ;AN000;
+	invoke	CHECK_READ_LOCK 	;IFS. check read lock
 	JNC	Read_Ok 		; There are no locks
 	return
 
@@ -478,7 +468,7 @@ READ_OK:
 	LES	BP,[THISDPB]
 	Assert	ISDPB,<ES,BP>,"DISKREAD/ReadOK"
 	MOV	AL,ES:[BP.dpb_drive]	; set up drive # for FastSeek
-	MOV	[FSeek_drive],AL	; 11/5/86  ;AN000;
+	MOV	[FSeek_drive],AL	; 11/5/86
 
 	CALL	BREAKDOWN
 	MOV	CX,[CLUSNUM]
@@ -492,8 +482,8 @@ ENDIF
 	OR	CX,CX
 	JZ	SKIPERR
 RDERR:
-	MOV	[DISK_FULL],1		;MS. EOF detection  ;AN000;
-	MOV	AH,0EH			;MS. read/data/fail ;AN000;
+	MOV	[DISK_FULL],1		;MS. EOF detection
+	MOV	AH,0EH			;MS. read/data/fail
 	transfer WRTERR22
 RDLASTJ:JMP	RDLAST
 SETSFTJ2: JMP	SETSFT
@@ -543,7 +533,7 @@ RDLP:
 ASSUME	DS:NOTHING
 	PUSH	DX
 	PUSH	CX
-	invoke	SET_RQ_SC_PARMS 	 ;LB. do this for SC		       ;AN000;
+	invoke	SET_RQ_SC_PARMS 	 ;LB. do this for SC
 
 IF	BUFFERFLAG
 	pushf
@@ -572,45 +562,45 @@ ENDIF
 	JNC	SKP_CANOT_READ
 	JMP	CANOT_READ
 SKP_CANOT_READ:
-	MOV	[TEMP_VAR],BX		  ;LB. save sector count		;AN000;
-	MOV	[TEMP_VAR2],DX		  ;LB. 1st sector			;AN000;
+	MOV	[TEMP_VAR],BX		  ;LB. save sector count
+	MOV	[TEMP_VAR2],DX		  ;LB. 1st sector
 SCAN_NEXT:
-;;;;;;; invoke	GETCURHEAD		  ;LB. get buffer header		;AN000;
-	PUSH	DX			  ;LB. save regs			;AN000;
-	PUSH	AX			  ;LB.					;AN000;
-	PUSH	BX			  ;LB.					;AN000;
+;;;;;;; invoke	GETCURHEAD		  ;LB. get buffer header
+	PUSH	DX			  ;LB. save regs
+	PUSH	AX			  ;LB.
+	PUSH	BX			  ;LB.
 	MOV	AX,DX			  ;LB.
-;	MOV	DX,[HIGH_SECTOR]	  ;LB. HASH(sector#) and get entry #	;AN000;
-	XOR	DX,DX			  ;LB. to avoid divide overflow 	;AN000;
-	DIV	[BUF_HASH_COUNT]	  ;LB. get remainder			;AN000;
-	ADD	DX,DX			  ;LB. 8 bytes per entry		;AN000;
-	ADD	DX,DX			  ;LB.					;AN000;
-	ADD	DX,DX			  ;LB. times 8				;AN000;
+;	MOV	DX,[HIGH_SECTOR]	  ;LB. HASH(sector#) and get entry #
+	XOR	DX,DX			  ;LB. to avoid divide overflow
+	DIV	[BUF_HASH_COUNT]	  ;LB. get remainder
+	ADD	DX,DX			  ;LB. 8 bytes per entry
+	ADD	DX,DX			  ;LB.
+	ADD	DX,DX			  ;LB. times 8
 
-	LDS	DI,[BUF_HASH_PTR]	  ;LB. get Hash Table addr		;AN000;
-	ADD	DI,DX			  ;LB position to entry 		;AN000;
-	CMP	[DI.Dirty_Count],0	  ;LB dirty hash entry ?		;AN000;
-	JNZ	yesdirty		  ;LB yes and map it			;AN000;
-	POP	BX			  ;LB.					;AN000;
-	POP	AX			  ;LB.					;AN000;
-	POP	DX			  ;LB.					;AN000;
+	LDS	DI,[BUF_HASH_PTR]	  ;LB. get Hash Table addr
+	ADD	DI,DX			  ;LB position to entry
+	CMP	[DI.Dirty_Count],0	  ;LB dirty hash entry ?
+	JNZ	yesdirty		  ;LB yes and map it
+	POP	BX			  ;LB.
+	POP	AX			  ;LB.
+	POP	DX			  ;LB.
 
 IF	(NOT	BUFFERFLAG) AND 0FFFFh
-	JMP	SHORT end_scan		  ;LB.					;AN000;
+	JMP	SHORT end_scan		  ;LB.
 ELSE
 	JMP	END_SCAN
 ENDIF
 
 yesdirty:
-	MOV	WORD PTR [CurHashEntry+2],DS ;LB. update current Hash entry ptr ;AN000;
-	MOV	WORD PTR [CurHashEntry],DI ;LB. 				;AN000;
-	MOV	WORD PTR [LASTBUFFER],-1   ;LB. invalidate last buffer		;AN000;
-	MOV	BX,[DI.EMS_PAGE_NUM]	  ;LB. logical page			;AN000;
+	MOV	WORD PTR [CurHashEntry+2],DS ;LB. update current Hash entry ptr
+	MOV	WORD PTR [CurHashEntry],DI ;LB.
+	MOV	WORD PTR [LASTBUFFER],-1   ;LB. invalidate last buffer
+	MOV	BX,[DI.EMS_PAGE_NUM]	  ;LB. logical page
 
 IF	(NOT	BUFFERFLAG) AND 0FFFFh
-	LDS	DI,[DI.BUFFER_BUCKET]	  ;LB. ds:di is 1st buffer addr 	;AN000;
-	MOV	[FIRST_BUFF_ADDR],DI	  ;LB. save first buff addr 1/19/88	;AN000;
-	invoke	SET_MAP_PAGE		  ;LB. activate handle if EMS there	;AN000;
+	LDS	DI,[DI.BUFFER_BUCKET]	  ;LB. ds:di is 1st buffer addr
+	MOV	[FIRST_BUFF_ADDR],DI	  ;LB. save first buff addr 1/19/88
+	invoke	SET_MAP_PAGE		  ;LB. activate handle if EMS there
 ELSE
 ;	int	3
 	push	ds
@@ -639,25 +629,24 @@ ELSE
 	pop	dx
 	pop	di
 
-	invoke	SET_MAP_PAGE		  ;LB. activate handle if EMS there	;AN000;
+	invoke	SET_MAP_PAGE		  ;LB. activate handle if EMS there
 	pop	di			; restore hash ptr.
 	pop	ds
-	LDS	DI,[DI.BUFFER_BUCKET]	  ;LB. ds:di is 1st buffer addr 	;AN000;
-	MOV	[FIRST_BUFF_ADDR],DI	  ;LB. save first buff addr 1/19/88	;AN000;
+	LDS	DI,[DI.BUFFER_BUCKET]	  ;LB. ds:di is 1st buffer addr
+	MOV	[FIRST_BUFF_ADDR],DI	  ;LB. save first buff addr 1/19/88
 ENDIF
-										;AN000;
-	POP	BX			  ;LB.					;AN000;
-	POP	AX			  ;LB.					;AN000;
-	POP	DX			  ;LB.					;AN000;
+	POP	BX			  ;LB.
+	POP	AX			  ;LB.
+	POP	DX			  ;LB.
 
 
 	Assert	ISDPB,<ES,BP>,"DISKREAD/RdLp"
 	MOV	AL,ES:[BP.dpb_drive]
 NXTBUF: 			; Must see if one of these sectors is buffered
 	invoke	BUFF_RANGE_CHECK			   ;F.C. >32mb
-	JNC	inrange 		   ;LB. 				;AN000;
-	mov	DI,[DI.buf_next]	   ;LB. get next buffer 1/19/88 	;AN000;
-	JMP	DONXTBUF		   ;LB. 				;AN000;
+	JNC	inrange 		   ;LB.
+	mov	DI,[DI.buf_next]	   ;LB. get next buffer 1/19/88
+	JMP	DONXTBUF		   ;LB.
 inrange:
 	TEST	[DI.buf_flags],buf_dirty
 	JZ	CLBUFF			; Buffer is clean, so OK
@@ -689,19 +678,19 @@ EVENMOV:
 	POP	DX
 	POP	DI
 	MOV	AL,ES:[BP.dpb_drive]
-	invoke	SCANPLACE		 ;LB. done with this chain		;AN000;
-	JMP	SHORT end_scan		 ;LB.					;AN000;
+	invoke	SCANPLACE		 ;LB. done with this chain
+	JMP	SHORT end_scan		 ;LB.
 CLBUFF:
 	invoke	SCANPLACE
 DONXTBUF:
-	CMP	DI,[FIRST_BUFF_ADDR]	 ;LB. end of buffers			;AN000;
+	CMP	DI,[FIRST_BUFF_ADDR]	 ;LB. end of buffers
 	JNZ	NXTBUF
 end_scan:
-	ADD	DX,1			 ;LB. next sector #			;AN000;
-	ADC	[HIGH_SECTOR],0 	 ;LB.					;AN000;
-	DEC	[TEMP_VAR]		 ;LB. decrement count			;AN000;
-	JZ	SCAN_DONE		 ;LB. scan next sector			;AN000;
-	JMP	SCAN_NEXT		 ;LB. scan next sector			;AN000;
+	ADD	DX,1			 ;LB. next sector #
+	ADC	[HIGH_SECTOR],0 	 ;LB.
+	DEC	[TEMP_VAR]		 ;LB. decrement count
+	JZ	SCAN_DONE		 ;LB. scan next sector
+	JMP	SCAN_NEXT		 ;LB. scan next sector
 SCAN_DONE:
 	Context DS
 	POP	CX

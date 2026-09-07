@@ -31,12 +31,6 @@
 ;;	 FROM FILE  ????????.ASM:
 ;;	      ????????? - ????????????????????????????????????????????
 ;;
-;; Change History:
-;; ---------------
-;;
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-				       ;;
 	PUBLIC FIND_SYS_TYPE	       ;;
 	PUBLIC FIND_KEYB_TYPE	       ;;
 	PUBLIC HW_TYPE		       ;;
@@ -230,11 +224,11 @@ HW_TYPE 	DW	0		       ;;
 SECURE_FL	DB	0
 ;RESERVED ADDRESS 013h BITS 1 & 2
 
-	PASS_MODE	equ		00000001B   ;AN000;
-	SERVER_MODE	equ		00000010B   ;AN000;
-	SECRET_ADD	equ		13h    ;AN000;
-	PORT_70 	equ		70h    ;AN000;
-	PORT_71 	equ		71h    ;AN000;
+	PASS_MODE	equ		00000001B
+	SERVER_MODE	equ		00000010B
+	SECRET_ADD	equ		13h
+	PORT_70 	equ		70h
+	PORT_71 	equ		71h
 
 ;***CNS
 G_KEYBOARD	EQU	0AB41h	     ;;?????   ;; Keyboard ID for FERRARI_G
@@ -311,13 +305,13 @@ WT_ID:	TEST	ES:KB_FLAG_3,KBX       ;; TEST FOR KBX SET
 				       ;; SAVE ALL REGISTERS BEFORE ENTRY
 				       ;; INTO CHECKING KEYBOARD SECURITY
 	PUSH	AX			       ;AN000; ;SAVE THE CURRENT ENVIRONMENT
-	PUSH	BX			       ;AN000;
-	PUSH	CX			       ;AN000;
-	PUSH	DX			       ;AN000;
-	PUSH	DS			       ;AN000;
-	PUSH	ES			       ;AN000;
-	PUSH	SI			       ;AN000;
-	PUSH	DI			       ;AN000;
+	PUSH	BX
+	PUSH	CX
+	PUSH	DX
+	PUSH	DS
+	PUSH	ES
+	PUSH	SI
+	PUSH	DI
 
 
 
@@ -325,13 +319,13 @@ WT_ID:	TEST	ES:KB_FLAG_3,KBX       ;; TEST FOR KBX SET
 					       ;ACTIVATED AT THIS POINT
 
 
-	POP	DI			       ;AN000;
-	POP	SI			       ;AN000;
-	POP	ES			       ;AN000;
-	POP	DS			       ;AN000;
-	POP	DX			       ;AN000;
-	POP	CX			       ;AN000;
-	POP	BX			       ;AN000;
+	POP	DI
+	POP	SI
+	POP	ES
+	POP	DS
+	POP	DX
+	POP	CX
+	POP	BX
 	POP	AX			       ;AN000;SAVE THE CURRENT ENVIRONMENT
 
 	JNC	ASSUME_AT		       ;AN000;SECURITY UNAVAILABLE OR AN AT KB
@@ -526,24 +520,24 @@ KEYB_SECURE	PROC	NEAR
 
 ;RESERVED ADDRESS 013h BITS 1 & 2
 
-;	PASS_MODE	equ		00000001B   ;AN000;
-;	SERVER_MODE	equ		00000010B   ;AN000;
+;	PASS_MODE	equ		00000001B
+;	SERVER_MODE	equ		00000010B
 
 
 
-;	SECRET_ADD	equ		13h    ;AN000;
-;	PORT_70 	equ		70h    ;AN000;
-;	PORT_71 	equ		71h    ;AN000;
+;	SECRET_ADD	equ		13h
+;	PORT_70 	equ		70h
+;	PORT_71 	equ		71h
 
 ;	 PUSH	 AX				;AN000; ;SAVE THE CURRENT ENVIRONMENT
-;	 PUSH	 BX				;AN000;
-;	 PUSH	 CX				;AN000;
-;	 PUSH	 DX				;AN000;
-;	 PUSH	 CS				;AN000;
-;	 PUSH	 DS				;AN000;
-;	 PUSH	 ES				;AN000;
-;	 PUSH	 SI				;AN000;
-;	 PUSH	 DI				;AN000;
+;	 PUSH	 BX
+;	 PUSH	 CX
+;	 PUSH	 DX
+;	 PUSH	 CS
+;	 PUSH	 DS
+;	 PUSH	 ES
+;	 PUSH	 SI
+;	 PUSH	 DI
 	CLI					;AN000;;DISABLE THE INTERRUPT TO AVOID
 						;AN000;;THE CMOS REGISTER BEFORE
 						;AN000;;THE READ & WRITE IS DONE
@@ -580,14 +574,14 @@ SECURE_RET:
 	STI					;AN000;;ENABLE THE INTERRUPT
 
 
-;	POP	DI			       ;AN000;
-;	POP	SI			       ;AN000;
-;	POP	ES			       ;AN000;
-;	POP	DS			       ;AN000;
-;	POP	CS			       ;AN000;
-;	POP	DX			       ;AN000;
-;	POP	CX			       ;AN000;
-;	POP	BX			       ;AN000;
+;	POP	DI
+;	POP	SI
+;	POP	ES
+;	POP	DS
+;	POP	CS
+;	POP	DX
+;	POP	CX
+;	POP	BX
 ;	POP	AX			       ;AN000; ;SAVE THE CURRENT ENVIRONMENT
 
 

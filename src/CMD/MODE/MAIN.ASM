@@ -98,16 +98,12 @@ EXTRN	stay_resident:BYTE	       ;boolean indicating just loaded resident code se
 ;บ											  บ
 
 close_handles  PROC  NEAR		  ;AN002;close all standard device handles
-					  ;AN002;
-MOV   AH,3EH				  ;AN002;
-					  ;AN002;
+MOV   AH,3EH
 .FOR BX,=,STDIN,TO,STDPRN		  ;AN002;	;JWASM: explicit commas (.FOR args)
-   INT	 21H				  ;AN002;
-.NEXT BX				  ;AN002;
-					  ;AN002;
-RET					  ;AN002;
-					  ;AN002;
-close_handles  ENDP			  ;AN002;
+   INT	 21H
+.NEXT BX
+RET
+close_handles  ENDP
 
 ;บ											  บ
 ;ศออออออออออออออออออออออออออออ	P R O C E D U R E S  อออออออออออออออออออออออออออออออออออออผ
@@ -118,7 +114,7 @@ close_handles  ENDP			  ;AN002;
 
 MSG_SERVICES <MSGDATA>		    ;define message service data area
 
-MSG_SERVICES <LOADmsg,GETmsg,DISPLAYmsg,CHARmsg,NUMmsg,INPUTmsg>	;AC001;
+MSG_SERVICES <LOADmsg,GETmsg,DISPLAYmsg,CHARmsg,NUMmsg,INPUTmsg>
 MSG_SERVICES <mode.cla,mode.clb,mode.cl1,mode.cl2>    ;class B is for messages > 30
 ;;RPS  MSG_SERVICES <mode.cl1,mode.cl2>
 
@@ -139,7 +135,7 @@ CALL  SYSLOADMSG		    ;load the message text
       MOV  AL,1 		       ;had a problem somewhere
    .ELSE
       .IF   <stay_resident EQ truu> THEN
-	 CALL  close_handles		  ;close all standard devices;AN002;
+	 CALL  close_handles		  ;close all standard devices
 	 MOV  DX,move_destination
 	 MOV  CL,4			  ;4 right shifts = divide by 16
 	 SAR  DX,CL			  ;DX=offset of start of resident code in paragraphs

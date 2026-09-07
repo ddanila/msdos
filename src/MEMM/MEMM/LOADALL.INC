@@ -9,21 +9,6 @@
 ;
 ;   Module:   LOADALL - contains structures for 286 and 386 loadall
 ;
-;   Version:  0.02
-;
-;   Date:     April 11,1986
-;
-;   Author:
-;
-;******************************************************************************
-;
-;   Change log:
-;
-;     DATE    REVISION			DESCRIPTION
-;   --------  --------	-------------------------------------------------------
-;   04/11/86  Original
-;   06/28/86  0.02	Name change from MEMM386 to MEMM
-;
 ;******************************************************************************
 ;
 ifndef INC_LIST

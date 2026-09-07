@@ -51,4 +51,4 @@ KEY_QUIT       EQU  001BH		     ;AN000;Esc=Quit
 VECSEGLEN      EQU  2			     ;AN000;vector segment length
 VECOFFLEN      EQU  2			     ;AN000;vector offset length
 
-	INCLUDE PCEQUATE.INC		     ;AN000;
+	INCLUDE PCEQUATE.INC

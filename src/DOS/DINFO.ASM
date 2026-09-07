@@ -1,19 +1,9 @@
-;	SCCSID = @(#)dinfo.asm	1.1 85/04/10
-;	SCCSID = @(#)dinfo.asm	1.1 85/04/10
 TITLE	DISK_INFO - Internal Get Disk Info
 NAME	DISK_INFO
 ; Low level routine for returning disk drive information from a local
 ;   or NET device
 ;
 ; DISK_INFO
-;
-;   Modification history:
-;
-;	Created: ARR 30 March 1983
-;
-
-;
-; get the appropriate segment definitions
 ;
 .xlist
 include dosseg.asm

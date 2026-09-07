@@ -1,4 +1,3 @@
-/*static char *SCCSID = "@(#)error.h    7.11 86/09/29";*/
 /* XENIX calls all return error codes through AX.  If an error occurred then */
 /* the carry bit will be set and the error code is in AX.  If no error occurred */
 /* then the carry bit is reset and AX contains returned info. */

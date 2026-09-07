@@ -151,7 +151,7 @@ INCLUDE version.inc
 ; And this is the actual data
 data	segment public	para	'DATA'
 
-Read_Write_Relative Relative_Sector_Buffer <>	;				;AN000;
+Read_Write_Relative Relative_Sector_Buffer <>	;
 
 
 	IF IBMCOPYRIGHT
@@ -163,12 +163,12 @@ DosFile db	"x:\MSDOS.SYS", 0
 	ENDIF
 
 Dummy_Label db	"NO NAME    "
-Dummy_Label_Size dw  11 			;AN028
+Dummy_Label_Size dw  11
 
-Serial_Num_Low dw 0				;				;AN000;
-Serial_Num_High dw 0				;				;AN000;
+Serial_Num_Low dw 0				;
+Serial_Num_High dw 0				;
 
-SizeMap db	0				;				;AN000;
+SizeMap db	0				;
 
 trackReadWritePacket a_TrackReadWritePacket <>
 
@@ -258,50 +258,50 @@ CheckSwitches proc near
 
 CheckExcl:
 
-	test	SwitchMap,Switch_F		;Specify size?			;AN001;
-;	$IF	NZ				;Yes				;AN001;
+	test	SwitchMap,Switch_F		;Specify size?
+;	$IF	NZ				;Yes
 	JZ $$IF1
-	   test    SwitchMap,(Switch_1+Switch_8+Switch_4+Switch_N+Switch_T) ;AN001;
-;	   $IF	   NZ				;/F replaces above switches	;AN001;
+	   test    SwitchMap,(Switch_1+Switch_8+Switch_4+Switch_N+Switch_T)
+;	   $IF	   NZ				;/F replaces above switches
 	   JZ $$IF2
-	      Message msgIncompatibleParameters ;Print error			;AN001;
-	      mov     Fatal_Error,Yes		;Force exit			;AN001;
-;	   $ELSE				;				;AN001;
+	      Message msgIncompatibleParameters ;Print error
+	      mov     Fatal_Error,Yes		;Force exit
+;	   $ELSE				;
 	   JMP SHORT $$EN2
 $$IF2:
-	      call    Size_To_Switch		;Go set switches based		;AN001;
-;	   $ENDIF				; on the size			;AN001;
+	      call    Size_To_Switch		;Go set switches based
+;	   $ENDIF				; on the size
 $$EN2:
-;	$ENDIF					;				;AN001;
+;	$ENDIF					;
 $$IF1:
-	cmp	Fatal_Error,NO			;				;AN007;
-;	$IF	E				;				;AN007;
+	cmp	Fatal_Error,NO			;
+;	$IF	E				;
 	JNE $$IF6
-	   call    Check_Switch_8_B		;				;ac007
+	   call    Check_Switch_8_B		;
 	   call    Check_T_N
-;	$ENDIF					;				;AN009;
+;	$ENDIF					;
 $$IF6:
-	cmp	Fatal_Error,Yes 		;				;AN007;
-	jne	ExclChkDone			;				;AN007;
-	stc					;				;AN007;
-	ret					;				;AN007;
+	cmp	Fatal_Error,Yes 		;
+	jne	ExclChkDone			;
+	stc					;
+	ret					;
 
 ExclChkDone:
 ; Patch the boot sector so that the boot strap loader knows what disk to
 ; boot from
-;	 mov	 Boot.Boot_PhyDrv, 00H		 ;AC000;
+;	 mov	 Boot.Boot_PhyDrv, 00H
 	mov	Boot.EXT_PHYDRV, 00H		;AN00?;
 
 	cmp	deviceParameters.DP_DeviceType, DEV_HARDDISK
 	jne	CheckFor5InchDrives
 
 ; Formatting a hard disk so we must repatch the boot sector
-;	 mov	 Boot.Boot_PhyDrv, 80H		 ;AC000;
+;	 mov	 Boot.Boot_PhyDrv, 80H
 	mov	Boot.EXT_PHYDRV, 80H		;AN00?;
-	test	switchmap, not (SWITCH_S or SWITCH_V or SWITCH_Q or SWITCH_U or SWITCH_C or SWITCH_Select or SWITCH_AUTOTEST or Switch_B) ;AN007;
+	test	switchmap, not (SWITCH_S or SWITCH_V or SWITCH_Q or SWITCH_U or SWITCH_C or SWITCH_Select or SWITCH_AUTOTEST or Switch_B)
 	jz	SwitchesOkForHardDisk
 
-	Message msgIncompatibleParametersForHardDisk ;			     ;AC000;
+	Message msgIncompatibleParametersForHardDisk ;
 	stc
 	ret
 
@@ -320,7 +320,7 @@ SwitchesOkForHardDisk:
 						;Assume Dir for vol ID exists in 1st 32mb of partition
 
 	mov	Read_Write_Relative.Start_Sector_High,0
-	call	Read_Disk			;				;AC000;
+	call	Read_Disk			;
 						;	on the stack. We throw them away
 
 	jnc	CheckSignature
@@ -330,21 +330,21 @@ SwitchesOkForHardDisk:
 
 CheckSignature: 				; IF (Boot.Boot_Signature != aa55)
 
-	mov	ax, word ptr ScratchBuffer.Boot_Signature ;AC000;
+	mov	ax, word ptr ScratchBuffer.Boot_Signature
 	cmp	ax, 0aa55h			;Find a valid boot record?
 	RestoreReg <ds,dx,cx,bx,ax>
 	clc					;No, so no need to check label
-;	$IF	Z				;No further checking needed	;AC000;
+;	$IF	Z				;No further checking needed
 	JNZ $$IF8
-	   test    SwitchMap,(SWITCH_Select or SWITCH_AUTOTEST) ;Should we prompt for vol label?;AN000;
-;	   $IF	   Z				;Yes, if /Select not entered	;AN000;
+	   test    SwitchMap,(SWITCH_Select or SWITCH_AUTOTEST) ;Should we prompt for vol label?
+;	   $IF	   Z				;Yes, if /Select not entered
 	   JNZ $$IF9
 	      call    CheckVolumeId		;Go ask user for vol label	;     ;
-;	   $ELSE				;/Select entered		;AN000;
+;	   $ELSE				;/Select entered
 	   JMP SHORT $$EN9
 $$IF9:
-	      clc				;CLC indicates passed label test;AN000;
-;	   $ENDIF				; for the return		;AN000;
+	      clc				;CLC indicates passed label test
+;	   $ENDIF				; for the return
 $$EN9:
 ;	$ENDIF
 $$IF8:
@@ -357,7 +357,7 @@ Incomp_Message: 				;an000; fix PTM 809
 	return					;an000; return to caller
 
 Print_And_Return:
-						;call	 PrintString			 ;				 ;AC000;
+						;call	 PrintString			 ;
 	stc
 	return
 
@@ -373,14 +373,14 @@ CheckFor5InchDrives:
 
 	xor	ax,ax								;an000; dms;clear reg
 	or	ax,(Switch_V or Switch_S or Switch_Q or Switch_U or Switch_C or Switch_N or Switch_T or Switch_B) ;an000; dms;set up switch mask
-	or	ax,(Switch_Backup or Switch_Select or Switch_Autotest)		;an000; dms;
+	or	ax,(Switch_Backup or Switch_Select or Switch_Autotest)
 IF ShipDisk
-	or	ax,Switch_Z							;an000; dms;
+	or	ax,Switch_Z
 ENDIF
-	not	ax								;an000; dms;
+	not	ax
 	test	switchmap,ax							;an000; dms;invalid switch?
 	jz	Goto_Got_BPB1							;an000;dms;continue format
-	Message msgParametersNotSupportedByDrive ;			 ;AC000;
+	Message msgParametersNotSupportedByDrive ;
 	jmp	short Print_And_Return
 
 Goto_Got_BPB1:
@@ -437,7 +437,7 @@ CheckForInterestingSwitches:
 	jz	Goto_Got_BPB
 
 Bad_NT_Combo:
-	Message msgIncompatibleParameters	;				;AC000;
+	Message msgIncompatibleParameters	;
 	jmp	Print_And_Return
 
 Goto_Got_BPB:
@@ -705,77 +705,77 @@ CheckSwitches endp
 
 Procedure Size_To_Switch
 
-	cmp	SizeMap,0			;Are there sizes entered?	 ;AN001;
-;	$IF	NE				;Yes				;AN001;
+	cmp	SizeMap,0			;Are there sizes entered?
+;	$IF	NE				;Yes
 	JE $$IF13
-	   cmp	   deviceParameters.DP_DeviceType,DEV_HARDDISK ;AN000;		;AN001;
-;	   $IF	   E				;No size for fixed disk 	;AN001;
+	   cmp	   deviceParameters.DP_DeviceType,DEV_HARDDISK
+;	   $IF	   E				;No size for fixed disk
 	   JNE $$IF14
-	      Message msgIncompatibleParametersForHardDisk ;			;AN001;
-;	   $ELSE				;Diskette, see what type	;AN001;
+	      Message msgIncompatibleParametersForHardDisk ;
+;	   $ELSE				;Diskette, see what type
 	   JMP SHORT $$EN14
 $$IF14:
-	      cmp     byte ptr deviceParameters.DP_DeviceType,DEV_5INCH ;	;AN001;
-;	      $IF     E 			;Found 180/360k drive		;AN001;
+	      cmp     byte ptr deviceParameters.DP_DeviceType,DEV_5INCH ;
+;	      $IF     E 			;Found 180/360k drive
 	      JNE $$IF16
-		 call	 Low_Density_Drive	;Go set switches		;AN001;
-;	      $ELSE				;Check for 96TPI		;AN001;
+		 call	 Low_Density_Drive	;Go set switches
+;	      $ELSE				;Check for 96TPI
 	      JMP SHORT $$EN16
 $$IF16:
 		 cmp	 byte ptr deviceParameters.DP_DeviceType,DEV_5INCH96TPI ;AN001; ;
-;		 $IF	 E			;Found it			;AN001;
+;		 $IF	 E			;Found it
 		 JNE $$IF18
-		    call    High_Capacity_Drive ;				;AN001;
-;		 $ELSE				;				;AN001;
+		    call    High_Capacity_Drive ;
+;		 $ELSE				;
 		 JMP SHORT $$EN18
 $$IF18:
 		    cmp     byte ptr deviceParameters.DP_DeviceType,DEV_3INCH720KB ;AN0001;
-;		    $IF     E			;Found 720k drive		;AN001;
+;		    $IF     E			;Found 720k drive
 		    JNE $$IF20
-		       call    Small_Drives	;				;AN001;
-;		    $ELSE			;				;AN001;
+		       call    Small_Drives	;
+;		    $ELSE			;
 		    JMP SHORT $$EN20
 $$IF20:
-		       cmp     byte ptr deviceParameters.DP_DeviceType,DEV_OTHER ;AN001;
-;		       $IF     E		;Must be 1.44mb 		;AN001;
+		       cmp     byte ptr deviceParameters.DP_DeviceType,DEV_OTHER
+;		       $IF     E		;Must be 1.44mb
 		       JE $$IF21_OTHER
 		       cmp     byte ptr deviceParameters.DP_DeviceType,DEV_3INCH2880KB
 		       JNE $$IF22
 $$IF21_OTHER:
-			  call	  Other_Drives	;				;AN001;
-;		       $ELSE			;				;AN001;
+			  call	  Other_Drives	;
+;		       $ELSE			;
 		       JMP SHORT $$EN22
 $$IF22:
-			  Message msgParametersNotSupportedByDrive ;		;AN001;
-			  mov	  Fatal_Error,Yes ;				;AN001;
-;		       $ENDIF			;				;AN001;
+			  Message msgParametersNotSupportedByDrive ;
+			  mov	  Fatal_Error,Yes ;
+;		       $ENDIF			;
 $$EN22:
-;		    $ENDIF			;				;AN001;
+;		    $ENDIF			;
 $$EN20:
-;		 $ENDIF 			;				;AN001;
+;		 $ENDIF 			;
 $$EN18:
-;	      $ENDIF				;				;AN001;
+;	      $ENDIF				;
 $$EN16:
-;	   $ENDIF				;				;AN001;
+;	   $ENDIF				;
 $$EN14:
-;	$ENDIF					;				;AN001;
+;	$ENDIF					;
 $$IF13:
-	cmp	Fatal_Error,Yes 		;				;AN001;
-;	$IF	E				;				;AN001;
+	cmp	Fatal_Error,Yes 		;
+;	$IF	E				;
 	JNE $$IF30
-	   Message msgIncompatibleParameters	;				;AN001;
-;	$ENDIF					;				;AN001;
+	   Message msgIncompatibleParameters	;
+;	$ENDIF					;
 $$IF30:
 
-	cmp	deviceParameters.DP_DeviceType,DEV_HARDDISK			;an001;
-;	$if	e								;an001;
+	cmp	deviceParameters.DP_DeviceType,DEV_HARDDISK
+;	$if	e
 	JNE $$IF32
-		mov	Fatal_Error,Yes 					;an001;
-;	$endif									;an001;
+		mov	Fatal_Error,Yes
+;	$endif
 $$IF32:
 
-	and	SwitchMap,not Switch_F		;Turn off /F so doesn't effect  ;AN001;
-	ret					; following logic		;AN001;
+	and	SwitchMap,not Switch_F		;Turn off /F so doesn't effect
+	ret					; following logic
 
 Size_To_Switch endp
 
@@ -799,23 +799,23 @@ Size_To_Switch endp
 
 Procedure High_Capacity_Drive			;
 
-	test	SizeMap,Size_1200		;1.2mb diskette?		 ;AN001;
-;	$IF	Z				;Nope				;AN001;
+	test	SizeMap,Size_1200		;1.2mb diskette?
+;	$IF	Z				;Nope
 	JNZ $$IF34
-	   call    Low_Density_Drive		;Check for /4 valid types	;AN001;
-	   cmp	   Fatal_Error, No		;Find 160/180/320/360k? 	;AN001;
-;	   $IF	   E				;Yes				;AN001;
+	   call    Low_Density_Drive		;Check for /4 valid types
+	   cmp	   Fatal_Error, No		;Find 160/180/320/360k?
+;	   $IF	   E				;Yes
 	   JNE $$IF35
-	      or      SwitchMap,Switch_4	;Turn on /4 switch		;AN001;
-;	   $ELSE				;Did not find valid size	;AN001;
+	      or      SwitchMap,Switch_4	;Turn on /4 switch
+;	   $ELSE				;Did not find valid size
 	   JMP SHORT $$EN35
 $$IF35:
-	      mov     Fatal_Error,Yes		;Indicate invalid device	;AN001;
-;	   $ENDIF				;				;AN001;
+	      mov     Fatal_Error,Yes		;Indicate invalid device
+;	   $ENDIF				;
 $$EN35:
-;	$ENDIF					;				;AN001;
+;	$ENDIF					;
 $$IF34:
-	ret					;				;AN001;
+	ret					;
 
 High_Capacity_Drive endp
 
@@ -843,42 +843,42 @@ High_Capacity_Drive endp
 ;*****************************************************************************
 
 
-Procedure Low_Density_Drive			;				;AN000;
+Procedure Low_Density_Drive			;
 						;
-	test	SizeMap,Size_160		;				 ;AN001;
-;	$IF	NZ				;				;AN001;
+	test	SizeMap,Size_160		;
+;	$IF	NZ				;
 	JZ $$IF39
-	   or	   SwitchMap,Switch_1+Switch_8	;				;AN001;
-;	$ELSE					;				;AN001;
+	   or	   SwitchMap,Switch_1+Switch_8	;
+;	$ELSE					;
 	JMP SHORT $$EN39
 $$IF39:
-	   test    SizeMap,Size_180		;				 ;AN001;
-;	   $IF	   NZ				;				;AN001;
+	   test    SizeMap,Size_180		;
+;	   $IF	   NZ				;
 	   JZ $$IF41
-	      or      SwitchMap,Switch_1	;				;AN001;
-;	   $ELSE				;				;AN001;
+	      or      SwitchMap,Switch_1	;
+;	   $ELSE				;
 	   JMP SHORT $$EN41
 $$IF41:
-	      test    SizeMap,Size_320		;				 ;AN001;
-;	      $IF     NZ			;				;AN001;
+	      test    SizeMap,Size_320		;
+;	      $IF     NZ			;
 	      JZ $$IF43
-		 or	 SwitchMap,Switch_8	;				;AN001;
-;	      $ELSE				;				;AN001;
+		 or	 SwitchMap,Switch_8	;
+;	      $ELSE				;
 	      JMP SHORT $$EN43
 $$IF43:
-		 test	 SizeMap,Size_360	;				 ;AN001;
-;		 $IF	 Z			;None of the above, not valid	;AN001;
+		 test	 SizeMap,Size_360	;
+;		 $IF	 Z			;None of the above, not valid
 		 JNZ $$IF45
-		    mov     Fatal_Error,Yes	;				;AN001;
-;		 $ENDIF 			;				;AN001;
+		    mov     Fatal_Error,Yes	;
+;		 $ENDIF 			;
 $$IF45:
-;	      $ENDIF				;				;AN001;
+;	      $ENDIF				;
 $$EN43:
-;	   $ENDIF				;				;AN001;
+;	   $ENDIF				;
 $$EN41:
-;	$ENDIF					;				;AN001;
+;	$ENDIF					;
 $$EN39:
-	ret					;				;AN001;
+	ret					;
 
 Low_Density_Drive endp
 
@@ -903,15 +903,15 @@ Low_Density_Drive endp
 ;	720k = /T:80 /N:9
 ;*****************************************************************************
 
-Procedure Small_Drives				;				;AN000;
+Procedure Small_Drives				;
 
-	test	SizeMap,Size_720		;Ask for 720k?			 ;AN001;
-;	$IF	Z				;Nope, thats all drive can do	;AN001;
+	test	SizeMap,Size_720		;Ask for 720k?
+;	$IF	Z				;Nope, thats all drive can do
 	JNZ $$IF50
-	   mov	   Fatal_Error,Yes		;Indicate error 		;AN001;
-;	$ENDIF					;				;AN001;
+	   mov	   Fatal_Error,Yes		;Indicate error
+;	$ENDIF					;
 $$IF50:
-	ret					;				;AN001;
+	ret					;
 
 Small_Drives endp
 
@@ -936,7 +936,7 @@ Small_Drives endp
 ;	720k = /T:80 /N:9
 ;*****************************************************************************
 
-Procedure Other_Drives				;				;AN001;
+Procedure Other_Drives				;
 
 	test	SizeMap,Size_2880		;Ask for 2.88mb diskette?
 	jz	Check_Other_1440
@@ -946,27 +946,27 @@ Procedure Other_Drives				;				;AN001;
 	ret
 
 Check_Other_1440:
-	test	SizeMap,Size_1440		;Ask for 1.44mb diskette?	 ;AN001;
-;	$IF	Z				;Nope				;AN001;
+	test	SizeMap,Size_1440		;Ask for 1.44mb diskette?
+;	$IF	Z				;Nope
 	JNZ $$IF52
-	   call    Small_Drives 		;See if 720k		       ;AN001;
-	   cmp	   Fatal_Error,No		;Fatal_error=Yes if not 	;AN001;
-;	   $IF	   E				;Got 720k			;AN001;
+	   call    Small_Drives 		;See if 720k
+	   cmp	   Fatal_Error,No		;Fatal_error=Yes if not
+;	   $IF	   E				;Got 720k
 	   JNE $$IF53
-	      or      SwitchMap,Switch_T+Switch_N ;Turn on /T:80 /N:9		;AN001;
-	      mov     TrackCnt,80		;				;AN001;
-	      mov     NumSectors,9		;				;AN001;
-;	   $ENDIF				;				;AN001;
+	      or      SwitchMap,Switch_T+Switch_N ;Turn on /T:80 /N:9
+	      mov     TrackCnt,80		;
+	      mov     NumSectors,9		;
+;	   $ENDIF				;
 $$IF53:
-;	$ELSE					;Asked for 1.44mb		;AN001;
+;	$ELSE					;Asked for 1.44mb
 	JMP SHORT $$EN52
 $$IF52:
-	   or	   SwitchMap,Switch_T+Switch_N	;Turn on /T:80 /N:18;		;AN001;
-	   mov	   TrackCnt,80			;This will protect SIZE=1440	;AN001;
-	   mov	   NumSectors,18		; from non-standard drives with ;AN001;
-;	$ENDIF					; type of 'other'		;AN001;
+	   or	   SwitchMap,Switch_T+Switch_N	;Turn on /T:80 /N:18;
+	   mov	   TrackCnt,80			;This will protect SIZE=1440
+	   mov	   NumSectors,18		; from non-standard drives with
+;	$ENDIF					; type of 'other'
 $$EN52:
-	ret					;				;AN001;
+	ret					;
 
 Other_Drives endp
 
@@ -989,28 +989,28 @@ Other_Drives endp
 
 Procedure Check_T_N
 
-	test	SwitchMap,Switch_N		;Make sure /T entered if /N	;AN009;
-;	$IF	NZ,AND				;				;AN009;
+	test	SwitchMap,Switch_N		;Make sure /T entered if /N
+;	$IF	NZ,AND				;
 	JZ $$IF57
-	test	SwitchMap,Switch_T		;				;AN009;
-;	$IF	Z				;				;AN009;
+	test	SwitchMap,Switch_T		;
+;	$IF	Z				;
 	JNZ $$IF57
-	   Message msgBad_T_N			;It wasn't, so barf             ;AN009;
-	   mov	   Fatal_Error,Yes		;Indicate error 		;AN009;
-;	$ELSE					;				;AN009;
+	   Message msgBad_T_N			;It wasn't, so barf
+	   mov	   Fatal_Error,Yes		;Indicate error
+;	$ELSE					;
 	JMP SHORT $$EN57
 $$IF57:
-	   test    SwitchMap,Switch_T		;Make sure /N entered if /T	;AN009;
-;	   $IF	   NZ,AND			;				;AN009;
+	   test    SwitchMap,Switch_T		;Make sure /N entered if /T
+;	   $IF	   NZ,AND			;
 	   JZ $$IF59
-	   test    SwitchMap,Switch_N		;				;AN009;
-;	   $IF	   Z				;It wasn't, so also barf        ;AN009;
+	   test    SwitchMap,Switch_N		;
+;	   $IF	   Z				;It wasn't, so also barf
 	   JNZ $$IF59
-	      Message msgBad_T_N		;				;AN009;
-	      mov     Fatal_Error,Yes		;Indicate error 		;AN009;
-;	   $ENDIF				;				;AN009;
+	      Message msgBad_T_N		;
+	      mov     Fatal_Error,Yes		;Indicate error
+;	   $ENDIF				;
 $$IF59:
-;	$ENDIF					;				;AN009;
+;	$ENDIF					;
 $$EN57:
 	ret
 
@@ -1105,7 +1105,7 @@ LastChanceToSaveIt endp
 ;	ret
 ;*****************************************************************************
 
-Procedure WriteBootSector			;				;AN000;
+Procedure WriteBootSector			;
 
 	lea	si, deviceParameters.DP_BPB	;Copy EBPB to the boot record	;
 	lea	di, Boot.EXT_BOOT_BPB		;  "  " 	"  "		;AC000:
@@ -1119,54 +1119,54 @@ Procedure WriteBootSector			;				;AN000;
 	xor	dx, dx				;Logical sector 0		;     ;
 	lea	bx, boot			;Point at boot record		;     ;
 ;Boot record in 1st 32mb of partition
-	mov	Read_Write_Relative.Start_Sector_High,0 ;			;AN000;
-	call	Write_Disk			;				;AC000;
-;	$IF	C				;Error on write 		;AC000;
+	mov	Read_Write_Relative.Start_Sector_High,0 ;
+	call	Write_Disk			;
+;	$IF	C				;Error on write
 	JNC $$IF62
 	   Message msgBootWriteError		;Print error			;     ;
 	   stc					;CY=1 means error		;     ;
-;	$ELSE					;Good write of boot record!	;AN000;
+;	$ELSE					;Good write of boot record!
 	JMP SHORT $$EN62
 $$IF62:
-	   mov	   cx,Dummy_Label_Size		;Put in dummy volume label size ;ac026;ac028;
-	   lea	   si,Dummy_Label		;  "  "       "  "		;AN000;
-	   lea	   di,Media_ID_Buffer.Media_ID_Volume_Label  ;	"  "	   "  " ;AN000;
-	   rep	   movsb			;  "  "       "  "		;AN000;
-	   call    Create_Serial_ID		;Go create unique ID number	;AN000;
-	   lea	   si,FAT12_String		;Assume 12 bit FAT		;AN000;
-	   cmp	   fBigFAT,(TRUE) AND 0FFh 		;Is it? 			;AN000;
-;	   $IF	   E				;Not if fBigFat is set....	;AN000;
+	   mov	   cx,Dummy_Label_Size		;Put in dummy volume label size
+	   lea	   si,Dummy_Label		;  "  "       "  "
+	   lea	   di,Media_ID_Buffer.Media_ID_Volume_Label  ;	"  "	   "  "
+	   rep	   movsb			;  "  "       "  "
+	   call    Create_Serial_ID		;Go create unique ID number
+	   lea	   si,FAT12_String		;Assume 12 bit FAT
+	   cmp	   fBigFAT,(TRUE) AND 0FFh 		;Is it?
+;	   $IF	   E				;Not if fBigFat is set....
 	   JNE $$IF64
-	      lea     si,FAT16_String		;Got 16 bit FAT 		;AN000;
-;	   $ENDIF				;				;AN000;
+	      lea     si,FAT16_String		;Got 16 bit FAT
+;	   $ENDIF				;
 $$IF64:
 						;Copy file system string	;     ;
-	   mov	   cx,8 			; to buffer			;AN000;
-	   lea	   di,Media_ID_Buffer.Media_ID_File_System ;	 "  "		;AN000;
-	   rep   movsb			;    "   "	  "  "		;AN000;
-	   mov	   al,Generic_IOCtl		;Generic IOCtl call		;AN000;
-	   mov	   bl,Drive			;Get drive			;AN000;
-	   inc	   bl				;Make it 1 based		;AN000;
-	   xor	   bh,bh			;Set bh=0			;AN000;
-	   mov	   ch,RawIO			;Set Media ID call		;AN000;
+	   mov	   cx,8 			; to buffer
+	   lea	   di,Media_ID_Buffer.Media_ID_File_System ;	 "  "
+	   rep   movsb			;    "   "	  "  "
+	   mov	   al,Generic_IOCtl		;Generic IOCtl call
+	   mov	   bl,Drive			;Get drive
+	   inc	   bl				;Make it 1 based
+	   xor	   bh,bh			;Set bh=0
+	   mov	   ch,RawIO			;Set Media ID call
 	   mov	   cl,Set_Media_ID
-	   mov	   dx,offset Media_ID_Buffer	;Point at buffer		;AN000;
-	   DOS_Call IOCtl			;Do function call		;AN000;
-;	   $IF	   C				;Error ? (Write or old boot rec);AN000;
+	   mov	   dx,offset Media_ID_Buffer	;Point at buffer
+	   DOS_Call IOCtl			;Do function call
+;	   $IF	   C				;Error ? (Write or old boot rec)
 	   JNC $$IF66
-	      Message msgBootWriteError 	;Indicate we couldn't write it  ;AN000;
-	      stc				;CY=1 for error return		;AN000;
-;	   $ELSE				;Set Media ID okay		;AN000;
+	      Message msgBootWriteError 	;Indicate we couldn't write it
+	      stc				;CY=1 for error return
+;	   $ELSE				;Set Media ID okay
 	   JMP SHORT $$EN66
 $$IF66:
-	      clc				;CY=0 for good return		;AN000;
-;	   $ENDIF				;				;AN000;
+	      clc				;CY=0 for good return
+;	   $ENDIF				;
 $$EN66:
-;	$ENDIF					;				;AN000;
+;	$ENDIF					;
 $$EN62:
-	ret					;				;AN000;
+	ret					;
 
-WriteBootSector endp				;				;AN000;
+WriteBootSector endp				;
 
 
 ;*****************************************************************************
@@ -1198,25 +1198,25 @@ WriteBootSector endp				;				;AN000;
 ;	ret
 ;*****************************************************************************
 
-Procedure Create_Serial_ID			;				;AN000;
+Procedure Create_Serial_ID			;
 
-	DOS_Call Get_Date			;Get date from DOS		;AN000;
-	push	cx				;Save results			;AN000;
-	push	dx				;				;AN000;
-	DOS_Call Get_Time			;Get_Time			;AN000;
-	mov	ax,dx				;Scramble it			;AN000;
-	pop	dx				;				;AN000;
-	add	ax,dx				;				;AN000;
-	mov	word ptr Media_ID_Buffer.Media_ID_Serial_Number+2,ax ;		;AC004;
-	mov	Serial_Num_Low,ax		;				;AN000;
-	mov	ax,cx				;				;AN000;
-	pop	cx				;				;AN000;
-	add	ax,cx				;				;AN000;
-	mov	word ptr Media_ID_Buffer.Media_ID_Serial_Number,ax ;		;AC004;
-	mov	Serial_Num_High,ax		;				;AN000;
-	ret					;				;AN000;
+	DOS_Call Get_Date			;Get date from DOS
+	push	cx				;Save results
+	push	dx				;
+	DOS_Call Get_Time			;Get_Time
+	mov	ax,dx				;Scramble it
+	pop	dx				;
+	add	ax,dx				;
+	mov	word ptr Media_ID_Buffer.Media_ID_Serial_Number+2,ax ;
+	mov	Serial_Num_Low,ax		;
+	mov	ax,cx				;
+	pop	cx				;
+	add	ax,cx				;
+	mov	word ptr Media_ID_Buffer.Media_ID_Serial_Number,ax ;
+	mov	Serial_Num_High,ax		;
+	ret					;
 
-Create_Serial_ID endp				;				;AN000;
+Create_Serial_ID endp				;
 
 ;-------------------------------------------------------------------------------
 
@@ -1324,14 +1324,14 @@ WriteBogusDos proc near
 	int	21h
 ; Comunicate system size to the main format program
 	mov	word ptr DOS.FileSizeInBytes,DOS_SIZE				;an000; dms;get size of DOS
-	mov	word ptr DOS.FileSizeInBytes+2,00h				;an000; dms;
+	mov	word ptr DOS.FileSizeInBytes+2,00h
 
 	xor	dx,dx
 	mov	ax,DOS_SIZE
 	call	AddToSystemSize
 
 	mov	word ptr Bios.FileSizeInBytes,BIOS_SIZE 			;an000; dms;get size of BIOS
-	mov	word ptr Bios.FileSizeInBytes+2,00h				;an000; dms;
+	mov	word ptr Bios.FileSizeInBytes+2,00h
 
 	xor	dx,dx
 	mov	ax,BIOS_SIZE
@@ -1354,10 +1354,10 @@ ConvertToOldDirectoryFormat proc near
 	mov	dx,3				; sector 3
 	lea	bx,scratchBuffer
 ;Root Directory always in 1st 32mb of partition
-	mov	Read_Write_Relative.Start_Sector_High,0 ;		       ;AN000;
-	call	Read_Disk			;				;AC000;
+	mov	Read_Write_Relative.Start_Sector_High,0 ;
+	call	Read_Disk			;
 	jnc	DirectoryRead
-	Message msgDirectoryReadError		;				;AC000;
+	Message msgDirectoryReadError		;
 	stc
 	ret
 DirectoryRead:
@@ -1375,10 +1375,10 @@ wrtdir:
 	mov	dx,3
 	lea	bx,scratchBuffer
 ;Root Directory always in 1st 32mb of partition
-	mov	Read_Write_Relative.Start_Sector_High,0 ;		       ;AN000;
-	call	Write_Disk			;				;AC000;
+	mov	Read_Write_Relative.Start_Sector_High,0 ;
+	call	Write_Disk			;
 	jnc	DirectoryWritten
-	Message msgDirectoryWriteError		;				;AC000;
+	Message msgDirectoryWriteError		;
 	stc
 	ret
 DirectoryWritten:
@@ -1395,11 +1395,11 @@ bootset8:
 	mov	cx,1
 	xor	dx,dx
 ;Boot record in 1st 32mb of partition
-	mov	Read_Write_Relative.Start_Sector_High,0 ;		       ;AN000;
-	call	Write_Disk			;				;AC000;
+	mov	Read_Write_Relative.Start_Sector_High,0 ;
+	call	Write_Disk			;
 	retnc
 
-	Message msgBootWriteError		;				;AC000;
+	Message msgBootWriteError		;
 	stc
 	ret
 
@@ -1490,83 +1490,83 @@ IBMBoot ENDS
 ;	ret
 ;*****************************************************************************
 
-Procedure SetPartitionTable			;				;AN000;
+Procedure SetPartitionTable			;
 
-	xor	ax, ax				;Head				;AC000;
-	xor	bx, bx				;Cylinder			;AC000;
-	xor	cx, cx				;Sector 			;AC000;
+	xor	ax, ax				;Head
+	xor	bx, bx				;Cylinder
+	xor	cx, cx				;Sector
 	lea	dx, boot2			;Never use 1.x boot on hardfile,;     ;
 	call	ReadSector			;this will use space as buffer	;     ;
-;	$IF	NC				;If read okay			;AN000;
+;	$IF	NC				;If read okay
 	JC $$IF70
-	   cmp	   Boot2.Boot_Signature,Boot_ID ;				;AC000;
-;	   $IF	   E				;Does signature match?		;AN000;
+	   cmp	   Boot2.Boot_Signature,Boot_ID ;
+;	   $IF	   E				;Does signature match?
 	   JNE $$IF71
-	      lea     bx, boot2.PartitionTable	;Yes, point at partition table	;AN000;
-;	      $SEARCH				;Look for DOS partition 	;AN000;
+	      lea     bx, boot2.PartitionTable	;Yes, point at partition table
+;	      $SEARCH				;Look for DOS partition
 $$DO72:
-		 cmp	 [bx].sysind,FAT12_File_System ;			;AC000;
-;		 $IF	 NE,AND 		;				;AN000;
+		 cmp	 [bx].sysind,FAT12_File_System ;
+;		 $IF	 NE,AND 		;
 		 JE $$IF73
-		 cmp	 [bx].sysind,FAT16_File_System ;		     ;AC000;
-;		 $IF	 NE,AND 		;				;AN000;
+		 cmp	 [bx].sysind,FAT16_File_System ;
+;		 $IF	 NE,AND 		;
 		 JE $$IF73
-		 cmp	 [bx].sysind,New_File_System ;			  ;AC000;
-;		 $IF	 NE			;				;AN000;
+		 cmp	 [bx].sysind,New_File_System ;
+;		 $IF	 NE			;
 		 JE $$IF73
-		    stc 			;We didn't find partition       ;AN000;
-;		 $ELSE				;				;AN000;
+		    stc 			;We didn't find partition
+;		 $ELSE				;
 		 JMP SHORT $$EN73
 $$IF73:
-		    clc 			;Indicate found partition	;AN000;
-;		 $ENDIF 			;				;AN000;
+		    clc 			;Indicate found partition
+;		 $ENDIF 			;
 $$EN73:
-;	      $EXITIF NC			;Get correct id for it		;AN000;
+;	      $EXITIF NC			;Get correct id for it
 	      JC $$IF72
-		 CALL	 Determine_Partition_Type ;				;AN000;
+		 CALL	 Determine_Partition_Type ;
 		 mov	 ax, 0			;Head				;     ;
 		 mov	 bx, 0			;Cylinder			;     ;
 		 mov	 cx, 0			;Sector 			;     ;
 		 lea	 dx, boot2		;				;     ;
 		 call	 WriteSector		;Write out partition table	;     ;
-;		 $IF	 C			;Error writing boot record	;AN000;
+;		 $IF	 C			;Error writing boot record
 		 JNC $$IF77
-		    MESSAGE msgPartitionTableWriteError ;			;AC000;
+		    MESSAGE msgPartitionTableWriteError ;
 		    stc 			;Set CY to indicate error	;     ;
-;		 $ELSE				;				;AN000;
+;		 $ELSE				;
 		 JMP SHORT $$EN77
 $$IF77:
 		    clc 			;No error means no CY		;     ;
-;		 $ENDIF 			;				;AN000;
+;		 $ENDIF 			;
 $$EN77:
-;	      $ORELSE				;				;AN000;
+;	      $ORELSE				;
 	      JMP SHORT $$SR72
 $$IF72:
 		 add	 bx,size a_PartitionTableEntry ;			;     ;
 		 cmp	 bx,(offset Boot2.PartitionTable)+4*size a_PartitionTableEntry ;     ;
-;	      $ENDLOOP				;Checked all 4 partition entries;AN000;
+;	      $ENDLOOP				;Checked all 4 partition entries
 	      JMP SHORT $$DO72
-		 MESSAGE msgBadPartitionTable	;Tell user bad table		;AC000;
+		 MESSAGE msgBadPartitionTable	;Tell user bad table
 		 stc				;Set CY for exit		;     ;
-;	      $ENDSRCH				;				;AN000;
+;	      $ENDSRCH				;
 $$SR72:
-;	   $ELSE				;Invalid boot record		;AN000;
+;	   $ELSE				;Invalid boot record
 	   JMP SHORT $$EN71
 $$IF71:
-	      MESSAGE msgBadPartitionTable	;				;AC000;
+	      MESSAGE msgBadPartitionTable	;
 	      stc				;Set CY for error return	;     ;
-;	   $ENDIF				;				;AN000;
+;	   $ENDIF				;
 $$EN71:
-;	$ELSE					;Couldn't read boot record      ;AN000;
+;	$ELSE					;Couldn't read boot record
 	JMP SHORT $$EN70
 $$IF70:
-	   MESSAGE msgPartitionTableReadError	;				;AC000;
+	   MESSAGE msgPartitionTableReadError	;
 	   stc					;Set CY for error return	;     ;
-;	$ENDIF					;				;AN000;
+;	$ENDIF					;
 $$EN70:
 	ret					;				;     ;
 
-SetPartitionTable endp				;				;AN000;
+SetPartitionTable endp				;
 
 ;*****************************************************************************
 ;Routine name: Determine_Partition_Type
@@ -1604,14 +1604,14 @@ SetPartitionTable endp				;				;AN000;
 ;	ret
 ;*****************************************************************************
 
-Procedure Determine_Partition_Type						;AN000;
+Procedure Determine_Partition_Type
 
 	mov	dx,word ptr [bx].Csec+2 					;an000; dms;Get high word of sector count
 	cmp	dx,0								;AN000;    ;> 32Mb?
 ;	$IF	NE								;AN000;    ;yes
 	JE $$IF87
 		mov	[BX].SysInd,New_File_System				;AN000;    ;type 6
-;	$ELSE									;AN000;
+;	$ELSE
 	JMP SHORT $$EN87
 $$IF87:
 		call	Calc_Total_Sectors_For_Partition			;an000; dms;returns DX:AX total sectors
@@ -1619,7 +1619,7 @@ $$IF87:
 ;		$if	ne							;an000; dms;yes
 		JE $$IF89
 			mov	[bx].SysInd,New_File_System			;an000; dms; type 6
-;		$else								;an000; dms;
+;		$else
 		JMP SHORT $$EN89
 $$IF89:
 			cmp	dx,0						;an000; dms; partition > 32 Mb?
@@ -1637,17 +1637,17 @@ $$IF91:
 				JMP SHORT $$EN93
 $$IF93:
 					mov	[bx].SysInd,FAT12_File_System	;an000;    ;type 1
-;				$ENDIF						;AN000;
+;				$ENDIF
 $$EN93:
-;			$ENDIF							;an000;
+;			$ENDIF
 $$EN91:
-;		$ENDIF								;an000;
+;		$ENDIF
 $$EN89:
-;	$endif									;an000;
+;	$endif
 $$EN87:
-	ret									;an000;
+	ret
 
-Determine_Partition_Type endp			;				;AN000;
+Determine_Partition_Type endp			;
 
 
 ;=========================================================================
@@ -1660,7 +1660,7 @@ Determine_Partition_Type endp			;				;AN000;
 ;	Outputs : DX:AX - Double word partition size
 ;=========================================================================
 
-Procedure Calc_Total_Sectors_For_Partition					;an000; dms;
+Procedure Calc_Total_Sectors_For_Partition
 
 	mov	ax,word ptr DeviceParameters.DP_BPB.BPB_HiddenSectors[+0]	;an000; dms; low word
 	mov	dx,word ptr DeviceParameters.DP_BPB.BPB_HiddenSectors[+2]	;an000; dms; high word
@@ -1675,7 +1675,7 @@ Procedure Calc_Total_Sectors_For_Partition					;an000; dms;
 $$IF99:
 		add	ax,word ptr DeviceParameters.DP_BPB.BPB_TotalSectors	;an000; dms; add in total sector count
 		adc	dx,0							;an000; dms; pick up carry if any
-;	$endif									;an000; dms;
+;	$endif
 $$EN99:
 
 	ret
@@ -1836,7 +1836,7 @@ CheckVolumeId proc near
 ; (first blank out the input buffer)
 Ask_User:
 
-	Message msgWhatIsVolumeId?		;				;AC000;
+	Message msgWhatIsVolumeId?		;
 						;lea	 dx, ptr_msgWhatIsVolumeId?
 						;call	 std_printf
 	call	user_string
@@ -1854,7 +1854,7 @@ CompareVolumeIds:
 ; The buffer is big enough so just add 11 blanks to what the user typed in
 	push	ds
 	pop	es
-	mov	cx, Label_Length		;AC000;
+	mov	cx, Label_Length
 	xor	bx,bx
 	mov	bl, inbuff + 1
 	lea	di, inbuff + 2
@@ -1862,13 +1862,13 @@ CompareVolumeIds:
 	mov	al, ' '
 	rep	stosb
 ; Make the reply all uppercase
-	mov	byte ptr Inbuff+2+Label_Length,ASCIIZ_End ;Make string ASCIIZ	 ;AN000;
-	mov	dx, offset inbuff + 2		;Start of buffer		;AC000;
-	mov	al,22h				;Capitalize asciiz		;AC000;
-	DOS_Call GetExtCntry			;Do it				;AC000;
+	mov	byte ptr Inbuff+2+Label_Length,ASCIIZ_End ;Make string ASCIIZ
+	mov	dx, offset inbuff + 2		;Start of buffer
+	mov	al,22h				;Capitalize asciiz
+	DOS_Call GetExtCntry			;Do it
 
 ; Now compare what the user specified with what is really out there
-	mov	cx, Label_Length		;				;AC000;
+	mov	cx, Label_Length		;
 	lea	si, inbuff + 2
 	lea	di, oldVolumeId
 	repe	cmpsb
@@ -1876,7 +1876,7 @@ CompareVolumeIds:
 	ret
 
 BadVolumeId:
-	Message msgBadVolumeID			;				;AC000;
+	Message msgBadVolumeID			;
 	stc
 	ret
 
@@ -1885,66 +1885,66 @@ CheckVolumeId endp
 
 Check_Switch_8_B	proc	near
 
-	   test    SwitchMap, SWITCH_B		;/8/B <> /V because		;AC007;
-;	   $IF	   NZ,AND			; old directory type		;AC007;
+	   test    SwitchMap, SWITCH_B		;/8/B <> /V because
+;	   $IF	   NZ,AND			; old directory type
 	   JZ $$IF102
-	   test    SwitchMap, Switch_8		; used which didn't support     ;AC007;
-;	   $IF	   NZ,AND			; volume labels.		;AC007;
+	   test    SwitchMap, Switch_8		; used which didn't support
+;	   $IF	   NZ,AND			; volume labels.
 	   JZ $$IF102
-	   test    SwitchMap, SWITCH_V		;				;AC007;
-;	   $IF	   NZ				;				;AC007;
+	   test    SwitchMap, SWITCH_V		;
+;	   $IF	   NZ				;
 	   JZ $$IF102
-	      Message msgIncompatibleParameters ;Tell user			;AC007;
-	      mov     Fatal_Error,Yes		;Bad stuff			;AC007;
-;	   $ELSE				;No problem so far		;AC007;
+	      Message msgIncompatibleParameters ;Tell user
+	      mov     Fatal_Error,Yes		;Bad stuff
+;	   $ELSE				;No problem so far
 	   JMP SHORT $$EN102
 $$IF102:
-	      test    SwitchMap, Switch_B	;Can't reserve space and        ;AC007;
-;	      $IF     NZ,AND			; install sys files at the	;AC007;
+	      test    SwitchMap, Switch_B	;Can't reserve space and
+;	      $IF     NZ,AND			; install sys files at the
 	      JZ $$IF104
-	      test    SwitchMap, Switch_S	; same time.			;AC007;
-;	      $IF     NZ			; No /S/B			;AC007;
+	      test    SwitchMap, Switch_S	; same time.
+;	      $IF     NZ			; No /S/B
 	      JZ $$IF104
-		 Message msgIncompatibleParameters ;Tell user			;AC007;
-		 mov	 Fatal_Error,Yes	;Bad stuff			;AC007;
-;	       $ELSE				 ;Still okay			 ;AC007;
+		 Message msgIncompatibleParameters ;Tell user
+		 mov	 Fatal_Error,Yes	;Bad stuff
+;	       $ELSE				 ;Still okay
 	       JMP SHORT $$EN104
 $$IF104:
-		  test	  SwitchMap,Switch_1	 ;/1/8/4 not okay with /N/T	 ;AC007;
-;		  $IF	  NZ,OR 		 ;				 ;AC007;
+		  test	  SwitchMap,Switch_1	 ;/1/8/4 not okay with /N/T
+;		  $IF	  NZ,OR 		 ;
 		  JNZ $$LL106
-		  test	  SwitchMap,Switch_8	 ;				 ;AC007;
-;		  $IF	  NZ,OR 		 ;				 ;AC007;
+		  test	  SwitchMap,Switch_8	 ;
+;		  $IF	  NZ,OR 		 ;
 		  JNZ $$LL106
-		  test	  SwitchMap,Switch_4	 ;				 ;AC007;
-;		  $IF	  NZ			 ;				 ;AC007;
+		  test	  SwitchMap,Switch_4	 ;
+;		  $IF	  NZ			 ;
 		  JZ $$IF106
 $$LL106:
-		     test    SwitchMap,(Switch_T or Switch_N) ; 		 ;AC007;
-;		     $IF     NZ 		 ;Found /T/N <> /1/8		 ;AC007;
+		     test    SwitchMap,(Switch_T or Switch_N) ;
+;		     $IF     NZ 		 ;Found /T/N <> /1/8
 		     JZ $$IF107
-			Message msgIncompatibleParameters ;Tell user		 ;AC007;
-			mov	Fatal_Error,Yes  ;Bad stuff			 ;AC007;
-;		     $ELSE			 ;				 ;ac007;
+			Message msgIncompatibleParameters ;Tell user
+			mov	Fatal_Error,Yes  ;Bad stuff
+;		     $ELSE			 ;
 		     JMP SHORT $$EN107
 $$IF107:
-			test	SwitchMap,Switch_V				 ;ac007;
-;			$IF	NZ,AND						 ;ac007;
+			test	SwitchMap,Switch_V
+;			$IF	NZ,AND
 			JZ $$IF109
-			test	SwitchMap,Switch_8				 ;ac007;
-;			$IF	NZ						 ;ac007;
+			test	SwitchMap,Switch_8
+;			$IF	NZ
 			JZ $$IF109
-				Message msgIncompatibleParameters		 ;ac007;
-				mov	Fatal_Error,Yes 			 ;ac007;
-;			$ENDIF							 ;ac007;
+				Message msgIncompatibleParameters
+				mov	Fatal_Error,Yes
+;			$ENDIF
 $$IF109:
-;		     $ENDIF			 ;				 ;AC007;
+;		     $ENDIF			 ;
 $$EN107:
-;		  $ENDIF			 ;				 ;AC007;
+;		  $ENDIF			 ;
 $$IF106:
-;	       $ENDIF				 ;				 ;AC007;
+;	       $ENDIF				 ;
 $$EN104:
-;	    $ENDIF				 ;				 ;AC007;
+;	    $ENDIF				 ;
 $$EN102:
 	    ret
 

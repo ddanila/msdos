@@ -108,41 +108,41 @@ DW   OFFSET HU_LANG_ENT,0
 DB   'US'                            ;;
 DW   OFFSET DUMMY_ENT,0 	     ;;
 DW    172			     ;;AN000;ID CODE TABLE ***************************
-DW   OFFSET SP_LANG_ENT,0	     ;;AN000;
-DW    163			     ;;AN000;
-DW   OFFSET PO_LANG_ENT,0	     ;;AN000;
-DW    120			     ;;AN000;
-DW   OFFSET FR1_LANG_ENT,0	     ;;AN000;
-DW    189			     ;;AN000;
-DW   OFFSET FR2_LANG_ENT,0	     ;;AN000;
-DW    159			     ;;AN000;
-DW   OFFSET DK_LANG_ENT,0	     ;;AN000;
-DW    000			     ;;AN000;
-DW   OFFSET SG_LANG_ENT,0	     ;;AN000;
-DW    129			     ;;AN000;
-DW   OFFSET GE_LANG_ENT,0	     ;;AN000;
-DW    142			     ;;AN000;
-DW   OFFSET IT1_LANG_ENT,0	     ;;AN000;
-DW    141			     ;;AN000;
-DW   OFFSET IT2_LANG_ENT,0	     ;;AN000;
-DW    168			     ;;AN000;
-DW   OFFSET UK1_LANG_ENT,0	     ;;AN000;
-DW    166			     ;;AN000;
-DW   OFFSET UK2_LANG_ENT,0	     ;;AN000;
-DW    150			     ;;AN000;
-DW   OFFSET SF_LANG_ENT,0	     ;;AN000;
-DW    120			     ;;AN000;
-DW   OFFSET BE_LANG_ENT,0	     ;;AN000;
-DW    143			     ;;AN000;
-DW   OFFSET NL_LANG_ENT,0	     ;;AN000;
-DW    155			     ;;AN000;
-DW   OFFSET NO_LANG_ENT,0	     ;;AN000;
-DW    058			     ;;AN000;
-DW   OFFSET CF_LANG_ENT,0	     ;;AN000;
-DW    153			     ;;AN000;
-DW   OFFSET SV_LANG_ENT,0	     ;;AN000;
-DW    171			     ;;AN000;
-DW   OFFSET LA_LANG_ENT,0	     ;;AN000;
+DW   OFFSET SP_LANG_ENT,0	     ;
+DW    163			     ;
+DW   OFFSET PO_LANG_ENT,0	     ;
+DW    120			     ;
+DW   OFFSET FR1_LANG_ENT,0	     ;
+DW    189			     ;
+DW   OFFSET FR2_LANG_ENT,0	     ;
+DW    159			     ;
+DW   OFFSET DK_LANG_ENT,0	     ;
+DW    000			     ;
+DW   OFFSET SG_LANG_ENT,0	     ;
+DW    129			     ;
+DW   OFFSET GE_LANG_ENT,0	     ;
+DW    142			     ;
+DW   OFFSET IT1_LANG_ENT,0	     ;
+DW    141			     ;
+DW   OFFSET IT2_LANG_ENT,0	     ;
+DW    168			     ;
+DW   OFFSET UK1_LANG_ENT,0	     ;
+DW    166			     ;
+DW   OFFSET UK2_LANG_ENT,0	     ;
+DW    150			     ;
+DW   OFFSET SF_LANG_ENT,0	     ;
+DW    120			     ;
+DW   OFFSET BE_LANG_ENT,0	     ;
+DW    143			     ;
+DW   OFFSET NL_LANG_ENT,0	     ;
+DW    155			     ;
+DW   OFFSET NO_LANG_ENT,0	     ;
+DW    058			     ;
+DW   OFFSET CF_LANG_ENT,0	     ;
+DW    153			     ;
+DW   OFFSET SV_LANG_ENT,0	     ;
+DW    171			     ;
+DW   OFFSET LA_LANG_ENT,0	     ;
 DW    274
 DW   OFFSET BR_LANG_ENT,0
 DW    214
@@ -155,8 +155,8 @@ DW    234
 DW   OFFSET YU_LANG_ENT,0
 DW    208
 DW   OFFSET HU_LANG_ENT,0
-DW    103			     ;;AN000;
-DW   OFFSET DUMMY_ENT,0 	     ;;AN000;
+DW    103			     ;
+DW   OFFSET DUMMY_ENT,0 	     ;
 ;				     ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;***************************************
@@ -180,9 +180,9 @@ SP_LANG_ENT:			       ;; language entry for SPANISH
   DW   OFFSET SP_437_XLAT,0	       ;; table pointer
 				       ;;
 ;*****************************************************************************
-    EXTRN FR1_LOGIC:NEAR		 ;;AN000;
-    EXTRN FR1_437_XLAT:NEAR		 ;;AN000;
-    EXTRN FR1_850_XLAT:NEAR		 ;;AN000;
+    EXTRN FR1_LOGIC:NEAR		 ;
+    EXTRN FR1_437_XLAT:NEAR		 ;
+    EXTRN FR1_850_XLAT:NEAR		 ;
 					 ;;
  FR1_LANG_ENT:				 ;;AN000; language entry for FRANCE
    DB	'FR'                             ;;AN000; SECONDARY KEYBOARD ID VALUE
@@ -194,11 +194,10 @@ SP_LANG_ENT:			       ;; language entry for SPANISH
    DW	OFFSET FR1_437_XLAT,0		 ;;AN000; table pointer
    DW	850				 ;;AN000; code page
    DW	OFFSET FR1_850_XLAT,0		 ;;AN000; table pointer
-					 ;;AN000;
 ;*****************************************************************************
-    EXTRN FR2_LOGIC:NEAR		 ;;AC000;
-    EXTRN FR2_437_XLAT:NEAR		 ;;AC000;
-    EXTRN FR2_850_XLAT:NEAR		 ;;AC000;
+    EXTRN FR2_LOGIC:NEAR		 ;
+    EXTRN FR2_437_XLAT:NEAR		 ;
+    EXTRN FR2_850_XLAT:NEAR		 ;
 					 ;;
  FR2_LANG_ENT:				 ;; language entry for FRANCE
    DB	'FR'                             ;; PRIMARY  KEYBOARD ID VALUE
@@ -212,9 +211,9 @@ SP_LANG_ENT:			       ;; language entry for SPANISH
    DW	OFFSET FR2_850_XLAT,0		 ;;AC000; table pointer
 					 ;;
 ;****************************************************************************
-   EXTRN PO_LOGIC:NEAR			 ;;AC000;
-   EXTRN PO_850_XLAT:NEAR		 ;;AC000;
-   EXTRN PO_860_XLAT:NEAR		 ;;AC000;
+   EXTRN PO_LOGIC:NEAR			 ;
+   EXTRN PO_850_XLAT:NEAR		 ;
+   EXTRN PO_860_XLAT:NEAR		 ;
 					 ;;
 PO_LANG_ENT:				 ;; language entry for PORTUGAL
   DB   'PO'                              ;;
@@ -229,8 +228,8 @@ PO_LANG_ENT:				 ;; language entry for PORTUGAL
 					 ;;
 ;*****************************************************************************
    EXTRN DK_LOGIC:NEAR			 ;;
-   EXTRN DK_850_XLAT:NEAR		 ;;AC000;
-   EXTRN DK_865_XLAT:NEAR		 ;;AC000;
+   EXTRN DK_850_XLAT:NEAR		 ;
+   EXTRN DK_865_XLAT:NEAR		 ;
 					 ;;
  DK_LANG_ENT:				 ;; language entry for DENMARK
    DB	'DK'                             ;;
@@ -292,9 +291,9 @@ GE_LANG_ENT:				 ;; language entry for GERMANY
   DW   OFFSET GE_850_XLAT,0		 ;; table pointer
 					 ;;
 ;*****************************************************************************
-    EXTRN IT1_LOGIC:NEAR		 ;;AN000;
-    EXTRN IT1_437_XLAT:NEAR		 ;;AN000;
-    EXTRN IT1_850_XLAT:NEAR		 ;;AN000;
+    EXTRN IT1_LOGIC:NEAR		 ;
+    EXTRN IT1_437_XLAT:NEAR		 ;
+    EXTRN IT1_850_XLAT:NEAR		 ;
 					 ;;
  IT1_LANG_ENT:				 ;;AN000; language entry for ITALY
    DB	'IT'                             ;;AN000; SECONDARY KEYBOARD ID VALUE
@@ -324,9 +323,9 @@ GE_LANG_ENT:				 ;; language entry for GERMANY
    DW	OFFSET IT2_850_XLAT,0		 ;;AC000; table pointer
 					 ;;
 ;*****************************************************************************
-    EXTRN UK1_LOGIC:FAR 		 ;;AN000;
-    EXTRN UK1_437_XLAT:FAR		 ;;AN000;
-    EXTRN UK1_850_XLAT:FAR		 ;;AN000;
+    EXTRN UK1_LOGIC:FAR 		 ;
+    EXTRN UK1_437_XLAT:FAR		 ;
+    EXTRN UK1_850_XLAT:FAR		 ;
 					 ;;
  UK1_LANG_ENT:				 ;;AN000; language entry for UNITED KINGDOM
    DB	'UK'                             ;;AN000; SECONDARY KEYBOARD ID VALUE
@@ -340,9 +339,9 @@ GE_LANG_ENT:				 ;; language entry for GERMANY
    DW	OFFSET UK1_850_XLAT,0		 ;;AN000; table pointer
 					 ;;
 ;*****************************************************************************
-    EXTRN UK2_LOGIC:FAR 		 ;;AC000;
-    EXTRN UK2_437_XLAT:FAR		 ;;AC000;
-    EXTRN UK2_850_XLAT:FAR		 ;;AC000;
+    EXTRN UK2_LOGIC:FAR 		 ;
+    EXTRN UK2_437_XLAT:FAR		 ;
+    EXTRN UK2_850_XLAT:FAR		 ;
 					 ;;
  UK2_LANG_ENT:				 ;;AN000; language entry for UNITED KINGDOM
    DB	'UK'                             ;;AC000; PRIMARY KEYBOARD ID VALUE
@@ -391,8 +390,8 @@ BE_LANG_ENT:				 ;; language entry for BELGIUM
 ;*****************************************************************************
 ;*****************************************************************************
      EXTRN NO_LOGIC:NEAR		 ;;
-     EXTRN NO_850_XLAT:NEAR		 ;;AC000;
-     EXTRN NO_865_XLAT:NEAR		 ;;AC000;
+     EXTRN NO_850_XLAT:NEAR		 ;
+     EXTRN NO_865_XLAT:NEAR		 ;
 					 ;;
   NO_LANG_ENT:				 ;; language entry for NORWAY
     DB	 'NO'                            ;;

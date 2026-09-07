@@ -1,5 +1,3 @@
-;	SCCSID = @(#)file.asm	1.2 85/07/23
-;	SCCSID = @(#)file.asm	1.2 85/07/23
 TITLE	FILE - Pathname related system calls
 NAME	FILE
 
@@ -19,11 +17,6 @@ NAME	FILE
 ;   $Extended_Open    written  DOS 4.00
 ;   GetIOParms	      written  DOS 4.00
 ;
-;   Revision history:
-;
-;	Created: MZ 4 April 1983
-;	A000   version 4.00  Jan. 1988
-
 .xlist
 ;
 ; get the appropriate segment definitions
@@ -37,7 +30,7 @@ CODE	SEGMENT BYTE PUBLIC  'CODE'
 include dossym.inc
 include devsym.inc
 include fastopen.inc
-include EA.inc			     ;AN000;
+include EA.inc
 include version.inc
 .cref
 .list
@@ -103,25 +96,25 @@ Procedure   $Open,NEAR
 	fmt TypSysCall,LevLog,<"Open\n">
 	fmt TypSysCall,LevArgs,<" Mode = $x file = '$S'\n">,<AX,DS,DX>
 	XOR	AH,AH
-Entry $Open2				;AN000;
+Entry $Open2
 	mov	ch,attr_hidden+attr_system+attr_directory
 	call	SetAttrib
 	MOV	CX,OFFSET DOSGroup:DOS_Open ; address of routine to call
 	SaveReg <AX>			; Save mode on stack
-IF DBCS 				;AN000;
+IF DBCS
 	MOV	[Temp_Var],0		;AN000;KK. set variable with 0
-ENDIF					;AN000;
+ENDIF
 
 AccessFile:
 ;
 ; Grab a free SFT.
 ;
-IF  DBCS				;AN000;
-	TEST	[Temp_Var],8		;AN000;;KK. volume id bit set		       ;AN000;
-	JZ	novol			;AN000;;KK. no				       ;AN000;
-	OR	[DOS34_FLAG],DBCS_VOLID ;AN000;;KK. set bit for transpath	       ;AN000;
-novol:					;AN000;
-ENDIF					;AN000;
+IF  DBCS
+	TEST	[Temp_Var],8		;AN000;;KK. volume id bit set
+	JZ	novol			;AN000;;KK. no
+	OR	[DOS34_FLAG],DBCS_VOLID ;AN000;;KK. set bit for transpath
+novol:
+ENDIF
 	EnterCrit   critSFT
 	invoke	SFNFree 		; get a free sfn
 	LeaveCrit   critSFT
@@ -263,7 +256,7 @@ OpenCritLeave:
 	CMP	CS:[EXTERR],error_Code_Page_Mismatched	;AN000;;FT. code page mismatch
 	JNZ	NORERR					;AN000;;FT. no
 	transfer From_GetSet				;AN000;;FT. yes
-NORERR: 						;AN000;
+NORERR:
 
 ;; File Tagging DOS 4.00
 	transfer    Sys_Ret_Err 	; no free, return error
@@ -285,9 +278,9 @@ Procedure   $Creat,NEAR
 	ASSUME	CS:DOSGroup,DS:NOTHING,ES:NOTHING,SS:DOSGroup
 	fmt TypSysCall,LevLog,<"Create\n">
 	fmt TypSysCall,LevArgs,<" Att = $x file = '$S'\n">,<CX,DS,DX>
-IF DBCS 				;AN000;
-	MOV	[Temp_Var],CX		;AN000;KK. set variable with attribute	      ;AN000;
-ENDIF					;AN000;
+IF DBCS
+	MOV	[Temp_Var],CX		;AN000;KK. set variable with attribute
+ENDIF
 	SaveReg <CX>			; Save attributes on stack
 	MOV	CX,OFFSET DOSGroup:DOS_Create; routine to call
 AccessSet:
@@ -427,17 +420,17 @@ epjc2:	JC	ChModErr		; get old error
 	PUSH	SS			   ;AN000;;MS.
 	POP	ES			   ;AN000;;MS.es:di-> source
 	XOR	AL,AL			   ;AN000;;MS.scan all CDS
-rnloop: 				   ;AN000;
+rnloop:
 	invoke	GetCDSFromDrv		   ;AN000;;MS.
 	JC	dorn			   ;AN000;;MS.	end of CDS
 	invoke	StrCmp			   ;AN000;;MS.	current dir ?
 	JZ	rnerr			   ;AN000;;MS.	yes
 	INC	AL			   ;AN000;;MS.	next
 	JMP	rnloop			   ;AN000;;MS.
-rnerr:					   ;AN000;
+rnerr:
 	ADD	SP,4			   ;AN000;;MS. pop thiscds
 	error	error_current_directory    ;AN000;;MS.
-dorn:					   ;AN000;
+dorn:
 	POP	WORD PTR SS:[THISCDS+2]    ;AN000;;MS.
 	POP	WORD PTR SS:[THISCDS]	   ;AN000;;MS.
 	Context DS
@@ -469,9 +462,9 @@ Break <$CreateNewFile - Create a new directory entry>
 	ASSUME	CS:DOSGroup,DS:NOTHING,ES:NOTHING,SS:DOSGroup
 	fmt TypSysCall,LevLog,<"CreateNew\n">
 	fmt TypSysCall,LevArgs,<" Att = $x file = '$S'\n">,<CX,DS,DX>
-IF DBCS 				;AN000;
+IF DBCS
 	MOV	[Temp_Var],CX		;AN000;KK. set variable with attribute
-ENDIF					;AN000;
+ENDIF
 	SaveReg <CX>			; Save attributes on stack
 	MOV	CX,OFFSET DOSGroup:DOS_Create_New   ; routine to call
 	JMP	AccessSet		; use good ol' open
@@ -553,7 +546,7 @@ OKatts:
 	MOV	DI,DX
 	MOV	CX,DI
 	NEG	CX			; number of bytes remaining in segment
- IF  DBCS				;AN000;
+ IF  DBCS
 Kloop:					;AN000;; 2/13/KK
 	MOV	AL, BYTE PTR ES:[DI]	;AN000;; 2/13/KK
 	INC	DI			;AN000;; 2/13/KK
@@ -567,14 +560,14 @@ Kloop:					;AN000;; 2/13/KK
 					;AN000; do not look for path char. 2/13/KK
 	jmp	Kloop			;AN000; 2/13/KK
 GOTEND: 				;AN000; 2/13/KK
- ELSE					;AN000;
+ ELSE
 	OR	CX,CX			;AN000;MS.  cx=0 ? ds:dx on segment boundary
 	JNZ	okok			;AN000;MS.  no
 	MOV	CX,-1			;AN000;MS.
-okok:					;AN000;
-	XOR	AX,AX			;AN000;
-	REPNZ	SCASB			;AN000;
- ENDIF					;AN000;
+okok:
+	XOR	AX,AX
+	REPNZ	SCASB
+ ENDIF
 	DEC	DI			; point back to the null
 	MOV	AL,ES:[DI-1]		; Get char before the NUL
 	invoke	PathChrCmp		; Is it a path separator?
@@ -679,8 +672,8 @@ Break	<Extended_Open- Extended open the file>
 ;
 
 
-procedure   $Extended_Open,NEAR 			       ;AN000;
-	ASSUME	CS:DOSGROUP,DS:NOTHING,ES:NOTHING,SS:DOSGROUP  ;AN000;
+procedure   $Extended_Open,NEAR
+	ASSUME	CS:DOSGROUP,DS:NOTHING,ES:NOTHING,SS:DOSGROUP
 
 	MOV	[XA_from],0		  ;AN000;EO. init for set XA
 	MOV	[EXTOPEN_FLAG],DX	  ;AN000;EO. save ext. open flag
@@ -741,12 +734,12 @@ error_return:					 ;AN000;EO.
 	ret					 ;AN000;EO..  return with error
 ;no_cdpg_chk:						EO.
 ;	MOV	[CPSWFLAG],0			 ;AN000;EO..  set CPSW flag off
-goopen2:					 ;AN000;
+goopen2:
 	TEST	BX,int_24_error 		 ;AN000;EO..  disable INT 24 error ?
 	JZ	goopen				 ;AN000;EO..  no
 	OR	[EXTOPEN_ON],EXT_OPEN_I24_OFF	 ;AN000;EO..  set bit to disable
 
-goopen: 					 ;AN000;
+goopen:
 	OR	[EXTOPEN_ON],EXT_OPEN_ON	 ;AN000;EO..  set Extended Open active
 	AND	[EXTOPEN_FLAG],0FFH		 ;AN000;EO.create new ?
 	CMP	[EXTOPEN_FLAG],ext_exists_fail + ext_nexists_create ;AN000;FT.
@@ -776,8 +769,7 @@ chknext:
 	JMP	SHORT setXAttr			      ;AN000;;EO. set XAs
 error_return2:
 	ret					 ;AN000;;EO.  return with error
-						 ;AN000;
-exist_open:					 ;AN000;
+exist_open:
 	test	fSharing,-1			 ;AN000;;EO. server doscall?
 	jz	noserver			 ;AN000;;EO. no
 	MOV	CL,CH				 ;AN000;;EO. cl=search attribute
@@ -831,7 +823,7 @@ setXAttr:
 	POP	AX			;AN000;;EO.
 	MOV	[SI.USER_AX],AX 	;AN000;;EO. set handle for ax
 
-ok_return:				;AN000;
+ok_return:
 	transfer SYS_RET_OK		;AN000;;EO.
 
 extexit2:				;AN000; ERROR RECOVERY
@@ -845,22 +837,22 @@ extexit2:				;AN000; ERROR RECOVERY
 	invoke	$UNLINK 		;AN000;EO. delete the file
 	JMP	SHORT reserror		;AN000;EO.
 
-justopen:				;AN000;
+justopen:
 	invoke	$close			;AN000;EO. pretend never happend
-reserror:				;AN000;
+reserror:
 	POP	AX			;AN000;EO. retore error code from set XA
 	JMP	SHORT extexit		;AN000;EO.
 
 
-ext_file_unfound:			;AN000;
+ext_file_unfound:
 	MOV	AX,error_file_not_found ;AN000;EO.
 	JMP	SHORT extexit		;AN000;EO.
-ext_inval:				 ;AN000;
+ext_inval:
 	MOV	AX,error_invalid_function;AN000;EO.
 extexit:
 	transfer SYS_RET_ERR		;AN000;EO.
 
-EndProc $Extended_Open			;AN000;
+EndProc $Extended_Open
 
 
 Break	<GetIOParms - get IO parms form extended open parm list>
@@ -875,36 +867,36 @@ Break	<GetIOParms - get IO parms form extended open parm list>
 ;procedure   GetIOParms,NEAR
 ;	assume	ds:nothing,es:nothing
 ;
-;	LODSB					; get parm type 		;AN000;
-;	CMP	AL,0*100B+10B			; have IOMODE			;AN000;
-;	JE	SET_IOMODE							;AN000;
-;	AND	AL,00000011B			; decode it			;AN000;
-;	JZ	SKIP_ASCIIZ							;AN000;
-;	DEC	AL								;AN000;
-;	JZ	SKIP_LEN							;AN000;
-;;	DEC	AL								;AN000;
-;	JZ	SKIP_WORD							;AN000;
-;SKIP_DWORD:					 ; copy DWORD parm		 ;AN000;
-;	LODSW									;AN000;
-;SKIP_WORD:					 ; copy WORD parm		 ;AN000;
-;	LODSW									;AN000;
-;	JMP	SHORT NEXT_PARM 						;AN000;
-;SET_IOMODE:					 ; copy IOMODE			 ;AN000;
-;	LODSW									;AN000;
-;	MOV	[EXTOPEN_IO_MODE],AX						;AN000;
-;	JMP	SHORT NEXT_PARM 						;AN000;
-;SKIP_LEN:					 ; copy LENGTH parm		 ;AN000;
-;	LODSW									;AN000;
-;	ADD	SI,AX								;AN000;
-;	JMP	SHORT NEXT_PARM 						;AN000;
-;SKIP_ASCIIZ:					 ; copy ASCIIZ parm		 ;AN000;
-;	LODSB									;AN000;
-;	OR	AL,AL								;AN000;
-;	JNE	SKIP_ASCIIZ							;AN000;
-;NEXT_PARM:									 ;AN000;
-;	LOOP	GetIOParms							;AN000;
-;	return									;AN000;
-;EndProc GetIOParms								 ;AN000;
+;	LODSB					; get parm type
+;	CMP	AL,0*100B+10B			; have IOMODE
+;	JE	SET_IOMODE
+;	AND	AL,00000011B			; decode it
+;	JZ	SKIP_ASCIIZ
+;	DEC	AL
+;	JZ	SKIP_LEN
+;;	DEC	AL
+;	JZ	SKIP_WORD
+;SKIP_DWORD:					 ; copy DWORD parm
+;	LODSW
+;SKIP_WORD:					 ; copy WORD parm
+;	LODSW
+;	JMP	SHORT NEXT_PARM
+;SET_IOMODE:					 ; copy IOMODE
+;	LODSW
+;	MOV	[EXTOPEN_IO_MODE],AX
+;	JMP	SHORT NEXT_PARM
+;SKIP_LEN:					 ; copy LENGTH parm
+;	LODSW
+;	ADD	SI,AX
+;	JMP	SHORT NEXT_PARM
+;SKIP_ASCIIZ:					 ; copy ASCIIZ parm
+;	LODSB
+;	OR	AL,AL
+;	JNE	SKIP_ASCIIZ
+;NEXT_PARM:
+;	LOOP	GetIOParms
+;	return
+;EndProc GetIOParms
 
 
 CODE ENDS

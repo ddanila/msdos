@@ -3,26 +3,6 @@
 	%OUT	...MSDISK.ASM
 
 ;==============================================================================
-;REVISION HISTORY:
-;AN000 - New for DOS Version 4.00 - J.K.
-;AC000 - Changed for DOS Version 4.00 - J.K.
-;AN00x - PTM number for DOS Version 4.00 - J.K.
-;==============================================================================
-;AN001; d24 Multi Track enable/disable command in CONFIG.SYS	    6/27/87 J.K.
-;AN002; d9  Double word MOV instruction 			    7/1/87  J.K.
-;AN003: d25 Change DASD ERP to that recommended by Storage systems  7/28/87 J.K.
-;AN004; D113 Disable I/O access to unformatted media		    9/03/87 J.K.
-;AN005; P985 Allow I/O access to unformatted media		    9/14/87 J.K.
-;AN006; P1535 Disallow I/O access to unformatted media.		   10/15/87 J.K.
-;	(Give the user to control this - Generic IOCTL subfunction 64h/44h
-;AN007; p2828 Do not retry for multi-track format request	   12/08/87 J.K.
-;AC008; p3197 Should reset change line after BPB set in BDS table  01/21/88 J.K.
-;AN009; p3349 Should retry at hard file timeout error		   02/03/88 J.K.
-;AN010; p4696 ECC error handler should cover PC ATs for CMC disks  05/04/88 J.K.
-;AN011; p5034 Possible virgin hard file problem with direct INT 13 06/03/88 J.K.
-;AN012; P5049 Attempt to write at DISK BASE table in ROM BIOS	   06/06/88 J.K.
-;AN013; P5055 Diskcopy fails (Regression of P5049)		   06/09/88 J.K.
-;==============================================================================
 
 ;for testing, set itest to 1.  So as MSBIO1.ASM.
 	itest=0
@@ -248,9 +228,9 @@ Set_ID_Flag	db	0	;AN000; If 1, GETBP routine will set the
 	public	Fat_12_ID
 Fat_12_ID  DB  "FAT12   ",0     ;AN000;  Default System ID for floppy.
 	public	Fat_16_ID
-Fat_16_ID  DB  "FAT16   ",0     ;AN000;
+Fat_16_ID  DB  "FAT16   ",0
 	public	Vol_No_Name
-Vol_No_Name db "NO NAME    ",0  ;AN000;
+Vol_No_Name db "NO NAME    ",0
 	public	Temp_H
 Temp_H		dw	0		;AN000; Temporary for 32 bit calculation.
 
@@ -267,14 +247,14 @@ MULTRK_ON	EQU	10000000B	;User spcified Mutitrack=on, or System turns
 MULTRK_OFF1	EQU	00000000B	;initial value. No "Multitrack=" command entered.
 MULTRK_OFF2	EQU	00000001B	;User specified Multitrack=off.
 	public	MulTrk_Flag
-MulTrk_Flag	dw	0		;AN001;
+MulTrk_Flag	dw	0
 ;J.K. 6/29/87 End of Multi-track definition.
 ;---------------------------------------------------------------------
 	public EC35_Flag
 EC35_Flag	db	0		; flags for electrically compatible 3.5 inch disk drives (mrw 4/88)
 ;---------------------------------------------------------------------
-VRetry_Cnt	dw	0		;AN003;
-Soft_ECC_Cnt	dw	0		;AN003;
+VRetry_Cnt	dw	0
+Soft_ECC_Cnt	dw	0
 ;---------------------------------------------------------------------
 MultiTrk_Format_Flag	db	0	;AN007;Testing. If 1, then Multi track format request
 ;---------------------------------------------------------------------

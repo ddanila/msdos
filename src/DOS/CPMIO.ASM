@@ -1,4 +1,3 @@
-;	SCCSID = @(#)cpmio.asm	1.1 85/04/10
 TITLE	CPMIO - device IO for MSDOS
 NAME	CPMIO
 ;
@@ -22,21 +21,6 @@ include dosseg.asm
 ;   RAWOUT
 ;   RAWOUT2
 ;
-;   Revision history:
-;
-;     A000     version 4.00 - Jan 1988
-;     A002     PTM    -- dir >lpt3 hangs
-;
-;
-;
-;
-;
-;
-;
-;
-;
-;
-
 CODE	SEGMENT BYTE PUBLIC  'CODE'
 	ASSUME	SS:DOSGROUP,CS:DOSGROUP
 
@@ -79,20 +63,20 @@ ENDIF
 
 
 Break
- IF  DBCS							  ;AN000;
+ IF  DBCS
 
 ;-------------------------------- Start of Korean Support 2/11/KK
-	procedure   $STD_CON_INPUT_NO_ECHO,NEAR   ;System call 8  ;AN000;
-ASSUME	DS:NOTHING,ES:NOTHING					  ;AN000;
+	procedure   $STD_CON_INPUT_NO_ECHO,NEAR   ;System call 8
+ASSUME	DS:NOTHING,ES:NOTHING
 
-StdCILop:							  ;AN000;
-	invoke	INTER_CON_INPUT_NO_ECHO 			  ;AN000;
-	transfer InterApRet		; go to return fuction	  ;AN000;
+StdCILop:
+	invoke	INTER_CON_INPUT_NO_ECHO
+	transfer InterApRet		; go to return fuction
 
-EndProc $STD_CON_INPUT_NO_ECHO					  ;AN000;
+EndProc $STD_CON_INPUT_NO_ECHO
 
-	procedure   INTER_CON_INPUT_NO_ECHO,NEAR		  ;AN000;
-ASSUME	DS:NOTHING,ES:NOTHING					  ;AN000;
+	procedure   INTER_CON_INPUT_NO_ECHO,NEAR
+ASSUME	DS:NOTHING,ES:NOTHING
 ;-----------------------------------End of Korean Support 2/11/KK
 
 ; Inputs:
@@ -104,7 +88,7 @@ ASSUME	DS:NOTHING,ES:NOTHING					  ;AN000;
 ;	AL = character
 ;	Zero flag SET if interim character, RESET otherwise
 
- ELSE								  ;AN000;
+ ELSE
 
 
 ;
@@ -189,15 +173,15 @@ Get:
 
 noscan:
 ;;; 7/15/86
- IF  DBCS			    ;AN000;
-	cmp	cs:[InterChar],1    ;AN000; set the zero flag if the character3/31/KK ;AN000;
- ENDIF				    ;AN000;
+ IF  DBCS
+	cmp	cs:[InterChar],1    ;AN000; set the zero flag if the character3/31/KK
+ ENDIF
 	return
- IF  DBCS			    ;AN000;
-EndProc INTER_CON_INPUT_NO_ECHO     ;AN000;  ;2/11/KK				      ;AN000;
- ELSE				    ;AN000;
+ IF  DBCS
+EndProc INTER_CON_INPUT_NO_ECHO     ;AN000;  ;2/11/KK
+ ELSE
 EndProc $STD_CON_INPUT_NO_ECHO
- ENDIF				    ;AN000;
+ ENDIF
 
 Break
 
@@ -214,14 +198,14 @@ ASSUME	DS:NOTHING,ES:NOTHING
 	MOV	SI,DX
 STRING_OUT1:
 	LODSB
- IF  DBCS				;AN000;
-	invoke	TESTKANJ		;AN000; 	      2/11/KK		 ;AN000;
-	jz	SBCS00			;AN000; 	      2/11/KK		 ;AN000;
-	invoke	OUTT			;AN000; 	      2/11/KK		 ;AN000;
-	LODSB				;AN000; 	      2/11/KK		 ;AN000;
-	JMP	NEXT_STR1		;AN000; 	      2/11/KK		 ;AN000;
-SBCS00: 				;AN000; 	      2/11/KK		 ;AN000;
- ENDIF					;AN000;
+ IF  DBCS
+	invoke	TESTKANJ		;AN000; 	      2/11/KK
+	jz	SBCS00			;AN000; 	      2/11/KK
+	invoke	OUTT			;AN000; 	      2/11/KK
+	LODSB				;AN000; 	      2/11/KK
+	JMP	NEXT_STR1		;AN000; 	      2/11/KK
+SBCS00: 				;AN000; 	      2/11/KK
+ ENDIF
 	CMP	AL,'$'
 	retz
 NEXT_STR1:
@@ -230,11 +214,11 @@ NEXT_STR1:
 
 EndProc $STD_CON_STRING_OUTPUT
 
-IF  DBCS				;AN000;
-include kstrin.asm			;AN000;
-ELSE					;AN000;
+IF  DBCS
+include kstrin.asm
+ELSE
 include strin.asm
-ENDIF					;AN000;
+ENDIF
 
 Break
 
@@ -251,23 +235,23 @@ ASSUME	DS:NOTHING,ES:NOTHING
 
 	MOV	AL,DL
 	CMP	AL,-1
-	JZ	RAW22				      ;AN000;
-	JMP	RAWOUT				      ;AN000;
-RAW22:						      ;AN000;
+	JZ	RAW22
+	JMP	RAWOUT
+RAW22:
 	LES	DI,DWORD PTR [user_SP]		      ; Get pointer to register save area
 	XOR	BX,BX
 	invoke	GET_IO_SFT
 	retc
- IF  DBCS				;AN000;
-	push	word ptr [Intercon]	;AN000;
+ IF  DBCS
+	push	word ptr [Intercon]
 	mov	[Intercon],0		;AN000; disable interim characters
- ENDIF					;AN000;
+ ENDIF
 	MOV	AH,1
 	invoke	IOFUNC
 	JNZ	RESFLG
- IF  DBCS				;AN000;
+ IF  DBCS
 	pop	word ptr [InterCon]	;AN000; restore interim flag
- ENDIF					;AN000;
+ ENDIF
 	invoke	SPOOLINT
 	OR	BYTE PTR ES:[DI.user_F],40H ; Set user's zero flag
 	XOR	AL,AL
@@ -275,12 +259,12 @@ RAW22:						      ;AN000;
 
 RESFLG:
 	AND	BYTE PTR ES:[DI.user_F],0FFH-40H    ; Reset user's zero flag
- IF  DBCS				;AN000;
-	XOR	AH,AH			;AN000;
+ IF  DBCS
+	XOR	AH,AH
 	invoke	IOFUNC			;AN000; get the character
-	pop	word ptr [InterCon]	;AN000;
-	return				;AN000;
- ENDIF					;AN000; 				;AN000;
+	pop	word ptr [InterCon]
+	return
+ ENDIF
 
 RILP:
 	invoke	SPOOLINT
@@ -308,14 +292,14 @@ RILP:
 Got:
 	XOR	AH,AH
 	invoke	IOFUNC
- IF  DBCS				;AN000;
+ IF  DBCS
 	cmp	[InterChar],1		;AN000;    2/11/KK
 ;								2/11/KK
 ;	Sets the application zero flag depending on the 	2/11/KK
 ;	zero flag upon entry to this routine. Then returns	2/11/KK
 ;	from system call.					2/11/KK
 ;								2/11/KK
-entry	InterApRet			;AN000; 		2/11/KK 	;AN000;
+entry	InterApRet			;AN000; 		2/11/KK
 	pushf				;AN000; 3/16/KK
 	push	ds			;AN000; 3/16/KK
 	push	bx			;AN000; 3/16/KK
@@ -328,15 +312,15 @@ entry	InterApRet			;AN000; 		2/11/KK 	;AN000;
 	popf				;AN000; 3/16/KK
 	return				;AN000; 3/16/KK
 do_koren:				;AN000; 3/16/KK
-	popf				;AN000;
+	popf
 	LES	DI,DWORD PTR [user_SP]	;AN000; Get pointer to register save area KK
 	jnz	sj0			;AN000; 		      2/11/KK
 	OR	BYTE PTR ES:[DI.user_F],40H	;AN000; Set user's zero flag  2/11/KK
 	return				;AN000; 		2/11/KK
 sj0:					;AN000; 		2/11/KK
 	AND	BYTE PTR ES:[DI.user_F],0FFH-40H ;AN000; Reset user's zero flag 2/KK
- ENDIF						 ;AN000;
-	return					 ;AN000;
+ ENDIF
+	return
 ;
 ;	Output the character in AL to stdout
 ;
@@ -358,10 +342,10 @@ sj0:					;AN000; 		2/11/KK
 	AND	BX,sf_isNet + devid_device
 	CMP	BX,devid_device
 	JNZ	RawNorm
- IF  DBCS					;AN000;
+ IF  DBCS
 	TEST	[SaveCurFlg],01H		;AN000; print but no cursor adv?
 	JNZ	RAWNORM 			;AN000;    2/11/KK
- ENDIF						;AN000;
+ ENDIF
 
 ;	TEST	BX,sf_isnet			; output to NET?
 ;	JNZ	RAWNORM 			; if so, do normally

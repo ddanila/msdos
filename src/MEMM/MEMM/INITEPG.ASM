@@ -11,26 +11,8 @@ page	58,132
 ;
 ;   Module:   InitEPage - initialize EMM Page pointers
 ;
-;   Version:  0.05
-;
-;   Date:     June 4,1986
-;
-;   Author:
-;
 ;******************************************************************************
 ;
-;   Change log:
-;
-;     DATE    REVISION			DESCRIPTION
-;   --------  --------	-------------------------------------------------------
-;   06/04/86  Original
-;   06/28/86  0.02	Name changed from MEMM386 to MEMM
-;   07/06/86  0.04	_pft386 changed to a ptr
-;   07/06/86  0.04	fixed hdma_exit label to edma_exit
-;   07/06/86  0.04	changed assume to DGROUP
-;   07/09/86  0.05	added to FindDMA routine
-;
-;******************************************************************************
 ;
 ;   Functional Description:
 ;

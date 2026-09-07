@@ -11,29 +11,8 @@ page	58,132
 ;
 ;   Module:   VDM_Init - VDM initialization routine
 ;
-;   Version:  0.05
-;
-;   Date:     June 3,1986
-;
-;   Author:
-;
 ;******************************************************************************
 ;
-;   Change log:
-;
-;     DATE    REVISION			DESCRIPTION
-;   --------  --------	-------------------------------------------------------
-;   06/03/86  Original	from VDM MAIN.ASM module
-;   06/16/86  0.01	Added code to dword align LL buffer
-;   06/21/86  0.02	moved cld in init_pages
-;   06/28/86  0.02	Name change from MEMM386 to MEMM
-;   07/06/86  0.04	changed assume to DGROUP and moved stack out of
-;			DGROUP
-;   07/10/86  0.05	Init of RCODEA_GSEL
-;   07/10/86  0.05	Added PageT_Seg
-;   07/20/88		Removed debugger codes (pc)
-;
-;******************************************************************************
 ;
 ;   Functional Description:
 ;

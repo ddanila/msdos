@@ -1,6 +1,4 @@
  page 80,132
-;	SCCSID = @(#)path2.asm	1.1 85/05/14
-;	SCCSID = @(#)path2.asm	1.1 85/05/14
 .sall
 .xlist
 .xcref
@@ -62,12 +60,12 @@ break <Path.Asm>
 ; DATA:
 ;---------------
 
-TRANSPACE	SEGMENT PUBLIC BYTE	;AC000;
+TRANSPACE	SEGMENT PUBLIC BYTE
 	EXTRN	arg:byte
 	EXTRN	BADPMES_ptr:word
 	EXTRN	curdrv:byte
 	EXTRN	EXECPATH:byte
-	EXTRN	ext_entered:byte	;AN005;
+	EXTRN	ext_entered:byte
 	EXTRN	fbuf:byte
 	EXTRN	pathinfo:word
 	EXTRN	psep_char:byte
@@ -75,7 +73,7 @@ TRANSPACE	SEGMENT PUBLIC BYTE	;AC000;
 	EXTRN	tpbuf:byte
 TRANSPACE	ENDS
 
-TRANCODE	SEGMENT PUBLIC BYTE	;AC000;
+TRANCODE	SEGMENT PUBLIC BYTE
 
 assume cs:trangroup, ds:trangroup, es:trangroup, ss:nothing
 
@@ -114,7 +112,7 @@ wildchar		    equ 	'?'
 ;---------------
 ; DATA:
 ;---------------
-TRANSPACE	SEGMENT PUBLIC BYTE	;AC000;
+TRANSPACE	SEGMENT PUBLIC BYTE
 	EXTRN	search_best:byte
 	EXTRN	search_best_buf:byte
 	EXTRN	search_curdir_buf:byte
@@ -208,7 +206,7 @@ break <Search_Ftype>
 ;---------------
 ; DATA:
 ;---------------
-TRANDATA	SEGMENT PUBLIC BYTE		;AC000;
+TRANDATA	SEGMENT PUBLIC BYTE
 	extrn	comext:byte,exeext:byte,batext:byte
 trandata     ends
 ;---------------
@@ -272,7 +270,7 @@ ftype_exit:
 	mov	ext_entered,al			;AN005; save the match type found
 	mov	AX, search_com			;AN005; send back best was found to stop search
 
-ftype_done:					;AN005;
+ftype_done:
 	pop	SI
 	pop	DI
 	ret
@@ -321,7 +319,7 @@ Procedure   Strip,NEAR
 	mov	al,ANULL			;AN005; continue scanning until the
 	repnz	scasb				;AN005;    end of line is reached.
 
-process_ext:					;AN005;
+process_ext:
 	mov	CX, DI				; pointer to end of argstring yields
 	sub	CX, DX				; number of bytes to be copied
 	sub	BX, 4				; can argstring fit into dest. buffer?
@@ -343,7 +341,7 @@ process_ext:					;AN005;
 	mov	AL, ANULL			; and a terminating null
 	stosb
 
-skip_wilds:					;AN005;
+skip_wilds:
 	popf
 	clc					; chill out...
 	jmp	short strip_exit

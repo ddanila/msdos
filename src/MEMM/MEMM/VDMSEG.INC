@@ -8,27 +8,8 @@
 ;
 ;   Module:   VDMSEG.INC - Segment Ordering and attributes for VDM
 ;
-;   Version:  0.04
-;
-;   Date:     May 12, 1986
-;
-;   Author:
-;
 ;******************************************************************************
 ;
-;   Change log:
-;
-;     DATE    REVISION			DESCRIPTION
-;   --------  --------	-------------------------------------------------------
-;	      Original
-;   05/12/86  A 	Cleanup and segment reorganization
-;   06/03/86  C 	changed order and added STACK and STACK0,STACK0_SIZE
-;   06/06/86  C 	changed CODE to _TEXT and DATA to _DATA
-;   06/28/86  0.02	Name change from MEMM386 to MEMM
-;   07/05/86  0.04	Re-organized to allow code seg move
-;   06/03/88		add use16 to all segments
-;
-;******************************************************************************
 ifndef INC_LIST
 .xlist
 endif

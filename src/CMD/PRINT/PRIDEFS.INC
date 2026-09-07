@@ -80,43 +80,6 @@
 ;
 ; NOTES:
 ;
-; REVISION HISTORY: Ax000  Version 4.0  05/01/87 - first release              FG
-;                   Ax001  DCR D201              - Extended Atrib change      FG
-;                   Ax002  P 1175                - move msgs back to TRANS    FG
-;                   Ax003  P 1487                - PARSE error message problemFG
-;                   Ax004  P 1546                - PARSE error trailing :     FG
-;                   Ax005  P 1717                - multiples of same switch   FG
-;                   Ax006  P 1996                - Extended open error        FG
-;                   Ax007  P 2052                - [PRN] prompt lpt1 error    FG
-;                   Ax008  P 2053                - CPSW prints empty file     FG
-;                   Ax009  P 2229                - filename truncation        FG
-;                   Ax010  D  389                - use transname /server DOS  FG
-;                   Ax011  P 3122                - attrib missing /server DOS FG
-;                   Ax012  P 3949                - Error in opening an open   FG
-;                   Ax013  P 3949                - open mode - second attempt FG
-;                   Ax014  P 4396                - some messages need STDOUT  FG
-;                   Ax015  P 4880                - DRIVERS not recognized     FG
-;
-; PRE-VERSION 4.0 HISTORY:
-;
-;       V1.00   07/03/82
-;       V2.00   07/05/83        A.R
-;               New INT 2FH interface, Pathnames, context switch.
-;       V2.50   09/14/83        M.A.U
-;               Turned it back to a print
-;               11/21/83        M.A.U
-;               Repaired bug in file cancel code
-;               11/28/83        M.A.U
-;               Added int 23 and 24 handlers to transient.
-;               01/27/84        M.A.U
-;               Allways checks for valid drive.
-;       V3.00   02/03/84        M.A.U
-;               Partitioned so as to assemble on a PC
-;               By the by, it is V3.00 now.
-;               05/23/85        K.G.S
-;               Chains into INT19 (bootstrap) to unhook
-;               INT_1C (timer) and INT_15 (AT's Wait On Event)
-;
 ; COPYRIGHT: "The DOS PRINT Utility"
 ;            "Version 4.00 (C) Copyright 1988 Microsoft
 ;            "Licenced Material - Program Property of Microsoft"
@@ -322,7 +285,7 @@ minor_code              equ  040h       ; INT 2F PRINTER set and lock CP
                                         ;        in order to do a second open
                                         ;        of a file accross the network
 
-open_mode               equ  MODE_NO24+MODE_SH_COMP+MODE_AC_R                  ;AC013;
+open_mode               equ  MODE_NO24+MODE_SH_COMP+MODE_AC_R
 
 
 ignore_cp               equ  1          ; dont validate CP - it may be different

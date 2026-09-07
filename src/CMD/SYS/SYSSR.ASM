@@ -5,12 +5,12 @@
 .xlist
 .xcref
 
-	include SYSMSG.INC		;				       ;AN000;
+	include SYSMSG.INC		;
 
 .cref
 .list
 
-	MSG_UTILNAME <SYS>		;				       ;AN000;
+	MSG_UTILNAME <SYS>		;
 
 CODE	SEGMENT PARA PUBLIC
 
@@ -19,14 +19,14 @@ ASSUME	CS:CODE,DS:nothing,ES:nothing
 	PUBLIC	SYSDISPMSG, SYSLOADMSG, SYSPARSE
 	PUBLIC	Data_Space
 
-;;dcl	MSG_SERVICES <MSGDATA>		;				      ;AN000;
+;;dcl	MSG_SERVICES <MSGDATA>		;
 
-;  MSG_SERVICES <SYS.CL1,SYS.CL2,SYS.CLA,SYS.CLB,SYS.CLC,SYS.CLD>		;AN000;
+;  MSG_SERVICES <SYS.CL1,SYS.CL2,SYS.CLA,SYS.CLB,SYS.CLC,SYS.CLD>
 
 .xlist
 .xcref
 
-	MSG_SERVICES <SYS.CL1,SYS.CL2,SYS.CLA,SYS.CLB,SYS.CLC,SYS.CLD> ;       ;AN000;
+	MSG_SERVICES <SYS.CL1,SYS.CL2,SYS.CLA,SYS.CLB,SYS.CLC,SYS.CLD> ;
 
 .cref
 .list
@@ -36,25 +36,25 @@ ASSUME	CS:CODE,DS:nothing,ES:nothing
 .xlist
 .xcref
 
-	MSG_SERVICES <LOADmsg,DISPLAYmsg,INPUTmsg,CHARmsg,NOVERCHECKmsg> ;		     ;AN000;
+	MSG_SERVICES <LOADmsg,DISPLAYmsg,INPUTmsg,CHARmsg,NOVERCHECKmsg> ;
 
 .cref
 .list
 
 
-false	=	0			;				       ;AN000;
+false	=	0			;
 
-DateSW	equ	false			;				       ;AN000;
-TimeSW	equ	false			;				       ;AN000;
-CmpxSW	equ	false			;				       ;AN000;
-KeySW	equ	false			;				       ;AN000;
-QusSW	equ	false			;				       ;AN000;
-Val1SW	equ	false			;				       ;AN000;
-Val2SW	equ	false			;				       ;AN000;
-Val3SW	equ	false			;				       ;AN000;
-SwSW	equ	false			;				       ;AN000;
-NumSW	equ	false			;				       ;AN000;
-CAPSW	equ	false			; Perform CAPS if specified	       ;AN000;
+DateSW	equ	false			;
+TimeSW	equ	false			;
+CmpxSW	equ	false			;
+KeySW	equ	false			;
+QusSW	equ	false			;
+Val1SW	equ	false			;
+Val2SW	equ	false			;
+Val3SW	equ	false			;
+SwSW	equ	false			;
+NumSW	equ	false			;
+CAPSW	equ	false			; Perform CAPS if specified
 
 
 ASSUME	CS:CODE,DS:CODE,ES:nothing
@@ -64,12 +64,12 @@ ASSUME	CS:CODE,DS:CODE,ES:nothing
 ;xlist
 ;xcref
 
-include parse.asm			;				       ;AN000;
+include parse.asm			;
 
 .cref
 .list
 
-Data_Space LABEL BYTE			;				       ;AN000;
+Data_Space LABEL BYTE			;
 
 
 

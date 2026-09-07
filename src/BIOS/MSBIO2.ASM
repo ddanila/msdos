@@ -4,15 +4,6 @@
 	%OUT	...MSBIO2.ASM
 
 ;==============================================================================
-;REVISION HISTORY:
-;AN000 - New for DOS Version 4.00 - J.K.
-;AC000 - Changed for DOS Version 4.00 - J.K.
-;AN00x - PTM number for DOS Version 4.00 - J.K.
-;==============================================================================
-;AN001; - P1820 New Message SKL file				  10/20/87 J.K.
-;AN002; - P5045 New INT 2fh for Get BDS table vector for EMS	  06/06/88 J.K.
-;==============================================================================
-
 ROMSEGMENT	EQU	0F000H
 MODELBYTE	EQU	DS:BYTE PTR [0FFFEH]
 MODELPCJR	EQU	0FDH

@@ -44,48 +44,6 @@
 /*                                                                        */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *  */
 /*                                                                        */
-/*  MODIFICATIONS:                                                        */
-/*                                                                        */
-/*  Converted to CMERGE 03/26/85 					  */
-/*                                                                        */
-/*  M000        June 5/85       					  */
-/*  Changed low version check for specific 320.                           */
-/*                                                                        */
-/*  M001        June 12/85      	                                  */
-/*  The original IBM version of SUBST allowed the delete switch "/D"      */
-/*  immediately after the drive specification.  The argument parsing code */
-/*  has been Revised to allow this combination.                           */
-/*                                                                        */
-/*  M002        July 3/85       	                                  */
-/*  When there are only two operand make sure that there are no additional*/
-/*  switch characters.                                                    */
-/*                                                                        */
-/*  M003        July 9/85       	                                  */
-/*  Altered pathname verification tests to so that the same error message */
-/*  will result.                                                          */
-/*                                                                        */
-/*  M004        July 29/85      	                                  */
-/*  Only allow 2 characters in the drive name specifier for delete (used  */
-/*  to be three).                                                         */
-/*                                                                        */
-/*              May /87         	                                  */
-/*  Deletion of source code dealing with parsing and displaying messages  */
-/*  and addition of SYSLOADMSG, SYSDISPMSG, SYSPARSE in order to conform  */
-/*  to DOS Version 4.0 specifications to utilize common DOS parser and    */
-/*  message service routines.                                             */
-/*                                                                        */
-/*  AC000:  Changed code for DOS Version 4.0         5/87	          */
-/*                                                                        */
-/*  AN000:  New code for DOS Version 4.0             5/87	          */
-/*            AN000;M = message services                                  */
-/*            AN000;P = parser service                                    */
-/*                                                                        */
-/*  Ax001:  Changed code req'd - PTM0003920          3/88	          */
-/*            Incorrect message response                                  */
-/*                                                                        */
-/*  Ax002:  Changed code req'd - PTM0004045          3/88	          */
-/*            Incomplete message response                                 */
-/*                                                                        */
 /**************************************************************************/
 
 #include "cds.h"

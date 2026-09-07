@@ -1,4 +1,3 @@
-/*      SCCSID = @(#)utilmid3.h	5.13 87/05/05 */
 
 #define MSG_SPOOL_WTRUNC_ERROR          1425      /* cannot release filling file - print */
 #define MSG_SPOOL_OPEN_ERROR            1426      /* cannot delete filling file - print */

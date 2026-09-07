@@ -1,6 +1,4 @@
  page 80,132
-;	SCCSID = @(#)tprintf.asm	4.3 85/07/02
-;	SCCSID = @(#)tprintf.asm	4.3 85/07/02
 TITLE	COMMAND Transient Printf routine
 
 ;****************************************************************
@@ -32,11 +30,11 @@ TITLE	COMMAND Transient Printf routine
 
 .xlist
 .xcref
-	INCLUDE comsw.asm		;AC000;
+	INCLUDE comsw.asm
 	INCLUDE DOSSYM.INC
 	INCLUDE comseg.asm
-	INCLUDE comequ.asm		;AN000;
-	INCLUDE SYSMSG.INC		;AN000;
+	INCLUDE comequ.asm
+	INCLUDE SYSMSG.INC
 .list
 .cref
 
@@ -44,47 +42,47 @@ datares segment public
 	extrn	pipeflag:byte
 datares ends
 
-TRANDATA	SEGMENT PUBLIC BYTE	;AC000;
-	EXTRN	extend_buf_off:word	;AN000;
-	EXTRN	Extend_Buf_ptr:word	;AN000;
-	EXTRN	Extend_Buf_seg:word	;AN000;
-	EXTRN	Msg_Cont_Flag:byte	;AN000;
-	EXTRN	Msg_disp_Class:byte	;AN000;
+TRANDATA	SEGMENT PUBLIC BYTE
+	EXTRN	extend_buf_off:word
+	EXTRN	Extend_Buf_ptr:word
+	EXTRN	Extend_Buf_seg:word
+	EXTRN	Msg_Cont_Flag:byte
+	EXTRN	Msg_disp_Class:byte
 	EXTRN	pipeemes_ptr:word
 TRANDATA	ENDS
 
-TRANSPACE	SEGMENT PUBLIC BYTE	;AC000;
-	EXTRN	msg_flag:byte		;AN022;
-	EXTRN	print_err_flag:word	;AN000;
+TRANSPACE	SEGMENT PUBLIC BYTE
+	EXTRN	msg_flag:byte
+	EXTRN	print_err_flag:word
 	EXTRN	RESSEG:WORD
-	EXTRN	String_ptr_2:word	;AC000;
-	EXTRN	Subst_buffer:byte	;AN061;
-;AD061; EXTRN	String_ptr_2_sb:word	;AN000;
+	EXTRN	String_ptr_2:word
+	EXTRN	Subst_buffer:byte
+;AD061; EXTRN	String_ptr_2_sb:word
 
 	; include data area for message services
 
 	MSG_UTILNAME <COMMAND>		;AN000; define utility name
 
-	MSG_SERVICES <MSGDATA>		;AN000;
+	MSG_SERVICES <MSGDATA>
 
-PRINTF_HANDLE	DW  ?			;AC000;
+PRINTF_HANDLE	DW  ?
 
-TRANSPACE	ENDS			;AC000;
+TRANSPACE	ENDS
 
-TRANCODE	SEGMENT PUBLIC BYTE	;AC000;
+TRANCODE	SEGMENT PUBLIC BYTE
 
 	EXTRN	cerror:near
 	EXTRN	crlf2:near
-	EXTRN	tcommand:near		;AN026;
+	EXTRN	tcommand:near
 
-ASSUME	CS:TRANGROUP,DS:TRANGROUP,ES:NOTHING,SS:NOTHING ;AC000;
+ASSUME	CS:TRANGROUP,DS:TRANGROUP,ES:NOTHING,SS:NOTHING
 
-	PUBLIC	SETSTDINOFF		;AN026;
-	PUBLIC	SETSTDINON		;AN026;
-	PUBLIC	SETSTDOUTOFF		;AN026;
-	PUBLIC	SETSTDOUTON		;AN026;
-	PUBLIC	TSYSGETMSG		;AN000;
-	PUBLIC	TSYSLOADMSG		;AN000;
+	PUBLIC	SETSTDINOFF
+	PUBLIC	SETSTDINON
+	PUBLIC	SETSTDOUTOFF
+	PUBLIC	SETSTDOUTON
+	PUBLIC	TSYSGETMSG
+	PUBLIC	TSYSLOADMSG
 
 PUBLIC Printf_Init
 printf_init proc far
@@ -101,24 +99,24 @@ PRINTF_CRLF:
 PUBLIC	Std_EPrintf
 STD_EPRINTF:
 	mov	Printf_Handle,2 		;AC000;Print to STDERR
-	jmp	short NEW_PRINTF		;AC000;
+	jmp	short NEW_PRINTF
 PUBLIC	Std_Printf
 STD_PRINTF:
 	mov	Printf_Handle,1 		;AC000;Print to STDOUT
 
 NEW_PRINTF:
 	push	ax				;AN000;save registers
-	push	bx				;AN000;
-	push	cx				;AN000;
+	push	bx
+	push	cx
 	push	es				;AN000;get local ES
-	push	ds				;AN000;
-	pop	es				;AN000;
-	push	di				;AN000;
-	push	si				;AN000;
-	push	dx				;AN000;
-	assume	es:trangroup			;AN000;
+	push	ds
+	pop	es
+	push	di
+	push	si
+	push	dx
+	assume	es:trangroup
 ;AD061; mov	string_ptr_2_sb,0		;AN000;initialize
-	mov	print_err_flag,0		;AN000;
+	mov	print_err_flag,0
 
 UTILITY_SETUP:
 	mov	si,dx				;AN000;Get offset of message number
@@ -145,7 +143,7 @@ UTILITY_SETUP:
 ;AD061;SUBST_SEG_SET:
 ;AD061;  add	 dx,Parm_Block_Size		 ;AN000;point to position of next segment
 ;AD061;  loop	 SET_SUBST			 ;AN000;keep replacing until complete
-;AD061;  pop	 cx				 ;AN000;
+;AD061;  pop	 cx
 
 ;AD061;NO_REPLACEMENT:
 ;AD061;  mov	 bx,parm_off_pos [si]		 ;AN000;get subst offset
@@ -167,9 +165,9 @@ MOVE_SUBST:
 	test	byte ptr [bx.$M_S_FLAG],date_type ;AN061;are we doing date/time?
 	jz	move_subst_cont 		;AN061;no - no need to reset
 	mov	word ptr [bx.$M_S_VALUE],0	;AN061;reset original date or time to 0
-	mov	word ptr [bx.$M_S_VALUE+2],0	;AN061;
+	mov	word ptr [bx.$M_S_VALUE+2],0
 
-MOVE_SUBST_CONT:				;AN061;
+MOVE_SUBST_CONT:
 	pop	cx				;AN061;get number of subst back
 	loop	move_subst			;AN061;move cx sublists
 
@@ -183,7 +181,7 @@ MOVE_SUBST_CONT:				;AN061;
 	stosw					;AN061;clear out message number
 	stosb					;AN061;clear out subst count
 
-CHECK_FIX:					;AN061;
+CHECK_FIX:
 	pop	ax				;AN061;get message number back
 	pop	di				;AN061;get start of sublists
 	mov	si,di				;AN061;get into SI for msgserv
@@ -197,7 +195,7 @@ SET_SUBST:					;AN061;store the segment of the subst
 	jnz	subst_seg_set			;AN061;yes - skip it
 	mov	word ptr [bx.$M_S_VALUE+2],cs	;AN061;set segment value
 
-SUBST_SEG_SET:					;AN061;
+SUBST_SEG_SET:
 	add	bx,parm_block_size		;AN061;go to next sublist
 	loop	set_subst			;AN061;loop CX times
 	pop	cx				;AN061;get number of subst back
@@ -216,26 +214,26 @@ READY_TO_PRINT:
 	mov	Msg_Disp_Class,Util_Msg_Class	;AN061;   transient reload
 
 ;AD061; push	bx				;AN026; save registers
-;AD061; push	cx				;AN026;
-;AD061; push	dx				;AN026;
-;AD061; push	si				;AN026;
-;AD061; push	di				;AN026;
-	push	ds				;AN026;
-	push	es				;AN026;
+;AD061; push	cx
+;AD061; push	dx
+;AD061; push	si
+;AD061; push	di
+	push	ds
+	push	es
 
 
 	call	SYSDISPMSG			;AN000;call Rod
 
 	pop	es				;AN026; restore registers
-	pop	ds				;AN026;
-;AD061; pop	di				;AN026;
-;AD061; pop	si				;AN026;
-;AD061; pop	dx				;AN026;
-;AD061; pop	cx				;AN026;
-;AD061; pop	bx				;AN026;
+	pop	ds
+;AD061; pop	di
+;AD061; pop	si
+;AD061; pop	dx
+;AD061; pop	cx
+;AD061; pop	bx
 
 	jnc	Print_success			;AN000; everything went okay
-	mov	print_err_flag,ax		;AN000;
+	mov	print_err_flag,ax
 
 print_success:
 ;AD061; cmp	Msg_Disp_Class,Util_Msg_Class	;AN000;Is this a utility message
@@ -268,15 +266,15 @@ print_success:
 ;AD061; mov	Msg_Disp_Class,Util_Msg_Class	;AN000;   transient reload
 	pop	dx				;AN061;restore dx
 	pop	si				;AN000;restore registers
-	pop	di				;AN000;
+	pop	di
 	pop	es				;AN000;restore registers
-	pop	cx				;AN000;
-	pop	bx				;AN000;
-	pop	ax				;AN000;
+	pop	cx
+	pop	bx
+	pop	ax
 	cmp	print_err_flag,0		;AN000; if an error occurred - handle it
-	jnz	print_err			;AN000;
+	jnz	print_err
 
-	ret					;AC000;
+	ret
 
 print_err:
 	push	cs
@@ -300,7 +298,7 @@ go_to_error:
 	mov	dx,offset TranGroup:Extend_Buf_ptr ;AC000; get extended message pointer
 	mov	Extend_Buf_ptr,ax		;AN000; get message number in control block
 
-PRINT_ERR_EXIT: 				;AC000;
+PRINT_ERR_EXIT:
 	push	cs
 	pop	es
 	JMP	CERROR
@@ -320,14 +318,14 @@ PRINT_ERR_EXIT: 				;AC000;
 ;****************************************************************
 
 
-TSYSLOADMSG	PROC	NEAR			;AN000;
+TSYSLOADMSG	PROC	NEAR
 
-	push	bx				;AN000;
+	push	bx
 	call sysloadmsg 			;AN000; call routine
-	pop	bx				;AN000;
+	pop	bx
 	ret					;AN000; exit
 
-TSYSLOADMSG	ENDP				;AN000;
+TSYSLOADMSG	ENDP
 
 ;****************************************************************
 ;*
@@ -344,14 +342,14 @@ TSYSLOADMSG	ENDP				;AN000;
 ;****************************************************************
 
 
-TSYSGETMSG	PROC	NEAR			;AN000;
+TSYSGETMSG	PROC	NEAR
 
-	push	cx				;AN000;
+	push	cx
 	call sysgetmsg				;AN000; call routine
-	pop	cx				;AN000;
+	pop	cx
 	ret					;AN000; exit
 
-TSYSGETMSG	ENDP				;AN000;
+TSYSGETMSG	ENDP
 
 MSG_SERVICES <COMT,NOVERCHECKmsg,NEARmsg,LOADmsg,NOCHECKSTDIN,NOCHECKSTDOUT,GETmsg> ;AC026; The message services
 MSG_SERVICES <COMT,NEARmsg,SETSTDIO,DISPLAYmsg,CHARmsg,NUMmsg,TIMEmsg,DATEmsg>	    ;AC026; The message services

@@ -2,17 +2,6 @@
 %OUT IOCTL.INC...
 ; THESE ARE ALL THE IMPORTANT STRUCTURES AND EQUATES FOR IOCTL
 ;==============================================================================
-;REVISION HISTORY:
-;AN000 - New for DOS Version 4.00 - J.K.
-;AC000 - Changed for DOS Version 4.00 - J.K.
-;AN00x - PTM number for DOS Version 4.00 - J.K.
-;==============================================================================
-;AN001; D241 Provide support of Multi-track Format/Verify	   9/23/87 J.K.
-;AN002; P1535 Unformatted hard file problem			  10/15/87 J.K.
-;AN003; D490 IOCTL subfunction 63h,43h,64h,44h conflicts with OS2  2/26/88 J.K.
-;==============================================================================
-
-;*** J.K.
 ;General Guide -
 ;Category Code:
 ; 0... .... DOS Defined
@@ -87,7 +76,7 @@ TRACKLAYOUT_IS_GOOD	EQU	000000100B
 
 ; SPECIAL FUNCTION FOR FORMAT TRACK
 STATUS_FOR_FORMAT		EQU	000000001B
-DO_FAST_FORMAT			equ	000000010B	;AN001;
+DO_FAST_FORMAT			equ	000000010B
 ; CODES RETURNED FROM FORMAT STATUS CALL
 FORMAT_NO_ROM_SUPPORT		EQU	000000001B
 FORMAT_COMB_NOT_SUPPORTED	EQU	000000010B

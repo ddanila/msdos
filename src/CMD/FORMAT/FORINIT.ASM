@@ -52,21 +52,20 @@ Command_Line db NO
 PSP_Segment dw	0
 
 ;These should stay togather
-; ---------------------------------------	;				;AN000;
-FS_String_Buffer db 13 dup(" ") 		;				;AN000;
-FS_String_End db "FMT.EXE",0			;				;AN000;
-Len_FS_String_End equ $ - FS_String_End 	;				;AN000;
-						;				;AN000;
+; ---------------------------------------	;
+FS_String_Buffer db 13 dup(" ") 		;
+FS_String_End db "FMT.EXE",0			;
+Len_FS_String_End equ $ - FS_String_End 	;
 ;----------------------------------------
 
 Vol_Label_Count  db 80h 			;an000; dms;max. string length
 Vol_Label_Len	 db 00h 			;an000; dms;len. entered
-Vol_Label_Buffer db 80h dup(0)			;				;AN000;
-Vol_Label_Buffer_Length equ $ - Vol_Label_Buffer ;				 ;AN000;
+Vol_Label_Buffer db 80h dup(0)			;
+Vol_Label_Buffer_Length equ $ - Vol_Label_Buffer ;
 
-Command_Line_Buffer db 80h dup(0)		;				;AN000;
-Command_Line_Length equ $ - Command_Line_Buffer ;				;AN000;
-Fatal_Error db	0				;				;AN000;
+Command_Line_Buffer db 80h dup(0)		;
+Command_Line_Length equ $ - Command_Line_Buffer ;
+Fatal_Error db	0				;
 
 Command_Old_Ptr dw	?
 
@@ -152,11 +151,11 @@ INCLUDE FORSWTCH.INC
 	Extrn	SysDispMsg:Near
 	Extrn	SysLoadMsg:Near
 
-IF FSExec					;/FS: conditional assembly	;an018; dms;
+IF FSExec					;/FS: conditional assembly
 
 	Extrn	EXEC_FS_Format:Near
 
-ENDIF						;/FS: conditional assembly end	;an018;dms;
+ENDIF						;/FS: conditional assembly end
 
 	Extrn	GetDeviceParameters:Near
 ;
@@ -185,9 +184,9 @@ ENDIF						;/FS: conditional assembly end	;an018;dms;
 	Extrn	SizeMap:Byte
 	Extrn	MsgSameSwitch:Byte
 	Extrn	Org_AX:word			;an000; dms;AX on prog. entry
-	Extrn	DeviceParameters:Byte		;an000; dms;
-	Extrn	FAT_Flag:Byte			;an000; dms;
-	Extrn	Sublist_MsgParse_Error:Dword	;an000; dms;
+	Extrn	DeviceParameters:Byte
+	Extrn	FAT_Flag:Byte
+	Extrn	Sublist_MsgParse_Error:Dword
 
 
 code	segment public	para	'CODE'
@@ -208,8 +207,6 @@ code	segment public	para	'CODE'
 ;
 ;Output: None
 ;
-;Change History: Created	5/1/87	       MT
-;
 ;Psuedocode
 ; ---------
 ;
@@ -228,10 +225,10 @@ code	segment public	para	'CODE'
 ;	Exit program
 ;*****************************************************************************
 
-Procedure Main_Init				;				;AN000;
+Procedure Main_Init				;
 
 
-	Set_Data_Segment			;Set DS,ES to Data segment	;AN000;
+	Set_Data_Segment			;Set DS,ES to Data segment
 	DOS_Call GetCurrentPSP			;Get PSP segment address
 	mov	PSP_Segment,bx			;Save it for later
 	; Check for /? help switch (DS=data, BX=PSP segment)
@@ -256,31 +253,31 @@ Format_Chk_Sl:
 	int	21h
 Format_No_Help:
 	pop	es
-	mov	Fatal_Error,No			;Init the error flag		;AN000;
-	call	Init_Input_Output		;Setup messages and parse	;AN000;
-	cmp	Fatal_Error,Yes 		;Error occur?			;AN000;
-;	$IF	NE				;Nope, keep going		;AN000;
+	mov	Fatal_Error,No			;Init the error flag
+	call	Init_Input_Output		;Setup messages and parse
+	cmp	Fatal_Error,Yes 		;Error occur?
+;	$IF	NE				;Nope, keep going
 	JE $$IF1
-	   call    Validate_Target_Drive	;Check drive letter		;AN000;
-	   cmp	   Fatal_Error,Yes		;Error occur?			;AN000;
-;	   $IF	   NE				;Nope, keep going		;AN000;
+	   call    Validate_Target_Drive	;Check drive letter
+	   cmp	   Fatal_Error,Yes		;Error occur?
+;	   $IF	   NE				;Nope, keep going
 	   JE $$IF2
-	      call    Hook_CNTRL_C		;Set CNTRL -Break hook		;AN000;
-	      cmp     Fatal_Error,Yes		;Error occur?			;AN000;
-;	      $IF     NE			;Nope, keep going		;AN000;
+	      call    Hook_CNTRL_C		;Set CNTRL -Break hook
+	      cmp     Fatal_Error,Yes		;Error occur?
+;	      $IF     NE			;Nope, keep going
 	      JE $$IF3
-		 call	 Main_Routine		;Go do the real program 	;AN000;
-;	      $ENDIF				;				;AN000;
+		 call	 Main_Routine		;Go do the real program
+;	      $ENDIF				;
 $$IF3:
-;	   $ENDIF				;				;AN000;
+;	   $ENDIF				;
 $$IF2:
-;	$ENDIF					;				;AN000;
+;	$ENDIF					;
 $$IF1:
-	mov	al,ExitStatus			;Get Errorlevel 		;AN000;
-	DOS_Call Exit				;Exit program			;AN000;
-	int	20h				;If other exit fails		;AN000;
+	mov	al,ExitStatus			;Get Errorlevel
+	DOS_Call Exit				;Exit program
+	int	20h				;If other exit fails
 
-Main_Init endp					;				;AN000;
+Main_Init endp					;
 
 ;*****************************************************************************
 ;Routine name: Init_Input_Output
@@ -317,44 +314,44 @@ Main_Init endp					;				;AN000;
 ;	ret
 ;*****************************************************************************
 
-Procedure Init_Input_Output			;				;AN000;
+Procedure Init_Input_Output			;
 
-	Set_Data_Segment			;Set DS,ES to Data segment	;AN000;
-	call	Preload_Messages		;Load up message retriever	;AN000;
+	Set_Data_Segment			;Set DS,ES to Data segment
+	call	Preload_Messages		;Load up message retriever
 
-IF FSExec					;/FS: conditional assembly	;an018; dms;
+IF FSExec					;/FS: conditional assembly
 
-	cmp	Fatal_Error,YES 		;Quit?				;AN000;
-;	$IF	NE				;Nope, keep going		;AN000;
+	cmp	Fatal_Error,YES 		;Quit?
+;	$IF	NE				;Nope, keep going
 	JE $$IF7
-	   call    Check_For_FS_Switch		;Specify FS other than FAT?	;AN000;
+	   call    Check_For_FS_Switch		;Specify FS other than FAT?
 
-ENDIF						;/FS: conditional assembly end	;an018;dms;
+ENDIF						;/FS: conditional assembly end
 
-	   cmp	   Fatal_Error,YES		;drive is invalid for format?	;an000;
-;	   $if	   ne				;no				;an000;
+	   cmp	   Fatal_Error,YES		;drive is invalid for format?
+;	   $if	   ne				;no
 	   JE $$IF8
-		   call    Parse_Command_Line ;Parse in command line input	;AN000;
-		   cmp	   Fatal_Error,YES	;Quit?				;AN000;
-;		   $IF	   NE			;Nope, keep going		;AN000;
+		   call    Parse_Command_Line ;Parse in command line input
+		   cmp	   Fatal_Error,YES	;Quit?
+;		   $IF	   NE			;Nope, keep going
 		   JE $$IF9
-			   call    Determine_FAT_Non_FAT;see if drive was non_FAT ;an000;
-			   call    Check_For_Invalid_Drive;Drive joined?	;an000;
-;		   $ENDIF			;				;AN000;
+			   call    Determine_FAT_Non_FAT;see if drive was non_FAT
+			   call    Check_For_Invalid_Drive;Drive joined?
+;		   $ENDIF			;
 $$IF9:
-;	    $ENDIF				;				;AN000;
+;	    $ENDIF				;
 $$IF8:
 
-IF FSExec					;/FS: conditional assembly	;an018; dms;
+IF FSExec					;/FS: conditional assembly
 
-;	$ENDIF					;				;an000;
+;	$ENDIF					;
 $$IF7:
 
-ENDIF						;/FS: conditional assembly end	;an018;dms;
+ENDIF						;/FS: conditional assembly end
 
-	ret					;				;AN000;
+	ret					;
 
-Init_Input_Output endp				;				;AN000;
+Init_Input_Output endp				;
 
 ;*****************************************************************************
 ;Routine name: Preload_Messages
@@ -382,24 +379,24 @@ Init_Input_Output endp				;				;AN000;
 ;	ret
 ;*****************************************************************************
 
-Procedure Preload_Messages			;				;AN000;
+Procedure Preload_Messages			;
 						;
-	Set_Data_Segment			;Set DS,ES to Data segment	;AN000;
-	call	SysLoadMsg			;Preload the messages		;AN000;
-;	$IF	C				;Error? 			;AN000;
+	Set_Data_Segment			;Set DS,ES to Data segment
+	call	SysLoadMsg			;Preload the messages
+;	$IF	C				;Error?
 	JNC $$IF13
-	   call    SysDispMsg			;Display preload msg		;AN000;
-	   mov	   Fatal_Error, YES		;Indicate error exit		;AN000;
-;	$ENDIF					;				;AN000;
+	   call    SysDispMsg			;Display preload msg
+	   mov	   Fatal_Error, YES		;Indicate error exit
+;	$ENDIF					;
 $$IF13:
-	ret					;				;AN000;
+	ret					;
 
-Preload_Messages endp				;				;AN000;
-
-
+Preload_Messages endp				;
 
 
-IF FSExec					;/FS: conditional assembly	;an018; dms;
+
+
+IF FSExec					;/FS: conditional assembly
 
 
 ;*****************************************************************************
@@ -439,60 +436,59 @@ IF FSExec					;/FS: conditional assembly	;an018; dms;
 ;	ret
 ;*****************************************************************************
 
-Procedure Check_For_FS_Switch			;				;AN000;
-						;AN000;
-	Set_Data_Segment			;Set DS,ES to Data segment	;AN000;
-	call	Parse_For_FS_Switch		;See if /FS entered		;AN000;
-	cmp	Fatal_Error,YES 		;Bad stuff entered??		;AN000;
-;	$IF	NE				;Nope, cruise onward		;AN000;
+Procedure Check_For_FS_Switch			;
+	Set_Data_Segment			;Set DS,ES to Data segment
+	call	Parse_For_FS_Switch		;See if /FS entered
+	cmp	Fatal_Error,YES 		;Bad stuff entered??
+;	$IF	NE				;Nope, cruise onward
 	JE $$IF15
-	   cmp	   Switch_String_Buffer.Switch_Pointer,offset Switch_FS_Control.Keyword ; ;AN000;
-;	   $IF	   E				;We got the switch		;AN000;
+	   cmp	   Switch_String_Buffer.Switch_Pointer,offset Switch_FS_Control.Keyword ;
+;	   $IF	   E				;We got the switch
 	   JNE $$IF16
 	      mov     Switch_FS_Control.Keyword,20h ;an000; dms;remove switch from table
-	      test    SwitchMap,Switch_FS	;Have this already?		;AN002;
-;	      $IF     Z 			;Nope				;AN002;
+	      test    SwitchMap,Switch_FS	;Have this already?
+;	      $IF     Z 			;Nope
 	      JNZ $$IF17
-		 push	 ds			;Get addressibility		;AN000;
-		 pop	 es			; "  "	  "  "			;AN000;
+		 push	 ds			;Get addressibility
+		 pop	 es			; "  "	  "  "
 						;
-		 assume  ds:nothing,es:data	;				;AN000;
+		 assume  ds:nothing,es:data	;
 						;
-		 mov	 ax,Switch_String_Buffer.Switch_String_Seg ;Get the entered FS ;AN000;
-		 mov	 ds,ax			;				;AN000;
-		 mov	 si,es:Switch_String_Buffer.Switch_String_Off ; 	       ;AN000;
-		 mov	 cx,FS_String_Max_Length ;				 ;AN000;
-		 mov	 di,offset es:FS_String_Buffer ;			   ;AN000;
-;		 $DO				;Move whatever user entered	;AN000;
+		 mov	 ax,Switch_String_Buffer.Switch_String_Seg ;Get the entered FS
+		 mov	 ds,ax			;
+		 mov	 si,es:Switch_String_Buffer.Switch_String_Off ;
+		 mov	 cx,FS_String_Max_Length ;
+		 mov	 di,offset es:FS_String_Buffer ;
+;		 $DO				;Move whatever user entered
 $$DO18:
-		    cmp     byte ptr [si],ASCIIZ_End ;End of the string?	   ;AN000;
-;		 $LEAVE  E			;Yep				;AN000;
+		    cmp     byte ptr [si],ASCIIZ_End ;End of the string?
+;		 $LEAVE  E			;Yep
 		 JE $$EN18
-		    movsb			;Put character in buffer	;AN000;
+		    movsb			;Put character in buffer
 		    dec     cx			;Dec character counter
-		    cmp     cx,0		;Nope, reached max # chars?	;AN000;
-;		 $ENDDO  E			;Yes				;AN000;
+		    cmp     cx,0		;Nope, reached max # chars?
+;		 $ENDDO  E			;Yes
 		 JNE $$DO18
 $$EN18:
-		 Set_Data_Segment		;Set DS,ES to Data segment	;AN000;
-		 mov	 cx,Len_FS_String_End	;Tack the FMT.EXE onto it	   ;AN000;
-		 mov	 si,offset es:FS_String_End ;DI still points at string	    ;AN000;
-		 rep	 movsb			;We now have Asciiz path!	;AN000;
-		 call	 EXEC_FS_Format 	;Go try to EXEC it..... 	;AN000;
-;	      $ELSE				;				;AN002;
+		 Set_Data_Segment		;Set DS,ES to Data segment
+		 mov	 cx,Len_FS_String_End	;Tack the FMT.EXE onto it
+		 mov	 si,offset es:FS_String_End ;DI still points at string
+		 rep	 movsb			;We now have Asciiz path!
+		 call	 EXEC_FS_Format 	;Go try to EXEC it.....
+;	      $ELSE				;
 	      JMP SHORT $$EN17
 $$IF17:
-		 Message msgSameSwitch		;				;AN002;
-		 mov	 Fatal_Error,Yes	;				;AN002;
-;	      $ENDIF				;				;AN002;
+		 Message msgSameSwitch		;
+		 mov	 Fatal_Error,Yes	;
+;	      $ENDIF				;
 $$EN17:
-;	   $ENDIF				;				;AN000;
+;	   $ENDIF				;
 $$IF16:
-;	$ENDIF					;				;AN000;
+;	$ENDIF					;
 $$IF15:
-	ret					;				;AN000;
+	ret					;
 
-Check_For_FS_Switch endp			;				;AN000;
+Check_For_FS_Switch endp			;
 
 ;*****************************************************************************
 ;Routine name: Parse_For_FS_Switch
@@ -535,49 +531,49 @@ Check_For_FS_Switch endp			;				;AN000;
 ;	ret
 ;*****************************************************************************
 
-Procedure Parse_For_FS_Switch			;				;AN000;
+Procedure Parse_For_FS_Switch			;
 						;
-	Set_Data_Segment			;Set DS,ES to Data segment	;AN000;
-	mov	Drive_Letter_Buffer.Drive_Number,Init ; 			;AN000;
-	mov	cx,PSP_Segment			;Get segment of PSP		;AN000;
-	mov	ds,cx				;  "  "    "  " 		;AN000;
+	Set_Data_Segment			;Set DS,ES to Data segment
+	mov	Drive_Letter_Buffer.Drive_Number,Init ;
+	mov	cx,PSP_Segment			;Get segment of PSP
+	mov	ds,cx				;  "  "    "  "
 	assume	ds:nothing			;
 						;
-	mov	si,Command_Line_Parms		;Point at command line		;AN000;
-	mov	di,offset data:Command_Line_Buffer ;Where to put a copy of it	   ;AN000;
-	mov	cx,Command_Line_Length		;How long was input?		;AN000;
-	repnz	movsb				;Copy it			;AN000;
-	Set_Data_Segment			;Set DS,ES to Data segment	;AN000;
-	xor	cx,cx				;				;AN000;
-	xor	dx,dx				;Required for SysParse call	;AN000;
-	mov	si,offset Command_Line_Buffer	;Pointer to parse line		  ;AN000;
-	mov	di,offset Switch_FS_Table	;Pointer to control table	   ;AN000;
-;	$DO					;Setup parse call		;AN000;
+	mov	si,Command_Line_Parms		;Point at command line
+	mov	di,offset data:Command_Line_Buffer ;Where to put a copy of it
+	mov	cx,Command_Line_Length		;How long was input?
+	repnz	movsb				;Copy it
+	Set_Data_Segment			;Set DS,ES to Data segment
+	xor	cx,cx				;
+	xor	dx,dx				;Required for SysParse call
+	mov	si,offset Command_Line_Buffer	;Pointer to parse line
+	mov	di,offset Switch_FS_Table	;Pointer to control table
+;	$DO					;Setup parse call
 $$DO25:
-	   call    SysParse			;Go parse			;AN000;
-	   cmp	   ax,End_Of_Parse		;Check for end of parse 	;AN000;
-;	$LEAVE	E,OR				;Exit if it is end, or		;AN000;
+	   call    SysParse			;Go parse
+	   cmp	   ax,End_Of_Parse		;Check for end of parse
+;	$LEAVE	E,OR				;Exit if it is end, or
 	JE $$EN25
-	   cmp	   ax,Operand_Missing		; exit if positional missing	;AN000;
-;	$LEAVE	E				;In other words, no drive letter;AN000;
+	   cmp	   ax,Operand_Missing		; exit if positional missing
+;	$LEAVE	E				;In other words, no drive letter
 	JE $$EN25
-	   cmp	   Switch_String_Buffer.Switch_Pointer,offset Switch_FS_Control.Keyword ;AN000;
-;	$ENDDO	E				;Exit if we find /FS		;AN000;
+	   cmp	   Switch_String_Buffer.Switch_Pointer,offset Switch_FS_Control.Keyword
+;	$ENDDO	E				;Exit if we find /FS
 	JNE $$DO25
 $$EN25:
-	cmp	Drive_Letter_Buffer.Drive_Type,Type_Drive ;Check for drive letter found;AN000;
-;	$IF	NE				;Did we not find one?		;AN000;
+	cmp	Drive_Letter_Buffer.Drive_Type,Type_Drive ;Check for drive letter found
+;	$IF	NE				;Did we not find one?
 	JE $$IF28
-	   MESSAGE msgNeedDrive 		;Must enter drive letter	;AN000;
-	   mov	   Fatal_Error,Yes		;Indicate error on exit 	;AN000;
-;	$ENDIF					;				;AN000;
+	   MESSAGE msgNeedDrive 		;Must enter drive letter
+	   mov	   Fatal_Error,Yes		;Indicate error on exit
+;	$ENDIF					;
 $$IF28:
-	ret					;				;AN000;
+	ret					;
 
-Parse_For_FS_Switch endp			;				;AN000;
+Parse_For_FS_Switch endp			;
 
 
-ENDIF						;/FS: conditional assembly end	;an018;dms;
+ENDIF						;/FS: conditional assembly end
 
 
 ;*****************************************************************************
@@ -621,40 +617,40 @@ ENDIF						;/FS: conditional assembly end	;an018;dms;
 ;	ret
 ;*****************************************************************************
 
-Procedure Parse_Command_Line			;				;AN000;
+Procedure Parse_Command_Line			;
 
-	Set_Data_Segment			;Set DS,ES to Data segment	;AN000;
+	Set_Data_Segment			;Set DS,ES to Data segment
 	push	ds
-	mov	cx,PSP_Segment			;Get segment of PSP		;AN000;
-	mov	ds,cx				;  "  "    "  " 		;AN000;
+	mov	cx,PSP_Segment			;Get segment of PSP
+	mov	ds,cx				;  "  "    "  "
 
 	assume	ds:nothing,es:data
 
-	xor	cx,cx				;Parse table @DI		;AN000;
-	xor	dx,dx				;Parse line @SI 		;AN000;
-	mov	si,Command_Line_Parms		;Pointer to parse line		;AN000;
+	xor	cx,cx				;Parse table @DI
+	xor	dx,dx				;Parse line @SI
+	mov	si,Command_Line_Parms		;Pointer to parse line
 	mov	word ptr es:Command_Old_Ptr,si
-	mov	di,offset es:Command_Line_Table ;Pointer to control table	;AN000;
-;	$SEARCH 				;Loop until all parsed		;AN000;
+	mov	di,offset es:Command_Line_Table ;Pointer to control table
+;	$SEARCH 				;Loop until all parsed
 $$DO30:
-	   cmp	   es:Fatal_Error,Yes		;Interpret something bad?	;AN000;
-;	$EXITIF E,OR				;If so, don't parse any more    ;AN000;
+	   cmp	   es:Fatal_Error,Yes		;Interpret something bad?
+;	$EXITIF E,OR				;If so, don't parse any more
 	JE $$LL31
-	   call    SysParse			;Go parse			;AN000;
-	   cmp	   ax,End_Of_Parse		;Check for end of parse 	;AN000;
-;	$EXITIF E				;Is it? 			;AN000;
+	   call    SysParse			;Go parse
+	   cmp	   ax,End_Of_Parse		;Check for end of parse
+;	$EXITIF E				;Is it?
 	JNE $$IF30
 $$LL31:
-						;All done			;AN000;
-;	$ORELSE 				;Not end			;AN000;
+						;All done
+;	$ORELSE 				;Not end
 	JMP SHORT $$SR30
 $$IF30:
-	   cmp	   ax,0 			;Check for parse error		;AN000;
-;	$LEAVE	NE				;Stop if there was one		;AN000;
+	   cmp	   ax,0 			;Check for parse error
+;	$LEAVE	NE				;Stop if there was one
 	JNE $$EN30
 	   mov	word ptr es:Command_Old_Ptr,si
-	   call    Interpret_Parse		;Go find what we parsed 	;AN000;
-;	$ENDLOOP				;Parse error, see what it was	;AN000;
+	   call    Interpret_Parse		;Go find what we parsed
+;	$ENDLOOP				;Parse error, see what it was
 	JMP SHORT $$DO30
 $$EN30:
 	   mov	byte ptr ds:[si],0
@@ -666,14 +662,14 @@ $$EN30:
 	   mov	word ptr es:[di+4],ds
 	   pop	ax
 	   pop	di
-	   PARSE_MESSAGE			;Display parse error		;AN000;
-	   mov	   es:Fatal_Error,YES		;Indicate death!		;AN000;
-;	$ENDSRCH				;				;AN000;
+	   PARSE_MESSAGE			;Display parse error
+	   mov	   es:Fatal_Error,YES		;Indicate death!
+;	$ENDSRCH				;
 $$SR30:
-	pop	ds				;				;AN000;
-	ret					;				;AN000;
+	pop	ds				;
+	ret					;
 
-Parse_Command_Line endp 			;				;AN000;
+Parse_Command_Line endp 			;
 
 ;*****************************************************************************
 ;Routine name: Interpret_Parse
@@ -759,50 +755,50 @@ Parse_Command_Line endp 			;				;AN000;
 ;	ret
 ;*****************************************************************************
 
-Procedure Interpret_Parse			;				;AN000;
+Procedure Interpret_Parse			;
 
-	push	ds				;Save segment			;AN000;
-	push	si				;Restore SI for parser		;AN000;
-	push	cx				;				;AN000;
+	push	ds				;Save segment
+	push	si				;Restore SI for parser
+	push	cx				;
 	push	di				;
-	Set_Data_Segment			;Set DS,ES to Data segment	;AN000;
-	cmp	byte ptr Drive_Letter_Buffer.Drive_Type,Type_Drive ;Have drive letter?	 ;AN000;
-;	$IF	E				;Yes, save info 		;AN000;
+	Set_Data_Segment			;Set DS,ES to Data segment
+	cmp	byte ptr Drive_Letter_Buffer.Drive_Type,Type_Drive ;Have drive letter?
+;	$IF	E				;Yes, save info
 	JNE $$IF36
-	   mov	   al,Drive_Letter_Buffer.Drive_Number ;Get drive entered	   ;AN000;
-	   dec	   al				;Make it 0 based		;AN000;
-	   mov	   Drive,al			; "  "	  "  "			;AN000;
-	   add	   al,'A'			;Make it a drive letter 	;AN000;
-	   mov	   DriveLetter,al		;Save it			;AN000;
-;	$ENDIF					;				;AN000;
+	   mov	   al,Drive_Letter_Buffer.Drive_Number ;Get drive entered
+	   dec	   al				;Make it 0 based
+	   mov	   Drive,al			; "  "	  "  "
+	   add	   al,'A'			;Make it a drive letter
+	   mov	   DriveLetter,al		;Save it
+;	$ENDIF					;
 $$IF36:
-	cmp	Switch_Buffer.Switch_Pointer,offset Switch_1_Control.Keyword ;;AN000;
-;	$IF	E				;				;AN000;
+	cmp	Switch_Buffer.Switch_Pointer,offset Switch_1_Control.Keyword ;
+;	$IF	E				;
 	JNE $$IF38
 	   mov	   Switch_1_Control.Keyword,20h ;an000; dms;remove switch from table
-	   or	   SwitchMap,Switch_1		;				;AN000;
-;	$ENDIF					;				;AN000;
+	   or	   SwitchMap,Switch_1		;
+;	$ENDIF					;
 $$IF38:
-	cmp	Switch_Buffer.Switch_Pointer,offset Switch_4_Control.Keyword ;;AN000;
-;	$IF	E				;				;AN000;
+	cmp	Switch_Buffer.Switch_Pointer,offset Switch_4_Control.Keyword ;
+;	$IF	E				;
 	JNE $$IF40
 	   mov	   Switch_4_Control.Keyword,20h ;an000; dms;remove switch from table
-	   or	   SwitchMap,Switch_4		;				;AN000;
-;	$ENDIF					;				;AN000;
+	   or	   SwitchMap,Switch_4		;
+;	$ENDIF					;
 $$IF40:
-	cmp	Switch_Buffer.Switch_Pointer,offset Switch_8_Control.Keyword ;;AN000;
-;	$IF	E				;				;AN000;
+	cmp	Switch_Buffer.Switch_Pointer,offset Switch_8_Control.Keyword ;
+;	$IF	E				;
 	JNE $$IF42
 	   mov	   Switch_8_Control.Keyword,20h ;an000; dms;remove switch from table
-	   or	   SwitchMap,Switch_8		;				;AN000;
-;	$ENDIF					;				;AN000;
+	   or	   SwitchMap,Switch_8		;
+;	$ENDIF					;
 $$IF42:
-	cmp	Switch_Buffer.Switch_Pointer,offset Switch_S_Control.Keyword ;;AN000;
-;	$IF	E				;				;AN000;
+	cmp	Switch_Buffer.Switch_Pointer,offset Switch_S_Control.Keyword ;
+;	$IF	E				;
 	JNE $$IF44
 	   mov	   Switch_S_Control.Keyword,20h ;an000; dms;remove switch from table
-	   or	   SwitchMap,Switch_S		;				;AN000;
-;	$ENDIF					;				;AN000;
+	   or	   SwitchMap,Switch_S		;
+;	$ENDIF					;
 $$IF44:
 	cmp	Switch_Buffer.Switch_Pointer,offset Switch_Q_Control.Keyword
 	jne	Format_Not_Q
@@ -819,119 +815,119 @@ Format_Not_U:
 	mov	Switch_C_Control.Keyword,20h
 	or	SwitchMap,Switch_C
 Format_Not_C:
-	cmp	Switch_Buffer.Switch_Pointer,offset Switch_Backup_Control.Keyword ;AN000;
-;	$IF	E				;				;AN000;
+	cmp	Switch_Buffer.Switch_Pointer,offset Switch_Backup_Control.Keyword
+;	$IF	E				;
 	JNE $$IF46
 	   mov	   Switch_Backup_Control.Keyword,20h ;an000; dms;remove switch from table
-	   or	   SwitchMap,Switch_Backup	;				;AN000;
-;	$ENDIF					;				;AN000;
+	   or	   SwitchMap,Switch_Backup	;
+;	$ENDIF					;
 $$IF46:
-	cmp	Switch_Buffer.Switch_Pointer,offset Switch_Select_Control.Keyword ;AN000;
-;	$IF	E				;				;AN000;
+	cmp	Switch_Buffer.Switch_Pointer,offset Switch_Select_Control.Keyword
+;	$IF	E				;
 	JNE $$IF48
 	   mov	   Switch_Select_Control.Keyword,20h ;an000; dms;remove switch from table
-	   or	   SwitchMap,Switch_Select	;				;AN000;
-;	$ENDIF					;				;AN000;
+	   or	   SwitchMap,Switch_Select	;
+;	$ENDIF					;
 $$IF48:
-	cmp	Switch_Buffer.Switch_Pointer,offset Switch_B_Control.Keyword ;AN000;
-;	$IF	E				;				;AN000;
+	cmp	Switch_Buffer.Switch_Pointer,offset Switch_B_Control.Keyword
+;	$IF	E				;
 	JNE $$IF50
 	   mov	   Switch_B_Control.Keyword,20H
-	   or	   SwitchMap,Switch_B		;				;AN000;
-;	$ENDIF					;				;AN000;
+	   or	   SwitchMap,Switch_B		;
+;	$ENDIF					;
 $$IF50:
-	cmp	Switch_Num_Buffer.Switch_Num_Pointer,offset es:Switch_T_Control.Keyword ;AN000;
-;	$IF	E				;				;AN000;
+	cmp	Switch_Num_Buffer.Switch_Num_Pointer,offset es:Switch_T_Control.Keyword
+;	$IF	E				;
 	JNE $$IF52
 	   mov	   Switch_T_Control.Keyword,20h ;an000; dms;remove switch from table
-	   mov	   Switch_Num_Buffer.Switch_Num_Pointer,0 ;Init for next switch ;AN008;
-	   test    SwitchMap,Switch_T		;Don't allow if switch already  ;AN002;
-;	   $IF	   Z				; entered			;AN002;
+	   mov	   Switch_Num_Buffer.Switch_Num_Pointer,0 ;Init for next switch
+	   test    SwitchMap,Switch_T		;Don't allow if switch already
+;	   $IF	   Z				; entered
 	   JNZ $$IF53
-	      or      SwitchMap,Switch_T	;				;AN000;
-	      mov     ax,Switch_Num_Buffer.Switch_Number_Low ;Get entered tracks   ;AN000;
-	      mov     TrackCnt,ax		;1024 or less, so always dw	;AN000;
-;	   $ELSE				;				;AN002;
+	      or      SwitchMap,Switch_T	;
+	      mov     ax,Switch_Num_Buffer.Switch_Number_Low ;Get entered tracks
+	      mov     TrackCnt,ax		;1024 or less, so always dw
+;	   $ELSE				;
 	   JMP SHORT $$EN53
 $$IF53:
-	      Message msgSameSwitch		;				;AN002;
-	      mov     Fatal_Error,Yes		;				;AN002;
-;	   $ENDIF				;				;AN000;
+	      Message msgSameSwitch		;
+	      mov     Fatal_Error,Yes		;
+;	   $ENDIF				;
 $$EN53:
-;	$ENDIF					;				;AN002;
+;	$ENDIF					;
 $$IF52:
-	cmp	Switch_Num_Buffer.Switch_Num_Pointer,offset Switch_N_Control.Keyword ;AN000;
-;	$IF	E				;				;AN000;
+	cmp	Switch_Num_Buffer.Switch_Num_Pointer,offset Switch_N_Control.Keyword
+;	$IF	E				;
 	JNE $$IF57
 	   mov	   Switch_N_Control.Keyword,20h ;an000; dms;remove switch from table
-	   mov	   Switch_Num_Buffer.Switch_Num_Pointer,0 ;Init for next switch ;AN008;
-	   test    SwitchMap,Switch_N		;Make sure switch not already	;AN002;
-;	   $IF	   Z				; entered			;AN002;
+	   mov	   Switch_Num_Buffer.Switch_Num_Pointer,0 ;Init for next switch
+	   test    SwitchMap,Switch_N		;Make sure switch not already
+;	   $IF	   Z				; entered
 	   JNZ $$IF58
-	      or      SwitchMap,Switch_N	;				;AN000;
-	      mov     ax,Switch_Num_Buffer.Switch_Number_Low ;Get entered tracks   ;AN000;
-	      xor     ah,ah			;clear high byte		;an000;
-	      mov     NumSectors,ax		;Save tracks per sector 	;AN000;
-;	   $ELSE				;				;AN002;
+	      or      SwitchMap,Switch_N	;
+	      mov     ax,Switch_Num_Buffer.Switch_Number_Low ;Get entered tracks
+	      xor     ah,ah			;clear high byte
+	      mov     NumSectors,ax		;Save tracks per sector
+;	   $ELSE				;
 	   JMP SHORT $$EN58
 $$IF58:
-	      Message msgSameSwitch		;				;AN002;
-	      mov     Fatal_Error,Yes		;				;AN002;
-;	   $ENDIF				;				;AN000;
+	      Message msgSameSwitch		;
+	      mov     Fatal_Error,Yes		;
+;	   $ENDIF				;
 $$EN58:
-;	$ENDIF					;				;AN002;
+;	$ENDIF					;
 $$IF57:
-	cmp	Switch_String_Buffer.Switch_String_Pointer,offset Switch_V_Control.Keyword ;AN000;
-;	$IF	E				;If /v and haven't already done ;AN000;
+	cmp	Switch_String_Buffer.Switch_String_Pointer,offset Switch_V_Control.Keyword
+;	$IF	E				;If /v and haven't already done
 	JNE $$IF62
-	   mov	   Switch_String_Buffer.Switch_String_Pointer,0 ;Init for next switch ;AN008;
+	   mov	   Switch_String_Buffer.Switch_String_Pointer,0 ;Init for next switch
 	   mov	   Switch_V_Control.Keyword,20h ;an000; dms;remove switch from table
-	   test    SwitchMap,Switch_V		; it - Only allow one /V entry	;AN002;
-;	   $IF	   Z				;				;AN002;
+	   test    SwitchMap,Switch_V		; it - Only allow one /V entry
+;	   $IF	   Z				;
 	   JNZ $$IF63
-	      or      SwitchMap,Switch_V	;Set /v indicator		;AN000;
-	      mov     si,Switch_String_Buffer.Switch_String_Seg ;Get string address ;;AN000;
-	      mov     ds,si			;				;AN000;
+	      or      SwitchMap,Switch_V	;Set /v indicator
+	      mov     si,Switch_String_Buffer.Switch_String_Seg ;Get string address ;
+	      mov     ds,si			;
 
 	      assume  ds:nothing
 
-	      mov     si,es:Switch_String_Buffer.Switch_String_Off ;		   ;AN000;
-	      cmp     byte ptr ds:[si],None	;Is there a string there?	;AN000;
-;	      $IF     NE			;Yep				;AN000;
+	      mov     si,es:Switch_String_Buffer.Switch_String_Off ;
+	      cmp     byte ptr ds:[si],None	;Is there a string there?
+;	      $IF     NE			;Yep
 	      JE $$IF64
-		 cld				;				;AN000;
-		 mov	 di,offset es:Vol_Label_Buffer ;Point at buffer to move string;AN000;
-		 mov	 cx,Label_Length+1	;Max length of string		;AN000;
-		 rep	 movsb			;This will copy string & always ;AN000;
+		 cld				;
+		 mov	 di,offset es:Vol_Label_Buffer ;Point at buffer to move string
+		 mov	 cx,Label_Length+1	;Max length of string
+		 rep	 movsb			;This will copy string & always
 						; leave ASCIIZ end in buffer,	;     ;
 						; which is init'd to 13 dup(0)  ;     ;
-		 mov	 si,offset es:Vol_Label_Buffer ;Point at string 	   ;AN000;
-		 Set_Data_Segment		;Set DS,ES to Data segment	;AN000;
-		 mov	 Command_Line,YES	;Set flag indicating vol label	;AN000;
-		 call	 Get_11_Characters	;Check DBCS and build FCB	;AN000;
-;		 $IF	 C			;Bad DBCS setup 		;AN000;
+		 mov	 si,offset es:Vol_Label_Buffer ;Point at string
+		 Set_Data_Segment		;Set DS,ES to Data segment
+		 mov	 Command_Line,YES	;Set flag indicating vol label
+		 call	 Get_11_Characters	;Check DBCS and build FCB
+;		 $IF	 C			;Bad DBCS setup
 		 JNC $$IF65
-		    Message msgBadVolumeID	;Tell user			;AN000;
-		    mov     es:Fatal_Error,YES	;Indicate time to quit		;AN000;
-;		 $ENDIF 			;				;AN000;
+		    Message msgBadVolumeID	;Tell user
+		    mov     es:Fatal_Error,YES	;Indicate time to quit
+;		 $ENDIF 			;
 $$IF65:
-;	      $ENDIF				;				;AN000;
+;	      $ENDIF				;
 $$IF64:
-;	   $ELSE				;				;AN002;
+;	   $ELSE				;
 	   JMP SHORT $$EN63
 $$IF63:
-	      Message msgSameSwitch		;				;AN002;
-	      mov     Fatal_Error,Yes		;				;AN002;
-;	   $ENDIF				;				;AN002;
+	      Message msgSameSwitch		;
+	      mov     Fatal_Error,Yes		;
+;	   $ENDIF				;
 $$EN63:
-;	$ENDIF					;				;AN000;
+;	$ENDIF					;
 $$IF62:
-	cmp	Switch_Buffer.Switch_Pointer,offset Switch_Autotest_Control.Keyword ;AN000;
-;	$IF	E				;				;AN000;
+	cmp	Switch_Buffer.Switch_Pointer,offset Switch_Autotest_Control.Keyword
+;	$IF	E				;
 	JNE $$IF71
 	   mov	   Switch_Autotest_Control.Keyword,20h ;an000; dms;remove switch from table
-	   or	   SwitchMap,Switch_Autotest	;				;AN000;
-;	$ENDIF					;				;AN000;
+	   or	   SwitchMap,Switch_Autotest	;
+;	$ENDIF					;
 $$IF71:
 
 IF ShipDisk
@@ -941,39 +937,39 @@ IF ShipDisk
 	JNE $$IF73
 	   mov	   Switch_Z_Control.Keyword,20h 				;an000; dms;remove switch from table
 	   or	   SwitchMap,Switch_Z		;				;an000; dms;signal switch found
-;	$ENDIF					;				;an000; dms;
+;	$ENDIF					;
 $$IF73:
 
 ENDIF
 
-	cmp	Switch_String_Buffer.Switch_Pointer,offset Switch_F_Control.Keyword ;  ;AN000;
-;	$IF	E				;				;AN000;
+	cmp	Switch_String_Buffer.Switch_Pointer,offset Switch_F_Control.Keyword ;
+;	$IF	E				;
 	JNE $$IF75
 	   mov	   Switch_F_Control.Keyword,20h ;an000; dms;remove switch from table
 	   mov	   Switch_String_Buffer.Switch_Pointer,0			;an000; dms; clear out ptr for next iteration
-	   mov	   Switch_Num_Buffer.Switch_Num_Pointer,0 ;Init for next switch ;AN008;
-	   test    SwitchMap,Switch_F		; it - do this because SysParse ;AN002;
-;	   $IF	   Z				; reuses string buffer each time;AN002;
+	   mov	   Switch_Num_Buffer.Switch_Num_Pointer,0 ;Init for next switch
+	   test    SwitchMap,Switch_F		; it - do this because SysParse
+;	   $IF	   Z				; reuses string buffer each time
 	   JNZ $$IF76
-	      or      SwitchMap,Switch_F	;				;AN000;
-	      mov     al,Switch_String_Buffer.Switch_String_Item_Tag ; Indicate what size;AN000;
-	      or      SizeMap,al		;				;AN000;
-;	   $ELSE				;				;AN002;
+	      or      SwitchMap,Switch_F	;
+	      mov     al,Switch_String_Buffer.Switch_String_Item_Tag ; Indicate what size
+	      or      SizeMap,al		;
+;	   $ELSE				;
 	   JMP SHORT $$EN76
 $$IF76:
-	      Message msgSameSwitch		;				;AN002;
-	      mov     Fatal_Error,Yes		;				;AN002;
-;	   $ENDIF				;				;AN002;
+	      Message msgSameSwitch		;
+	      mov     Fatal_Error,Yes		;
+;	   $ENDIF				;
 $$EN76:
-;	$ENDIF					;				;AN000;
+;	$ENDIF					;
 $$IF75:
-	pop	di				;Restore parse regs		;AN000;
-	pop	cx				;				;AN000;
-	pop	si				;				;AN000;
-	pop	ds				;				;AN000;
-	ret					;				;AN000;
+	pop	di				;Restore parse regs
+	pop	cx				;
+	pop	si				;
+	pop	ds				;
+	ret					;
 
-Interpret_Parse endp				;				;AN000;
+Interpret_Parse endp				;
 
 
 
@@ -1008,24 +1004,24 @@ Interpret_Parse endp				;				;AN000;
 ;	ret
 ;*****************************************************************************
 
-Procedure Validate_Target_Drive 		;				;AN000;
+Procedure Validate_Target_Drive 		;
 						;
-	call	Check_Target_Drive		;See if valid drive letter	;AN000;
-	cmp	Fatal_Error,YES 		;Can we continue?		;AN000;
-;	$IF	NE				;Yep				;AN000;
+	call	Check_Target_Drive		;See if valid drive letter
+	cmp	Fatal_Error,YES 		;Can we continue?
+;	$IF	NE				;Yep
 	JE $$IF80
-	   call    Check_For_Network		;See if Network drive letter	;AN000;
-	   cmp	   Fatal_Error,YES		;Can we continue?		;AN000;
-;	   $IF	   NE				;Yep				;AN000;
+	   call    Check_For_Network		;See if Network drive letter
+	   cmp	   Fatal_Error,YES		;Can we continue?
+;	   $IF	   NE				;Yep
 	   JE $$IF81
-	      call    Check_Translate_Drive	;See if Subst, Assigned 	;AN000;
-;	   $ENDIF				;- Fatal_Error passed back	;AN000;
+	      call    Check_Translate_Drive	;See if Subst, Assigned
+;	   $ENDIF				;- Fatal_Error passed back
 $$IF81:
-;	$ENDIF					;				;AN000;
+;	$ENDIF					;
 $$IF80:
-	ret					;				;AN000;
+	ret					;
 
-Validate_Target_Drive endp			;				;AN000;
+Validate_Target_Drive endp			;
 
 ;*****************************************************************************
 ;Routine name: Check_Target_Drive
@@ -1060,26 +1056,26 @@ Validate_Target_Drive endp			;				;AN000;
 ;	ret
 ;*****************************************************************************
 
-Procedure Check_Target_Drive			;				;AN000;
+Procedure Check_Target_Drive			;
 						;
-	DOS_Call Get_Default_Drive		;Find the current drive 	;AC000;
+	DOS_Call Get_Default_Drive		;Find the current drive
 	add	al,'A'				;Convert to drive letter	;     ;
 	mov	BIOSFile,al			;Put it into path strings	;     ;
 	mov	DOSFile,al			;   "  "	"  "		;     ;
 	mov	CommandFile,al			;   "  "	"  "		;     ;
-	mov	bl,Drive			;Set up for next call		;AN000;
-	inc	bl				;A=1,B=2 for IOCtl call 	;AN000;
-	mov	al,09h				;See if drive is local		;AC000;
-	DOS_Call IOCtl				;-this will fail if bad drive	;AC000;
-;	$IF	C				;CY means invalid drive 	;AC000;
+	mov	bl,Drive			;Set up for next call
+	inc	bl				;A=1,B=2 for IOCtl call
+	mov	al,09h				;See if drive is local
+	DOS_Call IOCtl				;-this will fail if bad drive
+;	$IF	C				;CY means invalid drive
 	JNC $$IF84
-	   Extended_Message			;Print message			;AC000;
-	   mov	   Fatal_Error,Yes		;Indicate error 		;AN000;
-;	$ENDIF					;				;AN000;
+	   Extended_Message			;Print message
+	   mov	   Fatal_Error,Yes		;Indicate error
+;	$ENDIF					;
 $$IF84:
-	ret					;And we're outa here            ;AN000;
+	ret					;And we're outa here
 
-Check_Target_Drive endp 			;				;AN000;
+Check_Target_Drive endp 			;
 
 ;*****************************************************************************
 ;Routine name: Check_For_Network
@@ -1115,32 +1111,32 @@ Check_Target_Drive endp 			;				;AN000;
 ;	ret
 ;*****************************************************************************
 
-Procedure Check_For_Network			;				;AN000;
+Procedure Check_For_Network			;
 						;
 	mov	bl,Drive			;Drive is 0=A, 1=B		;     ;
 	inc	bl				;Get 1=A, 2=B for IOCtl call	;     ;
-	mov	al,09h				;See if drive is local or remote;AC000;
-	DOS_CALL IOCtl				;We will not check for error	;AC000;
+	mov	al,09h				;See if drive is local or remote
+	DOS_CALL IOCtl				;We will not check for error
 	test	dx,Net_Check			;if (x & 1200H)(redir or shared);     ;
-;	$IF	NZ				;Found a net drive		;AC000;
+;	$IF	NZ				;Found a net drive
 	JZ $$IF86
-	   Message MsgNetDrive			;Tell 'em                       ;AC000;
-	   mov	   Fatal_Error,Yes		;Indicate bad stuff		;AN000;
-;	$ELSE					;Local drive, now check assign	;AN000;
+	   Message MsgNetDrive			;Tell 'em
+	   mov	   Fatal_Error,Yes		;Indicate bad stuff
+;	$ELSE					;Local drive, now check assign
 	JMP SHORT $$EN86
 $$IF86:
 	   test    dx,Assign_Check		;8000h bit is bad news		;     ;
-;	   $IF	   NZ				;Found it			;AC000;
+;	   $IF	   NZ				;Found it
 	   JZ $$IF88
-	      Message MsgAssignedDrive		;Tell error			;AC000;
-	      mov     Fatal_Error,Yes		;Indicate bad stuff		;AN000;
-;	   $ENDIF				;				;AN000;
+	      Message MsgAssignedDrive		;Tell error
+	      mov     Fatal_Error,Yes		;Indicate bad stuff
+;	   $ENDIF				;
 $$IF88:
-;	$ENDIF					;				;AN000;
+;	$ENDIF					;
 $$EN86:
-	ret					;				;AN000;
+	ret					;
 
-Check_For_Network endp				;				;AN000;
+Check_For_Network endp				;
 
 ;*****************************************************************************
 ;Routine name: Check_Translate_Drive
@@ -1169,7 +1165,7 @@ Check_For_Network endp				;				;AN000;
 ;	ret
 ;*****************************************************************************
 
-Procedure Check_Translate_Drive 		;				;AN000;
+Procedure Check_Translate_Drive 		;
 						;
 	mov	bl,Drive			;Get drive			;     ;
 	add	byte ptr [TranSrc],bl		;Make string "d:\"		;     ;
@@ -1177,18 +1173,18 @@ Procedure Check_Translate_Drive 		;				;AN000;
 	push	ds				;Set ES=DS (Data segment)	;     ;
 	pop	es				;     "  "	"  "		;     ;
 	mov	di,offset Command_Line_Buffer	;Point at output buffer 	;     ;
-	DOS_Call xNameTrans			;Get real path			;AC000;
+	DOS_Call xNameTrans			;Get real path
 	mov	bl,byte ptr [TranSrc]		;Get drive letter from path	;     ;
 	cmp	bl,byte ptr Command_Line_Buffer ;Did drive letter change?	;     ;
-;	$IF	NE				;If not the same, it be bad	;AC000;
+;	$IF	NE				;If not the same, it be bad
 	JE $$IF91
-	   Message MsgAssignedDrive		;Tell user			;AC000;
-	   mov	   Fatal_Error,Yes		;Setup error flag		;AN000;
-;	$ENDIF					;				;AN000;
+	   Message MsgAssignedDrive		;Tell user
+	   mov	   Fatal_Error,Yes		;Setup error flag
+;	$ENDIF					;
 $$IF91:
-	ret					;				;AN000;
+	ret					;
 
-Check_Translate_Drive endp			;				;AN000;
+Check_Translate_Drive endp			;
 
 ;*****************************************************************************
 ;Routine name: Hook_CNTRL_C
@@ -1213,18 +1209,18 @@ Check_Translate_Drive endp			;				;AN000;
 ;	ret
 ;*****************************************************************************
 
-Procedure Hook_CNTRL_C				;				;AN000;
+Procedure Hook_CNTRL_C				;
 						;
 	mov	al,23H				;Specify CNTRL handler		;     ;
 	mov	dx, offset ControlC_Handler	;Point at it			;     ;
 	push	ds				;Save data seg			;     ;
 	push	cs				;Point to code segment		;     ;
 	pop	ds				;				;     ;
-	DOS_Call Set_Interrupt_Vector		;Set the INT 23h handler	;AC000;
+	DOS_Call Set_Interrupt_Vector		;Set the INT 23h handler
 	pop	ds				;Get Data degment back		;     ;
-	ret					;				;AN000;
+	ret					;
 
-Hook_CNTRL_C endp				;				;AN000;
+Hook_CNTRL_C endp				;
 
 ;=========================================================================
 ; Check_For_Invalid_Drive	: This routine checks the AX received by
@@ -1237,7 +1233,7 @@ Hook_CNTRL_C endp				;				;AN000;
 ;	Outputs : Fatal_Error	- Yes if AL contained FFh
 ;=========================================================================
 
-Procedure Check_For_Invalid_Drive		;an000; dms;
+Procedure Check_For_Invalid_Drive
 
 	push	ax				;an000; dms;save ax
 	cmp	FAT_Flag,Yes			;an000; dms;FAT system?
@@ -1250,14 +1246,14 @@ Procedure Check_For_Invalid_Drive		;an000; dms;
 			mov	Fatal_Error,YES ;an000; dms;flag an error
 			mov	ax,Invalid_Drive;an000; dms;error message
 			Extended_Message	;an000; dms;tell error
-;		$endif				;an000; dms;
+;		$endif
 $$IF94:
-;	$endif					;an000; dms;
+;	$endif
 $$IF93:
-	pop	ax				;an000; dms;
-	ret					;an000; dms;
+	pop	ax
+	ret
 
-Check_For_Invalid_Drive endp			;an000; dms;
+Check_For_Invalid_Drive endp
 
 
 ;=========================================================================
@@ -1273,10 +1269,10 @@ Check_For_Invalid_Drive endp			;an000; dms;
 ;	Date	: 11/6/87
 ;=========================================================================
 
-Procedure Determine_FAT_Non_FAT 						;an012; dms;
+Procedure Determine_FAT_Non_FAT
 
 	push	ax								;an012; dms;save regs
-	push	dx								;an012; dms;
+	push	dx
 
 	lea	dx, deviceParameters						;an012; dms;point to buffer
 	mov	deviceParameters.DP_SpecialFunctions, 0 			;an012; dms;get default BPB
@@ -1294,17 +1290,17 @@ Procedure Determine_FAT_Non_FAT 						;an012; dms;
 		JMP SHORT $$EN98
 $$IF98:
 			mov	FAT_Flag,Yes					;an012; dms;flag FAT system
-;		$endif								;an012; dms;
+;		$endif
 $$EN98:
-;	$endif									;an012; dms;
+;	$endif
 $$IF97:
 
 	pop	dx								;an012; dms;restore regs
-	pop	ax								;an012; dms;
+	pop	ax
 
-	ret									;an012; dms;
+	ret
 
-Determine_FAT_Non_FAT	endp							;an012; dms;
+Determine_FAT_Non_FAT	endp
 
 
 

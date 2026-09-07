@@ -11,30 +11,8 @@ page	58,132
 ;
 ;   Module:   TABDEF.ASM - 386 Protected Mode CPU Tables
 ;
-;   Version:  0.04
-;
-;   Date:     January 31, 1986
-;
-;   Author:
-;
 ;******************************************************************************
 ;
-;   Change log:
-;
-;     DATE    REVISION			DESCRIPTION
-;   --------  --------	-------------------------------------------------------
-;   01/31/86		Tables for Standalone protected mode system
-;	      A-	Modified for Virtual DOS
-;   05/12/86  B-	Cleanup and segment reorganization
-;   06/28/86  0.02	Name changed from MEMM386 to MEMM
-;   07/05/86  0.04	Moved KBD and PRINT to DCODE segment
-;   07/20/88		Remove debugger codes (pc)
-;
-;******************************************************************************
-;
-;   Functional Description:
-;
-;******************************************************************************
 .lfcond 				; list false conditionals
 .386p
 

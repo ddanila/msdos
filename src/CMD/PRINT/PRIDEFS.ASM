@@ -1,4 +1,3 @@
-;	SCCSID = @(#)pridefs.asm	4.4 85/07/17
 title	DOS Print Utility
 
 ;MS-DOS PSPRINT/PRINT program for background printing of text files

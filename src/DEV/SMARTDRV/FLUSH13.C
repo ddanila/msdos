@@ -156,20 +156,6 @@
  *			to writes as well. /c has NO EFFECT on this
  *			behavior however. /c only effects read operations.
  *
- * MODIFICATION HISTORY
- *
- *	 1.10	 5/26/86 ARR First version in assembler
- *	 1.20	 5/27/86 ARR Lock cache function added.
- *	 1.22	 5/30/86 ARR /r reboot flush code added
- *	 1.23	 6/03/86 ARR Cache statistics added
- *	 1.24	 6/05/86 ARR Added /a "all cache" code
- *	 1.25	 6/10/86 ARR Added total used, total locked to status
- *			     RECODED in 'C'.
- *			     /f switch added.
- *	 1.26	 6/12/86 ARR /wb changed to /wc. Some status report wording
- *			     changed. This was to align the behavior with the
- *			     documentation a little better.
- *	 1.27	 1/22/87 ARR Change to format of status information.
  */
 
 #include <stdio.h>

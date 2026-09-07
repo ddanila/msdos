@@ -1,4 +1,3 @@
-;	SCCSID = @(#)buf.asm	1.1 85/04/09
 TITLE	BUF - MSDOS buffer management
 NAME	BUF
 ; Low level routines for buffer cache management
@@ -18,23 +17,6 @@ NAME	BUF
 ;   BufWrite
 ;   SKIPVISIT
 ;   SET_RQ_SC_PARMS
-;
-;   Revision history:
-;
-;	AN000  version 4.00  Jan. 1988
-;	A004   PTM 3765 -- Disk reset failed
-
-;	NEW PROCS FOR BUFFERS FIX:
-
-;		SAVE_USER_MAP
-;		RESTORE_USER_MAP
-;		DETECT_COLLISION
-;		SETUP_EMS_BUFFERS
-;
-
-
-;
-; get the appropriate segment definitions
 ;
 .xlist
 INCLUDE dosseg.asm
@@ -58,22 +40,22 @@ Installed = TRUE
 	i_need	WPErr,BYTE
 	i_need	ALLOWED,BYTE
 	i_need	FAILERR,BYTE
-	i_need	HIGH_SECTOR,WORD	     ; DOS 4.00 >32mb			;AN000;
-	i_need	CurHashEntry,DWORD	     ; DOS 4.00 current Hash entry	;AN000;
-	i_need	BUF_HASH_PTR,DWORD	     ; DOS 4.00 Hash table pointer	;AN000;
-	i_need	BUF_HASH_COUNT,WORD	     ; DOS 4.00 Hash table entries	;AN000;
-	i_need	SC_CACHE_PTR,DWORD	     ; DOS 4.00 seconadary cache table	;AN000;
-	i_need	SC_CACHE_COUNT,WORD	     ; DOS 4.00 secondary cache entries	;AN000;
-	i_need	BUF_EMS_MODE,BYTE	     ; DOS 4.00 EMS mode 		;AN000;
-	i_need	BUF_EMS_HANDLE,WORD	     ; DOS 4.00 buffer EMS handle	;AN000;
-	i_need	SC_SECTOR_SIZE,WORD	     ; DOS 4.00 sector size		;AN000;
-	i_need	SC_DRIVE,BYTE		     ; DOS 4.00 drive			;AN000;
-	i_need	ACT_PAGE,WORD		     ; DOS 4.00 active logical EMS page	;AN000;
-	i_need	DOS34_FLAG,WORD 	     ; DOS 4.00 common flag		;AN000;
-	i_need	BUF_EMS_SEG_CNT,WORD	     ; DOS 4.00 EMS seg count		;AN000;
-	i_need	BUF_EMS_MAP_BUFF,BYTE	     ; DOS 4.00 EMS map buffer		;AN000;
-	i_need	FIRST_BUFF_ADDR,WORD	     ; DOS 4.00 beginning of the chain	;AN000;
-	i_need	BUF_EMS_PAGE_FRAME,WORD      ; DOS 4.00 EMS page frame		;AN000;
+	i_need	HIGH_SECTOR,WORD	     ; DOS 4.00 >32mb
+	i_need	CurHashEntry,DWORD	     ; DOS 4.00 current Hash entry
+	i_need	BUF_HASH_PTR,DWORD	     ; DOS 4.00 Hash table pointer
+	i_need	BUF_HASH_COUNT,WORD	     ; DOS 4.00 Hash table entries
+	i_need	SC_CACHE_PTR,DWORD	     ; DOS 4.00 seconadary cache table
+	i_need	SC_CACHE_COUNT,WORD	     ; DOS 4.00 secondary cache entries
+	i_need	BUF_EMS_MODE,BYTE	     ; DOS 4.00 EMS mode
+	i_need	BUF_EMS_HANDLE,WORD	     ; DOS 4.00 buffer EMS handle
+	i_need	SC_SECTOR_SIZE,WORD	     ; DOS 4.00 sector size
+	i_need	SC_DRIVE,BYTE		     ; DOS 4.00 drive
+	i_need	ACT_PAGE,WORD		     ; DOS 4.00 active logical EMS page
+	i_need	DOS34_FLAG,WORD 	     ; DOS 4.00 common flag
+	i_need	BUF_EMS_SEG_CNT,WORD	     ; DOS 4.00 EMS seg count
+	i_need	BUF_EMS_MAP_BUFF,BYTE	     ; DOS 4.00 EMS map buffer
+	i_need	FIRST_BUFF_ADDR,WORD	     ; DOS 4.00 beginning of the chain
+	i_need	BUF_EMS_PAGE_FRAME,WORD      ; DOS 4.00 EMS page frame
 
 IF	BUFFERFLAG
 	i_need	BUF_EMS_PFRAME,WORD
@@ -108,29 +90,29 @@ Break	<GETCURHEAD -- Get current buffer header>
 	procedure   GETCURHEAD,NEAR
 	ASSUME	DS:NOTHING,ES:NOTHING
 
-	PUSH	DX			  ;LB. save regs			;AN000;
-	PUSH	AX			  ;LB.					;AN000;
-	PUSH	BX			  ;LB.					;AN000;
-	MOV	AX,DX			  ;LB.					;AN000;
-;	MOV	DX,[HIGH_SECTOR]	  ;LB. HASH(sector#) and get entry #	;AN000;
-	XOR	DX,DX			  ;LB. to avoid divide overflow 	;AN000;
-	DIV	[BUF_HASH_COUNT]	  ;LB. get remainder			;AN000;
-	ADD	DX,DX			  ;LB. 8 bytes per entry		;AN000;
-	ADD	DX,DX			  ;LB.					;AN000;
-	ADD	DX,DX			  ;LB. times 8				;AN000;
+	PUSH	DX			  ;LB. save regs
+	PUSH	AX			  ;LB.
+	PUSH	BX			  ;LB.
+	MOV	AX,DX			  ;LB.
+;	MOV	DX,[HIGH_SECTOR]	  ;LB. HASH(sector#) and get entry #
+	XOR	DX,DX			  ;LB. to avoid divide overflow
+	DIV	[BUF_HASH_COUNT]	  ;LB. get remainder
+	ADD	DX,DX			  ;LB. 8 bytes per entry
+	ADD	DX,DX			  ;LB.
+	ADD	DX,DX			  ;LB. times 8
 
-	LDS	DI,[BUF_HASH_PTR]	  ;LB. get Hash Table addr		;AN000;
-	ADD	DI,DX			  ;LB position to entry 		;AN000;
+	LDS	DI,[BUF_HASH_PTR]	  ;LB. get Hash Table addr
+	ADD	DI,DX			  ;LB position to entry
 Map_Entry2:
-	MOV	WORD PTR [CurHashEntry+2],DS ;LB. update current Hash entry ptr ;AN000;
-	MOV	WORD PTR [CurHashEntry],DI ;LB. 				;AN000;
-	MOV	WORD PTR [LASTBUFFER],-1   ;LB. invalidate last buffer		;AN000;
-	MOV	BX,[DI.EMS_PAGE_NUM]	  ;LB. logical page			;AN000;
+	MOV	WORD PTR [CurHashEntry+2],DS ;LB. update current Hash entry ptr
+	MOV	WORD PTR [CurHashEntry],DI ;LB.
+	MOV	WORD PTR [LASTBUFFER],-1   ;LB. invalidate last buffer
+	MOV	BX,[DI.EMS_PAGE_NUM]	  ;LB. logical page
 
 IF	(NOT	BUFFERFLAG) AND 0FFFFh
-	LDS	DI,[DI.BUFFER_BUCKET]	  ;LB. ds:di is 1st buffer addr 	;AN000;
-	MOV	[FIRST_BUFF_ADDR],DI	  ;LB. 1/19/88 save first buffer addr	;AN000;
-	CALL	SET_MAP_PAGE		  ;LB. activate handle if EMS there	;AN000;
+	LDS	DI,[DI.BUFFER_BUCKET]	  ;LB. ds:di is 1st buffer addr
+	MOV	[FIRST_BUFF_ADDR],DI	  ;LB. 1/19/88 save first buffer addr
+	CALL	SET_MAP_PAGE		  ;LB. activate handle if EMS there
 ELSE
 	push	ax
 	mov	ax, [NEXTADD]
@@ -138,41 +120,37 @@ ELSE
 	; both before and after DOS moves high; SS continues to name low data.
 	mov	cs:[CURADD], ax
 	pop	ax
-	CALL	SET_MAP_PAGE		  ;LB. activate handle if EMS there	;AN000;
-	LDS	DI,[DI.BUFFER_BUCKET]	  ;LB. ds:di is 1st buffer addr 	;AN000;
-	MOV	[FIRST_BUFF_ADDR],DI	  ;LB. 1/19/88 save first buffer addr	;AN000;
+	CALL	SET_MAP_PAGE		  ;LB. activate handle if EMS there
+	LDS	DI,[DI.BUFFER_BUCKET]	  ;LB. ds:di is 1st buffer addr
+	MOV	[FIRST_BUFF_ADDR],DI	  ;LB. 1/19/88 save first buffer addr
 ENDIF
 
-										;AN000;
-	POP	BX			  ;LB.					;AN000;
-	POP	AX			  ;LB.					;AN000;
-	POP	DX			  ;LB.					;AN000;
-	return				  ;LB.					;AN000;
-EndProc GETCURHEAD								;AN000;
+	POP	BX			  ;LB.
+	POP	AX			  ;LB.
+	POP	DX			  ;LB.
+	return				  ;LB.
+EndProc GETCURHEAD
 
-										;AN000;
-Break	<SET_MAP_PAGE - map handle and page >					;AN000;
-; Inputs:									;AN000;
-;	BX= logical page							;AN000;
-; Function:									;AN000;
-;	Map handle and logical page to frame 0 page 0				;AN000;
-; Outputs:									;AN000;
-;	AH=0 success								;AN000;
-; No other registers altered							;AN000;
-										;AN000;
-Procedure   SET_MAP_PAGE,NEAR							;AN000;
-	ASSUME	DS:NOTHING,ES:NOTHING						;AN000;
+Break	<SET_MAP_PAGE - map handle and page >
+; Inputs:
+;	BX= logical page
+; Function:
+;	Map handle and logical page to frame 0 page 0
+; Outputs:
+;	AH=0 success
+; No other registers altered
+Procedure   SET_MAP_PAGE,NEAR
+	ASSUME	DS:NOTHING,ES:NOTHING
 
 ;	int	3
-										;AN000;
-	CMP	[BUF_EMS_MODE],-1	  ;LB. EMS support			;AN000;
-	JZ	No_map			  ;LB. no				;AN000;
+	CMP	[BUF_EMS_MODE],-1	  ;LB. EMS support
+	JZ	No_map			  ;LB. no
 
 IF	(NOT BUFFERFLAG) AND 0FFFFh
-	CMP	[ACT_PAGE],BX		  ;LB. already mapped ? 		;AN000;
-	JZ	No_map			  ;LB. yes				;AN000;
+	CMP	[ACT_PAGE],BX		  ;LB. already mapped ?
+	JZ	No_map			  ;LB. yes
 ENDIF
-	MOV	[ACT_PAGE],BX		  ;LB. save active page mapped		;AN000;
+	MOV	[ACT_PAGE],BX		  ;LB. save active page mapped
 
 IF	BUFFERFLAG	
 	cmp	[BUF_EMS_SAFE_FLAG], 1
@@ -182,95 +160,87 @@ IF	BUFFERFLAG
 no_coll:
 ENDIF
 
-	MOV	DX,[BUF_EMS_HANDLE]	  ;LB.					;AN000;
-	MOV	AH,44H			  ;LB. activate current handle		;AN000;
-	MOV	AL,BYTE PTR [BUF_EMS_PAGE_FRAME]  ;LB. page frame number	;AN000;
-	INT	67H			  ;LB.					;AN000;
-No_map: 									;AN000;
-	return									;AN000;
-EndProc SET_MAP_PAGE								;AN000;
-										;AN000;
+	MOV	DX,[BUF_EMS_HANDLE]	  ;LB.
+	MOV	AH,44H			  ;LB. activate current handle
+	MOV	AL,BYTE PTR [BUF_EMS_PAGE_FRAME]  ;LB. page frame number
+	INT	67H			  ;LB.
+No_map:
+	return
+EndProc SET_MAP_PAGE
 
 IF	BUFFERFLAG
 
-Break	<SAVE_MAP - save map >							;AN000;
-; Inputs:									;AN000;
-;	none									;AN000;
-; Function:									;AN000;
-;	save map								;AN000;
-; Outputs:									;AN000;
-;	none									;AN000;
-; No other registers altered							;AN000;
-										;AN000;
-Procedure   SAVE_MAP,NEAR							 ;AN000;
-	ASSUME	DS:NOTHING,ES:NOTHING						;AN000;
-										;AN000;
-	CMP	[BUF_EMS_MODE],-1	  ;LB. EMS support			;AN000;
-	JZ	No_save 		  ;LB. no				;AN000;
-	MOV	[ACT_PAGE],-1		  ;LB. invalidate active page		;AN000;
-	MOV	WORD PTR [LASTBUFFER],-1  ;LB.	and last buffer pointer 	;AN000;
-	PUSH	AX			  ;LB. save regs			;AN000;
-	PUSH	DS			  ;LB. save regs			;AN000;
-	PUSH	ES			  ;LB.					;AN000;
-	PUSH	SI			  ;LB.					;AN000;
-	PUSH	DI			  ;LB.					;AN000;
-	MOV	SI,OFFSET DOSGROUP:BUF_EMS_SEG_CNT     ;LB.			;AN000;
-	MOV	DI,OFFSET DOSGROUP:BUF_EMS_MAP_BUF     ;LB.			;AN000;
+Break	<SAVE_MAP - save map >
+; Inputs:
+;	none
+; Function:
+;	save map
+; Outputs:
+;	none
+; No other registers altered
+Procedure   SAVE_MAP,NEAR
+	ASSUME	DS:NOTHING,ES:NOTHING
+	CMP	[BUF_EMS_MODE],-1	  ;LB. EMS support
+	JZ	No_save 		  ;LB. no
+	MOV	[ACT_PAGE],-1		  ;LB. invalidate active page
+	MOV	WORD PTR [LASTBUFFER],-1  ;LB.	and last buffer pointer
+	PUSH	AX			  ;LB. save regs
+	PUSH	DS			  ;LB. save regs
+	PUSH	ES			  ;LB.
+	PUSH	SI			  ;LB.
+	PUSH	DI			  ;LB.
+	MOV	SI,OFFSET DOSGROUP:BUF_EMS_SEG_CNT     ;LB.
+	MOV	DI,OFFSET DOSGROUP:BUF_EMS_MAP_BUF     ;LB.
 
 	PUSH	CS
 	POP	ES
 	PUSH	CS
-	POP	DS			  ; relocated map buffer follows CS		;AN000;
+	POP	DS			  ; relocated map buffer follows CS
 
-	MOV	AX,4F00H		  ;LB. save map 			;AN000;
-	EnterCrit  critDisk		  ;LB. enter critical section		;AN000;
-	INT	67H			  ;LB.					;AN000;
-	LeaveCrit  critDisk		  ;LB. leave critical section		;AN000;
-	POP	DI			  ;LB.					;AN000;
-	POP	SI			  ;LB. restore regs			;AN000;
-	POP	ES			  ;LB.					;AN000;
-	POP	DS			  ;LB.					;AN000;
-	POP	AX			  ;LB. restore				;AN000;
-No_save:									 ;AN000;
-	return									;AN000;
-EndProc SAVE_MAP								 ;AN000;
-										;AN000;
+	MOV	AX,4F00H		  ;LB. save map
+	EnterCrit  critDisk		  ;LB. enter critical section
+	INT	67H			  ;LB.
+	LeaveCrit  critDisk		  ;LB. leave critical section
+	POP	DI			  ;LB.
+	POP	SI			  ;LB. restore regs
+	POP	ES			  ;LB.
+	POP	DS			  ;LB.
+	POP	AX			  ;LB. restore
+No_save:
+	return
+EndProc SAVE_MAP
 
-Break	<RESTORE_MAP- retore map >						;AN000;
-; Inputs:									;AN000;
-;	none									;AN000;
-; Function:									;AN000;
-;	restore_map								;AN000;
-; Outputs:									;AN000;
-;	none									;AN000;
-; No other registers altered							;AN000;
-										;AN000;
-Procedure   RESTORE_MAP,NEAR							 ;AN000;
-	ASSUME	DS:NOTHING,ES:NOTHING						;AN000;
-										;AN000;
-	CMP	[BUF_EMS_MODE],-1	  ;LB. EMS support			;AN000;
-	JZ	No_restore		  ;LB. no				;AN000;
-	PUSH	AX			  ;LB. save regs			;AN000;
-	PUSH	DS			  ;LB. save regs			;AN000;
-	PUSH	SI			  ;LB.					;AN000;
-	MOV	SI,OFFSET DOSGROUP:BUF_EMS_MAP_BUF     ;LB.			;AN000;
+Break	<RESTORE_MAP- retore map >
+; Inputs:
+;	none
+; Function:
+;	restore_map
+; Outputs:
+;	none
+; No other registers altered
+Procedure   RESTORE_MAP,NEAR
+	ASSUME	DS:NOTHING,ES:NOTHING
+	CMP	[BUF_EMS_MODE],-1	  ;LB. EMS support
+	JZ	No_restore		  ;LB. no
+	PUSH	AX			  ;LB. save regs
+	PUSH	DS			  ;LB. save regs
+	PUSH	SI			  ;LB.
+	MOV	SI,OFFSET DOSGROUP:BUF_EMS_MAP_BUF     ;LB.
 
 	PUSH	CS
-	POP	DS			  ; relocated map buffer follows CS		;AN000;
-	MOV	AX,4F01H		  ;LB. restore map			;AN000;
-	EnterCrit  critDisk		  ;LB. enter critical section		;AN000;
-	INT	67H			  ;LB.					;AN000;
-	LeaveCrit  critDisk		  ;LB. leave critical section		;AN000;
-	POP	SI			  ;LB. restore regs			;AN000;
-	POP	DS			  ;LB.					;AN000;
-	POP	AX			  ;LB.					;AN000;
-No_restore:									 ;AN000;
-	return									;AN000;
-EndProc RESTORE_MAP								 ;AN000;
+	POP	DS			  ; relocated map buffer follows CS
+	MOV	AX,4F01H		  ;LB. restore map
+	EnterCrit  critDisk		  ;LB. enter critical section
+	INT	67H			  ;LB.
+	LeaveCrit  critDisk		  ;LB. leave critical section
+	POP	SI			  ;LB. restore regs
+	POP	DS			  ;LB.
+	POP	AX			  ;LB.
+No_restore:
+	return
+EndProc RESTORE_MAP
 
 ENDIF
-										;AN000;
-										;AN000;
 
 Break	<SCANPLACE, PLACEBUF -- PUT A BUFFER BACK IN THE POOL>
 
@@ -308,48 +278,46 @@ EndProc ScanPlace
 ASSUME	DS:NOTHING,ES:NOTHING
 
 ;	invoke	save_world
-	push	AX				;Save only regs we modify	;AN000;
-	push	BX								;AN000;
-	push	SI								;AN000;
-	push	ES								;AN000;
+	push	AX				;Save only regs we modify
+	push	BX
+	push	SI
+	push	ES
 
-	les	SI,[CurHashEntry]		;ES:SI -> Current Hash entry	;AN000;
-	mov	BX,word ptr ES:[SI.BUFFER_BUCKET] ;BX = offset of head of list	;AN000;
+	les	SI,[CurHashEntry]		;ES:SI -> Current Hash entry
+	mov	BX,word ptr ES:[SI.BUFFER_BUCKET] ;BX = offset of head of list
 
-	cmp	[DI.buf_next],BX		;Buf = last?			;AN000;
-	je	nret				;Yes, special case		;AN000;
-	cmp	DI,BX				;Buf = first?			;AN000;
-	je	bufloop 			;Yes, special case		;AN000;
-	mov	SI,[DI.buf_prev]		;No, SI = prior Buf		;AN000;
-	mov	AX,[DI.buf_next]		;Now delete Buf from list	;AN000;
-	mov	[SI.buf_next],AX						;AN000;
-	push	SI				;Save si			;AN000;
-	mov	SI,[DI.buf_next]		;Update backward pointer	;AN000;
-	mov	AX,[DI.buf_prev]		;				;AN000;
-	mov	[SI.buf_prev],AX		;				;AN000;
-	pop	si				;Restore si			;AN000;
-lookend:				;(label is now a misnomer)		;AN000;
-	mov	SI,[BX.buf_prev]		;SI-> last buffer		;AN000;
-	mov	[SI.buf_next],DI		;Add Buf to end of list 	;AN000;
-	mov	[BX.buf_prev],DI						;AN000;
-	mov	[DI.buf_prev],SI		;Update linkage in Buf too	;AN000;
-	mov	[DI.buf_next],BX						;AN000;
-nret:										;AN000;
-										;AN000;
-;	invoke	restore_world							;AN000;
-	pop	ES				;Restore regs we modified	;AN000;
-	pop	SI								;AN000;
-	pop	BX								;AN000;
-	pop	AX								;AN000;
-										;AN000;
-	cmp	[DI.buf_ID],-1			; Buffer FREE?			;AN000;
-	retnz					; No				;AN000;
-	invoke	PLACEHEAD			; Buffer is free, belongs at hea;AN000;
-	return									;AN000;
-bufloop:				;(label is now a misnomer)		;AN000;
-	mov	BX,[DI.buf_next]		;Set new head position		;AN000;
-	mov	word ptr ES:[SI.BUFFER_BUCKET],BX				;AN000;
-	jmp	nret				;Continue with repositioning	;AN000;
+	cmp	[DI.buf_next],BX		;Buf = last?
+	je	nret				;Yes, special case
+	cmp	DI,BX				;Buf = first?
+	je	bufloop 			;Yes, special case
+	mov	SI,[DI.buf_prev]		;No, SI = prior Buf
+	mov	AX,[DI.buf_next]		;Now delete Buf from list
+	mov	[SI.buf_next],AX
+	push	SI				;Save si
+	mov	SI,[DI.buf_next]		;Update backward pointer
+	mov	AX,[DI.buf_prev]		;
+	mov	[SI.buf_prev],AX		;
+	pop	si				;Restore si
+lookend:				;(label is now a misnomer)
+	mov	SI,[BX.buf_prev]		;SI-> last buffer
+	mov	[SI.buf_next],DI		;Add Buf to end of list
+	mov	[BX.buf_prev],DI
+	mov	[DI.buf_prev],SI		;Update linkage in Buf too
+	mov	[DI.buf_next],BX
+nret:
+;	invoke	restore_world
+	pop	ES				;Restore regs we modified
+	pop	SI
+	pop	BX
+	pop	AX
+	cmp	[DI.buf_ID],-1			; Buffer FREE?
+	retnz					; No
+	invoke	PLACEHEAD			; Buffer is free, belongs at hea
+	return
+bufloop:				;(label is now a misnomer)
+	mov	BX,[DI.buf_next]		;Set new head position
+	mov	word ptr ES:[SI.BUFFER_BUCKET],BX
+	jmp	nret				;Continue with repositioning
 
 EndProc PLACEBUF
 
@@ -358,16 +326,16 @@ EndProc PLACEBUF
 ;	ONE IN THE LIST!!!!!!!
 ; Rewritten PLACEBUF, takes buffer from end of list to head of list
 
-	procedure   PLACEHEAD,NEAR						;AN000;
-ASSUME	DS:NOTHING,ES:NOTHING							;AN000;
-	push	ES								;AN000;
-	push	SI								;AN000;
-	les	SI,[CurHashEntry]						;AN000;
-	mov	word ptr ES:[SI.BUFFER_BUCKET],DI				;AN000;
-	pop	SI								;AN000;
-	pop	ES								;AN000;
-	return									;AN000;
-EndProc PLACEHEAD								;AN000;
+	procedure   PLACEHEAD,NEAR
+ASSUME	DS:NOTHING,ES:NOTHING
+	push	ES
+	push	SI
+	les	SI,[CurHashEntry]
+	mov	word ptr ES:[SI.BUFFER_BUCKET],DI
+	pop	SI
+	pop	ES
+	return
+EndProc PLACEHEAD
 
 
 Break	<POINTCOMP -- 20 BIT POINTER COMPARE>
@@ -422,26 +390,26 @@ Break	<GETBUFFR -- GET A SECTOR INTO A BUFFER>
 	MOV	AL,ES:[BP.dpb_drive]
 	LDS	DI,[LASTBUFFER]
 ASSUME	DS:NOTHING
-	MOV	CX,[HIGH_SECTOR]		; F.C. >32mb			;AN000;
+	MOV	CX,[HIGH_SECTOR]		; F.C. >32mb
 	CMP	DI,-1				; Recency pointer valid?
 	JZ	SKBUF				; No
 
 	CMP	DX,WORD PTR [DI.buf_sector]
 	JNZ	SKBUF				; Wrong sector
-	CMP	CX,WORD PTR [DI.buf_sector+2]	; F.C. >32mb			;AN000;
-	JNZ	SKBUF				; F.C. >32mb			;AN000;
+	CMP	CX,WORD PTR [DI.buf_sector+2]	; F.C. >32mb
+	JNZ	SKBUF				; F.C. >32mb
 	CMP	AL,[DI.buf_ID]
 	JNZ	SKBUF				; Wrong Drive
 
 	JMP	JUSTBUF 			; Just asked for same buffer
 SKBUF:
-	CALL	GETCURHEAD			;LB. get cuurent Hash entry	;AN000;
+	CALL	GETCURHEAD			;LB. get cuurent Hash entry
 ;	LDS	DI,[BUFFHEAD]
 NXTBFF:
-	CMP	DX,WORD PTR [DI.buf_sector]	; F.C. >32mb			;AN000;
+	CMP	DX,WORD PTR [DI.buf_sector]	; F.C. >32mb
 	JNZ	BUMP
-	CMP	CX,WORD PTR [DI.buf_sector+2]	; F.C. >32mb			;AN000;
-	JNZ	BUMP				; F.C. >32mb			;AN000;
+	CMP	CX,WORD PTR [DI.buf_sector+2]	; F.C. >32mb
+	JNZ	BUMP				; F.C. >32mb
 	CMP	AL,[DI.buf_ID]
 if	(not bufferflag) AND 0FFFFh
 	JZ	SETINF
@@ -450,13 +418,13 @@ else
 	jmp	setinf
 endif
 BUMP:
-	mov	DI,[DI.buf_next]		;;;;;;1/19/88			;AN000;
-	cmp	DI,[FIRST_BUFF_ADDR]		;;;;;;1/19/88			;AN000;
+	mov	DI,[DI.buf_next]		;;;;;;1/19/88
+	cmp	DI,[FIRST_BUFF_ADDR]		;;;;;;1/19/88
 	JNZ	NXTBFF
-;;;;	LDS	DI,[CurHashEntry]		;LB. secondary cache's use      ;AN000;
-;;;;	LDS	DI,[DI.BUFFER_BUCKET]		;LB.				;AN000;
+;;;;	LDS	DI,[CurHashEntry]		;LB. secondary cache's use
+;;;;	LDS	DI,[DI.BUFFER_BUCKET]		;LB.
  ;	LDS	DI,[BUFFHEAD]
-	PUSH	[HIGH_SECTOR]			;F.C. >32mb			;AN000;
+	PUSH	[HIGH_SECTOR]			;F.C. >32mb
 	PUSH	SI
 	PUSH	DX
 	PUSH	BP
@@ -466,7 +434,7 @@ BUMP:
 	POP	BP
 	POP	DX
 	POP	SI
-	POP	[HIGH_SECTOR]			;F.C. >32mb			;AN000;
+	POP	[HIGH_SECTOR]			;F.C. >32mb
 if 	(not bufferflag) AND 0FFFFh
 	JC	GETBERR
 else
@@ -474,7 +442,7 @@ else
 	jmp	getberr
 skip_getberr:
 endif
-	CALL	SET_RQ_SC_PARMS 		;LB. set parms			;AN000;
+	CALL	SET_RQ_SC_PARMS 		;LB. set parms
 	XOR	AH,AH			; initial flags
 	TEST	BYTE PTR [PREREAD],-1	; Read in the new sector
 	JNZ	SETBUF
@@ -539,23 +507,23 @@ endif
 	POP	SI
 	JC	GETBERR
 SETBUF:
-	MOV	CX,[HIGH_SECTOR]	       ; F.C. >32mb			;AN000;
-	MOV	WORD PTR [DI.buf_sector+2],CX  ; F.C. >32mb			;AN000;
-	MOV	WORD PTR [DI.buf_sector],DX    ; F.C. >32mb			;AN000;
+	MOV	CX,[HIGH_SECTOR]	       ; F.C. >32mb
+	MOV	WORD PTR [DI.buf_sector+2],CX  ; F.C. >32mb
+	MOV	WORD PTR [DI.buf_sector],DX    ; F.C. >32mb
 	MOV	WORD PTR [DI.buf_DPB],BP
 	MOV	WORD PTR [DI.buf_DPB+2],ES
 	MOV	AL,ES:[BP.dpb_drive]
 	MOV	WORD PTR [DI.buf_ID],AX 	; Sets buf_flags too, to AH
 SETINF:
-	MOV	[DI.buf_wrtcnt],1		; Default to not a FAT sector	;AC000;
-	XOR	AX,AX				;>32mb				;AN000;
+	MOV	[DI.buf_wrtcnt],1		; Default to not a FAT sector
+	XOR	AX,AX				;>32mb
 	OR	SI,SI
 	JZ	SETSTUFFOK
 	MOV	AL,ES:[BP.dpb_FAT_count]
-	MOV	[DI.buf_wrtcnt],AL		;>32mb				;AN000;
+	MOV	[DI.buf_wrtcnt],AL		;>32mb
 	MOV	AX,ES:[BP.dpb_FAT_size]
 SETSTUFFOK:
-	MOV	[DI.buf_wrtcntinc],AX		;>32mb				;AC000;
+	MOV	[DI.buf_wrtcntinc],AX		;>32mb
 	CALL	PLACEBUF
 JUSTBUF:
 	MOV	WORD PTR [CURBUF+2],DS
@@ -588,20 +556,20 @@ Break	<FLUSHBUF -- WRITE OUT DIRTY BUFFERS>
 ;	LDS	DI,[BUFFHEAD]
 ASSUME	DS:NOTHING
 
-	LDS	DI,[BUF_HASH_PTR]	  ;LB. get Hash Table addr		;AN000;
-	MOV	CX,[BUF_HASH_COUNT]	  ;LB. get Hash entry count		;AN000;
-	XOR	DX,DX			  ;LB. set initial index to 0		;AN000;
+	LDS	DI,[BUF_HASH_PTR]	  ;LB. get Hash Table addr
+	MOV	CX,[BUF_HASH_COUNT]	  ;LB. get Hash entry count
+	XOR	DX,DX			  ;LB. set initial index to 0
 
 NXTBUFF2:
-	PUSH	CX			     ;LB. save Hash entry count 	;AN000;
-	TEST	[DOS34_FLAG],FROM_DISK_RESET ;MS. from disk reset		;AN004;
-	JNZ	Zapzap			     ;MS. yes				;AN004;
-	CMP	[DI.Dirty_Count],0	     ;LB. dirty entry ? 		;AN000;
-	JZ	getnext 		     ;LB. no				;AN000;
-Zapzap: 									;AN004;
-	PUSH	DS			     ;LB. save regs			;AN000;
-	PUSH	DI			     ;LB.				;AN000;
-	invoke	Map_Entry		     ;LB. ds:di -> first buffer addr	;AN000;
+	PUSH	CX			     ;LB. save Hash entry count
+	TEST	[DOS34_FLAG],FROM_DISK_RESET ;MS. from disk reset
+	JNZ	Zapzap			     ;MS. yes
+	CMP	[DI.Dirty_Count],0	     ;LB. dirty entry ?
+	JZ	getnext 		     ;LB. no
+Zapzap:
+	PUSH	DS			     ;LB. save regs
+	PUSH	DI			     ;LB.
+	invoke	Map_Entry		     ;LB. ds:di -> first buffer addr
 NXTBUFF:
 	CALL	CHECKFLUSH	; Ignore Carry return from CHECKFLUSH.
 				; FAILERR is set if user FAILed.
@@ -609,21 +577,21 @@ NXTBUFF:
 	MOV	AL,[DI.buf_ID]
 	CMP	AL,BYTE PTR [WPERR]
 	JZ	ZAP
-	TEST	[DOS34_FLAG],FROM_DISK_RESET ;MS. from disk reset		;AN000;
-	JNZ	Zap			     ;MS. yes				;AN000;
+	TEST	[DOS34_FLAG],FROM_DISK_RESET ;MS. from disk reset
+	JNZ	Zap			     ;MS. yes
 
 NOZAP:
 	POP	AX
-	mov	DI,[DI.buf_next]	     ;;;;1/19/88			;AN000;
-	CMP	DI,[FIRST_BUFF_ADDR]	     ;;;;1/19/88			;AN000;
+	mov	DI,[DI.buf_next]	     ;;;;1/19/88
+	CMP	DI,[FIRST_BUFF_ADDR]	     ;;;;1/19/88
 	JNZ	NXTBUFF
 
-	POP	DI			     ;LB.				;AN000;
-	POP	DS			     ;LB.				;AN000;
+	POP	DI			     ;LB.
+	POP	DS			     ;LB.
 getnext:
-	ADD	DI,size BUFFER_HASH_ENTRY    ;LB. position to next entry	;AN000;
-	POP	CX			     ;LB. restore entry count		;AN000;
-	LOOP	NXTBUFF2		     ;LB. get next entry buffer 	;AN000;
+	ADD	DI,size BUFFER_HASH_ENTRY    ;LB. position to next entry
+	POP	CX			     ;LB. restore entry count
+	LOOP	NXTBUFF2		     ;LB. get next entry buffer
 	Context DS
 	CMP	[FAILERR],0
 	JNZ	FLSHBad 	; Carry clear if JMP
@@ -688,16 +656,16 @@ ASSUME	DS:NOTHING,ES:NOTHING
 	invoke	DEC_DIRTY_COUNT 	; LB. decrement dirty count
 	CMP	AL,BYTE PTR [WPERR]
 	retz				; If in WP error zap buffer
-	MOV	[SC_DRIVE],AL		;LB. set it for invalidation		;AN000;
+	MOV	[SC_DRIVE],AL		;LB. set it for invalidation
 	LES	BP,[DI.buf_DPB]
 	LEA	BX,[DI.BufInSiz]	; Point at buffer
-	MOV	DX,WORD PTR [DI.buf_sector]	;F.C. >32mb			;AN000;
-	MOV	CX,WORD PTR [DI.buf_sector+2]	;F.C. >32mb			;AN000;
-	MOV	[HIGH_SECTOR],CX		;F.C. >32mb			;AN000;
-	MOV	CL,[DI.buf_wrtcnt]		;>32mb				;AC000;
+	MOV	DX,WORD PTR [DI.buf_sector]	;F.C. >32mb
+	MOV	CX,WORD PTR [DI.buf_sector+2]	;F.C. >32mb
+	MOV	[HIGH_SECTOR],CX		;F.C. >32mb
+	MOV	CL,[DI.buf_wrtcnt]		;>32mb
 ;	MOV	AL,CH			; [DI.buf_wrtcntinc]
 	XOR	CH,CH
-	MOV	AX,[DI.buf_wrtcntinc]		;>32mb				;AC000;
+	MOV	AX,[DI.buf_wrtcntinc]		;>32mb
 	MOV	[ALLOWED],allowed_RETRY + allowed_FAIL
 	TEST	[DI.buf_flags],buf_isDATA
 	JZ	NO_IGNORE
@@ -785,19 +753,18 @@ Break	<SET_RQ_SC_PARMS-set requesting drive for SC>
 	procedure   SET_RQ_SC_PARMS,NEAR
 ASSUME	DS:NOTHING,ES:NOTHING
 
-	CMP	[SC_CACHE_COUNT],0  ;LB. do it only secondary cache exists	;AN000;
-	JZ	nosec		    ;LB.					;AN000;
-	PUSH	DX		    ;LB. save dx				;AN000;
-	MOV	DX,ES:[BP.dpb_sector_size]	      ;LB. save sector size	;AN000;
-	MOV	[SC_SECTOR_SIZE],DX		      ;LB.			;AN000;
-	MOV	DL,ES:[BP.dpb_drive]		      ;LB. save drive # 	;AN000;
-	MOV	[SC_DRIVE],DL			      ;LB.			;AN000;
-										;AN000;
-	POP	DX				      ;LB. restore dx		;AN000;
+	CMP	[SC_CACHE_COUNT],0  ;LB. do it only secondary cache exists
+	JZ	nosec		    ;LB.
+	PUSH	DX		    ;LB. save dx
+	MOV	DX,ES:[BP.dpb_sector_size]	      ;LB. save sector size
+	MOV	[SC_SECTOR_SIZE],DX		      ;LB.
+	MOV	DL,ES:[BP.dpb_drive]		      ;LB. save drive #
+	MOV	[SC_DRIVE],DL			      ;LB.
+	POP	DX				      ;LB. restore dx
 
 nosec:
 	return
-EndProc SET_RQ_SC_PARMS 			      ;LB. return		;AN000;
+EndProc SET_RQ_SC_PARMS 			      ;LB. return
 
 Break	<INC_DIRTY_COUNT-increment dirty count>
 
@@ -813,14 +780,14 @@ Break	<INC_DIRTY_COUNT-increment dirty count>
 	procedure   INC_DIRTY_COUNT,NEAR
 ASSUME	DS:NOTHING,ES:NOTHING
 
-	PUSH	DS		    ;LB. save regs				;AN000;
-	PUSH	SI		    ;LB.					;AN000;
-	LDS	SI,[CurHashEntry]   ;LB. get current hash entry 		;AN000;
-	INC	[SI.Dirty_Count]    ;LB. add 1					;AN000;
-	POP	SI		    ;LB. restore regs				;AN000;
-	POP	DS		    ;LB.					;AN000;
+	PUSH	DS		    ;LB. save regs
+	PUSH	SI		    ;LB.
+	LDS	SI,[CurHashEntry]   ;LB. get current hash entry
+	INC	[SI.Dirty_Count]    ;LB. add 1
+	POP	SI		    ;LB. restore regs
+	POP	DS		    ;LB.
 	return
-EndProc INC_DIRTY_COUNT 	    ;LB. return 				;AN000;
+EndProc INC_DIRTY_COUNT 	    ;LB. return
 
 Break	<DEC_DIRTY_COUNT-decrement dirty count>
 
@@ -836,17 +803,17 @@ Break	<DEC_DIRTY_COUNT-decrement dirty count>
 	procedure   DEC_DIRTY_COUNT,NEAR
 ASSUME	DS:NOTHING,ES:NOTHING
 
-	PUSH	DS		    ;LB. save regs				;AN000;
-	PUSH	SI		    ;LB.					;AN000;
-	LDS	SI,[CurHashEntry]   ;LB. get current hash entry 		;AN000;
-	CMP	[SI.Dirty_Count],0  ;LB. in case if 0				;AN000;
-	JZ	nodec		    ;LB. do nothing				;AN000;
-	DEC	[SI.Dirty_Count]    ;LB. sub 1					;AN000;
+	PUSH	DS		    ;LB. save regs
+	PUSH	SI		    ;LB.
+	LDS	SI,[CurHashEntry]   ;LB. get current hash entry
+	CMP	[SI.Dirty_Count],0  ;LB. in case if 0
+	JZ	nodec		    ;LB. do nothing
+	DEC	[SI.Dirty_Count]    ;LB. sub 1
 nodec:
-	POP	SI		    ;LB. restore regs				;AN000;
-	POP	DS		    ;LB.					;AN000;
+	POP	SI		    ;LB. restore regs
+	POP	DS		    ;LB.
 	return
-EndProc DEC_DIRTY_COUNT 	    ;LB. return 				;AN000;
+EndProc DEC_DIRTY_COUNT 	    ;LB. return
 
 
 Break	<MAP_ENTRY- map the buffers of this entry>
@@ -863,11 +830,11 @@ Break	<MAP_ENTRY- map the buffers of this entry>
 	procedure   Map_Entry,NEAR
 ASSUME	DS:NOTHING,ES:NOTHING
 
-	PUSH	DX			  ;LB. save regs			;AN000;
-	PUSH	AX			  ;LB.					;AN000;
-	PUSH	BX			  ;LB.					;AN000;
-	JMP	Map_Entry2		  ;LB.					;AN000;
-EndProc Map_Entry			  ;LB.					;AN000;
+	PUSH	DX			  ;LB. save regs
+	PUSH	AX			  ;LB.
+	PUSH	BX			  ;LB.
+	JMP	Map_Entry2		  ;LB.
+EndProc Map_Entry			  ;LB.
 
 
 IF	BUFFERFLAG
@@ -941,7 +908,7 @@ fin_detect_coll:
 EndProc	detect_collision
 
 Procedure Setup_EMS_Buffers,Near
-	ASSUME	DS:NOTHING,ES:NOTHING						;AN000;
+	ASSUME	DS:NOTHING,ES:NOTHING
 
 	cmp	[BUF_EMS_MODE], -1
 	jz	setup_ems_ret

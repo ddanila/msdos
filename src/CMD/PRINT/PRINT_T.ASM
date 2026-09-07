@@ -629,7 +629,7 @@ PT_CONTINUE:
    mov	ax,ds:[pdb_environ]
    or	ax,ax
 
-;  $if	nz				; if pdb_environ != 0		       ;AC000;
+;  $if	nz				; if pdb_environ != 0
    JZ $$IF1
 
        push es				; deallocate memory
@@ -638,12 +638,12 @@ PT_CONTINUE:
        int  21h
        pop  es
 
-;  $endif				;				       ;AC000;
+;  $endif				;
 $$IF1:
 
-   call SYSLOADMSG			; Initialize the Message Service code  ;AN000;
+   call SYSLOADMSG			; Initialize the Message Service code
 
-;  $if	c				; if error			       ;AC000;
+;  $if	c				; if error
    JNC $$IF3
 
        mov  ah,dh			; set up class for DispMsg
@@ -664,57 +664,57 @@ $$IF3:
        int  ComInt
        or   al,al
 
-;      $if  z				; if not installed		       ;AC000;
+;      $if  z				; if not installed
        JNZ $$IF5
 
-	   call Load_R_Msg		;				       ;AC000;
+	   call Load_R_Msg		;
 
-;	   $if	nc			; if no error			       ;AC000;
+;	   $if	nc			; if no error
 	   JC $$IF6
 
-	       call Save_Vectors	;				       ;AC000;
+	       call Save_Vectors	;
 
-;	   $endif			; endif - NB: - If carry IS set,       ;AC000;
+;	   $endif			; endif - NB: - If carry IS set,
 $$IF6:
 					; Load_R_Msg will have loaded the
 					; error message #
 
-;      $else				;  else - we are installed	       ;AC000;
+;      $else				;  else - we are installed
        JMP SHORT $$EN5
 $$IF5:
 
 	   cmp	al,1
 
-;	   $if	z			; if PSPRINT conflict		       ;AC000;
+;	   $if	z			; if PSPRINT conflict
 	   JNZ $$IF9
 
-	       mov  ax,(CLASS_B shl 8) + CONFLICTMES ; load error message #    ;AC000;
+	       mov  ax,(CLASS_B shl 8) + CONFLICTMES ; load error message #
 
-	       stc			; set the error flag		       ;AC000;
+	       stc			; set the error flag
 
-;	   $else			;				       ;AC000;
+;	   $else			;
 	   JMP SHORT $$EN9
 $$IF9:
 
 	       mov  [PInst],2		; remember print already installed
 					;	   and that we only do one pass
-	       mov  al," "		; invalidate install switches	       ;AN005;
-	       mov  SW_PTR,al		; /D				       ;AN005;
-	       mov  B_SWITCH,al 	; /B				       ;AN005;
-	       mov  Q_SWITCH,al 	; /Q				       ;AN005;
-	       mov  S_SWITCH,al 	; /S				       ;AN005;
-	       mov  U_SWITCH,al 	; /U				       ;AN005;
-	       mov  M_SWITCH,al 	; /M				       ;AN005;
-	       clc			; reset the error flag		       ;AC000;
+	       mov  al," "		; invalidate install switches
+	       mov  SW_PTR,al		; /D
+	       mov  B_SWITCH,al 	; /B
+	       mov  Q_SWITCH,al 	; /Q
+	       mov  S_SWITCH,al 	; /S
+	       mov  U_SWITCH,al 	; /U
+	       mov  M_SWITCH,al 	; /M
+	       clc			; reset the error flag
 
-;	   $endif			;				       ;AC000;
+;	   $endif			;
 $$EN9:
-;      $endif				;				       ;AC000;
+;      $endif				;
 $$EN5:
-;  $endif				;				       ;AC000;
+;  $endif				;
 $$EN3:
 
-;  $if	nc,and				; if no errors so far and..............;AC000;
+;  $if	nc,and				; if no errors so far and..............
    JC $$IF14
 
    call GetHInt 			; save current int 24 vector
@@ -724,54 +724,54 @@ $$EN3:
    mov	[SWITCHAR],dl			; Get user switch character
    cmp	dl,"-"
 
-;  $if	e				; if "-"			       ;AC000;
+;  $if	e				; if "-"
    JNE $$IF14
        mov  [PathChar],"/"		; alternate path character
-;  $endif				;				       ;AC000;
+;  $endif				;
 $$IF14:
 
 					; Set up for Parse_Input call
 
-;  $do					; Do_until end of command line	       ;AC000;
+;  $do					; Do_until end of command line
 $$DO16:
 
-;  $leave c				;  quit if an error occured	       ;AC000;
+;  $leave c				;  quit if an error occured
    JC $$EN16
 
-       call parse_input 		;				       ;AC000;
+       call parse_input 		;
 
-       mov  [ordinal],cx		;  update Parse_C_B		       ;AC000;
-       mov  [scan_ptr],si		;				       ;AC000;
+       mov  [ordinal],cx		;  update Parse_C_B
+       mov  [scan_ptr],si		;
 
-       cmp  al,EOL			;  are we at the end?		       ;AC000;
+       cmp  al,EOL			;  are we at the end?
 
-;  $leave e				; leave if end of line		       ;AC000;
+;  $leave e				; leave if end of line
    JE $$EN16
 
-       cmp  al,noerror			;				       ;AC000;
+       cmp  al,noerror			;
 
-;      $if  ne				;  if error			       ;AC000;
+;      $if  ne				;  if error
        JE $$IF19
 
-	   mov	ah,Parse_error		;   set class to Parse error	       ;AC000;
+	   mov	ah,Parse_error		;   set class to Parse error
 
 
-	   stc				;    set the error flag 	       ;AC000;
+	   stc				;    set the error flag
 
-;      $endif				;  endif			       ;AC000;
+;      $endif				;  endif
 $$IF19:
 
-;  $leave c				; leave the loop if error ocurred      ;AC000;
+;  $leave c				; leave the loop if error ocurred
    JC $$EN16
 
-       cmp  [p_type],File_Spec		;  is it a file spec?		       ;AC000;
+       cmp  [p_type],File_Spec		;  is it a file spec?
 
-;      $if  e				;  if it is a file spec 	       ;AC000;
+;      $if  e				;  if it is a file spec
        JNE $$IF22
 
-	   call Submit_File		;				       ;AC000;
+	   call Submit_File		;
 
-;      $else				;  else - we must now have a	       ;AC000;
+;      $else				;  else - we must now have a
        JMP SHORT $$EN22
 $$IF22:
 					;	valid switch!
@@ -779,57 +779,57 @@ $$IF22:
 
 					;  Do_case switch
 
-	   push cs			;   set up for CASE		       ;AC000;
-	   pop	ds			;				       ;AC000;
-	   mov	ax,[p_syn]		;				       ;AC000;
-	   sub	ax,OFFSET DG:SW_PTR	;				       ;AC000;
-	   mov	dl,SW_SIZE		;				       ;AC000;
-	   div	dl			;				       ;AC000;
-	   cmp	ah,noerror		;				       ;AC000;
-	   mov	di,ax			;				       ;AC000;
-	   mov	ax,(CLASS_B shl 8) + invparm ; set message in case of error    ;AC000;
+	   push cs			;   set up for CASE
+	   pop	ds			;
+	   mov	ax,[p_syn]		;
+	   sub	ax,OFFSET DG:SW_PTR	;
+	   mov	dl,SW_SIZE		;
+	   div	dl			;
+	   cmp	ah,noerror		;
+	   mov	di,ax			;
+	   mov	ax,(CLASS_B shl 8) + invparm ; set message in case of error
 
-;	   $if	e			; if no error in jump calculation      ;AC000;
+;	   $if	e			; if no error in jump calculation
 	   JNE $$IF24
 
-	       call Process_A_Switch	;				       ;AC000;
+	       call Process_A_Switch	;
 
 ;	   $else
 	   JMP SHORT $$EN24
 $$IF24:
 
-	       stc			; set the error flag		       ;AC000;
+	       stc			; set the error flag
 
-;	   $endif			; endif - no error in jump calculation ;AC000;
+;	   $endif			; endif - no error in jump calculation
 $$EN24:
 
 ;      $endif				; endif - name or switch	       ;AC000:
 $$EN22:
 
-;  $leave c				; leave the loop if error ocurred      ;AC000;
+;  $leave c				; leave the loop if error ocurred
    JC $$EN16
 
-;  $enddo				; enddo 			       ;AC000;
+;  $enddo				; enddo
    JMP SHORT $$DO16
 $$EN16:
 
-;  $if	nc,long 			; if no error so far		       ;AC000;
+;  $if	nc,long 			; if no error so far
    JNC $$XL1
    JMP $$IF30
 $$XL1:
 
        cmp  [PInst],0			; is print already installed?
 
-;      $if  e				; if not installed		       ;AC000;
+;      $if  e				; if not installed
        JNE $$IF31
 
-	   call Set_Buffer		; NOTE from now on the TRANSIENT could ;AC000;
+	   call Set_Buffer		; NOTE from now on the TRANSIENT could
 					; be in a SEGMENT that is different
 					; than the one set up by the loader!
 					; *** MOV xx,DG will no longer work ***
 					; (use PUSH CS , POP xx instead)
 
-;      $endif				; endif  - installed		       ;AC000;
+;      $endif				; endif  - installed
 $$IF31:
 
 					; Grab the pointer to the queue and
@@ -849,13 +849,13 @@ $$IF31:
 
        cmp  dx,ErrCnt1			; check count
 
-;      $if  ae				; if count too high		       ;AC000;
+;      $if  ae				; if count too high
        JNAE $$IF33
 
-	   mov	ax,(CLASS_B shl 8) + CntMes ; printer might be off-line        ;AC000;
-	   call DispMsg 		;				       ;AC000;
+	   mov	ax,(CLASS_B shl 8) + CntMes ; printer might be off-line
+	   call DispMsg 		;
 
-;      $endif				; endif - count Too high	       ;AC000;
+;      $endif				; endif - count Too high
 $$IF33:
 
 ;					;------------------------------------
@@ -869,26 +869,26 @@ $$IF33:
 ;					;   (including any DBSC characters)
 ;					;
 ;					;------------------------------------
-;      mov  di,offset dg:NameBuf	;				       ;AN009;
-;      mov  ax,(xNameTrans SHL 8)	; check for name translation	       ;AN009;
-;      int  21h 			; get real path and name	       ;AN009;
+;      mov  di,offset dg:NameBuf	;
+;      mov  ax,(xNameTrans SHL 8)	; check for name translation
+;      int  21h 			; get real path and name
 
 ;;;;;;;;;;;;;xxxxxxxxxxxxxxxxx
        call copy_to_arg_buf
 ;;;;;;;;;;;;;xxxxxxxxxxxxxxxxx
 
-       mov  ax,[whichmsg]		;				       ;AN000;
-       mov  [whichmsg],(CLASS_C shl 8) + SecMes ; set up in queue msg	       ;AC000;
+       mov  ax,[whichmsg]		;
+       mov  [whichmsg],(CLASS_C shl 8) + SecMes ; set up in queue msg
        cmp  byte ptr ds:[si],0		; is the queue empty?
 
-;      $if  ne				; if queue not empty		       ;AC000;
+;      $if  ne				; if queue not empty
        JE $$IF35
 
-;	   $do				;				       ;AC000;
+;	   $do				;
 $$DO36:
 
 	       push ds
-	       call DispMsg		;				       ;AC000;
+	       call DispMsg		;
 	       pop  ds
 	       add  si,MaxFileLen	; point to next entry in queue
 
@@ -896,23 +896,23 @@ $$DO36:
 	       call copy_to_arg_buf
 ;;;;;;;;;;;;;xxxxxxxxxxxxxxxxx
 
-;		mov  di,offset dg:NameBuf ;					;AN009;
-;		mov  ax,(xNameTrans SHL 8) ; check for name translation 	;AN009;
-;		int  21h		 ; get real path and name		;AN009;
-	       mov  ax,[whichmsg]	;				       ;AC009;
+;		mov  di,offset dg:NameBuf ;
+;		mov  ax,(xNameTrans SHL 8) ; check for name translation
+;		int  21h		 ; get real path and name
+	       mov  ax,[whichmsg]	;
 	       cmp  byte ptr ds:[si],0	; end of queue?
 
-;	   $enddo e			;				       ;AC000;
+;	   $enddo e			;
 	   JNE $$DO36
 
-;      $else				; else - queue is empty 	       ;AC000;
+;      $else				; else - queue is empty
        JMP SHORT $$EN35
 $$IF35:
 
-	   mov	ax,(CLASS_B shl 8) + NoFils ;				       ;AC000;
-	   call DispMsg 		;				       ;AC000;
+	   mov	ax,(CLASS_B shl 8) + NoFils ;
+	   call DispMsg 		;
 
-;      $endif				; endif - queue not empty	       ;AC000;
+;      $endif				; endif - queue not empty
 $$EN35:
 
 					;------------------------------------
@@ -923,7 +923,7 @@ $$EN35:
        call IntWhileBusy		; on return DS:SI points to queue
        cmp  [PInst],1			; are we partially installed ?
 
-;      $if  e				; if so...  complete the process       ;AC000;
+;      $if  e				; if so...  complete the process
        JNE $$IF40
 
 	   mov	ax,CodeR		; close Std Devices
@@ -934,38 +934,38 @@ $$EN35:
 	   xor	bx,bx
 	   mov	cx,5			; StdIN,StdOUT,StdERR,StdAUX,StdPRN
 
-;	   $do				; Close STD handles before keep process;AC000;
+;	   $do				; Close STD handles before keep process
 $$DO41:
 
 	       mov  ah,CLOSE
 	       int  21h
 	       inc  bx
 
-;	   $enddo loop			;				       ;AC000;
+;	   $enddo loop			;
 	   LOOP $$DO41
 
 
 	   mov	dx,[ENDRES]		; install print...
 	   mov	ax,KEEP_PROCESS shl 8	; Exit code 0
 
-;      $else				; else -			       ;AC000;
+;      $else				; else -
        JMP SHORT $$EN40
 $$IF40:
 
 	   mov	ax,(EXIT shl 8) 	; quit with no error
 
-;      $endif				; endif -			       ;AC000;
+;      $endif				; endif -
 $$EN40:
 
-;  $else				; else - a fatal error occured	       ;AC000;
+;  $else				; else - a fatal error occured
    JMP SHORT $$EN30
 $$IF30:
 
-       call DispMsg			; display the error message	       ;AC000;
+       call DispMsg			; display the error message
        mov  ax,(EXIT shl 8)		; quit with error
 
 
-;  $endif				; erdif - errors		       ;AC000;
+;  $endif				; erdif - errors
 $$EN30:
 
 
@@ -1018,60 +1018,60 @@ $$EN30:
 
    Process_A_Switch PROC NEAR
 
-   shl	di,1				;				       ;AC000;
+   shl	di,1				;
 
-   jmp	cs:JMPTABLE[di] 		;				       ;AC000;
+   jmp	cs:JMPTABLE[di] 		;
 
-JMPTABLE LABEL WORD			;				       ;AC000;
+JMPTABLE LABEL WORD			;
 
-   DW	CASE_D				;				       ;AN000;
-   DW	CASE_B				;				       ;AN000;
-   DW	CASE_Q				;				       ;AN000;
-   DW	CASE_S				;				       ;AN000;
-   DW	CASE_U				;				       ;AN000;
-   DW	CASE_M				;				       ;AN000;
-   DW	CASE_T				;				       ;AN000;
-   DW	CASE_C				;				       ;AN000;
-   DW	CASE_P				;				       ;AN000;
+   DW	CASE_D				;
+   DW	CASE_B				;
+   DW	CASE_Q				;
+   DW	CASE_S				;
+   DW	CASE_U				;
+   DW	CASE_M				;
+   DW	CASE_T				;
+   DW	CASE_C				;
+   DW	CASE_P				;
 
    ASSUME ds:DG,es:DG
 
-CASE_D: 				; Bgncase_/D			       ;AN000;
+CASE_D: 				; Bgncase_/D
 
-   cmp	[PInst],0			;				       ;AC000;
+   cmp	[PInst],0			;
 
-;  $if	e,and				;  if not installed		       ;AC000;
+;  $if	e,and				;  if not installed
    JNE $$IF47
 
 					;   move device name to LISTNAME
-   mov	bp,[P_PTR_L]			;				       ;AC000;
-   mov	di,bp				;  save start address		       ;AC000;
-   mov	ax,[P_PTR_H]			;				       ;AC000;
+   mov	bp,[P_PTR_L]			;
+   mov	di,bp				;  save start address
+   mov	ax,[P_PTR_H]			;
    mov	es,ax				;
 
    ASSUME es:nothing
 
-   xor	al,al				; find the length of input name        ;AN000;
-   mov	cx,9				; it can not be longer than 8 + :      ;AN000;
+   xor	al,al				; find the length of input name
+   mov	cx,9				; it can not be longer than 8 + :
 
    ASSUME es:DG 			; this is a bogus assume to keep the
 					;      assembler happy
-   repne scas NameBuf			; (use NameBuf to tell assembler its   ;AN000;
+   repne scas NameBuf			; (use NameBuf to tell assembler its
 					; a byte search)
    ASSUME es:nothing			; this puts it back right
 
-   dec	di				; back up to first null 	       ;AN000;
-   mov	ax,di				; pointer to end		       ;AN000;
-   sub	ax,bp				; subtract start pointer	       ;AN000;
-   mov	cx,ax				; difference is the length	       ;AN000;
-   or	cx,cx				; is it non zero?		       ;AN000;
+   dec	di				; back up to first null
+   mov	ax,di				; pointer to end
+   sub	ax,bp				; subtract start pointer
+   mov	cx,ax				; difference is the length
+   or	cx,cx				; is it non zero?
 
-;  $if	ne				; if we have a name		       ;AN000;
+;  $if	ne				; if we have a name
    JE $$IF47
 
-       mov  si,di			; set DS:SI up to source (Parse Buffer);AN000;
-       mov  ax,es			; set ES:DI up to LISTNAME (in CodeR)  ;AN000;
-       mov  ds,ax			;				       ;AN000;
+       mov  si,di			; set DS:SI up to source (Parse Buffer)
+       mov  ax,es			; set ES:DI up to LISTNAME (in CodeR)
+       mov  ds,ax			;
        mov  ax,CodeR			;
        mov  es,ax			;
 
@@ -1080,58 +1080,58 @@ CASE_D: 				; Bgncase_/D			       ;AN000;
        mov  WORD PTR [LISTNAME],2020h	; Nul out default
        mov  [LISTNAME+2]," "		;
        mov  di,OFFSET CodeR:LISTNAME	;
-       dec  si				; back up to last character	       ;AN004;
+       dec  si				; back up to last character
        cmp  BYTE PTR [si],':'		; is there a ':' at the end of the name?
 
-;      $if  e				; if it is			       ;AC000;
+;      $if  e				; if it is
        JNE $$IF48
 	   dec	cx			; Chuck the trailing ':'
-;      $endif				;				       ;AC000;
+;      $endif				;
 $$IF48:
 
        cmp  cx,8			; is the name still longer than 8?
 
-;      $if  a				; if it is			       ;AC000;
+;      $if  a				; if it is
        JNA $$IF50
 	   mov	cx,8			; Limit to 8 chars for device
-;      $endif				;				       ;AC000;
+;      $endif				;
 $$IF50:
 
-       mov  si,bp			;				       ;AC000;
-       rep  movsb			; move the device name into LISTNAME					 ;AC000;
+       mov  si,bp			;
+       rep  movsb			; move the device name into LISTNAME
        mov  si,bp			;
        mov  [DevSpec],1 		; remember that a device was specified
-       clc				;   reset carry 		       ;AC000;
+       clc				;   reset carry
 
-;  $else				;  else 			       ;AC000;
+;  $else				;  else
    JMP SHORT $$EN47
 $$IF47:
 
-       stc				;   set carry			       ;AC000;
+       stc				;   set carry
 
-;  $endif				;  endif			       ;AC000;
+;  $endif				;  endif
 $$EN47:
 
    push cs				;
    pop	cx				;
    mov	ds,cx				;
    mov	es,cx				;
-   mov	al," "				; invalidate this switch	       ;AN005;
-   mov	SW_PTR,al			; /D				       ;AN005;
+   mov	al," "				; invalidate this switch
+   mov	SW_PTR,al			; /D
 
 
-   JMP	CASE_END			; Endcase_/D			       ;AN000;
+   JMP	CASE_END			; Endcase_/D
 
-CASE_B: 				; Bgncase_/B			       ;AN000;
+CASE_B: 				; Bgncase_/B
 
    ASSUME ds:DG,es:DG
 
    cmp	[PInst],0			;
 
-;  $if	e				;  if not installed		       ;AC000;
+;  $if	e				;  if not installed
    JNE $$IF54
 
-       mov  ax,[P_PTR_L]		;   get the value		       ;AC000;
+       mov  ax,[P_PTR_L]		;   get the value
        push ds				;   update BLKSIZ
        mov  dx,CodeR			;
        mov  ds,dx			;
@@ -1143,30 +1143,30 @@ CASE_B: 				; Bgncase_/B			       ;AN000;
 
        ASSUME DS:DG
 
-       clc				;   reset carry 		       ;AC000;
+       clc				;   reset carry
 
-;  $else				;  else 			       ;AC000;
+;  $else				;  else
    JMP SHORT $$EN54
 $$IF54:
 
-       stc				;   set carry			       ;AC000;
+       stc				;   set carry
 
-;  $endif				;  endif			       ;AC000;
+;  $endif				;  endif
 $$EN54:
 
-   mov	al," "				; invalidate this switch	       ;AN005;
-   mov	B_SWITCH,al			; /B				       ;AN005;
+   mov	al," "				; invalidate this switch
+   mov	B_SWITCH,al			; /B
 
-   JMP	CASE_END			; Endcase_/B			       ;AN000;
+   JMP	CASE_END			; Endcase_/B
 
-CASE_Q: 				; Bgncase_/Q			       ;AN000;
+CASE_Q: 				; Bgncase_/Q
 
    cmp	[PInst],0			;
 
-;  $if	e				;  if not installed		       ;AC000;
+;  $if	e				;  if not installed
    JNE $$IF57
 
-       mov  ax,[P_PTR_L]		;   get the value		       ;AC000;
+       mov  ax,[P_PTR_L]		;   get the value
        push ds				;   update BLKSIZ
        mov  dx,CodeR			;
        mov  ds,dx			;
@@ -1178,30 +1178,30 @@ CASE_Q: 				; Bgncase_/Q			       ;AN000;
 
        ASSUME DS:DG
 
-       clc				;   reset carry 		       ;AC000;
+       clc				;   reset carry
 
-;  $else				;  else 			       ;AC000;
+;  $else				;  else
    JMP SHORT $$EN57
 $$IF57:
 
-       stc				;   set carry			       ;AC000;
+       stc				;   set carry
 
-;  $endif				;  endif			       ;AC000;
+;  $endif				;  endif
 $$EN57:
 
-   mov	al," "				; invalidate this switch	       ;AN005;
-   mov	Q_SWITCH,al			; /Q				       ;AN005;
+   mov	al," "				; invalidate this switch
+   mov	Q_SWITCH,al			; /Q
 
-   JMP	CASE_END			; Endcase_/Q			       ;AN000;
+   JMP	CASE_END			; Endcase_/Q
 
-CASE_S: 				; Bgncase_/S			       ;AN000;
+CASE_S: 				; Bgncase_/S
 
    cmp	[PInst],0			;
 
-;  $if	e				;  if not installed		       ;AC000;
+;  $if	e				;  if not installed
    JNE $$IF60
 
-       mov  ax,[P_PTR_L]		;   get the value		       ;AC000;
+       mov  ax,[P_PTR_L]		;   get the value
        push ds				;   update TIMESLICE, SLICECNT
        mov  dx,CodeR			;
        mov  ds,dx			;
@@ -1214,30 +1214,30 @@ CASE_S: 				; Bgncase_/S			       ;AN000;
 
        ASSUME ds:DG
 
-       clc				;   reset carry 		       ;AC000;
+       clc				;   reset carry
 
-;  $else				;  else 			       ;AC000;
+;  $else				;  else
    JMP SHORT $$EN60
 $$IF60:
 
-       stc				;   set carry			       ;AC000;
+       stc				;   set carry
 
-;  $endif				;  endif			       ;AC000;
+;  $endif				;  endif
 $$EN60:
 
-   mov	al," "				; invalidate this switch	       ;AN005;
-   mov	S_SWITCH,al			; /S				       ;AN005;
+   mov	al," "				; invalidate this switch
+   mov	S_SWITCH,al			; /S
 
-   JMP	CASE_END			; Endcase_/S			       ;AN000;
+   JMP	CASE_END			; Endcase_/S
 
-CASE_U: 				; Bgncase_/U			       ;AN000;
+CASE_U: 				; Bgncase_/U
 
    cmp	[PInst],0			;
 
-;  $if	e				;  if not installed		       ;AC000;
+;  $if	e				;  if not installed
    JNE $$IF63
 
-       mov  ax,[P_PTR_L]		;   get the value		       ;AC000;
+       mov  ax,[P_PTR_L]		;   get the value
        push ds				;   update BUSYTICK
        mov  dx,CodeR			;
        mov  ds,dx			;
@@ -1249,30 +1249,30 @@ CASE_U: 				; Bgncase_/U			       ;AN000;
 
        ASSUME ds:DG
 
-       clc				;   reset carry 		       ;AC000;
+       clc				;   reset carry
 
-;  $else				;  else 			       ;AC000;
+;  $else				;  else
    JMP SHORT $$EN63
 $$IF63:
 
-       stc				;   set carry			       ;AC000;
+       stc				;   set carry
 
-;  $endif				;  endif			       ;AC000;
+;  $endif				;  endif
 $$EN63:
 
-   mov	al," "				; invalidate this switch	       ;AN005;
-   mov	U_SWITCH,al			; /U				       ;AN005;
+   mov	al," "				; invalidate this switch
+   mov	U_SWITCH,al			; /U
 
-   JMP	CASE_END			; Endcase_/U			       ;AN000;
+   JMP	CASE_END			; Endcase_/U
 
-CASE_M: 				; Bgncase_/M			       ;AN000;
+CASE_M: 				; Bgncase_/M
 
    cmp	[PInst],0			;
 
-;  $if	e				;  if not installed		       ;AC000;
+;  $if	e				;  if not installed
    JNE $$IF66
 
-       mov  ax,[P_PTR_L]		;   get the value		       ;AC000;
+       mov  ax,[P_PTR_L]		;   get the value
        push ds				;   update MAXTICK
        mov  dx,CodeR			;
        mov  ds,dx			;
@@ -1284,34 +1284,34 @@ CASE_M: 				; Bgncase_/M			       ;AN000;
 
        ASSUME ds:DG
 
-       clc				;   reset carry 		       ;AC000;
+       clc				;   reset carry
 
-;  $else				;  else 			       ;AC000;
+;  $else				;  else
    JMP SHORT $$EN66
 $$IF66:
 
-       stc				;   set carry			       ;AC000;
+       stc				;   set carry
 
-;  $endif				;  endif			       ;AC000;
+;  $endif				;  endif
 $$EN66:
 
-   mov	al," "				; invalidate this switch	       ;AN005;
-   mov	M_SWITCH,al			; /M				       ;AN005;
+   mov	al," "				; invalidate this switch
+   mov	M_SWITCH,al			; /M
 
-   JMP	CASE_END			; Endcase_/M			       ;AN000;
+   JMP	CASE_END			; Endcase_/M
 
-CASE_T: 				; Bgncase_/T			       ;AN000;
+CASE_T: 				; Bgncase_/T
 
    push si				;   save parse pointer
 
    cmp	[PInst],0			;  has print been installed?
 
-;  $if	e				;  if not installed		       ;AC000;
+;  $if	e				;  if not installed
    JNE $$IF69
 
-       call Set_Buffer			;  do it now			       ;AC000;
+       call Set_Buffer			;  do it now
 
-;  $endif				;  endif			       ;AC000;
+;  $endif				;  endif
 $$IF69:
 					;   set up for cancel
    mov	ax,0103H			;   cancel command
@@ -1320,72 +1320,72 @@ $$IF69:
 
    pop	si				;   restore parse pointer
 
-   clc					;  reset carry			       ;AC000;
+   clc					;  reset carry
 
-   JMP	CASE_END			; Endcase_/T			       ;AN000;
+   JMP	CASE_END			; Endcase_/T
 
-CASE_C: 				; Bgncase_/C			       ;AN000;
+CASE_C: 				; Bgncase_/C
 
    cmp	[PInst],0			;  has print been installed?
 
-;  $if	ne				;  if installed 		       ;AC000;
+;  $if	ne				;  if installed
    JE $$IF71
 
        mov  [CanFlag],1 		;   set CanFlag
 
-;  $else				;  else 			       ;AC000;
+;  $else				;  else
    JMP SHORT $$EN71
 $$IF71:
 
-       call Set_Buffer			;				       ;AC000;
+       call Set_Buffer			;
 
-;  $endif				;  endif			       ;AC000;
+;  $endif				;  endif
 $$EN71:
 
-   clc					;  reset carry			       ;AC000;
+   clc					;  reset carry
 
-   JMP	CASE_END			; Endcase_/C			       ;AN000;
+   JMP	CASE_END			; Endcase_/C
 
-CASE_P: 				; Bgncase_/P			       ;AN000;
+CASE_P: 				; Bgncase_/P
 
    cmp	[PInst],0			;  has print been installed?
 
-;  $if	ne				;  if installed 		       ;AC000;
+;  $if	ne				;  if installed
    JE $$IF74
 
        mov  [CanFlag],0 		;   reset CanFlag
 
-;  $else				;  else 			       ;AC000;
+;  $else				;  else
    JMP SHORT $$EN74
 $$IF74:
 
-       call Set_Buffer			;				       ;AC000;
+       call Set_Buffer			;
 
-;  $endif				;  endif			       ;AC000;
+;  $endif				;  endif
 $$EN74:
 
-   clc					;  reset carry			       ;AC000;
+   clc					;  reset carry
 
 					; Endcase_/P
 
-CASE_END:				; End_case			       ;AN000;
+CASE_END:				; End_case
 
-;  $if	c				; if carry set			       ;AC000;
+;  $if	c				; if carry set
    JNC $$IF77
 
        mov  ax,(Parse_error shl 8) + INVPARM ; set up for Invalid_parm message ;AN000:
 
        cmp  [PInst],0			;  has print been installed?
 
-;      $if  ne				;  if installed 		       ;AN005;
+;      $if  ne				;  if installed
        JE $$IF78
 
-	   call DispMsg 		;  display the message and keep going  ;AN005;
+	   call DispMsg 		;  display the message and keep going
 
-;      $endif				;  endif			       ;AN005;
+;      $endif				;  endif
 $$IF78:
 
-;  $endif				; endif 			       ;AC000;
+;  $endif				; endif
 $$IF77:
 
    ret
@@ -1500,12 +1500,12 @@ $$IF77:
 
    cmp	[PInst],0			; has print been installed?
 
-;  $if	e				; if not .....			       ;AC000;
+;  $if	e				; if not .....
    JNE $$IF81
 
-       call Set_Buffer			; ... better do it now		       ;AC000;
+       call Set_Buffer			; ... better do it now
 
-;  $endif				; endif - installed		       ;AC000;
+;  $endif				; endif - installed
 $$IF81:
 
    cld					; just in case...
@@ -1515,8 +1515,8 @@ $$IF81:
 					;    Check for drive specifier
 					;------------------------------------
 
-   mov	si,P_PTR_L			;				       ;AC000;
-   mov	ax,P_PTR_H			;				       ;AC000;
+   mov	si,P_PTR_L			;
+   mov	ax,P_PTR_H			;
    mov	ds,ax
 
    ASSUME ds:nothing
@@ -1524,7 +1524,7 @@ $$IF81:
    mov	di,offset dg:NameBuf		; buffer for full file name
    cmp	byte ptr [si+1],":"		; check if there is a drive designator
 
-;  $if	ne				; if no :			       ;AC000;
+;  $if	ne				; if no :
    JE $$IF83
 
        mov  ah,Get_Default_Drive	; get it...
@@ -1535,41 +1535,41 @@ $$IF81:
        stosb				; store letter code
        mov  al,":"
        stosb
-       clc				; clear error flag		       ;AC000;
+       clc				; clear error flag
 
-;  $else				; else - theres a drive 	       ;AC000;
+;  $else				; else - theres a drive
    JMP SHORT $$EN83
 $$IF83:
 
        mov  al,byte ptr [si]		; get drive letter
        sub  al,"@"			; conver to proper code...
 
-;      $if  a				; if a valid drive		       ;AC000;
+;      $if  a				; if a valid drive
        JNA $$IF85
 
 	   mov	dl,al			; save for later (used in DoPath)
 	   movsb			; move the drive letter
 	   movsb			; move the ":"
-	   clc				;				       ;AC000;
+	   clc				;
 
-;      $else				;				       ;AC000;
+;      $else				;
        JMP SHORT $$EN85
 $$IF85:
 
-	   mov	ax,(CLASS_B shl 8) + InvDrvMes ; set up error message	       ;AC000;
-	   stc				; set error flag		       ;AC000;
+	   mov	ax,(CLASS_B shl 8) + InvDrvMes ; set up error message
+	   stc				; set error flag
 
-;      $endif				;				       ;AC000;
+;      $endif				;
 $$EN85:
 
-;  $endif				; endif - :			       ;AC000;
+;  $endif				; endif - :
 $$EN83:
 
 
 					;------------------------------------
 					; could have CF & message # here
 					;------------------------------------
-;  $if	nc				; if no error so far		       ;AC000;
+;  $if	nc				; if no error so far
    JC $$IF89
 
 					;------------------------------------
@@ -1578,7 +1578,7 @@ $$EN83:
        mov  al,[PathChar]
        cmp  byte ptr [si],al		; does it start from the root?
 
-;      $if  ne				; if not get the current path	       ;AC000;
+;      $if  ne				; if not get the current path
        JE $$IF90
 
 	   stosb			; store path character
@@ -1587,25 +1587,25 @@ $$EN83:
 	   mov	ah,Current_Dir		; get current directory
 	   int	21h
 
-;	   $if	c			; if an error occures		       ;AC000;
+;	   $if	c			; if an error occures
 	   JNC $$IF91
 
 	       pop  si			; clear the stack
 
-	       mov  ax,(CLASS_B shl 8) + InvDrvMes ; set up error message      ;AC000;
+	       mov  ax,(CLASS_B shl 8) + InvDrvMes ; set up error message
 
-;	   $else			; else - no error so far	       ;AC000;
+;	   $else			; else - no error so far
 	   JMP SHORT $$EN91
 $$IF91:
 
 
-;	       $do			; find terminating nul		       ;AC000;
+;	       $do			; find terminating nul
 $$DO93:
 
 		   lodsb
 		   or	al,al
 
-;	       $enddo z 		;				       ;AC000;
+;	       $enddo z 		;
 	       JNZ $$DO93
 
 	       dec  si			; adjust to point to nul
@@ -1614,13 +1614,13 @@ $$DO93:
 	       pop  si			; points to file name
 	       cmp  ax,di		; if equal then file is in the root
 
-;	       $if  ne			; if not, add a path char	       ;AC000;
+;	       $if  ne			; if not, add a path char
 	       JE $$IF95
 
 		   mov	al,[PathChar]
 		   stosb		; put path separator before file name
 
-;	       $endif			;				       ;AC000;
+;	       $endif			;
 $$IF95:
 					;------------------------------------
 					;    Check for valid drive.
@@ -1633,12 +1633,12 @@ $$IF95:
 					; current dir stuf by overwriting it
 					; with the filename.
 
-	       clc			; reset error flag		       ;AC000;
+	       clc			; reset error flag
 
-;	   $endif			;				       ;AC000;
+;	   $endif			;
 $$EN91:
 
-;      $else				; else - it starts from the root       ;AC000;
+;      $else				; else - it starts from the root
        JMP SHORT $$EN90
 $$IF90:
 					; DL has drive number (from DrvFound)
@@ -1648,25 +1648,25 @@ $$IF90:
 	   int	21h
 	   pop	si
 
-;	   $if	c			;				       ;AC000;
+;	   $if	c			;
 	   JNC $$IF99
 
-	       mov  ax,(CLASS_B shl 8) + InvDrvMes ;			       ;AC000;
+	       mov  ax,(CLASS_B shl 8) + InvDrvMes ;
 
-;	   $endif			;				       ;AC000;
+;	   $endif			;
 $$IF99:
 
-;      $endif				;				       ;AC000;
+;      $endif				;
 $$EN90:
 
-;  $endif				; endif errors			       ;AC000;
+;  $endif				; endif errors
 $$IF89:
 
 					;------------------------------------
 					; could have CF & message # here
 					;------------------------------------
 
-;  $if	nc				; if no error so far		       ;AC000;
+;  $if	nc				; if no error so far
    JC $$IF103
 
        mov  cx,MaxFileLen		; lets not overflow file name buffer
@@ -1675,59 +1675,59 @@ $$IF89:
        sub  ax,offset dg:NameBuf	; size of the filename so far
        sub  cx,ax			; size left for the filename
 
-;      $if  c				; if too long			       ;AC000;
+;      $if  c				; if too long
        JNC $$IF104
 
 	   mov	cx,1			; Set cx to Fall through to FNTooLong
 
-;      $endif				;				       ;AC000;
+;      $endif				;
 $$IF104:
 
 					; WHILE (Length(FileName) <= MaxFileLen)
-;      $search				;	DO copy in the file name       ;AC000;
+;      $search				;	DO copy in the file name
 $$DO106:
 
 	   lodsb
 	   stosb
 	   cmp	al,"*"
 
-;	   $if	e,or			; if its ambigous - *,	or......       ;AC000;
+;	   $if	e,or			; if its ambigous - *,	or......
 	   JE $$LL107
 
 	   cmp	al,"?"			;			       :
 
-;	   $if	e			; if its ambigous - ?,	.......:       ;AC000;
+;	   $if	e			; if its ambigous - ?,	.......:
 	   JNE $$IF107
 $$LL107:
 
 	       mov  [Ambig],1		;	ambigous filename found
 
-;	   $endif			; endif - ambigous		       ;AC000;
+;	   $endif			; endif - ambigous
 $$IF107:
 
 	   or	al,al			;	end of name?
-	   clc				;				       ;AC000;
+	   clc				;
 
-;      $exitif z			;				       ;AC000;
+;      $exitif z			;
        JNZ $$IF106
 
-;      $orelse				;				       ;AC000;
+;      $orelse				;
        JMP SHORT $$SR106
 $$IF106:
 
-;      $endloop loop			;				       ;AC000;
+;      $endloop loop			;
        LOOP $$DO106
 
 	   dec	di			; the name was too long !
 	   mov	[NulPtr],di
-	   mov	ax,(CLASS_C shl 8) + NamTMes ;				       ;AC000;
-	   stc				;				       ;AN010;
+	   mov	ax,(CLASS_C shl 8) + NamTMes ;
+	   stc				;
 
-;      $endsrch 			; we have the full absolute name...    ;AC000;
+;      $endsrch 			; we have the full absolute name...
 $$SR106:
 
 
-;  $endif				; endif errors			       ;AC000;
+;  $endif				; endif errors
 $$IF103:
 
    push cs				; restore ds to DG
@@ -1738,7 +1738,7 @@ $$IF103:
 					;------------------------------------
 					; could have CF & message #
 					;------------------------------------
-;  $if	nc,long 			;				       ;AC000;
+;  $if	nc,long 			;
    JNC $$XL2
    JMP $$IF114
 $$XL2:
@@ -1749,48 +1749,48 @@ $$XL2:
 					;------------------------------------
 					;    check for an option following name
 					;------------------------------------
-       call Parse_Input 		;				       ;AC000;
+       call Parse_Input 		;
 
-       cmp  ax,noerror			;  a parse error?		       ;AC000;
+       cmp  ax,noerror			;  a parse error?
 
-;      $if  e				; if no parse error		       ;AC000;
+;      $if  e				; if no parse error
        JNE $$IF115
 
 
-	   cmp	[P_SYN],offset DG:C_SW_ptr ;  is it the cancel switch /C       ;AC000;
+	   cmp	[P_SYN],offset DG:C_SW_ptr ;  is it the cancel switch /C
 
-;	   $if	e			; if it is			       ;AC000;
+;	   $if	e			; if it is
 	   JNE $$IF116
 
 	       mov  [CanFlag],1 	; set cancel flag
 
-;	   $else			; else - it is not		       ;AC000;
+;	   $else			; else - it is not
 	   JMP SHORT $$EN116
 $$IF116:
 
-	       cmp  [P_SYN],offset DG:P_SW_ptr ;  is it the print switch /P    ;AC000;
+	       cmp  [P_SYN],offset DG:P_SW_ptr ;  is it the print switch /P
 
-;	       $if  e			; if it is			       ;AC000;
+;	       $if  e			; if it is
 	       JNE $$IF118
 
 		   mov	[CanFlag],0	; reset cancel flag
 
-;	       $endif			;				       ;AC000;
+;	       $endif			;
 $$IF118:
 
-;	   $endif			;				       ;AC000;
+;	   $endif			;
 $$EN116:
 
-;	   $if	e			; if /C or /P found		       ;AC000;
+;	   $if	e			; if /C or /P found
 	   JNE $$IF121
 
-	       mov  [ordinal],cx	;				       ;AC000;
-	       mov  [scan_ptr],si	;				       ;AC000;
+	       mov  [ordinal],cx	;
+	       mov  [scan_ptr],si	;
 
-;	   $endif			;				       ;AC000;
+;	   $endif			;
 $$IF121:
 
-;      $endif				;				       ;AC000;
+;      $endif				;
 $$IF115:
 					;--------------------------------------
 					;------------------------------------
@@ -1799,7 +1799,7 @@ $$IF115:
 
        cmp  [CanFlag],1 		; are we in cancel mode
 
-;      $if  e				; if cancel mode		       ;AC000;
+;      $if  e				; if cancel mode
        JNE $$IF124
 					;------------------------------------
 					;     Issue a cancel command
@@ -1812,67 +1812,67 @@ $$IF115:
 	   mov	ax,0102H
 	   call IntWhileBusy
 
-;	   $if	c			;				       ;AC000;
+;	   $if	c			;
 	   JNC $$IF125
 
 	       cmp  ax,2
 
-;	       $if  ne			; Original Print Code timing jump      ;AC000;
+;	       $if  ne			; Original Print Code timing jump
 	       JE $$IF126
 					;------------------------------------
 					;***** PROCESS CANCEL ERROR
 					;------------------------------------
-;	       $endif			;				       ;AC000;
+;	       $endif			;
 $$IF126:
 
-	       mov  ax,(CLASS_C shl 8) + BadCanMes ;			       ;AC000;
-	       stc			;				       ;AC000;
+	       mov  ax,(CLASS_C shl 8) + BadCanMes ;
+	       stc			;
 
-;	   $endif			;				       ;AC000;
+;	   $endif			;
 $$IF125:
 
-;      $else long			; submit mode active		       ;AC000;
+;      $else long			; submit mode active
        JMP $$EN124
 $$IF124:
 
 	   cmp	[Ambig],1		; is this an ambigous name?
 
-;	   $if	e,and			; if it is ambigous		       ;AC000;
+;	   $if	e,and			; if it is ambigous
 	   JNE $$IF130
 
 					; do another ambigous name
 	   call GetAbsN 		; get abs name into NameBuf
 
-;	   $if	c			; if an error occured		       ;AC000;
+;	   $if	c			; if an error occured
 	   JNC $$IF130
 
-	       mov  ax,(CLASS_C shl 8) + BadNameMes ;			       ;AC000;
-	       call DispMsg		; call DispMsg			       ;AN000;
+	       mov  ax,(CLASS_C shl 8) + BadNameMes ;
+	       call DispMsg		; call DispMsg
 
-;	   $else long			; there is at least 1 name	       ;AC000;
+;	   $else long			; there is at least 1 name
 	   JMP $$EN130
 $$IF130:
 
-;	       $do			; until all names processed	       ;AC000;
+;	       $do			; until all names processed
 $$DO132:
 
 					; Check if this is a local drive -
 					;    If it is, convert the filename
 					;    to its physical name.
 
-		   lea	si,NameBuf	; DS:SI = NameBuf containing name      ;AN010;
-		   mov	bl,ds:[si]	; get DRIVE ID			       ;AN010;
-		   sub	bl,40h		; convert to a number		       ;AN010;
+		   lea	si,NameBuf	; DS:SI = NameBuf containing name
+		   mov	bl,ds:[si]	; get DRIVE ID
+		   sub	bl,40h		; convert to a number
 					; IOCtl call to see if target drive is local
-		   mov	ax,(IOCTL SHL 8) + 9 ;AN010;
-		   INT	21h		; IOCtl + dev_local  <4409>	       ;AN010;
+		   mov	ax,(IOCTL SHL 8) + 9
+		   INT	21h		; IOCtl + dev_local  <4409>
 
-;		   $if	nc,and		; target drive local and	       ;AN010;
+;		   $if	nc,and		; target drive local and
 		   JC $$IF133
 
-		   test dx,1200H	; check if (x & 0x1000) 	       ;AN010;
+		   test dx,1200H	; check if (x & 0x1000)
 					;      (redirected or shared)
-;		   $if	z,and		; if RC indicates NO network drive     ;AN010;
+;		   $if	z,and		; if RC indicates NO network drive
 		   JNZ $$IF133
 
 					; Translate the file name into an
@@ -1880,34 +1880,34 @@ $$DO132:
 					; from this point on only SERVER DOS
 					; calls will work with this name!
 
-		   lea	di,TokBuf	; DS:DI = output buffer 	       ;AN010;
-		   mov	ax,(xNameTrans SHL 8) ; check for name translation     ;AN010;
-		   int	21h		; get real path and name	       ;AN010;
+		   lea	di,TokBuf	; DS:DI = output buffer
+		   mov	ax,(xNameTrans SHL 8) ; check for name translation
+		   int	21h		; get real path and name
 
-;		   $if	nc		; if no errors so far		       ;AN010;
+;		   $if	nc		; if no errors so far
 		   JC $$IF133
 
-		       xchg di,si	; switch source and destination        ;AN010;
-		       mov  cx,((MaxFileLen+16)/2) ; move Max buffer	       ;AN010;
-		       cld		;AN010;
-		       rep  movsw	; move name back into NameBuf	       ;AN010;
+		       xchg di,si	; switch source and destination
+		       mov  cx,((MaxFileLen+16)/2) ; move Max buffer
+		       cld
+		       rep  movsw	; move name back into NameBuf
 
-;		   $endif		;				       ;AN010;
+;		   $endif		;
 $$IF133:
 					; set up to open file
-		   xor	cx,cx		; zero attribute type		       ;AC000;
-		   mov	di,cx		;				       ;AC001;
-		   dec	di		; no list supplied		       ;AC001;
-		   mov	dx,(ignore_cp shl 8) + (failopen shl 4) + openit ;     ;AC001;
-		   mov	open_seg,es	; segment fix up for OPEN_FILE	       ;AC000;
-		   lds	si,OPEN_FILE	;				       ;AC001;
-		   mov	bx,open_mode	; set open mode 		       ;AC000;
-		   mov	ah,ExtOpen	; open for reading exist.	       ;AN010;
-		   mov	al,ds:[si]	; recover drive ID		       ;AN010;
+		   xor	cx,cx		; zero attribute type
+		   mov	di,cx		;
+		   dec	di		; no list supplied
+		   mov	dx,(ignore_cp shl 8) + (failopen shl 4) + openit ;
+		   mov	open_seg,es	; segment fix up for OPEN_FILE
+		   lds	si,OPEN_FILE	;
+		   mov	bx,open_mode	; set open mode
+		   mov	ah,ExtOpen	; open for reading exist.
+		   mov	al,ds:[si]	; recover drive ID
 
-		   call TO_DOS		; make a SERVER DOS call	       ;AC010;
+		   call TO_DOS		; make a SERVER DOS call
 
-;		   $if	c		; if error			       ;AC000;
+;		   $if	c		; if error
 		   JNC $$IF135
 
 					; do error handling
@@ -1918,16 +1918,16 @@ $$IF133:
 		       mov  ah,DOS_error
 
 		       RestoreReg <DS,ES,BP,DI,SI>
-		       stc		;				       ;AC000;
+		       stc		;
 
-;		   $else		;				       ;AC000;
+;		   $else		;
 		   JMP SHORT $$EN135
 $$IF135:
 					; close file
 		       mov  bx,ax	; copy handle
 		       mov  ah,close
 		       int  21h 	;
-		       clc		; clear error flag		       ;AC000;
+		       clc		; clear error flag
 
 					; submit packet
 		       mov  dx,offset dg:NameBuf ;
@@ -1937,104 +1937,104 @@ $$IF135:
 		       mov  ax,0101H	; submit a file to resident
 		       call IntWhileBusy
 
-;		       $if  nc,and	; if successfull, or		       ;AC000;
+;		       $if  nc,and	; if successfull, or
 		       JC $$IF137
 
 		       cmp  ax,error_queue_full
 
-;		       $if  ne		; if error but queue not full	       ;AC000;
+;		       $if  ne		; if error but queue not full
 		       JE $$IF137
 
 			   mov	[QFullMes],0 ; queue is not full
-			   clc		; reset the error flag		       ;AC000;
+			   clc		; reset the error flag
 
-;		       $else		; else - the queue IS full	       ;AC000;
+;		       $else		; else - the queue IS full
 		       JMP SHORT $$EN137
 $$IF137:
 
 			   cmp	[QFullMes],1 ; has the message already been issued?
 
-;			   $if	ne	; if the message has not been posted   ;AC000;
+;			   $if	ne	; if the message has not been posted
 			   JE $$IF139
 
 			       mov  [QFullMes],1 ; set the 'message posted' flag
-			       mov  ax,(CLASS_B shl 8) + FullMes ; load msg #  ;AC000;
-			       stc	; display the message		       ;AC000;
+			       mov  ax,(CLASS_B shl 8) + FullMes ; load msg #
+			       stc	; display the message
 ;			   $else
 			   JMP SHORT $$EN139
 $$IF139:
 			       clc	; make sure carry clear
-;			   $endif	; message processed		       ;AC000;
+;			   $endif	; message processed
 $$EN139:
 
-;		       $endif		; queue errors			       ;AC000;
+;		       $endif		; queue errors
 $$EN137:
 
-;		   $endif		; OPENing errors		       ;AC000;
+;		   $endif		; OPENing errors
 $$EN135:
 
-;		   $if	c		; if error			       ;AC000;
+;		   $if	c		; if error
 		   JNC $$IF144
 
-		       call DispMsg	; display the error with this file     ;AC000;
+		       call DispMsg	; display the error with this file
 
-;		   $endif		;				       ;AC000;
+;		   $endif		;
 $$IF144:
 
-;	       $leave c 		; quit if error in displaying message  ;AC000;
+;	       $leave c 		; quit if error in displaying message
 	       JC $$EN132
 
 		   cmp	[Ambig],1	; are we processing an ambigous name?
 
-;		   $if	e		; if Ambiguous			       ;AC000;
+;		   $if	e		; if Ambiguous
 		   JNE $$IF147
 					; call Absn2 (will set fail if at end)
 		       call GetAbsN2	; get another file name
 
-;		   $else		;				       ;AC000;
+;		   $else		;
 		   JMP SHORT $$EN147
 $$IF147:
 
-		       mov  ax,0	; set fail			       ;AC000;
-		       stc		;				       ;AC000;
+		       mov  ax,0	; set fail
+		       stc		;
 
-;		   $endif		;				       ;AC000;
+;		   $endif		;
 $$EN147:
 
-;	       $enddo c,long		; end do on fail		       ;AC000;
+;	       $enddo c,long		; end do on fail
 	       JC $$XL3
 	       JMP $$DO132
 $$XL3:
 $$EN132:
 
-	       cmp  ax,0		; is there a message?		       ;AC000;
+	       cmp  ax,0		; is there a message?
 
-;	       $if  e			; if no message 		       ;AC000;
+;	       $if  e			; if no message
 	       JNE $$IF151
 
-		   clc			; reset fail			       ;AC000;
+		   clc			; reset fail
 
-;	       $endif			; no message to display 	       ;AC000;
+;	       $endif			; no message to display
 $$IF151:
 
-;	   $endif			; any submission errors 	       ;AC000;
+;	   $endif			; any submission errors
 $$EN130:
 
-;      $endif				; submit or cancel		       ;AC000;
+;      $endif				; submit or cancel
 $$EN124:
 
-;  $endif				; any errors so far		       ;AC000;
+;  $endif				; any errors so far
 $$IF114:
 
-;  $if	c				; if error			       ;AC000;
+;  $if	c				; if error
    JNC $$IF156
 
-       call DispMsg			; display the submit error	       ;AC000;
+       call DispMsg			; display the submit error
 
-;  $endif				;				       ;AC000;
+;  $endif				;
 $$IF156:
 
-   ret					; finished submission		       ;AC000;
+   ret					; finished submission
 
    Submit_File ENDP
 
@@ -2096,70 +2096,70 @@ $$IF156:
 
    cmp	[DevSpec],1			; was it already specified?
 
-;  $if	ne,and				; if not specified ...........	       ;AC000;
+;  $if	ne,and				; if not specified ...........
    JE $$IF158
 
-   lea	di,TokBuf			; ES:DI point to TokBuf      :	       ;AC000;
+   lea	di,TokBuf			; ES:DI point to TokBuf      :
    mov	[TokBuf],9			; max of 9 chars	     :
    mov	[TokBuf+1],0			; assume zero in	     :
 
-   push es				;				       ;AC000;
-   mov	ax,ds				;				       ;AC000;
-   mov	es,ax				;				       ;AC000;
+   push es				;
+   mov	ax,ds				;
+   mov	es,ax				;
 
-   assume es:DG 			;				       ;AC000;
+   assume es:DG 			;
 
-   mov	ax,(CLASS_D shl 8) + prompt	; DispMsg treats 'prompt' as :	       ;AC000;
+   mov	ax,(CLASS_D shl 8) + prompt	; DispMsg treats 'prompt' as :
 					;	a special case	     :
-   call DispMsg 			;			     :	       ;AC000;
+   call DispMsg 			;			     :
 
-   mov	ax,(CLASS_B shl 8) + NEXT_LINE	; advance to next line after :	       ;AC000;
+   mov	ax,(CLASS_B shl 8) + NEXT_LINE	; advance to next line after :
 					;	"buffered input" call:
-   call DispMsg 			;			     :	       ;AC000;
+   call DispMsg 			;			     :
 
-   pop	es				;				       ;AC000;
+   pop	es				;
 
    assume es:CodeR
 
    mov	cl,[TokBuf+1]			; check how many read in     :
    or	cl,cl				;			     :
 
-;  $if	nz				; if a CR was typed..........:	       ;AC000;
+;  $if	nz				; if a CR was typed..........:
    JZ $$IF158
 
        xor  ch,ch
        mov  si,offset dg:TokBuf+2
        mov  di,offset CodeR:ListName
        push si
-       mov  dx,si			; get ready to capitalize	       ;AN007;
+       mov  dx,si			; get ready to capitalize
        add  si,cx
-       mov  byte ptr [si],0		; turn it into an ascii z string       ;AN007;
-       mov  ax,(GetExtCntry SHL 8) + Cap_ASCIIZ ; let DOS capitalize the string ;AN007;
-       INT  21h 			; call DOS to do it		      ;AN007;
+       mov  byte ptr [si],0		; turn it into an ascii z string
+       mov  ax,(GetExtCntry SHL 8) + Cap_ASCIIZ ; let DOS capitalize the string
+       INT  21h 			; call DOS to do it
        dec  si
        cmp  byte ptr [si],':'
 
-;      $if  e				; if a :			       ;AC000;
+;      $if  e				; if a :
        JNE $$IF159
 	   dec	cx			; get rid of trailing ':'
-;      $endif				; endif - a :			       ;AC000;
+;      $endif				; endif - a :
 $$IF159:
 
-       cmp  cx,8			; is it greater than 8 ?	       ;AN000;
+       cmp  cx,8			; is it greater than 8 ?
 
-;      $if  a				; if greater - force it to 8.:	       ;AC000;
+;      $if  a				; if greater - force it to 8.:
        JNA $$IF161
 
-	   mov	cx,8			;				       ;AN000;
+	   mov	cx,8			;
 
-;      $endif				;				       ;AC000;
+;      $endif				;
 $$IF161:
 
        pop  si
 
-       rep  movsb			;				       ;AC000;
+       rep  movsb			;
 
-;  $endif				;				       ;AC000;
+;  $endif				;
 $$IF158:
 					;------------------------------------
 					;    queue size
@@ -2201,13 +2201,13 @@ TransRet:				; after moving the transient we come
    pop	ax				;  not the ASSEMBLED DG - its bogus -
    mov	ds,ax				;  after the move! Only PUSH/POP will
    mov	es,ax				;  work.
-   mov	WORD PTR [insert_ptr_seg],ax	; fix up segment in SUBLIST for msgs!  ;AC002;
-   mov	WORD PTR [P_PTR_H],ax		; fix up segment for PARSE	       ;AC002;
+   mov	WORD PTR [insert_ptr_seg],ax	; fix up segment in SUBLIST for msgs!
+   mov	WORD PTR [P_PTR_H],ax		; fix up segment for PARSE
 
    ASSUME ds:DG,es:DG
 
 
-   call SYSLOADMSG			; RE-Initialize the Message Services   ;AN016;
+   call SYSLOADMSG			; RE-Initialize the Message Services
 					;  - WARNING!!! the Message retriver
 					;    keeps track of offset and SEGMENT
 					;    for extended and parse errors
@@ -2228,7 +2228,7 @@ TransRet:				; after moving the transient we come
 
    mov	[PInst],1			; remember we just installed resident part
 
-   ret					; finished			       ;AC000;
+   ret					; finished
 
    Set_Buffer ENDP
 
@@ -2268,26 +2268,26 @@ TransRet:				; after moving the transient we come
 
    push di
    push si
-   push ax				; must preserve AX (could be message #);AN000;
+   push ax				; must preserve AX (could be message #)
    mov	di,offset dg:NameBuf
 
-;  $do					;				       ;AC000;
+;  $do					;
 $$DO164:
 
        lodsb
        or   al,al
 
-;  $leave z				;				       ;AC000;
+;  $leave z				;
    JZ $$EN164
 
        stosb
 
-;  $enddo				;				       ;AC000;
+;  $enddo				;
    JMP SHORT $$DO164
 $$EN164:
 
    stosb
-   pop	ax				; must preserve AX (could be message #);AN000;
+   pop	ax				; must preserve AX (could be message #)
    pop	si
    pop	di
 
@@ -2328,40 +2328,40 @@ $$EN164:
 
    IntWhileBusy PROC NEAR
 
-;  $search complex			;				       ;AC000;
+;  $search complex			;
    JMP SHORT $$SS167
 $$DO167:
 
        pop  ax
 
-;  $strtsrch				;				       ;AC000;
+;  $strtsrch				;
 $$SS167:
 
        push ax
        int  ComInt
 
-;  $exitif nc				;				       ;AC000;
+;  $exitif nc				;
    JC $$IF167
 
        add  sp,2			; clear off AX and clear carry
 
-;  $orelse				;				       ;AC000;
+;  $orelse				;
    JMP SHORT $$SR167
 $$IF167:
 
        cmp  ax,error_busy
 
-;  $leave nz				;				       ;AC000;
+;  $leave nz				;
    JNZ $$EN167
 
-;  $endloop				;				       ;AC000;
+;  $endloop				;
    JMP SHORT $$DO167
 $$EN167:
 
        add  sp,2			; clear off AX
-       stc				;				       ;AC000;
+       stc				;
 
-;  $endsrch				;				       ;AC000;
+;  $endsrch				;
 $$SR167:
 
    ret
@@ -2414,7 +2414,7 @@ $$SR167:
    mov	ah,Find_First
    int	21h
 
-;  $if	nc				; if no error			       ;AC000;
+;  $if	nc				; if no error
    JC $$IF174
 
 					;------------------------------------
@@ -2423,13 +2423,13 @@ $$SR167:
        mov  si,[NulPtr]
        std				; scan back
 
-;      $do				;				       ;AC000;
+;      $do				;
 $$DO175:
 
 	   lodsb
 	   cmp	al,PathChar
 
-;      $enddo e 			;				       ;AC000;
+;      $enddo e 			;
        JNE $$DO175
 
        cld				; just in case...
@@ -2437,9 +2437,9 @@ $$DO175:
        inc  si
        mov  [FnamPtr],si
        call CopyName
-       clc				;				       ;AC000;
+       clc				;
 
-;  $endif				; endif -no error		       ;AC000;
+;  $endif				; endif -no error
 $$IF174:
 
    ret
@@ -2484,13 +2484,13 @@ $$IF174:
    mov	ah,Find_Next
    int	21h
 
-;  $if	nc				; if no error			       ;AC000;
+;  $if	nc				; if no error
    JC $$IF178
 
        call CopyName			; we found one
-       clc				;				       ;AC000;
+       clc				;
 
-;  $endif				; endif - no error		       ;AC000;
+;  $endif				; endif - no error
 $$IF178:
 
    mov	ax,0				; signal no message available
@@ -2535,14 +2535,14 @@ $$IF178:
    mov	si,offset dg:SearchBuf.find_buf_pname
    cld
 
-;  $do					; until null is found		       ;AC000;
+;  $do					; until null is found
 $$DO180:
 
        lodsb				; move the name
        stosb
        or   al,al			; nul found?
 
-;  $enddo e				;				       ;AC000;
+;  $enddo e				;
    JNE $$DO180
 
    ret
@@ -2836,7 +2836,7 @@ INT_24_BACK:
 
    cmp	al,2				; Abort?
 
-;  $if	z				; if abort			       ;AC000;
+;  $if	z				; if abort
    JNZ $$IF182
 
        inc  [in_int_23] 		; no int 23's allowed
@@ -2853,12 +2853,12 @@ INT_24_BACK:
        mov  sp, offset dg:intStk	; setup local int stack
        cmp  [PInst],2
 
-;      $if  ne				; if not installed		       ;AC000;
+;      $if  ne				; if not installed
        JE $$IF183
 
 	   call Restore_ints
 
-;      $endif				; endif - not installed 	       ;AC000;
+;      $endif				; endif - not installed
 $$IF183:
 
        mov  ah,EXIT
@@ -2914,7 +2914,7 @@ INT_23:
 
    cmp	[in_int_23],0			; check for a re-entrant call
 
-;  $if	e				; If its OK			       ;AC000;
+;  $if	e				; If its OK
    JNE $$IF186
 
        inc  [in_int_23] 		; make sure no more int 23's
@@ -2931,26 +2931,26 @@ INT_23:
        mov  sp, offset dg:intStk	; setup local int stack
        cmp  [PInst],2
 
-;      $if  ne				; if not installed - undo	       ;AC000;
+;      $if  ne				; if not installed - undo
        JE $$IF187
 
-	   call Restore_ints		;				       ;AC000;
+	   call Restore_ints		;
 
-;      $else				; else - dont undo		       ;AC000;
+;      $else				; else - dont undo
        JMP SHORT $$EN187
 $$IF187:
 
 	   mov	ax,0105H
 	   call IntWhileBusy		; unlock print queue (just in case)
 
-;      $endif				; endif - undo			       ;AC000;
+;      $endif				; endif - undo
 $$EN187:
 
        mov  ah,EXIT
        mov  al,0FFH
        int  21h
 
-;  $endif				; endif - its OK		       ;AC000;
+;  $endif				; endif - its OK
 $$IF186:
 
    iret 				;
@@ -3122,15 +3122,15 @@ Parse_EOL equ 0FFh			; Parse End Of Line
 					;--------------------------------------
    ASSUME ds:DG,es:DG,ss:nothing
 
-   mov	cx,[ORDINAL]			; CURRENT ORDINAL VALUE 	       ;AN000;
-   mov	si,[SCAN_PTR]			; CURRENT SCAN POINT		       ;AN000;
-   mov	[MSG_PTR],si			; Save start in case of error	       ;AN000;
-   lea	di,PARMS			;				       ;AN000;
-   mov	dx,0				; RESERVED			       ;AN000;
-   push ds				;				       ;AN000;
-   mov	ax,CodeR			;				       ;AN000;
-   sub	ax,10h				; back up 100h to start of psp	       ;AN000;
-   mov	ds,ax				; DS:SI  = command string in PSP       ;AN000;
+   mov	cx,[ORDINAL]			; CURRENT ORDINAL VALUE
+   mov	si,[SCAN_PTR]			; CURRENT SCAN POINT
+   mov	[MSG_PTR],si			; Save start in case of error
+   lea	di,PARMS			;
+   mov	dx,0				; RESERVED
+   push ds				;
+   mov	ax,CodeR			;
+   sub	ax,10h				; back up 100h to start of psp
+   mov	ds,ax				; DS:SI  = command string in PSP
 
 					;--------------------------------------
    ASSUME ds:nothing			;  Call the Parse service routines
@@ -3141,63 +3141,63 @@ Parse_EOL equ 0FFh			; Parse End Of Line
 					; DS:SI - Pionter to Parse string
 					; ES:DI - Pointer to PARMS block
 
-   call SYSPARSE			; PARSE IT!			       ;AN000;
+   call SYSPARSE			; PARSE IT!
 
-   pop	ds				;				       ;AN000;
+   pop	ds				;
 
    ASSUME ds:DG
 
-   cmp	ax,NOERROR			; no errors?			       ;AN000;
+   cmp	ax,NOERROR			; no errors?
 
-;  $if	e				; if no errors			       ;AN000;
+;  $if	e				; if no errors
    JNE $$IF191
 
-       clc				; WE'ER DONE                           ;AN000;
+       clc				; WE'ER DONE
 
-;  $else				; else - there was an error	       ;AN000;
+;  $else				; else - there was an error
    JMP SHORT $$EN191
 $$IF191:
 
-       cmp  al,Parse_EOL		; error FFh  ?			       ;AN000;
+       cmp  al,Parse_EOL		; error FFh  ?
 
-;      $if  ne				; if not EOL			       ;AN000;
+;      $if  ne				; if not EOL
        JE $$IF193
 
-	   cmp	al,Syntax_Error 	; error 1 to 9 ?		       ;AN000;
+	   cmp	al,Syntax_Error 	; error 1 to 9 ?
 
-;	   $if	a			; if parse error		       ;AN000;
+;	   $if	a			; if parse error
 	   JNA $$IF194
 
 	       mov  al,Syntax_Error	; Parse syntax error
 
-;	   $endif			; endif errors			       ;AN000;
+;	   $endif			; endif errors
 $$IF194:
 
 	   lea	bx,Parse_Ret_Code
 	   xlat cs:[bx]
 
-;      $endif				; endif errors			       ;AN000;
+;      $endif				; endif errors
 $$IF193:
 
-       stc				; SET ERROR FLAG		       ;AN000;
+       stc				; SET ERROR FLAG
 
-;  $endif				; endif - no error		       ;AN000;
+;  $endif				; endif - no error
 $$EN191:
 
-   ret					; NORMAL RETURN TO CALLER	       ;AN000;
+   ret					; NORMAL RETURN TO CALLER
 
 Parse_Ret_Code label byte
 
-   db	0				; Ret Code 0 -			       ;AC003;
-   db	9				; Ret Code 1 - Too many parameters     ;AC003;
-   db	9				; Ret Code 2 - Required parameter msg  ;AC003;
-   db	3				; Ret Code 3 - Invalid switch	       ;AC003;
-   db	9				; Ret Code 4 - Invalid keyword	       ;AC003;
-   db	9				; Ret Code 5 - (reserved)	       ;AC003;
-   db	6				; Ret Code 6 - Parm val out of range   ;AC003;
-   db	9				; Ret Code 7 - Parameter val not allow ;AC003;
-   db	9				; Ret Code 8 - Parm format not correct ;AC003;
-   db	9				; Ret Code 9 - Invalid Parameter       ;AC003;
+   db	0				; Ret Code 0 -
+   db	9				; Ret Code 1 - Too many parameters
+   db	9				; Ret Code 2 - Required parameter msg
+   db	3				; Ret Code 3 - Invalid switch
+   db	9				; Ret Code 4 - Invalid keyword
+   db	9				; Ret Code 5 - (reserved)
+   db	6				; Ret Code 6 - Parm val out of range
+   db	9				; Ret Code 7 - Parameter val not allow
+   db	9				; Ret Code 8 - Parm format not correct
+   db	9				; Ret Code 9 - Invalid Parameter
 
    Parse_Input ENDP
 
@@ -3272,61 +3272,61 @@ Parse_Ret_Code label byte
 
    ASSUME CS:DG,DS:nothing,ES:nothing,SS:nothing
 
-   push ds				;				       ;AN000;
-   push si				;				       ;AN000;
-   push cs				; called before and after relocation   ;AC002;
-   pop	ds				;  - don't use DG                      ;AC002;
+   push ds				;
+   push si				;
+   push cs				; called before and after relocation
+   pop	ds				;  - don't use DG
 
    ASSUME CS:DG,DS:DG,ES:nothing,SS:nothing
 
-   lea	si,SUBLIST			; point to sublist		       ;AN000;
-   xor	dx,dx				; reset response  (DL)		       ;AN000;
-   dec	dh				;				       ;AN000;
-   xor	cx,cx				; reset insert	(CX)		       ;AN000;
-   mov	bx,STDOUT			; set output handle (BX)	       ;AC014;
+   lea	si,SUBLIST			; point to sublist
+   xor	dx,dx				; reset response  (DL)
+   dec	dh				;
+   xor	cx,cx				; reset insert	(CX)
+   mov	bx,STDOUT			; set output handle (BX)
 
-   cmp	ah,CLASS_C			; is it CLASS C 		       ;AN000;
+   cmp	ah,CLASS_C			; is it CLASS C
 
-;  $if	e,or				; CLASS C requires insert	       ;AC012;
+;  $if	e,or				; CLASS C requires insert
    JE $$LL198
 
-   cmp	ah,DOS_Error			; is it a DOS error?		       ;AN012;
+   cmp	ah,DOS_Error			; is it a DOS error?
 
-;  $if	e				; DOS requires insert		       ;AN012;
+;  $if	e				; DOS requires insert
    JNE $$IF198
 $$LL198:
 
-       mov  cx,offset DG:NameBuf	; set up insert pointer to NameBuf     ;AN005;
-       mov  insert_ptr_off,cx		;				       ;AN005;
-       push cs				;				       ;AN005;
-       pop  [insert_ptr_seg]		;				       ;AN005;
-       cmp  ah,CLASS_C			;				       ;AC012;
-;      $if  e,and			;				       ;AC012;
+       mov  cx,offset DG:NameBuf	; set up insert pointer to NameBuf
+       mov  insert_ptr_off,cx		;
+       push cs				;
+       pop  [insert_ptr_seg]		;
+       cmp  ah,CLASS_C			;
+;      $if  e,and			;
        JNE $$IF199
-       cmp  al,BadNameMes		;				       ;AN010;
-;      $if  b				;				       ;AN010;
+       cmp  al,BadNameMes		;
+;      $if  b				;
        JNB $$IF199
-	   mov	[insert_num],1		;				       ;AN005;
-;      $else				;				       ;AN010;
+	   mov	[insert_num],1		;
+;      $else				;
        JMP SHORT $$EN199
 $$IF199:
-	   mov	[insert_num],0		;				       ;AN010;
-;      $endif				;				       ;AN010;
+	   mov	[insert_num],0		;
+;      $endif				;
 $$EN199:
-       mov  cx,1			; 1 parameter to replace	       ;AN005;
+       mov  cx,1			; 1 parameter to replace
 
-;  $endif				;				       ;AN000;
+;  $endif				;
 $$IF198:
 
-   cmp	ah,CLASS_D			; is it CLASS D 		       ;AN000;
+   cmp	ah,CLASS_D			; is it CLASS D
 
-;  $if	e				; CLASS D requires response	       ;AN000;
+;  $if	e				; CLASS D requires response
    JNE $$IF203
 
 					; flush keystroke buffer?
-       mov  dl,buffered_input		; load response required (INT 21h 0A)  ;AN000;
+       mov  dl,buffered_input		; load response required (INT 21h 0A)
 
-;  $endif				;				       ;AN000;
+;  $endif				;
 $$IF203:
 
    cmp	ah,Parse_error
@@ -3335,7 +3335,7 @@ $$IF203:
    JNBE $$IF205
 
        mov  dh,ah
-       mov  bx,STDERR			; set output handle (BX)	       ;AN014;
+       mov  bx,STDERR			; set output handle (BX)
 
 ;  $endif				;
 $$IF205:
@@ -3343,49 +3343,49 @@ $$IF205:
 ;  $if	e				; if it is a parse error - show them
    JNE $$IF207
 					; what is wrong
-       mov  cx,[MSG_PTR]		;  set up sublist offset	       ;AN005;
-       mov  [insert_ptr_off],cx 	;				       ;AN005;
-       mov  cx,CodeR			;  set up sublist segment (PSP)        ;AN005;
-       sub  cx,10h			;				       ;AN005;
-       mov  [insert_ptr_seg],cx 	;				       ;AN005;
-       push si				;  save current pointer 	       ;AN005;
-       push ds				;				       ;AN005;
-       mov  si,[SCAN_PTR]		; point to end of bad parm	       ;AN005;
-       mov  ds,cx			;				       ;AN005;
-       mov  BYTE PTR ds:[si],0		; terminate the parameter	       ;AN005;
-       pop  ds				;   restore current pointer	       ;AN005;
-       pop  si				;				       ;AN005;
-       mov  [insert_num],0		;				       ;AN005;
-       mov  cx,1			; 1 parameter to replace	       ;AN005;
+       mov  cx,[MSG_PTR]		;  set up sublist offset
+       mov  [insert_ptr_off],cx 	;
+       mov  cx,CodeR			;  set up sublist segment (PSP)
+       sub  cx,10h			;
+       mov  [insert_ptr_seg],cx 	;
+       push si				;  save current pointer
+       push ds				;
+       mov  si,[SCAN_PTR]		; point to end of bad parm
+       mov  ds,cx			;
+       mov  BYTE PTR ds:[si],0		; terminate the parameter
+       pop  ds				;   restore current pointer
+       pop  si				;
+       mov  [insert_num],0		;
+       mov  cx,1			; 1 parameter to replace
 
 ;  $endif
 $$IF207:
 
-   xor	ah,ah				;				       ;AN000;
+   xor	ah,ah				;
 
-   call SysDispMsg			; to display message		       ;AN002;
+   call SysDispMsg			; to display message
 
-;  $if	c				; error ..................	       ;AN000;
+;  $if	c				; error ..................
    JNC $$IF209
 
-       mov  ah,DOS_error		; load error exit code		       ;AN000;
-       stc				; indicate failure		       ;AN000;
+       mov  ah,DOS_error		; load error exit code
+       stc				; indicate failure
 
-;  $endif				;				       ;AN000;
+;  $endif				;
 $$IF209:
 
-   pop	si				;				       ;AN000;
-   pop	ds				;				       ;AN000;
+   pop	si				;
+   pop	ds				;
 
-   ret					;				       ;AN000;
+   ret					;
 
    DispMsg ENDP
 
    GoDispMsg PROC FAR
 
-   call DispMsg 			; This allows long calls form CODER    ;AN000;
+   call DispMsg 			; This allows long calls form CODER
 
-   ret					;				       ;AN000;
+   ret					;
 
    GoDispMsg ENDP
 
@@ -3437,70 +3437,70 @@ $$IF209:
 					;--------------------------------------
 					; Load the Resident Messages
 					;--------------------------------------
-   mov	ax,CodeR			;				       ;AN000;
-   mov	es,ax				;				       ;AN000;
+   mov	ax,CodeR			;
+   mov	es,ax				;
 
    ASSUME DS:nothing,ES:CodeR
 
-   lea	di,R_MES_BUFF			; set destination to resident buffer   ;AN000;
-   mov	bx,OFFSET CodeR:MESBAS		; use BX as an index to MESBAS (CodeR) ;AN000;
+   lea	di,R_MES_BUFF			; set destination to resident buffer
+   mov	bx,OFFSET CodeR:MESBAS		; use BX as an index to MESBAS (CodeR)
 
 					;--------------------------------------
 					; Move messages ERR0 thru ERR12
 					;--------------------------------------
 
-   mov	ax,ERR0 			; message # 19 to start 	       ;AN000;
-   mov	dx,(DOS_error shl 8)		; Class is DOS error		       ;AN000;
+   mov	ax,ERR0 			; message # 19 to start
+   mov	dx,(DOS_error shl 8)		; Class is DOS error
 
-;  $do					;				       ;AN000;
+;  $do					;
 $$DO211:
 
-       call MoveMes			; LOAD the message		       ;AN000;
-;  $leave c				; leave loop if ERROR		       ;AN000;
+       call MoveMes			; LOAD the message
+;  $leave c				; leave loop if ERROR
    JC $$EN211
        mov  byte ptr es:[di],DOLLAR	; append a delimiter
-       inc  di				; move to next message		       ;AN000;
-       inc  al				; advance message #		       ;AN000;
-       cmp  al,ERR12			; are we past ERR12 ?		       ;AN000;
+       inc  di				; move to next message
+       inc  al				; advance message #
+       cmp  al,ERR12			; are we past ERR12 ?
 
-;  $enddo a				; if not, do it again		       ;AN000;
+;  $enddo a				; if not, do it again
    JNA $$DO211
 $$EN211:
 
-;  $if	nc				; if no ERROR			       ;AN000;
+;  $if	nc				; if no ERROR
    JC $$IF214
 					;--------------------------------------
 					; Do rocessing for ERRMEST through
 					;      BADDRVM
 					;--------------------------------------
 
-       mov  ax, errmest 		; message # 3 to start		       ;AN000;
-       mov  dx,(CLASS_Util shl 8)	; Class is Utility		       ;AN000;
+       mov  ax, errmest 		; message # 3 to start
+       mov  dx,(CLASS_Util shl 8)	; Class is Utility
 
-;      $do				; now we are past ERR12 	       ;AN000;
+;      $do				; now we are past ERR12
 $$DO215:
 
-	   call MoveMes 		; LOAD the message		       ;AC002;
-;      $leave c 			; leave loop if ERROR		       ;AC002;
+	   call MoveMes 		; LOAD the message
+;      $leave c 			; leave loop if ERROR
        JC $$EN215
-	   inc	al			; advance message #		       ;AC002;
-	   cmp	al,BADDRVM		; are we past BADDRVM		       ;AC002;
+	   inc	al			; advance message #
+	   cmp	al,BADDRVM		; are we past BADDRVM
 
-;      $enddo a 			;				       ;AN000;
+;      $enddo a 			;
        JNA $$DO215
 $$EN215:
 
-;  $endif				; endif - no error		       ;AN000;
+;  $endif				; endif - no error
 $$IF214:
 
-   push cs				;				       ;AN000;
-   pop	es				;				       ;AN000;
-   push cs				;				       ;AN000;
-   pop	ds				;				       ;AN000;
+   push cs				;
+   pop	es				;
+   push cs				;
+   pop	ds				;
 
    ASSUME DS:DG,ES:DG
 
-   ret					;				       ;AN000;
+   ret					;
 
    Load_R_Msg ENDP
 					;--------------------------------------
@@ -3509,23 +3509,23 @@ $$IF214:
 					;--------------------------------------
 MoveMes PROC NEAR
 
-   mov	es:[bx],di			; save the pointer to this message     ;AN000;
-   call SYSGETMSG			; line up the pointer on the message   ;AN000;
-;  $if	nc				; if no error			       ;AN000;
+   mov	es:[bx],di			; save the pointer to this message
+   call SYSGETMSG			; line up the pointer on the message
+;  $if	nc				; if no error
    JC $$IF219
 					; all being well --- WE NOW HAVE---
 					; DS:SI - aimed at the message file
 					; ES:DI - aimed at the Resident Buffer
 					; CX	    - # of characters
-       cld				; go ahead			       ;AN000;
-       rep  movsb			; and copy it!			       ;AN000;
-       inc  bx				; set up for next pointer	       ;AN000;
-       inc  bx				;				       ;AN000;
+       cld				; go ahead
+       rep  movsb			; and copy it!
+       inc  bx				; set up for next pointer
+       inc  bx				;
 
-;  $endif				; endif - no error		       ;AN000;
+;  $endif				; endif - no error
 $$IF219:
 
-   ret					;				       ;AN000;
+   ret					;
 
    MoveMes ENDP
 

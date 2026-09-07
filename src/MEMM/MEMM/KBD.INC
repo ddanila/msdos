@@ -8,23 +8,8 @@
 ;
 ;   Module:   KBD.INC - KBD.ASM Structures and Equates
 ;
-;   Version:  0.02
-;
-;   Date:     January 31, 1986
-;
-;   Author:
-;
 ;******************************************************************************
 ;
-;   Change log:
-;
-;     DATE    REVISION			DESCRIPTION
-;   --------  --------	-------------------------------------------------------
-;   01/31/86  Original
-;   05/12/86  A 	Cleanup and segment reorganization
-;   06/28/86  0.02	Name change from MEMM386 to MEMM
-;
-;******************************************************************************
 ;
 ;   Functional Description:
 ;
@@ -33,7 +18,6 @@ ifndef INC_LIST
 .xlist
 endif
 
-;	SCCSID = @(#)keybxx.inc 1.1 85/10/09
 ;------------------------------------------------------
 ;
 ;   Keybxx.inc - Define struct and equates for KeybXX and Keyb??.ASM .

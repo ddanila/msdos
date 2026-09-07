@@ -33,43 +33,9 @@
 ;	 LINK DEBUG+DEBCOM1+DEBCOM2+DEBCOM3+DEBASM+DEBUASM+DEBERR+
 ;	      DEBCONST+DEBDATA+DEBMES
 ;
-; REVISION HISTORY:
-;
-;	AN000	VERSION 4.00 - REVISIONS MADE RELATE TO THE FOLLOWING:
-;
-;				- IMPLEMENT DBCS HANDLING	DMS:6/17/87
-;				- IMPLEMENT DBCS HANDLING	bgb:5/03/88	;an001;bgb
-;				- IMPLEMENT MESSAGE RETRIEVER	DMS:6/17/87
-;				- > 32 MB SUPPORT		DMS:6/17/87
-;
 ; COPYRIGHT: "MS DOS DEBUG UTILITY"
 ;	     "VERSION 4.00 (C) COPYRIGHT 1988 Microsoft"
 ;	     "LICENSED MATERIAL - PROPERTY OF Microsoft  "
-;
-;	MICROSOFT REVISION HISTORY:
-;
-; Modified 5/4/82 by AaronR to do all I/O direct to devices
-; Runs on MS-DOS 1.28 and above
-;
-; REV 1.20
-;	Tab expansion
-;	New device interface (1.29 and above)
-; REV 2.0
-;	line by line assembler added by C. P.
-; REV 2.1
-;	Uses EXEC system call
-; REV 2.2
-;	Ztrace mode by zibo.
-;	Fix dump display to indent properly
-;	Parity nonsense by zibo
-;
-; REV 2.3 NP
-;	Use Printf for all standard output.
-;	Change to EXE file
-; REV 2.4 ARR
-;	Bug fixes. TEST, XCHG instructions reg order reversed.
-;	Single step, break point interrupts saved and restored.
-;	Access denied given on W to read only file.
 ;======================= END OF SPECIFICATIONS ===========================
 
 	IF1
@@ -204,8 +170,8 @@ CODE	SEGMENT PUBLIC
 	PUBLIC	RESTART,SET_TERMINATE_VECTOR,DABORT,TERMINATE,COMMAND
 	PUBLIC	FIND_DEBUG,CRLF,BLANK,TAB,INBUF,SCANB,SCANP
 	PUBLIC	HEX,OUTSI,OUTDI,DIGIT,BACKUP,RBUFIN
-	public	test_lead							;an001;bgb
-	public	test1								;an001;bgb
+	public	test_lead
+	public	test1
 
 	IF	SYSVER
 ;	    PUBLIC  SETUDEV,DEVIOCALL				; kwc 12/10/86
@@ -287,11 +253,11 @@ HELP_NO:
 	    mov     ax,(exit shl 8)	;an000;exit EDLIN.  PRE_LOAD_MESSAGE
 					;      has already said why
 	    int     21h 		;an000;exit
-;	$endif				;an000;
+;	$endif
 $$IF1:
 
 	pop	es			;an000;restore regs.
-	pop	ds			;an000;
+	pop	ds
 	assume	ds:nothing,es:nothing	;an000;back to original
 
 	MOV	AX,(GET_INTERRUPT_VECTOR SHL 8) OR VEC_BREAKPOINT ;get original contents
@@ -845,14 +811,14 @@ CASECHK:
 
 	LODSB
 
-	call	Test_Lead			;DBCS lead byte 		;an000; dms;
-;	$if	c				;yes - ignore 2nd. byte 	;an000; dms;
+	call	Test_Lead			;DBCS lead byte
+;	$if	c				;yes - ignore 2nd. byte
 	JNC $$IF3
-		stosb				;save the byte			;an000; dms;
-		lodsb				;pick up the 2nd. character	;an000; dms;
-		stosb				;save it also			;an000; dms;
-		jmp	CaseChk 		;read next character		;an000; dms;
-;	$endif					;				;an000; dms;
+		stosb				;save the byte
+		lodsb				;pick up the 2nd. character
+		stosb				;save it also
+		jmp	CaseChk 		;read next character
+;	$endif					;
 $$IF3:
 
 	CMP	AL,LOWER_A
@@ -1176,8 +1142,8 @@ prep_command_line endp			;end proc
 DEBUG_LEAD_BYTE proc near		;an000;get lead byte vector
 
 	push	ds			;an000;save affected regs
-	push	es			;an000;
-	push	si			;an000;
+	push	es
+	push	si
 
 	mov	ax,(ECS_call shl 8) or 00h ;an000;get dbcs env. vector
 	int	21h			;an000;invoke function
@@ -1188,8 +1154,8 @@ DEBUG_LEAD_BYTE proc near		;an000;get lead byte vector
 	mov	word ptr cs:lbtbl[2],ds ;an000;move segment of table
 
 	pop	si			;an000;restore affected regs
-	pop	es			;an000;
-	pop	ds			;an000;
+	pop	es
+	pop	ds
 
 	ret				;an000;return to caller
 
@@ -1199,7 +1165,7 @@ DEBUG_LEAD_BYTE endp			;an000;end proc
 ; TEST_LEAD - This routine will determine whether or not we have a valid
 ;	      lead byte for a DBCS character.
 ;
-;	Inputs : AL - Holds the byte to compare.  Passed by POP.		;an001;bgb
+;	Inputs : AL - Holds the byte to compare.  Passed by POP.
 ;
 ;	Outputs: Carry set if lead byte
 ;		 No carry if not lead byte
@@ -1210,12 +1176,12 @@ DEBUG_LEAD_BYTE endp			;an000;end proc
 TEST_LEAD proc	near			;an000;check for dbcs lead byte
 
 	push	ds			;an000;save affected regs
-	push	si			;an000;
-	push	ax			;an000;
+	push	si
+	push	ax
 
 	xchg	ah,al			;an000;ah used for compare
 	mov	si,word ptr cs:lbtbl[2] ;an000;get segment of table
-	mov	ds,si			;an000;
+	mov	ds,si
 	mov	si,word ptr cs:lbtbl[0] ;an000;get offset of table
 
 ck_next:
@@ -1225,7 +1191,7 @@ ck_next:
 ;	$IF	z			;an000;yes, end of table
 	JNZ $$IF19
 	    jmp     lead_exit		;an000;exit with clear carry
-;	$ELSE				;an000;
+;	$ELSE
 	JMP SHORT $$EN19
 $$IF19:
 	    cmp     al,ah		;an000;start > character?
@@ -1233,7 +1199,7 @@ $$IF19:
 	    JNA $$IF21
 		clc			;an000;clear carry flag
 		jmp	lead_exit	;an000;exit with clear carry
-;	    $ELSE			;an000;
+;	    $ELSE
 	    JMP SHORT $$EN21
 $$IF21:
 		lodsb			;an000;load al with byte table
@@ -1245,18 +1211,18 @@ $$IF21:
 		JMP SHORT $$EN23
 $$IF23:
 		    stc 		;an000;set carry flag
-;		$ENDIF			;an000;
+;		$ENDIF
 $$EN23:
-;	    $ENDIF			;an000;
+;	    $ENDIF
 $$EN21:
-;	$ENDIF				;an000;
+;	$ENDIF
 $$EN19:
 
 lead_exit:				;an000;exit from check
 
-	pop	ax			;an000;
+	pop	ax
 	pop	si			;an000;restore affected regs.
-	pop	ds			;an000;
+	pop	ds
 
 	ret				;an000;return to caller
 

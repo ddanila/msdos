@@ -11,23 +11,7 @@
 ;
 ;	Module: ELIMFUNC - entry point for VDM functions
 ;
-;	Version: 0.05
-;
-;	Date:	May 24,1986
-;
-;	Author:
-;
 ;******************************************************************************
-;
-;	Change Log:
-;
-;	DATE	 REVISION	Description
-;	-------- --------	--------------------------------------------
-;	04/24/86 Original	From EMML LIM driver.
-;	06/28/86 0.02		Name change from MEMM386 to MEMM
-;	07/05/86 0.04		Added segment R_CODE
-;	07/06/86 0.04		Changed assume to DGROUP
-;	07/10/86 0.05		jmp $+2 before "POPF"
 ;
 ;******************************************************************************
 ;   Functional Description:

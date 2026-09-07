@@ -14,12 +14,6 @@
 ;; ------------
 ;;       External declarations for procedures in file KEYCMD.ASM.
 ;;
-;; Change History:
-;; ---------------
-;;
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                                              ;;
         EXTRN    KEYB_COMMAND        :NEAR    ;;
                                               ;;
         EXTRN    KEYBSYS_FILE_HANDLE:WORD     ;;

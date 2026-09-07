@@ -1,5 +1,4 @@
 	PAGE	,132				; 
-;	SCCSID = @(#)ifsflink.asm 1.0 87/05/11
 TITLE	IFSFUNC LINK FIX ROUTINES - Routines to resolve ifsfunc externals
 NAME	IFSFLINK
 

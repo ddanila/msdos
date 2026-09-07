@@ -1,5 +1,3 @@
-;	SCCSID = @(#)dircall.asm	1.1 85/04/10
-;	SCCSID = @(#)dircall.asm	1.1 85/04/10
 TITLE DIRCALL - Directory manipulation internal calls
 NAME  DIRCALL
 ; Low level directory manipulation routines for making removing and
@@ -8,14 +6,6 @@ NAME  DIRCALL
 ;   DOS_MKDIR
 ;   DOS_CHDIR
 ;   DOS_RMDIR
-;
-;   Modification history:
-;
-;	Created: ARR 30 March 1983
-;
-
-;
-; get the appropriate segment definitions
 ;
 .xlist
 include dosseg.asm
@@ -137,9 +127,9 @@ ASSUME	DS:NOTHING
 	JC	NODEEXISTSPOPDEL    ; Screw up
 	LES	DI,[CURBUF]
 
-	TEST	ES:[DI.buf_flags],buf_dirty  ;LB. if already dirty		;AN000;
-	JNZ	yesdirty		  ;LB.	  don't increment dirty count   ;AN000;
-	invoke	INC_DIRTY_COUNT 	  ;LB.					;AN000;
+	TEST	ES:[DI.buf_flags],buf_dirty  ;LB. if already dirty
+	JNZ	yesdirty		  ;LB.	  don't increment dirty count
+	invoke	INC_DIRTY_COUNT 	  ;LB.
 	OR	ES:[DI.buf_flags],buf_dirty
 yesdirty:
 	ADD	DI,BUFINSIZ	; Point at buffer
@@ -168,9 +158,9 @@ ASSUME	DS:NOTHING
 	MOV	[SI+2],DX	; Zero size
 	MOV	[SI+4],DX
 DIRUP:
-	TEST	[DI.buf_flags],buf_dirty  ;LB. if already dirty 		;AN000;
-	JNZ	yesdirty2		  ;LB.	  don't increment dirty count   ;AN000;
-	invoke	INC_DIRTY_COUNT 	  ;LB.					;AN000;
+	TEST	[DI.buf_flags],buf_dirty  ;LB. if already dirty
+	JNZ	yesdirty2		  ;LB.	  don't increment dirty count
+	invoke	INC_DIRTY_COUNT 	  ;LB.
 	OR	[DI.buf_flags],buf_dirty	; Dirty buffer
 yesdirty2:
 	context DS
@@ -259,9 +249,9 @@ nojoin:
 
 	OR	[FastOpenFlg],FastOpen_Set	   ; set fastopen flag
 	invoke	GetPath
-	PUSHF									;AN000;
-	AND	[FastOpenFlg],Fast_yes		   ; clear it all		;AC000;
-	POPF									;AN000;
+	PUSHF
+	AND	[FastOpenFlg],Fast_yes		   ; clear it all
+	POPF
 ; DOS 3.3  6/24/86 FastOpen
 	MOV	AX,error_path_not_found
 	JC	ChDirDone

@@ -1,5 +1,3 @@
-;	SCCSID = @(#)fcb.asm	1.2 85/07/23
-;	SCCSID = @(#)fcb.asm	1.2 85/07/23
 TITLE	FCB - FCB parse calls for MSDOS
 NAME	FCB
 ; Low level routines for parsing names into FCBs and analyzing
@@ -12,14 +10,6 @@ NAME	FCB
 ;   TESTKANJ
 ;   NORMSCAN
 ;   DELIM
-;
-;   Revision history:
-;
-;	A000  version 4.00  Jan. 1988
-;
-
-;
-; get the appropriate segment definitions
 ;
 .xlist
 include dosseg.asm
@@ -93,10 +83,10 @@ SKPSPC:
 NOSCAN:
 	CALL	GETLET
 	JBE	NODRV		; Quit if termination character
- IF  DBCS			;AN000;
+ IF  DBCS
 	CALL	TESTKANJ	;AN000;; 2/18/KK
 	JNE	NODRV		;AN000;; 2/18/KK
- ENDIF				;AN000;
+ ENDIF
 	CMP	BYTE PTR[SI],":"        ; Check for potential drive specifier
 	JNZ	NODRV
 	INC	SI		; Skip over colon
@@ -107,8 +97,8 @@ NOSCAN:
 	Invoke	GetVisDrv
 	POP	AX
 	JNC	HavDrv
-	CMP	[DrvErr],error_not_DOS_disk  ; if not FAt drive 		;AN000;
-	JZ	HavDrv			     ; assume ok			;AN000;
+	CMP	[DrvErr],error_not_DOS_disk  ; if not FAt drive
+	JZ	HavDrv			     ; assume ok
 BADDRV:
 	MOV	DL,-1
 HAVDRV:
@@ -126,11 +116,11 @@ NODRV:
 	CMP	BYTE PTR [SI],"."
 	JNZ	NODOT
 	INC	SI		; Skip over dot if present
-	TEST	[DOS34_FLAG],DBCS_VOLID2					;AN000;
-	JZ	VOLOK								;AN000;
-	MOVSB			; 2nd byte of DBCS				;AN000;
-	MOV	CX,2								;AN000;
-	JMP	SHORT contvol							;AN000;
+	TEST	[DOS34_FLAG],DBCS_VOLID2
+	JZ	VOLOK
+	MOVSB			; 2nd byte of DBCS
+	MOV	CX,2
+	JMP	SHORT contvol
 VOLOK:
 	MOV	CX,3		; Get 3-letter extension
 contvol:
@@ -174,31 +164,31 @@ MustCheckCX:
 NOSTAR:
 	STOSB
 
- IF   DBCS							  ;AN000;
-	CALL	TESTKANJ					  ;AN000;
-	JZ	NOTDUAL3					  ;AN000;
-	JCXZ	BNDERR		; Attempt to straddle boundry	  ;AN000;
-	MOVSB			; Transfer second byte		  ;AN000;
-	DEC	CX						  ;AN000;
-	JMP	MUSTGETWORD					  ;AN000;
-BNDERR: 							  ;AN000;
-	TEST	[DOS34_FLAG],DBCS_VOLID 			  ;AN000;
-	JZ	notvolumeid					  ;AN000;
-	TEST	[DOS34_FLAG],DBCS_VOLID2			  ;AN000;
-	JNZ	notvolumeid					  ;AN000;
-	OR	[DOS34_FLAG],DBCS_VOLID2			  ;AN000;
-	JMP	MUSTGETWORD					  ;AN000;
+ IF   DBCS
+	CALL	TESTKANJ
+	JZ	NOTDUAL3
+	JCXZ	BNDERR		; Attempt to straddle boundry
+	MOVSB			; Transfer second byte
+	DEC	CX
+	JMP	MUSTGETWORD
+BNDERR:
+	TEST	[DOS34_FLAG],DBCS_VOLID
+	JZ	notvolumeid
+	TEST	[DOS34_FLAG],DBCS_VOLID2
+	JNZ	notvolumeid
+	OR	[DOS34_FLAG],DBCS_VOLID2
+	JMP	MUSTGETWORD
 
 notvolumeid:
 ;;	INC	CX		; Undo the store of the first byte
 	DEC	DI
-	MOV	AL," "          ;PTM.                              ;AN000;
-	STOSB			;PTM.				   ;AN000;
-	INC	SI		;PTM.				   ;AN000;
-	JMP	MUSTGETWORD	;PTM.				   ;AN000;
+	MOV	AL," "          ;PTM.
+	STOSB			;PTM.
+	INC	SI		;PTM.
+	JMP	MUSTGETWORD	;PTM.
 
-NOTDUAL3:							   ;AN000;
-  ENDIF 							   ;AN000;
+NOTDUAL3:
+  ENDIF
 
 	CMP	AL,"?"
 	JNZ	MUSTGETWORD
@@ -214,17 +204,17 @@ SCANB:
 	LODSB
 	CALL	SPCHK
 	JZ	SCANB
- IF  DBCS			;AN000; 						;AN000;
-	CMP	AL,81H		;AN000;; 1ST BYTE OF DBCS BLANK 2/18/KK 		;AN000;
-	JNE	SCANB_EXIT	;AN000;; 2/18/KK  3/31/KK revoved			;AN000;
-	CALL	TESTKANJ	;AN000;; 2/23/KK  3/31/KK revoved			;AN000;
-	JE	SCANB_EXIT	;AN000;; 2/18/KK  3/31/KK revoved			;AN000;
-	CMP	BYTE PTR [SI],40H;AN000;H ; 2ND BYTE OF DBCS BLANK 2/18/KK 3/31/KK revove;AN000;
-	JNE	SCANB_EXIT	;AN000;; 2/18/KK  3/31/KK revoved			;AN000;
-	INC	SI		;AN000;; 2/18/KK  3/31/KK revoved			;AN000;
-	JMP	SCANB		;AN000;; 2/18/KK  3/31/KK revoved			;AN000;
-    SCANB_EXIT: 		;AN000;; 2/18/KK  3/31/KK revoved			;AN000;
- ENDIF				;AN000;
+ IF  DBCS
+	CMP	AL,81H		;AN000;; 1ST BYTE OF DBCS BLANK 2/18/KK
+	JNE	SCANB_EXIT	;AN000;; 2/18/KK  3/31/KK revoved
+	CALL	TESTKANJ	;AN000;; 2/23/KK  3/31/KK revoved
+	JE	SCANB_EXIT	;AN000;; 2/18/KK  3/31/KK revoved
+	CMP	BYTE PTR [SI],40H;AN000;H ; 2ND BYTE OF DBCS BLANK 2/18/KK 3/31/KK revove
+	JNE	SCANB_EXIT	;AN000;; 2/18/KK  3/31/KK revoved
+	INC	SI		;AN000;; 2/18/KK  3/31/KK revoved
+	JMP	SCANB		;AN000;; 2/18/KK  3/31/KK revoved
+    SCANB_EXIT: 		;AN000;; 2/18/KK  3/31/KK revoved
+ ENDIF
 	DEC	SI
 	return
 EndProc MakeFCB
@@ -259,8 +249,8 @@ IF DBCS 			;AN000;;KK.
 	invoke	testkanj	;AN000;;KK. dbcs ?
 	JZ	notdbcs 	;AN000;;KK. no
 	return			;AN000;;KK. yes
-notdbcs:			;AN000;
-ENDIF				;AN000;
+notdbcs:
+ENDIF
 	CMP	[NAME1],0E5H
 	retnz
 	MOV	[NAME1],5	; Magic name translation
@@ -367,8 +357,8 @@ GOTIT:
 	POP	BX
 	RET
   entry GetLet3 			     ;AN000; called by uCase
-	PUSH	BX			     ;AN000;
-	JMP	getget			     ;AN000;
+	PUSH	BX
+	JMP	getget
 
 ELSE
 GOTIT:
@@ -459,48 +449,47 @@ EndProc PathChrCMP
 ;
 ;  Register:  All registers are unchanged except FL
 ;
-procedure   TESTKANJ,NEAR							;AN000;
-	call	Chk_DBCS							;AN000;
-	jc	TK_DBCS 							;AN000;
-	cmp	AL,AL		; set ZF					;AN000;
-	return									;AN000;
+procedure   TESTKANJ,NEAR
+	call	Chk_DBCS
+	jc	TK_DBCS
+	cmp	AL,AL		; set ZF
+	return
 TK_DBCS:
-	PUSH	AX								;AN000;
-	XOR	AX,AX		;Set ZF 					;AN000;
-	INC	AX		;Reset ZF					;AN000;
-	POP	AX								;AN000;
-	return									;AN000;
-EndProc TESTKANJ								;AN000;
+	PUSH	AX
+	XOR	AX,AX		;Set ZF
+	INC	AX		;Reset ZF
+	POP	AX
+	return
+EndProc TESTKANJ
 ;
-Chk_DBCS	PROC								;AN000;
-	PUSH	DS								;AN000;
-	PUSH	SI								;AN000;
-	PUSH	BX								;AN000;
-	Context DS								;AN000;
-	MOV	BX,offset DOSGROUP:COUNTRY_CDPG.ccSetDBCS			;AN000;
-	LDS	SI,[BX+1]		; set EV address to DS:SI		;AN000;
-	ADD	SI,2			; Skip length				;AN000;
+Chk_DBCS	PROC
+	PUSH	DS
+	PUSH	SI
+	PUSH	BX
+	Context DS
+	MOV	BX,offset DOSGROUP:COUNTRY_CDPG.ccSetDBCS
+	LDS	SI,[BX+1]		; set EV address to DS:SI
+	ADD	SI,2			; Skip length
 DBCS_LOOP:
-	CMP	WORD PTR [SI],0 	; terminator ?				;AN000;
-	JE	NON_DBCS		; if yes, no DBCS			;AN000;
-	CMP	AL,[SI] 		; else					;AN000;
-	JB	DBCS01			; check if AL is			;AN000;
-	CMP	AL,[SI+1]		; in a range of Ev			;AN000;
-	JA	DBCS01			; if yes, DBCS				;AN000;
-	STC				; else					;AN000;
-	JMP	DBCS_EXIT		; try next DBCS Ev			;AN000;
+	CMP	WORD PTR [SI],0 	; terminator ?
+	JE	NON_DBCS		; if yes, no DBCS
+	CMP	AL,[SI] 		; else
+	JB	DBCS01			; check if AL is
+	CMP	AL,[SI+1]		; in a range of Ev
+	JA	DBCS01			; if yes, DBCS
+	STC				; else
+	JMP	DBCS_EXIT		; try next DBCS Ev
 DBCS01:
-	ADD	SI,2								;AN000;
-	JMP	DBCS_LOOP							;AN000;
+	ADD	SI,2
+	JMP	DBCS_LOOP
 NON_DBCS:
-	CLC									;AN000;
+	CLC
 DBCS_EXIT:
-	POP	BX								;AN000;
-	POP	SI								;AN000;
-	POP	DS								;AN000;
-	RET									;AN000;
-Chk_DBCS	ENDP								;AN000;
- ENDIF										;AN000;
+	POP	BX
+	POP	SI
+	POP	DS
+	RET
+Chk_DBCS	ENDP
+ ENDIF
 CODE	ENDS
     END
-										;AN000;

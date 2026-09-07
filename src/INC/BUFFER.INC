@@ -1,4 +1,3 @@
-;	SCCSID = @(#)buffer.asm 1.1 85/04/09
 BREAK <Disk I/O Buffer Header>
 ;----+----+----+----+----+----+----+----+----+----+----+----+----+----+----;
 ;	     C	A  V  E  A  T	  P  R	O  G  R  A  M  M  E  R		   ;

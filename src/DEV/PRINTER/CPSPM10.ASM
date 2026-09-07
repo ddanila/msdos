@@ -36,17 +36,13 @@ TITLE	DOS - Code Page Switching - Printer Device Driver
 ;;						6BH	-- query-list
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;*Modification history ********************************************************
-;AN001; p2685  Long delay on CHCP before failure message	   12/10/87 J.K.
-;******************************************************************************
-					;;
 INCLUDE CPSPEQU.INC			;;
 					;;
 PUBLIC	PRINTER_DESC_NUM		;;
 PUBLIC	PRINTER_DESC_TBL		;;
-PUBLIC	INIT_CHK,TABLE,DEVICE_NUM	;; WGR						 ;AN000;
-PUBLIC	INVOKE				;; WGR						 ;AN000;
-PUBLIC	BUF0,BUF1,BUF2,BUF3		;; WGR						 ;AN000;
+PUBLIC	INIT_CHK,TABLE,DEVICE_NUM	;; WGR
+PUBLIC	INVOKE				;; WGR
+PUBLIC	BUF0,BUF1,BUF2,BUF3		;; WGR
 PUBLIC	HARD_SL1,RAM_SL1		;;
 PUBLIC	HARD_SL2,RAM_SL2		;;
 PUBLIC	HARD_SL3,RAM_SL3		;;
@@ -589,148 +585,128 @@ REQ_NORM3 GIH	<,,,,,> 		;; for LPT3
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-TABLE	       LABEL	BYTE		   ; table header				 ;AN000;
-DEVICE_NUM     DW	ZERO		   ; initialized to zero devices		 ;AN000;
-	       DW	TABLE1_1	   ; pointer to table 2 for device 1		 ;AN000;
-	       DW	TABLE2_1	   ; pointer to table 2 for device 2		 ;AN000;
-	       DW	TABLE3_1	   ; pointer to table 2 for device 3		 ;AN000;
-	       DW	TABLE4_1	   ; pointer to table 2 for device 4		 ;AN000;
-											 ;AN000;
-TABLE1_1       LABEL	WORD								 ;AN000;
-	       DW	FOUR		   ; 4 pointer follow				 ;AN000;
-	       DW	TABLE1_2	   ; pointer to table 3 (device name)		 ;AN000;
-	       DW	TABLE1_3	   ; pointer to table 4 (device id)		 ;AN000;
-	       DW	TABLE1_4	   ; pointer to table 5 (hwcp's)                 ;AN000;
-	       DW	TABLE1_5	   ; pointer to table 6 (num desg's and fonts)   ;AN000;
-	       DW	-1		   ; reserved					 ;AN000;
-											 ;AN000;
-TABLE1_2       LABEL	WORD		   ; device name (ie. PRN)			 ;AN000;
-	       DW	ZERO		   ; length					 ;AN000;
-	       DB	"        "         ; value                                       ;AN000;
-											 ;AN000;
-TABLE1_3       LABEL	WORD		   ; device id. (eg. 4201,5202..)		 ;AN000;
-	       DW	ZERO		   ; length					 ;AN000;
-	       DB	"        "         ; value                                       ;AN000;
-											 ;AN000;
-TABLE1_4       LABEL	WORD		   ; hardware code pages (10 max.)		 ;AN000;
-	       DW	ZERO		   ; number					 ;AN000;
-	       DW	-1		   ; value					 ;AN000;
-	       DW	-1		   ; value					 ;AN000;
-	       DW	-1		   ; value					 ;AN000;
-	       DW	-1		   ; value					 ;AN000;
-	       DW	-1		   ; value					 ;AN000;
-	       DW	-1		   ; value					 ;AN000;
-	       DW	-1		   ; value					 ;AN000;
-	       DW	-1		   ; value					 ;AN000;
-	       DW	-1		   ; value					 ;AN000;
-	       DW	-1		   ; value					 ;AN000;
-											 ;AN000;
-TABLE1_5       LABEL	WORD		   ; Designates and fonts			 ;AN000;
-	       DW	ZERO		   ; values given (0 - 2 valid) 		 ;AN000;
-	       DW	-1		   ; n value					 ;AN000;
-	       DW	-1		   ; m value					 ;AN000;
-											 ;AN000;
-TABLE2_1       LABEL	WORD								 ;AN000;
-	       DW	FOUR		   ; 4 pointer follow				 ;AN000;
-	       DW	TABLE2_2	   ; pointer to table 3 (device name)		 ;AN000;
-	       DW	TABLE2_3	   ; pointer to table 4 (device id)		 ;AN000;
-	       DW	TABLE2_4	   ; pointer to table 5 (hwcp's)                 ;AN000;
-	       DW	TABLE2_5	   ; pointer to table 6 (num desg's and fonts)   ;AN000;
-	       DW	-1		   ; reserved					 ;AN000;
-											 ;AN000;
-TABLE2_2       LABEL	WORD		   ; device name (ie. PRN)			 ;AN000;
-	       DW	ZERO		   ; length					 ;AN000;
-	       DB	"        "         ; value                                       ;AN000;
-											 ;AN000;
-TABLE2_3       LABEL	WORD		   ; device id. (eg. 4201,5202..)		 ;AN000;
-	       DW	ZERO		   ; length					 ;AN000;
-	       DB	"        "         ; value                                       ;AN000;
-											 ;AN000;
-TABLE2_4       LABEL	WORD		   ; hardware code pages (10 max.)		 ;AN000;
-	       DW	ZERO		   ; number					 ;AN000;
-	       DW	-1		   ; value					 ;AN000;
-	       DW	-1		   ; value					 ;AN000;
-	       DW	-1		   ; value					 ;AN000;
-	       DW	-1		   ; value					 ;AN000;
-	       DW	-1		   ; value					 ;AN000;
-	       DW	-1		   ; value					 ;AN000;
-	       DW	-1		   ; value					 ;AN000;
-	       DW	-1		   ; value					 ;AN000;
-	       DW	-1		   ; value					 ;AN000;
-	       DW	-1		   ; value					 ;AN000;
-											 ;AN000;
-TABLE2_5       LABEL	WORD		   ; Designates and fonts			 ;AN000;
-	       DW	ZERO		   ; values given (0 - 2 valid) 		 ;AN000;
-	       DW	-1		   ; n value					 ;AN000;
-	       DW	-1		   ; m value					 ;AN000;
-											 ;AN000;
-TABLE3_1       LABEL	WORD								 ;AN000;
-	       DW	FOUR		   ; 4 pointer follow				 ;AN000;
-	       DW	TABLE3_2	   ; pointer to table 3 (device name)		 ;AN000;
-	       DW	TABLE3_3	   ; pointer to table 4 (device id)		 ;AN000;
-	       DW	TABLE3_4	   ; pointer to table 5 (hwcp's)                 ;AN000;
-	       DW	TABLE3_5	   ; pointer to table 6 (num desg's and fonts)   ;AN000;
-	       DW	-1		   ; reserved					 ;AN000;
-											 ;AN000;
-TABLE3_2       LABEL	WORD		   ; device name (ie. PRN)			 ;AN000;
-	       DW	ZERO		   ; length					 ;AN000;
-	       DB	"        "         ; value                                       ;AN000;
-											 ;AN000;
-TABLE3_3       LABEL	WORD		   ; device id. (eg. 4201,5202..)		 ;AN000;
-	       DW	ZERO		   ; length					 ;AN000;
-	       DB	"        "         ; value                                       ;AN000;
-											 ;AN000;
-TABLE3_4       LABEL	WORD		   ; hardware code pages (10 max.)		 ;AN000;
-	       DW	ZERO		   ; number					 ;AN000;
-	       DW	-1		   ; value					 ;AN000;
-	       DW	-1		   ; value					 ;AN000;
-	       DW	-1		   ; value					 ;AN000;
-	       DW	-1		   ; value					 ;AN000;
-	       DW	-1		   ; value					 ;AN000;
-	       DW	-1		   ; value					 ;AN000;
-	       DW	-1		   ; value					 ;AN000;
-	       DW	-1		   ; value					 ;AN000;
-	       DW	-1		   ; value					 ;AN000;
-	       DW	-1		   ; value					 ;AN000;
-											 ;AN000;
-TABLE3_5       LABEL	WORD		   ; Designates and fonts			 ;AN000;
-	       DW	ZERO		   ; values given (0 - 2 valid) 		 ;AN000;
-	       DW	0		   ; n value					 ;AN000;
-	       DW	0		   ; m value					 ;AN000;
-											 ;AN000;
-TABLE4_1       LABEL	WORD								 ;AN000;
-	       DW	FOUR		   ; 4 pointer follow				 ;AN000;
-	       DW	TABLE4_2	   ; pointer to table 3 (device name)		 ;AN000;
-	       DW	TABLE4_3	   ; pointer to table 4 (device id)		 ;AN000;
-	       DW	TABLE4_4	   ; pointer to table 5 (hwcp's)                 ;AN000;
-	       DW	TABLE4_5	   ; pointer to table 6 (num desg's and fonts)   ;AN000;
-	       DW	-1		   ; reserved					 ;AN000;
-											 ;AN000;
-TABLE4_2       LABEL	WORD		   ; device name (ie. PRN)			 ;AN000;
-	       DW	ZERO		   ; length					 ;AN000;
-	       DB	"        "         ; value                                       ;AN000;
-											 ;AN000;
-TABLE4_3       LABEL	WORD		   ; device id. (eg. 4201,5202..)		 ;AN000;
-	       DW	ZERO		   ; length					 ;AN000;
-	       DB	"        "         ; value                                       ;AN000;
-											 ;AN000;
-TABLE4_4       LABEL	WORD		   ; hardware code pages (10 max.)		 ;AN000;
-	       DW	ZERO		   ; number					 ;AN000;
-	       DW	-1		   ; value					 ;AN000;
-	       DW	-1		   ; value					 ;AN000;
-	       DW	-1		   ; value					 ;AN000;
-	       DW	-1		   ; value					 ;AN000;
-	       DW	-1		   ; value					 ;AN000;
-	       DW	-1		   ; value					 ;AN000;
-	       DW	-1		   ; value					 ;AN000;
-	       DW	-1		   ; value					 ;AN000;
-	       DW	-1		   ; value					 ;AN000;
-	       DW	-1		   ; value					 ;AN000;
-											 ;AN000;
-TABLE4_5       LABEL	WORD		   ; Designates and fonts			 ;AN000;
-	       DW	ZERO		   ; values given (0 - 2 valid) 		 ;AN000;
-	       DW	0		   ; n value					 ;AN000;
-	       DW	0		   ; m value					 ;AN000;
+TABLE	       LABEL	BYTE		   ; table header
+DEVICE_NUM     DW	ZERO		   ; initialized to zero devices
+	       DW	TABLE1_1	   ; pointer to table 2 for device 1
+	       DW	TABLE2_1	   ; pointer to table 2 for device 2
+	       DW	TABLE3_1	   ; pointer to table 2 for device 3
+	       DW	TABLE4_1	   ; pointer to table 2 for device 4
+TABLE1_1       LABEL	WORD
+	       DW	FOUR		   ; 4 pointer follow
+	       DW	TABLE1_2	   ; pointer to table 3 (device name)
+	       DW	TABLE1_3	   ; pointer to table 4 (device id)
+	       DW	TABLE1_4	   ; pointer to table 5 (hwcp's)
+	       DW	TABLE1_5	   ; pointer to table 6 (num desg's and fonts)
+	       DW	-1		   ; reserved
+TABLE1_2       LABEL	WORD		   ; device name (ie. PRN)
+	       DW	ZERO		   ; length
+	       DB	"        "         ; value
+TABLE1_3       LABEL	WORD		   ; device id. (eg. 4201,5202..)
+	       DW	ZERO		   ; length
+	       DB	"        "         ; value
+TABLE1_4       LABEL	WORD		   ; hardware code pages (10 max.)
+	       DW	ZERO		   ; number
+	       DW	-1		   ; value
+	       DW	-1		   ; value
+	       DW	-1		   ; value
+	       DW	-1		   ; value
+	       DW	-1		   ; value
+	       DW	-1		   ; value
+	       DW	-1		   ; value
+	       DW	-1		   ; value
+	       DW	-1		   ; value
+	       DW	-1		   ; value
+TABLE1_5       LABEL	WORD		   ; Designates and fonts
+	       DW	ZERO		   ; values given (0 - 2 valid)
+	       DW	-1		   ; n value
+	       DW	-1		   ; m value
+TABLE2_1       LABEL	WORD
+	       DW	FOUR		   ; 4 pointer follow
+	       DW	TABLE2_2	   ; pointer to table 3 (device name)
+	       DW	TABLE2_3	   ; pointer to table 4 (device id)
+	       DW	TABLE2_4	   ; pointer to table 5 (hwcp's)
+	       DW	TABLE2_5	   ; pointer to table 6 (num desg's and fonts)
+	       DW	-1		   ; reserved
+TABLE2_2       LABEL	WORD		   ; device name (ie. PRN)
+	       DW	ZERO		   ; length
+	       DB	"        "         ; value
+TABLE2_3       LABEL	WORD		   ; device id. (eg. 4201,5202..)
+	       DW	ZERO		   ; length
+	       DB	"        "         ; value
+TABLE2_4       LABEL	WORD		   ; hardware code pages (10 max.)
+	       DW	ZERO		   ; number
+	       DW	-1		   ; value
+	       DW	-1		   ; value
+	       DW	-1		   ; value
+	       DW	-1		   ; value
+	       DW	-1		   ; value
+	       DW	-1		   ; value
+	       DW	-1		   ; value
+	       DW	-1		   ; value
+	       DW	-1		   ; value
+	       DW	-1		   ; value
+TABLE2_5       LABEL	WORD		   ; Designates and fonts
+	       DW	ZERO		   ; values given (0 - 2 valid)
+	       DW	-1		   ; n value
+	       DW	-1		   ; m value
+TABLE3_1       LABEL	WORD
+	       DW	FOUR		   ; 4 pointer follow
+	       DW	TABLE3_2	   ; pointer to table 3 (device name)
+	       DW	TABLE3_3	   ; pointer to table 4 (device id)
+	       DW	TABLE3_4	   ; pointer to table 5 (hwcp's)
+	       DW	TABLE3_5	   ; pointer to table 6 (num desg's and fonts)
+	       DW	-1		   ; reserved
+TABLE3_2       LABEL	WORD		   ; device name (ie. PRN)
+	       DW	ZERO		   ; length
+	       DB	"        "         ; value
+TABLE3_3       LABEL	WORD		   ; device id. (eg. 4201,5202..)
+	       DW	ZERO		   ; length
+	       DB	"        "         ; value
+TABLE3_4       LABEL	WORD		   ; hardware code pages (10 max.)
+	       DW	ZERO		   ; number
+	       DW	-1		   ; value
+	       DW	-1		   ; value
+	       DW	-1		   ; value
+	       DW	-1		   ; value
+	       DW	-1		   ; value
+	       DW	-1		   ; value
+	       DW	-1		   ; value
+	       DW	-1		   ; value
+	       DW	-1		   ; value
+	       DW	-1		   ; value
+TABLE3_5       LABEL	WORD		   ; Designates and fonts
+	       DW	ZERO		   ; values given (0 - 2 valid)
+	       DW	0		   ; n value
+	       DW	0		   ; m value
+TABLE4_1       LABEL	WORD
+	       DW	FOUR		   ; 4 pointer follow
+	       DW	TABLE4_2	   ; pointer to table 3 (device name)
+	       DW	TABLE4_3	   ; pointer to table 4 (device id)
+	       DW	TABLE4_4	   ; pointer to table 5 (hwcp's)
+	       DW	TABLE4_5	   ; pointer to table 6 (num desg's and fonts)
+	       DW	-1		   ; reserved
+TABLE4_2       LABEL	WORD		   ; device name (ie. PRN)
+	       DW	ZERO		   ; length
+	       DB	"        "         ; value
+TABLE4_3       LABEL	WORD		   ; device id. (eg. 4201,5202..)
+	       DW	ZERO		   ; length
+	       DB	"        "         ; value
+TABLE4_4       LABEL	WORD		   ; hardware code pages (10 max.)
+	       DW	ZERO		   ; number
+	       DW	-1		   ; value
+	       DW	-1		   ; value
+	       DW	-1		   ; value
+	       DW	-1		   ; value
+	       DW	-1		   ; value
+	       DW	-1		   ; value
+	       DW	-1		   ; value
+	       DW	-1		   ; value
+	       DW	-1		   ; value
+	       DW	-1		   ; value
+TABLE4_5       LABEL	WORD		   ; Designates and fonts
+	       DW	ZERO		   ; values given (0 - 2 valid)
+	       DW	0		   ; n value
+	       DW	0		   ; m value
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 reserved1 DW	?			;; reserved for debugging used
@@ -2089,15 +2065,15 @@ DESIGNATE_START PROC			;;
 	CMP	AX,NORMAL		;;
 	JNE	DS_00			;G; ALL OF THESE EXTRA JUMPS ARE
 	JMP	DST_NORMAL		;;  DUE TO SIZE OF FOLLOWING CODE!!!!!
-DS_00:	CMP	AX,CPSW 		;; WGR						 ;AN000;
+DS_00:	CMP	AX,CPSW 		;; WGR
 	JE	DS_01			;G;
-	CMP	AX,LOCKED		;; WGR						 ;AN000;
-	JE	DS_03			;; WGR						 ;AN000;
+	CMP	AX,LOCKED		;; WGR
+	JE	DS_03			;; WGR
 	JMP	DST_CMDERR		;G;
 
 DS_01:	CALL	CHECK_PRINT_ACTIVE	;G; THIS WILL FIND OUT IF THE
 	JNC	DS_02			;G;
-DS_03:					;; WGR						 ;AN000;
+DS_03:					;; WGR
 	JMP	DST_DEVERR		;G; PRINT.COM IS ACTIVE, CY=1 MEANS YES
 					;G;
 DS_02:	LDS	SI,RH.GIH_GBA		;; GIOB = DS:[SI]
@@ -2827,11 +2803,11 @@ DESIGNATE_START ENDP			;;
 DESIGNATE_END PROC			;;
 					;;
 	MOV	AX,BUF.STATE		;;
-	CMP	AX,LOCKED		;; WGR						 ;AN000;
-	JNE	DE_01			;; WGR						 ;AN000;
-	MOV	AX,STAT_BADDEN		;; WGR						 ;AN000;
-	JMP	DE_11			;; WGR						 ;AN000;
-DE_01:					;; WGR						 ;AN000;
+	CMP	AX,LOCKED		;; WGR
+	JNE	DE_01			;; WGR
+	MOV	AX,STAT_BADDEN		;; WGR
+	JMP	DE_11			;; WGR
+DE_01:					;; WGR
 	CMP	AX,CPSW 		;;
 	JNE	DEN_NOT_CPSW		;;
 	MOV	AX,BUF.STATUS		;; any refresh ?
@@ -3067,7 +3043,7 @@ DEN_FAIL_RET :				;;
 DEN_RET :				;;
 	MOV	BUF.STATE,CPSW		;; end of designate cycle
 					;;
-DE_11:					;; WGR						 ;AN000;
+DE_11:					;; WGR
 	LES	DI,dword ptr buf.rh_ptro ;;
 	MOV	RH.RHC_STA,AX		;;
 					;;
@@ -3086,8 +3062,8 @@ INVOKE	PROC				;; ALSO JUMP FROM REFRESH
 	MOV	AX,BUF.STATE		;;
 	CMP	AX,CPSW 		;;
 	JE	IVK_PROCESS		;;
-	CMP	AX,LOCKED		;; WGR						 ;AN000;
-	JE	IVK_PROCESS		;; WGR						 ;AN000;
+	CMP	AX,LOCKED		;; WGR
+	JE	IVK_PROCESS		;; WGR
 	JMP	IVK_CMDERR		;G;
 IVK_PROCESS:				;;-------------------------
 					;G;
@@ -3183,24 +3159,24 @@ IVK_RAMCP :				;; code page found in RAM slots
 					;; -- there are font buffers created
 					;; -- the slot's font has not been
 					;;    loaded
-	CMP	CS:[BX].STATE,LOCKED	;; WGR are we locked?				 ;AN000;
-	JNE	IR_0			;; WGR no..continue				 ;AN000;
-	MOV	CS:[BX].SAVED_CP,DX	;; WGR yes...save the code page 		 ;AN000;
-	CMP	BX,OFFSET BUF1		;; WGR if this is lpt1..then			 ;AN000;
-	JNE	NEXT_1			;; WGR						 ;AN000;
-	LEA	SI,BUF0 		;; WGR copy to PRN buffer.			 ;AN000;
-	MOV	CS:[SI].SAVED_CP,DX	;; WGR						 ;AN000;
-	JMP	ALL_RESET		;; WGR						 ;AN000;
-NEXT_1: 				;; WGR						 ;AN000;
-	CMP	BX,OFFSET BUF0		;; WGR if this is PRN..then..			 ;AN000;
-	JNE	NEXT_2			;; WGR						 ;AN000;
-	LEA	SI,BUF1 		;; WGR copy to lpt1 buffer.			 ;AN000;
-	MOV	CS:[SI].SAVED_CP,DX	;; WGR						 ;AN000;
-NEXT_2: 				;; WGR						 ;AN000;
-	JMP	ALL_RESET		;; WGR exit invoke with good status		 ;AN000;
-IR_0:					;; WGR						 ;AN000;
+	CMP	CS:[BX].STATE,LOCKED	;; WGR are we locked?
+	JNE	IR_0			;; WGR no..continue
+	MOV	CS:[BX].SAVED_CP,DX	;; WGR yes...save the code page
+	CMP	BX,OFFSET BUF1		;; WGR if this is lpt1..then
+	JNE	NEXT_1			;; WGR
+	LEA	SI,BUF0 		;; WGR copy to PRN buffer.
+	MOV	CS:[SI].SAVED_CP,DX	;; WGR
+	JMP	ALL_RESET		;; WGR
+NEXT_1: 				;; WGR
+	CMP	BX,OFFSET BUF0		;; WGR if this is PRN..then..
+	JNE	NEXT_2			;; WGR
+	LEA	SI,BUF1 		;; WGR copy to lpt1 buffer.
+	MOV	CS:[SI].SAVED_CP,DX	;; WGR
+NEXT_2: 				;; WGR
+	JMP	ALL_RESET		;; WGR exit invoke with good status
+IR_0:					;; WGR
 ;	 test	 cs:[di].SLT_AT, AT_ACT  ;AN001;If it is currently active, then do nothing
-;	 jnz	 Next_2 		 ;AN001;
+;	 jnz	 Next_2
 	CMP	BUF.RBUFMX,0		;;
 	JE	INVK_RAM_PHYSICAL	;;
 					;;
@@ -3241,8 +3217,8 @@ FONT_LOCATED :				;;
 	call	Prt_status_check	;AN001;Check the printer status
 	jz	Send_Ram_Data		;AN001;O.K.?
 	pop	di			;AN001;Balance the stack
-	pop	si			;AN001;
-	pop	cx			;AN001;
+	pop	si
+	pop	cx
 	jmp	Ram_Prt_Status_Err	;AN001;return with error.
 Send_Ram_Data:
 	MOV	SI,BUF.RNORMO		;;
@@ -3308,24 +3284,24 @@ INVK_RAM_PHYSICAL :			;;
 					;; CX=inverse order of slot cp found
 IVK_HWCPCP:				;; code page found in HWCP slots
 					;; set up the pointer to first controls
-	CMP	CS:[BX].STATE,LOCKED	;; WGR are we locked?				 ;AN000;
-	JNE	IR_1			;; WGR no..continue				 ;AN000;
-	MOV	CS:[BX].SAVED_CP,DX	;; WGR yes...save the code page 		 ;AN000;
-	CMP	BX,OFFSET BUF1		;; WGR if this is lpt1..then			 ;AN000;
-	JNE	NEXT_3			;; WGR						 ;AN000;
-	LEA	SI,BUF0 		;; WGR copy to PRN buffer.			 ;AN000;
-	MOV	CS:[SI].SAVED_CP,DX	;; WGR						 ;AN000;
-	JMP	ALL_RESET		;; WGR						 ;AN000;
-NEXT_3: 				;; WGR						 ;AN000;
-	CMP	BX,OFFSET BUF0		;; WGR if this is PRN..then..			 ;AN000;
-	JNE	NEXT_4			;; WGR						 ;AN000;
-	LEA	SI,BUF1 		;; WGR copy to lpt1 buffer.			 ;AN000;
-	MOV	CS:[SI].SAVED_CP,DX	;; WGR						 ;AN000;
-NEXT_4: 				;; WGR						 ;AN000;
-	JMP	ALL_RESET		;; WGR exit invoke with good status		 ;AN000;
-IR_1:					;; WGR						 ;AN000;
+	CMP	CS:[BX].STATE,LOCKED	;; WGR are we locked?
+	JNE	IR_1			;; WGR no..continue
+	MOV	CS:[BX].SAVED_CP,DX	;; WGR yes...save the code page
+	CMP	BX,OFFSET BUF1		;; WGR if this is lpt1..then
+	JNE	NEXT_3			;; WGR
+	LEA	SI,BUF0 		;; WGR copy to PRN buffer.
+	MOV	CS:[SI].SAVED_CP,DX	;; WGR
+	JMP	ALL_RESET		;; WGR
+NEXT_3: 				;; WGR
+	CMP	BX,OFFSET BUF0		;; WGR if this is PRN..then..
+	JNE	NEXT_4			;; WGR
+	LEA	SI,BUF1 		;; WGR copy to lpt1 buffer.
+	MOV	CS:[SI].SAVED_CP,DX	;; WGR
+NEXT_4: 				;; WGR
+	JMP	ALL_RESET		;; WGR exit invoke with good status
+IR_1:					;; WGR
 ;	 test	 cs:[di].SLT_AT, AT_ACT  ;AN001;If it is currently active, then do nothing
-;	 jnz	 Next_4 		 ;AN001;
+;	 jnz	 Next_4
 	POP	DX			;; stack -1
 	PUSH	DX			;; stack  1  (size)
 					;;
@@ -3560,37 +3536,37 @@ IVK_RET :				;;
 INVOKE	ENDP				;;
 					;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-Prt_Status_Check	proc	near		;AN001;
+Prt_Status_Check	proc	near
 ;Check the printer device status
 ;Out) if Zero flag set - Ok.
 ;     All registers saved.
 
-	push	es				;AN001;
-	push	si				;AN001;
+	push	es
+	push	si
 
-	mov	si, BUF.RNORMO			;AN001;
-	mov	cs:[si].RHC_LEN, 13		;AN001;
+	mov	si, BUF.RNORMO
+	mov	cs:[si].RHC_LEN, 13
 	mov	cs:[si].RHC_CMD, 10		;AN001;device driver status check
 
-	push	di				;AN001;
-	push	bx				;AN001;
+	push	di
+	push	bx
 
-	push	bx				;AN001;
-	pop	di				;AN001;
-	push	cs				;AN001;
+	push	bx
+	pop	di
+	push	cs
 	pop	es				;AN001;ES:BX -> REQ_NORMn (was cs:si)
-	mov	bx, si				;AN001;
+	mov	bx, si
 
 	call	dword ptr cs:[di].LPT_STRAO	;AN001;Strategy
 	call	dword ptr cs:[di].LPT_INTRO	;AN001;Intrrupt
-	test	cs:[si].RHC_STA, STAT_ERROR	;AN001;
-	pop	bx				;AN001;
-	pop	di				;AN001;
+	test	cs:[si].RHC_STA, STAT_ERROR
+	pop	bx
+	pop	di
 
-	pop	si				;AN001;
-	pop	es				;AN001;
-	ret					;AN001;
-Prt_Status_Check	endp			;AN001;
+	pop	si
+	pop	es
+	ret
+Prt_Status_Check	endp
 
 
 
@@ -3604,14 +3580,14 @@ Q_INVOKED PROC				;;
 	push	ds			;;
 					;;
 	MOV	AX,BUF.STATE		;; ???????????????
-	CMP	AX,LOCKED		;; WGR						 ;AN000;
-	JNE	QI_0			;; WGR						 ;AN000;
-	MOV	AX,BUF.SAVED_CP 	;; WGR						 ;AN000;
-	LDS	SI,RH.GIH_GBA		;; WGR						 ;AN000;
-	CMP	AX,-1			;; WGR						 ;AN000;
-	JE	QIV_NOACT		;; WGR						 ;AN000;
-	JMP	QI_1			;; WGR						 ;AN000;
-QI_0:					;; WGR						 ;AN000;
+	CMP	AX,LOCKED		;; WGR
+	JNE	QI_0			;; WGR
+	MOV	AX,BUF.SAVED_CP 	;; WGR
+	LDS	SI,RH.GIH_GBA		;; WGR
+	CMP	AX,-1			;; WGR
+	JE	QIV_NOACT		;; WGR
+	JMP	QI_1			;; WGR
+QI_0:					;; WGR
 	CMP	AX,CPSW 		;; reject only in NORMAL !!!!
 	JNE	QIV_CMDERR		;G;
 					;;-------------------------
@@ -3658,7 +3634,7 @@ QIV_NOACT :				;;
 					;;
 QIV_FOUND :				;;
 	MOV	AX,CS:[DI].SLT_CP	;;
-QI_1:					;; WGR						 ;AN000;
+QI_1:					;; WGR
 	MOV	GIOB.GB2_LEN,2		;;
 	MOV	GIOB.GB2_CP,AX		;;
 					;;
@@ -3693,8 +3669,8 @@ Q_LIST	PROC				;;
 	MOV	AX,BUF.STATE		;;  ????????????????
 	CMP	AX,CPSW 		;; reject only in NORMAL
 	JE	QLS_CPSW		;;
-	CMP	AX,LOCKED		;; WGR						 ;AN000;
-	JE	QLS_CPSW		;; WGR						 ;AN000;
+	CMP	AX,LOCKED		;; WGR
+	JE	QLS_CPSW		;; WGR
 	JMP	QLS_CMDERR		;G;
 QLS_CPSW :				;;-------------------------
 	LDS	SI,RH.GIH_GBA		;;

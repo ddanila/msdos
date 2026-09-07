@@ -33,27 +33,27 @@ EXTRN	 SysDispMsg:Near
 ;
 
 
-Message_Table struc				;				;AN000;
+Message_Table struc				;
 						;
-Entry1	dw	0				;				;AN000;
-Entry2	dw	0				;				;AN000;
-Entry3	dw	0				;				;AN000;
-Entry4	dw	0				;				;AN000;
-Entry5	db	0				;				;AN000;
-Entry6	db	0				;				;AN000;
-Entry7	dw	0				;				;AN000;
+Entry1	dw	0				;
+Entry2	dw	0				;
+Entry3	dw	0				;
+Entry4	dw	0				;
+Entry5	db	0				;
+Entry6	db	0				;
+Entry7	dw	0				;
 						;
-Message_Table ends				;				;AN000;
+Message_Table ends				;
 
 include common.stc	      ;contains the following structure
 
 ;sublist_def  STRUC
 
 ;	      db  ?  ;Sublist Length, fixed
-;	      db  ?  ;Reserved, not used yet		       ;AN000;
+;	      db  ?  ;Reserved, not used yet
 ;	      dw  ?  ;offset
 ;sublist_seg  dw  ?  ;segment part of pointer to piece of message
-;	      db  ?  ;ID, special end of message format ;AN000;
+;	      db  ?  ;ID, special end of message format
 ;	      db  ?  ;flags
 ;	      db  ?
 ;	      db  ?
@@ -105,17 +105,15 @@ include common.stc	      ;contains the following structure
 ;�
 ;읕컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴�
 
-initialize_sublists  PROC  NEAR 										 ;AN000;
+initialize_sublists  PROC  NEAR
 
-MOV   CX,number_of_sublists											 ;AN000;
-MOV   SI,OFFSET first_sublist	       ;address first sublist							 ;AN000;
-repeat_loop: 													 ;AN000;
-   MOV	 [SI].sublist_seg,DS	       ;set up the segment part of the pointer field in the sublist block	 ;AN000;
-   ADD	 SI,TYPE sublist_def	       ;point to next sublist block						 ;AN000;
-LOOPNZ	repeat_loop													 ;AN000;
-														 ;AN000;
+MOV   CX,number_of_sublists
+MOV   SI,OFFSET first_sublist	       ;address first sublist
+repeat_loop:
+   MOV	 [SI].sublist_seg,DS	       ;set up the segment part of the pointer field in the sublist block
+   ADD	 SI,TYPE sublist_def	       ;point to next sublist block
+LOOPNZ	repeat_loop
 RET
-														 ;AN000;
 initialize_sublists  ENDP
 
 ;*****************************************************************************
@@ -130,8 +128,6 @@ initialize_sublists  ENDP
 ;	      requested, so it will ignore error returns
 ;
 ;Called Procedures: sysdispmsg
-;
-;Change History:    Created	   4/22/87	   MT
 ;
 ;Input:    ES:DX = pointer to message description
 ;
@@ -148,33 +144,33 @@ initialize_sublists  ENDP
 ;*****************************************************************************
 
 Public	PRINTF
-PRINTF	 PROC  NEAR		     ;				     ;AN000;
+PRINTF	 PROC  NEAR		     ;
 
 ;	push	ax
-						;Save registers 		;AN000;
-	push	bx				; "  "    "  "                  ;AN000;
-	push	cx				; "  "    "  "                  ;AN000;
-	push	dx				; "  "    "  "                  ;AN000;
-	push	si				; "  "    "  "                  ;AN000;
-	push	di				; "  "    "  "                  ;AN000;
-	mov	di,dx				;Change pointer to table	;AN000;
-	mov	ax,[di].Entry1			  ;Message number		  ;AN000;
-	mov	bx,[di].Entry2			  ;Handle			  ;AN000;
-	mov	si,[di].Entry3			  ;Sublist			  ;AN000;
-	mov	cx,[di].Entry4			  ;Count			  ;AN000;
-	mov	dh,[di].Entry5			  ;Class			  ;AN000;
-	mov	dl,[di].Entry6			  ;Function			  ;AN000;
-	mov	di,[di].Entry7			  ;Input			  ;AN000;
-	call	SysDispMsg			;Display the message		;AN000;
-	pop	di				;Restore registers		;AN000;
-	pop	si				; "  "    "  "                  ;AN000;
-	pop	dx				; "  "    "  "                  ;AN000;
-	pop	cx				; "  "    "  "                  ;AN000;
-	pop	bx				; "  "    "  "                  ;AN000;
-;	pop	ax				; "  "    "  "                  ;AN000;
-	ret					;All done			;AN000;
+						;Save registers
+	push	bx				; "  "    "  "
+	push	cx				; "  "    "  "
+	push	dx				; "  "    "  "
+	push	si				; "  "    "  "
+	push	di				; "  "    "  "
+	mov	di,dx				;Change pointer to table
+	mov	ax,[di].Entry1			  ;Message number
+	mov	bx,[di].Entry2			  ;Handle
+	mov	si,[di].Entry3			  ;Sublist
+	mov	cx,[di].Entry4			  ;Count
+	mov	dh,[di].Entry5			  ;Class
+	mov	dl,[di].Entry6			  ;Function
+	mov	di,[di].Entry7			  ;Input
+	call	SysDispMsg			;Display the message
+	pop	di				;Restore registers
+	pop	si				; "  "    "  "
+	pop	dx				; "  "    "  "
+	pop	cx				; "  "    "  "
+	pop	bx				; "  "    "  "
+;	pop	ax				; "  "    "  "
+	ret					;All done
 
-PRINTF	ENDP			 ;				 ;AN000;
+PRINTF	ENDP			 ;
 
 PRINTF_CODE ENDS
 

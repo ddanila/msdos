@@ -23,12 +23,6 @@ TITLE	DOS - CON Code Page Switching Device Driver (INIT)
 ;
 ;  DATE:    August 28, 1986
 ;
-;Modification history *********************************************************
-;AN001; D358  New device driver INIT function package		  12/07/87 J.K.
-;AN002; D493  Undo D358.					  02/24/88 J.K.
-;******************************************************************************
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 IF1					;
 	%OUT .COMPILING:     INIT.ASM
 	%OUT .		     ô INSTALL CPS-CON DRIVER
@@ -45,8 +39,8 @@ ENDIF					;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 					;
 .XLIST					;
-INCLUDE SYSMSG.INC			; WGR				       ;AN000;
-MSG_UTILNAME <DISPLAY>			; WGR				       ;AN000;
+INCLUDE SYSMSG.INC			; WGR
+MSG_UTILNAME <DISPLAY>			; WGR
 .LIST					;
 					;
 					;
@@ -123,14 +117,14 @@ INIT	PROC				;
 	PUSH	CS			;
 	POP	DS			; FIRST SET DS = CS
 					;
-	PUSH	BX			; WGR				       ;AN000;
-	CALL	SYSLOADMSG		; WGR load messages		       ;AN000;
-	JNC	INIT_00 		; WGR if no error then continue..      ;AN000;
-	CALL	SYSDISPMSG		; WGR display error message..	       ;AN000;
-	POP	BX			; WGR				       ;AN000;
-	JMP	INIT_1			; WGR exit with error status	       ;AN000;
-INIT_00:				; WGR				       ;AN000;
-	POP	BX			; WGR				       ;AN000;
+	PUSH	BX			; WGR
+	CALL	SYSLOADMSG		; WGR load messages
+	JNC	INIT_00 		; WGR if no error then continue..
+	CALL	SYSDISPMSG		; WGR display error message..
+	POP	BX			; WGR
+	JMP	INIT_1			; WGR exit with error status
+INIT_00:				; WGR
+	POP	BX			; WGR
 	MOV	RESIDENT_ENDS,CS	; SET INITIAL RESIDENT END SEGMENT
 					;
 	LES	DI,DWORD PTR BUF.RH_PTRO; GET RH
@@ -166,13 +160,13 @@ INIT_0: CALL	CS:[DI] 		; CALL ROUTINE WITH '[SI].OFFSET_LIST'
 	JUMP	INIT_2			;
 					;
 INIT_1A:				;
-	PUSH	AX			; WGR				       ;AN000;
-	PUSH	DX			; WGR				       ;AN000;
-	MOV	AX,ERROR_2		; PARSING ERROR CONDITION	       ;AN000;
-	MOV	DH,UTILITY_MSG_CLASS	; WGR				       ;AN000;
-	CALL	ISSUE_MESSAGE		; WGR				       ;AN000;
-	POP	DX			; WGR				       ;AN000;
-	POP	AX			; WGR				       ;AN000;
+	PUSH	AX			; WGR
+	PUSH	DX			; WGR
+	MOV	AX,ERROR_2		; PARSING ERROR CONDITION
+	MOV	DH,UTILITY_MSG_CLASS	; WGR
+	CALL	ISSUE_MESSAGE		; WGR
+	POP	DX			; WGR
+	POP	AX			; WGR
 					;
 INIT_1: XOR	AX,AX			; CLEAR ERROR CODE TO BE RETURNED
 	LES	DI,DWORD PTR BUF.RH_PTRO; GET RH
@@ -180,13 +174,13 @@ INIT_1: XOR	AX,AX			; CLEAR ERROR CODE TO BE RETURNED
 	MOV	RH.RH0_ENDS,CS		;
 	MOV	RH.RH0_UNIT,AL		; SET 0 UNITS....
 					;
-	CMP	NOT_CPS_ID,OFF		; WGR did we find a non-CPS id?        ;AN000;
-	JNE	INIT_1B 		; WGR yes....do not set an error       ;AN000;
+	CMP	NOT_CPS_ID,OFF		; WGR did we find a non-CPS id?
+	JNE	INIT_1B 		; WGR yes....do not set an error
 	OR	BUF.STATUS,103H 	; SET INIT ERROR OCCURRED
-	JMP	INIT_1C 		; WGR				       ;AN000;
+	JMP	INIT_1C 		; WGR
 					;
 INIT_1B:				;
-	OR	BUF.STATUS,AX		; WGR no error code..but do not load   ;AN000;
+	OR	BUF.STATUS,AX		; WGR no error code..but do not load
 ;	 mov	 RH.RH0_SYSINIT_MSG, 0	 ;AN001;AN002; Ask IBMBIO not to show "Error in CONFIG.SYS lines= #" message
 INIT_1C:				;
 	PUSH	DI			; 'DETACH' THE LINK LIST TO THE
@@ -379,12 +373,12 @@ HDID_0: PUSH	DI			; SAVE REGISTERS BETWEEN PASSES
 	ADD	DI,L_ID_NAMES		;
 	LOOP	HDID_0			; TRY ALL ENTRIES FOR A MATCH...
 HDID_4: 				;
-	CMP	NOT_CPS_ID,ON		; WGR did we find a non-CPS id?        ;AN000;
-	JNE	HDID_5			; WGR no...not the problem..continue   ;AN000;
-	STC				; WGR yes...so no message...but..      ;AN000;
-	JMP	HDID_6			; WGR set error for return	       ;AN000;
+	CMP	NOT_CPS_ID,ON		; WGR did we find a non-CPS id?
+	JNE	HDID_5			; WGR no...not the problem..continue
+	STC				; WGR yes...so no message...but..
+	JMP	HDID_6			; WGR set error for return
 					;
-HDID_5: 				; WGR				       ;AN000;
+HDID_5: 				; WGR
 	POP	SI			; IF NONE WERE FOUND, THEN ERROR...
 	POP	CX			;
 	POP	DI			;
@@ -399,7 +393,7 @@ HDID_1: SUB	CX,N_ID_NAMES		; ID NAME HAS BEEN FOUND
 					;
 	MOV	DEVICE_ID_INDEX,CX	;
 	CLC				;
-HDID_6: 				; WGR				       ;AN000;
+HDID_6: 				; WGR
 	POP	SI			;
 	POP	CX			;
 	POP	DI			;
@@ -521,12 +515,12 @@ H_DC_2: MOV	CPD_DESG_N,CX		; RECORD THE #DESG & THE
 H_DC_5: POP	SI			;
 	POP	DX			;
 	POP	CX			;
-	PUSH	DX			; WGR				       ;AN000;
-	MOV	AX,ERROR_3		; WGR				       ;AN000;
-	MOV	DH,UTILITY_MSG_CLASS	; WGR				       ;AN000;
-	CALL	ISSUE_MESSAGE		; WGR				       ;AN000;
-	POP	DX			; WGR				       ;AN000;
-	POP	AX			; WGR				       ;AN000;
+	PUSH	DX			; WGR
+	MOV	AX,ERROR_3		; WGR
+	MOV	DH,UTILITY_MSG_CLASS	; WGR
+	CALL	ISSUE_MESSAGE		; WGR
+	POP	DX			; WGR
+	POP	AX			; WGR
 	STC				;
 	RET				;
 HANDLE_DESG_CP	   ENDP 		;
@@ -748,20 +742,20 @@ INSTALL_MEMORY	ENDP			;
 ;		none				     ; WGR
 ;						     ; WGR
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;	     ; WGR
-ISSUE_MESSAGE	   PROC 		;	     ; WGR		       ;AN000;
-	PUSH	DS			; WGR				       ;AN000;
-	PUSH	BX			; WGR				       ;AN000;
-	PUSH	CX			; WGR				       ;AN000;
-	PUSH	CS			; WGR				       ;AN000;
-	POP	DS			; WGR				       ;AN000;
-	MOV	BX,STDERR		; WGR				       ;AN000;
-	XOR	CX,CX			; WGR				       ;AN000;
-	XOR	DL,DL			; WGR				       ;AN000;
-	CALL	SYSDISPMSG		; WGR				       ;AN000;
-	POP	CX			; WGR				       ;AN000;
-	POP	BX			; WGR				       ;AN000;
-	POP	DS			; WGR				       ;AN000;
-	RET				; WGR				       ;AN000;
+ISSUE_MESSAGE	   PROC 		;	     ; WGR
+	PUSH	DS			; WGR
+	PUSH	BX			; WGR
+	PUSH	CX			; WGR
+	PUSH	CS			; WGR
+	POP	DS			; WGR
+	MOV	BX,STDERR		; WGR
+	XOR	CX,CX			; WGR
+	XOR	DL,DL			; WGR
+	CALL	SYSDISPMSG		; WGR
+	POP	CX			; WGR
+	POP	BX			; WGR
+	POP	DS			; WGR
+	RET				; WGR
 ISSUE_MESSAGE	   ENDP 		;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
@@ -777,24 +771,24 @@ ISSUE_MESSAGE	   ENDP 		;
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-SUB_SIZE	EQU	11		; WGR sublist size		       ;AN000;
-LEFT_ASCIIZ	EQU	00010000B	; WGR left-aligned asciiz string       ;AN000;
-UNLIMITED	EQU	0		; WGR unlimited message size.	       ;AN000;
-					; WGR				       ;AN000;
-SUBLIST LABEL	DWORD			; WGR				       ;AN000;
-	DB	SUB_SIZE		; WGR				       ;AN000;
-	DB	0			; WGR				       ;AN000;
-MSG_PTR DW	?			; WGR				       ;AN000;
-MSG_SEG DW	SEG CODE		; WGR				       ;AN000;
-	DB	1			; WGR				       ;AN000;
-	DB	LEFT_ASCIIZ		; WGR				       ;AN000;
-	DB	UNLIMITED		; WGR				       ;AN000;
-	DB	1			; WGR				       ;AN000;
-	DB	" "                     ; WGR                                  ;AN000;
+SUB_SIZE	EQU	11		; WGR sublist size
+LEFT_ASCIIZ	EQU	00010000B	; WGR left-aligned asciiz string
+UNLIMITED	EQU	0		; WGR unlimited message size.
+					; WGR
+SUBLIST LABEL	DWORD			; WGR
+	DB	SUB_SIZE		; WGR
+	DB	0			; WGR
+MSG_PTR DW	?			; WGR
+MSG_SEG DW	SEG CODE		; WGR
+	DB	1			; WGR
+	DB	LEFT_ASCIIZ		; WGR
+	DB	UNLIMITED		; WGR
+	DB	1			; WGR
+	DB	" "                     ; WGR
 					;
 ISSUE_ERROR_1	PROC			;
 	PUSH	AX			;
-	PUSH	BX			; WGR				       ;AN000;
+	PUSH	BX			; WGR
 	PUSH	CX			;
 	PUSH	DX			;
 	PUSH	SI			;
@@ -816,20 +810,20 @@ IN_3:	MOV	AL,ZERO 		; SET  0  TO TERMINATE ASCII STRING
 					; IMPORTANT SINCE FOLLOWING DATA IS IN
 					; ERROR
 	POP	SI			; GET START OF NAME
-	MOV	MSG_PTR,SI		; WGR				       ;AN000;
-	MOV	MSG_SEG,CS		; WGR				       ;AN000;
-	MOV	AX,ERROR_1		; WGR				       ;AN000;
-	MOV	BX,STDERR		; WGR				       ;AN000;
-	MOV	CX,ONE			; WGR				       ;AN000;
-	XOR	DL,DL			; WGR				       ;AN000;
-	LEA	SI,SUBLIST		; WGR				       ;AN000;
-	MOV	DH,UTILITY_MSG_CLASS	; WGR				       ;AN000;
-	CALL	SYSDISPMSG		; WGR				       ;AN000;
-					; WGR				       ;AN000;
+	MOV	MSG_PTR,SI		; WGR
+	MOV	MSG_SEG,CS		; WGR
+	MOV	AX,ERROR_1		; WGR
+	MOV	BX,STDERR		; WGR
+	MOV	CX,ONE			; WGR
+	XOR	DL,DL			; WGR
+	LEA	SI,SUBLIST		; WGR
+	MOV	DH,UTILITY_MSG_CLASS	; WGR
+	CALL	SYSDISPMSG		; WGR
+					; WGR
 	POP	SI			;
 	POP	DX			;
 	POP	CX			;
-	POP	BX			; WGR				       ;AN000;
+	POP	BX			; WGR
 	POP	AX			;
 	RET				;
 ISSUE_ERROR_1	ENDP			;
@@ -850,7 +844,7 @@ NEW_NAME	DB	"EGA 14M "      ;
 		DB	"EGA 8   "      ;
 NUM_NEW_NAME	EQU ($-NEW_NAME)/L_ID_NAMES
 					;
-NOT_CPS_ID	DB	OFF		; WGR device id does not support CPS   ;AN000;
+NOT_CPS_ID	DB	OFF		; WGR device id does not support CPS
 					;
 MODIFY_ID_NAME	PROC			;
 	PUSH	DI			;
@@ -860,13 +854,13 @@ MODIFY_ID_NAME	PROC			;
 	PUSH	SI			;
 					;
 	MOV	SI,[SI].OFFSET_LIST	; GET START OF ID_NAME
-	CMP	WORD PTR [SI],EIGHT	; WGR				       ;AN000;
-	JE	MIN_00			; WGR				       ;AN000;
-	CALL	GET_DEVICE_ID		; WGR				       ;AN000;
-	JNC	MIN_00			; WGR CPS id?...yes continue	       ;AN000;
-	MOV	NOT_CPS_ID,ON		; WGR no....set flag		       ;AN000;
-	JMP	MIN_4			; WGR exit with carry set	       ;AN000;
-MIN_00: 				; WGR				       ;AN000;
+	CMP	WORD PTR [SI],EIGHT	; WGR
+	JE	MIN_00			; WGR
+	CALL	GET_DEVICE_ID		; WGR
+	JNC	MIN_00			; WGR CPS id?...yes continue
+	MOV	NOT_CPS_ID,ON		; WGR no....set flag
+	JMP	MIN_4			; WGR exit with carry set
+MIN_00: 				; WGR
 	INC	SI			;
 	INC	SI			; ADVANCE SI TO POINT TO ID_NAME
 					;
@@ -950,11 +944,11 @@ MODIFY_ID_NAME	ENDP			;
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 .XLIST
-MSG_SERVICES <MSGDATA>			; WGR				       ;AN000;
-MSG_SERVICES <DISPLAYmsg,LOADmsg,CHARmsg> ; WGR 			       ;AN000;
-MSG_SERVICES <DISPLAY.CL1>		; WGR				       ;AN000;
-MSG_SERVICES <DISPLAY.CL2>		; WGR				       ;AN000;
-MSG_SERVICES <DISPLAY.CLA>		; WGR				       ;AN000;
+MSG_SERVICES <MSGDATA>			; WGR
+MSG_SERVICES <DISPLAYmsg,LOADmsg,CHARmsg> ; WGR
+MSG_SERVICES <DISPLAY.CL1>		; WGR
+MSG_SERVICES <DISPLAY.CL2>		; WGR
+MSG_SERVICES <DISPLAY.CLA>		; WGR
 .LIST					;
 					;
 include msgdcl.inc			;

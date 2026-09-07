@@ -2,17 +2,6 @@
 ;
 ; MODULE:   more.asm
 ;
-; Modification History:
-;
-;  Version    Author	       date	   comment
-;  -------    ------	       ----	   -------
-;  V4.0       RussW			   ;AN000; initial extended attr. support
-;
-;  V4.0       Bill L	      9/17/87	   ;AN001; DCR 201 - extended attr. enhancement
-;					   ;AN002; DCR 191
-;					   ;AN003; PTM 3860 - add CR-LF to make DOS3.3 compat.
-;******************************************************************************
-
 FALSE	EQU	0
 TRUE	EQU	NOT FALSE
 
@@ -20,13 +9,13 @@ IBMVER	EQU	TRUE
 IBMJAPVER   EQU FALSE
 MSVER	EQU	FALSE
 
-STDOUT	EQU	1			 ;AN003;
+STDOUT	EQU	1
 ;------------------------------
 ; EXTENDED ATTRIBUTE Equates
 ;------------------------------
 GetExtAttr	      equ     05702h	 ;AN000; ;Int 021h function call
 SetExtAttr	      equ     05704h	 ;AN000; ;Int 021h function call
-GetCPSW 	      equ     03303h	 ;AN001;
+GetCPSW 	      equ     03303h
 
 EAISBINARY	      equ     02h	 ;AN001; ;ea_type
 EASYSTEM	      equ     8000h	 ;AN001; ;ea_flags
@@ -39,12 +28,12 @@ ENDM
 	INCLUDE SYSCALL.INC
 
 	INCLUDE MORE.INC		 ;AN000; ;MORE strucs and equates
-	.XLIST				 ;AN000;
+	.XLIST
 	INCLUDE STRUC.INC		 ;AN000; ;Structured macros
 	INCLUDE SYSMSG.INC		 ;AN000; ;Message retriever code
-	.LIST				 ;AN000;
+	.LIST
 
-MSG_UTILNAME <MORE>			 ;AN000;
+MSG_UTILNAME <MORE>
 
 CODE	SEGMENT PUBLIC
 	ORG	100H
@@ -70,7 +59,7 @@ MORE_CHK_SL:
 	MOV	AX, 4C00H
 	INT	21H
 MORE_NO_HELP:
-	JMP	START1				 ;AC000;
+	JMP	START1
 MORE_HELP_STR	DB  "MORE",0Dh,0Ah
 		DB  "(reads stdin, displays one screenful at a time)",0Dh,0Ah,"$"
 
@@ -78,12 +67,12 @@ MORE_HELP_STR	DB  "MORE",0Dh,0Ah
 ;- STRUCTURE TO QUERY EXTENDED ATTRIBUTES
 ;----------------------------------------
 querylist   struc			 ;AN001; ;query general list
-qea_num     dw	    1			 ;AN001;
-qea_type    db	    EAISBINARY		 ;AN001;
-qea_flags   dw	    EASYSTEM		 ;AN001;
-qea_namelen db	    ?			 ;AN001;
-qea_name    db	    "        "           ;AN001;
-querylist   ends			 ;AN001;
+qea_num     dw	    1
+qea_type    db	    EAISBINARY
+qea_flags   dw	    EASYSTEM
+qea_namelen db	    ?
+qea_name    db	    "        "
+querylist   ends
 
 cp_qlist    querylist <1,EAISBINARY,EASYSTEM,2,"CP"> ;AN001; ;query code page attr.
 
@@ -96,29 +85,29 @@ cp_list     label   word		 ;AN001; ;code page attr. get/set list
 	    dw	    2			 ;AN001; ; ea value length
 	    db	    "CP"                 ;AN001; ; ea name
 cp	    dw	    ?			 ;AN001; ; ea value (code page)
-cp_len	    equ     ($ - cp_list)	 ;AN001;
+cp_len	    equ     ($ - cp_list)
 
 
 START1:
-	CALL	SYSLOADMSG		 ;AN000;
-	.IF C				 ;AN000;
-	  CALL	  SYSDISPMSG		 ;AN000;
-	  MOV	  AH,EXIT		 ;AN000;
-	  INT	  21H			 ;AN000;
-	.ENDIF				 ;AN000;
+	CALL	SYSLOADMSG
+	.IF C
+	  CALL	  SYSDISPMSG
+	  MOV	  AH,EXIT
+	  INT	  21H
+	.ENDIF
 
 	MOV	AX,ANSI_GET		 ;AN000; ;prepare for device characteristics..
 	MOV	BX,STDERR		 ;AN000; ;request.
 	MOV	CX,GET_SUBFUNC		 ;AN000; ;get subfucntion..
 	LEA	DX,ANSI_BUF		 ;AN000; ;point to buffer.
-	INT	21H			 ;AN000;
+	INT	21H
 	.IF NC				 ;AN000; ;if ANSI returns a no carry then..
-	  LEA	DI,ANSI_BUF		 ;AN000;
+	  LEA	DI,ANSI_BUF
 	  .IF <[DI].D_MODE EQ TEXT_MODE> ;AN000; ;if we are in a text mode then..
 	    MOV    AX,[DI].SCR_ROWS	 ;AN000; ;store the screen length...else..
 	    MOV    MAXROW,AL		 ;AN000; ;default (25) is assumed.
-	  .ENDIF			 ;AN000;
-	.ENDIF				 ;AN000;
+	  .ENDIF
+	.ENDIF
 	MOV	AH,0FH
 	INT	10H
 	MOV	MAXCOL,AH
@@ -134,8 +123,8 @@ START1:
 	MOV	BX,2			; DUP STD ERR TO STANDARD IN
 	MOV	AH,XDUP
 	INT	21H
-cp_check:				;AN001;
-	mov	ax,GetCPSW		;AN001;
+cp_check:
+	mov	ax,GetCPSW
 	int	21h			;AN001; ;DL =0 (Not supported)
 	jc	sloop			;AN001; ;no CPSW, skip cp setting
 	cmp	dl,0			;AN001; ;Is CPSW active ?
@@ -156,10 +145,10 @@ cp_check:				;AN001;
 ;-------------------------------
 SLOOP:
 	MOV	CX,CRLF_LEN		;AN003; ;display a newline
-	MOV	DX,OFFSET CRLF		;AN003;
-	MOV	BX,STDOUT		;AN003;
-	MOV	AH,WRITE		;AN003;
-	INT	21H			;AN003;
+	MOV	DX,OFFSET CRLF
+	MOV	BX,STDOUT
+	MOV	AH,WRITE
+	INT	21H
 ALOOP:
 	CLD
 	MOV	DX,OFFSET BUFFER
@@ -236,9 +225,9 @@ ASKMORE:
 	MOV	AX,MORE_MSG		;AN000; ;use message retriever..
 	MOV	BX,STDERR		;AN000; ;to issue..
 	XOR	CX,CX			;AN000; ;-- More --
-	MOV	DL,NO_INPUT		;AN000;
-	MOV	DH,UTILITY_MSG_CLASS	;AN000;
-	CALL	SYSDISPMSG		;AN000;
+	MOV	DL,NO_INPUT
+	MOV	DH,UTILITY_MSG_CLASS
+	CALL	SYSDISPMSG
 
 	MOV	AH,STD_CON_INPUT_FLUSH	 ;WAIT FOR A KEY, NO ECHO
 	MOV	AL,STD_CON_INPUT_NO_ECHO ;AC000; ;no echo
@@ -252,9 +241,9 @@ ASKMORE:
 NOT_EXTENDED:
 	MOV	CX,CRLF2_LEN		;AC003; ;place cursor..
 	MOV	DX,OFFSET CRLF2 	;AC003; ;..on new line.
-	MOV	BX,STDERR		;AN000;
-	MOV	AH,WRITE		;AN000;
-	INT	21H			;AN000;
+	MOV	BX,STDERR
+	MOV	AH,WRITE
+	INT	21H
 	POP	CX			;AN000; ;restore count
 	POP	SI			;AN000; ;restore pointer
 	POP	BP			;AN000; ;restore file handle
@@ -275,18 +264,18 @@ CURCOL	DB	1
 
 ANSI_BUF ANSI_STR <>			;AN000; ;buffer for IOCTL call
 
-.XLIST					;AN000;
+.XLIST
 MSG_SERVICES <MSGDATA>			;AN000; ;message retriever code
-MSG_SERVICES <LOADmsg,DISPLAYmsg,NOCHECKSTDIN>	;AN002;
-MSG_SERVICES <MORE.CL1> 		;AN000;
-MSG_SERVICES <MORE.CL2> 		;AN000;
-MSG_SERVICES <MORE.CLA> 		;AN000;
-.LIST					;AN000;
+MSG_SERVICES <LOADmsg,DISPLAYmsg,NOCHECKSTDIN>
+MSG_SERVICES <MORE.CL1>
+MSG_SERVICES <MORE.CL2>
+MSG_SERVICES <MORE.CLA>
+.LIST
 
-CRLF	    DB	   13,10		   ;AC000;
-CRLF_LEN    DW	   $ - CRLF		   ;AC000;
-CRLF2	    DB	   13,10,13,10		   ;AN003;
-CRLF2_LEN   DW	   $ - CRLF2		   ;AN003;
+CRLF	    DB	   13,10
+CRLF_LEN    DW	   $ - CRLF
+CRLF2	    DB	   13,10,13,10
+CRLF2_LEN   DW	   $ - CRLF2
 
 BUFFER	LABEL BYTE
 

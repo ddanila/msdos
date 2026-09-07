@@ -32,9 +32,9 @@ ABORT	   equ	 2			;AN000; ;if >=, retry
 XABORT	   equ	 1			;AN000; ;errorlevel return in al
 
 
-	   extrn _inmain:near		;AC000;
-	   extrn _Reset_appendx:near	;AN000;
-	   extrn _old_int24_off:dword	;AN000;
+	   extrn _inmain:near
+	   extrn _Reset_appendx:near
+	   extrn _old_int24_off:dword
 
 
 psp	   segment at 0 		;<--emk
@@ -359,28 +359,28 @@ SAVE_SP    DW	 0
 ;									;
 ;************************************************************************
 
-MOFFSET    EQU	 PARM_1 		;AN000;
+MOFFSET    EQU	 PARM_1
 
-	   ASSUME CS:PGROUP		;AN000;
-	   ASSUME DS:DGROUP		;AN000;
-	   ASSUME ES:DGROUP		;AN000;
-	   ASSUME SS:DGROUP		;AN000;
+	   ASSUME CS:PGROUP
+	   ASSUME DS:DGROUP
+	   ASSUME ES:DGROUP
+	   ASSUME SS:DGROUP
 
-	   PUBLIC _GETPSPBYTE		;AN000;
-_GETPSPBYTE PROC NEAR			;AN000;
+	   PUBLIC _GETPSPBYTE
+_GETPSPBYTE PROC NEAR
 
-	   CENTER			;AN000;
+	   CENTER
 
-	   PUSH  DS			;AN000;
+	   PUSH  DS
 
 	   MOV	 DS,_PSP		;AN000; get save PSP segment
 	   MOV	 SI,[BP].MOFFSET	;AN000; get offset into PSP
 	   LODSB			;AN000; get PSP byte
 	   MOV	 AH,0			;AN000; zero high byte
 
-	   POP	 DS			;AN000;
+	   POP	 DS
 
-	   CEXIT			;AN000;
+	   CEXIT
 
 _GETPSPBYTE ENDP
 
@@ -406,29 +406,29 @@ _GETPSPBYTE ENDP
 ;************************************************************************
 
 
-MVALUE	   EQU	 PARM_2 		;AN000;
-MOFFSET    EQU	 PARM_1 		;AN000;
+MVALUE	   EQU	 PARM_2
+MOFFSET    EQU	 PARM_1
 
-	   ASSUME CS:PGROUP		;AN000;
-	   ASSUME DS:DGROUP		;AN000;
-	   ASSUME ES:DGROUP		;AN000;
-	   ASSUME SS:DGROUP		;AN000;
+	   ASSUME CS:PGROUP
+	   ASSUME DS:DGROUP
+	   ASSUME ES:DGROUP
+	   ASSUME SS:DGROUP
 
-	   PUBLIC _PUTPSPBYTE		;AN000;
-_PUTPSPBYTE PROC NEAR			;AN000;
+	   PUBLIC _PUTPSPBYTE
+_PUTPSPBYTE PROC NEAR
 
-	   CENTER			;AN000;
+	   CENTER
 
-	   PUSH  ES			;AN000;
+	   PUSH  ES
 
 	   MOV	 AX,[BP].MVALUE 	;AN000; get byte to store in PSP
 	   MOV	 ES,_PSP		;AN000; get saved PSP segment
 	   MOV	 DI,[BP].MOFFSET	;AN000; get offset in PSP
 	   STOSB			;AN000; store the byte
 
-	   POP	 ES			;AN000;
+	   POP	 ES
 
-	   CEXIT			;AN000;
+	   CEXIT
 
 _PUTPSPBYTE ENDP
 
@@ -443,38 +443,33 @@ _PUTPSPBYTE ENDP
 ;	CALLING FORMAT:
 ;			crit_err_handler;
 ;-------------------------------------------------------------------
-	   public _crit_err_handler				       ;AN000;
-	   public vector					       ;AN000;
-vector	   dd	 0						       ;AN000;
-;								       ;AN000;
-_crit_err_handler proc near					       ;AN000;
-	   pushf						       ;AN000;
-	   push  ax			; save registers	       ;AN000;
-	   push  ds						       ;AN000;
-	   mov	 ax,dgroup		;get C data segment	       ;AN000;
-	   mov	 ds,ax						       ;AN000;
-	   mov	 ax,word ptr ds:_old_int24_off ;get int24 offset       ;AN000;
-	   mov	 word ptr cs:vector,ax				       ;AN000;
-	   mov	 ax,word ptr ds:_old_int24_off+2 ;get int24 segment    ;AN000;
-	   mov	 word ptr cs:vector+2,ax			       ;AN000;
-	   pop	 ds			;restore registers	       ;AN000;
-	   pop	 ax						       ;AN000;
-;								       ;AN000;
-	   call  dword ptr cs:vector	; invoke DOS err hndlr	       ;AN000;
-	   cmp	 al,ABORT		; what was the user's response ;AN000;
-	   jnge  retry			;			       ;AN000;
-;								       ;AN000;
-	   mov	 ax,dgroup		;get C data segment	       ;AN000;
-	   mov	 ds,ax						       ;AN000;
-	   mov	 es,ax						       ;AN000;
-	   call  _Reset_appendx 	; restore user's orig append/x ;AN000;
-;								       ;AN000;
-	   mov	 ax,(RET_EXIT shl 8)+XABORT ; return to DOS w/criterr error ;AN000;
-	   int	 21h			;			       ;AN000;
-retry:								       ;AN000;
-	   iret 						       ;AN000;
-;								       ;AN000;
-_crit_err_handler endp						       ;AN000;
-_text	   ends 						       ;AN000;
-	   end	 XCMAIN 					       ;AN000;
+	   public _crit_err_handler
+	   public vector
+vector	   dd	 0
+_crit_err_handler proc near
+	   pushf
+	   push  ax			; save registers
+	   push  ds
+	   mov	 ax,dgroup		;get C data segment
+	   mov	 ds,ax
+	   mov	 ax,word ptr ds:_old_int24_off ;get int24 offset
+	   mov	 word ptr cs:vector,ax
+	   mov	 ax,word ptr ds:_old_int24_off+2 ;get int24 segment
+	   mov	 word ptr cs:vector+2,ax
+	   pop	 ds			;restore registers
+	   pop	 ax
+	   call  dword ptr cs:vector	; invoke DOS err hndlr
+	   cmp	 al,ABORT		; what was the user's response
+	   jnge  retry			;
+	   mov	 ax,dgroup		;get C data segment
+	   mov	 ds,ax
+	   mov	 es,ax
+	   call  _Reset_appendx 	; restore user's orig append/x
+	   mov	 ax,(RET_EXIT shl 8)+XABORT ; return to DOS w/criterr error
+	   int	 21h			;
+retry:
+	   iret
+_crit_err_handler endp
+_text	   ends
+	   end	 XCMAIN
 

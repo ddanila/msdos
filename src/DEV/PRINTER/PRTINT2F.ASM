@@ -47,9 +47,6 @@ TITLE	PRINTER.SYS INT2FH Code
 ;
 ;  NOTES:
 ;
-;  REVISION HISTORY:
-;	 A000 - DOS Version 4.00
-;
 ;      Label: "DOS PRINTER.SYS Device Driver"
 ;	      "Version 4.00 (C) Copyright 1988 Microsoft
 ;	      "Licensed Material - Program Property of Microsoft"
@@ -57,55 +54,55 @@ TITLE	PRINTER.SYS INT2FH Code
 ;****************** END OF SPECIFICATIONS ****************************
 
 .XLIST
-INCLUDE  STRUC.INC								    ;AN000;
+INCLUDE  STRUC.INC
 .LIST
 
 
-INCLUDE   CPSPEQU.INC								    ;AN000;
-PRIV_LK_CP   EQU    0AD40H	       ; multiplex number and function		    ;AN000;
-LPT1	     EQU    0		       ;					    ;AN000;
-LPT2	     EQU    1		       ;					    ;AN000;
-LPT3	     EQU    2		       ;					    ;AN000;
-UNLOCK	     EQU    -1		       ; unlock the device			    ;AN000;
-UNDEFINED    EQU    -1		       ; undefined code page			    ;AN000;
-NOT_CY	     EQU    0FFFEH	       ; clear the carry in flag register	    ;AN000;
-CY	     EQU    1		       ; set the carry in flag register 	    ;AN000;
-FOUND	     EQU    1		       ; search flag				    ;AN000;
-NOT_FOUND    EQU    0		       ;					    ;AN000;
+INCLUDE   CPSPEQU.INC
+PRIV_LK_CP   EQU    0AD40H	       ; multiplex number and function
+LPT1	     EQU    0		       ;
+LPT2	     EQU    1		       ;
+LPT3	     EQU    2		       ;
+UNLOCK	     EQU    -1		       ; unlock the device
+UNDEFINED    EQU    -1		       ; undefined code page
+NOT_CY	     EQU    0FFFEH	       ; clear the carry in flag register
+CY	     EQU    1		       ; set the carry in flag register
+FOUND	     EQU    1		       ; search flag
+NOT_FOUND    EQU    0		       ;
 
 
-PUBLIC	INT2F_COM								    ;AN000;
-PUBLIC	ROM_INT2F								    ;AN000;
-PUBLIC	ABORT									    ;AN000;
+PUBLIC	INT2F_COM
+PUBLIC	ROM_INT2F
+PUBLIC	ABORT
 
 
-CSEG	SEGMENT PARA PUBLIC 'CODE'                                                  ;AN000;
-	ASSUME CS:CSEG								    ;AN000;
+CSEG	SEGMENT PARA PUBLIC 'CODE'
+	ASSUME CS:CSEG
 
 
-EXTRN	INVOKE:NEAR								    ;AN000;
-EXTRN	BUF0:BYTE								    ;AN000;
-EXTRN	BUF1:BYTE								    ;AN000;
-EXTRN	BUF2:BYTE								    ;AN000;
-EXTRN	BUF3:BYTE								    ;AN000;
+EXTRN	INVOKE:NEAR
+EXTRN	BUF0:BYTE
+EXTRN	BUF1:BYTE
+EXTRN	BUF2:BYTE
+EXTRN	BUF3:BYTE
 
-ROM_INT2F    DW     ?		       ; chaining point for INT2FH		    ;AN000;
-	     DW     ?								    ;AN000;
+ROM_INT2F    DW     ?		       ; chaining point for INT2FH
+	     DW     ?
 
-COPY_BUF0    DW     0								    ;AN000;
-PREV_LOCK    DB     OFF 							    ;AN000;
+COPY_BUF0    DW     0
+PREV_LOCK    DB     OFF
 
-INVOKE_BLOCK LABEL  BYTE	       ; parameter block passed to INVOKE	    ;AN000;
-	     DB     3 DUP(0)	       ;					    ;AN000;
-RET_STAT     DW     0		       ; returned status from INVOKE		    ;AN000;
-	     DQ     0		       ;					    ;AN000;
-	     DB     6 DUP(0)	       ;					    ;AN000;
-	     DW     OFFSET PARA_BLOCK  ;					    ;AN000;
-CODE_SEGB    DW     SEG CSEG	       ;					    ;AN000;
+INVOKE_BLOCK LABEL  BYTE	       ; parameter block passed to INVOKE
+	     DB     3 DUP(0)	       ;
+RET_STAT     DW     0		       ; returned status from INVOKE
+	     DQ     0		       ;
+	     DB     6 DUP(0)	       ;
+	     DW     OFFSET PARA_BLOCK  ;
+CODE_SEGB    DW     SEG CSEG	       ;
 				       ;
-PARA_BLOCK   LABEL  WORD	       ;					    ;AN000;
-	     DW     TWO 	       ;					    ;AN000;
-REQ_CP	     DW     ?		       ; requested code page to load		    ;AN000;
+PARA_BLOCK   LABEL  WORD	       ;
+	     DW     TWO 	       ;
+REQ_CP	     DW     ?		       ; requested code page to load
 				       ;
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -133,71 +130,71 @@ REQ_CP	     DW     ?		       ; requested code page to load		    ;AN000;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-INT2F_COM  PROC   NEAR								    ;AN000;
-	   STI									    ;AN000;
-	   .IF <AX NE PRIV_LK_CP>		; is this for PRINTER?		    ;AN000;
-	     JMP    DWORD PTR CS:ROM_INT2F	; no....jump to old INT2F	    ;AN000;
-	   .ENDIF				;				    ;AN000;
-	   PUSH   AX				;				    ;AN000;
-	   PUSH   BP				;				    ;AN000;
-	   PUSH   BX				; s    r			    ;AN000;
-	   PUSH   CX				;  a	e			    ;AN000;
-	   PUSH   DX				;   v	 g			    ;AN000;
-	   PUSH   DI				;    e	  s			    ;AN000;
-	   PUSH   SI				;				    ;AN000;
-	   PUSH   DS				;				    ;AN000;
-	   PUSH   ES				;				    ;AN000;
-	   MOV	  CS:COPY_BUF0,ZERO		;				    ;AN000;
-	   MOV	  CS:CODE_SEGB,CS		;				    ;AN000;
-	   MOV	  BP,BX 			; move req. cp to bp		    ;AN000;
-	   .SELECT				; depending on the lptx..	    ;AN000;
-	   .WHEN <DX EQ LPT1>			; point to the appropriate	    ;AN000;
-	     LEA   BX,BUF1			; buffer..			    ;AN000;
-	     LEA   SI,BUF0			;				    ;AN000;
-	     MOV   CS:COPY_BUF0,SI		;				    ;AN000;
-	   .WHEN <DX EQ LPT2>			;				    ;AN000;
-	     LEA   BX,BUF2			;				    ;AN000;
-	   .WHEN <DX EQ LPT3>			;				    ;AN000;
-	     LEA   BX,BUF3			;				    ;AN000;
-	   .OTHERWISE				;				    ;AN000;
-	     STC				; not a valid lptx..set flag	    ;AN000;
-	   .ENDSELECT				;				    ;AN000;
-	   .IF NC				; process			    ;AN000;
-	     .IF <BP EQ UNLOCK> 		; if unlock requested		    ;AN000;
-	       CALL   UNLOCK_CP 		; unlock code page.		    ;AN000;
-	     .ELSE				; must be a lock request..	    ;AN000;
-	       CALL   LOCK_CP			;				    ;AN000;
-	     .ENDIF				;				    ;AN000;
-	   .ENDIF				;				    ;AN000;
-	   MOV	  SI,CS:COPY_BUF0		;				    ;AN000;
-	   PUSHF				;				    ;AN000;
-	   .IF <SI NE ZERO>			; if this is lpt1...		    ;AN000;
-	     MOV    AX,CS:[BX].STATE		; copy data into prn		    ;AN000;
-	     MOV    CS:[SI].STATE,AX		; buffer as well.		    ;AN000;
-	     MOV    AX,CS:[BX].SAVED_CP 	;				    ;AN000;
-	     MOV    CS:[SI].SAVED_CP,AX 	;				    ;AN000;
-	   .ENDIF				;				    ;AN000;
-	   POPF 				;				    ;AN000;
-	   POP	  ES				;				    ;AN000;
-	   POP	  DS				; restore			    ;AN000;
-	   POP	  SI				;				    ;AN000;
-	   POP	  DI				;    registers			    ;AN000;
-	   POP	  DX				;				    ;AN000;
-	   POP	  CX				;				    ;AN000;
-	   POP	  BX				;				    ;AN000;
-	   MOV	  BP,SP 			;				    ;AN000;
-	   MOV	  AX,[BP+8]			; load flag onto..		    ;AN000;
-	   .IF NC				;				    ;AN000;
-	     AND    AX,NOT_CY			;				    ;AN000;
-	   .ELSE				;    stack flags		    ;AN000;
-	     OR     AX,CY			;				    ;AN000;
-	   .ENDIF				;				    ;AN000;
-	   MOV	  [BP+8],AX			;				    ;AN000;
-	   POP	  BP				;				    ;AN000;
-	   POP	  AX				;				    ;AN000;
-	   XCHG   AH,AL 			; exchange ah and al to show that.. ;AN000;
-ABORT:	   IRET 				; printer.sys is present.	    ;AN000;
-INT2F_COM  ENDP 								    ;AN000;
+INT2F_COM  PROC   NEAR
+	   STI
+	   .IF <AX NE PRIV_LK_CP>		; is this for PRINTER?
+	     JMP    DWORD PTR CS:ROM_INT2F	; no....jump to old INT2F
+	   .ENDIF				;
+	   PUSH   AX				;
+	   PUSH   BP				;
+	   PUSH   BX				; s    r
+	   PUSH   CX				;  a	e
+	   PUSH   DX				;   v	 g
+	   PUSH   DI				;    e	  s
+	   PUSH   SI				;
+	   PUSH   DS				;
+	   PUSH   ES				;
+	   MOV	  CS:COPY_BUF0,ZERO		;
+	   MOV	  CS:CODE_SEGB,CS		;
+	   MOV	  BP,BX 			; move req. cp to bp
+	   .SELECT				; depending on the lptx..
+	   .WHEN <DX EQ LPT1>			; point to the appropriate
+	     LEA   BX,BUF1			; buffer..
+	     LEA   SI,BUF0			;
+	     MOV   CS:COPY_BUF0,SI		;
+	   .WHEN <DX EQ LPT2>			;
+	     LEA   BX,BUF2			;
+	   .WHEN <DX EQ LPT3>			;
+	     LEA   BX,BUF3			;
+	   .OTHERWISE				;
+	     STC				; not a valid lptx..set flag
+	   .ENDSELECT				;
+	   .IF NC				; process
+	     .IF <BP EQ UNLOCK> 		; if unlock requested
+	       CALL   UNLOCK_CP 		; unlock code page.
+	     .ELSE				; must be a lock request..
+	       CALL   LOCK_CP			;
+	     .ENDIF				;
+	   .ENDIF				;
+	   MOV	  SI,CS:COPY_BUF0		;
+	   PUSHF				;
+	   .IF <SI NE ZERO>			; if this is lpt1...
+	     MOV    AX,CS:[BX].STATE		; copy data into prn
+	     MOV    CS:[SI].STATE,AX		; buffer as well.
+	     MOV    AX,CS:[BX].SAVED_CP 	;
+	     MOV    CS:[SI].SAVED_CP,AX 	;
+	   .ENDIF				;
+	   POPF 				;
+	   POP	  ES				;
+	   POP	  DS				; restore
+	   POP	  SI				;
+	   POP	  DI				;    registers
+	   POP	  DX				;
+	   POP	  CX				;
+	   POP	  BX				;
+	   MOV	  BP,SP 			;
+	   MOV	  AX,[BP+8]			; load flag onto..
+	   .IF NC				;
+	     AND    AX,NOT_CY			;
+	   .ELSE				;    stack flags
+	     OR     AX,CY			;
+	   .ENDIF				;
+	   MOV	  [BP+8],AX			;
+	   POP	  BP				;
+	   POP	  AX				;
+	   XCHG   AH,AL 			; exchange ah and al to show that..
+ABORT:	   IRET 				; printer.sys is present.
+INT2F_COM  ENDP
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -218,52 +215,52 @@ INT2F_COM  ENDP 								    ;AN000;
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-UNLOCK_CP      PROC  NEAR							    ;AN000;
-	       .IF <CS:[BX].STATE EQ LOCKED> NEAR ; is device locked?		    ;AN000;
-		 MOV   CS:[BX].STATE,CPSW	  ; change status to unlocked..     ;AN000;
-		 MOV   BP,CS:[BX].SAVED_CP	  ; get saved code page 	    ;AN000;
-		 .IF <BP NE UNDEFINED>		  ; valid?..... 		    ;AN000;
-		   XOR	  AX,AX 		  ;				    ;AN000;
-		   CALL   FIND_ACTIVE_CP	  ; find the active code page.	    ;AN000;
-		   .IF <BP NE DX>		  ; are they the same..?	    ;AN000;
-		     MOV    CS:REQ_CP,BP	  ; no...invoke the saved code page ;AN000;
-		     PUSH   CS			  ;				    ;AN000;
-		     POP    ES			  ;				    ;AN000;
-		     LEA    DI,INVOKE_BLOCK	  ;				    ;AN000;
-		     MOV    CS:[BX].RH_PTRO,DI	  ;				    ;AN000;
-		     MOV    CS:[BX].RH_PTRS,ES	  ;				    ;AN000;
-		     CALL   INVOKE		  ;				    ;AN000;
-		     .IF <AL NE ZERO>		  ; error on invoke?		    ;AN000;
-		       MOV    AX,ONE		  ; yes...change the active..	    ;AN000;
-		       CALL   FIND_ACTIVE_CP	  ; to inactive.		    ;AN000;
-		       .IF <CS:COPY_BUF0 NE ZERO> ; do likewise to PRN if this	    ;AN000;
-			 PUSH	 BX		  ; is lpt1.			    ;AN000;
-			 MOV	 BX,CS:COPY_BUF0  ;				    ;AN000;
-			 CALL	 FIND_ACTIVE_CP   ;				    ;AN000;
-			 POP	 BX		  ;				    ;AN000;
-		       .ENDIF			  ;				    ;AN000;
-		       STC			  ; set error flag.		    ;AN000;
-		     .ELSE			  ;				    ;AN000;
-		       CLC			  ; invoke ok...clear error flag    ;AN000;
-		     .ENDIF			  ;				    ;AN000;
-		   .ELSE			  ;				    ;AN000;
-		     CLC			  ; active = saved ..no invoke...   ;AN000;
-		   .ENDIF			  ; clear error 		    ;AN000;
-		 .ELSE				  ;				    ;AN000;
-		   MOV	  AX,ONE		  ; saved cp was inactive...change..;AN000;
-		   CALL   FIND_ACTIVE_CP	  ; active to inactive. 	    ;AN000;
-		   .IF <CS:COPY_BUF0 NE ZERO>	  ; do likewise to PRN if this	    ;AN000;
-		     PUSH    BX 		  ; is lpt1.			    ;AN000;
-		     MOV     BX,CS:COPY_BUF0	  ;				    ;AN000;
-		     CALL    FIND_ACTIVE_CP	  ;				    ;AN000;
-		     POP     BX 		  ;				    ;AN000;
-		   .ENDIF			  ;				    ;AN000;
-		   CLC				  ;				    ;AN000;
-		 .ENDIF 			  ;				    ;AN000;
-		 MOV	CS:[BX].SAVED_CP,UNDEFINED; reset the saved cp		    ;AN000;
-	       .ENDIF				  ;				    ;AN000;
-	       RET								    ;AN000;
-UNLOCK_CP      ENDP								    ;AN000;
+UNLOCK_CP      PROC  NEAR
+	       .IF <CS:[BX].STATE EQ LOCKED> NEAR ; is device locked?
+		 MOV   CS:[BX].STATE,CPSW	  ; change status to unlocked..
+		 MOV   BP,CS:[BX].SAVED_CP	  ; get saved code page
+		 .IF <BP NE UNDEFINED>		  ; valid?.....
+		   XOR	  AX,AX 		  ;
+		   CALL   FIND_ACTIVE_CP	  ; find the active code page.
+		   .IF <BP NE DX>		  ; are they the same..?
+		     MOV    CS:REQ_CP,BP	  ; no...invoke the saved code page
+		     PUSH   CS			  ;
+		     POP    ES			  ;
+		     LEA    DI,INVOKE_BLOCK	  ;
+		     MOV    CS:[BX].RH_PTRO,DI	  ;
+		     MOV    CS:[BX].RH_PTRS,ES	  ;
+		     CALL   INVOKE		  ;
+		     .IF <AL NE ZERO>		  ; error on invoke?
+		       MOV    AX,ONE		  ; yes...change the active..
+		       CALL   FIND_ACTIVE_CP	  ; to inactive.
+		       .IF <CS:COPY_BUF0 NE ZERO> ; do likewise to PRN if this
+			 PUSH	 BX		  ; is lpt1.
+			 MOV	 BX,CS:COPY_BUF0  ;
+			 CALL	 FIND_ACTIVE_CP   ;
+			 POP	 BX		  ;
+		       .ENDIF			  ;
+		       STC			  ; set error flag.
+		     .ELSE			  ;
+		       CLC			  ; invoke ok...clear error flag
+		     .ENDIF			  ;
+		   .ELSE			  ;
+		     CLC			  ; active = saved ..no invoke...
+		   .ENDIF			  ; clear error
+		 .ELSE				  ;
+		   MOV	  AX,ONE		  ; saved cp was inactive...change..
+		   CALL   FIND_ACTIVE_CP	  ; active to inactive.
+		   .IF <CS:COPY_BUF0 NE ZERO>	  ; do likewise to PRN if this
+		     PUSH    BX 		  ; is lpt1.
+		     MOV     BX,CS:COPY_BUF0	  ;
+		     CALL    FIND_ACTIVE_CP	  ;
+		     POP     BX 		  ;
+		   .ENDIF			  ;
+		   CLC				  ;
+		 .ENDIF 			  ;
+		 MOV	CS:[BX].SAVED_CP,UNDEFINED; reset the saved cp
+	       .ENDIF				  ;
+	       RET
+UNLOCK_CP      ENDP
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -284,50 +281,50 @@ UNLOCK_CP      ENDP								    ;AN000;
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-LOCK_CP        PROC   NEAR							    ;AN000;
-	       .IF <CS:[BX].STATE EQ LOCKED>	; if this was previously locked..   ;AN000;
-		 MOV	CS:PREV_LOCK,ON 	; then...set flag and...	    ;AN000;
-		 MOV	CS:[BX].STATE,CPSW	; change to unlock for this proc    ;AN000;
-	       .ELSEIF <CS:[BX].STATE EQ CPSW>	; if this is unlocked...	    ;AN000;
-		 MOV	CS:PREV_LOCK,OFF	; then set flag off.		    ;AN000;
-	       .ELSE				;				    ;AN000;
-		 STC				; neither...set error		    ;AN000;
-	       .ENDIF				;				    ;AN000;
-	       .IF NC				;				    ;AN000;
-		 CALL	CHECK_FOR_CP		; yes..see if req cp is available.  ;AN000;
-		 .IF NC 			; yes...			    ;AN000;
-		   XOR	   AX,AX		;				    ;AN000;
-		   CALL    FIND_ACTIVE_CP	; find the active code page	    ;AN000;
-		   .IF <BP NE DX>		; is it the same as requested?..    ;AN000;
-		     MOV    CS:REQ_CP,BP	; no..invoke the requested cp	    ;AN000;
-		     PUSH   CS			;				    ;AN000;
-		     POP    ES			;				    ;AN000;
-		     LEA    DI,INVOKE_BLOCK	;				    ;AN000;
-		     MOV    CS:[BX].RH_PTRO,DI	;				    ;AN000;
-		     MOV    CS:[BX].RH_PTRS,ES	;				    ;AN000;
-		     PUSH   DX			;				    ;AN000;
-		     CALL   INVOKE		;				    ;AN000;
-		     POP    DX			;				    ;AN000;
-		     .IF <AL NE ZERO>		; error on invoke?		    ;AN000;
-		       STC			; yes...set error flag. 	    ;AN000;
-		     .ELSE			;				    ;AN000;
-		       MOV    CS:[BX].STATE,LOCKED ; no, 'lock' the printer device  ;AN000;
-		       .IF <CS:PREV_LOCK EQ OFF> ; if we were not locked..	    ;AN000;
-			 MOV	CS:[BX].SAVED_CP,DX ; and..save the old code page.  ;AN000;
-		       .ENDIF			;				    ;AN000;
-		       CLC			; clear error flag.		    ;AN000;
-		     .ENDIF			;				    ;AN000;
-		   .ELSE			;				    ;AN000;
-		     MOV    CS:[BX].STATE,LOCKED ; 'lock' the printer device        ;AN000;
-		     .IF <CS:PREV_LOCK EQ OFF>	; if we were not locked..	    ;AN000;
-		       MOV    CS:[BX].SAVED_CP,DX ; and..save the old code page.    ;AN000;
-		     .ENDIF			;				    ;AN000;
-		     CLC			; clear the error flag		    ;AN000;
-		   .ENDIF			;				    ;AN000;
-		 .ENDIF 			;				    ;AN000;
-	       .ENDIF				;				    ;AN000;
-	       RET								    ;AN000;
-LOCK_CP        ENDP								    ;AN000;
+LOCK_CP        PROC   NEAR
+	       .IF <CS:[BX].STATE EQ LOCKED>	; if this was previously locked..
+		 MOV	CS:PREV_LOCK,ON 	; then...set flag and...
+		 MOV	CS:[BX].STATE,CPSW	; change to unlock for this proc
+	       .ELSEIF <CS:[BX].STATE EQ CPSW>	; if this is unlocked...
+		 MOV	CS:PREV_LOCK,OFF	; then set flag off.
+	       .ELSE				;
+		 STC				; neither...set error
+	       .ENDIF				;
+	       .IF NC				;
+		 CALL	CHECK_FOR_CP		; yes..see if req cp is available.
+		 .IF NC 			; yes...
+		   XOR	   AX,AX		;
+		   CALL    FIND_ACTIVE_CP	; find the active code page
+		   .IF <BP NE DX>		; is it the same as requested?..
+		     MOV    CS:REQ_CP,BP	; no..invoke the requested cp
+		     PUSH   CS			;
+		     POP    ES			;
+		     LEA    DI,INVOKE_BLOCK	;
+		     MOV    CS:[BX].RH_PTRO,DI	;
+		     MOV    CS:[BX].RH_PTRS,ES	;
+		     PUSH   DX			;
+		     CALL   INVOKE		;
+		     POP    DX			;
+		     .IF <AL NE ZERO>		; error on invoke?
+		       STC			; yes...set error flag.
+		     .ELSE			;
+		       MOV    CS:[BX].STATE,LOCKED ; no, 'lock' the printer device
+		       .IF <CS:PREV_LOCK EQ OFF> ; if we were not locked..
+			 MOV	CS:[BX].SAVED_CP,DX ; and..save the old code page.
+		       .ENDIF			;
+		       CLC			; clear error flag.
+		     .ENDIF			;
+		   .ELSE			;
+		     MOV    CS:[BX].STATE,LOCKED ; 'lock' the printer device
+		     .IF <CS:PREV_LOCK EQ OFF>	; if we were not locked..
+		       MOV    CS:[BX].SAVED_CP,DX ; and..save the old code page.
+		     .ENDIF			;
+		     CLC			; clear the error flag
+		   .ENDIF			;
+		 .ENDIF 			;
+	       .ENDIF				;
+	       RET
+LOCK_CP        ENDP
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -351,41 +348,41 @@ LOCK_CP        ENDP								    ;AN000;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-CHECK_FOR_CP  PROC   NEAR							    ;AN000;
-	      PUSH   DX 							    ;AN000;
-	      MOV    DX,NOT_FOUND		; initialize flag		    ;AN000;
-	      MOV    CX,CS:[BX].RSLMX		; load number of RAM slots	    ;AN000;
-	      MOV    DI,CS:[BX].RAMSO		; load DI with table offset	    ;AN000;
-	      .WHILE <DX EQ NOT_FOUND> AND	; whil not found and....	    ;AN000;
-	      .WHILE <CX NE ZERO>		; while  still slots to check..     ;AN000;
-		.IF <CS:[DI].SLT_CP EQ BP>	; is it this one??		    ;AN000;
-		  MOV	 DX,FOUND		; yes....set flag		    ;AN000;
-		.ELSE				;				    ;AN000;
-		  ADD	 DI,TYPE SLTS		; no..point to next entry	    ;AN000;
-		  DEC	 CX			; decrement the count		    ;AN000;
-		.ENDIF				;				    ;AN000;
-	      .ENDWHILE 			;				    ;AN000;
-	      .IF <DX EQ NOT_FOUND>		; if we didn't find it then..       ;AN000;
-		MOV    CX,CS:[BX].HSLMX 	; check hardware		    ;AN000;
-		MOV    DI,CS:[BX].HARDSO	; load regs as before.		    ;AN000;
-		.WHILE <DX EQ NOT_FOUND> AND	; while not found and.. 	    ;AN000;
-		.WHILE <CX NE ZERO>		; still have slots to check..	    ;AN000;
-		  .IF <CS:[DI].SLT_CP EQ BP>	; is it this one?		    ;AN000;
-		    MOV    DX,FOUND		; yes...set flag.		    ;AN000;
-		  .ELSE 			;				    ;AN000;
-		    ADD    DI,TYPE SLTS 	; no ..point to next entry	    ;AN000;
-		    DEC    CX			; and decrement count.		    ;AN000;
-		  .ENDIF			;				    ;AN000;
-		.ENDWHILE			;				    ;AN000;
-	      .ENDIF				;				    ;AN000;
-	      .IF <DX EQ NOT_FOUND>		;				    ;AN000;
-		STC				; set flag appropriately	    ;AN000;
-	      .ELSE				;				    ;AN000;
-		CLC				;				    ;AN000;
-	      .ENDIF				;				    ;AN000;
-	      POP    DX 			;				    ;AN000;
-	      RET				;				    ;AN000;
-CHECK_FOR_CP  ENDP								    ;AN000;
+CHECK_FOR_CP  PROC   NEAR
+	      PUSH   DX
+	      MOV    DX,NOT_FOUND		; initialize flag
+	      MOV    CX,CS:[BX].RSLMX		; load number of RAM slots
+	      MOV    DI,CS:[BX].RAMSO		; load DI with table offset
+	      .WHILE <DX EQ NOT_FOUND> AND	; whil not found and....
+	      .WHILE <CX NE ZERO>		; while  still slots to check..
+		.IF <CS:[DI].SLT_CP EQ BP>	; is it this one??
+		  MOV	 DX,FOUND		; yes....set flag
+		.ELSE				;
+		  ADD	 DI,TYPE SLTS		; no..point to next entry
+		  DEC	 CX			; decrement the count
+		.ENDIF				;
+	      .ENDWHILE 			;
+	      .IF <DX EQ NOT_FOUND>		; if we didn't find it then..
+		MOV    CX,CS:[BX].HSLMX 	; check hardware
+		MOV    DI,CS:[BX].HARDSO	; load regs as before.
+		.WHILE <DX EQ NOT_FOUND> AND	; while not found and..
+		.WHILE <CX NE ZERO>		; still have slots to check..
+		  .IF <CS:[DI].SLT_CP EQ BP>	; is it this one?
+		    MOV    DX,FOUND		; yes...set flag.
+		  .ELSE 			;
+		    ADD    DI,TYPE SLTS 	; no ..point to next entry
+		    DEC    CX			; and decrement count.
+		  .ENDIF			;
+		.ENDWHILE			;
+	      .ENDIF				;
+	      .IF <DX EQ NOT_FOUND>		;
+		STC				; set flag appropriately
+	      .ELSE				;
+		CLC				;
+	      .ENDIF				;
+	      POP    DX 			;
+	      RET				;
+CHECK_FOR_CP  ENDP
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -411,40 +408,40 @@ CHECK_FOR_CP  ENDP								    ;AN000;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-FIND_ACTIVE_CP PROC   NEAR							    ;AN000;
-	       MOV    DX,UNDEFINED		 ; initialize register		    ;AN000;
-	       MOV    CX,CS:[BX].RSLMX		 ; load number of RAM slots	    ;AN000;
-	       MOV    DI,CS:[BX].RAMSO		 ; load DI with table offset	    ;AN000;
-	       .WHILE <DX EQ UNDEFINED> AND	 ; whil not found and....	    ;AN000;
-	       .WHILE <CX NE ZERO>		 ; while still slots to check..     ;AN000;
-		 .IF <BIT CS:[DI].SLT_AT AND AT_ACT> ; is it this one?? 	    ;AN000;
-		   MOV	  DX,CS:[DI].SLT_CP	 ; yes....load value		    ;AN000;
-		   .IF <AX EQ ONE>		 ; is deactivate requested?	    ;AN000;
-		     MOV    CS:[DI].SLT_AT,AT_OCC; yes...change attrib. to occupied ;AN000;
-		   .ENDIF			 ;				    ;AN000;
-		 .ELSE				 ;				    ;AN000;
-		   ADD	  DI,TYPE SLTS		 ; no..point to next entry	    ;AN000;
-		   DEC	  CX			 ; decrement the count		    ;AN000;
-		 .ENDIF 			 ;				    ;AN000;
-	       .ENDWHILE			 ;				    ;AN000;
-	       .IF <DX EQ UNDEFINED>		 ; if we didn't find it then..      ;AN000;
-		 MOV	CX,CS:[BX].HSLMX	 ; check hardware		    ;AN000;
-		 MOV	DI,CS:[BX].HARDSO	 ; load regs as before. 	    ;AN000;
-		 .WHILE <DX EQ UNDEFINED> AND	 ; while not found and..	    ;AN000;
-		 .WHILE <CX NE ZERO>		 ; still have slots to check..	    ;AN000;
-		   .IF <BIT CS:[DI].SLT_AT AND AT_ACT> ; is it this one??	    ;AN000;
-		     MOV    DX,CS:[DI].SLT_CP	 ; yes....load value		    ;AN000;
-		     .IF <AX EQ ONE>		 ; is deactivate requested?	    ;AN000;
-		       MOV    CS:[DI].SLT_AT,AT_OCC; yes...change attrib to occupied;AN000;
-		     .ENDIF			 ;				    ;AN000;
-		   .ELSE			 ;				    ;AN000;
-		     ADD    DI,TYPE SLTS	 ; no ..point to next entry	    ;AN000;
-		     DEC    CX			 ; and decrement count. 	    ;AN000;
-		   .ENDIF			 ;				    ;AN000;
-		 .ENDWHILE			 ;				    ;AN000;
-	       .ENDIF				 ;				    ;AN000;
-	       RET				 ;				    ;AN000;
-FIND_ACTIVE_CP ENDP								    ;AN000;
+FIND_ACTIVE_CP PROC   NEAR
+	       MOV    DX,UNDEFINED		 ; initialize register
+	       MOV    CX,CS:[BX].RSLMX		 ; load number of RAM slots
+	       MOV    DI,CS:[BX].RAMSO		 ; load DI with table offset
+	       .WHILE <DX EQ UNDEFINED> AND	 ; whil not found and....
+	       .WHILE <CX NE ZERO>		 ; while still slots to check..
+		 .IF <BIT CS:[DI].SLT_AT AND AT_ACT> ; is it this one??
+		   MOV	  DX,CS:[DI].SLT_CP	 ; yes....load value
+		   .IF <AX EQ ONE>		 ; is deactivate requested?
+		     MOV    CS:[DI].SLT_AT,AT_OCC; yes...change attrib. to occupied
+		   .ENDIF			 ;
+		 .ELSE				 ;
+		   ADD	  DI,TYPE SLTS		 ; no..point to next entry
+		   DEC	  CX			 ; decrement the count
+		 .ENDIF 			 ;
+	       .ENDWHILE			 ;
+	       .IF <DX EQ UNDEFINED>		 ; if we didn't find it then..
+		 MOV	CX,CS:[BX].HSLMX	 ; check hardware
+		 MOV	DI,CS:[BX].HARDSO	 ; load regs as before.
+		 .WHILE <DX EQ UNDEFINED> AND	 ; while not found and..
+		 .WHILE <CX NE ZERO>		 ; still have slots to check..
+		   .IF <BIT CS:[DI].SLT_AT AND AT_ACT> ; is it this one??
+		     MOV    DX,CS:[DI].SLT_CP	 ; yes....load value
+		     .IF <AX EQ ONE>		 ; is deactivate requested?
+		       MOV    CS:[DI].SLT_AT,AT_OCC; yes...change attrib to occupied
+		     .ENDIF			 ;
+		   .ELSE			 ;
+		     ADD    DI,TYPE SLTS	 ; no ..point to next entry
+		     DEC    CX			 ; and decrement count.
+		   .ENDIF			 ;
+		 .ENDWHILE			 ;
+	       .ENDIF				 ;
+	       RET				 ;
+FIND_ACTIVE_CP ENDP
 
 CSEG	   ENDS
 	   END

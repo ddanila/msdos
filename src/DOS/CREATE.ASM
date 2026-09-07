@@ -1,4 +1,3 @@
-;	SCCSID = @(#)create.asm 1.6 85/08/19
 TITLE	DOS_CREATE/DOS_CREATE_NEW - Internal CREATE calls for MS-DOS
 NAME	DOS_CREATE
 ; Internal Create and Create new to create a local or NET file and SFT.
@@ -8,14 +7,6 @@ NAME	DOS_CREATE
 ;   SET_MKND_ERR
 ;   SET_Media_ID
 ;   SET_EXT_Mode
-;
-;   Revision history:
-;
-;	A000 version 4.00     Jan. 1988
-;	A001  D490 -- Change IOCTL subfunctios from 63h,43h to 66h, 46h
-
-;
-; get the appropriate segment definitions
 ;
 .xlist
 include dosseg.asm
@@ -43,11 +34,11 @@ Installed = TRUE
 	I_need	CALLVIDM,DWORD
 	I_need	OpenBuf,128
 	I_need	EXTOPEN_ON,BYTE 		  ;AN000; extended open
-	I_need	NAME1,BYTE			  ;AN000;
-	I_need	NO_NAME_ID,BYTE 		  ;AN000;
-	I_need	Packet_Temp,WORD		  ;AN000;
-	I_need	DOS34_FLAG,WORD 		  ;AN000;
-	I_need	SAVE_BX,WORD			  ;AN000;
+	I_need	NAME1,BYTE
+	I_need	NO_NAME_ID,BYTE
+	I_need	Packet_Temp,WORD
+	I_need	DOS34_FLAG,WORD
+	I_need	SAVE_BX,WORD
 
 ; Inputs:
 ;	[WFP_START] Points to WFP string ("d:/" must be first 3 chars, NUL
@@ -122,7 +113,7 @@ IFS_extopen:				    ;AN000;EO.
 	POP	BX			    ;AN000;EO. trash bx
 	MOV	[EXTOPEN_ON],0		    ;AN000;EO.
 	return				    ;AN000;EO.
-NOEXTOP:				    ;AN000;
+NOEXTOP:
 ;Extended open hooks
 
 IF (NOT Installed) AND 0FFFFh
@@ -294,9 +285,9 @@ EndProc DOS_Create_New
 ;	CARRY SET
 ;	    AX is error code
 
-	procedure   Set_Media_ID,NEAR		   ;AN000;
-	DOSAssume   CS,<DS>,"DOS_Create_New"       ;AN000;
-	ASSUME	ES:NOTHING			   ;AN000;
+	procedure   Set_Media_ID,NEAR
+	DOSAssume   CS,<DS>,"DOS_Create_New"
+	ASSUME	ES:NOTHING
 
 	PUSH	AX		;AN000;;>32mb
 	PUSH	ES		;AN000;;>32mb
@@ -321,9 +312,9 @@ EndProc DOS_Create_New
 	JZ	NoName		;AN000;>32mb yes
 	MOV	SI,OFFSET DOSGROUP:NAME1   ;AN000;>32mb
 	JMP	SHORT doset	;AN000;>32mb yes
-Noname: 			;AN000;
+Noname:
 	MOV	SI,OFFSET DOSGROUP:NO_NAME_ID  ;AN000;>32mb
-doset:					       ;AN000;
+doset:
 	MOV	DI,DX		;AN000;;>32mb
 	ADD	DI,MEDIA_LABEL	;AN000;;>32mb
 	PUSH	CS		;AN000;;>32mb  move new volume id to packet
@@ -336,7 +327,7 @@ doset:					       ;AN000;
 	MOV	AL,0DH		;AN000;;>32mb
 	XOR	BH,BH		;AN000;;>32mb
 	invoke	$IOCTL		;AN000;;>32mb  set volume id
-geterr: 			;AN000;
+geterr:
 	PUSH	CS		;AN000;>32mb
 	POP	DS		;AN000;>32mb   ds= dosgroup
 
@@ -345,7 +336,7 @@ geterr: 			;AN000;
 	POP	AX		;AN000;;>32mb
 	return			;AN000;>32mb
 
-EndProc Set_Media_ID		;AN000;
+EndProc Set_Media_ID
 
 
 ; Inputs:
@@ -361,8 +352,8 @@ IF	(NOT IBMCOPYRIGHT) AND 0FFFFh
 	public Set_EXT_mode
 ENDIF
 
-	procedure   Set_EXT_mode,NEAR	    ;AN000;
-	ASSUME	ES:NOTHING,DS:NOTHING	    ;AN000;
+	procedure   Set_EXT_mode,NEAR
+	ASSUME	ES:NOTHING,DS:NOTHING
 
 	TEST	[EXTOPEN_ON],ext_open_on    ;AN000;EO. from extnded open
 	JZ	NOTEX			    ;AN000;EO. no, do normal
@@ -371,10 +362,10 @@ ENDIF
 	OR	ES:[DI.sf_mode],AX	    ;AN000;EO.
 	POP	AX			    ;AN000;EO.
 	STC				    ;AN000;EO.
-NOTEX:					    ;AN000;
+NOTEX:
 	return				    ;AN000;EO.
 
-EndProc Set_EXT_mode			    ;AN000;
+EndProc Set_EXT_mode
 
 CODE	ENDS
     END

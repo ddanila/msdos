@@ -1,12 +1,12 @@
 ;
-page	,132				; ;AN000;bgb
+page	,132				;
 ;;*****************************************************************************
 ; Include files
 ;*****************************************************************************
 ;
 .xlist
-	include pathmac.inc							;an028;bgb
-	include recseg.inc		;AN000;bgb
+	include pathmac.inc
+	include recseg.inc
 	include dossym.inc
 	INCLUDE SYSMSG.INC
 	INCLUDE RECEQU.INC
@@ -16,17 +16,17 @@ page	,132				; ;AN000;bgb
 ;*****************************************************************************
 ; external data
 ;*****************************************************************************
-data	segment public para 'DATA'      ;AC000;bgb
-	EXTRN	command_line_buffer:byte					;an031;bgb
-	extrn	DrvLet1:Byte		;AN000;bgb
-	extrn	DrvLet:Byte	       ;AN000;bgb
-	extrn	rec_num:word	       ;AN000;bgb
-	Extrn	Drive_Letter_Msg:Byte	;AN000;BGB
-	extrn	fname_buffer:byte	;AN000;BGB
-	EXTRN	x_value_lo:WORD 	;AN000;bgb	   ; AC000;SM
-	EXTRN	x_value_hi:WORD 	;AN000;bgb	   ; AC000;SM
-	EXTRN	y_value_lo:WORD 	;AN000;bgb	   ; AC000;SM
-	EXTRN	y_value_hi:WORD 	;AN000;bgb	   ; AC000;SM
+data	segment public para 'DATA'
+	EXTRN	command_line_buffer:byte
+	extrn	DrvLet1:Byte
+	extrn	DrvLet:Byte
+	extrn	rec_num:word
+	Extrn	Drive_Letter_Msg:Byte
+	extrn	fname_buffer:byte
+	EXTRN	x_value_lo:WORD
+	EXTRN	x_value_hi:WORD
+	EXTRN	y_value_lo:WORD
+	EXTRN	y_value_hi:WORD
 	extrn	DriveLetter:Byte
 
 ;*****************************************************************************
@@ -44,22 +44,22 @@ data	ends
 ;***************************************************************************
 ;
 code	segment PUBLIC para 'CODE'
-Message_Table struc				;				;AN000;
+Message_Table struc				;
 						;
-Entry1	dw	0				;				;AN000;
-Entry2	dw	0				;				;AN000;
-Entry3	dw	0				;				;AN000;
-Entry4	dw	0				;				;AN000;
-Entry5	db	0				;				;AN000;
-Entry6	db	0				;				;AN000;
-Entry7	dw	0				;				;AN000;
-Message_Table ends				;				;AN000;
+Entry1	dw	0				;
+Entry2	dw	0				;
+Entry3	dw	0				;
+Entry4	dw	0				;
+Entry5	db	0				;
+Entry6	db	0				;
+Entry7	dw	0				;
+Message_Table ends				;
 
-pathlabl	msgret								;an028;bgb
+pathlabl	msgret
 Msg_Services	<NEARmsg>
 Msg_Services	<LOADmsg>
-Msg_Services	<DISPLAYmsg,CHARmsg,NUMmsg>					;an029;bgb
-pathlabl	msgret								;an028;bgb
+Msg_Services	<DISPLAYmsg,CHARmsg,NUMmsg>
+pathlabl	msgret
 Msg_Services	<RECOVER.CLA,RECOVER.CL1,RECOVER.CL2,RECOVER.CTL>
 .list
 ;
@@ -83,8 +83,6 @@ Msg_Services	<RECOVER.CLA,RECOVER.CL1,RECOVER.CL2,RECOVER.CTL>
 ;
 ;Called Procedures: Message (macro)
 ;
-;Change History&gml Created	   4/22/87	   MT
-;
 ;Input&gml ES&gmlDX = pointer to message description
 ;
 ;Output&gml None
@@ -99,35 +97,35 @@ Msg_Services	<RECOVER.CLA,RECOVER.CL1,RECOVER.CL2,RECOVER.CTL>
 ;	ret
 ;*****************************************************************************
 
-Display_Interface   proc			;				;AN000;
+Display_Interface   proc			;
 
-	 push	 ds				 ;				 ;AN000;
-	 push	 ax				 ;Save registers		 ;AN000;
-	 push	 bx				 ; "  "    "  "                  ;AN000;
-	 push	 cx				 ; "  "    "  "                  ;AN000;
-	 push	 dx				 ; "  "    "  "                  ;AN000;
-	 push	 si				 ; "  "    "  "                  ;AN000;
-	 push	 di				 ; "  "    "  "                  ;AN000;
-	 mov	 di,dx				 ;Change pointer to table	 ;AN000;
+	 push	 ds				 ;
+	 push	 ax				 ;Save registers
+	 push	 bx				 ; "  "    "  "
+	 push	 cx				 ; "  "    "  "
+	 push	 dx				 ; "  "    "  "
+	 push	 si				 ; "  "    "  "
+	 push	 di				 ; "  "    "  "
+	 mov	 di,dx				 ;Change pointer to table
 	 mov	 dx,DG				 ;Point to data segment
 	 mov	 ds,dx				 ;
-	 mov	 ax,[di].Entry1 		 ;Message number		 ;AN000;
-	 mov	 bx,[di].Entry2 		 ;Handle			 ;AN000;
-	 mov	 si,[di].Entry3 		 ;Sublist			 ;AN000;
-	 mov	 cx,[di].Entry4 		 ;Count 			 ;AN000;
-	 mov	 dh,[di].Entry5 		 ;Class 			 ;AN000;
-	 mov	 dl,[di].Entry6 		 ;Function			 ;AN000;
-	 mov	 di,[di].Entry7 		 ;Input 			 ;AN000;
-	 call	 SysDispMsg			 ;Display the message		 ;AN000;
-	 pop	 di				 ;Restore registers		 ;AN000;
-	 pop	 si				 ; "  "    "  "                  ;AN000;
-	 pop	 dx				 ; "  "    "  "                  ;AN000;
-	 pop	 cx				 ; "  "    "  "                  ;AN000;
-	 pop	 bx				 ; "  "    "  "                  ;AN000;
-	 pop	 ax				 ; "  "    "  "                  ;AN000;
-	 pop	 ds				 ;				 ;AN000;
-	 ret					 ;All done			 ;AN000;
-Display_Interface      endp			;				;AN000;
+	 mov	 ax,[di].Entry1 		 ;Message number
+	 mov	 bx,[di].Entry2 		 ;Handle
+	 mov	 si,[di].Entry3 		 ;Sublist
+	 mov	 cx,[di].Entry4 		 ;Count
+	 mov	 dh,[di].Entry5 		 ;Class
+	 mov	 dl,[di].Entry6 		 ;Function
+	 mov	 di,[di].Entry7 		 ;Input
+	 call	 SysDispMsg			 ;Display the message
+	 pop	 di				 ;Restore registers
+	 pop	 si				 ; "  "    "  "
+	 pop	 dx				 ; "  "    "  "
+	 pop	 cx				 ; "  "    "  "
+	 pop	 bx				 ; "  "    "  "
+	 pop	 ax				 ; "  "    "  "
+	 pop	 ds				 ;
+	 ret					 ;All done
+Display_Interface      endp			;
 
 include msgdcl.inc
 
@@ -135,22 +133,22 @@ code	ends
 	end
 
 
-;code	 segment public PARA 'CODE'      ;AC000;bgb
+;code	 segment public PARA 'CODE'
 ;code	 ends
 ;
-;const	 segment public para		 ;AC000;bgb
+;const	 segment public para
 ;const	 ends
 ;
 ;cstack  segment stack word 'stack'
 ;cstack  ends
 ;
 ;
-;data	 segment public para 'DATA'      ;AC000;bgb
+;data	 segment public para 'DATA'
 ;data	 ends
 ;
 ;dg	 group	 code,const,data,cstack
 ;
-;code	 segment public para 'code'      ;AC000;bgb
+;code	 segment public para 'code'
 ;code	 ends
 ;	 assume  cs:dg,ds:dg,es:dg,ss:cstack
 ;

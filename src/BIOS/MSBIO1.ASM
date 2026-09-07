@@ -2,11 +2,6 @@
 	PAGE	,132			;
 	TITLE	MSBIO1.asm - BIOS
 ;==============================================================================
-;REVISION HISTORY:
-;AN000 - New for DOS Version 4.00 - J.K.
-;AC000 - Changed for DOS Version 4.00 - J.K.
-;AN00x - PTM number for DOS Version 4.00 - J.K.
-;==============================================================================
 COMMENT *
 THE LINK STEP IS PERFORMED BY USING THE FOLLOWING "NEW.ARF" FILE:
 msbio1+

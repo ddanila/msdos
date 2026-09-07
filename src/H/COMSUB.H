@@ -1,48 +1,4 @@
-/*static char *SCCSID = "@(#)comsub.h	8.2 87/02/13";*/
-/******************** START OF SPECIFICATIONS ************************/
-/*								     */
-/* SOURCE FILE NAME: COMSUB.H					     */
-/*								     */
-/* DESCRIPTIVE NAME: COMMON SUBROUTINE INCLUDE FILE		     */
-/*								     */
-/* FUNCTION:							     */
-/*								     */
-/*								     */
-/* NOTES:							     */
-/*								     */
-/* ENTRY POINTS:  NONE						     */
-/*								     */
-/* EXTERNAL REFERENCE:	NONE					     */
-/*								     */
-/* RELEASE:							     */
-/*								     */
-/*    VERSION	 DATE		REASON				     */
-/*								     */
-/*     1.00    03/10/1986    initial version			     */
-/*     1.01    03/11/1986    define external pointer to invalid      */
-/*			     argument string (CORA's request)        */
-/*     1.02    03/18/1986    external declaration of "computmsg"     */
-/*			     parm 1 : char far * -> char far **      */
-/*     1.03    03/24/1986    delete "comverflnm" related decralation */
-/*			     change "int" to "unsigned"              */
-/*     1.04    03/25/1986  - add function external declaration of    */
-/*			     "comcheckdosver"                        */
-/*			   - delete "far" declaration.               */
-/*     2.00    04/15/1986    the first intigration version	     */
-/*     2.01    05/21/1986  - add "extern rctomid()"                  */
-/*     2.02    05/22/1986  - add DBCS common routines		     */
-/*     2.03    06/17/1986  - add "com_toupper" and "com_tolower"     */
-/*     2.04    06/18/1986  - comment out SCCSID tag		     */
-/*     2.05    06/25/1986  - add filehandle enabling switch	     */
-/*     2.06    08/07/1986  - add new routine "realopen"              */
-/*     2.07    02/13/1987  - add "cm_trace_cmd_flg".                 */
-/*********************************************************************/
-
-/*************************************
- *				     *
- *  external function declaration    *
- *				     *
- *************************************/
+/* Common utility subroutines. */
 
 extern unsigned comgetarg (
 	unsigned *,	   /* number of arguments		    */

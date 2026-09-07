@@ -1,4 +1,3 @@
-;	SCCSID = @(#)STDIOCTL.INC	1.1 85/04/10
 IBM     EQU     0          ;FALSE
 
 INCLUDE IOCTL.INC

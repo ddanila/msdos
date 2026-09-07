@@ -10,26 +10,8 @@ page	58,132
 ;
 ;   Module:	EMMDAT
 ;
-;   Version:	0.04
-;
-;   Date:	June 14,1986
-;
 ;******************************************************************************
 ;
-;   Change log:
-;
-;     DATE    REVISION                  DESCRIPTION
-;   --------  --------  -------------------------------------------------------
-;   06/14/86		Added MapSize  (SBP)
-;   06/27/86  0.02	Reordered tables to place size dependent ones at end.
-;   06/28/86  0.02	Name change from CEMM386 to CEMM (SBP).
-;   07/06/86  0.04	Made _emm_page,_emm_free, and _pft386 pointers instead
-;			of labels to allow sizing of these arrays based on the
-;			number of pages in the system. Also added _emm_brk.
-;   ?	      0.05	Modified for WIN386
-;   05/06/88  0.06	Modified back for MEMM.
-;
-;******************************************************************************
 ;
 ;   Functional Description:
 ;	data definitions for emm/lim

@@ -1,4 +1,3 @@
-;	SCCSID = @(#)sysvar.asm 1.1 85/04/10
 include		version.inc
 
 SysInitVars STRUC

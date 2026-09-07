@@ -1,4 +1,3 @@
-;	SCCSID = @(#)parse.asm	1.2 85/07/23
 TITLE PARSE - Parsing system calls for MS-DOS
 NAME  PARSE
 ;
@@ -6,12 +5,6 @@ NAME  PARSE
 ;
 ;   $PARSE_FILE_DESCRIPTOR
 ;
-;   Modification history:
-;
-;       Created: ARR 30 March 1983
-;               EE PathParse 10 Sept 1983
-;
-
 .xlist
 ;
 ; get the appropriate segment definitions

@@ -11,30 +11,8 @@ page	58,132
 ;
 ;   Module:   EM386LL - 386 routine to emulate 386 LOADALL
 ;
-;   Version:  0.04
-;
-;   Date:     April 11,1986
-;
-;   Author:
-;
 ;******************************************************************************
 ;
-;   Change log:
-;
-;     DATE    REVISION			DESCRIPTION
-;   --------  --------	-------------------------------------------------------
-;   04/16/86  Original
-;   05/12/86  A	Cleanup and segment reorganization
-;   06/28/86  0.02	Name change from MEMM386 to MEMM
-;   06/29/86  0.02	Fixed error handler call. Error handler called
-;			only on attempt to set VM bit in EFLAGS
-;   06/30/86  0.02	Jmp to error routine (instead of calling)
-;   07/03/86  0.03	Removed logic to enable A20 line watch
-;   07/05/86  0.04	JumpReal in R_CODE
-;   07/06/86  0.04	Changed assume to DGROUP
-;   07/08/86  0.04	added DB67 NOPs to avoid B1 errata
-;
-;******************************************************************************
 ;
 ;   Functional Description:
 ;

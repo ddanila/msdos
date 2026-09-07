@@ -11,21 +11,21 @@ EMS_INT 		EQU	67H
 EMS_VERSION_LEVEL	EQU	40H
 EMS_2F_Handler		EQU	1Bh
 
-EMS_Mem 		EQU	'X'                                             ;an005; dms;
-EM_Mem			EQU	'E'                                             ;an005; dms;
+EMS_Mem 		EQU	'X'
+EM_Mem			EQU	'E'
 
 EMS_EXPECTED_VERSION	EQU	34H
 EMS_LOW_ERROR		EQU	80H
-EMS_INSTALLED_FLAG	EQU	00h		;ac006; dms;
+EMS_INSTALLED_FLAG	EQU	00h
 
 EMS_ALLOC_ERROR 	EQU	-1		; ***RPS ??
 SINGLE_SEGMENT		EQU	1
 ;;;DOS_PAGE1		   EQU	   0FFH
 ;;;DOS_PAGE2		   EQU	   0FEH
 DOS_PAGE_SZ		EQU	16
-EMS_Page_Size		EQU	4000h		;an002; dms;
+EMS_Page_Size		EQU	4000h
 
-EM_Size_Get		EQU	88h		;an001; dms;
+EM_Size_Get		EQU	88h
 
 
 GET_PAGE_FRAME_STRUC	STRUC

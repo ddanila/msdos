@@ -1,5 +1,3 @@
-;	SCCSID = @(#)disk.asm	1.1 85/04/10
-;	SCCSID = @(#)disk.asm	1.1 85/04/10
 TITLE	DISK - Disk utility routines
 NAME	Disk
 ; Low level Read and write routines for local SFT I/O on files and devs
@@ -17,18 +15,10 @@ NAME	Disk
 ;   CHECK_WRITE_LOCK
 ;   CHECK_READ_LOCK
 ;
-;   Revision history:
-;
-;	A000   version 4.00  Jan. 1988
-;
-
-;
-; get the appropriate segment definitions
-;
 .xlist
 include dosseg.asm
-include fastseek.inc				;AN000;
-include fastxxxx.inc				;AN000;
+include fastseek.inc
+include fastxxxx.inc
 
 CODE	SEGMENT BYTE PUBLIC  'CODE'
 	ASSUME	SS:DOSGROUP,CS:DOSGROUP
@@ -56,17 +46,17 @@ Installed = TRUE
 	i_need	CONBUF,BYTE
 	i_need	ClusFac,BYTE
 	i_need	SecClusPos,BYTE
-	i_need	DirSec,DWORD		     ;AN000;
+	i_need	DirSec,DWORD
 	i_need	ClusNum,WORD
 	i_need	NxtClusNum,WORD
 	i_need	ReadOp,BYTE
 	i_need	CURBUF,DWORD
 	i_need	ALLOWED,BYTE
 	i_need	EXTERR_LOCUS,BYTE
-	i_need	FastSeekflg,BYTE	     ;AN000;
-	i_need	HIGH_SECTOR,WORD	     ;AN000;
-	I_need	JShare,DWORD		     ;AN000;
-	i_need	DOS34_FLAG,WORD 	     ;AN000;
+	i_need	FastSeekflg,BYTE
+	i_need	HIGH_SECTOR,WORD
+	I_need	JShare,DWORD
+	i_need	DOS34_FLAG,WORD
 
 IF	BUFFERFLAG
 
@@ -180,9 +170,9 @@ READ_NO_MODE:
 ;	CALL	CHECK_READ_LOCK 	;AN000;;IFS. check read lock
 ;	JNC	READ_OK2		;AN000;;IFS. lock check ok
 ;	JMP	SHORT critexit		;AN000;;IFS. fail
-READ_OK2:				;AN000;
+READ_OK2:
 ;	LeaveCrit   critDisk		;AN000;;IFS. leave critical section
-IFS_HAS_SHARE:				;AN000;
+IFS_HAS_SHARE:
 
 IF (NOT Installed) AND 0FFFFh
 	transfer NET_READ
@@ -494,7 +484,7 @@ WRITE_NO_MODE:
 ;	JC	nocommit		;AN000;;IFS. lock error
 ;
 ;	LeaveCrit   critDisk		;AN000;;IFS. leave critical section
-IFS_HAS_SHARE2: 			;AN000;
+IFS_HAS_SHARE2:
 
 
 IF (NOT Installed) AND 0FFFFh
@@ -509,7 +499,7 @@ ELSE
 ;	MOV	AX,1		       ;AN000;;IFS. update all SFT for new size
 ;	call	JShare + 14 * 4        ;AN000;;IFS. call ShSu
 
-nomore: 			       ;AN000;
+nomore:
 	return
 ENDIF
 
@@ -522,7 +512,7 @@ LOCAL_WRITE:
 	TEST	[FastSeekflg],Fast_yes	       ;AN000;FO. FastSeek installed ?
 	JZ	FS_no2			       ;AN000;FO. no
 	OR	[FastSeekflg],FS_begin	       ;AN000;FO. set fastseek mode
-FS_no2: 				       ;AN000;
+FS_no2:
 	invoke	DISKWRITE
 	PUSHF				       ;AN000;FO. save flag
 	AND	CS:[FastSeekflg],FS_end        ;AN000;FO. reset fastseek mode
@@ -535,7 +525,7 @@ FS_no2: 				       ;AN000;
 	PUSH	CX			       ;AN000;EO.
 	invoke	DOS_COMMIT		       ;AN000;EO.
 	POP	CX			       ;AN000;EO.
-nocommit:				       ;AN000;
+nocommit:
 ;; Extended Open
 	LeaveCrit   critDisk
 	return
@@ -901,28 +891,28 @@ Break	<CHECK_WRITE_LOCK>
 ;	Carry set if error
 ;	Carry clear if ok
 
-	procedure   CHECK_WRITE_LOCK,NEAR      ;AN000;
-ASSUME	DS:NOTHING,ES:NOTHING		       ;AN000;
+	procedure   CHECK_WRITE_LOCK,NEAR
+ASSUME	DS:NOTHING,ES:NOTHING
 
 	TEST	ES:[DI].sf_attr,attr_volume_id ;AN000;;MS.  volume id
 	JZ	write_cont		       ;AN000;;MS.  no
 	invoke	SET_ACC_ERR_DS		       ;AN000;;MS.
 	return				;AN000;;MS.
-write_cont:				;AN000;
+write_cont:
 	PUSH	CX			;AN000;;MS. save reg
 	OR	CX,CX			;AN000;;MS.
 	JNZ	Not_Truncate		;AN000;;MS.
 	MOV	CX,0FFFFH		;AN000;;MS. check for lock on whole file
-Not_Truncate:				;AN000;
+Not_Truncate:
 	MOV	AL,80H			;AN000;;MS. check write access
 	invoke	LOCK_CHECK		;AN000;;MS. check lock
 	POP	CX			;AN000;;MS. restore reg
 	JNC	WRITE_OK		;AN000;;MS. lock ok
 	invoke	WRITE_LOCK_VIOLATION	;AN000;;MS. issue I24
 	JNC	CHECK_WRITE_LOCK	;AN000;;MS. retry
-WRITE_OK:				;AN000;
+WRITE_OK:
 	return				;AN000;;MS.
-EndProc CHECK_WRITE_LOCK		;AN000;
+EndProc CHECK_WRITE_LOCK
 
 
 Break	<CHECK_READ_LOCK>
@@ -936,14 +926,14 @@ Break	<CHECK_READ_LOCK>
 ;	Carry set if error
 ;	Carry clear if ok
 
-	procedure   CHECK_READ_LOCK,NEAR       ;AN000;
-ASSUME	DS:NOTHING,ES:NOTHING		       ;AN000;
+	procedure   CHECK_READ_LOCK,NEAR
+ASSUME	DS:NOTHING,ES:NOTHING
 
 	TEST	ES:[DI].sf_attr,attr_volume_id ;AN000;;MS.  volume id
 	JZ	do_retry		       ;AN000;;MS.  no
 	invoke	SET_ACC_ERR		       ;AN000;;MS.
 	return				       ;AN000;;MS.
-do_retry:				;AN000;
+do_retry:
 	MOV	AL,0			;AN000;;MS. check read access
 	invoke	LOCK_CHECK		;AN000;;MS. check lock
 	JNC	READ_OK 		;AN000;;MS. lock ok
@@ -951,7 +941,7 @@ do_retry:				;AN000;
 	JNC	CHECK_READ_LOCK 	;AN000;;MS. retry
 READ_OK:				;AN000; MS.
 	return				;AN000;;MS.
-EndProc CHECK_READ_LOCK 		;AN000;
+EndProc CHECK_READ_LOCK
 
 IF BUFFERFLAG
 

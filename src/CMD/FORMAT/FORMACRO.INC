@@ -16,39 +16,39 @@
 
 ;-----------------------------------------------------------------------------
 
-Message macro   Message_Name                    ;                               ;AN000;
+Message macro   Message_Name                    ;
                                                 ;
-        mov     dx,offset data:Message_Name     ;                               ;AN000;
-        call    Display_Interface               ;                               ;AN000;
-        endm                                    ;                               ;AN000;
+        mov     dx,offset data:Message_Name     ;
+        call    Display_Interface               ;
+        endm                                    ;
 
 ;-----------------------------------------------------------------------------
 
-Parse_Message macro                             ;                               ;AN000;
+Parse_Message macro                             ;
 
                                                 ;
         push    ds
         mov     dx,data
         mov     ds,dx
-        mov     word ptr Parse_Error_Msg,ax     ;                               ;AN000;
-        mov     dx,offset Parse_Error_Msg       ;                               ;AN000;
-        call    Display_Interface               ;                               ;AN000;
+        mov     word ptr Parse_Error_Msg,ax     ;
+        mov     dx,offset Parse_Error_Msg       ;
+        call    Display_Interface               ;
         pop     ds                              ;
-        endm                                    ;                               ;AN000;
+        endm                                    ;
 
 ;-----------------------------------------------------------------------------
 
-Extended_Message macro                          ;                               ;AN000;
+Extended_Message macro                          ;
                                                 ;
 
         push    ds
         mov     dx,data
         mov     ds,dx
-        mov     word ptr Extended_Error_Msg,ax       ;                               ;AN000;
-        mov     dx,offset data:Extended_Error_Msg    ;                               ;AN000;
-        call    Display_Interface               ;                               ;AN000;
+        mov     word ptr Extended_Error_Msg,ax       ;
+        mov     dx,offset data:Extended_Error_Msg    ;
+        call    Display_Interface               ;
         pop     ds
-        endm                                    ;                               ;AN000;
+        endm                                    ;
 
 ;
 ;*****************************************************************************

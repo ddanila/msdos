@@ -1,36 +1,5 @@
  page 80,132
-;	SCCSID = @(#)copy.asm	1.1 85/05/14
-;	SCCSID = @(#)copy.asm	1.1 85/05/14
 TITLE	COMMAND COPY routines.
-
-; MODIFICATION HISTORY
-;
-;   11/01/83 EE  Added a few lines at the end of SCANSRC2 to get multiple
-;		 file concatenations (eg copy a.*+b.*+c.*) to work properly.
-;   11/02/83 EE  Commented out the code in CPARSE which added drive designators
-;		 to tokens which begin with path characters so that PARSELINE
-;		 will work correctly.
-;   11/04/83 EE  Commented out the code in CPARSE that considered paren's to be
-;		 individual tokens.  That distinction is no longer needed for
-;		 FOR loop processing.
-;   11/17/83 EE  CPARSE upper case conversion is now flag dependent.  Flag is
-;		 1 when Cparse is called from COPY.
-;   11/17/83 EE  Took out the comment chars around code described in 11/04/83
-;		 mod.  It now is conditional on flag like previous mod.
-;   11/21/83 NP  Added printf
-;   12/09/83 EE  CPARSE changed to use CPYFLAG to determine when a colon should
-;		 be added to a token.
-;   05/30/84 MZ  Initialize all copy variables.  Fix confusion with destclosed
-;		 NOTE: DestHand is the destination handle.  There are two
-;		 special values:  -1 meaning destination was never opened and
-;		 0 which means that the destination has been openned and
-;		 closed.
-;   06/01/84 MZ  Above reasoning totally specious.  Returned things to normal
-;   06/06/86 EG  Change to fix problem of source switches /a and /b getting
-;		 lost on large and multiple file (wildcard) copies.
-;   06/09/86 EG  Change to use xnametrans call to verify that source and
-;		 destination are not equal.
-
 
 .xlist
 .xcref
@@ -42,23 +11,23 @@ TITLE	COMMAND COPY routines.
 .cref
 
 
-DATARES 	SEGMENT PUBLIC BYTE	;AC000;
+DATARES 	SEGMENT PUBLIC BYTE
 	EXTRN	VERVAL:WORD
-	EXTRN	RSRC_XA_SEG:WORD	;AN030;
+	EXTRN	RSRC_XA_SEG:WORD
 DATARES ENDS
 
-TRANDATA	SEGMENT PUBLIC BYTE	;AC000;
+TRANDATA	SEGMENT PUBLIC BYTE
 	EXTRN	BADCD_ptr:word
 	EXTRN	COPIED_ptr:word
-	EXTRN	Extend_buf_ptr:word	;AN000;
-	EXTRN	Extend_buf_sub:byte	;AN000;
+	EXTRN	Extend_buf_ptr:word
+	EXTRN	Extend_buf_sub:byte
 	EXTRN	file_name_ptr:word
-	EXTRN	INBDEV_ptr:word 	;AC000;
-	EXTRN	msg_disp_class:byte	;AN000;
+	EXTRN	INBDEV_ptr:word
+	EXTRN	msg_disp_class:byte
 	EXTRN	overwr_ptr:word
 TRANDATA	ENDS
 
-TRANSPACE	SEGMENT PUBLIC BYTE	;AC000;
+TRANSPACE	SEGMENT PUBLIC BYTE
 	EXTRN	ALLSWITCH:WORD
 	EXTRN	ARGC:BYTE
 	EXTRN	ASCII:BYTE
@@ -67,11 +36,11 @@ TRANSPACE	SEGMENT PUBLIC BYTE	;AC000;
 	EXTRN	CFLAG:BYTE
 	EXTRN	comma:byte
 	EXTRN	CONCAT:BYTE
-	EXTRN	concat_xa:byte		;AN000;
-	EXTRN	copy_num:word		;AC000;
+	EXTRN	concat_xa:byte
+	EXTRN	copy_num:word
 	EXTRN	CPDATE:WORD
 	EXTRN	CPTIME:WORD
-	EXTRN	cpyflag:byte		;AC000;
+	EXTRN	cpyflag:byte
 	EXTRN	CURDRV:BYTE
 	EXTRN	DESTBUF:BYTE
 	EXTRN	DestClosed:BYTE
@@ -92,21 +61,21 @@ TRANSPACE	SEGMENT PUBLIC BYTE	;AC000;
 	EXTRN	INEXACT:BYTE
 	EXTRN	MELCOPY:BYTE
 	EXTRN	MELSTART:WORD
-	EXTRN	msg_flag:byte		;AN022;
+	EXTRN	msg_flag:byte
 	EXTRN	NOWRITE:BYTE
 	EXTRN	OVERWRITECANCEL:BYTE
 	EXTRN	NXTADD:WORD
 	EXTRN	objcnt:byte
-	EXTRN	one_char_val:byte	;AN000;
-	EXTRN	parse_last:word 	;AN018;
+	EXTRN	one_char_val:byte
+	EXTRN	parse_last:word
 	EXTRN	PLUS:BYTE
 	EXTRN	plus_comma:byte
 	EXTRN	RDEOF:BYTE
 	EXTRN	RESSEG:WORD
 	EXTRN	SCANBUF:BYTE
 	EXTRN	SDIRBUF:BYTE
-	EXTRN	src_xa_size:word	;AN000;
-	EXTRN	src_xa_seg:word 	;AN000;
+	EXTRN	src_xa_size:word
+	EXTRN	src_xa_seg:word
 	EXTRN	SRCBUF:BYTE
 	EXTRN	SRCHAND:WORD
 	EXTRN	SRCINFO:BYTE
@@ -122,8 +91,8 @@ TRANSPACE	SEGMENT PUBLIC BYTE	;AC000;
 	EXTRN	TPA:WORD
 	EXTRN	USERDIR1:BYTE
 	EXTRN	WRITTEN:WORD
-	EXTRN	xa_cp_out:byte		;AN030;
-	EXTRN	xa_list_attr:word	;AC030;
+	EXTRN	xa_cp_out:byte
+	EXTRN	xa_list_attr:word
 TRANSPACE	ENDS
 
 
@@ -213,7 +182,7 @@ COPY_NORM:
 	mov	TermRead,AL
 	mov	comma,al			;g
 	mov	plus_comma,al			;g
-	mov	msg_flag,al			;AN022;
+	mov	msg_flag,al
 	mov	[ALLSWITCH],AX			; no switches
 	call	LoadCopyCmdPolicy
 	mov	[ARGC],al			; no arguments
@@ -265,7 +234,7 @@ NOPLUS:
 ;AD018; or	[allswitch],FBadSwitch		;AN038; Set up bad switch
 	or	BP,FBadSwitch			;AN018; Set up bad switch
 
-not_slashv:					;AN038;
+not_slashv:
 	test	BP,SwitchY
 	jz	CopyNotYes
 	and	[ALLSWITCH],NOT SwitchNoY
@@ -714,7 +683,7 @@ OpenOK:
 	mov	ax,(file_times SHL 8)+get_XA	;AC030; get extended attribute size
 	mov	si,-1				;AN030; no querylist
 	xor	cx,cx				;AN030; indicate we want size
-	int	int_command			;AC000;
+	int	int_command
 	jc	src_cp_error			;AN022; If error, exit
 	mov	src_xa_size,cx			;AN000; save size
 	cmp	cx,0				;AN000; are there any?
@@ -725,7 +694,7 @@ OpenOK:
 	invoke	get_file_code_page_tag		;AN000; get file's code page
 	pop	cx				;AN030	retrieve old code page
 	jnc	no_cp_get			;AN000; no error - continue
-src_cp_error:					;AN022;
+src_cp_error:
 	jmp	error_on_source 		;AC022; and exit
 
 no_cp_get:
@@ -736,7 +705,7 @@ no_cp_get:
 	cmp	cx,xa_list_attr 		;AN000; no - see if code pages match
 	jz	no_copy_xa_jmp			;AN000; code pages match - continue
 	mov	xa_list_attr,inv_cp_tag 	;AN000; set invalid code page tag
-no_copy_xa_jmp: 				;AC022;
+no_copy_xa_jmp:
 	jmp	no_copy_xa			;AN000; don't get extended attributes
 
 get_src_xa:
@@ -750,7 +719,7 @@ get_src_xa:
 	shr	bx,cl				;AN000;    to paragraphs
 	inc	bx				;AN000; round up
 	mov	ax,(alloc SHL 8)		;AN000; allocate memory for XA
-	int	int_command			;AN000;
+	int	int_command
 	pushf					;AN000; save flags
 	mov	[src_xa_seg], AX		;AN000; save new segment
 	push	ds				;AN030; get resident segment
@@ -789,12 +758,12 @@ error_on_source:				;AN022; we have a BAD error
 	cmp	[srchand],0			;AN022; did we open the file?
 	jz	no_close_src			;AN022; no - don't close
 	call	closesrc			;AN022; clean up
-no_close_src:					;AN022;
+no_close_src:
 	cmp	[cflag],0			;AN022; was destination created?
 	jz	endcopyj3			;AN022; no - just cleanup and exit
 	jmp	endcopy 			;AN022; clean up concatenation and exit
-endcopyj3:					;AN022;
-	jmp	endcopy2			;AN022;
+endcopyj3:
+	jmp	endcopy2
 no_copy_xa:
 	mov	bx,[srchand]			;AN022; get handle back
 	mov	ax,(IOCTL SHL 8)
@@ -949,7 +918,7 @@ DODCLOSE:
 
 	mov	ax,(file_times SHL 8)+set_XA	;AN000; set code page
 	mov	di,offset trangroup:xa_cp_out	;AC030; offset of attr list
-	int	int_command			;AN000;
+	int	int_command
 	jc	xa_cleanup_err			;AN030; exit if error
 
 ;
@@ -974,7 +943,7 @@ no_xa_cleanup_err:
 	pop	dx
 	jnc	close_cont			;AN022; handle error on close
 	popf					;AN022; get the flags back
-xa_cleanup_err: 				;AN022;
+xa_cleanup_err:
 	call	cleanuperr			;AN022; attempt to delete the target
 	call	DestDelete			;AN022; attempt to delete the target
 	jmp	short fileclosed		;AN022; close the file
@@ -1043,7 +1012,7 @@ source_set	endp
 ;*
 ;****************************************************************
 
-cleanuperr	proc	near			;AN022;
+cleanuperr	proc	near
 
 	cmp	msg_flag,0			;AN022; have we already issued a message?
 	jnz	cleanuperr_cont 		;AN022; yes - don't issue duplicate error
@@ -1051,10 +1020,10 @@ cleanuperr	proc	near			;AN022;
 	mov	string_ptr_2,offset trangroup:destbuf ;AN022; get address of failed string
 	mov	Extend_buf_sub,one_subst	;AN022; put number of subst in control block
 	invoke	std_eprintf			;AN022; issue the error message
-cleanuperr_cont:				;AN022;
+cleanuperr_cont:
 
 	ret					;AN022; return to caller
-cleanuperr	endp				;AN022;
+cleanuperr	endp
 
 ;****************************************************************
 ;*
@@ -1070,26 +1039,26 @@ cleanuperr	endp				;AN022;
 ;*
 ;****************************************************************
 
-Deallocate_Src_XA  proc    near 		;AN030;
+Deallocate_Src_XA  proc    near
 
 	cmp	[src_xa_seg],no_xa_seg		;AN030; has any XA segment been allocated
 	jz	no_src_xa			;AN030; no - continue
-	push	es				;AN030;
+	push	es
 	mov	es,src_xa_seg			;AN030; yes - free it
 	mov	ax,(Dealloc SHL 8)		;AN030; Deallocate memory call
-	int	int_command			;AN030;
-	pop	es				;AN030;
+	int	int_command
+	pop	es
 	mov	[src_xa_seg],no_xa_seg		;AN030; reset to no segment
 	push	ds				;AN030; reinitialize resident
 	mov	ds,[SHELL_DATA_SELECTOR]			;AN030;   copy of xa segment
-	assume	ds:resgroup			;AN030;
+	assume	ds:resgroup
 	mov	[rsrc_xa_seg],no_xa_seg 	;AN030; reset to no segment
-	pop	ds				;AN030;
-	assume	ds:trangroup			;AN030;
-no_src_xa:					;AN030;
+	pop	ds
+	assume	ds:trangroup
+no_src_xa:
 
 	ret					;AN030; return to caller
-Deallocate_Src_XA  endp 			;AN030;
+Deallocate_Src_XA  endp
 
 
 TRANCODE	ENDS

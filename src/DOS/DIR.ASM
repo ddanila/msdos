@@ -1,5 +1,3 @@
-;	SCCSID = @(#)dir.asm	1.1 85/04/10
-;	SCCSID = @(#)dir.asm	1.1 85/04/10
 TITLE	DIR - Directory and path cracking
 NAME	Dir
 ; Main Path cracking routines, low level search routines
@@ -14,14 +12,6 @@ NAME	Dir
 ;   GETENT
 ;   SETDIRSRCH
 ;   SETROOTSRCH
-;
-;   Revision history:
-;
-;	A000   version 4.00    Jan. 1988
-;
-
-;
-; get the appropriate segment definitions
 ;
 .xlist
 include dosseg.asm
@@ -52,9 +42,9 @@ asmvar	Kanji
 	i_need	SecClusPos,BYTE
 	i_need	ClusFac,BYTE
 	i_need	NxtClusNum,WORD
-	i_need	DirSec,DWORD			;AN000;
-	I_need	FastOpenFlg,BYTE		;AN000;
-	I_need	HIGH_SECTOR,WORD		;AN000;
+	i_need	DirSec,DWORD
+	I_need	FastOpenFlg,BYTE
+	I_need	HIGH_SECTOR,WORD
 
 Break	<FINDENTRY -- LOOK FOR AN ENTRY>
 
@@ -207,8 +197,8 @@ EndProc Search
 	procedure   MetaCompare,near
 ASSUME	DS:NOTHING,ES:NOTHING
 	MOV	CX,11
- IF  DBCS				;AN000;
-;-------------------- Start of DBCS	;AN000;
+ IF  DBCS
+;-------------------- Start of DBCS
 	CMP	BYTE PTR DS:[SI],05H	;AN000;; Special case for lead byte of 05h
 	JNE	WILDCRD2		;AN000;; Compare as normal if not an 05h
 	CMP	BYTE PTR ES:[DI],0E5H	;AN000;; 05h and 0E5h equivalent for lead byte
@@ -216,7 +206,7 @@ ASSUME	DS:NOTHING,ES:NOTHING
 	DEC	CX			;AN000;; One less byte to compare
 	INC	SI			;AN000;; Bypass lead byte in source and
 	INC	DI			;AN000;;  destination when 05h and 0E5h found.
-WILDCRD2:				;AN000;
+WILDCRD2:
 	PUSH	AX			;AN000;;KK. save ax
 cagain: 				;AN000;;KK.
 	CMP	CX,0			;AN000;;KK. end of compare ?
@@ -229,26 +219,26 @@ cagain: 				;AN000;;KK.
 	JNZ	metaend3		;AN000;;KK. no
 	ADD	SI,2			;AN000;;KK.
 	ADD	DI,2			;AN000;;KK. update pointers and count
-subcx:					;AN000;
+subcx:
 	SUB	CX,2			;AN000;;KK.
 	JMP	cagain			;AN000;;KK.
 metaend3:				;AN000;;KK.
 	CMPSW				;AN000;;KK.
 	JNZ	metaend2		;AN000;;KK.
 	JMP	subcx			;AN000;;KK.
-notdb:					;AN000;
+notdb:
 	CMPSB				;AN000;;KK. same code ?
 	JZ	sameco			;AN000;;KK. yes
 	CMP	BYTE PTR ES:[DI-1],"?"  ;AN000;;KK. ?
 	JNZ	metaend2		;AN000;;KK. no
-sameco: 				;AN000;
+sameco:
 	DEC	CX			;AN000;;KK. decrement count
 	JMP	cagain			;AN000;;KK.
 
-metaend2:				;AN000;
+metaend2:
 	POP	AX			;AN000;;KK.
 ;-------------------- End of DBCS	;AN000; KK.
- ELSE					;AN000;
+ ELSE
 WILDCRD:
 	REPE	CMPSB
 	JZ	MetaRet 		; most of the time we will fail.
@@ -256,7 +246,7 @@ CHECK_META:
 	CMP	BYTE PTR ES:[DI-1],"?"
 	JZ	WildCrd
 MetaRet:
- ENDIF					;AN000;
+ ENDIF
 	return				; Zero set, Match
 EndProc MetaCompare
 

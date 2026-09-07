@@ -1,21 +1,19 @@
  page 80,132
-;	SCCSID = @(#)iparse.asm 4.1 87/04/28
-;	SCCSID = @(#)iparse.asm 4.1 87/04/28
 TITLE	COMMAND interface to SYSPARSE
 
 .xlist
 .xcref
-	INCLUDE comseg.asm		;AN000;
+	INCLUDE comseg.asm
 .list
 .cref
 
 
-INIT		SEGMENT PUBLIC PARA	;AN000;
+INIT		SEGMENT PUBLIC PARA
 
-ASSUME	CS:RESGROUP,DS:RESGROUP,ES:NOTHING,SS:NOTHING	;AN000;
+ASSUME	CS:RESGROUP,DS:RESGROUP,ES:NOTHING,SS:NOTHING
 
 
-;AD054; public	SYSPARSE		;AN000;
+;AD054; public	SYSPARSE
 
 	DateSW	equ	0		;AN000; do not Check date format
 	TimeSW	equ	0		;AN000; do not Check time format
@@ -28,11 +26,11 @@ ASSUME	CS:RESGROUP,DS:RESGROUP,ES:NOTHING,SS:NOTHING	;AN000;
 
 .xlist
 .xcref
-;AD054; INCLUDE parse.asm		;AN000;
+;AD054; INCLUDE parse.asm
 .list
 .cref
 
 
-INIT	    ends			;AN000;
-	    end 			;AN000;
+INIT	    ends
+	    end
 

@@ -1,7 +1,3 @@
-;	SCCSID = @(#)strin.asm	1.2 85/04/18
-;
-;	Revision history:
-;	   A000  version 4.00   Jan. 1988
 ;
 Break
 
@@ -143,33 +139,32 @@ SAVCH:
 	JAE	BUFFUL			; buffer is full.
 ;----------------------------- Start of DBCS 2/13/KK
 
-	invoke	TESTKANJ		;AN000;
-	JZ	ISNORM			;AN000;
-	INC	DH			;AN000;
-	CMP	DH,DL			;AN000;
-	JB	GOTROOM 		;AN000;
+	invoke	TESTKANJ
+	JZ	ISNORM
+	INC	DH
+	CMP	DH,DL
+	JB	GOTROOM
 	DEC	DH			;AN000;; No room for second byte
 	call	IntCNE0 		;AN000;; Get second byte
-	JMP	SHORT BUFFUL		;AN000;
-					;AN000;
-GOTROOM:				;AN000;
+	JMP	SHORT BUFFUL
+GOTROOM:
 	STOSB				;AN000;; Store first byte
-	popf				;AN000;
-	call	outchax 		;AN000;
+	popf
+	call	outchax
 	call	IntCNE0 		;AN000;; Get second byte
-	pushf				;AN000;
+	pushf
 	STOSB				;AN000;; Store second byte
-	INC	DH			;AN000;
-	popf				;AN000;
-	call	outchax 		;AN000;
+	INC	DH
+	popf
+	call	outchax
 	jnz	ContIn1 		;AN000;; interim character?
-	call	InterCheck		;AN000;
-	call	InterCheck		;AN000;
+	call	InterCheck
+	call	InterCheck
 	jmp	short InterLoop 	;AN000;; not interim skip another check
 
 ISNORM:
 ;----------------------------- End of DBCS 2/13/KK
-	STOSB				;AN000;
+	STOSB
 	INC	DH			;AN000;; increment count in buffer.
 	popf				;AN000;; 2/17/KK
 	invoke	BUFOUTx 		;AN000;; Print control chars nicely 2/17/KK
@@ -313,32 +308,31 @@ OLDBAK:
 	DEC	BH		;Go back in template
 	DEC	SI
 ;-------------------------- Start of DBCS 2/13/KK
-	OR	BH,BH		;AN000;
+	OR	BH,BH
 	retz			;AN000;; If we deleted one char and it was the only
 				;AN000;;  one, could not have dual byte
 ;;;;	POP	AX		;AN000;; Get start of template
 ;;;;	PUSH	AX		;AN000;; Put it back on stack
 	mov	ax,cs:Temp_Var	;AN000;; 3/31/KK
-	XCHG	AX,SI		;AN000;
-LOOKDUAL:			;AN000;
-	CMP	SI,AX		;AN000;
-	JAE	ATLOC		;AN000;
-	PUSH	AX		;AN000;
-	MOV	AL,BYTE PTR [SI];AN000;
-	invoke	TESTKANJ	;AN000;
-	POP	AX		;AN000;
-	JZ	ONEINC		;AN000;
-	INC	SI		;AN000;
-ONEINC: 			;AN000;
-	INC	SI		;AN000;
-	JMP	SHORT LOOKDUAL	;AN000;
-				;AN000;
-ATLOC:				;AN000;
+	XCHG	AX,SI
+LOOKDUAL:
+	CMP	SI,AX
+	JAE	ATLOC
+	PUSH	AX
+	MOV	AL,BYTE PTR [SI]
+	invoke	TESTKANJ
+	POP	AX
+	JZ	ONEINC
+	INC	SI
+ONEINC:
+	INC	SI
+	JMP	SHORT LOOKDUAL
+ATLOC:
 	retz			;AN000;; Correctly pointing to start of single byte
 	DEC	AX		;AN000;; Go back one more to correctly point at start
 	DEC	BH		;AN000;        ; of dual byte
-	MOV	SI,AX		;AN000;
-	return			;AN000;
+	MOV	SI,AX
+	return
 ;-------------------------- End of DBCS 2/13/KK
 
 BAKTAB:
@@ -377,29 +371,28 @@ BACKUP:
 	DEC	DH		;Back up in line
 	DEC	DI
 ;-------------------------Start of DBCS 2/13/KK
-	OR	DH,DH			;AN000;
+	OR	DH,DH
 	JZ	BACKMES 		;AN000;; If deleted one and got only, no dual
-	MOV	AX,DI			;AN000;
-	MOV	DI,OFFSET DOSGROUP:INBUF;AN000;
-LOOKDUAL2:				;AN000;
-	CMP	DI,AX			;AN000;
-	JAE	ATLOC2			;AN000;
-	PUSH	AX			;AN000;
-	MOV	AL,BYTE PTR ES:[DI]	;AN000;
-	invoke	TESTKANJ		;AN000;
-	POP	AX			;AN000;
-	JZ	ONEINC2 		;AN000;
-	INC	DI			;AN000;
-ONEINC2:				;AN000;
-	INC	DI			;AN000;
-	JMP	SHORT LOOKDUAL2 	;AN000;
-					;AN000;
-ATLOC2: 				;AN000;
+	MOV	AX,DI
+	MOV	DI,OFFSET DOSGROUP:INBUF
+LOOKDUAL2:
+	CMP	DI,AX
+	JAE	ATLOC2
+	PUSH	AX
+	MOV	AL,BYTE PTR ES:[DI]
+	invoke	TESTKANJ
+	POP	AX
+	JZ	ONEINC2
+	INC	DI
+ONEINC2:
+	INC	DI
+	JMP	SHORT LOOKDUAL2
+ATLOC2:
 	JE	BACKMES 		;AN000;; Correctly deleted single byte
 	DEC	AX			;AN000; Go back one more to correctly delete dual byte
-	DEC	DH			;AN000;
-	MOV	DI,AX			;AN000;
-	CALL	BACKMES 		;AN000;
+	DEC	DH
+	MOV	DI,AX
+	CALL	BACKMES
 ;---------------------------End of DBCS 2/13/KK
 BACKMES:
 	MOV	AL,c_BS 	;Backspace
@@ -453,17 +446,16 @@ COPYEACH:
 	DEC	SI			;AN000;; patch (from Dohhaku)
 	DEC	DI			;AN000;; remember to backup after previous move
 	JMP	GetCh			;AN000;; go get next char
-					;AN000;
-CopyBoth:				;AN000;
+CopyBoth:
 	invoke	BUFOUT			;AN000;; output the first byte
 	LODSB				;AN000;; get the second
 	STOSB				;AN000;; move the second
 	INC	BH			;AN000;; bump template
 	INC	DH			;AN000;; bump line
 	DEC	CX			;AN000;; dump byte count
-CopyLoop:				;AN000;
-	invoke	BUFOUT			;AN000;
-	LOOP	COPYEACH		;AN000;
+CopyLoop:
+	invoke	BUFOUT
+	LOOP	COPYEACH
 ;;;;;	invoke	BUFOUT
 ;;;;;	INC	BH			;Ahead in template
 ;;;;;	INC	DH			;Ahead in line
@@ -548,37 +540,36 @@ NOTDUAL5:				;AN000;; 2/13/KK
 ;;;;	INC	DI		  2/13/KK
 ;;;;	REPNE	SCASB		;Look  2/13/KK
 ;--------------------- Start of DBCS 2/13/KK
-	PUSH	AX			;AN000;
-	MOV	AL,BYTE PTR ES:[DI]	;AN000;
-	invoke	TESTKANJ		;AN000;
-	POP	AX			;AN000;
-	JZ	ONEINC5 		;AN000;
+	PUSH	AX
+	MOV	AL,BYTE PTR ES:[DI]
+	invoke	TESTKANJ
+	POP	AX
+	JZ	ONEINC5
 	INC	DI			;AN000;; We will skip at least something
-ONEINC5:				;AN000;
-	INC	DI			;AN000;
-	CMP	[LOOKSIZ],0		;AN000;
-	JNZ	LOOKWORD		;AN000;
-LOOKBYTE:				;AN000;
-	PUSH	AX			;AN000;
-	MOV	AL,BYTE PTR ES:[DI]	;AN000;
-	invoke	TESTKANJ		;AN000;
-	POP	AX			;AN000;
-	JZ	TESTITB 		;AN000;
-	INC	DI			;AN000;
-	INC	DI			;AN000;
-	DEC	CX			;AN000;
-	LOOP	LOOKBYTE		;AN000;
-	JMP	SHORT ATNOTFND		;AN000;
-					;AN000;
-TESTITB:				;AN000;
-	DEC	CX			;AN000;
-	CMP	AL,ES:[DI]		;AN000;
-	JZ	ATSPOT			;AN000;
-	INC	DI			;AN000;
+ONEINC5:
+	INC	DI
+	CMP	[LOOKSIZ],0
+	JNZ	LOOKWORD
+LOOKBYTE:
+	PUSH	AX
+	MOV	AL,BYTE PTR ES:[DI]
+	invoke	TESTKANJ
+	POP	AX
+	JZ	TESTITB
+	INC	DI
+	INC	DI
+	DEC	CX
+	LOOP	LOOKBYTE
+	JMP	SHORT ATNOTFND
+TESTITB:
+	DEC	CX
+	CMP	AL,ES:[DI]
+	JZ	ATSPOT
+	INC	DI
 	INC	CX			;AN000;; Counter next instruction
-	LOOP	LOOKBYTE		;AN000;
-ATNOTFND:				;AN000;
-	XOR	AL,AL			;AN000;
+	LOOP	LOOKBYTE
+ATNOTFND:
+	XOR	AL,AL
 	INC	AL			;AN000;; Set NZ
 ATSPOT: 			; 2/13/K;AN000;K
 ;--------------------- End of DBCS 2/13/KK
@@ -594,24 +585,23 @@ NOTFND:
 	POP	BP		;Chuck return address
 	JMP	GETCH
 ;------------------------- Start of DBCS 2/13/KK
-LOOKWORD:			       ;AN000;
-	PUSH	AX		       ;AN000;
-	MOV	AL,BYTE PTR ES:[DI]    ;AN000;
-	invoke	TESTKANJ	       ;AN000;
-	POP	AX		       ;AN000;
-	JNZ	TESTITW 	       ;AN000;
-	INC	DI		       ;AN000;
-	LOOP	LOOKWORD	       ;AN000;
-	JMP	SHORT ATNOTFND	       ;AN000;
-				       ;AN000;
-TESTITW:			       ;AN000;
-	DEC	CX		       ;AN000;
-	CMP	AX,ES:[DI]	       ;AN000;
-	JZ	ATSPOT		       ;AN000;
-	INC	DI		       ;AN000;
-	INC	DI		       ;AN000;
+LOOKWORD:
+	PUSH	AX
+	MOV	AL,BYTE PTR ES:[DI]
+	invoke	TESTKANJ
+	POP	AX
+	JNZ	TESTITW
+	INC	DI
+	LOOP	LOOKWORD
+	JMP	SHORT ATNOTFND
+TESTITW:
+	DEC	CX
+	CMP	AX,ES:[DI]
+	JZ	ATSPOT
+	INC	DI
+	INC	DI
 	LOOP	LOOKWORD	       ;AN000; ; Performs second DEC of CX
-	JMP	SHORT ATNOTFND	       ;AN000;
+	JMP	SHORT ATNOTFND
 ;------------------------- End of DBCS 2/13/KK
 
 entry	REEDIT
@@ -648,43 +638,40 @@ entry	REEDIT
 EndProc $STD_CON_STRING_INPUT
 
 ;-------------- Start of DBCS 2/17/KK
-PUBLIC	IntCNE0 			;AN000;
-procedure	IntCNE0,near		;AN000;
-	push	word ptr [InterCon]	;AN000;
-	mov	[InterCon],01		;AN000;
-get_com:				;AN000;
+PUBLIC	IntCNE0
+procedure	IntCNE0,near
+	push	word ptr [InterCon]
+	mov	[InterCon],01
+get_com:
 	invoke	INTER_CON_INPUT_NO_ECHO ;AN000;; get a byte character
-	pop	word ptr [InterCon]	;AN000;
-	ret				;AN000;
-IntCNE0 endp				;AN000;
-					;AN000;
-procedure	IntCNE1,near		;AN000;
-	push	word ptr [InterCon]	;AN000;
-	mov	[InterCon],00		;AN000;
-	jmp	short get_com		;AN000;
-IntCNE1 endp				;AN000;
-					;AN000;
-	procedure	outchax,near	;AN000;
-	pushf				;AN000;
-	mov	[SaveCurFlg],0		;AN000;
-	jnz	sj1			;AN000;
-	mov	[SaveCurFlg],1		;AN000;
-sj1:					;AN000;
-	CALL	OUTCHA			;AN000;
-	mov	[SaveCurFlg],0		;AN000;
-	popf				;AN000;
-	ret				;AN000;
-outchax endp				;AN000;
-					;AN000;
-	procedure	bufoutx,near	;AN000;
-	pushf				;AN000;
-	mov	[SaveCurFlg],0		;AN000;
-	jnz	sj2			;AN000;
-	mov	[SaveCurFlg],1		;AN000;
-sj2:					;AN000;
-	invoke	BUFOUT			;AN000;
-	mov	[SaveCurFlg],0		;AN000;
-	popf				;AN000;
-	ret				;AN000;
-bufoutx endp				;AN000;
+	pop	word ptr [InterCon]
+	ret
+IntCNE0 endp
+procedure	IntCNE1,near
+	push	word ptr [InterCon]
+	mov	[InterCon],00
+	jmp	short get_com
+IntCNE1 endp
+	procedure	outchax,near
+	pushf
+	mov	[SaveCurFlg],0
+	jnz	sj1
+	mov	[SaveCurFlg],1
+sj1:
+	CALL	OUTCHA
+	mov	[SaveCurFlg],0
+	popf
+	ret
+outchax endp
+	procedure	bufoutx,near
+	pushf
+	mov	[SaveCurFlg],0
+	jnz	sj2
+	mov	[SaveCurFlg],1
+sj2:
+	invoke	BUFOUT
+	mov	[SaveCurFlg],0
+	popf
+	ret
+bufoutx endp
 ;-------------- End of DBCS 2/17/KK

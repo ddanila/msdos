@@ -1,4 +1,3 @@
-;	SCCSID = @(#)sf.asm	1.1 85/04/10
 BREAK <Internal system file table format>
 ;
 ;   AN000   version 4.00   Jan. 1988

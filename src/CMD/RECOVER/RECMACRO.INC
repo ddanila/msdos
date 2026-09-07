@@ -9,39 +9,39 @@
 
 ;-----------------------------------------------------------------------------
 
-Message macro	Message_Name			;				;AN000;
+Message macro	Message_Name			;
 						;
-	mov	dx,offset dg:Message_Name     ; 			      ;AN000;
-	call	Display_Interface		;				;AN000;
-	endm					;				;AN000;
+	mov	dx,offset dg:Message_Name     ;
+	call	Display_Interface		;
+	endm					;
 
 ;-----------------------------------------------------------------------------
 
-Parse_Message macro				;				;AN000;
+Parse_Message macro				;
 
 						;
-	push	ds				;				;AN000;bgb
-	mov	dx,dg				;				;AN000;bgb
-	mov	ds,dx				;				;AN000;bgb
-	mov	word ptr Parse_Error_Msg,ax	;				;AN000;
-	mov	dx,offset dg:Parse_Error_Msg	   ;				   ;AN000;
-	call	Display_Interface		;				;AN000;
-	pop	ds				;				;AN000;bgb
-	endm					;				;AN000;
+	push	ds				;
+	mov	dx,dg				;
+	mov	ds,dx				;
+	mov	word ptr Parse_Error_Msg,ax	;
+	mov	dx,offset dg:Parse_Error_Msg	   ;
+	call	Display_Interface		;
+	pop	ds				;
+	endm					;
 
 ;-----------------------------------------------------------------------------
 
-Extended_Message macro				;				;AN000;
+Extended_Message macro				;
 						;
 
-	push	ds				;				;AN000;bgb
-	mov	dx,dg				;				;AN000;bgb
-	mov	ds,dx				;				;AN000;bgb
-	mov	word ptr Ext_Error_Msg,ax	;				;AN000;
-	mov	dx,offset dg:Ext_Error_Msg    ; 			      ;AN000;
-	call	Display_Interface		;				;AN000;
-	pop	ds				;				;AN000;bgb
-	endm					;				;AN000;
+	push	ds				;
+	mov	dx,dg				;
+	mov	ds,dx				;
+	mov	word ptr Ext_Error_Msg,ax	;
+	mov	dx,offset dg:Ext_Error_Msg    ;
+	call	Display_Interface		;
+	pop	ds				;
+	endm					;
 
 ;
 ;*****************************************************************************
@@ -49,20 +49,20 @@ Extended_Message macro				;				;AN000;
 ;*****************************************************************************
 ;
 
-Procedure	macro	Proc_Name		;				;AN000;
+Procedure	macro	Proc_Name		;
 						;
-Public	Proc_Name				;				;AN000;
-Proc_Name    proc				;				;AN000;
+Public	Proc_Name				;
+Proc_Name    proc				;
 						;
-	endm					;				;AN000;
+	endm					;
 ;-----------------------------------------------------------------------------
 
-DOS_Call	macro	Function		;				;AN000;
+DOS_Call	macro	Function		;
 						;
-	mov	ah,Function			;				;AN000;
-	int	21h				;				;AN000;
+	mov	ah,Function			;
+	int	21h				;
 						;
-	endm					;				;AN000;
+	endm					;
 ;-----------------------------------------------------------------------------
 
 Popff	macro

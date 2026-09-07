@@ -15,12 +15,6 @@
 ;;       External declarations and equates for procedures in file
 ;;       KEYBI9.ASM
 ;;
-;; Change History:
-;; ---------------
-;;
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                                       ;;
         EXTRN    KEYB_STATE_PROCESSOR:NEAR
                                        ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

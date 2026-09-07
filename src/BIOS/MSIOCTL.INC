@@ -3,26 +3,6 @@
 ;	$SALUT $ioctl$
 
 ;==============================================================================
-;REVISION HISTORY:
-;AN000 - New for DOS Version 4.00 - J.K.
-;AC000 - Changed for DOS Version 4.00 - J.K.
-;AN00x - PTM number for DOS Version 4.00 - J.K.
-;==============================================================================
-;AN001 - P58 Diskcopy format fails when error occurs during format op.6/26/87 J.K.
-;AN002; - d24  MultiTrack= command added.			   6/29/87 J.K.
-;AN003; - p155 Format intermittant failre due to haed settle time  8/18/87 J.K.
-;AN004; D113 Disable I/O access to unformatted media		    9/03/87 J.K.
-;AN005; P985 Allow I/O access to unformtted media		    9/14/87 J.K.
-;AN006; D241 Provide support of Multi-track Format/Verify	    9/23/87 J.K.
-;AN007; P1535 Unformatted hard file problem			   10/15/87 J.K.
-;AN008; P2590 Change the recommended BPB info. after AFS format    11/20/87 J.K.
-;AN009; P2828 Do not retry for multi-track format request	   12/08/87 J.K.
-;AN010; P2781 Changeline error behavior incompatibile with DOS 3.3. 1/06/88 J.K.
-;AN011; P3178 Set Media ID should update media info in BDS table.   1/21/88 J.K.
-;AN012; D490 IOCTL subfunction 63h,43h,64h,44h conflicts with OS2   2/26/88 J.K.
-;==============================================================================
-
-;J.K. 10/15/87
 ;NOTE: GetAccessFlag/SetAccessFlag is unpublished function.
 ;      This function is intended to give the user to control the
 ;      BDS table FLAGS of UNFORMATTED_MEDIA bit.
@@ -42,18 +22,18 @@ IOREADJUMPTABLE DB	7			;AN012;maximum number (0 based)
 		DW	OFFSET READTRACK			;61h
 		DW	OFFSET VERIFYTRACK			;62h
 		dw	Cmd_Err_Proc				;AN012;Overlapped with OS2 subfunction
-		dw	Cmd_Err_Proc				;AN012;
-		dw	Cmd_Err_Proc				;AN012;
+		dw	Cmd_Err_Proc
+		dw	Cmd_Err_Proc
 		dw	GetMediaID				;AN000;AN012;66h
 		dw	GetAccessFlag				;AN007;AN012;67h Unpublished function
 
-IOWRITEJUMPTABLE DB	7					;AN012;
+IOWRITEJUMPTABLE DB	7
 		DW	OFFSET SETDEVICEPARAMETERS		;40h
 		DW	OFFSET WRITETRACK			;41h
 		DW	OFFSET FORMATTRACK			;42h
-		dw	Cmd_Err_Proc				;AN012;
-		dw	Cmd_Err_Proc				;AN012;
-		dw	Cmd_Err_Proc				;AN012;
+		dw	Cmd_Err_Proc
+		dw	Cmd_Err_Proc
+		dw	Cmd_Err_Proc
 		dw	SetMediaID				;AN000;AN012;46h
 		dw	SetAccessFlag				;AN007;AN012;47h Unpublished function
 ;
@@ -126,7 +106,7 @@ FAILGENERIC$IOCTL:
 
 IOCTL_FUNC_ERR:
 	BIOS_JUMP_LOW CMDERR,BIOS_LOW_CMDERR_ENTRY
-Cmd_Err_Proc:					;AN012;
+Cmd_Err_Proc:
 	pop	dx				;AN012;clear up stack
 	pop	dx				;AN012;clear up stack
 	jmp	IOCTL_FUNC_ERR			;AN012;Cmd error
@@ -207,7 +187,7 @@ HAVE_CHANGE:
 	AND	AX,FNON_REMOVABLE OR FCHANGELINE
 	MOV	CX, WORD PTR DS:[DI].FLAGS
 ;	 AND	 CX, NOT (FNON_REMOVABLE OR FCHANGELINE OR GOOD_TRACKLAYOUT)
-	AND	CX, NOT (FNON_REMOVABLE OR FCHANGELINE OR GOOD_TRACKLAYOUT or UNFORMATTED_MEDIA) ;AN004;AN005;AN007;
+	AND	CX, NOT (FNON_REMOVABLE OR FCHANGELINE OR GOOD_TRACKLAYOUT or UNFORMATTED_MEDIA)
 	OR	AX, CX
 	MOV	WORD PTR DS:[DI].FLAGS, AX
 
@@ -323,9 +303,9 @@ SET_MEDIA_FOR_FORMAT PROC NEAR
 	SAVEREG <CX,DX>
 	XOR	AX,AX
 	BIOS_IO_MEM CMP,<[Had_Format_Error]>,1,DS ;Did we have a format error before?
-	jne	No_Form_Err		;AN001;
+	jne	No_Form_Err
 	call	ResetDisk
-No_Form_Err:				;AN001;
+No_Form_Err:
 	BIOS_IO_MEM CMP,<BYTE PTR [MEDIA_SET_FOR_FORMAT]>,1,DS
 	jnz	Do_Set_Media_for_Format
 	jmp	SET_MED_RET		; MEDIA ALREADY SET
@@ -576,10 +556,10 @@ DOVERIFYTRACK:
 
 FORMATTRACK ENDP
 
-VerifyTrack_Err:				;AN006;
-	mov	ah, 1				;AN006;
-	call	MapError			;AN006;
-	ret					;AN006;
+VerifyTrack_Err:
+	mov	ah, 1
+	call	MapError
+	ret
 
 ;
 ; VERIFYTRACK:
@@ -625,11 +605,11 @@ VERIFYTRACK PROC NEAR
 
 ;Set the multi track request flag
 	test	word ptr [di].Flags, fNON_REMOVABLE	;AN009;hard disk?
-	jz	Norm_VerifyTrack			;AN009;
+	jz	Norm_VerifyTrack
 	BIOS_LOW_MEM TEST,<Multrk_Flag>,MULTRK_ON,DS		;AN009;MultiTrack operation = on?
-	jz	Norm_VerifyTrack			;AN009;
+	jz	Norm_VerifyTrack
 	BIOS_LOW_MEM MOV,<Multitrk_Format_Flag>,1,DS		;AN009; then set the flag
-Norm_VerifyTrack:				;AN006;
+Norm_VerifyTrack:
 	XOR	AX, AX				;1st sector
 ; USE 0:0 AS THE TRANSFER ADDRESS FOR VERIFY
 	XOR	BX, BX
@@ -797,10 +777,10 @@ TrackHighDone:
 	ELSE
 	LOOP	IONEXTSECTOR
 	ENDIF
-	BIOS_LOW_MEM CMP,<byte ptr [Media_Set_For_Format]>,1,DS	;AN001;
-	je	No_Need_Done				;AN001;
+	BIOS_LOW_MEM CMP,<byte ptr [Media_Set_For_Format]>,1,DS
+	je	No_Need_Done
 	CALL	DONE			; SET TIME OF LAST ACCESS, AND RESET
-No_Need_Done:				;AN001;
+No_Need_Done:
 	CLC				; ENTRIES IN DPT.
 	RET
 
@@ -869,8 +849,8 @@ GOT_BIG:
 	MOV	AL,3			; 1.2MEG IN A 1.2MEG DRIVE
 	BIOS_LOW_MEM MOV,<[GAP_PATCH]>,54H,DS
 DO_SET:
-	push	ds				;AN003;
-	push	si				;AN003;
+	push	ds
+	push	si
 ;SB34IOCTL002****************************************************************
 ;SB	Get the disk parameter table address (dword address) from the location
 ;SB	0:[DSKADR] and fix the head settle time in this to be 0fh. 4 LOCS
@@ -880,8 +860,8 @@ DO_SET:
 	lds	si, dword ptr ds:[DSKADR]
 	mov	ds:[si].DISK_HEAD_STTL, 0Fh
 ;SB34IOCTL002****************************************************************
-	pop	si				;AN003;
-	pop	ds				;AN003;
+	pop	si
+	pop	ds
 ;SB33032******************************************************************
 	mov	AH, 17h 		; set command to Set DASD type;SB ;3.30*
 	mov	DL, [di].DriveNum	; set drive number	      ;SB ;3.30*
@@ -1115,38 +1095,38 @@ DONTRESTORE:
 ; Expected LOC: 40 (New)						       *
 ;*******************************************************************************
 
-GetMediaID	proc	near			;AN000;
-	call	Changeline_Chk			;AN010;
+GetMediaID	proc	near
+	call	Changeline_Chk
 	mov	al, DS:[DI].DRIVELET		;AN000; logical drive number
 	BIOS_LOW_MEM MOV,<RFlag>,ROMREAD,DS		;AN000; read operation
 	call	Boot_IO 			;AN000; read boot sector into cs:DiskSector
-;	$IF	NC				;AN000;
+;	$IF	NC
 	JC $IOCTL$IF1
 	   BIOS_LOW_READ MOV,cl,<MediaByte>,DS		;AN000; Mediabyte in BPB
-	   and	   cl, 0F0h			;AN000;
+	   and	   cl, 0F0h
 	   cmp	   cl, 0F0h			;AN000; Is it a valid BPB?
-;	   $IF	   E,AND			;AN000;
+;	   $IF	   E,AND
 	   JNE $IOCTL$IF2
 	      BIOS_LOW_MEM CMP,<Ext_Boot_Sig>,EXT_BOOT_SIGNATURE,DS ;AN000; =90h
 ;	   $IF	   E				;AN000; Extended Boot Record
 	   JNE $IOCTL$IF2
-	      BIOS_PUSH_DATA_SEG				;AN000;
-	      pop  ds				;AN000;
-	      mov  si, offset Boot_Serial_L	;AN000;
-	      mov  di, bx			;AN000;
-	      add  di, MI_SERIAL		;AN000;
+	      BIOS_PUSH_DATA_SEG
+	      pop  ds
+	      mov  si, offset Boot_Serial_L
+	      mov  di, bx
+	      add  di, MI_SERIAL
 	      mov  cx, BOOT_SERIAL_SIZE+BOOT_VOLUME_LABEL_SIZE+BOOT_SYSTEM_ID_SIZE
-	      rep  movsb			;AN000;
-;	   $ELSE				;AN000;
+	      rep  movsb
+;	   $ELSE
 	   JMP SHORT $IOCTL$EN2
 $IOCTL$IF2:
 	      mov   al, ERROR_UNKNOWN_MEDIA	;AN000; =7
-	      stc				;AN000;
+	      stc
 ;	   $ENDIF	;End Extended Boot Record check.
 $IOCTL$EN2:
 ;	$ENDIF	;Read boot sector failed. Hard error.
 $IOCTL$IF1:
-	ret					;AN000;
+	ret
 GetMediaID	endp
 
 ;******************************************************************************
@@ -1198,55 +1178,55 @@ GetMediaID	endp
 ;*******************************************************************************
 
 SetMediaID	proc	near
-	call	Changeline_Chk			;AN010;
+	call	Changeline_Chk
 	mov	al, DS:[DI].DRIVELET		;AN000; logical drive number
 	mov	dl, al				;AN000; save it for the time being.
 	BIOS_LOW_MEM MOV,<RFlag>,ROMREAD,DS		;AN000; read operation
 	push	dx				;AN000; save drive number
 	call	Boot_IO 			;AN000; read boot sector into cs:DiskSector
 	pop	dx				;AN000; restore drive number
-;	$IF	NC				;AN000;
+;	$IF	NC
 	JC $IOCTL$IF6
 	   BIOS_LOW_READ MOV,cl,<MediaByte>,DS		;AN000; Mediabyte in BPB
-	   and	   cl, 0F0h			;AN000;
+	   and	   cl, 0F0h
 	   cmp	   cl, 0F0h			;AN000; Is it a valid BPB?
-;	   $IF	   E,AND			;AN000;
+;	   $IF	   E,AND
 	   JNE $IOCTL$IF7
 	      BIOS_LOW_MEM CMP,<Ext_Boot_Sig>,EXT_BOOT_SIGNATURE,DS ;AN000; =41 (=29h)
 ;	   $IF	   E				;AN000; Extended Boot Record
 	   JNE $IOCTL$IF7
 	      push ds				;AN011; save BDS pointer
-	      push di				;AN011;
-	      push es				;AN000;
+	      push di
+	      push es
 	      pop  ds				;AN000;Now DS-> Request packet
-	      BIOS_PUSH_DATA_SEG				;AN000;
+	      BIOS_PUSH_DATA_SEG
 	      pop  es				;AN000;Now ES -> Boot Record
-	      mov  di, offset Boot_Serial_L	;AN000;
-	      mov  si, bx			;AN000;
-	      add  si, MI_Serial		;AN000;
+	      mov  di, offset Boot_Serial_L
+	      mov  si, bx
+	      add  si, MI_Serial
 	      mov  cx, BOOT_SERIAL_SIZE+BOOT_VOLUME_LABEL_SIZE+BOOT_SYSTEM_ID_SIZE
-	      rep  movsb			;AN000;
+	      rep  movsb
 	      pop  di				;AN011;Restore BDS pointer
-	      pop  ds				;AN011;
+	      pop  ds
 	IFDEF BIOS_MEDIA_HIGH
 	CALL Mov_Media_IDs
 	ELSE
 	BIOS_CALL_LOW Mov_Media_IDs,BIOS_LOW_MEDIA_IDS
 	ENDIF
 	      mov  al, dl			;AN000; set drive number for Boot_IO
-	      BIOS_LOW_MEM MOV,<RFlag>,ROMWRITE,DS		;AN000;
+	      BIOS_LOW_MEM MOV,<RFlag>,ROMWRITE,DS
 	      call Boot_IO			;AN000; write it back.
 	      BIOS_LOW_MEM MOV,<[TIM_DRV]>,-1,DS		;AN011; Make sure chk$media check the driver
-;	   $ELSE				;AN000;
+;	   $ELSE
 	   JMP SHORT $IOCTL$EN7
 $IOCTL$IF7:
 	      mov   al, ERROR_UNKNOWN_MEDIA	;AN000; =7
-	      stc				;AN000;
+	      stc
 ;	   $ENDIF	;End Extended Boot Record check.
 $IOCTL$EN7:
 ;	$ENDIF	;Read boot sector failed. Hard error.
 $IOCTL$IF6:
-	ret					;AN000;
+	ret
 SetMediaID	endp
 
 ;******************************************************************************
@@ -1281,11 +1261,11 @@ SetMediaID	endp
 ; }									       *
 ; Expected LOC: 6 (New) 						       *
 ;*******************************************************************************
-Boot_IO 	proc	near			;AN000;
-	push	ds				;AN000;
-	push	es				;AN000;
-	push	di				;AN000;
-	push	bx				;AN000;
+Boot_IO 	proc	near
+	push	ds
+	push	es
+	push	di
+	push	bx
 ;SB34IOCTL003**************************************************************
 ;SB	Call DISKIO to read/write the boot sector. The parameters which
 ;SB	need to be initialised for this subroutine out here are
@@ -1308,12 +1288,12 @@ Boot_IO 	proc	near			;AN000;
 	mov	cx, 01			;one sector
 	call	DISKIO
 ;SB34IOCTL003**************************************************************
-	pop	bx				;AN000;
-	pop	di				;AN000;
-	pop	es				;AN000;
-	pop	ds				;AN000;
-	ret					;AN000;
-Boot_IO 	endp				;AN000;
+	pop	bx
+	pop	di
+	pop	es
+	pop	ds
+	ret
+Boot_IO 	endp
 
 ;*******************************************************************************
 ;AN010;  Changeline_Chk
@@ -1333,12 +1313,12 @@ Boot_IO 	endp				;AN000;
 ;	SET_CHANGED_DL							       *
 ;									       *
 ;*******************************************************************************
-Changeline_Chk	proc	near			;AN010;
-	mov	dl, byte ptr ds:[di].DRIVENUM	;AN010;
+Changeline_Chk	proc	near
+	mov	dl, byte ptr ds:[di].DRIVENUM
 	or	dl, dl				;AN010;Fixed disk?
 	js	Chln_Chk_Ret			;AN010;Yes, skip it.
 	BIOS_LOW_MEM CMP,<[fHave96]>,1,DS 		;AN011;This ROM support change line?
-	jne	Chln_Chk_Ret			;AN011;
+	jne	Chln_Chk_Ret
 	BIOS_CALL_LOW HasChange,BIOS_LOW_HASCHANGE
 	jz	Chln_Chk_Ret			;AN011;do nothing
 ;SB34IOCTL004*****************************************************************
@@ -1348,11 +1328,11 @@ Changeline_Chk	proc	near			;AN010;
 	BIOS_ROM_INT13
 ;SB34IOCTL004*****************************************************************
 	jnc	Chln_Chk_Ret			;AN010;no change line activity?
-	BIOS_LOW_MEM MOV,<word ptr [FLAGBITS]>,FCHANGED,DS ;AN010;
+	BIOS_LOW_MEM MOV,<word ptr [FLAGBITS]>,FCHANGED,DS
 	BIOS_CALL_LOW SET_CHANGED_DL,BIOS_LOW_SET_CHANGED
-Chln_Chk_Ret:					;AN010;
-	ret					;AN010;
-Changeline_Chk	endp				;AN010;
+Chln_Chk_Ret:
+	ret
+Changeline_Chk	endp
 
 ;******************************************************************************
 ;AN007;  GetAccessFlag
@@ -1367,16 +1347,16 @@ Changeline_Chk	endp				;AN010;
 ; Output:   A_DISKACCESS_CONTROL.DAC_ACCESS_FLAG = 0 if disk I/O not allowed.  *
 ;						 = 1 if disk I/O allowed.      *
 ;*******************************************************************************
-GetAccessFlag	proc					    ;AN007;
+GetAccessFlag	proc
 	test	word ptr ds:[di].FLAGS, UNFORMATTED_MEDIA   ;AN007;Is it unformtted media?
 	jz	GAF_Allowed				    ;AN007;No, formatted media
-	mov	es:[bx].DAC_ACCESS_FLAG, 0		    ;AN007;
-	jmp	short GAF_Done				    ;AN007;
-GAF_Allowed:						    ;AN007;
-	mov	es:[bx].DAC_ACCESS_FLAG, 1		    ;AN007;
-GAF_Done:						    ;AN007;
-	ret						    ;AN007;
-GetAccessFlag	endp					    ;AN007;
+	mov	es:[bx].DAC_ACCESS_FLAG, 0
+	jmp	short GAF_Done
+GAF_Allowed:
+	mov	es:[bx].DAC_ACCESS_FLAG, 1
+GAF_Done:
+	ret
+GetAccessFlag	endp
 
 ;******************************************************************************
 ;AN007;  SetAccessFlag
@@ -1390,15 +1370,15 @@ GetAccessFlag	endp					    ;AN007;
 ;									       *
 ; Output:   UNFORMTTED_MEDIA bit modified according to the user request        *
 ;*******************************************************************************
-SetAccessFlag	proc					    ;AN007;
-	cmp	es:[bx].DAC_ACCESS_FLAG, 0		    ;AN007;
-	jne	SAF_Allow_Access			    ;AN007;
-	or	word ptr ds:[di].FLAGS, UNFORMATTED_MEDIA   ;AN007;
-	jmp	short SAF_Done				    ;AN007;
-SAF_Allow_Access:					    ;AN007;
-	and	word ptr ds:[di].FLAGS, not UNFORMATTED_MEDIA ;AN007;
-SAF_Done:						    ;AN007;
-	ret						    ;AN007;
-SetAccessFlag	endp					    ;AN007;
+SetAccessFlag	proc
+	cmp	es:[bx].DAC_ACCESS_FLAG, 0
+	jne	SAF_Allow_Access
+	or	word ptr ds:[di].FLAGS, UNFORMATTED_MEDIA
+	jmp	short SAF_Done
+SAF_Allow_Access:
+	and	word ptr ds:[di].FLAGS, not UNFORMATTED_MEDIA
+SAF_Done:
+	ret
+SetAccessFlag	endp
 
 

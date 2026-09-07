@@ -113,17 +113,17 @@ DosError    endp
 ; This routine will get control on  a hard error, returning an error.
 ; If error is Drive not ready, keep retrying until drive IS ready or ^C
 ;-------------------------------------------------------
-DriveNotReady	equ	2		;AN000;
+DriveNotReady	equ	2
 
-Ignore		equ	0		;AN000;
-Retry		equ	1		;AN000;
-Terminate	equ	2		;AN000;
-Fail		equ	3		;AN000;
+Ignore		equ	0
+Retry		equ	1
+Terminate	equ	2
+Fail		equ	3
 
 prevadrs   dd	?			;AN000; ;save old interrupt handler address  ;;;
 
-ApiErrorHandler    proc    near 	;AN000;
-	pushf				;AN000;
+ApiErrorHandler    proc    near
+	pushf
 	cmp	di,DriveNotReady	;AN000; Is it Drive Not Ready?
 	jne	popf_and_fail_it	;AN000; If not, fail call and return
 
@@ -136,10 +136,10 @@ Drive_Not_Ready:			;AN000; The drive is not ready!
 popf_and_fail_it:			;AN000; Fail the operation
 	pop	ax			;AN000; Remove garbage from stack
 	mov	al,Fail 		;AN000; Func code for fail
-	jmp	rett			;AN000;
+	jmp	rett
 retry_it:				;AN000; Retry the operation
 	mov	al,Retry		;AN000; Func code for retry
-rett:					;AN000;
+rett:
 	iret				;AN000; return
 Apierrorhandler 	endp
 ;-------------------------------------------------------

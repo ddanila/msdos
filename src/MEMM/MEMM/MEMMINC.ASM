@@ -11,20 +11,7 @@
 ;
 ;	Module:	   MEMMINC.ASM - lists all MEMM include files
 ;
-;	Version:   0.02
-;
-;	Date:	   June 14, 1986
-;
-;	Author:
-;
 ;******************************************************************************
-;
-;	Change Log:
-;
-;	DATE	 REVISION	Description
-;	-------- --------	--------------------------------------------
-;	06/25/86 original	
-;	06/28/86 0.02		Name change from MEMM386 to MEMM
 ;
 ;******************************************************************************
 ;   Functional Description:

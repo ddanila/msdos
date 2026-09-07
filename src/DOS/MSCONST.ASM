@@ -1,7 +1,3 @@
-;	SCCSID = @(#)msconst.asm	1.4 85/09/12
-;   Revision history
-;      AN000  version 4.00  Jan. 1988
-;      AN007  fake version check for IBMCACHE.COM
 include mshead.asm
 include version.inc
 
@@ -88,21 +84,21 @@ SYSINITVAR  LABEL   WORD		; [SYSTEM]
 	short_addr  INULDEV		; [SYSTEM] Interrupt entry point
 	DB	"NUL     "              ; [SYSTEM] Name of null device
 	I_am	Splices,BYTE,<0>	; [SYSTEM] TRUE => splices being done
-	I_am	Special_Entries,WORD,<0>; [SYSTEM] address of specail entries	;AN000;
-	I_am	IFS_DOS_CALL,DWORD	; [SYSTEM] entry for IFS DOS service	;AN000;
-	I_am	IFS_HEADER,DWORD	; [SYSTEM] IFS header chain		;AN000;
-	I_am	BUFFERS_PARM1,WORD,<0>	; [SYSTEM] value of BUFFERS= ,m 	;AN000;
-	I_am	BUFFERS_PARM2,WORD,<0>	; [SYSTEM] value of BUFFERS= ,n 	;AN000;
-	I_am	BOOTDRIVE,BYTE		; [SYSTEM] the boot drive		;AN000;
-	I_am	DDMOVE,BYTE,<0> 	; [SYSTEM] 1 if we need DWORD move	;AN000;
-	I_am	EXT_MEM_SIZE,WORD,<0>	; [SYSTEM] extended memory size 	;AN000;
+	I_am	Special_Entries,WORD,<0>; [SYSTEM] address of specail entries
+	I_am	IFS_DOS_CALL,DWORD	; [SYSTEM] entry for IFS DOS service
+	I_am	IFS_HEADER,DWORD	; [SYSTEM] IFS header chain
+	I_am	BUFFERS_PARM1,WORD,<0>	; [SYSTEM] value of BUFFERS= ,m
+	I_am	BUFFERS_PARM2,WORD,<0>	; [SYSTEM] value of BUFFERS= ,n
+	I_am	BOOTDRIVE,BYTE		; [SYSTEM] the boot drive
+	I_am	DDMOVE,BYTE,<0> 	; [SYSTEM] 1 if we need DWORD move
+	I_am	EXT_MEM_SIZE,WORD,<0>	; [SYSTEM] extended memory size
 
-	PUBLIC	HASHINITVAR		; [SYSTEM]				;AN000;
-HASHINITVAR  LABEL   WORD		; [SYSTEM]				;AN000;
-	I_am	BUF_HASH_PTR,DWORD	; [SYSTEM] buffer Hash table addr	;AN000;
-	I_am	BUF_HASH_COUNT,WORD,<1> ; [SYSTEM] number of Hash entries	;AN000;
-	I_am	SC_CACHE_PTR,DWORD	; [SYSTEM] secondary cache pointer	;AN000;
-	I_am	SC_CACHE_COUNT,WORD,<0> ; [SYSTEM] secondary cache count	;AN000;
+	PUBLIC	HASHINITVAR		; [SYSTEM]
+HASHINITVAR  LABEL   WORD		; [SYSTEM]
+	I_am	BUF_HASH_PTR,DWORD	; [SYSTEM] buffer Hash table addr
+	I_am	BUF_HASH_COUNT,WORD,<1> ; [SYSTEM] number of Hash entries
+	I_am	SC_CACHE_PTR,DWORD	; [SYSTEM] secondary cache pointer
+	I_am	SC_CACHE_COUNT,WORD,<0> ; [SYSTEM] secondary cache count
 
 IF	BUFFERFLAG
 
@@ -113,12 +109,12 @@ IF	BUFFERFLAG
 
 ENDIF
 
-	I_am	BUF_EMS_MODE,BYTE,<-1>	; [SYSTEM] EMS mode			;AN000;
-	I_am	BUF_EMS_HANDLE,WORD	; [SYSTEM] buffer EMS handle		;AN000;
-	I_am	BUF_EMS_PAGE_FRAME,WORD ,<-1>;[SYSTEM] EMS page frame number	;AN000;
-	I_am	BUF_EMS_SEG_CNT,WORD,<1>; [SYSTEM] EMS seg count		;AN000;
-	I_am	BUF_EMS_PFRAME,WORD	; [SYSTEM] EMS page frame seg address	;AN000;
-	I_am	BUF_EMS_RESERV,WORD,<0> ; [SYSTEM] reserved			;AN000;
+	I_am	BUF_EMS_MODE,BYTE,<-1>	; [SYSTEM] EMS mode
+	I_am	BUF_EMS_HANDLE,WORD	; [SYSTEM] buffer EMS handle
+	I_am	BUF_EMS_PAGE_FRAME,WORD ,<-1>;[SYSTEM] EMS page frame number
+	I_am	BUF_EMS_SEG_CNT,WORD,<1>; [SYSTEM] EMS seg count
+	I_am	BUF_EMS_PFRAME,WORD	; [SYSTEM] EMS page frame seg address
+	I_am	BUF_EMS_RESERV,WORD,<0> ; [SYSTEM] reserved
 
 IF	BUFFERFLAG
 	I_am	BUF_EMS_MAP_BUFF,1,<0>	; this is not used to save the state of the 
@@ -126,7 +122,7 @@ IF	BUFFERFLAG
 					; retained to keep the size of this data 
 					; block the same.
 ELSE
-	I_am	BUF_EMS_MAP_BUFF,12,<0,0,0,0,0,0,0,0,0,0,0,0>	; map buufer	;AN000;
+	I_am	BUF_EMS_MAP_BUFF,12,<0,0,0,0,0,0,0,0,0,0,0,0>	; map buufer
 ENDIF
 
 ; End of SYSINITVar block

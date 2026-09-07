@@ -46,51 +46,6 @@
 /*                                                                        */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *  */
 /*                                                                        */
-/*  MODIFICATIONS:                                                        */
-/*                                                                        */
-/*  Converted to CMERGE 03/26/85 by GregT	                          */
-/*                                                                        */
-/*  M000        May 23/85       Barrys                                    */
-/*  Disallow splicing similar drives.                                     */
-/*                                                                        */
-/*  M001        May 24/85       Barrys                                    */
-/*  The original IBM version of JOIN allowed the delete splice switch     */
-/*  "/D" immediately after the drive specification.  The argument parsing */
-/*  code has been Revised to allow this combination.                     */
-/*                                                                        */
-/*  M002        June 5/85       Barrys                                    */
-/*  Changed low version check for specific 320.                           */
-/*                                                                        */
-/*  M003        July 15/85      Barrys                                    */
-/*  Checked for any possible switch characters in the other operands.     */
-/*                                                                        */
-/*  M004        July 15/85      Barrys                                    */
-/*  Moved check for physical drive before check for NET and SHARED tests. */
-/*                                                                        */
-/*  33D0016     July 16/86      RosemarieG	                          */
-/*  Put SHARED test on an equal basis with physical drive check.          */
-/*  Last fix (M004) erroneously allowed joining physical or local shared  */
-/*  drives.  This is because it only performed the SHARED test if the     */
-/*  drive failed the physical test.                                       */
-/*                                                                        */
-/*              May /87         SusanM	                                  */
-/*  Deletion of source code dealing with parsing and displaying messages  */
-/*  and addition of SYSLOADMSG, SYSDISPMSG, SYSPARSE in order to conform  */
-/*  to DOS Version 4.0 specifications to utilize common DOS parser and    */
-/*  message service routines.                                             */
-/*                                                                        */
-/*  AC000:  Changed code for DOS Version 4.0         S.M 5/87	          */
-/*                                                                        */
-/*  AN000:  New code for DOS Version 4.0             S.M 5/87	          */
-/*            AN000;M = message services                                  */
-/*            AN000;P = parser service                                    */
-/*                                                                        */
-/*  Ax001:  Changed code req'd - PTM0003919          S.M 3/88	          */
-/*            Incorrect message response                                  */
-/*                                                                        */
-/*  Ax002:  Changed code req'd - PTM0004046          S.M 3/88	          */
-/*            Incomplete message response                                 */
-/*                                                                        */
 /**************************************************************************/
 
 #include "cds.h"

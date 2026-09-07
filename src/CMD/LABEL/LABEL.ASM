@@ -106,17 +106,6 @@
 ;*	    These modules should be linked in this order. The load module is *
 ;*	    a COM file.  It should be converted via EXE2BIN to a .COM file.  *
 ;*									     *
-;*  REVISION HISTORY:							     *
-;*									     *
-;*    AN000;D  DBCS Support	       (New LOC)	  06/87  S. Maes     *
-;*    AN000;M  Message service routine (New LOC)	  06/87  S. Maes     *
-;*    AC000;M  Message service routine (Changed LOC)	  06/87  S. Maes     *
-;*    AN000;S  Serial Number	       (New LOC)	  06/87  S. Maes     *
-;*    AC000;K  SALUT					  08/87  E. Kiser    *
-;*    Ax001;   DCR0524 - enable deletion of labelID	  04/88  S. Maes     *
-;*    Ax002;   PTM4282 - parse complete line for invalids 04/88  S. Maes     *
-;*    AN003;   PTM4588 - scan entire line fails DBCS	  05/88  S. Maes     *
-;*									     *
 ;*  COPYRIGHT: The following notice is found in the OBJ code generated	     *
 ;*	       in the LABELM.SAL module.				     *
 ;*									     *
@@ -152,7 +141,7 @@ CREATE_FILE	   equ	5Bh
 YN_CHECK	   equ	6523h	   ;AN001; 65=GetExtCtry 23=Y/NCheck
 GET_MEDIA_ID	   equ	6900h	   ;AN000;S Int 21 for Serial Number
 GET_DBCS_ENV	   equ	6300h	   ;AN000;D DBCS support
-XNAMETRANS	   equ	60h	   ;AN000;
+XNAMETRANS	   equ	60h
 
 ;		DBCS SPECIAL CHARACTER DEFINITIONS
 
@@ -267,7 +256,7 @@ Vol_FCB 	   db	0FFh	   ;Extended FCB
 FCB_Drive	   db	0	   ;Drive number
 Vol_Name	   db	"???????????" ;Match any vol name found
 		   db	25 dup (0) ;Rest of the opened FCB
-Label_Name	   db	"???????????",0 ;AN000;
+Label_Name	   db	"???????????",0
 FCB_Drive_Char	   db	" "	   ;AN000;K printable version of FCB_Drive above
 
 TranSrc 	   db	"A:CON",0,0 ;AN000;A Device so we don't hit the drive
@@ -683,7 +672,7 @@ Check_For_Drive_Letter PROC NEAR
 ;  $if	z			   ;AN000;K
    JNZ $$IF35
        cmp  cx,END_OF_STRING	   ;Anything parsed yet
-;      $if  e			   ;AN000;
+;      $if  e
        JNE $$IF36
 	   cmp	al,CR		   ;First char a CR ?
 ;	   $if	ne
@@ -917,25 +906,25 @@ Check_Delete PROC NEAR
    jz	Check_Delete_Return	   ;AN001; No, no need for prompt
    cmp	New_Vol_Name,END_OF_STRING ;AN001; Did user enter label
    jne	Check_Delete_Return	   ;AN001; Yes, no need for prompt
-Delete_Prompt:			   ;AN001;
+Delete_Prompt:
    mov	ax,DEL_LABEL_MSG	   ;AN001; Point at Y/N prompt
    call Setup_DelLabel		   ;AN001;M Prepare message
    call Display_Msg		   ;AN001;M Call to Sysdispmsg
    mov	dx,ax			   ;AN001; Char ret'd, prep for ck
    mov	ax,YN_CHECK		   ;AN001; GetExtCtry,Y/NCheck
-   INT	21H			   ;AN001;
+   INT	21H
    cmp	ax,YES			   ;AN001; Delete label ?
    je	Check_Delete_Return	   ;AN001; Yes
    cmp	ax,NO			   ;AN001; Delete label ?
    je	Delete_Label		   ;AN001; Yes
    jne	Delete_Prompt		   ;AN001; No, try again
-Delete_Label:			   ;AN001;
+Delete_Label:
    or	Program_Flag,NO_DELETE	   ;AN001; Yes, set flag
-Check_Delete_Return:		   ;AN001;
+Check_Delete_Return:
    mov	ax,CRLF_MSG		   ;AN001; Point at CRLF message
    call Setup_CRLF		   ;AN001;M Prepare message
    call Display_Msg		   ;AN001;M Call to Sysdispmsg
-   ret				   ;AN001;
+   ret
 Check_Delete ENDP
 
    HEADER <DELETE_OLD_LABEL - DELETE ORIGINAL VOLUME LABEL>

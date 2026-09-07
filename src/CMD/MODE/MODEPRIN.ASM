@@ -6,17 +6,16 @@ INCLUDE STRUC.INC
 .SALL
 
 
-;ษออออออออออออออออออออออออออออออออ  P R O L O G  อออออออออออออออออออออออออออออออออออออออออป				   ;AN000;
-;บ											  บ				   ;AN000;
-															   ;AN000;
+;ษออออออออออออออออออออออออออออออออ  P R O L O G  อออออออออออออออออออออออออออออออออออออออออป
+;บ											  บ
 ;  AX001 - P3976: Need to have all pieces of messages in MODE.SKL so have to
 ;		  implement the SYSGETMSG method of getting addressability to
 ;		  the pieces.  This means that the code does a SYSGETMSG call
 ;		  which returns a pointer (DS:SI) to the message piece.  The
 ;		  address is then put in the sublist block for the message
 ;		  being issued.
-;บ											  บ				   ;AN000;
-;ศออออออออออออออออออออออออออออออออ  P R O L O G  อออออออออออออออออออออออออออออออออออออออออผ				   ;AN000;
+;บ											  บ
+;ศออออออออออออออออออออออออออออออออ  P R O L O G  อออออออออออออออออออออออออออออออออออออออออผ
 
 
 
@@ -78,12 +77,12 @@ ENDM
 
 set_submessage_ptr   MACRO submessage,message ;PUT pointer to "subMESSAGE" into submessage pointer field of "message".
 
-MOV   AX,submessage			     ;AX=message number 		;AN001;
-MOV   DH,utility_msg_class		     ;DH=message class=utility class	;AN001;
-CALL  SYSGETMSG 			     ;DS:SI=>message piece				  ;AN001;
-MOV   BP,OFFSET sublist_&message	     ;address the sublist control block ;AN001;
-MOV   [BP].sublist_off,SI		     ;the sublist now points to the desired message piece ;AN001;
-ENDM												  ;AN001;
+MOV   AX,submessage			     ;AX=message number
+MOV   DH,utility_msg_class		     ;DH=message class=utility class
+CALL  SYSGETMSG 			     ;DS:SI=>message piece
+MOV   BP,OFFSET sublist_&message	     ;address the sublist control block
+MOV   [BP].sublist_off,SI		     ;the sublist now points to the desired message piece
+ENDM
 
 
 ;ษอออออออออออออออออออออออออออออ  S T R U C T U R E S  ออออออออออออออออออออออออออออออออออออป
@@ -133,7 +132,7 @@ EXTRN	COM1_or_COM2:WORD   ;=>"Must specify COM1 or COM2" message
 EXTRN	CTRL_ST:BYTE		;CONTROL STRING SET UP FROM CONFIGURATION PARAMETERS INPUT
 EXTRN	E_item_tag:ABS		  ;see modepars
 EXTRN	invalid_number_of_parameters:WORD   ;=>"Invalid number of parameters"
-EXTRN	noerror:BYTE		 ;AN000;
+EXTRN	noerror:BYTE
 EXTRN	OFFRETRY:ABS		;OFFSET TO TEST INSTR IN RETRY CODE
 EXTRN	not_supported:WORD  ;message telling user he specified "P" on a net printer
 EXTRN	PRINTR:WORD		;PRINTER BASE (40:8), HOLDS PORT ADDRESSES OF PRINTER CARDS
@@ -149,22 +148,22 @@ EXTRN	LPTNO:BYTE		;see modeecho
 EXTRN	machine_type:BYTE	;see "rescode"
 EXTRN	MODEECHO:NEAR		;SET UP REDIRECTION OF PARALLEL TO SERIAL
 EXTRN	MODELENG:NEAR
-EXTRN	MODELOAD:NEAR		;MOVES THE CODE AT MODETO TO 60 AND MAKES IT RESIDENT					   ;AN000;
-EXTRN	NET_ERROR:WORD	    ;"NET 042: Unable to do requested comand"							   ;AN000;
-EXTRN	NONE_item_tag:ABS	    ;AN000;see modepars 								   ;AN000;
-;EXTRN	 no_retry_active:ABS	   ;see invoke.asm									    ;AN000;
-EXTRN	parm_lst:BYTE		 ;see modepars.asm									   ;AN000;
-EXTRN	P_item_tag:ABS		  ;see modepars.asm									   ;AN000;
-;EXTRN	 parallel_printer_settings:WORD 	 ;see "rescode" 							   ;AN000;
-EXTRN	P14_model_byte:ABS			;see "rescode"								   ;AN000;
-EXTRN	PRINTF:NEAR		;FORMATTED "C" LIKE SCREEN OUTPUT ROUTINE						   ;AN000;
+EXTRN	MODELOAD:NEAR		;MOVES THE CODE AT MODETO TO 60 AND MAKES IT RESIDENT
+EXTRN	NET_ERROR:WORD	    ;"NET 042: Unable to do requested comand"
+EXTRN	NONE_item_tag:ABS	    ;AN000;see modepars
+;EXTRN	 no_retry_active:ABS	   ;see invoke.asm
+EXTRN	parm_lst:BYTE		 ;see modepars.asm
+EXTRN	P_item_tag:ABS		  ;see modepars.asm
+;EXTRN	 parallel_printer_settings:WORD 	 ;see "rescode"
+EXTRN	P14_model_byte:ABS			;see "rescode"
+EXTRN	PRINTF:NEAR		;FORMATTED "C" LIKE SCREEN OUTPUT ROUTINE
 EXTRN	PARM1:BYTE,PARM2:BYTE,PARM3:BYTE,MODE:BYTE,FLAG:BYTE
-EXTRN	parm_list_holder:WORD	 ;address of parsed parameter list							   ;AN663;
-EXTRN	parms_form:BYTE 												   ;AN000;
-EXTRN	DEVICE:BYTE,PPARM:BYTE												   ;AN000;
-EXTRN	R_item_tag:ABS													   ;AN000;
+EXTRN	parm_list_holder:WORD	 ;address of parsed parameter list
+EXTRN	parms_form:BYTE
+EXTRN	DEVICE:BYTE,PPARM:BYTE
+EXTRN	R_item_tag:ABS
 ;EXTRN	 res_lpt_retry_type:ABS    ;retry type flag, displacement from address pointed to by 50:30 when code is res, see rescode
-EXTRN	retry_index:WORD	  ;see modecom.asm									   ;AN000;
+EXTRN	retry_index:WORD	  ;see modecom.asm
 
 EXTRN	ERR2:WORD	;CR,LF,"Printer error",BEEP,CR,LF,"$"
 EXTRN	PT80:WORD	;CR,LF,"LPT"
@@ -174,13 +173,13 @@ EXTRN	PT132:WORD	;CR,LF,"LPT"
 EXTRN	PT132N:BYTE	;" "
 ;			": set for 132",CR,LF,"$"
 EXTRN	PTLINES:WORD	;CR,LF,"Printer lines per inch set",CR,LF,"$"
-EXTRN	NORETRY:WORD	    ;message number for CR,LF,'No','$' ;AC001;
-EXTRN	INFINITE:WORD	    ;message number for CR,LF,'Infinite' ;AC001;
+EXTRN	NORETRY:WORD	    ;message number for CR,LF,'No','$'
+EXTRN	INFINITE:WORD	    ;message number for CR,LF,'Infinite'
 EXTRN	REMOTE_DEV:BYTE 	;FILLED IN BY GET ASSIGN LIST ENTRY FUNCTION CALL
 EXTRN	RETPARTO:WORD	;message number for '%1 retry on parallel printer timeout',CR,LF,'$'
 ;EXTRN	 ROOM_FOR_COLON:WORD	 ;INITIALLY 0, CHANGED TO 1 IF COLON IS INCLUDED
-EXTRN	sublist_retparto:BYTE	 ; control block for "%1 retry on parallel printer timeout" ;AC001;
-EXTRN	SYSGETMSG:NEAR		 ;AC001;
+EXTRN	sublist_retparto:BYTE	 ; control block for "%1 retry on parallel printer timeout"
+EXTRN	SYSGETMSG:NEAR
 EXTRN	utility_msg_class:ABS	 ;used for input to sysgetmsg
 EXTRN	VERIFY:NEAR		;FINDS IF n OF LPTn IS LEGAL
 
@@ -277,9 +276,9 @@ REQ_132_CHARS_LINE	DB	00	;BOOLEAN, INDICATES IF 132 CHARS/LINE REQUESTED
 ;บ											  บ
 
 PUBLIC	 busy_status	      ;used by rescode in parallel retry code
-PUBLIC columns_holder													    ;AN000;
+PUBLIC columns_holder
 PUBLIC	 error_status	      ;used by analyze_and_invoke and rescode
-PUBLIC modify_resident_code   ;used by invoke										    ;AN000;
+PUBLIC modify_resident_code   ;used by invoke
 PUBLIC MODEPRIN
 PUBLIC	 no_retry_flag	      ;used by analyze_and_invoke
 PUBLIC printer_no	      ;needed by modepars
@@ -321,7 +320,7 @@ MODEPRIN PROC NEAR
 	   JMP SHORT ENDIF03
 ELSEIF03:
 	   CMP BL,ONE_THIRTY_TWO	;132?
-	   JNE ENDIF03			  ;AC000;
+	   JNE ENDIF03
 ;
 	     MOV CHARS_LINE,BL	;SAVE CHARACTERS PER LINE
 	     MOV REQ_132_CHARS_LINE,TRUE
@@ -330,7 +329,7 @@ ELSEIF03:
 ENDIF03:
 
 ;    : : : IF ANYTHING TO PRINT,
-	   CMP BL,bogus 		  ;AC000;
+	   CMP BL,bogus
 	   JE ENDIF04
 
 	     MOV BYTE PTR CTRL_ST[DI],BL	;PUT CONTROL CHAR FOR COLS/LINE IN CONTROL STRING
@@ -347,7 +346,7 @@ PUBLIC	 ENDIF04
 ;*****************************************************************
 	   MOV BL,NULL		;NULL CHAR, TO BE REPLACED MAYBE
 ;    : : : IF THERE IS A SECOND PARM,
-	   CMP DS:PARM2,unspecified			;AC000;
+	   CMP DS:PARM2,unspecified
 	   JE ENDIF05
 ;
 ;    : : : : IF THE REQUEST FOR 6 LINES PER INCH?
@@ -592,13 +591,13 @@ ELSE01:
 
 PUBLIC ELSE01
 
-       MOV   DI,0		       ;the device name is always the first parm					 ;AN000;
-       MOV   BP,OFFSET parm_lst   ;address the parm list via parm_list which is [BP]				      ;AN000;
-       MOV   BX,parm_list[DI].value1							 ;AN000;
+       MOV   DI,0		       ;the device name is always the first parm
+       MOV   BP,OFFSET parm_lst   ;address the parm list via parm_list which is [BP]
+       MOV   BX,parm_list[DI].value1
        MOV  illegal_device_ptr,BX
        MOV  BYTE PTR [BX][4],0	     ;AN000;chop off the string at 4, so "LPT1132" will be displayed as "LPT1"
        DISPLAY err1		      ;AN000;"Illegal device name - LPTX"
-       MOV  noerror,false	       ;AN000;
+       MOV  noerror,false
 ;    ENDIF COLON IS MISSING
 ENDIF01:
 ;     $ENDIF ;there was a chance that the parameters were valid
@@ -610,22 +609,22 @@ MODEPRIN ENDP
 
 ;******************************************************************************
 
-modify_resident_code PROC  NEAR 											   ;AN000;
+modify_resident_code PROC  NEAR
 
 
 	CALL LOADED_YET      ;on return ES:DI points to res copy of "modeto" if loaded
 ;    : :IF RESIDENT CODE IS ALREADY LOADED
 	.IF Z THEN NEAR
 ;		     MODIFY LOADED CODE TO REFLECT WHO GETS RETRIED NOW
-	   MOV	BX,OFFSET lpt1_retry_type    ;BX=> first of 3 retry mask bytes						   ;AC000;
-	   XOR	SI,SI	 ;clear code modification index 						    ;AN000;
+	   MOV	BX,OFFSET lpt1_retry_type    ;BX=> first of 3 retry mask bytes
+	   XOR	SI,SI	 ;clear code modification index
 	   .FOR DI,=,0,TO,2    ;FOR LPT1 TO LPT3 check the retry mask byte						  ;AN000;	;JWASM: explicit commas (.FOR args)
-	     .IF <<BYTE PTR ES:[BX][DI]> NE no_retry_flag> THEN    ;IF at least one type of retry on THEN	  ;AN000;
-		OR SI,8     ;OR in 00001000 which shifts into proper position						   ;AN000;
-	     .ENDIF													   ;AN000;
-	     SHR   SI,1 												   ;AN000;
-	   .NEXT DI	  ;DI=1 or 2, SI=0,1 ,2 ,3 ,4 ,5 ,6 or 7					     ;AN000;
-	   SHL	SI,1	;SI=0, 2, 4, ... , 14, INDEX TO SHOW WHICH LPTns to be retried					  ;AC000;
+	     .IF <<BYTE PTR ES:[BX][DI]> NE no_retry_flag> THEN    ;IF at least one type of retry on THEN
+		OR SI,8     ;OR in 00001000 which shifts into proper position
+	     .ENDIF
+	     SHR   SI,1
+	   .NEXT DI	  ;DI=1 or 2, SI=0,1 ,2 ,3 ,4 ,5 ,6 or 7
+	   SHL	SI,1	;SI=0, 2, 4, ... , 14, INDEX TO SHOW WHICH LPTns to be retried
 	   MOV	BX,OFFRETRY	;OFFSET TO TEST INSTR IN RETRY CODE
 	   CLI		;DISABLE INTERRUPTS
 	   MOV	BYTE PTR ES:[BX]+4,5	;SET JMP TARGET TO +5
@@ -685,9 +684,9 @@ ENDC:
 ;    : : : ENDIF RESIDENT CODE IS ALREADY LOADED
 	.ENDIF
 
-RET															    ;AN000;
+RET
 
-modify_resident_code ENDP												    ;AN000;
+modify_resident_code ENDP
 
 
 ;**********************************************************
@@ -817,110 +816,89 @@ OUTCHR	  ENDP
 ;ณ									       ณ
 ;ภฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤู
 ;
-;set_retry_flag PROC NEAR												     ;AN663;
-;															     ;AN663;
-;      PUSH ES			 ;save registers									     ;AN663;
-;      PUSH DI														     ;AN663;
-;      PUSH AX														     ;AN663;
-;      PUSH DX														     ;AN663;
-;															     ;AN663;
-;      XOR  AX,AX		 ;clear a reg										     ;AN663;
-;      MOV  ES,AX		 ;set to segment at 0									     ;AN663;
-;      MOV  CL,device													     ;AN663;
-;      AND  CL,07H													     ;AN663;
-;      DEC  CL														     ;AN663;
-;      SHL  CL,1													     ;AN663;
-;      MOV  DH,11111100B	 ;set bit mask to get rid of old setting						     ;AN663;
-;      ROL  DH,CL		 ;rotate bits into position								     ;AN663;
-;															     ;AN663;
-;      .IF <retry_index NE 0> THEN											     ;AN663;
-;															     ;AN663;
-;	  .IF <redirected EQ true> THEN 										     ;AN663;
-;															     ;AN663;
-;	     display not_supported ;infinite retry not supported on network printer					     ;AN663;
-;															     ;AN663;
-;	  .ELSE NEAR				 ;not a network printer 						     ;AN663;
-;															     ;AN663;
-;	     MOV  DI,retry_index											     ;AN663;
-;	     MOV  BP,parm_list_holder		 ;set up addressability to the list of parsed parms,set "parm_list"	     ;AN663;
+;set_retry_flag PROC NEAR
+;      PUSH ES			 ;save registers
+;      PUSH DI
+;      PUSH AX
+;      PUSH DX
+;      XOR  AX,AX		 ;clear a reg
+;      MOV  ES,AX		 ;set to segment at 0
+;      MOV  CL,device
+;      AND  CL,07H
+;      DEC  CL
+;      SHL  CL,1
+;      MOV  DH,11111100B	 ;set bit mask to get rid of old setting
+;      ROL  DH,CL		 ;rotate bits into position
+;      .IF <retry_index NE 0> THEN
+;	  .IF <redirected EQ true> THEN
+;	     display not_supported ;infinite retry not supported on network printer
+;	  .ELSE NEAR				 ;not a network printer
+;	     MOV  DI,retry_index
+;	     MOV  BP,parm_list_holder		 ;set up addressability to the list of parsed parms,set "parm_list"
 ;
-;	     .SELECT													     ;AN663;
+;	     .SELECT
 ;
-;		.WHEN <parm_list[DI].item_tag EQ P_item_tag> OR 							     ;AN663;
-;		.WHEN <parm_list[DI].item_tag EQ E_item_tag>								     ;AN663;
-;		   MOV	AL,error_retry_active										     ;AN663;
+;		.WHEN <parm_list[DI].item_tag EQ P_item_tag> OR
+;		.WHEN <parm_list[DI].item_tag EQ E_item_tag>
+;		   MOV	AL,error_retry_active
 ;
-;		.WHEN <parm_list[DI].item_tag EQ B_item_tag>							     ;AN663;
-;		   MOV	AL,busy_retry_active										  ;AN663;
+;		.WHEN <parm_list[DI].item_tag EQ B_item_tag>
+;		   MOV	AL,busy_retry_active
 ;
-;		.WHEN <parm_list[DI].item_tag EQ R_item_tag>						 ;AN663;
-;		   MOV	AL,ready_retry_active								 ;AN663;
+;		.WHEN <parm_list[DI].item_tag EQ R_item_tag>
+;		   MOV	AL,ready_retry_active
 ;
-;		.WHEN <parm_list[DI].item_tag EQ NONE_item_tag> 					    ;AN663;
-;		   MOV	AL,no_retry_active										;AN663;
+;		.WHEN <parm_list[DI].item_tag EQ NONE_item_tag>
+;		   MOV	AL,no_retry_active
 ;
 ;	     .ENDSELECT
 ;
 ;	     .IF <AL EQ no_retry_active> THEN
 ;		MOV	 INF_OR_NO_PTR,OFFSET NORETRY	 ;modify message to indicate no retry
-;	     .ELSE										      ;AN663;
-;		MOV    INF_OR_NO_PTR,OFFSET INFINITE   ;modify message to indicate retry	      ;AN663;
-;	     .ENDIF										      ;AN663;
-;												      ;AN663;
-;	     .IF <<WORD PTR ES:resseg> EQ 0000H> THEN						      ;AN663;
-;		CALL modeload				 ;load resident code			      ;AN663;
-;	     .ENDIF										      ;AN663;
-;												      ;AN663;
-;	     MOV  ES,ES:WORD PTR resseg[2]							      ;AN663;
-;	     MOV  DL,BYTE PTR ES:res_lpt_retry_type	 ;get old setting			      ;AN663;
-;												      ;AN663;
-;	     ROL  AL,CL 									      ;AN663;
-;	     AND  DL,DH 									      ;AN663;
-;	     OR   DL,AL 									      ;AN663;
-;	     MOV  BYTE PTR ES:res_lpt_retry_type,DL	 ;store new setting			      ;AN663;
-;												      ;AN663;
-;	  .ENDIF										      ;AN663;
-;												      ;AN663;
-;      .ELSEIF <<WORD PTR ES:resseg> NE 0000H> THEN	 ;if code is loaded but no		      ;AN663;
-;							 ;  retry is specified then		      ;AN663;
-;	  MOV  ES,ES:WORD PTR resseg[2] 							      ;AN663;
-;	  MOV  DL,BYTE PTR ES:res_lpt_retry_type						      ;AN663;
-;												      ;AN663;
-;	  .IF <parms_form NE keyword>			 ;no retry specified with		      ;AN663;
-;							 ;positional parameters 	       ;AN663;
-;	     AND  DL,DH 				 ;  set bits to zero			      ;AN663;
-;	     MOV  BYTE PTR ES:res_lpt_retry_type,DL						      ;AN663;
-;	     MOV      INF_OR_NO_PTR,OFFSET NORETRY	 ;modify message to indicate no retry	      ;AN663;
-;												      ;AN663;
+;	     .ELSE
+;		MOV    INF_OR_NO_PTR,OFFSET INFINITE   ;modify message to indicate retry
+;	     .ENDIF
+;	     .IF <<WORD PTR ES:resseg> EQ 0000H> THEN
+;		CALL modeload				 ;load resident code
+;	     .ENDIF
+;	     MOV  ES,ES:WORD PTR resseg[2]
+;	     MOV  DL,BYTE PTR ES:res_lpt_retry_type	 ;get old setting
+;	     ROL  AL,CL
+;	     AND  DL,DH
+;	     OR   DL,AL
+;	     MOV  BYTE PTR ES:res_lpt_retry_type,DL	 ;store new setting
+;	  .ENDIF
+;      .ELSEIF <<WORD PTR ES:resseg> NE 0000H> THEN	 ;if code is loaded but no
+;							 ;  retry is specified then
+;	  MOV  ES,ES:WORD PTR resseg[2]
+;	  MOV  DL,BYTE PTR ES:res_lpt_retry_type
+;	  .IF <parms_form NE keyword>			 ;no retry specified with
+;							 ;positional parameters
+;	     AND  DL,DH 				 ;  set bits to zero
+;	     MOV  BYTE PTR ES:res_lpt_retry_type,DL
+;	     MOV      INF_OR_NO_PTR,OFFSET NORETRY	 ;modify message to indicate no retry
 ;	  .ELSE 					 ;else, no retry specified with keywords
-;							 ;  update pparm with current retry type      ;AN663;
-;	     NOT  DH										      ;AN663;
-;	     AND  DL,DH 									      ;AN663;
-;	     SHR  DL,CL 									      ;AN663;
-;												      ;AN663;
-;	     .IF <DL EQ no_retry_active> THEN							    ;AN663;
-;		MOV	 INF_OR_NO_PTR,OFFSET NORETRY	    ;modify message to indicate no retry      ;AN663;
-;	     .ELSE										      ;AN663;
-;		MOV    INF_OR_NO_PTR,OFFSET INFINITE   ;modify message to indicate retry	      ;AN663;
-;	     .ENDIF										      ;AN663;
-;												      ;AN663;
-;	  .ENDIF										      ;AN663;
-;												      ;AN663;
-;      .ELSE					      ;no retry, no code resident		   ;AN663;
-;												      ;AN663;
-;	  MOV	   INF_OR_NO_PTR,OFFSET NORETRY       ;modify message to indicate no retry	      ;AN663;
-;												      ;AN663;
-;      .ENDIF											      ;AN663;
-;				;'Infinite retry on parallel printer timeout' OR		      ;AN663;
-;      DISPLAY	RETPARTO	;'No retry on parallel printer timeout' 			      ;AN663;
-;												      ;AN663;
-;      POP  DX						 ;restore registers			      ;AN663;
-;      POP  AX											      ;AN663;
-;      POP  DI											      ;AN663;
-;      POP  ES											      ;AN663;
-;      RET											      ;AN663;
-;												      ;AN663;
-;set_retry_flag ENDP										      ;AN663;
+;							 ;  update pparm with current retry type
+;	     NOT  DH
+;	     AND  DL,DH
+;	     SHR  DL,CL
+;	     .IF <DL EQ no_retry_active> THEN
+;		MOV	 INF_OR_NO_PTR,OFFSET NORETRY	    ;modify message to indicate no retry
+;	     .ELSE
+;		MOV    INF_OR_NO_PTR,OFFSET INFINITE   ;modify message to indicate retry
+;	     .ENDIF
+;	  .ENDIF
+;      .ELSE					      ;no retry, no code resident
+;	  MOV	   INF_OR_NO_PTR,OFFSET NORETRY       ;modify message to indicate no retry
+;      .ENDIF
+;				;'Infinite retry on parallel printer timeout' OR
+;      DISPLAY	RETPARTO	;'No retry on parallel printer timeout'
+;      POP  DX						 ;restore registers
+;      POP  AX
+;      POP  DI
+;      POP  ES
+;      RET
+;set_retry_flag ENDP
 ;-------------------------------------------------------------------------------
 ;ฺฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฟ
 ;ณ									       ณ
@@ -984,112 +962,94 @@ OUTCHR	  ENDP
 ;ณ									       ณ
 ;ภฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤู
 ;
-set_retry_type PROC NEAR												    ;AN663;
-															    ;AN663;
+set_retry_type PROC NEAR
 
-PUSH ES 		  ;save registers									      ;AN663;
-PUSH DI 													      ;AN663;
-PUSH AX 													      ;AN663;
+PUSH ES 		  ;save registers
+PUSH DI
+PUSH AX
 PUSH BX
-PUSH DX 													      ;AN663;
-														      ;AN663;
-XOR  BX,BX		  ;clear a reg										      ;AN663;
-MOV  ES,BX		  ;set to segment at 0									      ;AN663;
-MOV  BL,device													      ;AN663;
-AND  BL,07H													      ;AN663;
-DEC  BL 		   ;BX=zero based binary printer number 					  ;AN663;
-														      ;AN663;
-.IF <retry_index NE 0> THEN NEAR    ;IF retry requested on this invokation THEN 				    ;AN663;
-														      ;AN663;
-   .IF <redirected EQ true> THEN										      ;AN663;
-														      ;AN663;
-      display not_supported ;infinite retry not supported on network printer					      ;AN663;
-														      ;AN663;
-   .ELSE NEAR				  ;not a network printer						      ;AN663;
-														      ;AN663;
-      MOV  DI,retry_index											      ;AN663;
-      MOV  BP,parm_list_holder		  ;set up addressability to the list of parsed parms,set "parm_list"	      ;AN663;
+PUSH DX
+XOR  BX,BX		  ;clear a reg
+MOV  ES,BX		  ;set to segment at 0
+MOV  BL,device
+AND  BL,07H
+DEC  BL 		   ;BX=zero based binary printer number
+.IF <retry_index NE 0> THEN NEAR    ;IF retry requested on this invokation THEN
+   .IF <redirected EQ true> THEN
+      display not_supported ;infinite retry not supported on network printer
+   .ELSE NEAR				  ;not a network printer
+      MOV  DI,retry_index
+      MOV  BP,parm_list_holder		  ;set up addressability to the list of parsed parms,set "parm_list"
 
-      .SELECT													      ;AN663;
+      .SELECT
 
-	 .WHEN <parm_list[DI].item_tag EQ E_item_tag>								      ;AN663;
-	    MOV  AL,error_status	 ;set mask byte to horrible status			     ;AN663;
+	 .WHEN <parm_list[DI].item_tag EQ E_item_tag>
+	    MOV  AL,error_status	 ;set mask byte to horrible status
 
-	 .WHEN <parm_list[DI].item_tag EQ P_item_tag> OR							      ;AN663;
-	 .WHEN <parm_list[DI].item_tag EQ B_item_tag>							      ;AN663;
-	    MOV  AL,busy_status 	 ;set mask byte to actual status			      ;AN663;
+	 .WHEN <parm_list[DI].item_tag EQ P_item_tag> OR
+	 .WHEN <parm_list[DI].item_tag EQ B_item_tag>
+	    MOV  AL,busy_status 	 ;set mask byte to actual status
 
-	 .WHEN <parm_list[DI].item_tag EQ R_item_tag>						  ;AN663;
-	    MOV  AL,ready_status	 ;set mask byte to rosy status	       ;AN663;
+	 .WHEN <parm_list[DI].item_tag EQ R_item_tag>
+	    MOV  AL,ready_status	 ;set mask byte to rosy status
 
-	 .WHEN <parm_list[DI].item_tag EQ NONE_item_tag>					     ;AN663;;AN000;
+	 .WHEN <parm_list[DI].item_tag EQ NONE_item_tag>
 	    MOV  AL,no_retry_flag      ;when there is no retry the mask will not be used, so this is just a flag
 
       .ENDSELECT
 
-      PUSH  AX					  ;save the retry setting ;AN001;
+      PUSH  AX					  ;save the retry setting
       .IF <AL EQ no_retry_flag> THEN
 ;AC001;  MOV	  INF_OR_NO_PTR,OFFSET NORETRY	  ;modify message to indicate no retry
-	 set_submessage_ptr   noretry,retparto	  ;modify message to indicate no retry	       ;AC001;
-      .ELSE										       ;AN663;
-;AC001;  MOV	INF_OR_NO_PTR,OFFSET INFINITE	;modify message to indicate retry	       ;AN663;
-	 set_submessage_ptr   infinite,retparto    ;modify message to indicate retry		;AC001;
-      .ENDIF										       ;AN663;
-      POP   AX					  ;restore the retry setting ;AN001;
+	 set_submessage_ptr   noretry,retparto	  ;modify message to indicate no retry
+      .ELSE
+;AC001;  MOV	INF_OR_NO_PTR,OFFSET INFINITE	;modify message to indicate retry
+	 set_submessage_ptr   infinite,retparto    ;modify message to indicate retry
+      .ENDIF
+      POP   AX					  ;restore the retry setting
 
-      .IF <<WORD PTR ES:resseg> EQ 0000H> THEN	  ;IF code not resident THEN			  ;AN663;
+      .IF <<WORD PTR ES:resseg> EQ 0000H> THEN	  ;IF code not resident THEN
 	 .IF <AL NE no_retry_flag> THEN 	     ;need to turn on retry
-	    CALL modeload			     ;load resident code			  ;AN663;
-	    MOV  ES,ES:WORD PTR resseg[2]							     ;AN663;
-	    MOV  BYTE PTR ES:lpt1_retry_type[BX],AL	 ;store new setting		       ;AN663;
+	    CALL modeload			     ;load resident code
+	    MOV  ES,ES:WORD PTR resseg[2]
+	    MOV  BYTE PTR ES:lpt1_retry_type[BX],AL	 ;store new setting
 	 .ENDIF
       .ELSE					  ;ELSE code is already resident
-	 MOV  ES,ES:WORD PTR resseg[2]								  ;AN663;
-	 MOV  BYTE PTR ES:lpt1_retry_type[BX],AL      ;store new setting		     ;AN663;
-      .ENDIF										       ;AN663;
-											       ;AN663;
-   .ENDIF										       ;AN663;
-											       ;AN663;
-.ELSEIF <<WORD PTR ES:resseg> NE 0000H> THEN	  ;if code is loaded but no		       ;AN663;
-						  ;  retry is specified then		       ;AN663;
-   MOV	ES,ES:WORD PTR resseg[2]		;ES=segment of the resident code	     ;AN663;
-											       ;AN663;
-   .IF <parms_form NE keyword>			  ;no retry specified with		       ;AN663;
-						  ;positional parameters, so turn off retry	       ;AN663;
-      MOV  BYTE PTR ES:lpt1_retry_type[BX],no_retry_flag	 ;set flag for get retry routine;AN663;
-;AC001;      MOV   INF_OR_NO_PTR,OFFSET NORETRY 	 ;modify message to indicate no retry	      ;AN663;
-	 set_submessage_ptr   noretry,retparto	  ;modify message to indicate no retry	       ;AC001;
-											       ;AN663;
+	 MOV  ES,ES:WORD PTR resseg[2]
+	 MOV  BYTE PTR ES:lpt1_retry_type[BX],AL      ;store new setting
+      .ENDIF
+   .ENDIF
+.ELSEIF <<WORD PTR ES:resseg> NE 0000H> THEN	  ;if code is loaded but no
+						  ;  retry is specified then
+   MOV	ES,ES:WORD PTR resseg[2]		;ES=segment of the resident code
+   .IF <parms_form NE keyword>			  ;no retry specified with
+						  ;positional parameters, so turn off retry
+      MOV  BYTE PTR ES:lpt1_retry_type[BX],no_retry_flag	 ;set flag for get retry routine
+;AC001;      MOV   INF_OR_NO_PTR,OFFSET NORETRY 	 ;modify message to indicate no retry
+	 set_submessage_ptr   noretry,retparto	  ;modify message to indicate no retry
    .ELSE					  ;else, no retry specified with keywords
-						  ;  update pparm with current retry type      ;AN663;
-      .IF <<BYTE PTR ES:lpt1_retry_type[BX]> EQ no_retry_flag> THEN			;AN663;
-;AC001;  MOV	  INF_OR_NO_PTR,OFFSET NORETRY	     ;modify message to indicate no retry      ;AN663;
-	 set_submessage_ptr   noretry,retparto	  ;modify message to indicate no retry	       ;AC001;
-      .ELSE										       ;AN663;
-;AC001;  MOV	INF_OR_NO_PTR,OFFSET INFINITE	;modify message to indicate retry	       ;AN663;
-	 set_submessage_ptr   infinite,retparto    ;modify message to indicate retry		;AC001;
-      .ENDIF										       ;AN663;
-											       ;AN663;
-   .ENDIF										       ;AN663;
-											       ;AN663;
-.ELSE					       ;no retry, no code resident		    ;AN663;
-											       ;AN663;
-;AC001;   MOV	   INF_OR_NO_PTR,OFFSET NORETRY       ;modify message to indicate no retry	      ;AN663;
-   set_submessage_ptr	noretry,retparto    ;modify message to indicate no retry	 ;AC001;
-											       ;AN663;
-.ENDIF											       ;AN663;
-			 ;'Infinite retry on parallel printer timeout' OR		       ;AN663;
-DISPLAY  RETPARTO	 ;'No retry on parallel printer timeout'			       ;AN663;
-											       ;AN663;
-POP  DX 					  ;restore registers			       ;AN663;
+						  ;  update pparm with current retry type
+      .IF <<BYTE PTR ES:lpt1_retry_type[BX]> EQ no_retry_flag> THEN
+;AC001;  MOV	  INF_OR_NO_PTR,OFFSET NORETRY	     ;modify message to indicate no retry
+	 set_submessage_ptr   noretry,retparto	  ;modify message to indicate no retry
+      .ELSE
+;AC001;  MOV	INF_OR_NO_PTR,OFFSET INFINITE	;modify message to indicate retry
+	 set_submessage_ptr   infinite,retparto    ;modify message to indicate retry
+      .ENDIF
+   .ENDIF
+.ELSE					       ;no retry, no code resident
+;AC001;   MOV	   INF_OR_NO_PTR,OFFSET NORETRY       ;modify message to indicate no retry
+   set_submessage_ptr	noretry,retparto    ;modify message to indicate no retry
+.ENDIF
+			 ;'Infinite retry on parallel printer timeout' OR
+DISPLAY  RETPARTO	 ;'No retry on parallel printer timeout'
+POP  DX 					  ;restore registers
 POP  BX
-POP  AX 										       ;AN663;
-POP  DI 										       ;AN663;
-POP  ES 										       ;AN663;
-											       ;AN663;
-RET											       ;AN663;
-												     ;AN663;
-set_retry_type ENDP										     ;AN663;
+POP  AX
+POP  DI
+POP  ES
+RET
+set_retry_type ENDP
 
 PRINTF_CODE   ENDS
      END

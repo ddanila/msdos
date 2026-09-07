@@ -1,9 +1,5 @@
 
 	PAGE	60,132
-;	SCCSID = @(#)smifssym.inc 1.0 87/05/11
-;
-;   Modification history:
-;	Created: May 11 1987 
 ;
 ;	SMifssym is only for IBMBIO.  It will only has definitions
 ;	for IFSHEADER, IFSRH of INIT function.

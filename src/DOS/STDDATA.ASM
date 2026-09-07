@@ -1,4 +1,3 @@
-;	SCCSID = @(#)stddata.asm	1.1 85/04/10
 ;
 ; DATA Segment for MS-DOS
 ;

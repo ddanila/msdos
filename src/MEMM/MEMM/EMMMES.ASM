@@ -11,28 +11,8 @@
 ;
 ;   Module:	EMMMES - messages for MEMM
 ;
-;   Version:	0.05
-;
-;   Date:	May 24,1986
-;
-;   Author:
-;
 ;******************************************************************************
 ;
-;	Change Log:
-;
-;	DATE	 REVISION	Description
-;	-------- --------	--------------------------------------------
-;	05/24/86 Original
-;	06/26/86 0.02		changed version #.
-;	06/28/86 0.02		Name changed from MEMM386 to MEMM
-;	07/06/86 0.04		changed version #.
-;	07/06/86 0.04		changed assume to DGROUP
-;	07/06/86 0.04		moved some messages to LAST
-;	07/08/86 0.04		Changed messages for incorrect machine
-;	07/09/86 0.05		changed version displayed version# to 3.20.
-;
-;******************************************************************************
 .lfcond
 .386p
 	page

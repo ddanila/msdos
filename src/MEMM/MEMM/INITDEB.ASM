@@ -11,23 +11,8 @@ page	58,132
 ;
 ;   Module:   InitDeb - initialize debugger
 ;
-;   Version:  0.04
-;
-;   Date:     June 16,1986
-;
-;   Author:
-;
 ;******************************************************************************
 ;
-;   Change log:
-;
-;     DATE    REVISION			DESCRIPTION
-;   --------  --------	-------------------------------------------------------
-;   06/16/86  Original	from VDM MAIN.ASM module
-;   06/28/86  0.02	Name changed from MEMM386 to MEMM
-;   07/06/86  0.04	Changed assume to DGROUP
-;
-;******************************************************************************
 ;
 ;   Functional Description:
 ;

@@ -1,5 +1,3 @@
-;	SCCSID = @(#)fat.asm	1.3 85/08/15
-;	SCCSID = @(#)fat.asm	1.3 85/08/15
 TITLE	FAT - FAT maintenance routines
 NAME	FAT
 ; Low level local device routines for performing disk change sequence,
@@ -12,15 +10,6 @@ NAME	FAT
 ;   FATREAD_SFT
 ;   FATREAD_CDS
 ;   FAT_operation
-;
-;   Revision history:
-;
-;   AN000  version Jan. 1988
-;    A001  PTM	      -- disk changed for look ahead buffers
-;
-
-;
-; get the appropriate segment definitions
 ;
 .xlist
 include dosseg.asm
@@ -39,7 +28,7 @@ FastDiv = TRUE
 	i_need	CURBUF,DWORD
 	i_need	CLUSSPLIT,BYTE
 	i_need	CLUSSAVE,WORD
-	i_need	CLUSSEC,DWORD		;F.C. >32mb  ;AN000;
+	i_need	CLUSSEC,DWORD		;F.C. >32mb
 	i_need	THISDRV,BYTE
 	i_need	THISDPB,DWORD
 	i_need	DEVCALL,BYTE
@@ -61,8 +50,8 @@ FastDiv = TRUE
 	i_need	BUF_HASH_COUNT,WORD
 	i_need	BUF_HASH_PTR,DWORD
 	i_need	FIRST_BUFF_ADDR,WORD
-	i_need	SC_CACHE_COUNT,WORD	       ;AN001;
-	i_need	CURSC_DRIVE,BYTE	       ;AN001;
+	i_need	SC_CACHE_COUNT,WORD
+	i_need	CURSC_DRIVE,BYTE
 
 
 Break <IsEOF - check the quantity in BX for EOF>
@@ -194,11 +183,11 @@ PACKIN:
 	OR	SI,DX
 	MOV	[DI],SI
 	LDS	SI,[CURBUF]
-	TEST	[SI.buf_flags],buf_dirty  ;LB. if already dirty 		;AN000;
-	JNZ	yesdirty		  ;LB.	  don't increment dirty count   ;AN000;
-	invoke	INC_DIRTY_COUNT 	  ;LB.					;AN000;
-	OR	[SI.buf_flags],buf_dirty  ;LB.					;AN000;
-yesdirty:				  ;LB.					;AN000;
+	TEST	[SI.buf_flags],buf_dirty  ;LB. if already dirty
+	JNZ	yesdirty		  ;LB.	  don't increment dirty count
+	invoke	INC_DIRTY_COUNT 	  ;LB.
+	OR	[SI.buf_flags],buf_dirty  ;LB.
+yesdirty:				  ;LB.
 	CMP	BYTE PTR [CLUSSPLIT],0
 	Context DS
 	retz				; Carry clear
@@ -212,8 +201,8 @@ ASSUME	DS:NOTHING
 	MOV	[SI],AH
 	Context DS
 	PUSH	AX
-	MOV	DX,WORD PTR [CLUSSEC+2] 	   ;F.C. >32mb		       ;AN000;
-	MOV	WORD PTR [HIGH_SECTOR],DX	   ;F.C. >32mb		       ;AN000;
+	MOV	DX,WORD PTR [CLUSSEC+2] 	   ;F.C. >32mb
+	MOV	WORD PTR [HIGH_SECTOR],DX	   ;F.C. >32mb
 
 	MOV	DX,WORD PTR [CLUSSEC]
 	MOV	SI,1
@@ -223,9 +212,9 @@ ASSUME	DS:NOTHING
 	JC	POPP_RET
 	LDS	DI,[CURBUF]
 ASSUME	DS:NOTHING
-	TEST	[DI.buf_flags],buf_dirty  ;LB. if already dirty 		;AN000;
-	JNZ	yesdirty2		  ;LB.	  don't increment dirty count   ;AN000;
-	invoke	INC_DIRTY_COUNT 	  ;LB.					;AN000;
+	TEST	[DI.buf_flags],buf_dirty  ;LB. if already dirty
+	JNZ	yesdirty2		  ;LB.	  don't increment dirty count
+	invoke	INC_DIRTY_COUNT 	  ;LB.
 	OR	[DI.buf_flags],buf_dirty
 yesdirty2:
 	ADD	DI,BUFINSIZ
@@ -271,9 +260,9 @@ Break	<MAPCLUSTER - BUFFER A FAT SECTOR>
 	JAE	Map16			; MZ yes, do 16 bit algorithm
 	SHR	AX,1			; AX = BX/2
 Map16:					; MZ skip prev => AX=2*BX
-	XOR	DI,DI			; >32mb     fat 			;AN000;
+	XOR	DI,DI			; >32mb     fat
 	ADD	AX,BX			; AX = 1.5*fat = byte offset in fat
-	ADC	DI,0			; >32mb     fat 			;AN000;
+	ADC	DI,0			; >32mb     fat
 DoConvert:
 	MOV	CX,ES:[BP.dpb_sector_size]
 IF FastDiv
@@ -287,17 +276,17 @@ IF FastDiv
 ; This saves a bunch.
 ;
 	CMP	CX,512			; 4	Is this 512 byte sector?
-	JZ	Nodiv			;F.C. >32mb				;AN000;
+	JZ	Nodiv			;F.C. >32mb
 	JMP	DoDiv			; 4/16	No, go do divide
-Nodiv:					;F.C. >32mb				;AN000;
+Nodiv:					;F.C. >32mb
 	MOV	DX,AX			; 2	get set for remainder
 	AND	DX,512-1		; 4	Form remainder
 	MOV	AL,AH			; 2
 	SHR	AL,1			; 2
 	CBW				; 2	Fast divide by 512
-	OR	DI,DI			;>32mb	>64k ?				;AN000;
-	JZ	g64k			;>32mb	no				;AN000;
-	OR	AX,80H			;>32mb					;AN000;
+	OR	DI,DI			;>32mb	>64k ?
+	JZ	g64k			;>32mb	no
+	OR	AX,80H			;>32mb
 g64k:
 ELSE
 	XOR	DX,DX			; 3
@@ -325,9 +314,9 @@ ASSUME	DS:NOTHING
 	INC	BYTE PTR [CLUSSPLIT]
 	MOV	BYTE PTR [CLUSSAVE],AL
 	MOV	WORD PTR [CLUSSEC],DX
-	MOV	WORD PTR [CLUSSEC+2],0	      ;F.C. >32mb			;AN000;
+	MOV	WORD PTR [CLUSSEC+2],0	      ;F.C. >32mb
 	INC	DX
-	MOV	[HIGH_SECTOR],0 	      ;F.C. >32mb  FAT sector <32mb	;AN000;
+	MOV	[HIGH_SECTOR],0 	      ;F.C. >32mb  FAT sector <32mb
 	XOR	AL,AL
 	MOV	SI,1
 	invoke	GETBUFFRB
@@ -548,23 +537,23 @@ CHKBUFFDIRT:
 	DOSAssume   CS,<DS>,"FAT/ChkBuffDirt"
 ;	LDS	DI,[BUFFHEAD]
 ASSUME	DS:NOTHING
-	XOR	DX,DX				 ;LB.				;AN000;
-	LDS	DI,[BUF_HASH_PTR]		 ;LB. scan from 1st entry	;AN000;
-	MOV	CX,[BUF_HASH_COUNT]		 ;LB. get Hash entry count	;AN000;
+	XOR	DX,DX				 ;LB.
+	LDS	DI,[BUF_HASH_PTR]		 ;LB. scan from 1st entry
+	MOV	CX,[BUF_HASH_COUNT]		 ;LB. get Hash entry count
 
 scan_dirty:
-	CMP	[DI.Dirty_Count],0		 ;LB. if not dirty		;AN000;
-	JZ	GETNEXT 			 ;LB.	 get next hash entry	;AN000;
-	PUSH	DS				 ;LB. save hash entry addr	;AN000;
-	PUSH	DI				 ;LB.				;AN000;
-	invoke	Map_Entry			 ;LB.				;AN000;
+	CMP	[DI.Dirty_Count],0		 ;LB. if not dirty
+	JZ	GETNEXT 			 ;LB.	 get next hash entry
+	PUSH	DS				 ;LB. save hash entry addr
+	PUSH	DI				 ;LB.
+	invoke	Map_Entry			 ;LB.
 NBUFFER:				; Look for dirty buffers
 	CMP	AL,[DI.buf_ID]
 	JNZ	LFNXT			; Not for this unit
 	TEST	[DI.buf_flags],buf_dirty
 	JZ	LFNXT
-	POP	DI				  ;LB. restore regs		 ;AN000;
-	POP	DS				  ;LB.				 ;AN000;
+	POP	DI				  ;LB. restore regs
+	POP	DS				  ;LB.
 	Context DS
 	CLC
 	return				; There is a dirty buffer, assume Media OK (NZ)
@@ -579,29 +568,29 @@ LFNXT:
 	mov	DI,[DI.buf_next]	    ;; 1/19/88
 	CMP	DI,[FIRST_BUFF_ADDR]	    ;; 1/19/88
 	JNZ	NBUFFER
-	POP	DI				  ;LB. restore regs		 ;AN000;
-	POP	DS				  ;LB.				 ;AN000;
+	POP	DI				  ;LB. restore regs
+	POP	DS				  ;LB.
 GETNEXT:
-	ADD	DI,size BUFFER_HASH_ENTRY	  ;LB. next entry		 ;AN000;
-	LOOP	scan_dirty			  ;LB. scan next entry		 ;AN000;
+	ADD	DI,size BUFFER_HASH_ENTRY	  ;LB. next entry
+	LOOP	scan_dirty			  ;LB. scan next entry
 ; If no dirty buffers, assume Media changed
 NEWDSK:
 	MOV	ES:[BP.dpb_free_cnt],-1 ; Media changed, must re-compute
 					; NOTE: It is TECHNICALLY more correct
 ASSUME DS:NOTHING
-	XOR	DX,DX			;LB.					  ;AN000;
-	MOV	[HIGH_SECTOR],DX	;LB. scan from 1st entry		  ;AN000;
-	MOV	CX,[BUF_HASH_COUNT]	;LB. get Hash entry count		  ;AN000;
+	XOR	DX,DX			;LB.
+	MOV	[HIGH_SECTOR],DX	;LB. scan from 1st entry
+	MOV	CX,[BUF_HASH_COUNT]	;LB. get Hash entry count
 
 NxtHash:
-	invoke	GETCURHEAD		;LB. get Hash entry buffer header	  ;AN000;
+	invoke	GETCURHEAD		;LB. get Hash entry buffer header
 					;  to do this AFTER the check for
 ASSUME	DS:NOTHING
 NXBUFFER:
 	CMP	AL,[DI.buf_ID]		; For this drive?
-	JZ	OLDDRV2 		;LB.  yes				  ;AN000;
-	mov	DI,[DI.buf_next]	;LB.  get next buffer  1/19/88		  ;AN000;
-	JMP	SHORT SKPBUFF		;LB.					  ;AN000;
+	JZ	OLDDRV2 		;LB.  yes
+	mov	DI,[DI.buf_next]	;LB.  get next buffer  1/19/88
+	JMP	SHORT SKPBUFF		;LB.
 OLDDRV2:
 	TEST	[DI.buf_flags],buf_dirty
 	JZ	OldDrv
@@ -610,15 +599,15 @@ OLDDRV:
 	MOV	WORD PTR [DI.buf_ID],(buf_visit SHL 8) OR 0FFH	; Free up buffer
 	invoke	SCANPLACE
 SKPBUFF:
-	CMP	DI,[FIRST_BUFF_ADDR]	;LB.  end of chain  1/19/88		  ;AN000;
-	JNZ	NXBUFFER		;LB.  no				  ;AN000;
-	INC	DX			;LB.					  ;AN000;
-	LOOP	NxtHash 		;LB.					  ;AN000;
-	CMP	[SC_CACHE_COUNT],0	;LB.  look ahead buffers ?		  ;AN001;
-	JZ	GOGETBPB		;LB.  no				  ;AN001;
-	CMP	AL,[CURSC_DRIVE]	;LB.  same as changed drive		  ;AN001;
-	JNZ	GOGETBPB		;LB.  no				  ;AN001;
-	MOV	[CURSC_DRIVE],-1	;LB.  invalidate look ahead buffers	  ;AN000;
+	CMP	DI,[FIRST_BUFF_ADDR]	;LB.  end of chain  1/19/88
+	JNZ	NXBUFFER		;LB.  no
+	INC	DX			;LB.
+	LOOP	NxtHash 		;LB.
+	CMP	[SC_CACHE_COUNT],0	;LB.  look ahead buffers ?
+	JZ	GOGETBPB		;LB.  no
+	CMP	AL,[CURSC_DRIVE]	;LB.  same as changed drive
+	JNZ	GOGETBPB		;LB.  no
+	MOV	[CURSC_DRIVE],-1	;LB.  invalidate look ahead buffers
 GOGETBPB:
 	LDS	DI,ES:[BP.dpb_driver_addr]
 	TEST	[DI.SDEVATT],ISFATBYDEV
@@ -637,9 +626,9 @@ ASSUME	DS:NOTHING
 	PUSH	ES			; Get a free buffer for BIOS to use
 	PUSH	BP
 ;	LDS	DI,[BUFFHEAD]
-	XOR	DX,DX			     ;LB.  fake to get 1st		  ;AN000;
-	MOV	[HIGH_SECTOR],DX	     ;LB.  buffer addr			  ;AN000;
-	invoke	GETCURHEAD		     ;LB.				  ;AN000;
+	XOR	DX,DX			     ;LB.  fake to get 1st
+	MOV	[HIGH_SECTOR],DX	     ;LB.  buffer addr
+	invoke	GETCURHEAD		     ;LB.
 
 	invoke	BUFWRITE
 	POP	BP
@@ -679,9 +668,9 @@ ASSUME	DS:NOTHING
 	invoke	$SETDPB
 	LDS	DI,[CALLXAD]		; Get back buffer pointer
 	MOV	AL,BYTE PTR ES:[BP.dpb_FAT_count]
-	MOV	[DI.buf_wrtcnt-BUFINSIZ],AL   ;>32mb				;AN000;
-	MOV	AX,ES:[BP.dpb_FAT_size]       ;>32mb				;AC000;
-	MOV	[DI.buf_wrtcntinc-BUFINSIZ],AX	 ;>32mb Correct buffer info	;AC000;
+	MOV	[DI.buf_wrtcnt-BUFINSIZ],AL   ;>32mb
+	MOV	AX,ES:[BP.dpb_FAT_size]       ;>32mb
+	MOV	[DI.buf_wrtcntinc-BUFINSIZ],AX	 ;>32mb Correct buffer info
 
 	Context DS
 	XOR	AL,AL			;Media changed (Z), Carry clear

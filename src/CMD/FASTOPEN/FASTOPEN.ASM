@@ -4,17 +4,17 @@ Title	FASTOPEN
 ;==============================================================================
 ;		 EQUATES
 ;==============================================================================
-Is_drive_head	   EQU	   00000001b								   ;AN000;
-Is_delete	   EQU	   00000010b								   ;AN000;
-Is_insert	   EQU	   00000100b								   ;AN000;
-Not_drive_head	   EQU	   11111110b								   ;AN000;
-Not_delete	   EQU	   11111101b								   ;AN000;
+Is_drive_head	   EQU	   00000001b
+Is_delete	   EQU	   00000010b
+Is_insert	   EQU	   00000100b
+Not_drive_head	   EQU	   11111110b
+Not_delete	   EQU	   11111101b
 Not_insert	   EQU	   11111011b
 
-EMS_SAVE_STATE	   EQU	   4FH									   ;AN000;
-EMS_RESTORE_STATE  EQU	   4FH									   ;AN000;
-EMS_INT 	   EQU	   67H									   ;AN000;
-DOS_PAGE1	   EQU	   0FEH 								   ;AN000;
+EMS_SAVE_STATE	   EQU	   4FH
+EMS_RESTORE_STATE  EQU	   4FH
+EMS_INT 	   EQU	   67H
+DOS_PAGE1	   EQU	   0FEH
 
 
 ;==============================================================================
@@ -22,26 +22,26 @@ DOS_PAGE1	   EQU	   0FEH 								   ;AN000;
 ;==============================================================================
 .xcref
 .xlist
-debug=0 		   ; an equate only for DOSMAC.inc				     ;AN000;
-INCLUDE  DOSMAC.inc										    ;AN000;
+debug=0 		   ; an equate only for DOSMAC.inc
+INCLUDE  DOSMAC.inc
 .list
 .cref
-INCLUDE  dirent.inc										    ;AN000;
+INCLUDE  dirent.inc
 INCLUDE  fastsegs.inc	   ; this cannot include in Fastopen.inc
-INCLUDE  fastopen.inc	   ; this include file also contains DOS equates			    ;AN000;
+INCLUDE  fastopen.inc	   ; this include file also contains DOS equates
 include  version.inc
 
 ;==============================================================================
 
 
 
-EXTRN	FK_OPEN:FAR										   ;AN000;
-EXTRN	FK_CLOSE:FAR										   ;AN000;
-EXTRN	FK_INSERT:FAR										   ;AN000;
-EXTRN	FK_DELETE:FAR										   ;AN000;
-EXTRN	FK_LOOKUP:FAR										   ;AN000;
-EXTRN	FK_TRUNCATE:FAR 									   ;AN000;
-EXTRN	FK_PURGE:FAR										;AN000;
+EXTRN	FK_OPEN:FAR
+EXTRN	FK_CLOSE:FAR
+EXTRN	FK_INSERT:FAR
+EXTRN	FK_DELETE:FAR
+EXTRN	FK_LOOKUP:FAR
+EXTRN	FK_TRUNCATE:FAR
+EXTRN	FK_PURGE:FAR
 
 
 ;============================================================================
@@ -50,7 +50,7 @@ CSEG_MAIN   SEGMENT   PARA   PUBLIC 'code'
 	ASSUME	cs:cseg_main, ds:nothing,es:nothing,ss:nothing
 ;============================================================================
 
-PUBLIC	MAIN											   ;AN000;
+PUBLIC	MAIN
 
 IF	BUFFERFLAG
 PUBLIC	SAVE_EMS_PAGE_STATE
@@ -60,68 +60,68 @@ ENDIF
 PUBLIC	RESTORE_PAGE_STATE
 PUBLIC	EMS_SAVE_HANDLE1
 
-PUBLIC	Main_name_cache_seg									   ;AN000;
-PUBLIC	Main_Num_Of_drives									   ;AN000;
-PUBLIC	Main_Ext_Count										   ;AN000;
-PUBLIC	Main_extent_drive_Buff									   ;AN000;
-PUBLIC	Main_ext_cache_size									   ;AN000;
-PUBLIC	Main_name_cache_Buff									   ;AN000;
-PUBLIC	Main_EMS_FLAG										   ;AN000;
-PUBLIC	Main_Res_Segs										   ;AN000;
-PUBLIC	Main_EMS_PAGE_SIZE									   ;AN000;
-PUBLIC	Main_EMS_PAGE_SEG									   ;AN000;
-PUBLIC	Main_Total_Ext_Count									   ;AN000;
-PUBLIC	Main_Total_Name_Count									   ;AN000;
-PUBLIC	Main_Name_Drive_Buff									   ;AN000;
-PUBLIC	Main_ParamBuff										   ;AN000;
+PUBLIC	Main_name_cache_seg
+PUBLIC	Main_Num_Of_drives
+PUBLIC	Main_Ext_Count
+PUBLIC	Main_extent_drive_Buff
+PUBLIC	Main_ext_cache_size
+PUBLIC	Main_name_cache_Buff
+PUBLIC	Main_EMS_FLAG
+PUBLIC	Main_Res_Segs
+PUBLIC	Main_EMS_PAGE_SIZE
+PUBLIC	Main_EMS_PAGE_SEG
+PUBLIC	Main_Total_Ext_Count
+PUBLIC	Main_Total_Name_Count
+PUBLIC	Main_Name_Drive_Buff
+PUBLIC	Main_ParamBuff
 
-PUBLIC	FOPEN_Insert										   ;AN000;
-PUBLIC	FOPEN_Update										   ;AN000;
-PUBLIC	FOPEN_Delete										   ;AN000;
-PUBLIC	FOPEN_Lookup										   ;AN000;
-PUBLIC	FOPEN_PURGE										  ;AN000;
+PUBLIC	FOPEN_Insert
+PUBLIC	FOPEN_Update
+PUBLIC	FOPEN_Delete
+PUBLIC	FOPEN_Lookup
+PUBLIC	FOPEN_PURGE
 
-PUBLIC	FSEEK_Open										   ;AN000;
-PUBLIC	FSEEK_Close										   ;AN000;
-PUBLIC	FSEEK_Insert										   ;AN000;
-PUBLIC	FSEEK_Delete										   ;AN000;
-PUBLIC	FSEEK_Lookup										   ;AN000;
-PUBLIC	FSEEK_Truncate										   ;AN000;
-PUBLIC	FSEEK_Purge										   ;AN000;
+PUBLIC	FSEEK_Open
+PUBLIC	FSEEK_Close
+PUBLIC	FSEEK_Insert
+PUBLIC	FSEEK_Delete
+PUBLIC	FSEEK_Lookup
+PUBLIC	FSEEK_Truncate
+PUBLIC	FSEEK_Purge
 
-PUBLIC	 VECTOR_LookUp										  ;AN000;
-PUBLIC	 VECTOR_Delete										  ;AN000;
+PUBLIC	 VECTOR_LookUp
+PUBLIC	 VECTOR_Delete
 
 
 ; Following data variables are accessed by all other segments
-call_cnt	       DW    0									;AN000;
+call_cnt	       DW    0
 Purge_Flag	       DW    0		   ; =1 if last call is PURGE function
 Prev_drv_id	       DB    -1 	   ; previous request drive id
-Main_name_cache_seg    DW    Cseg_Init	   ; default to Init1 seg				;AN000;
-Main_Num_Of_drives     DW    0		   ; number of drives					;AN000;
-Main_Ext_Count	       DW    0		   ; total name extent entries				;AN000;
-Main_extent_drive_Buff DW    0		   ; addrs to extent drive				  ;AN000;
-Main_name_cache_Buff   DW    0		   ; address of Name cache buffer			;AN000;
+Main_name_cache_seg    DW    Cseg_Init	   ; default to Init1 seg
+Main_Num_Of_drives     DW    0		   ; number of drives
+Main_Ext_Count	       DW    0		   ; total name extent entries
+Main_extent_drive_Buff DW    0		   ; addrs to extent drive
+Main_name_cache_Buff   DW    0		   ; address of Name cache buffer
 Main_ext_cache_size    DW    0		   ; extent cache size
-Main_EMS_FLAG	       DW    0		   ; EMI flag  1= if EMI is enabled			;AN000;
-Main_Res_Segs	       DW    0		   ; number of segs to be stay resident 		;AN000;
-Main_Total_Ext_Count   DW    0		   ; Total extent count entries 			;AN000;
-Main_Total_Name_Count  DW    0		   ; Total name count entries				;AN000;
-Main_Name_Drive_Buff   DW    0		   ; EMS data page segment ID				;AN000;
-Main_ParamBuff	       DW    50  dup (0)   ; Drive ID/extent count buffer			;AN000;
+Main_EMS_FLAG	       DW    0		   ; EMI flag  1= if EMI is enabled
+Main_Res_Segs	       DW    0		   ; number of segs to be stay resident
+Main_Total_Ext_Count   DW    0		   ; Total extent count entries
+Main_Total_Name_Count  DW    0		   ; Total name count entries
+Main_Name_Drive_Buff   DW    0		   ; EMS data page segment ID
+Main_ParamBuff	       DW    50  dup (0)   ; Drive ID/extent count buffer
 
 ; The following structure is for saving and restoring EMS page state
 EMS_PAGE_MAP	     LABEL    WORD
 Main_EMS_SEG_COUNT     DW    1		   ; EMS segment count
-Main_EMS_PAGE_SEG      DW    0		   ; EMS page segment ID				;AN000;
+Main_EMS_PAGE_SEG      DW    0		   ; EMS page segment ID
 
 
-Main_EMS_PAGE_SIZE     DW    0		   ; EMS page size					;AN000;
+Main_EMS_PAGE_SIZE     DW    0		   ; EMS page size
 EMS_PAGE_ARRAY	       DW  30	dup  (0)   ; EMS state save array
 
 ; The following data values are used by MAIN segment
-EMS_SAVE_LOG_PAGE1     DW    ?		   ;HOLDS PREVIOUS PAGE1				    ;AN000;
-EMS_SAVE_HANDLE1       DW    ?		   ;HOLDS PREVIOUS handle1				    ;AN000;
+EMS_SAVE_LOG_PAGE1     DW    ?		   ;HOLDS PREVIOUS PAGE1
+EMS_SAVE_HANDLE1       DW    ?		   ;HOLDS PREVIOUS handle1
 
 IF	BUFFERFLAG
 ;----------------------------------------------------------HKN 8/26/88
@@ -137,19 +137,19 @@ ENDIF
 ; If the modules are relocated, the offset and the segID in the jump vectors
 ; may be changed to the new segID of the new location.
 ;-----------------------------------------------------------------------------
-FOPEN_Insert	 DD   Insert									 ;AN000;
-FOPEN_Update	 DD   Update									 ;AN000;
-FOPEN_Delete	 DD   delete									 ;AN000;
-FOPEN_Lookup	 DD   lookup									 ;AN000;
-FOPEN_Purge	 DD   FP_purge									 ;AN000;
+FOPEN_Insert	 DD   Insert
+FOPEN_Update	 DD   Update
+FOPEN_Delete	 DD   delete
+FOPEN_Lookup	 DD   lookup
+FOPEN_Purge	 DD   FP_purge
 
-FSEEK_Open	 DD   Fk_Open									 ;AN000;
-FSEEK_Close	 DD   Fk_Close									 ;AN000;
-FSEEK_Insert	 DD   Fk_Insert 								 ;AN000;
-FSEEK_Delete	 DD   Fk_Delete 								 ;AN000;
-FSEEK_Lookup	 DD   Fk_Lookup 								 ;AN000;
-FSEEK_Truncate	 DD   Fk_Truncate								 ;AN000;
-FSEEK_Purge	 DD   Fk_Purge									 ;AN000;
+FSEEK_Open	 DD   Fk_Open
+FSEEK_Close	 DD   Fk_Close
+FSEEK_Insert	 DD   Fk_Insert
+FSEEK_Delete	 DD   Fk_Delete
+FSEEK_Lookup	 DD   Fk_Lookup
+FSEEK_Truncate	 DD   Fk_Truncate
+FSEEK_Purge	 DD   Fk_Purge
 
 VECTOR_LookUp	 DD   LookUp	      ; jump vector to LookUp used by Insert call
 VECTOR_Delete	 DD   Fk_Delete       ; jump vector to Delete used by Free_buffer routine
@@ -161,13 +161,13 @@ VECTOR_Delete	 DD   Fk_Delete       ; jump vector to Delete used by Free_buffer 
 ;==============================================================================
 
 MAIN	PROC	FAR			  ; FAR procedure for FAR call from DOS
-	push	cx			  ; save DOS registers				     ;AN000;
-	push	dx			  ; makesure to restore the necessary			   ;AN000;
-	push	ds			  ; ones on return					  ;AN000;
-	push	es										   ;AN000;
-	push	bp										   ;AN000;
-	push	di										   ;AN000;
-	push	bx										   ;AN000;
+	push	cx			  ; save DOS registers
+	push	dx			  ; makesure to restore the necessary
+	push	ds			  ; ones on return
+	push	es
+	push	bp
+	push	di
+	push	bx
 
 ;-----------------------------------------------------------------------------
 ; The cache buffers are maintained in a seperate segement whose segment ID is
@@ -175,8 +175,8 @@ MAIN	PROC	FAR			  ; FAR procedure for FAR call from DOS
 ; of data in the cache buffers, while DS will be used to access the Fastopen
 ; resident and non-resident data area.
 ;-----------------------------------------------------------------------------
-	cmp	cs:Main_EMS_flag,1	  ; EMS enabled ??					     ;AN000;
-	jne	dispatch_funcs		  ; no - dispatch functions			   ;AN000;
+	cmp	cs:Main_EMS_flag,1	  ; EMS enabled ??
+	jne	dispatch_funcs		  ; no - dispatch functions
 					  ; yes - save EMS page state
 IF	NOT BUFFERFLAG
 
@@ -185,13 +185,13 @@ IF	NOT BUFFERFLAG
 ;-----------------------------------------------------------------------------
 	PUSH	AX			  ; save registers
 	PUSH	CX
-	PUSH	DX										   ;AN000;
-	PUSH	DS										   ;AN000;
-	PUSH	ES										   ;AN000;
-	PUSH	BP										   ;AN000;
-	PUSH	SI										   ;AN000;
-	PUSH	DI										   ;AN000;
-	PUSH	BX										   ;AN000;
+	PUSH	DX
+	PUSH	DS
+	PUSH	ES
+	PUSH	BP
+	PUSH	SI
+	PUSH	DI
+	PUSH	BX
 	MOV	AX, SEG EMS_PAGE_MAP	  ; get segid
 	MOV	DS,AX
 	LEA	SI,EMS_PAGE_MAP 	  ; DS:SI-->page map struc
@@ -200,16 +200,16 @@ IF	NOT BUFFERFLAG
 	LEA	DI,EMS_PAGE_ARRAY	  ; ES:DI-->Page ARRAY
 	MOV	AH,EMS_SAVE_STATE	  ;
 	MOV	AL,0			  ; subfunction code
-	INT	EMS_INT 		  ; save page state							    ;AN000;
+	INT	EMS_INT 		  ; save page state
 
-	POP	BX										   ;AN000;
-	POP	DI										   ;AN000;
-	POP	SI										   ;AN000;
-	POP	BP										   ;AN000;
-	POP	ES										   ;AN000;
-	POP	DS										   ;AN000;
-	POP	DX										   ;AN000;
-	POP	CX										   ;AN000;
+	POP	BX
+	POP	DI
+	POP	SI
+	POP	BP
+	POP	ES
+	POP	DS
+	POP	DX
+	POP	CX
 
 	CMP	AH,0			 ; save ok??
 	JNE	SAVE_FAILED		 ; no, error
@@ -275,13 +275,13 @@ ENDIF
 
 	POP	AX			 ; restore registers
 
-	POP	BX			 ; no, restore DOS registers 				   ;AN000;
-	POP	DI										   ;AN000;
-	POP	BP										   ;AN000;
-	POP	ES										   ;AN000;
-	POP	DS										   ;AN000;
-	POP	DX										   ;AN000;
-	POP	CX										   ;AN000;
+	POP	BX			 ; no, restore DOS registers
+	POP	DI
+	POP	BP
+	POP	ES
+	POP	DS
+	POP	DX
+	POP	CX
 	STC
 	JMP	ERROR_RET		 ; error return
 
@@ -292,9 +292,9 @@ ENDIF
 DISPATCH_FUNCS:
 	cmp	al,5		      ; buffer purge ??
 	je	Check_Drive_id	      ; yes - check drive id
-	cmp	al,11		      ; Fastopen function call ??				   ;AN000;
+	cmp	al,11		      ; Fastopen function call ??
 	jge	Check_drive_id	      ; no - dispatch Fastseek functions
-	jmp	Dispatch_fopen	      ; yes - dispatch Fastopen functions						 ;AN000;
+	jmp	Dispatch_fopen	      ; yes - dispatch Fastopen functions
 
 
 ;-----------------------------------------------------------------------------
@@ -305,30 +305,30 @@ CHECK_DRIVE_ID:
 	cmp	cs:Prev_drv_id, dl	    ; current id same as previous valid
 	je	Dispatch_Fseek		    ; yes - dont check drive ID
 
-	push	si										   ;AN000;
-	push	bx			    ;DS=addressability to Cseg_Main			   ;AN000;
-	push	cx										   ;AN000;
-	lea	si,cs:Main_ParamBuff	    ; DS:SI-->drive ID buffer				   ;AN000;
-	mov	cx,cs:Main_Num_Of_Drives    ; number of drives					   ;AN000;
+	push	si
+	push	bx			    ;DS=addressability to Cseg_Main
+	push	cx
+	lea	si,cs:Main_ParamBuff	    ; DS:SI-->drive ID buffer
+	mov	cx,cs:Main_Num_Of_Drives    ; number of drives
 
-Get_Drive_Id:											   ;AN000;
-	mov	bx,cs:[si]									   ;AN000;
-	cmp	bl,dl			    ; drive ID match ?? 				   ;AN000;
-	je	drive_found		    ; yes, drive ID found				   ;AN000;
-	add	si,4			    ; (2/11) no, move pointer to next ID			  ;AN000;
-	LOOP	get_drive_id		    ; check next drive id				   ;AN000;
+Get_Drive_Id:
+	mov	bx,cs:[si]
+	cmp	bl,dl			    ; drive ID match ??
+	je	drive_found		    ; yes, drive ID found
+	add	si,4			    ; (2/11) no, move pointer to next ID
+	LOOP	get_drive_id		    ; check next drive id
 
 Drive_Not_Found:			    ; drive id not found
-	pop	cx			    ; restore registers 			       ;AN000;
-	pop	bx										   ;AN000;
-	pop	si										   ;AN000;
+	pop	cx			    ; restore registers
+	pop	bx
+	pop	si
 	jmp	Error_Exit		    ; return
 
 Drive_Found:				    ; drive ID found
 	mov	cs:Prev_drv_id,dl	    ; save drive id as prev drive id
-	pop	cx			    ; restore registers 				   ;AN000;
-	pop	bx			    ; and do the specified function		      ;AN000;
-	pop	si										   ;AN000;
+	pop	cx			    ; restore registers
+	pop	bx			    ; and do the specified function
+	pop	si
 
 ;-----------------------------------------------------------------------------
 ;     FASTSEEK FUNCTION DISPATCHER
@@ -336,7 +336,7 @@ Drive_Found:				    ; drive ID found
 DISPATCH_FSEEK:
 	cmp	al,010H
 	jle	Fsk_Cont
-	inc	cs:call_cnt									   ;AN000;
+	inc	cs:call_cnt
 ;	cmp	cs:call_cnt,0efffH	   ; for debugging
 ;	jne	 fsk_cont		   ; for debugging
 
@@ -345,64 +345,64 @@ Fsk_Cont:
 	push	cs			   ; set addressability
 	pop	ds			   ; CS = DS = Cseg_Main segment
 	ASSUME	ds:Cseg_Main
-	cmp	al,FONC_Purge		   ; PURGE call ??					       ;AN000;
-	je	chk_05			   ; yes - continue						;AN000;
+	cmp	al,FONC_Purge		   ; PURGE call ??
+	je	chk_05			   ; yes - continue
 
 	mov	cs:Purge_Flag, 0	   ; reset purge flag
-	cmp	al,FSK_Open		   ; OPEN call							;AN000;
-	jne	chk_12			   ; jump if not						;AN000;
-	CALL	FSEEK_OPEN										;AN000;
-	jmp	exit											;AN000;
+	cmp	al,FSK_Open		   ; OPEN call
+	jne	chk_12			   ; jump if not
+	CALL	FSEEK_OPEN
+	jmp	exit
 Chk_12:
-	cmp	al,FSK_Close		   ; CLOSE ??							;AN000;
-	jne	chk_14											;AN000;
-	CALL	FSEEK_CLOSE		   ; process close function					;AN000;
-	jmp	exit											;AN000;
+	cmp	al,FSK_Close		   ; CLOSE ??
+	jne	chk_14
+	CALL	FSEEK_CLOSE		   ; process close function
+	jmp	exit
 Chk_14:
-	cmp	al,FSK_Lookup		   ; LOOKUP ??							;AN000;
-	jne	chk_15											;AN000;
-	CALL	FSEEK_LOOKUP		   ; process lookup						;AN000;
-	CALL	RESTORE_PAGE_STATE	   ; restore EMS page						;AN000;
-	pop	dx			   ; dont restore original BX and DI				;AN000;
-	pop	dx			   ; from DOS since BX and DI contins return values	   ;AN000;
+	cmp	al,FSK_Lookup		   ; LOOKUP ??
+	jne	chk_15
+	CALL	FSEEK_LOOKUP		   ; process lookup
+	CALL	RESTORE_PAGE_STATE	   ; restore EMS page
+	pop	dx			   ; dont restore original BX and DI
+	pop	dx			   ; from DOS since BX and DI contins return values
 	jmp	exit_1			   ; exit
 
 Chk_15:
-	cmp	al,FSK_Insert		   ; INSERT ??							;AN000;
-	jne	chk_13											;AN000;
-	CALL	FSEEK_INSERT		   ; Process insert						;AN000;
-	jmp	exit											;AN000;
+	cmp	al,FSK_Insert		   ; INSERT ??
+	jne	chk_13
+	CALL	FSEEK_INSERT		   ; Process insert
+	jmp	exit
 Chk_13:
-	cmp	al,FSK_DELETE		   ; DELETE ??							;AN000;
-	jne	chk_16											;AN000;
-	CALL	FSEEK_DELETE		   ; process delete						;AN000;
-	jmp	short  exit										       ;AN000;
+	cmp	al,FSK_DELETE		   ; DELETE ??
+	jne	chk_16
+	CALL	FSEEK_DELETE		   ; process delete
+	jmp	short  exit
 Chk_16:
-	cmp	al,FSK_Trunc		   ; TRUNCATE ??						;AN000;
+	cmp	al,FSK_Trunc		   ; TRUNCATE ??
 	jne	Chk_05			   ;
-	CALL	FSEEK_TRUNCATE		   ; process truncate						;AN000;
-	jmp	short exit										      ;AN000;
+	CALL	FSEEK_TRUNCATE		   ; process truncate
+	jmp	short exit
 
 Chk_05:
-	cmp	cs:Purge_Flag, 1	   ; previous call is purge ??				    ;AN000;
+	cmp	cs:Purge_Flag, 1	   ; previous call is purge ??
 	jne	Purge_buffs		   ; no - purge the buffers
 	clc				   ; yes - exit
-	jmp	short exit										      ;AN000;
+	jmp	short exit
 
 Purge_Buffs:
 	mov	cs:Purge_Flag,1 	   ; set purge flag
 	cmp	CS:Main_Total_Ext_Count,0	    ; reset fseek buffs??
 	je	reset_fopen		   ; no - reset fopen
-	CALL	FSEEK_PURGE		   ; reset extent cache 			    ;AN000;
+	CALL	FSEEK_PURGE		   ; reset extent cache
 
 Reset_Fopen:
 	cmp	CS:Main_Total_Name_Count,0	    ; reset fopen buffs??
 	je	Reset_Exit		   ; no - reset f
-	CALL	CS:FOPEN_PURGE		      ; reset extent cache			       ;AN000;
+	CALL	CS:FOPEN_PURGE		      ; reset extent cache
 
 Reset_Exit:
 	clc
-	jmp	short exit										 ;AN000;
+	jmp	short exit
 
 
 ; NOTE: Carry Flag state from Function calls must be correctly returned
@@ -413,28 +413,28 @@ Reset_Exit:
 ;	FASTOPEN FUNCTION DISPATCHER
 ;-----------------------------------------------------------------------------
 DISPATCH_FOPEN: 		      ; dispatch FOPEN functions
-	cld											   ;AN000;
+	cld
 	mov	cs:Purge_Flag, 0      ; reset purge flag
-	cmp	al, FONC_update 								   ;AN000;
-	jne	Chk_02										   ;AN000;
-	CALL	CS:Fopen_Update       ; UPDATE							   ;AN000;
-	jmp	short exit										 ;AN000;
+	cmp	al, FONC_update
+	jne	Chk_02
+	CALL	CS:Fopen_Update       ; UPDATE
+	jmp	short exit
 
 Chk_02:
-	cmp	al, FONC_insert 								   ;AN000;
-	jne	Chk_01										   ;AN000;
-	CALL	CS:Fopen_Insert       ; INSERT							   ;AN000;
-	jmp	short exit										 ;AN000;
+	cmp	al, FONC_insert
+	jne	Chk_01
+	CALL	CS:Fopen_Insert       ; INSERT
+	jmp	short exit
 Chk_01:
-	cmp	al, FONC_look_up								   ;AN000;
-	jne	chk_03										   ;AN000;
-	CALL	CS:Fopen_lookup       ; LOOKUP							   ;AN000;
-	jmp	short exit										 ;AN000;
+	cmp	al, FONC_look_up
+	jne	chk_03
+	CALL	CS:Fopen_lookup       ; LOOKUP
+	jmp	short exit
 Chk_03:
-	cmp	al, FONC_delete 								   ;AN000;
-	jne	Error_Exit									   ;AN000;
-	CALL	CS:Fopen_delete       ; DELETE							   ;AN000;
-	jmp	short exit										 ;AN000;
+	cmp	al, FONC_delete
+	jne	Error_Exit
+	CALL	CS:Fopen_delete       ; DELETE
+	jmp	short exit
 
 
 
@@ -443,38 +443,38 @@ Chk_03:
 ;-----------------------------------------------------------------------------
 
 ERROR_EXIT:	     ; EXIT from invalid drive id search loop
-	CALL	RESTORE_PAGE_STATE     ; restore frame buff status				   ;AN000;
+	CALL	RESTORE_PAGE_STATE     ; restore frame buff status
 				       ; on return AX should have function code
 	pop	bx		       ; restore first two regs of DOS
-	pop	di										   ;AN000;
-	cmp	al,FSK_Lookup									   ;AN000;
-	jne	exit_2										   ;AN000;
-	mov	di,1		       ; set error flag - invalid drive id			   ;AN000;
-	stc											   ;AN000;
-	jmp	short Exit_1									   ;AN000;
+	pop	di
+	cmp	al,FSK_Lookup
+	jne	exit_2
+	mov	di,1		       ; set error flag - invalid drive id
+	stc
+	jmp	short Exit_1
 
 EXIT_2:
-	clc											   ;AN000;
-	jmp	short Exit_1									   ;AN000;
+	clc
+	jmp	short Exit_1
 
 
 ; Normal Exit from Fastopen Functions except Fastseek Lookup function
 EXIT:
-	CALL	RESTORE_PAGE_STATE     ; restore EMS page state 				   ;AN000;;AN000;
-	pop	bx		       ; restore BX						   ;AN000;
-	pop	di		       ; restore DI						   ;AN000;
+	CALL	RESTORE_PAGE_STATE     ; restore EMS page state
+	pop	bx		       ; restore BX
+	pop	di		       ; restore DI
 
 
 ; Exit from FastSeek Lookup function. Dont restore BX and DI
 EXIT_1:
 	pop	bp		       ; restore remaining DOS registers
-	pop	es		       ; except BX and DI since they contain								;AN000;
-	pop	ds		       ; return values. 					    ;AN000;
-	pop	dx										   ;AN000;
-	pop	cx										   ;AN000;
+	pop	es		       ; except BX and DI since they contain
+	pop	ds		       ; return values.
+	pop	dx
+	pop	cx
 
 ERROR_RET:
-	ret											   ;AN000;
+	ret
 
 MAIN	ENDP
 
@@ -491,13 +491,13 @@ SAVE_EMS_PAGE_STATE	PROC	FAR
 
 	PUSH	AX			  ; save registers
 	PUSH	CX
-	PUSH	DX										   ;AN000;
-	PUSH	DS										   ;AN000;
-	PUSH	ES										   ;AN000;
-	PUSH	BP										   ;AN000;
-	PUSH	SI										   ;AN000;
-	PUSH	DI										   ;AN000;
-	PUSH	BX										   ;AN000;
+	PUSH	DX
+	PUSH	DS
+	PUSH	ES
+	PUSH	BP
+	PUSH	SI
+	PUSH	DI
+	PUSH	BX
 
 	MOV	AX, SEG EMS_PAGE_MAP	  ; get segid
 	MOV	DS,AX
@@ -507,16 +507,16 @@ SAVE_EMS_PAGE_STATE	PROC	FAR
 	LEA	DI,EMS_PAGE_ARRAY	  ; ES:DI-->Page ARRAY
 	MOV	AH,EMS_SAVE_STATE	  ;
 	MOV	AL,0			  ; subfunction code
-	INT	EMS_INT 		  ; save page state							    ;AN000;
+	INT	EMS_INT 		  ; save page state
 
-	POP	BX										   ;AN000;
-	POP	DI										   ;AN000;
-	POP	SI										   ;AN000;
-	POP	BP										   ;AN000;
-	POP	ES										   ;AN000;
-	POP	DS										   ;AN000;
-	POP	DX										   ;AN000;
-	POP	CX										   ;AN000;
+	POP	BX
+	POP	DI
+	POP	SI
+	POP	BP
+	POP	ES
+	POP	DS
+	POP	DX
+	POP	CX
 
 	CMP	AH,0			 ; save ok??
 	JE	SAVE_OK			 ; 
@@ -544,46 +544,46 @@ ENDIF
 ;-----------------------------------------------------------------------------
 
 RESTORE_PAGE_STATE    PROC  NEAR	;RESTORE EMS PAGE STATE
-	PUSHF				;save flag					     ;AN000;
-	CMP	CS:MAIN_EMS_FLAG, 0	;EMS enabled ?? 					   ;AN000;
+	PUSHF				;save flag
+	CMP	CS:MAIN_EMS_FLAG, 0	;EMS enabled ??
 	JNE	REST_PUSH_REGS		;yes, restore registers
-	JMP	SHORT RESTORE_EXIT	;no, exit						   ;AN000;
+	JMP	SHORT RESTORE_EXIT	;no, exit
 					;yes, restore page registers
 REST_PUSH_REGS:
 	PUSH	AX			; save function code
-	PUSH	CX			; save caller registers 				    ;AN000;
-	PUSH	DX										   ;AN000;
-	PUSH	DS										   ;AN000;
-	PUSH	ES										   ;AN000;
-	PUSH	BP										   ;AN000;
-	PUSH	SI										   ;AN000;
-	PUSH	DI										   ;AN000;
-	PUSH	BX										   ;AN000;
+	PUSH	CX			; save caller registers
+	PUSH	DX
+	PUSH	DS
+	PUSH	ES
+	PUSH	BP
+	PUSH	SI
+	PUSH	DI
+	PUSH	BX
 
 	MOV	AX, SEG EMS_PAGE_ARRAY
 	MOV	DS,AX
 	LEA	SI,EMS_PAGE_ARRAY	; DS:SI-->Page array
 	MOV	AH,EMS_RESTORE_STATE	;
 	MOV	AL,1			;
-	INT	EMS_INT 		; restre page state							      ;AN000;
+	INT	EMS_INT 		; restre page state
 	CMP	AH,0			; restore OK ??
 	JE	REST_POP_REGS		; yes
 	STC				; set carry
 
 REST_POP_REGS:
-	POP	BX			; RESTORE REGISTERS					   ;AN000;
-	POP	DI										   ;AN000;
-	POP	SI										   ;AN000;
-	POP	BP										   ;AN000;
-	POP	ES										   ;AN000;
-	POP	DS										   ;AN000;
-	POP	DX										   ;AN000;
-	POP	CX										   ;AN000;
+	POP	BX			; RESTORE REGISTERS
+	POP	DI
+	POP	SI
+	POP	BP
+	POP	ES
+	POP	DS
+	POP	DX
+	POP	CX
 	POP	AX			; restore function code
 
 RESTORE_EXIT:
 	POPF
-	RET											   ;AN000;
+	RET
 
 RESTORE_PAGE_STATE    ENDP
 
@@ -655,30 +655,30 @@ CSEG_OPEN   SEGMENT   PARA   PUBLIC 'code'
   ASSUME  cs:cseg_open,ds:nothing,es:nothing,ss:nothing
 ;*****************************************************************************
 
-PUBLIC	 Open_name_cache_seg									   ;AN000;
-PUBLIC	 Open_name_Drive_Buff									   ;AN000;
-PUBLIC	 End_Open										   ;AN000;
-PUBLIC	 Chk_Flag										   ;AN000;
+PUBLIC	 Open_name_cache_seg
+PUBLIC	 Open_name_Drive_Buff
+PUBLIC	 End_Open
+PUBLIC	 Chk_Flag
 
 ;---- FastOpen Functions Local Variables --------------
 
-Current_Node	     DW    ?	     ;address of current node entry buffer		     ;AN000;
-Current_Sibling      DW    ?	     ;address of current sibling node entry buffer		;AN000;
-Current_Drive	     DW    ?	     ;address of current drive header			     ;AN000;
-Matching_Node	     DW    -1	     ;flag						       ;AN000;
-From_Delete	     DW    0	     ;= 1 if call is from DELETE function		    ;AN000;
+Current_Node	     DW    ?	     ;address of current node entry buffer
+Current_Sibling      DW    ?	     ;address of current sibling node entry buffer
+Current_Drive	     DW    ?	     ;address of current drive header
+Matching_Node	     DW    -1	     ;flag
+From_Delete	     DW    0	     ;= 1 if call is from DELETE function
 Delete_Drive	     DB    0	     ;drive to purge when deleting a cached subtree
-Old_SI		     DW    0	     ;SI save area				     ;AN000;
-Flag		     DB    0									;AN000;
-Level		     DB    0	     ;depth level of the path					;AN000;
-Dir_Info_Buffer      DD    ?	     ;Dir_Info buffer inside DOS				;AN000;
-Extended_Info_Buffer DD    ?	     ;Extended Info buffer inside DOS			;AN000;
-New_FEI_clusnum      DW    0									;AN000;
-Packed_Name	     DB    11 dup (0)	   ;Space for packed dir name				;AN000;
-Top		     DW    0									;AN000;
-Temp		     DW    0									;AN000;
-Bottom		     DW    0									;AN000;
-Depth		     DB    0									;AN000;
+Old_SI		     DW    0	     ;SI save area
+Flag		     DB    0
+Level		     DB    0	     ;depth level of the path
+Dir_Info_Buffer      DD    ?	     ;Dir_Info buffer inside DOS
+Extended_Info_Buffer DD    ?	     ;Extended Info buffer inside DOS
+New_FEI_clusnum      DW    0
+Packed_Name	     DB    11 dup (0)	   ;Space for packed dir name
+Top		     DW    0
+Temp		     DW    0
+Bottom		     DW    0
+Depth		     DB    0
 
 Chk_Flag	     dw    0	     ; flag used by the analyser
 func_cod	     db    0	     ; function code for analyser
@@ -758,9 +758,9 @@ Look_Save_Regs:
 	push	es
 	push	di
 	push	cx
-	mov	ax, cs:Open_Name_Cache_Seg							   ;AN000;
-	mov	es, ax			   ;ES = Name_Cache_Seg 				      ;AN000;
-	ASSUME	es:Cseg_Init									   ;AN000;
+	mov	ax, cs:Open_Name_Cache_Seg
+	mov	es, ax			   ;ES = Name_Cache_Seg
+	ASSUME	es:Cseg_Init
 	CALL	SET_LRU 		   ;set the Real LRU, if any.
 
 	or	cs:Flag,Is_drive_head	   ;level of the tree. Drive header
@@ -900,7 +900,7 @@ INSERT	PROC   FAR
 	push	ds
 	mov	ds,cs:Open_Name_Cache_Seg	;DS=name cache segment
 
-	ASSUME	ds:Cseg_Init									   ;AN000;
+	ASSUME	ds:Cseg_Init
 	cmp	ax, ds:[bp.DCH_Num_Entries]	;Level > (Num_Entries - 1) ?
 	pop	ds
 	ASSUME	ds:nothing
@@ -932,8 +932,8 @@ I_Child:				   ;set nChild_ptr
 
 I_Child_first:				   ;this is the first child in this drive.
 	push	ds
-	mov	ds,cs:Open_Name_Cache_Seg							   ;AN000;
-	ASSUME	ds:Cseg_Init									   ;AN000;
+	mov	ds,cs:Open_Name_Cache_Seg
+	ASSUME	ds:Cseg_Init
 	mov	ds:[bp.DCH_Child_ptr],ax   ;make new node 1st child current drive
 	pop	ds
 	ASSUME	ds:nothing
@@ -979,7 +979,7 @@ INSERT	ENDP
 DELETE	 PROC	FAR
 
 	mov	cs:func_cod,al		   ; save function code
-	CALL	PACK_DIR_NAME		   ;drive letter => DL, 				      ;AN000;
+	CALL	PACK_DIR_NAME		   ;drive letter => DL,
 	mov	cs:Delete_Drive,dl	   ;preserve it across the lookup
 
 	CALL	FIND_DRIVE_CACHE_HEADER    ;find drive header address
@@ -1039,7 +1039,7 @@ D_LRU_MRU:
 	mov	si, cs:Current_Drive	   ;Now let the deleted node to be the
 	push	ds			   ; LRU node
 	mov	ds,cs:Open_Name_Cache_Seg
-	ASSUME	ds:Cseg_Init									   ;AN000;
+	ASSUME	ds:Cseg_Init
 
 	mov	bx, ds:[si.DCH_LRU_ROOT]   ;es:bx -> first node
 	mov	es:[bp.nLRU_ptr],bx	   ;Target.nLRU_ptr -> first node
@@ -1264,8 +1264,8 @@ FIND_DRIVE_CACHE_HEADER   PROC	  NEAR
 
 	mov	bp, cs:Open_name_drive_buff
 	push	ds
-	mov	ds,cs:Open_Name_Cache_Seg							   ;AN000;
-	ASSUME	ds:Cseg_Init				;DS:BP-->first drive header    ;AN000;
+	mov	ds,cs:Open_Name_Cache_Seg
+	ASSUME	ds:Cseg_Init				;DS:BP-->first drive header
 
 FDCH_while:
 	cmp	byte ptr ds:[bp.DCH_Drive_Letter], dl	; drive letter match
@@ -1313,9 +1313,9 @@ GET_FREE_NODE	PROC	NEAR
 	push	si
 	push	bp
 
-	mov	ax, cs:Open_Name_Cache_Seg							   ;AN000;
-	mov	es, ax				;ES=Name cache segment				  ;AN000;
-	ASSUME	es:Cseg_Init									   ;AN000;
+	mov	ax, cs:Open_Name_Cache_Seg
+	mov	es, ax				;ES=Name cache segment
+	ASSUME	es:Cseg_Init
 	mov	si, cs:Current_Drive		;SI-->drive_cache_header
 	push	ds
 	mov	ds,cs:Open_Name_Cache_Seg
@@ -1477,8 +1477,8 @@ SET_LRU   PROC	  NEAR
 	push	bx
 	mov	si, cs:Current_Drive	   ;cs:si -> Drive_Cache_Header
 	push	ds
-	mov	ds,cs:Open_Name_Cache_Seg							   ;AN000;
-	ASSUME	ds:Cseg_Init									   ;AN000;
+	mov	ds,cs:Open_Name_Cache_Seg
+	ASSUME	ds:Cseg_Init
 	mov	di, ds:[si.DCH_MRU_ROOT] ;es:di -> Last node in LRU chain
 
 	cmp	cs:Depth, 1
@@ -1545,8 +1545,8 @@ RemoveFromLRUChain     PROC    near
 
 RFLC_first_node:
 	push	ds
-	mov	ds,cs:Open_Name_Cache_Seg							   ;AN000;
-	ASSUME	ds:Cseg_Init									   ;AN000;
+	mov	ds,cs:Open_Name_Cache_Seg
+	ASSUME	ds:Cseg_Init
 	mov	ds:[si.DCH_LRU_ROOT],di ;LRU_ROOT-> following node
 	pop	ds
 	ASSUME	ds:nothing
@@ -1604,8 +1604,8 @@ REMOVEFROMTREE	 PROC	 NEAR
 
 RFT_First_Child:
 	push	ds
-	mov	ds,cs:Open_Name_Cache_Seg							   ;AN000;
-	ASSUME	ds:Cseg_Init									   ;AN000;
+	mov	ds,cs:Open_Name_Cache_Seg
+	ASSUME	ds:Cseg_Init
 	mov	ds:[bx.DCH_Child_ptr],dx
 	pop	ds
 	ASSUME	ds:nothing
@@ -1684,9 +1684,9 @@ MAKE_NAME_RECORD      PROC     NEAR
 	push	es			;save Extended_Info seg in DOS
 	push	di
 	pop	si			;DS:SI -> Dir_Info
-	mov	di, cs:Open_Name_Cache_Seg							   ;AN000;
-	mov	es, di										   ;AN000;
-	ASSUME	es:Cseg_Init									   ;AN000;
+	mov	di, cs:Open_Name_Cache_Seg
+	mov	es, di
+	ASSUME	es:Cseg_Init
 	mov	di, ax			;ES:DI -> Name_Record
 	mov	ax, -1
 	mov	es:[di.nLRU_ptr],ax	;initialize pointers
@@ -1733,9 +1733,9 @@ Unfold_Name_Record     PROC	near
 	push	di
 	push	cx			;save extended_info addr
 
-	mov	si, cs:Open_Name_Cache_Seg							   ;AN000;
-	mov	ds, si										   ;AN000;
-	ASSUME	ds:Cseg_Init									   ;AN000;
+	mov	si, cs:Open_Name_Cache_Seg
+	mov	ds, si
+	ASSUME	ds:Cseg_Init
 	mov	si, cs:Matching_Node
 	add	si, nCmpct_Dir_Info	;DS:SI -> Cmpct_Dir_Info
 
@@ -1888,9 +1888,9 @@ FIND_CLUSTER_NUMBER    PROC    NEAR
 	CALL	FIND_DRIVE_CACHE_HEADER ;ES:BP -> driver header if found
 	jc	FCN_exit		;exit if not found
 
-	mov	dx, cx			;save the key in DX					   ;AN000;
-	mov	ax, cs:Open_Name_Cache_Seg							   ;AN000;
-	mov	es, ax										   ;AN000;
+	mov	dx, cx			;save the key in DX
+	mov	ax, cs:Open_Name_Cache_Seg
+	mov	es, ax
 	ASSUME	es:Cseg_Init
 
 	CALL	SET_LRU 		;clean up the LRU stack
@@ -1958,8 +1958,8 @@ FIND_DIR_SECTOR   PROC	  NEAR
 	CALL	FIND_DRIVE_CACHE_HEADER  ;ES:BP -> driver header if found
 	jc	FDIR_exit		 ; error if not found
 
-	mov	ax, cs:Open_Name_Cache_Seg							   ;AN000;
-	mov	es, ax										   ;AN000;
+	mov	ax, cs:Open_Name_Cache_Seg
+	mov	es, ax
 	ASSUME	es:Cseg_Init
 
 	CALL	SET_LRU 		;clean up the LRU stack
@@ -2055,9 +2055,9 @@ CHECK_IT    ENDP
 
 
 ; Calculate the size of the CSEG_OPEN Module in bytes
-	IF  ($-Cseg_Open) MOD 16								   ;AN000;
-	   ORG ($-Cseg_Open)+16-(($-Cseg_Open) MOD 16)						   ;AN000;
-	ENDIF											   ;AN000;
+	IF  ($-Cseg_Open) MOD 16
+	   ORG ($-Cseg_Open)+16-(($-Cseg_Open) MOD 16)
+	ENDIF
 
 END_OPEN   label   word
 

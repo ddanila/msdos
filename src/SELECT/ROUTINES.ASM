@@ -6,56 +6,56 @@
 ; program.
 ;
 ;***************************************************************************
-.ALPHA						;AN000;
-INCLUDE  MAC_EQU.INC				;AN000;
-INCLUDE  PAN-LIST.INC				;AN000;
-INCLUDE  PANEL.MAC				;AN000;
+.ALPHA
+INCLUDE  MAC_EQU.INC
+INCLUDE  PAN-LIST.INC
+INCLUDE  PANEL.MAC
 
 ;**********************************************************************
-DATA	SEGMENT BYTE PUBLIC 'DATA'              ;AN000;
+DATA	SEGMENT BYTE PUBLIC 'DATA'
 
 
-NULl_DEVICE		DB	  'nul',0       ;AN000;
-CON_DEVICE		DB	  'con',0       ;AN000;
+NULl_DEVICE		DB	  'nul',0
+CON_DEVICE		DB	  'con',0
 
-SUB_PROGRAM		DB	  0		;AN000;
-			PUBLIC	  EXEC_ERR	;AN000;
-EXEC_ERR		DB	  0		;AN000;
-FIRST_TRY		DB	  0		;AN000;DT
-INT24_STATUS		DB	  0		;AN000;
-UNHOOKED		EQU	  0		;AN000;
-HOOKED			EQU	  1		;AN000;
-			PUBLIC	  EXEC_DEALLOC,EXEC_FDISK ;AN000;
-EXEC_DEALLOC		DB	  0		;AN000;DT
-EXEC_FDISK		DB	  0		;AN000;DT
-EXEC_DEHELP		DB	  0		;AN000;DT
+SUB_PROGRAM		DB	  0
+			PUBLIC	  EXEC_ERR
+EXEC_ERR		DB	  0
+FIRST_TRY		DB	  0
+INT24_STATUS		DB	  0
+UNHOOKED		EQU	  0
+HOOKED			EQU	  1
+			PUBLIC	  EXEC_DEALLOC,EXEC_FDISK
+EXEC_DEALLOC		DB	  0
+EXEC_FDISK		DB	  0
+EXEC_DEHELP		DB	  0
 
 DATA	       ENDS				;AN000; DATA
 ;**********************************************************************
 
-.XLIST						;AN000;
-	INCLUDE STRUC.INC			;AN000;
-	INCLUDE MACROS.INC			;AN000;
-	INCLUDE VARSTRUC.INC			;AN000;
-	INCLUDE EXT.INC 			;AN000;
-	EXTRN	EXIT_DOS:FAR			;AN000;
-	EXTRN	SYSDISPMSG:FAR			;AN000;
-	EXTRN	HANDLE_ERROR_CALL:FAR		;AN000;
-	EXTRN	ALLOCATE_MEMORY_CALL:FAR	;AN000;
-	EXTRN	DEALLOCATE_MEMORY_CALL:FAR	;AN000;
+.XLIST
+	INCLUDE STRUC.INC
+	INCLUDE MACROS.INC
+	INCLUDE VARSTRUC.INC
+	INCLUDE EXT.INC
+	EXTRN	EXIT_DOS:FAR
+	EXTRN	SYSDISPMSG:FAR
+	EXTRN	HANDLE_ERROR_CALL:FAR
+	EXTRN	ALLOCATE_MEMORY_CALL:FAR
+	EXTRN	DEALLOCATE_MEMORY_CALL:FAR
 
 	EXTRN	INT_23_VECTOR:NEAR		;AN074;SEH ctrl-break
-	EXTRN	INT_24_VECTOR:NEAR		;AN000;
-	EXTRN	INT_2F_VECTOR:NEAR		;AN000;
-	EXTRN	INT_2F_256KB:NEAR		;AN000;
-	EXTRN	INT_2F_FORMAT:NEAR		;AN111;JW
-	EXTRN	ALLOCATE_HELP:FAR		;AN000;
-	EXTRN	DEALLOCATE_HELP:FAR		;AN000;
-.LIST						;AN000;
+	EXTRN	INT_24_VECTOR:NEAR
+	EXTRN	INT_2F_VECTOR:NEAR
+	EXTRN	INT_2F_256KB:NEAR
+	EXTRN	INT_2F_FORMAT:NEAR
+	EXTRN	ALLOCATE_HELP:FAR
+	EXTRN	DEALLOCATE_HELP:FAR
+.LIST
 
 ;**********************************************************************
 CODE_FAR    SEGMENT PARA PUBLIC 'CODE'          ;AN000; Segment for far routine
-	ASSUME	CS:CODE_FAR,DS:DATA		;AN000;
+	ASSUME	CS:CODE_FAR,DS:DATA
 						;
 ;************************************************************************
 ;
@@ -73,34 +73,34 @@ CODE_FAR    SEGMENT PARA PUBLIC 'CODE'          ;AN000; Segment for far routine
 ;
 ;
 ;****************************************************************************
-PUBLIC	 APPEND_STRING_ROUTINE			;AN000;
-APPEND_STRING_ROUTINE	PROC	FAR		;AN000;
+PUBLIC	 APPEND_STRING_ROUTINE
+APPEND_STRING_ROUTINE	PROC	FAR
 
-	PUSH	ES				;AN000;
-	PUSH	DS				;AN000;
+	PUSH	ES
+	PUSH	DS
 	POP	ES				;AN000; ES and DS point to the data segment
 
-	.IF < CX LT <WORD PTR [DI]> >		;AN000;
-	   MOV	   [DI], CX			;AN000;
-	.ELSE					;AN000;
+	.IF < CX LT <WORD PTR [DI]> >
+	   MOV	   [DI], CX
+	.ELSE
 	   SUB	   CX, [DI]			;AN000; Calculate space for the other string
-	   .IF < CX GE <WORD PTR [SI]>> 	;AN000;
+	   .IF < CX GE <WORD PTR [SI]>>
 	      MOV     CX, [SI]			;AN000; Move the entire string
-	   .ENDIF				;AN000;
+	   .ENDIF
 	   MOV	   AX, [DI]			;AN000; Current size of destination string
 	   ADD	   [DI], CX			;AN000; Add in the length of the new string
 	   ADD	   DI, AX			;AN000; Add length of string to pointer
 	   ADD	   DI, 2			;AN000; Increment to pass first word and last byte
 	   ADD	   SI, 2			;AN000; Point source to start of the string
-	   CLD					;AN000;
-	   REP	   MOVSB			;AN000;
-	.ENDIF					;AN000;
+	   CLD
+	   REP	   MOVSB
+	.ENDIF
 
-	POP	ES				;AN000;
+	POP	ES
 
-	RET					;AN000;
+	RET
 
-APPEND_STRING_ROUTINE	ENDP			;AN000;
+APPEND_STRING_ROUTINE	ENDP
 ;************************************************************************
 ;
 ;   COPY_ROUTINE - Subroutine to perform the copy string operation.
@@ -117,11 +117,11 @@ APPEND_STRING_ROUTINE	ENDP			;AN000;
 ;	IMMED_MAX,  then only IMMED_MAX bytes are copied.
 ;
 ;****************************************************************************
-PUBLIC	 COPY_ROUTINE				;AN000;
-COPY_ROUTINE   PROC    FAR			;AN000;
+PUBLIC	 COPY_ROUTINE
+COPY_ROUTINE   PROC    FAR
 
-	PUSH	ES				;AN000;
-	PUSH	DS				;AN000;
+	PUSH	ES
+	PUSH	DS
 	POP	ES				;AN000; ES and DS point to the data segment
 
 	PUSH	DI				;AN000; Save OFFSET NAME_DEST
@@ -130,19 +130,19 @@ COPY_ROUTINE   PROC    FAR			;AN000;
 	MOV	CX,WORD PTR [SI]		;AN000; Get length of source string
 	ADD	SI,2				;AN000; Point SI to start of string
 	ADD	DI,2				;AN000; Point DI to start of destination.
-	.IF < CX GT AX >			;AN000;
+	.IF < CX GT AX >
 	   MOV	   CX,AX			;AN000; Will not fit so adjust length
-	.ENDIF					;AN000;
+	.ENDIF
 	SUB	AX,CX				;AN000; Amount of room left.
 REP	MOVSB					;AN000; Move the string
 	SUB	DX,AX				;AN000; Subtract the amount left over
-	POP	SI				;AN000;
+	POP	SI
 	MOV	WORD PTR [SI],DX		;AN000; Store the length of the string
 
-	POP	ES				;AN000;
-	RET					;AN000;
+	POP	ES
+	RET
 
-COPY_ROUTINE   ENDP				;AN000;
+COPY_ROUTINE   ENDP
 ;******************************************************************************
 ;
 ;   PUSH_ROUTINE: Routine to do the actual pushing of the screen label
@@ -159,17 +159,17 @@ COPY_ROUTINE   ENDP				;AN000;
 ;	successful.
 ;
 ;******************************************************************************
-PUBLIC	 PUSH_ROUTINE				;AN000;
-PUSH_ROUTINE	PROC	FAR			;AN000;
+PUBLIC	 PUSH_ROUTINE
+PUSH_ROUTINE	PROC	FAR
 
 	.IF < STACK_INDEX B STACK_SIZE >	;AN000; Is there any room?
 	   MOV	   BL,STACK_INDEX		;AN000; Get the index
-	   MOV	   BH, 0			;AN000;
+	   MOV	   BH, 0
 	   MOV	   SELECT_STACK[BX],AX		;AN000; Store the label
 	   ADD	   STACK_INDEX,2		;AN000; Point to next free space
-	.ENDIF					;AN000;
-	RET					;AN000;
-PUSH_ROUTINE	ENDP				;AN000;
+	.ENDIF
+	RET
+PUSH_ROUTINE	ENDP
 ;******************************************************************************
 ;
 ;   POP_ROUTINE: Routine to do the actual poping of the screen label
@@ -186,20 +186,20 @@ PUSH_ROUTINE	ENDP				;AN000;
 ;	returned.
 ;
 ;******************************************************************************
-PUBLIC	 POP_ROUTINE				;AN000;
-POP_ROUTINE    PROC    FAR			;AN000;
+PUBLIC	 POP_ROUTINE
+POP_ROUTINE    PROC    FAR
 
 	.IF < STACK_INDEX A 0 > 		;AN000; Is there anything on the stack?
 	   SUB	   STACK_INDEX,2		;AN000; Point to last item on the stack
 	   MOV	   BL,STACK_INDEX		;AN000; Get the index
-	   MOV	   BH, 0			;AN000;
+	   MOV	   BH, 0
 	   MOV	   SI,SELECT_STACK[BX]		;AN000; Get the label
-	.ELSE					;AN000;
+	.ELSE
 	   MOV	   SI,OFFSET EXIT_DOS		;AN000; EXIT_DOS screen
-	.ENDIF					;AN000;
-	RET					;AN000;
+	.ENDIF
+	RET
 
-POP_ROUTINE    ENDP				;AN000;
+POP_ROUTINE    ENDP
 ;************************************************************************
 ;
 ;   MAKE_DIR_PATHS_ROUTINE: Create the specified directory including all
@@ -221,12 +221,12 @@ POP_ROUTINE    ENDP				;AN000;
 ;
 ;
 ;****************************************************************************
-PUBLIC	 MAKE_DIR_PATHS_ROUTINE 		;AN000;
-MAKE_DIR_PATHS_ROUTINE	PROC	FAR		;AN000;
+PUBLIC	 MAKE_DIR_PATHS_ROUTINE
+MAKE_DIR_PATHS_ROUTINE	PROC	FAR
 
-	PUSH	ES				;AN000;
-	PUSH	DS				;AN000;
-	POP	ES				;AN000;
+	PUSH	ES
+	PUSH	DS
+	POP	ES
 
 
 	MOV	AH, 1				;AN000; Flag indicating adding or deleting dirs
@@ -240,123 +240,123 @@ MAKE_DIR_PATHS_ROUTINE	PROC	FAR		;AN000;
 	CLD					;AN000; Start searching in the forward direction
 
 
-PROCESS_NEXT_DIR:				;AN000;
+PROCESS_NEXT_DIR:
 	CMP	AH, 1				;AN000; Adding or deleting directories?
 	JNE	DELETING_DIR_1			;AN000; If adding, then jump
 	CMP	CX,0				;AN000; Is the string length zero?
-	JNE	LENGTH_NOT_ZERO 		;AN000;
-	JMP	NORMAL_EXIT			;AN000;
-DELETING_DIR_1: 				;AN000;
+	JNE	LENGTH_NOT_ZERO
+	JMP	NORMAL_EXIT
+DELETING_DIR_1:
 	CMP	SI, DI				;AN000; Was this the first DIR created?
-	JNE	LENGTH_NOT_ZERO 		;AN000;
-	JMP	ERROR_EXIT			;AN000;
+	JNE	LENGTH_NOT_ZERO
+	JMP	ERROR_EXIT
 
-LENGTH_NOT_ZERO:				;AN000;
-REPNZ	SCASB					;AN000;
+LENGTH_NOT_ZERO:
+REPNZ	SCASB
 	JNZ	STRING_END			;AN000; If not zero, we reached the string end
 
 	INC	CX				;AN000; By adjusting DI, more bytes to the strings end
 	CMP	AH,1				;AN000; Adding or deleting
-	JNE	DELETING_DIR_2			;AN000;
+	JNE	DELETING_DIR_2
 	DEC	DI				;AN000; Back DI up to point to the '\'
-STRING_END:					;AN000;
+STRING_END:
 	MOV	WORD PTR [BX], DX		;AN000; Length of entire string
 	SUB	WORD PTR [BX], CX		;AN000; Subtract the amount left in string
-	JMP	ADJUST_DONE			;AN000;
-DELETING_DIR_2: 				;AN000;
+	JMP	ADJUST_DONE
+DELETING_DIR_2:
 	INC	DI				;AN000; Adjust DI to point to the '\'
 	MOV	WORD PTR [BX], CX		;AN000; Length left in string
-ADJUST_DONE:					;AN000;
+ADJUST_DONE:
 
 	CMP	AH, 1				;AN000; Adding or deleting directories
-	JNE	DELETING_DIR_3			;AN000;
+	JNE	DELETING_DIR_3
 	CMP	SI, 0				;AN000; Created a DIR yet?
-	JNE	MAKE_START			;AN000;
-	PUSH	AX				;AN000;
+	JNE	MAKE_START
+	PUSH	AX
 ;**********************************************************************
-	PUSHH	<DX,DI> 			;AN000;
+	PUSHH	<DX,DI>
 
 	MOV	DI,BX				;AN000; Get the offset of the string
 	CALL	FAR PTR POS_ZERO		;AN000; Make into an ASCII-Z string
 	MOV	INT_24_ERROR, 0 		;AN000; Zero the number of critical errors
 	MOV	DX,BX				;AN000; Get the start of the string
-	ADD	DX, 2				;AN000;
+	ADD	DX, 2
 	MOV	AH,3BH				;AN000; DOS function call number
-	DOSCALL 				;AN000;
+	DOSCALL
 
-	POPP	<DI,DX> 			;AN000;
+	POPP	<DI,DX>
 ;**********************************************************************
-	POP	AX				;AN000;
-	JNC	DIR_DONE			;AN000;
-	MOV	SI, DI				;AN000;
-MAKE_START:					;AN000;
-	PUSH	AX				;AN000;
+	POP	AX
+	JNC	DIR_DONE
+	MOV	SI, DI
+MAKE_START:
+	PUSH	AX
 ;**********************************************************************
-	PUSHH	<DX,DI> 			;AN000;
-	MOV	DI,BX				;AN000;
+	PUSHH	<DX,DI>
+	MOV	DI,BX
 	CALL	FAR PTR POS_ZERO		;AN000; position the '0' at the end of the path
 	MOV	INT_24_ERROR, 0 		;AN000; Zero the number of critical errors
 	MOV	DX,BX				;AN000; advance pointer to beginning of path
-	ADD	DX, 2				;AN000;
+	ADD	DX, 2
 	MOV	AH,39H				;AN000; make directory interrupt
 	DOSCALL 				;AN000; call to DOS interrupt 21
-	POPP	<DI,DX> 			;AN000;
+	POPP	<DI,DX>
 ;**********************************************************************
-	JC	CANNOT_MAKE			;AN000;
-	POP	AX				;AN000;
-	JMP	DIR_DONE			;AN000;
-CANNOT_MAKE:					;AN000;
+	JC	CANNOT_MAKE
+	POP	AX
+	JMP	DIR_DONE
+CANNOT_MAKE:
 	POP	CX				;AN000; Pop the previously saved AX value
 	PUSH	AX				;AN000; Push the make dir error message
-	MOV	AX, '\'                         ;AN000;
+	MOV	AX, '\'
 	STD					;AN000; Now search in the backward direction
-	MOV	CX, WORD PTR [BX]		;AN000;
-	JMP	DIR_DONE			;AN000;
-DELETING_DIR_3: 				;AN000;
-	PUSH	AX				;AN000;
+	MOV	CX, WORD PTR [BX]
+	JMP	DIR_DONE
+DELETING_DIR_3:
+	PUSH	AX
 ;**********************************************************************
-	PUSHH	<DX,DI> 			;AN000;
-	MOV	DI,BX				;AN000;
+	PUSHH	<DX,DI>
+	MOV	DI,BX
 	CALL	FAR PTR POS_ZERO		;AN000; position the '0' at the end of the path
 	MOV	INT_24_ERROR, 0 		;AN000; Zero the number of critical errors
 	MOV	DX,BX				;AN000; advance pointer to beginning of path
-	ADD	DX, 2				;AN000;
+	ADD	DX, 2
 	MOV	AH,3AH				;AN000; remove the specified directory
 	DOSCALL 				;AN000; call to DOS interrupt 21
-	POPP	<DI,DX> 			;AN000;
+	POPP	<DI,DX>
 ;**********************************************************************
-	JC	ERROR_POP_EXIT			;AN000;
-	POP	AX				;AN000;
-DIR_DONE:					;AN000;
+	JC	ERROR_POP_EXIT
+	POP	AX
+DIR_DONE:
 	MOV	BYTE PTR [DI], '\'              ;AN000; Put the delimiter back
-	CMP	CX,0				;AN000;
+	CMP	CX,0
 	JE	NORMAL_EXIT			;AN000; If CX = 0, string ends
-	DEC	CX				;AN000;
-	CMP	AH,1				;AN000;
-	JNE	DELETING_DIR_4			;AN000;
-	INC	DI				;AN000;
-	JMP	PROCESS_NEXT_DIR		;AN000;
-DELETING_DIR_4: 				;AN000;
-	DEC	DI				;AN000;
-	JMP	PROCESS_NEXT_DIR		;AN000;
+	DEC	CX
+	CMP	AH,1
+	JNE	DELETING_DIR_4
+	INC	DI
+	JMP	PROCESS_NEXT_DIR
+DELETING_DIR_4:
+	DEC	DI
+	JMP	PROCESS_NEXT_DIR
 
-ERROR_POP_EXIT: 				;AN000;
+ERROR_POP_EXIT:
 	POP	CX				;AN000; Pop the extra value off the stack.
-ERROR_EXIT:					;AN000;
+ERROR_EXIT:
 	POP	AX				;AN000; Pop the error message number
-	STC					;AN000;
-	JMP	PATHS_DONE			;AN000;
-NORMAL_EXIT:					;AN000;
-	CLC					;AN000;
+	STC
+	JMP	PATHS_DONE
+NORMAL_EXIT:
+	CLC
 
-PATHS_DONE:					;AN000;
+PATHS_DONE:
 	MOV	WORD PTR [BX], DX		;AN000; Restore the original path length
 
-	POP	ES				;AN000;
+	POP	ES
 
-	RET					;AN000;
+	RET
 
-MAKE_DIR_PATHS_ROUTINE	ENDP			;AN000;
+MAKE_DIR_PATHS_ROUTINE	ENDP
 ;************************************************************************
 ;
 ;   POS_ZERO - Position a zero at the end of an ASCII-N string, making it
@@ -371,23 +371,23 @@ MAKE_DIR_PATHS_ROUTINE	ENDP			;AN000;
 ;   OPERATION: An ASCII-N string is converted to an ASCII-Z string.
 ;
 ;****************************************************************************
-PUBLIC	 POS_ZERO				;AN000;
-POS_ZERO	PROC	FAR			;AN000;
+PUBLIC	 POS_ZERO
+POS_ZERO	PROC	FAR
 
-	PUSH	AX				;AN000;
-	PUSH	DI				;AN000;
+	PUSH	AX
+	PUSH	DI
 
 	MOV	AX,[DI] 			;AN000; Get the length of the string
 	ADD	DI,AX				;AN000; Add the length to the offset
 	ADD	DI,2				;AN000; Adjust for the length word
 	MOV	BYTE PTR [DI],0 		;AN000; Position the zero after the end.
 
-	POP	DI				;AN000;
-	POP	AX				;AN000;
+	POP	DI
+	POP	AX
 
-	RET					;AN000;
+	RET
 
-POS_ZERO	ENDP				;AN000;
+POS_ZERO	ENDP
 ;************************************************************************
 ;
 ;   BEEP_ROUTINE - Cause the speaker to create a tone of a given frequency
@@ -403,30 +403,30 @@ POS_ZERO	ENDP				;AN000;
 ;   OPERATION: Causes the speaker to produce a tone.
 ;
 ;****************************************************************************
-PUBLIC	 BEEP_ROUTINE				;AN000;
-BEEP_ROUTINE	PROC	FAR			;AN000;
+PUBLIC	 BEEP_ROUTINE
+BEEP_ROUTINE	PROC	FAR
 
 	MOV	AL,0B6H 			;AN000; write timer mode register
-	OUT	43H,AL				;AN000;
+	OUT	43H,AL
 	MOV	DX,14H				;AN000; timer divisor=
 	MOV	AX,4F38H			;AN000;  1331000/frequency
-	DIV	DI				;AN000;
+	DIV	DI
 	OUT	42H,AL				;AN000; write timer 2 count low byte
-	MOV	AL,AH				;AN000;
+	MOV	AL,AH
 	OUT	42H,AL				;AN000; write timer 2 count high byte
 	IN	AL,61H				;AN000; get current PORT B setting
 	MOV	AH,AL				;AN000; and save it in AH
 	OR	AL,3				;AN000; turn on speaker
-	OUT	61H,AL				;AN000;
+	OUT	61H,AL
 B_WAIT: MOV	CX,2801 			;AN000; wait 10 milliseconds
-SPKR_ON:LOOP	SPKR_ON 			;AN000;
-	DEC	BX				;AN000;
+SPKR_ON:LOOP	SPKR_ON
+	DEC	BX
 	JNZ	B_WAIT				;AN000; beep until finished
 	MOV	AL,AH				;AN000; recover value of port
-	OUT	61H,AL				;AN000;
-	RET					;AN000;
+	OUT	61H,AL
+	RET
 
-BEEP_ROUTINE	ENDP				;AN000;
+BEEP_ROUTINE	ENDP
 ;************************************************************************
 ;
 ;   BIN_TO_CHAR_ROUTINE:  Convert a binary number to ASCII format.
@@ -443,35 +443,35 @@ BEEP_ROUTINE	ENDP				;AN000;
 ;	will not be stored.
 ;
 ;****************************************************************************
-PUBLIC	 BIN_TO_CHAR_ROUTINE			;AN000;
-BIN_TO_CHAR_ROUTINE	PROC	FAR		;AN000;
+PUBLIC	 BIN_TO_CHAR_ROUTINE
+BIN_TO_CHAR_ROUTINE	PROC	FAR
 
 	MOV	SI, DI				;AN000; Copy the string pointer
 	ADD	SI, 6				;AN000; Point to the string END
 	MOV	CX, 10				;AN000; Number to divide AX by
 
-	.WHILE < NONZERO AX>			;AN000;
+	.WHILE < NONZERO AX>
 	   MOV	   DX, 0			;AN000; Zero the high order word
 	   DIV	   CX				;AN000; Divide the binary number
 	   ADD	   DL, 48			;AN000; Convert to ASCII
 	   MOV	   [SI], DL			;AN000; Store in the string.
 	   DEC	   SI				;AN000; Point to the next free string space
-	.ENDWHILE				;AN000;
+	.ENDWHILE
 	SUB	SI, DI				;AN000; Get the difference in the pointers
 	DEC	SI				;AN000; Adjust for the lenght word
 	MOV	WORD PTR [DI], 5		;AN000; Store the number of characters
 	SUB	WORD PTR [DI], SI		;AN000; Subtract the number of extra digits
-	MOV	CX, WORD PTR [DI]		;AN000;
-	MOV	BX, DI				;AN000;
-	ADD	BX, 2				;AN000;
-	.WHILE < NONZERO CX >			;AN000;
-	   COPY_BYTE	[BX],[BX+SI]		;AN000;
-	   DEC	   CX				;AN000;
-	   INC	   BX				;AN000;
-	.ENDWHILE				;AN000;
-	RET					;AN000;
+	MOV	CX, WORD PTR [DI]
+	MOV	BX, DI
+	ADD	BX, 2
+	.WHILE < NONZERO CX >
+	   COPY_BYTE	[BX],[BX+SI]
+	   DEC	   CX
+	   INC	   BX
+	.ENDWHILE
+	RET
 
-BIN_TO_CHAR_ROUTINE	ENDP			;AN000;
+BIN_TO_CHAR_ROUTINE	ENDP
 ;**************************************************************************
 ;
 ;   PREPARE_FILE_ROUTINE:  Prepare a file and a buffer for the construction
@@ -491,8 +491,8 @@ BIN_TO_CHAR_ROUTINE	ENDP			;AN000;
 ;	of writes to the file.
 ;
 ;**************************************************************************
-PUBLIC	 PREPARE_FILE_ROUTINE			;AN000;
-PREPARE_FILE_ROUTINE	PROC FAR		;AN000;
+PUBLIC	 PREPARE_FILE_ROUTINE
+PREPARE_FILE_ROUTINE	PROC FAR
 						;
     ;**********************************************************************
     ; Try to create the file
@@ -514,27 +514,27 @@ PREPARE_FILE_ROUTINE	PROC FAR		;AN000;
 	      MOV  DX, BX			;AN000; Get the address of the string
 	      MOV  INT_24_ERROR, 0		;AN000; Zero the number of critical errors
 	      MOV  AX, 3D01H			;AN000; DOS Fn. for opening a file
-	      DOSCALL				;AN000;
+	      DOSCALL
 	      .IF < C > 			;AN000; Was there an error?
 		   MOV	N_WRITE_ERR_CODE, AX	;AN000; Save this error code
-	      .ENDIF				;AN000;
-	 .ELSE					;AN000;
-	      MOV  N_WRITE_ERR_CODE, AX 	;AN000;
-	 .ENDIF 				;AN000;
-    .ENDIF					;AN000;
+	      .ENDIF
+	 .ELSE
+	      MOV  N_WRITE_ERR_CODE, AX
+	 .ENDIF
+    .ENDIF
 						;
-    .IF < N_WRITE_ERR_CODE NE 0 >		;AN000;
-	 STC					;AN000;
-    .ELSE					;AN000;
-	 MOV  N_WRITE_HANDLE, AX		;AN000;
-	 CLC					;AN000;
-    .ENDIF					;AN000;
+    .IF < N_WRITE_ERR_CODE NE 0 >
+	 STC
+    .ELSE
+	 MOV  N_WRITE_HANDLE, AX
+	 CLC
+    .ENDIF
 						;
-END_PREPARE_FILE:				;AN000;
+END_PREPARE_FILE:
 						;
-    RET 					;AN000;
+    RET
 						;
-PREPARE_FILE_ROUTINE	ENDP			;AN000;
+PREPARE_FILE_ROUTINE	ENDP
 ;**************************************************************************
 ;
 ;   WRITE_LINE_ROUTINE:  Write a line to the file being constructed.
@@ -551,8 +551,8 @@ PREPARE_FILE_ROUTINE	ENDP			;AN000;
 ;	buffer is full, the data is written to the disk.
 ;
 ;**************************************************************************
-PUBLIC	 WRITE_LINE_ROUTINE			;AN000;
-WRITE_LINE_ROUTINE PROC FAR			;AN000;
+PUBLIC	 WRITE_LINE_ROUTINE
+WRITE_LINE_ROUTINE PROC FAR
 
 
     ; See if there has been an error so far	;
@@ -572,11 +572,11 @@ WRITE_LINE_ROUTINE PROC FAR			;AN000;
 	 DOSCALL				;AN000; Write the line
 	 .IF < C >				;AN000; Was there an error?
 	      MOV  N_WRITE_ERR_CODE, AX 	;AN000; Yes! Save the error code
-	 .ENDIF 				;AN000;
-    .ENDIF					;AN000;
-    RET 					;AN000;
+	 .ENDIF
+    .ENDIF
+    RET
 						;
-WRITE_LINE_ROUTINE ENDP 			;AN000;
+WRITE_LINE_ROUTINE ENDP
 ;**************************************************************************
 ;
 ;   SAVE_FILE_ROUTINE:	Empty the data in the buffer being used to create
@@ -596,8 +596,8 @@ WRITE_LINE_ROUTINE ENDP 			;AN000;
 ;	and the error code will be returned in AX.
 ;
 ;**************************************************************************
-PUBLIC	 SAVE_FILE_ROUTINE			;AN000;
-SAVE_FILE_ROUTINE  PROC FAR			;AN000;
+PUBLIC	 SAVE_FILE_ROUTINE
+SAVE_FILE_ROUTINE  PROC FAR
 						;
     .IF < N_WRITE_ERR_CODE NE 0 >		;AN000; Has an error been encountered?
 	 MOV  DI, BX				;AN000; Yes! Erase the file.
@@ -614,19 +614,19 @@ SAVE_FILE_ROUTINE  PROC FAR			;AN000;
 	 DOSCALL				;AN000; Close the file
 	 .IF < C >				;AN000; Error closing the file?
 	      MOV  N_WRITE_ERR_CODE, AX 	;AN000; Yes! Save the error code
-	 .ENDIF 				;AN000;
-    .ENDIF					;AN000;
+	 .ENDIF
+    .ENDIF
 						;
     MOV  AX, N_WRITE_ERR_CODE			;AN000; Return the error code
     .IF < N_WRITE_ERR_CODE NE 0 >		;AN000; Have errors been encountered?
 	 STC					;AN000; Yes! Set the carry flag
     .ELSE					;AN000; No!
 	 CLC					;AN000; Clear the carry flag
-    .ENDIF					;AN000;
+    .ENDIF
 						;
-    RET 					;AN000;
+    RET
 						;
-SAVE_FILE_ROUTINE  ENDP 			;AN000;
+SAVE_FILE_ROUTINE  ENDP
 ;****************************************************************************
 ;
 ;   EXEC_PROGRAM_ROUTINE: Loads another program into memory and begins
@@ -659,45 +659,45 @@ SAVE_FILE_ROUTINE  ENDP 			;AN000;
 ;
 ;************************************************************************
 
-PUBLIC	 EXEC_PROGRAM_ROUTINE			;AN000;
-EXEC_PROGRAM_ROUTINE  PROC FAR			;AN000;
+PUBLIC	 EXEC_PROGRAM_ROUTINE
+EXEC_PROGRAM_ROUTINE  PROC FAR
 						;
 						;
     EX_CHILD	   EQU	     [BP]+12		;AN000; Equates for temporary variables
-    EX_NAME_COM    EQU	     [BP]+10		;AN000;
-    EX_PARM_BLOCK  EQU	     [BP]+8		;AN000;
-    EX_RE_DIR	   EQU	     [BP]+6		;AN000;
+    EX_NAME_COM    EQU	     [BP]+10
+    EX_PARM_BLOCK  EQU	     [BP]+8
+    EX_RE_DIR	   EQU	     [BP]+6
 						;
-    MOV  SUB_PROGRAM, TRUE			;AN000;
+    MOV  SUB_PROGRAM, TRUE
 						;
     PUSH BP					;AN000; Save base pointer
     MOV  BP, SP 				;AN000; Set up pointer for temp. variables
 						;
     PUSH DS					;AN000; Save the segment registers
-    PUSH ES					;AN000;
+    PUSH ES
 						;
-    MOV  AH,2FH 				;AC000;JW
+    MOV  AH,2FH
     DOSCALL					;AC000;JW get DTA address
     PUSH ES					;AC000;JW save DTA seg
     PUSH BX					;AC000;JW save DTA off
 						;
-    PUSH DS					;AN000;
+    PUSH DS
     POP  ES					;AN000; Point ES to the current data segment
 						;
-    .IF < <WORD PTR EX_RE_DIR> EQ EXEC_DIR >	;AN000;
+    .IF < <WORD PTR EX_RE_DIR> EQ EXEC_DIR >
 	 MOV  AH, 3EH				;AN000; Close Stdout
-	 MOV  BX, STDOUT			;AN000;
-	 DOSCALL				;AN000;
+	 MOV  BX, STDOUT
+	 DOSCALL
 	 MOV  DX, OFFSET NULL_DEVICE		;AN000; Open the NULL device
-	 MOV  AX, 3D01H 			;AN000;
-	 DOSCALL				;AN000;
+	 MOV  AX, 3D01H
+	 DOSCALL
 	 MOV  AH, 3EH				;AN000; Close Stderr
-	 MOV  BX, STDERR			;AN000;
-	 DOSCALL				;AN000;
+	 MOV  BX, STDERR
+	 DOSCALL
 	 MOV  DX, OFFSET NULL_DEVICE		;AN000; Open the NULL device
-	 MOV  AX, 3D01H 			;AN000;
-	 DOSCALL				;AN000;
-    .ENDIF					;AN000;
+	 MOV  AX, 3D01H
+	 DOSCALL
+    .ENDIF
 						;
 						;
     MOV  SI, EX_NAME_COM			;AN000; Get the address of the command line
@@ -727,17 +727,17 @@ EXEC_PROGRAM_ROUTINE  PROC FAR			;AN000;
     INC  SI					;AN000; Skip the length byte
     MOV  AX, 2900H				;AN000; DOS Function for parsing a command line
     DOSCALL					;AN000; Parse the command line
-    MOV  AX, 2900H				;AN000;
+    MOV  AX, 2900H
     MOV  DI, 6CH				;AN000; ES:DI points to the second FCB
     DOSCALL					;AN000; Parse the second filename
 						;
 ;INT 4BH DESTROYS SS,SP 			;
     MOV  WORD PTR SAVE_AREA, SP 		;AN000; Save the stack segment and pointer
-    MOV  WORD PTR SAVE_AREA[2], SS		;AN000;
+    MOV  WORD PTR SAVE_AREA[2], SS
 						;
     MOV      FIRST_TRY,TRUE			;AN000;DT initialize variables
-    MOV      EXEC_DEALLOC,FALSE 		;AN000;DT
-    MOV      EXEC_DEHELP,FALSE			;AN000;DT
+    MOV      EXEC_DEALLOC,FALSE
+    MOV      EXEC_DEHELP,FALSE
 						;
     MOV  INT_24_ERROR, 0			;AN000; Zero the number of critical errors
     PUSH DS					;AN000; Save the current data segment
@@ -745,64 +745,64 @@ EXEC_PROGRAM_ROUTINE  PROC FAR			;AN000;
     MOV  DX, EX_CHILD				;AN000; Get the string with the name of the sub-program
     ADD  DX, 2					;AN000; Adjust pointer passed length word
     MOV  AX,4B00H				;AN000; DOS Function number of executing a sub-program
-    PUSH BX					;AN000;DT
+    PUSH BX
     DOSCALL					;AN000; Fork to the sub-process
-    POP  BX					;AN000;DT
-    .IF < c >					;AN000;DT
-	 MOV	  EXEC_ERR,TRUE 		;AN000;DT
-    .ELSE					;AN000;DT
-       MOV	EXEC_ERR,FALSE			;AN000;DT
-    .ENDIF					;AN000;DT
+    POP  BX
+    .IF < c >
+	 MOV	  EXEC_ERR,TRUE
+    .ELSE
+       MOV	EXEC_ERR,FALSE
+    .ENDIF
 ;RESTORE REGISTERS				;
     MOV  AX,SEG DATA				;AN000; Restore the data register first
     MOV  DS,AX					;AN000; Load the data segment register
-    MOV  ES,AX					;AN000;
+    MOV  ES,AX
     CLI 					;AN000; Turn off interrupts while setting SS
     MOV  SS,WORD PTR SAVE_AREA[2]		;AN000; Restore the stack segment and pointer
-    MOV  SP,WORD PTR SAVE_AREA			;AN000;
+    MOV  SP,WORD PTR SAVE_AREA
     STI 					;AN000; Turn interrupts on again.
-    CALL FAR PTR HOOK_INT_24			;AN000;
+    CALL FAR PTR HOOK_INT_24
 						;
     .IF < <WORD PTR EX_RE_DIR> EQ EXEC_DIR >	;AN000; Redirect Stdout?
 	 MOV  AH, 3EH				;AN000; Close Stdout.
-	 MOV  BX, 1				;AN000;
-	 DOSCALL				;AN000;
+	 MOV  BX, 1
+	 DOSCALL
 	 MOV  DX, OFFSET CON_DEVICE		;AN000; Open CON as stdout.
-	 MOV  AX, 3D01H 			;AN000;
-	 DOSCALL				;AN000;
+	 MOV  AX, 3D01H
+	 DOSCALL
 	 MOV  AH, 3EH				;AN000; Close Stderr.
-	 MOV  BX, 2				;AN000;
-	 DOSCALL				;AN000;
+	 MOV  BX, 2
+	 DOSCALL
 	 MOV  DX, OFFSET CON_DEVICE		;AN000; Open CON as stdout.
-	 MOV  AX, 3D01H 			;AN000;
-	 DOSCALL				;AN000;
-    .ENDIF					;AN000;
+	 MOV  AX, 3D01H
+	 DOSCALL
+    .ENDIF
 						;
-    MOV  AH,1AH 				;AN000;JW
+    MOV  AH,1AH
     POP  DX					;AN000;JW get old DTA off
     POP  DS					;AN000;JW get old DTA seg
     DOSCALL					;AN000;JW restore the DTA address
 						;
     POP  ES					;AN000; Restore all the registers.
-    POP  DS					;AN000;
+    POP  DS
     POP  BP					;AN000; Restore the base pointer
 						;
     MOV  AH, 4DH				;AN000; Get the return code from the sub-process
-    DOSCALL					;AN000;
+    DOSCALL
     .IF < AX NE 0 > or				;AN000; SAR;If not zero...
-    .IF < EXEC_ERR eq TRUE >			;AN000; SAR
-    .THEN					;AN000; SAR
-	 MOV  SUB_ERROR,AL			;AN000;
+    .IF < EXEC_ERR eq TRUE >
+    .THEN
+	 MOV  SUB_ERROR,AL
 	 STC					;AN000; Indicate there was an error
     .ELSE					;AN000; Otherwise...
-	 MOV  SUB_ERROR,0			;AN000;
+	 MOV  SUB_ERROR,0
 	 CLC					;AN000; No error.
-    .ENDIF					;AN000;
-    MOV  SUB_PROGRAM, FALSE			;AN000;
+    .ENDIF
+    MOV  SUB_PROGRAM, FALSE
     MOV  EXEC_FDISK, FALSE			;AN000;DT reset FDISK flag
 						;
     RET  8					;AN000; Return, popping the parameters.
-EXEC_PROGRAM_ROUTINE  ENDP			;AN000;
+EXEC_PROGRAM_ROUTINE  ENDP
 ;************************************************************************
 ;
 ;   GET_CNTY_DEF_ROUTINE: Get country, keyboard and codepage for the
@@ -832,8 +832,8 @@ EXEC_PROGRAM_ROUTINE  ENDP			;AN000;
 ;   Note:  Index of the first item is the table is 1.
 ;
 ;****************************************************************************
-PUBLIC	 GET_CNTY_DEF_ROUTINE			;AN000;
-GET_CNTY_DEF_ROUTINE	PROC FAR		;AN000;
+PUBLIC	 GET_CNTY_DEF_ROUTINE
+GET_CNTY_DEF_ROUTINE	PROC FAR
 						; AX contains the search's start index
     SUB  AX, 1					;AN000; Make the first index 0
     MOV  DX, TYPE CTY_DEF			;AN000; There are 9 bytes per entry
@@ -842,9 +842,9 @@ GET_CNTY_DEF_ROUTINE	PROC FAR		;AN000;
 						;
     .IF < BX EQ 1 >				;AN000; BX contains which table to search
 	 ADD  SI, OFFSET CTY_TAB_A_1		;AN000; Use the first table
-    .ELSE					;AN000;
+    .ELSE
 	 ADD  SI, OFFSET CTY_TAB_B_1		;AN000; Use the second table
-    .ENDIF					;AN000;
+    .ENDIF
 						;
     COPY_WORD	   N_COUNTRY, [SI+0]		;AN000; Get the counrty code
     COPY_BYTE	   N_KYBD_VAL, [SI+2]		;AN000; See if the keyboard is valid
@@ -857,10 +857,10 @@ GET_CNTY_DEF_ROUTINE	PROC FAR		;AN000;
     COPY_BYTE	   ALT_KYB_ID, [SI+13]		;AN000; Get default alternate keyboard
     COPY_BYTE	   N_CTY_RES, [SI+14]		;AN000; A reserved byte
 
-    COPY_WORD	   I_KYBD_ALT,2 		;AC090;JW
-    RET 					;AN000;
+    COPY_WORD	   I_KYBD_ALT,2
+    RET
 
-GET_CNTY_DEF_ROUTINE	ENDP			;AN000;
+GET_CNTY_DEF_ROUTINE	ENDP
 ;****************************************************************************
 ;
 ;   GET_CNTY_INDEX_ROUTINE: Scan CTY_TABLE for the specified country code and
@@ -880,8 +880,8 @@ GET_CNTY_DEF_ROUTINE	ENDP			;AN000;
 ;   Note:  The index of the first item in the table is 1.
 ;
 ;************************************************************************
-PUBLIC	 GET_CNTY_INDEX_ROUTINE 		;AN000;
-GET_CNTY_INDEX_ROUTINE	PROC FAR		;AN000;
+PUBLIC	 GET_CNTY_INDEX_ROUTINE
+GET_CNTY_INDEX_ROUTINE	PROC FAR
 						;
     MOV  DX, 1					;AN000; Which table to search
     MOV  AH, 0					;AN000; Clear the high byte
@@ -892,7 +892,7 @@ GET_CNTY_INDEX_ROUTINE	PROC FAR		;AN000;
 	 .ELSE					;AN000; Otherwise...
 	      MOV     SI, OFFSET CTY_TAB_B_1	;AN000; Get the offset of the second table
 	      MOV     AL, CTY_TAB_B		;AN000; Get the number of entries in this table
-	 .ENDIF 				;AN000;
+	 .ENDIF
 	 MOV	 BX, 1				;AN000; Index currently being scaned
 						;
 						; CX contains the country code.
@@ -900,17 +900,17 @@ GET_CNTY_INDEX_ROUTINE	PROC FAR		;AN000;
 	 .WHILE < BX LE AX >			;AN000; And while there are still table entries
 	      INC     BX			;AN000; Increment the index into the table
 	      ADD     SI, TYPE CTY_DEF		;AN000; Point to the next table record
-	 .ENDWHILE				;AN000;
+	 .ENDWHILE
 						;
 	 .IF < BX GT AX >			;AN000; Index is finished for this table
 	      INC    DX 			;AN000; Examine the next table
-	 .ELSE					;AN000;
+	 .ELSE
 	      .LEAVE				;AN000; Exit the while loop
-	 .ENDIF 				;AN000;
+	 .ENDIF
 						;
-    .ENDWHILE					;AN000;
-    RET 					;AN000;
-GET_CNTY_INDEX_ROUTINE	ENDP			;AN000;
+    .ENDWHILE
+    RET
+GET_CNTY_INDEX_ROUTINE	ENDP
 ;****************************************************************************
 ;
 ;   GET_KYBD_INDEX_ROUTINE: Scan KYBD_TABLE for the specified keyboard code and
@@ -933,40 +933,40 @@ GET_CNTY_INDEX_ROUTINE	ENDP			;AN000;
 ;   Note:  The index of the first item in the table is 1.
 ;
 ;************************************************************************
-PUBLIC	 GET_KYBD_INDEX_ROUTINE 		;AN000;
-GET_KYBD_INDEX_ROUTINE	PROC FAR		;AN000;
+PUBLIC	 GET_KYBD_INDEX_ROUTINE
+GET_KYBD_INDEX_ROUTINE	PROC FAR
 						;
     MOV     BX, 0				;AN000; Zero the table index
     MOV     DX, 1				;AN000; Which table to search
     MOV     AH, 0				;AN000; Clear high byte to use 16-bit value
-    .WHILE < DX LE 2 >				;AN000;
-	 .IF < DX EQ 1 >			;AN000;
+    .WHILE < DX LE 2 >
+	 .IF < DX EQ 1 >
 	      MOV     SI, OFFSET KYBD_TAB_A_1	;AN000; Get the offset of the table
 	      MOV     AL, KYBD_TAB_A		;AN000; Get the number of entries
-	 .ELSE					;AN000;
+	 .ELSE
 	      MOV     SI, OFFSET KYBD_TAB_B_1	;AN000; Get the offset of the second table
 	      MOV     AL, KYBD_TAB_B		;AN000; Get the number of entries in this table
-	 .ENDIF 				;AN000;
+	 .ENDIF
 	 MOV	 BX, 1				;AN000; Index currently being scaned
 						;
 	 MOV	 CX, WORD PTR [DI+2]		;AN000; Get the keyboard code
-	 .WHILE < <WORD PTR [SI]> NE CX> AND	;AN000;
-	 .WHILE < BX LE AX >			;AN000;
-	      INC     BX			;AN000;
-	      ADD     SI, TYPE KYB_DEF		;AN000;
-	 .ENDWHILE				;AN000;
+	 .WHILE < <WORD PTR [SI]> NE CX> AND
+	 .WHILE < BX LE AX >
+	      INC     BX
+	      ADD     SI, TYPE KYB_DEF
+	 .ENDWHILE
 						;
 	 .IF < BX GT AX >			;AN000; Index is finished for this table
 	     INC    DX				;AN000; Examine the next table
-	 .ELSE					;AN000;
+	 .ELSE
 	     MOV    AL, BYTE PTR [SI+2] 	;AN000; Get the alternate keyboard flag
 	    .LEAVE				;AN000; Exit the while loop
-	 .ENDIF 				;AN000;
+	 .ENDIF
 						;
-    .ENDWHILE					;AN000;
-    RET 					;AN000;
+    .ENDWHILE
+    RET
 						;
-GET_KYBD_INDEX_ROUTINE	ENDP			;AN000;
+GET_KYBD_INDEX_ROUTINE	ENDP
 ;************************************************************************;
 ;
 ;   GET_KYBD_ROUTINE: Get the keyboard code and the alternate keyboard
@@ -990,25 +990,25 @@ GET_KYBD_INDEX_ROUTINE	ENDP			;AN000;
 ;   Note: Index of the first item in the table is 1.
 ;
 ;****************************************************************************
-PUBLIC	 GET_KYBD_ROUTINE			;AN000;
-GET_KYBD_ROUTINE   PROC FAR			;AN000;
+PUBLIC	 GET_KYBD_ROUTINE
+GET_KYBD_ROUTINE   PROC FAR
 						; AX contins the search's start index
     SUB  AX, 1					;AN000; Make the first index 0
     MOV  DX, TYPE KYB_DEF			;AN000; There are 3 bytes per entry
     MUL  DX					;AN000; Calculate the offset into the table
     MOV  SI, AX 				;AN000; Move the address into an index reg
     .IF < CX EQ 1>				;AN000; CX Contains which table to search
-	 ADD  SI, OFFSET KYBD_TAB_A_1		;AN000;
-    .ELSE					;AN000;
-	 ADD  SI, OFFSET KYBD_TAB_B_1		;AN000;
-    .ENDIF					;AN000;
+	 ADD  SI, OFFSET KYBD_TAB_A_1
+    .ELSE
+	 ADD  SI, OFFSET KYBD_TAB_B_1
+    .ENDIF
 						;
     MOV 	   WORD PTR [DI], 2		;AN000; Length of the string
     COPY_WORD	   [DI+2], [SI] 		;AN000; Get the keyboard name
     MOV 	   AL, [SI+2]			;AN000; See if there is an alternate keyboard
-    RET 					;AN000;
+    RET
 						;
-GET_KYBD_ROUTINE   ENDP 			;AN000;
+GET_KYBD_ROUTINE   ENDP
 ;;************************************************************************
 ;;
 ;;   CHK_EX_MEM_ROUTINE:  Check if the system supports expanded memory.
@@ -1051,34 +1051,34 @@ HLST_CARD_ID	EQU   0FEFEh			;AN000; HOLSTER card id 		   JW
 MODE_REG	EQU   31A7H			;AN000;  Mode register
 TTPOINTER	EQU   31A0H			;AN000;  Translate Table Pointer	 (word)
 						;
-NUM_OF_SLOTS	EQU   8 			;AN000;
+NUM_OF_SLOTS	EQU   8
 						;
-PUBLIC	 CHK_EX_MEM_ROUTINE			;AN000;
-CHK_EX_MEM_ROUTINE PROC FAR			;AN000;
+PUBLIC	 CHK_EX_MEM_ROUTINE
+CHK_EX_MEM_ROUTINE PROC FAR
 						;
-    PUSH ES					;AN000;
+    PUSH ES
     MOV  AH, 0C0H				;AN000; Function number to get the model byte
-    INT  15H					;AN000;
+    INT  15H
     .IF < AH eq 80H >				;AN000;IF AH = 80H
 	 MOV  SI, 0				;AN000;then this is a PC or PCjr.  No Expanded memory
 	 MOV  BX, 0				;AN000;JW not a model 80
-    .ELSE near					;AN000;
+    .ELSE near
 	 .IF < AH ne 086H >			;AN000;If not an old XT or AT
 	      MOV  AH, BYTE PTR ES:[BX]+2	;AN000; Get the model byte
 	      MOV  AL, BYTE PTR ES:[BX]+3	;AN000; Get the sub-model byte
-	 .ENDIF 				;AN000;
+	 .ENDIF
 	 .IF < AH eq 0F8H>			;AN000; Is this a model 80?
 	      MOV  SI, 1			;AN000; Yes! Expanded memory supported
-	      MOV  BX, 1			;AN000;JW
+	      MOV  BX, 1
 	 .ELSEIF < AH eq 0FCH > and		;AN000; Is this a model 50 or 60?
-	 .IF < AL eq 04 > or			;AN000;
-	 .IF < AL eq 05 >			;AN000;
+	 .IF < AL eq 04 > or
+	 .IF < AL eq 05 >
 					;-------------------------------------
 					; Search for XMA/A cards	      -
 					;-------------------------------------
 	      XOR     CX,CX			;AN000;Check all slots starting at 0	 @RH2
 	      MOV     BX,0			;AN000;JW say not a model 80
-	     .REPEAT				;AN000;
+	     .REPEAT
 						;
 		  MOV	  AL,CL 		;AN000;Enable the specific slot by ORing @RH2
 		  OR	  AL,SLOT_SETUP 	;AN000; the slot (bits 0-2) with the	 @RH2
@@ -1090,21 +1090,21 @@ CHK_EX_MEM_ROUTINE PROC FAR			;AN000;
 		  MOV	  DX,CARD_ID_HI 	;AN000; 				   @RH2
 		  IN	  AL,DX 		;AN000; 				   @RH2
 						;
-		  .IF < AX eq XMAA_CARD_ID > or ;AN000;
-		  .IF < AX eq HLST_CARD_ID >	;AN000;JW
+		  .IF < AX eq XMAA_CARD_ID > or
+		  .IF < AX eq HLST_CARD_ID >
 		       MOV  SI, 1		;AN000; Yes! Expanded memory supported
-		       .LEAVE			;AN000;
-		  .ENDIF			;AN000;
+		       .LEAVE
+		  .ENDIF
 						;
-		  .IF < CL eq NUM_OF_SLOTS >	;AN000;
+		  .IF < CL eq NUM_OF_SLOTS >
 		       MOV  SI, 0		;AN000; No! Expanded memoory isn't supported
-		       .LEAVE			;AN000;
-		  .ENDIF			;AN000;
+		       .LEAVE
+		  .ENDIF
 						;
 		  INC	  CL			;AN000;Check next adapter slot	@RH2
 						;
-	      .UNTIL				;AN000;
-	      XOR  AX,AX			;AN000;JW
+	      .UNTIL
+	      XOR  AX,AX
 	      OUT  96H,AL			;AN000;JW Reset port to neutral state
 						;
 	 .ELSE					;AN000; AT or XT
@@ -1112,8 +1112,8 @@ CHK_EX_MEM_ROUTINE PROC FAR			;AN000;
 					; Search for XMA cards		      -
 					;-------------------------------------
 	      MOV     DX,MODE_REG		;AN000;SAVE CONTENTS OF MODE REG
-	      IN      AL,DX			;AN000;
-	      PUSH    AX			;AN000;
+	      IN      AL,DX
+	      PUSH    AX
 						;
 	      MOV     AX,0AA55H 		;AN000;DATA PATTERN (IN REAL MODE)
 						;BE CERTAIN MODE REG GETS
@@ -1123,27 +1123,27 @@ CHK_EX_MEM_ROUTINE PROC FAR			;AN000;
 	      MOV     DX,TTPOINTER + 1		;AN000;I/O TO TT POINTER (ODD ADDR)
 	      XCHG    AL,AH			;AN000;CHRG BUS WITH INVERSE PATTERN
 	      OUT     DX,AL			;AN000;WRITE IT
-	      MOV     DX,MODE_REG		;AN000;
+	      MOV     DX,MODE_REG
 	      IN      AL,DX			;AN000;READ BACK MODE REG
-	      XOR     AL,AH			;AN000;
+	      XOR     AL,AH
 	      AND     AL,0FH			;AN000;MASK OFF UNUSED BITS
 						;ZERO FLAG = 0 IF ERROR
-	      POP     AX			;AN000;
+	      POP     AX
 	      PUSHF				;AN000;SAVE FLAGS
-	      MOV     DX,MODE_REG		;AN000;
+	      MOV     DX,MODE_REG
 	      OUT     DX,AL			;AN000;RESTORE MODE REG TO INITIAL STATE
 	      POPF				;AN000;RESTORE FLAGS
-	      .IF < z > 			;AN000;
+	      .IF < z >
 		   MOV SI,1			;AN000;XMA card present
-	      .ELSE				;AN000;
+	      .ELSE
 		   MOV SI,0			;AN000;no XMA card present
-	      .ENDIF				;AN000;
+	      .ENDIF
 	      MOV     BX,0			;AN000;not a model 80
-	 .ENDIF 				;AN000;
-    .ENDIF					;AN000;
-    POP     ES					;AN000;
-    RET 					;AN000;
-CHK_EX_MEM_ROUTINE ENDP 			;AN000;
+	 .ENDIF
+    .ENDIF
+    POP     ES
+    RET
+CHK_EX_MEM_ROUTINE ENDP
 ;****************************************************************************
 ;
 ;   GET_PRINTER_PARAMS_ROUTINE: Get parameters for specified printer.
@@ -1184,65 +1184,65 @@ CHK_EX_MEM_ROUTINE ENDP 			;AN000;
 ;	in that structure is returned in the variables listed above.
 ;
 ;****************************************************************************
-PUBLIC	 GET_PRINTER_PARAMS_ROUTINE		;AN000;
-GET_PRINTER_PARAMS_ROUTINE   PROC FAR		;AN000;
+PUBLIC	 GET_PRINTER_PARAMS_ROUTINE
+GET_PRINTER_PARAMS_ROUTINE   PROC FAR
 
-    .IF < BX NE 0 >				;AN000;
-	 DEC  BX				;AN000;
-	 MOV  AX, TYPE PRINTER_DEF		;AN000;
-	 MUL  BX				;AN000;
-	 MOV  SI, AX				;AN000;
-	 .IF < PRINTER_TABLES[SI].PRINTER_DATA_VALID EQ 1 > ;AN000;
-	      JMP  COPY_INFO			;AN000;
-	 .ELSE					;AN000;
-	      JMP RETURN_DEFAULTS		;AN000;
-	 .ENDIF 				;AN000;
-    .ELSE					;AN000;
+    .IF < BX NE 0 >
+	 DEC  BX
+	 MOV  AX, TYPE PRINTER_DEF
+	 MUL  BX
+	 MOV  SI, AX
+	 .IF < PRINTER_TABLES[SI].PRINTER_DATA_VALID EQ 1 >
+	      JMP  COPY_INFO
+	 .ELSE
+	      JMP RETURN_DEFAULTS
+	 .ENDIF
+    .ELSE
 	 MOV  SI, 0				;AN000; Index into the printer table
 	 MOV  BX, 1				;AN000; Which structure is being searched
 	 .WHILE < BX BE 7 >			;AN000; Search the seven structures
 	      .IF < PRINTER_TABLES[SI].PRINTER_TAB_NUM EQ AX > AND   ;AN000; Does the printer number match?
 	      .IF < PRINTER_TABLES[SI].PRINTER_DATA_VALID EQ 1 >     ;AN000; And is this data valid?
-		   JMP	COPY_INFO		;AN000;
-	      .ENDIF				;AN000;
+		   JMP	COPY_INFO
+	      .ENDIF
 	      ADD  SI, TYPE PRINTER_DEF 	;AN000; Search the next structure
-	      INC  BX				;AN000;
-	 .ENDWHILE				;AN000;
-RETURN_DEFAULTS:				;AN000;
+	      INC  BX
+	 .ENDWHILE
+RETURN_DEFAULTS:
 	 MOV  I_PRINTER, 1			;AN000; Yes! Return the default information
-	 MOV  I_PORT, 1 			;AN000;
-	 MOV  I_REDIRECT, 1			;AN000;
-	 MOV  S_MODE_PARM, 0			;AN000;
-	 MOV  S_CP_DRIVER, 0			;AN000;
-	 MOV  S_CP_PREPARE, 0			;AN000;
-	 MOV  S_GRAPH_PARM, 0			;AN000;
+	 MOV  I_PORT, 1
+	 MOV  I_REDIRECT, 1
+	 MOV  S_MODE_PARM, 0
+	 MOV  S_CP_DRIVER, 0
+	 MOV  S_CP_PREPARE, 0
+	 MOV  S_GRAPH_PARM, 0
 	 MOV  AX, 0				;AN000; Indicate that the default values are being returned
-	 JMP  EXIT_GET_PARAMS			;AN000;
-    .ENDIF					;AN000;
+	 JMP  EXIT_GET_PARAMS
+    .ENDIF
 
-COPY_INFO:					;AN000;
+COPY_INFO:
     COPY_WORD	   I_PRINTER,	     PRINTER_TABLES[SI].PRINTER_INDEX  ;AN000; Copy the data out of the structure
-    COPY_BYTE	   N_PRINTER_TYPE,   PRINTER_TABLES[SI].PRINTER_TYPE   ;AN000;
-    COPY_WORD	   I_PORT,	     PRINTER_TABLES[SI].PORT_NUMBER    ;AN000;
-    COPY_WORD	   I_REDIRECT,	     PRINTER_TABLES[SI].REDIRECTION_PORT ;AN000;
-    PUSH SI							    ;AN000;
-    COPY_STRING    S_MODE_PARM,  40, PRINTER_TABLES[SI].MODE_PARMS  ;AN000;
-    POP  SI							    ;AN000;
-    PUSH SI							    ;AN000;
-    COPY_STRING    S_CP_DRIVER,  22, PRINTER_TABLES[SI].CODE_DRIVER ;AN000;
-    POP  SI							    ;AN000;
-    PUSH SI							    ;AN000;
-    COPY_STRING    S_CP_PREPARE, 12, PRINTER_TABLES[SI].CODE_PREPARE ;AN000;
-    POP  SI							    ;AN000;
-    PUSH SI							    ;AN000;
-    COPY_STRING    S_GRAPH_PARM, 20, PRINTER_TABLES[SI].GRAPHICS_PARMS ;AN000;
-    POP  SI					;AN000;
+    COPY_BYTE	   N_PRINTER_TYPE,   PRINTER_TABLES[SI].PRINTER_TYPE
+    COPY_WORD	   I_PORT,	     PRINTER_TABLES[SI].PORT_NUMBER
+    COPY_WORD	   I_REDIRECT,	     PRINTER_TABLES[SI].REDIRECTION_PORT
+    PUSH SI
+    COPY_STRING    S_MODE_PARM,  40, PRINTER_TABLES[SI].MODE_PARMS
+    POP  SI
+    PUSH SI
+    COPY_STRING    S_CP_DRIVER,  22, PRINTER_TABLES[SI].CODE_DRIVER
+    POP  SI
+    PUSH SI
+    COPY_STRING    S_CP_PREPARE, 12, PRINTER_TABLES[SI].CODE_PREPARE
+    POP  SI
+    PUSH SI
+    COPY_STRING    S_GRAPH_PARM, 20, PRINTER_TABLES[SI].GRAPHICS_PARMS
+    POP  SI
     MOV  AX, 1					;AN000; Return that the data is valid
 
-EXIT_GET_PARAMS:				;AN000;
-    RET 					;AN000;
+EXIT_GET_PARAMS:
+    RET
 						;
-GET_PRINTER_PARAMS_ROUTINE   ENDP		;AN000;
+GET_PRINTER_PARAMS_ROUTINE   ENDP
 ;****************************************************************************
 ;
 ;   SAVE_PRINTER_PARAMS_ROUTINE: Save the printer information in the printer
@@ -1270,47 +1270,47 @@ GET_PRINTER_PARAMS_ROUTINE   ENDP		;AN000;
 ;	LPT1 - LPT3, while the next four are for COM1 - COM2.
 ;
 ;****************************************************************************
-PUBLIC	 SAVE_PRINTER_PARAMS_ROUTINE		;AN000;
-SAVE_PRINTER_PARAMS_ROUTINE  PROC FAR		;AN000;
+PUBLIC	 SAVE_PRINTER_PARAMS_ROUTINE
+SAVE_PRINTER_PARAMS_ROUTINE  PROC FAR
 
     PUSH AX					;AN000; Save the printer number
     MOV  AX, TYPE PRINTER_DEF			;AN000; Get the size of each structure
     MOV  SI, I_PORT				;AN000; Get the port number
     .IF < N_PRINTER_TYPE EQ 'S'>                ;AN000; Is this a serial port?
 	 ADD  SI, 3				;AN000; Yes! Store in the later 4 structures
-    .ENDIF					;AN000;
+    .ENDIF
     DEC  SI					;AN000; Make the first index a 0
     MUL  SI					;AN000; Calculate the address of the structure
     MOV  BX, AX 				;AN000; Put address into an index register
     COPY_WORD	   PRINTER_TABLES[BX].PRINTER_INDEX,	  I_PRINTER	;AN000; Copy the data into the structure
-    COPY_BYTE	   PRINTER_TABLES[BX].PRINTER_TYPE,	  N_PRINTER_TYPE;AN000;
-    COPY_WORD	   PRINTER_TABLES[BX].PORT_NUMBER,	  I_PORT	;AN000;
-    COPY_WORD	   PRINTER_TABLES[BX].REDIRECTION_PORT,   I_REDIRECT	;AN000;
-    COPY_STRING    PRINTER_TABLES[BX].MODE_PARMS,     40, S_MODE_PARM	;AC000;JW
-    COPY_STRING    PRINTER_TABLES[BX].CODE_DRIVER,    22, S_CP_DRIVER	;AN000;
-    COPY_STRING    PRINTER_TABLES[BX].CODE_PREPARE,   12, S_CP_PREPARE	;AN000;
-    COPY_STRING    PRINTER_TABLES[BX].GRAPHICS_PARMS, 20, S_GRAPH_PARM	;AN000;
-    .IF <I_PORT EQ 1 >							;AN029;
-	COPY_STRING   S_GRAPHICS,M_GRAPHICS,S_GRAPH_PARM		;AN029;
-    .ENDIF								;AN029;
+    COPY_BYTE	   PRINTER_TABLES[BX].PRINTER_TYPE,	  N_PRINTER_TYPE
+    COPY_WORD	   PRINTER_TABLES[BX].PORT_NUMBER,	  I_PORT
+    COPY_WORD	   PRINTER_TABLES[BX].REDIRECTION_PORT,   I_REDIRECT
+    COPY_STRING    PRINTER_TABLES[BX].MODE_PARMS,     40, S_MODE_PARM
+    COPY_STRING    PRINTER_TABLES[BX].CODE_DRIVER,    22, S_CP_DRIVER
+    COPY_STRING    PRINTER_TABLES[BX].CODE_PREPARE,   12, S_CP_PREPARE
+    COPY_STRING    PRINTER_TABLES[BX].GRAPHICS_PARMS, 20, S_GRAPH_PARM
+    .IF <I_PORT EQ 1 >
+	COPY_STRING   S_GRAPHICS,M_GRAPHICS,S_GRAPH_PARM
+    .ENDIF
     POP  AX					;AN000; Restore the printer number
     MOV  PRINTER_TABLES[BX].PRINTER_TAB_NUM, AX ;AN000; Save the number
     MOV  PRINTER_TABLES[BX].PRINTER_DATA_VALID, 1 ;AN000; Indicate that the data is valid
 
-    MOV  SI, 0					;AN000;
-    MOV  CX, 1					;AN000;
-    .WHILE < CX BE 7 >				;AN000;
-	 .IF < PRINTER_TABLES[SI].PRINTER_TAB_NUM EQ AX > AND ;AN000;
-	 .IF < SI NE BX >			;AN000;
-	      MOV  PRINTER_TABLES[SI].PRINTER_DATA_VALID, 0 ;AN000;
-	 .ENDIF 				;AN000;
-	 ADD  SI, TYPE PRINTER_DEF		;AN000;
-	 INC  CX				;AN000;
-    .ENDWHILE					;AN000;
+    MOV  SI, 0
+    MOV  CX, 1
+    .WHILE < CX BE 7 >
+	 .IF < PRINTER_TABLES[SI].PRINTER_TAB_NUM EQ AX > AND
+	 .IF < SI NE BX >
+	      MOV  PRINTER_TABLES[SI].PRINTER_DATA_VALID, 0
+	 .ENDIF
+	 ADD  SI, TYPE PRINTER_DEF
+	 INC  CX
+    .ENDWHILE
 
-    RET 					;AN000;
+    RET
 
-SAVE_PRINTER_PARAMS_ROUTINE  ENDP		;AN000;
+SAVE_PRINTER_PARAMS_ROUTINE  ENDP
 ;****************************************************************************
 ;
 ;   DISPLAY_MESSAGE_ROUTINE:  Call the message retriever to display a message.
@@ -1325,7 +1325,7 @@ SAVE_PRINTER_PARAMS_ROUTINE  ENDP		;AN000;
 ;   OPERATION:
 ;
 ;****************************************************************************
-PUBLIC	 DISPLAY_MESSAGE_ROUTINE		;AN000;
+PUBLIC	 DISPLAY_MESSAGE_ROUTINE
 DISPLAY_MESSAGE_ROUTINE PROC FAR		;AN000; AX already contains the message number
     MOV  BX, -1 				;AN000; HANDLE -1 ==> USE ONLY DOS FUNCTION 1-12
     MOV  SI, 0					;AN000; SUBSTITUTION LIST
@@ -1333,9 +1333,9 @@ DISPLAY_MESSAGE_ROUTINE PROC FAR		;AN000; AX already contains the message number
     MOV  DL, 00 				;AN000; DOS INT21H FUNCTION FOR INPUT 0==> NO INPUT
     MOV  DI, 0					;AN000; INPUT BUFFER IF DL = 0AH
     MOV  DH,  -1				;AN000; MESSAGE CALL -1==> UTILITY MESSAGE
-    CALL SYSDISPMSG				;AN000;
-    RET 					;AN000;
-DISPLAY_MESSAGE_ROUTINE ENDP			;AN000;
+    CALL SYSDISPMSG
+    RET
+DISPLAY_MESSAGE_ROUTINE ENDP
 
 ;****************************************************************************
 ; Procedure for hooking the INT_23_VECTOR into vector table
@@ -1415,17 +1415,17 @@ RESTORE_INT_23	   ENDP 			;AN074;SEH
 ; OUTPUT:
 ;   None.
 ;****************************************************************************
-PUBLIC	 HOOK_INT_24				;AN000;
-HOOK_INT_24   PROC FAR				;AN000;
+PUBLIC	 HOOK_INT_24
+HOOK_INT_24   PROC FAR
 
-    PUSH AX					;AN000;
-    PUSH BX					;AN000;
-    PUSH DX					;AN000;
+    PUSH AX
+    PUSH BX
+    PUSH DX
     PUSH ES					;AN000; Save the segment registers.
-    PUSH DS					;AN000;
-    PUSHF					;AN000;
+    PUSH DS
+    PUSHF
 
-    .IF < INT24_STATUS eq UNHOOKED >		;AN000;
+    .IF < INT24_STATUS eq UNHOOKED >
 
        MOV  AL, 24H				;AN000; Interrupt number to get the vector of
        MOV  AH, 35H				;AN000; DOS Function number for getting a vector
@@ -1435,25 +1435,25 @@ HOOK_INT_24   PROC FAR				;AN000;
        MOV  WORD PTR OLD_INT_24[2], AX		;AN000; Save the old vector segment
        PUSH DS					;AN000; Save DS
        PUSH CS					;AN000; Point DS to the current code segment
-       POP  DS					;AN000;
+       POP  DS
        MOV  DX, OFFSET INT_24_VECTOR		;AN000; Load offset of the new vector
        MOV  AL, 24H				;AN000; Interrupt number to set
        MOV  AH, 25H				;AN000; DOS Fn. number for setting a vector
        DOSCALL					;AN000; Set the vector
        POP  DS					;AN000; Restore data segment
-       MOV  INT24_STATUS,HOOKED 		;AN000;
+       MOV  INT24_STATUS,HOOKED
 
-    .ENDIF					;AN000;
+    .ENDIF
 
-    POPF					;AN000;
+    POPF
     POP  DS					;AN000; Restore the registers
-    POP  ES					;AN000;
-    POP  DX					;AN000;
-    POP  BX					;AN000;
-    POP  AX					;AN000;
+    POP  ES
+    POP  DX
+    POP  BX
+    POP  AX
 
-    RET 					;AN000;
-HOOK_INT_24   ENDP				;AN000;
+    RET
+HOOK_INT_24   ENDP
 
 ;****************************************************************************
 ; Procedure for restoring the old interrupt 24h vector.
@@ -1462,15 +1462,15 @@ HOOK_INT_24   ENDP				;AN000;
 ; OUTPUT:
 ;   None.
 ;****************************************************************************
-PUBLIC	 RESTORE_INT_24 			;AN000;
-RESTORE_INT_24 PROC FAR 			;AN000;
+PUBLIC	 RESTORE_INT_24
+RESTORE_INT_24 PROC FAR
 
-    PUSHF					;AN000;
-    PUSH AX					;AN000;
-    PUSH DX					;AN000;
+    PUSHF
+    PUSH AX
+    PUSH DX
     PUSH DS					;AN000; Save the data segment
 
-    .IF < INT24_STATUS eq HOOKED >		;AN000;
+    .IF < INT24_STATUS eq HOOKED >
 
        PUSH DS					;AN000; Save DS
        LDS  DX, OLD_INT_24			;AN000; Load the address of the old vector
@@ -1478,17 +1478,17 @@ RESTORE_INT_24 PROC FAR 			;AN000;
        MOV  AL, 24H				;AN000; Interrupt vector to set
        DOSCALL					;AN000; Set the vector
        POP  DS					;AN000; Restore data segment
-       MOV  INT24_STATUS,UNHOOKED		;AN000;
+       MOV  INT24_STATUS,UNHOOKED
 
-    .ENDIF					;AN000;
+    .ENDIF
 
     POP  DS					;AN000; Restore the data segment
-    POP  DX					;AN000;
-    POP  AX					;AN000;
-    POPF					;AN000;
+    POP  DX
+    POP  AX
+    POPF
 
-    RET 					;AN000;
-RESTORE_INT_24	   ENDP 			;AN000;
+    RET
+RESTORE_INT_24	   ENDP
 ;****************************************************************************
 ; Procedure for hooking the INT_2F_VECTOR into vector table
 ; INPUT:
@@ -1496,15 +1496,15 @@ RESTORE_INT_24	   ENDP 			;AN000;
 ; OUTPUT:
 ;   None.
 ;****************************************************************************
-PUBLIC	 HOOK_INT_2F				;AN000;
-PUBLIC	 RESTORE_INT_2F 			;AN000;
-HOOK_INT_2F   PROC FAR				;AN000;
+PUBLIC	 HOOK_INT_2F
+PUBLIC	 RESTORE_INT_2F
+HOOK_INT_2F   PROC FAR
 
-    PUSH AX					;AN000;
-    PUSH BX					;AN000;
-    PUSH DX					;AN000;
+    PUSH AX
+    PUSH BX
+    PUSH DX
     PUSH ES					;AN000; Save the segment registers.
-    PUSH DS					;AN000;
+    PUSH DS
     MOV  AL, 2FH				;AN000; Interrupt number to get the vector of
     MOV  AH, 35H				;AN000; DOS Function number for getting a vector
     DOSCALL					;AN000; Get the interrupt vector
@@ -1512,20 +1512,20 @@ HOOK_INT_2F   PROC FAR				;AN000;
     MOV  AX, ES 				;AN000; Get the old vector segment
     MOV  WORD PTR OLD_INT_2F[2], AX		;AN000; Save the old vector segment
     PUSH CS					;AN000; Point DS to the current code segment
-    POP  DS					;AN000;
+    POP  DS
     MOV  DX, OFFSET INT_2F_VECTOR		;AN000; Load offset of the new vector
     MOV  AL, 2FH				;AN000; Interrupt number to set
     MOV  AH, 25H				;AN000; DOS Fn. number for setting a vector
     DOSCALL					;AN000; Set the vector
     POP  DS					;AN000; Restore the registers
-    POP  ES					;AN000;
-    POP  DX					;AN000;
-    POP  BX					;AN000;
-    POP  AX					;AN000;
+    POP  ES
+    POP  DX
+    POP  BX
+    POP  AX
 
-    RET 					;AN000;
+    RET
 
-HOOK_INT_2F   ENDP				;AN000;
+HOOK_INT_2F   ENDP
 ;****************************************************************************
 ; Procedure for restoring the old interrupt 2Fh vector.
 ; INPUT:
@@ -1533,21 +1533,21 @@ HOOK_INT_2F   ENDP				;AN000;
 ; OUTPUT:
 ;   None.
 ;****************************************************************************
-RESTORE_INT_2F PROC FAR 			;AN000;
-	PUSHF					;AN000;
-	PUSH AX 				;AN000;
-	PUSH DX 				;AN000;
+RESTORE_INT_2F PROC FAR
+	PUSHF
+	PUSH AX
+	PUSH DX
 	PUSH DS 				;AN000; Save the data segment
 	LDS  DX, OLD_INT_2F			;AN000; Load the address of the old vector
 	MOV  AH, 25H				;AN000; DOS Fn. number for setting an interrupt vector
 	MOV  AL, 2FH				;AN000; Interrupt vector to set
 	DOSCALL 				;AN000; Set the vector
 	POP  DS 				;AN000; Restore the data segment
-	POP  DX 				;AN000;
-	POP  AX 				;AN000;
-	POPF					;AN000;
-	RET					;AN000;
-RESTORE_INT_2F	   ENDP 			;AN000;
+	POP  DX
+	POP  AX
+	POPF
+	RET
+RESTORE_INT_2F	   ENDP
 ;****************************************************************************
 ; Procedure for hooking the INT_2F_256KB into vector table
 ; INPUT:
@@ -1555,14 +1555,14 @@ RESTORE_INT_2F	   ENDP 			;AN000;
 ; OUTPUT:
 ;   None.
 ;****************************************************************************
-PUBLIC	 HOOK_INT_2F_256KB			;AN000;
-HOOK_INT_2F_256KB   PROC FAR			;AN000;
+PUBLIC	 HOOK_INT_2F_256KB
+HOOK_INT_2F_256KB   PROC FAR
 
-    PUSH AX					;AN000;
-    PUSH BX					;AN000;
-    PUSH DX					;AN000;
+    PUSH AX
+    PUSH BX
+    PUSH DX
     PUSH ES					;AN000; Save the segment registers.
-    PUSH DS					;AN000;
+    PUSH DS
     MOV  AL, 2FH				;AN000; Interrupt number to get the vector of
     MOV  AH, 35H				;AN000; DOS Function number for getting a vector
     DOSCALL					;AN000; Get the interrupt vector
@@ -1570,20 +1570,20 @@ HOOK_INT_2F_256KB   PROC FAR			;AN000;
     MOV  AX, ES 				;AN000; Get the old vector segment
     MOV  WORD PTR OLD_INT_2F[2], AX		;AN000; Save the old vector segment
     PUSH CS					;AN000; Point DS to the current code segment
-    POP  DS					;AN000;
+    POP  DS
     MOV  DX, OFFSET INT_2F_256KB		;AN000; Load offset of the new vector
     MOV  AL, 2FH				;AN000; Interrupt number to set
     MOV  AH, 25H				;AN000; DOS Fn. number for setting a vector
     DOSCALL					;AN000; Set the vector
     POP  DS					;AN000; Restore the registers
-    POP  ES					;AN000;
-    POP  DX					;AN000;
-    POP  BX					;AN000;
-    POP  AX					;AN000;
+    POP  ES
+    POP  DX
+    POP  BX
+    POP  AX
 
-    RET 					;AN000;
+    RET
 
-HOOK_INT_2F_256KB   ENDP			;AN000;
+HOOK_INT_2F_256KB   ENDP
 ;****************************************************************************
 ; Procedure for hooking the INT_2F_FORMAT into vector table
 ; INPUT:
@@ -1591,14 +1591,14 @@ HOOK_INT_2F_256KB   ENDP			;AN000;
 ; OUTPUT:
 ;   None.
 ;****************************************************************************
-PUBLIC	 HOOK_INT_2F_FORMAT			;AN111;JW
-HOOK_INT_2F_FORMAT  PROC FAR			;AN111;JW
+PUBLIC	 HOOK_INT_2F_FORMAT
+HOOK_INT_2F_FORMAT  PROC FAR
 
-    PUSH AX					;AN111;JW
-    PUSH BX					;AN111;JW
-    PUSH DX					;AN111;JW
+    PUSH AX
+    PUSH BX
+    PUSH DX
     PUSH ES					;AN111; Save the segment registers.			 JW
-    PUSH DS											 ;AN111;JW
+    PUSH DS
     MOV  AL, 2FH				;AN111; Interrupt number to get the vector of	 JW
     MOV  AH, 35H				;AN111; DOS Function number for getting a vector	 JW
     DOSCALL					;AN111; Get the interrupt vector			 JW
@@ -1606,21 +1606,21 @@ HOOK_INT_2F_FORMAT  PROC FAR			;AN111;JW
     MOV  AX, ES 				;AN111; Get the old vector segment			 JW
     MOV  WORD PTR OLD_INT_2F[2], AX		;AN111; Save the old vector segment			 JW
     PUSH CS					;AN111; Point DS to the current code segment	 JW
-    POP  DS					;						 ;AN111;JW
+    POP  DS					;
     MOV  DX, OFFSET INT_2F_FORMAT		;AN111; Load offset of the new vector		 JW
     MOV  AL, 2FH				;AN111; Interrupt number to set 			 JW
     MOV  AH, 25H				;AN111; DOS Fn. number for setting a vector		 JW
     DOSCALL					;AN111; Set the vector				 JW
     POP  DS					;AN111; Restore the registers			 JW
-    POP  ES					;AN111;JW
-    POP  DX					;AN111;JW
-    POP  BX					;AN111;JW
-    POP  AX					;AN111;JW
+    POP  ES
+    POP  DX
+    POP  BX
+    POP  AX
 						;
-    RET 					;AN111;JW
+    RET
 						;
-HOOK_INT_2F_FORMAT  ENDP			;AN111;JW
+HOOK_INT_2F_FORMAT  ENDP
 ;****************************************************************************
 
-CODE_FAR    ENDS				;AN000;
-	    END 				;AN000;
+CODE_FAR    ENDS
+	    END

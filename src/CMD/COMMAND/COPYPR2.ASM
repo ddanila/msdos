@@ -1,6 +1,4 @@
  page 80,132
-;	SCCSID = @(#)copypr2.asm	1.1 85/05/14
-;	SCCSID = @(#)copypr2.asm	1.1 85/05/14
 	INCLUDE comsw.asm
 
 .xlist
@@ -12,11 +10,11 @@
 .cref
 
 
-TRANDATA	SEGMENT PUBLIC BYTE	;AC000;
-	EXTRN	FulDir_ptr:word 	;AN052;
+TRANDATA	SEGMENT PUBLIC BYTE
+	EXTRN	FulDir_ptr:word
 TRANDATA ENDS
 
-TRANSPACE	SEGMENT PUBLIC BYTE	;AC000;
+TRANSPACE	SEGMENT PUBLIC BYTE
 	EXTRN	ASCII:BYTE
 	EXTRN	BINARY:BYTE
 	EXTRN	CONCAT:BYTE
@@ -43,9 +41,9 @@ TRANSPACE	ENDS
 
 TRANCODE	SEGMENT PUBLIC BYTE
 
-	EXTRN	BADPATH_ERR:NEAR	;AN022;
-	EXTRN	COPERR:NEAR		;AN052;
-	EXTRN	EXTEND_SETUP:NEAR	;AN022;
+	EXTRN	BADPATH_ERR:NEAR
+	EXTRN	COPERR:NEAR
+	EXTRN	EXTEND_SETUP:NEAR
 
 	PUBLIC	BUILDPATH
 	PUBLIC	SETSTARS
@@ -104,7 +102,7 @@ FIRSTDST:
 	JZ	GoodParse
 ;AD052; MOV	BYTE PTR [DI+1],"|"             ; must be illegal file name character
 	mov	dx,offset trangroup:fuldir_ptr	;AN052; Issue "File creation error"
-	jmp	coperr				;AN052;
+	jmp	coperr
 
 GoodParse:
 	mov	ax,word ptr [DESTBUF]		; Get drive
@@ -225,7 +223,7 @@ BUILDPATH:
 	mov	dx,bp
 	add	dx,BUF				; Set DX to spec
 
-	push	di				;AN000;
+	push	di
 	MOV	AX,EXTOPEN SHL 8		;AC000; open the file
 	mov	bx,read_open_mode		;AN000; get open mode for COPY
 	xor	cx,cx				;AN000; no special files
@@ -233,15 +231,15 @@ BUILDPATH:
 	mov	di,-1				;AN030; no parm list
 	mov	dx,read_open_flag		;AN000; set up open flags
 	INT	int_command
-	pop	di				;AN000;
+	pop	di
 	jnc	pure_file			;AN022; is pure file
 	invoke	get_ext_error_number		;AN022; get the extended error
 	cmp	ax,error_file_not_found 	;AN022; if file not found - okay
-	jz	notpfile			;AN022;
+	jz	notpfile
 	cmp	ax,error_path_not_found 	;AN022; if path not found - okay
-	jz	notpfile			;AN022;
+	jz	notpfile
 	cmp	ax,error_access_denied		;AN022; if access denied - okay
-	jz	notpfile			;AN022;
+	jz	notpfile
 	jmp	extend_setup			;AN022; exit with error
 
 pure_file:
@@ -262,7 +260,7 @@ NOTPFILE:
 	cmp	dh,':'
 	jz	DRVSPEC5
 
-set_drive_spec: 				;AN034;
+set_drive_spec:
 	mov	dl,'@'
 
 DRVSPEC5:
@@ -273,7 +271,7 @@ DRVSPEC5:
 	invoke	get_ext_error_number		;AN022; get the extended error
 	jmp	extend_setup			;AN022; exit with error
 
-curdir_ok:					;AN022;
+curdir_ok:
 	mov	dx,bp
 	add	dx,BUF				; Set DX for upcomming CHDIRs
 	mov	bh,[BP.INFO]
@@ -347,11 +345,11 @@ GOTSRCSLSH:
 NOTPDIR:
 	invoke	get_ext_error_number		;AN022; get the extended error
 	cmp	ax,error_path_not_found 	;AN022; if path not found - okay
-	jz	notpdir_try			;AN022;
+	jz	notpdir_try
 	cmp	ax,error_access_denied		;AN022; if access denied - okay
 	jnz	extend_setupj			;AN022; otherwise - exit error
 
-notpdir_try:					;AN022;
+notpdir_try:
 	mov	[bp.ISDIR],0			; assume pure file
 	mov	bh,[bp.INFO]
 	test	bh,4
@@ -408,7 +406,7 @@ DoCdr:						;AN000;  3/3/KK
 	retnc
 	invoke	get_ext_error_number		;AN022; get the extended error
 
-EXTEND_SETUPJ:					;AN022;
+EXTEND_SETUPJ:
 	JMP	EXTEND_SETUP			;AN022; go issue the error message
 
 BADCDERRJ2:

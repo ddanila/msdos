@@ -56,15 +56,6 @@
 /*                                                                           */
 /*    Copyright 1988 Microsoft Corporation				     */
 /*                                                                           */
-/*    Revision History:                                                      */
-/*                                                                           */
-/*               Modified 6/22/87   v. 4.0			             */
-/*               Rewritten 9/28/87   v. 4.0 		      - AN000	     */
-/*                        - fixed check for "." & ".."        - AN001        */
-/*               PTM 3195 - changed Extended attribute MSGs   - AN002        */
-/*               PTM 3588 - Do C exit not DOS exit.           - AN003        */
-/*               PTM 3783 - Fix for hang problem.             - AN004        */
-/*                                                                           */
 /*   NOTE:                                                                   */
 /*     When extended attributes are added back in, make sure you change the  */
 /*     attrib.skl file back to the original DOS 4.0 ext. attr. error msgs.   */

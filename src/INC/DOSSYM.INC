@@ -1,5 +1,3 @@
-;	SCCSID = @(#)dossym.asm 1.1 85/04/10
-;	SCCSID = @(#)dossym.asm 1.1 85/04/10
 	PAGE 80,132
 TRUE	    EQU 0FFFFh
 FALSE	    EQU 0

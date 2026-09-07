@@ -52,7 +52,7 @@ StdOut	equ	1
 StdErr	equ	2
 Tab	equ	09h
 Label_Buffer_length equ 80h
-Create_Worked equ 0								;an024;
+Create_Worked equ 0
 
 
 ;
@@ -95,8 +95,6 @@ code	segment public para 'CODE'
 ;Called Procedures: Message (macro)
 ;		    Get_New_Label
 ;
-;Change History: Created	5/1/87	       MT
-;
 ;Input: Switch_V
 ;	Command_Line = YES/NO
 ;
@@ -123,46 +121,46 @@ code	segment public para 'CODE'
 ;	ret
 ;*****************************************************************************
 
-Procedure Volid 				;				;AN000;
+Procedure Volid 				;
 
-	push	ds				;Save registers 		;AN000;
-	push	si				; "  "	  "  "			;AN000;
-	test	SwitchMap,Switch_V		;Was /V entered 		 ;AN000;
-;	$IF	NZ				;Yes, see if label entered also ;AN000;
+	push	ds				;Save registers
+	push	si				; "  "	  "  "
+	test	SwitchMap,Switch_V		;Was /V entered
+;	$IF	NZ				;Yes, see if label entered also
 	JZ $$IF1
-	   cmp	   Command_Line,YES		;Is there a string there?	;AN000;
-;	   $IF	   NE				;Nope				;AN000;
+	   cmp	   Command_Line,YES		;Is there a string there?
+;	   $IF	   NE				;Nope
 	   JE $$IF2
-	      call    Get_New_Label		;Go get volume label from user	;AN000;
-;	   $ENDIF				;				;AN000;
+	      call    Get_New_Label		;Go get volume label from user
+;	   $ENDIF				;
 $$IF2:
-;	$ELSE					;Label not entered on cmd line	;AN000;
+;	$ELSE					;Label not entered on cmd line
 	JMP SHORT $$EN1
 $$IF1:
-	   call    Get_New_Label		;Go get label from user 	;AN000;
-;	$ENDIF					;				;AN000;
+	   call    Get_New_Label		;Go get label from user
+;	$ENDIF					;
 $$EN1:
-	mov	dl,drive			;Get drive number  A=0		;AN000;
-	inc	dl				;Make it 1 based		;AN000;
-	mov	DelDrive,dl			;Put into FCBs			;AN000;
-	mov	VolDrive,dl			;				;AN000;
-	mov	dx,offset DelFCB		;Point at FCB to delete label	;AN000;
-	DOS_Call FCB_Delete			;Do the delete			;AN000;
-	mov	dx,offset VolFCB		;Point at FCB for create	;AN000;
-	DOS_CALL FCB_Create			;Go create it			;AN000;
-	cmp	dl,Create_Worked		;See if the create worked	;an024;
-;	$IF	E								;an024;
+	mov	dl,drive			;Get drive number  A=0
+	inc	dl				;Make it 1 based
+	mov	DelDrive,dl			;Put into FCBs
+	mov	VolDrive,dl			;
+	mov	dx,offset DelFCB		;Point at FCB to delete label
+	DOS_Call FCB_Delete			;Do the delete
+	mov	dx,offset VolFCB		;Point at FCB for create
+	DOS_CALL FCB_Create			;Go create it
+	cmp	dl,Create_Worked		;See if the create worked
+;	$IF	E
 	JNE $$IF6
-	   mov	   dx,offset VolFCB		;Point to the FCB created	;an022; dms;
-	   DOS_Call FCB_Close			;Close the newly created FCB	;an022; dms;
-;	$ENDIF									;an024;
+	   mov	   dx,offset VolFCB		;Point to the FCB created
+	   DOS_Call FCB_Close			;Close the newly created FCB
+;	$ENDIF
 $$IF6:
 
-	pop	si				;Restore registers		;AN000;
-	pop	ds				; "  "	   "  " 		;AN000;
-	ret					;				;AN000;
+	pop	si				;Restore registers
+	pop	ds				; "  "	   "  "
+	ret					;
 
-Volid	endp					;				;AN000;
+Volid	endp					;
 
 ;*****************************************************************************
 ;Routine name: Get_New_Label
@@ -174,8 +172,6 @@ Volid	endp					;				;AN000;
 ;Called Procedures: Message (macro)
 ;		    Build_String
 ;		    Get_11_Characters
-;
-;Change History: Created	3/18/87 	MT
 ;
 ;Input: None
 ;
@@ -197,35 +193,35 @@ Volid	endp					;				;AN000;
 ;	ret
 ;*****************************************************************************
 
-Procedure Get_New_Label 			;				;AN000;
+Procedure Get_New_Label 			;
 
-;	$DO					;Loop until we get good one	;AN000;
+;	$DO					;Loop until we get good one
 $$DO8:
-	   Message msgLabelPrompt		;Prompt to input Vol label	;AN000;
+	   Message msgLabelPrompt		;Prompt to input Vol label
 	   mov	ax,(Std_Con_Input_Flush shl 8) + 0 ;an000; dms;clean out input
-	   int	21h				;an000; dms;
+	   int	21h
 	   mov	dx,offset Vol_Label_Count	;an000; dms;beginning of buffer
 	   mov	ah,Std_Con_String_Input 	;an000; dms;get input
-	   int	21h				;an000; dms;
+	   int	21h
 	   mov	ax,(Std_Con_Input_Flush shl 8) + 0 ;an000; dms; clean out input
-	   int	21h				;an000; dms;
-;	   $IF	   NC				;Read ok if NC, Bad sets CY	;AN000;
+	   int	21h
+;	   $IF	   NC				;Read ok if NC, Bad sets CY
 	   JC $$IF9
-	      mov     si,offset Vol_Label_Buffer ;Get pointer to string 	 ;AN000;
-	      call    Get_11_Characters 	;Handle DBCS stuff on input	;AN000;
-;	   $ENDIF				;Ret CY if error		;AN000;
+	      mov     si,offset Vol_Label_Buffer ;Get pointer to string
+	      call    Get_11_Characters 	;Handle DBCS stuff on input
+;	   $ENDIF				;Ret CY if error
 $$IF9:
-;	$LEAVE	NC				;Done if NC			;AN000;
+;	$LEAVE	NC				;Done if NC
 	JNC $$EN8
-	   Message MsgCRLF			;next line			;an020; dms;
-	   Message msgBadVolumeID		;Tell user error		;AN000;
-;	$ENDDO					;Try again			;AN000;
+	   Message MsgCRLF			;next line
+	   Message msgBadVolumeID		;Tell user error
+;	$ENDDO					;Try again
 	JMP SHORT $$DO8
 $$EN8:
 	Message MsgCRLF 			;an000; dms;next line
-	ret					;				;AN000;
+	ret					;
 
-Get_New_Label endp				;				;AN000;
+Get_New_Label endp				;
 
 ;*****************************************************************************
 ;Routine name: Get_11_Characters
@@ -238,8 +234,6 @@ Get_New_Label endp				;				;AN000;
 ;		    Skip_Blanks
 ;		    Check_DBCS_Overrun
 ;		    Copy_FCB_String
-;
-;Change History: Created	5/12/87 	MT
 ;
 ;Input: DS:SI = Asciiz string containing volume label input
 ;	Command_Line = YES/NO
@@ -268,35 +262,35 @@ Get_New_Label endp				;				;AN000;
 ;	ret
 ;*****************************************************************************
 
-Procedure Get_11_Characters			;				;AN000;
+Procedure Get_11_Characters			;
 
-	call	Change_Blanks			;Change DBCS blanks to SBCS	;AN000;
-	call	Skip_Blanks			;Skip over leading blanks	;AN000;
-;	$IF	C,AND				;Find leading blanks?		;AN000;
+	call	Change_Blanks			;Change DBCS blanks to SBCS
+	call	Skip_Blanks			;Skip over leading blanks
+;	$IF	C,AND				;Find leading blanks?
 	JNC $$IF13
-	cmp	Command_Line,YES		;Is this command line input?	;AN000;
-;	$IF	E				;Yes				;AN000;
+	cmp	Command_Line,YES		;Is this command line input?
+;	$IF	E				;Yes
 	JNE $$IF13
-	   stc					;Indicate error (CY set)	;AN000;
-;	$ELSE					;Leading blanks ok		;AN000;
+	   stc					;Indicate error (CY set)
+;	$ELSE					;Leading blanks ok
 	JMP SHORT $$EN13
 $$IF13:
-	   call    Check_DBCS_Overrun		;Is DBCS char at 11th byte?	;AN000;
-;	   $IF	   C				;Yes				;AN000;
+	   call    Check_DBCS_Overrun		;Is DBCS char at 11th byte?
+;	   $IF	   C				;Yes
 	   JNC $$IF15
-	      stc				;Indicate invalid label 	;AN000;
-;	   $ELSE				;No, good characters		;AN000;
+	      stc				;Indicate invalid label
+;	   $ELSE				;No, good characters
 	   JMP SHORT $$EN15
 $$IF15:
-	      call    Copy_FCB_String		;Put string into FCB		;AN000;
-	      clc				;Indicate everything A-OK!	;AN000;
-;	   $ENDIF				;				;AN000;
+	      call    Copy_FCB_String		;Put string into FCB
+	      clc				;Indicate everything A-OK!
+;	   $ENDIF				;
 $$EN15:
-;	$ENDIF					;				;AN000;
+;	$ENDIF					;
 $$EN13:
-	ret					;				;AN000;
+	ret					;
 
-Get_11_Characters endp				;				;AN000;
+Get_11_Characters endp				;
 
 ;*****************************************************************************
 ;Routine name: Change_Blanks
@@ -334,52 +328,52 @@ Get_11_Characters endp				;				;AN000;
 ;
 ;*****************************************************************************
 
-Procedure Change_Blanks 			;				;AN000;
+Procedure Change_Blanks 			;
 
-	push	si				;Save pointer to string 	;AN000;
-	push	cx				;				;AN000;
-	push	ax				;				;AN000;
-	xor	cx,cx				;				;AN000;
-;	$DO					;Do while not CR		;AN000;
+	push	si				;Save pointer to string
+	push	cx				;
+	push	ax				;
+	xor	cx,cx				;
+;	$DO					;Do while not CR
 $$DO19:
-	   cmp	   byte ptr [si],Asciiz_End	;Is it end of string?		;AN000;
-;	$LEAVE	E,OR				;All done if so 		;AN000;
+	   cmp	   byte ptr [si],Asciiz_End	;Is it end of string?
+;	$LEAVE	E,OR				;All done if so
 	JE $$EN19
-	   cmp	   byte ptr [si],CR		;Is it CR?			;AN000;
-;	$LEAVE	E,OR				;Exit if yes,end of label	;AN000;
+	   cmp	   byte ptr [si],CR		;Is it CR?
+;	$LEAVE	E,OR				;Exit if yes,end of label
 	JE $$EN19
-	   inc	   cx				;Count the character		;AN000;
-	   cmp	   cx,Label_Buffer_Length	;Reached max chars? (80h)	;AN000;
-;	$LEAVE	E				;Exit if so			;AN000;
+	   inc	   cx				;Count the character
+	   cmp	   cx,Label_Buffer_Length	;Reached max chars? (80h)
+;	$LEAVE	E				;Exit if so
 	JE $$EN19
-	   mov	   al,byte ptr [si]		;Get char to test for DBCS	;AN000;
-	   call    Check_DBCS_Character 	;Test for dbcs lead byte	;AN000;
-;	   $IF	   C				;We have a lead byte		;AN000;
+	   mov	   al,byte ptr [si]		;Get char to test for DBCS
+	   call    Check_DBCS_Character 	;Test for dbcs lead byte
+;	   $IF	   C				;We have a lead byte
 	   JNC $$IF21
-	      cmp     byte ptr [si],DBCS	;Is it a lead blank?		;AN000;
-;	      $IF     E,AND			;If a dbcs char 		;AN000;
+	      cmp     byte ptr [si],DBCS	;Is it a lead blank?
+;	      $IF     E,AND			;If a dbcs char
 	      JNE $$IF22
-	      cmp     byte ptr [si+1],DBCS_Blank ;Is it an Asian blank? 	;AN000;
-;	      $IF     E 			;If an Asian blank		;AN000;
+	      cmp     byte ptr [si+1],DBCS_Blank ;Is it an Asian blank?
+;	      $IF     E 			;If an Asian blank
 	      JNE $$IF22
-		 mov	 byte ptr [si+1],Blank	;set up moves			;AN000;
-		 mov	 byte ptr [si],Blank	;  to replace			;AN000;
-;	      $ENDIF				;				;AN000;
+		 mov	 byte ptr [si+1],Blank	;set up moves
+		 mov	 byte ptr [si],Blank	;  to replace
+;	      $ENDIF				;
 $$IF22:
-	      inc     si			;Point to dbcs char		;AN000;
-;	   $ENDIF				;End lead byte test		;AN000;
+	      inc     si			;Point to dbcs char
+;	   $ENDIF				;End lead byte test
 $$IF21:
-	   inc	   si				;Point to si+1			;AN000;
-;	$ENDDO					;End do while			;AN000;
+	   inc	   si				;Point to si+1
+;	$ENDDO					;End do while
 	JMP SHORT $$DO19
 $$EN19:
-	mov	byte ptr [si],Asciiz_End	;Mark end of string		;AN000;
-	pop	ax				;Restore regs			;AN000;
-	pop	cx				;				;AN000;
-	pop	si				;				;AN000;
-	ret					;return to caller		;AN000;
+	mov	byte ptr [si],Asciiz_End	;Mark end of string
+	pop	ax				;Restore regs
+	pop	cx				;
+	pop	si				;
+	ret					;return to caller
 
-Change_Blanks endp				;				;AN000;
+Change_Blanks endp				;
 
 ;*****************************************************************************
 ;Routine name: Skip_Blanks
@@ -424,48 +418,48 @@ Change_Blanks endp				;				;AN000;
 ;	ret
 ;*****************************************************************************
 
-Procedure Skip_Blanks				;				;AN000;
+Procedure Skip_Blanks				;
 
-	push	di				;Preserve DI, just in case	;AN000;
-	push	si				;Save pointer to string 	;AN000;
-;	$DO					;Look at entire ASCIIZ string	;AN000;
+	push	di				;Preserve DI, just in case
+	push	si				;Save pointer to string
+;	$DO					;Look at entire ASCIIZ string
 $$DO26:
-	   cmp	   byte ptr [si],ASCIIZ_End	;End of string? 		;AN000;
-;	$LEAVE	E				;Yep, exit loop 		;AN000;
+	   cmp	   byte ptr [si],ASCIIZ_End	;End of string?
+;	$LEAVE	E				;Yep, exit loop
 	JE $$EN26
-	   cmp	   byte ptr [si],Blank		;Find a blank?			;AN000;
-;	   $IF	   E,OR 			;Yes				;AN000;
+	   cmp	   byte ptr [si],Blank		;Find a blank?
+;	   $IF	   E,OR 			;Yes
 	   JE $$LL28
-	   cmp	   byte ptr [si],TAB		;Is it tab?			;AN000;
-;	   $IF	   E				;Yes				;AN000;
+	   cmp	   byte ptr [si],TAB		;Is it tab?
+;	   $IF	   E				;Yes
 	   JNE $$IF28
 $$LL28:
-	      inc     si			;Bump pointer to next character ;AN000;
-	      clc				;Indicate found blank		;AN000;
-;	   $ELSE				;Not blank or tab		;AN000;
+	      inc     si			;Bump pointer to next character
+	      clc				;Indicate found blank
+;	   $ELSE				;Not blank or tab
 	   JMP SHORT $$EN28
 $$IF28:
-	      stc				;Force exit			;AN000;
-;	   $ENDIF				;				;AN000;
+	      stc				;Force exit
+;	   $ENDIF				;
 $$EN28:
-;	$ENDDO	C				;Go look at next character	;AN000;
+;	$ENDDO	C				;Go look at next character
 	JNC $$DO26
 $$EN26:
-	pop	di				;Get back original pointer	;AN000;
-	cmp	di,si				;Are they the same?		;AN000;
-;	$IF	NE				;If not equal blanks were found ;AN000;
+	pop	di				;Get back original pointer
+	cmp	di,si				;Are they the same?
+;	$IF	NE				;If not equal blanks were found
 	JE $$IF32
-	   stc					;Set CY 			;AN000;
-;	$ELSE					;No leading blanks found	;AN000;
+	   stc					;Set CY
+;	$ELSE					;No leading blanks found
 	JMP SHORT $$EN32
 $$IF32:
-	   clc					;Clear CY			;AN000;
-;	$ENDIF					;				;AN000;
+	   clc					;Clear CY
+;	$ENDIF					;
 $$EN32:
-	pop	di				;Restore DI			;AN000;
-	ret					;				;AN000;
+	pop	di				;Restore DI
+	ret					;
 
-Skip_Blanks endp				;				;AN000;
+Skip_Blanks endp				;
 
 
 ;*****************************************************************************
@@ -499,35 +493,35 @@ Skip_Blanks endp				;				;AN000;
 ;	Restore regs
 ;*****************************************************************************
 
-Procedure Copy_FCB_String			;				;AN000;
+Procedure Copy_FCB_String			;
 
-	push	di				;				;AN000;
-	push	cx				;				;AN000;
-	push	si				;Save pointer to string 	;AN000;
-	cld					;Set string direction to up	;AN000;
-	mov	di,offset Volnam		;Init FCB field to blanks	;AN000;
-	mov	al,Blank			; "  "	  "  "			;AN000;
-	mov	cx,Label_Length 		; "  "	  "  "			;AN000;
-	rep	stosb				; "  "	  "  "			;AN000;
-	pop	si				;Get back pointer to string	;AN000;
-	mov	di,offset VolNam		;Point at FCB field		;AN000;
-	xor	cx,cx				;Init counter			;AN000;
-;	$DO					;Copy characters over		;AN000;
+	push	di				;
+	push	cx				;
+	push	si				;Save pointer to string
+	cld					;Set string direction to up
+	mov	di,offset Volnam		;Init FCB field to blanks
+	mov	al,Blank			; "  "	  "  "
+	mov	cx,Label_Length 		; "  "	  "  "
+	rep	stosb				; "  "	  "  "
+	pop	si				;Get back pointer to string
+	mov	di,offset VolNam		;Point at FCB field
+	xor	cx,cx				;Init counter
+;	$DO					;Copy characters over
 $$DO35:
-	   cmp	   byte ptr [si],ASCIIZ_End	;End of String? 		;AN000;
-;	$LEAVE	E				;Yes, don't copy - leave blanks ;AN000;
+	   cmp	   byte ptr [si],ASCIIZ_End	;End of String?
+;	$LEAVE	E				;Yes, don't copy - leave blanks
 	JE $$EN35
-	   movsb				;Nope, copy character		;AN000;
-	   inc	   cx				;Bump up count			;AN000;
-	   cmp	   cx,Label_Length		;Have we moved 11?		;AN000;
-;	$ENDDO	E				;Quit if so			;AN000;
+	   movsb				;Nope, copy character
+	   inc	   cx				;Bump up count
+	   cmp	   cx,Label_Length		;Have we moved 11?
+;	$ENDDO	E				;Quit if so
 	JNE $$DO35
 $$EN35:
-	pop	cx				;				;AN000;
-	pop	di				;				;AN000;
-	ret					;				;AN000;
+	pop	cx				;
+	pop	di				;
+	ret					;
 
-Copy_FCB_String endp				;				;AN000;
+Copy_FCB_String endp				;
 
 
 ;*****************************************************************************
@@ -551,25 +545,25 @@ Copy_FCB_String endp				;				;AN000;
 ;
 ;*****************************************************************************
 
-Procedure Check_DBCS_Overrun			;				;AN000;
+Procedure Check_DBCS_Overrun			;
 
-	push	si				;Save pointer			;AN000;
-	push	ax				;Save registers 		;AN000;
-	push	cx				;  "  "   "  "			;AN000;
-	mov	cx,si				;Get start of string		;AN000;
-	add	cx,Label_Length 		;Find where to check for overrun;AN000;
+	push	si				;Save pointer
+	push	ax				;Save registers
+	push	cx				;  "  "   "  "
+	mov	cx,si				;Get start of string
+	add	cx,Label_Length 		;Find where to check for overrun
 
-Check_DBCS_OverRun_Cont:			;Scan string for DBCS chars	;AN000;
+Check_DBCS_OverRun_Cont:			;Scan string for DBCS chars
 
-	   cmp	   byte ptr [si],ASCIIZ_End	;End of string? 		;AN000;
-	   je	   DBCS_Good_Exit		;Yep				;AN000;
+	   cmp	   byte ptr [si],ASCIIZ_End	;End of string?
+	   je	   DBCS_Good_Exit		;Yep
 
-	   mov	   al,[si]			;Get character for routine	;AN000;
-	   call    Check_DBCS_Character 	;See if DBCS leading character	;AN000;
-;	   $if	   c				;DBCS if CY set 		;AN000;
+	   mov	   al,[si]			;Get character for routine
+	   call    Check_DBCS_Character 	;See if DBCS leading character
+;	   $if	   c				;DBCS if CY set
 	   JNC $$IF38
-		   inc	si			;Next byte to handle DBCS	;AN000;
-		   cmp	si,cx			;Is DBCS char spanning 11-12?	;AN000;
+		   inc	si			;Next byte to handle DBCS
+		   cmp	si,cx			;Is DBCS char spanning 11-12?
 ;		   $if	e			;truncate string
 		   JNE $$IF39
 			mov  byte ptr [si-1],20h;blank it out
@@ -577,35 +571,34 @@ Check_DBCS_OverRun_Cont:			;Scan string for DBCS chars	;AN000;
 			jmp  DBCS_Good_Exit	;exit
 ;		   $endif			;
 $$IF39:
-;	   $else				;Not DBCS character		;an000; dms;
+;	   $else				;Not DBCS character
 	   JMP SHORT $$EN38
 $$IF38:
-		   mov	al,[si] 		;Get character for routine	;an000; dms;
-		   call Scan_For_Invalid_Char	;See if invalid vol ID char	;an000; dms;
-		   jc	DBCS_Bad_Exit		;Bad char entered - exit	;an000; dms;
-;	   $endif				;				;an000; dms;
+		   mov	al,[si] 		;Get character for routine
+		   call Scan_For_Invalid_Char	;See if invalid vol ID char
+		   jc	DBCS_Bad_Exit		;Bad char entered - exit
+;	   $endif				;
 $$EN38:
 
-	   inc	   si				;Point to next character	;an000; dms;
-	   jmp	   Check_DBCS_OverRun_Cont	;Continue looping		;an000; dms;
+	   inc	   si				;Point to next character
+	   jmp	   Check_DBCS_OverRun_Cont	;Continue looping
 
 DBCS_Good_Exit:
-										;an000; dms;
-	clc					;Signal no error		;an000; dms;
-	jmp	DBCS_Exit			;Exit routine			;an000; dms;
+	clc					;Signal no error
+	jmp	DBCS_Exit			;Exit routine
 
-DBCS_Bad_Exit:									;an000; dms;
+DBCS_Bad_Exit:
 
-	stc					;Signal error			;an000; dms;
+	stc					;Signal error
 
-DBCS_Exit:									;an000; dms;
+DBCS_Exit:
 
-	pop	cx				;Restore registers		;AN000;
-	pop	ax				; "  "	  "  "			;AN000;
-	pop	si				;Restore string pointer 	;AN000;
-	ret					;				;AN000;
+	pop	cx				;Restore registers
+	pop	ax				; "  "	  "  "
+	pop	si				;Restore string pointer
+	ret					;
 
-Check_DBCS_Overrun endp 			;				;AN000;
+Check_DBCS_Overrun endp 			;
 
 ;*****************************************************************************
 ;Routine name: Check_DBCS_Character
@@ -645,57 +638,57 @@ Check_DBCS_Overrun endp 			;				;AN000;
 ;	ret
 ;*****************************************************************************
 
-Procedure Check_DBCS_Character			;				;AN000;
+Procedure Check_DBCS_Character			;
 
-	push	ds				;Save registers 		;AN000;
-	push	si				; "  "	  "  "			;AN000;
-	push	ax				; "  "	  "  "			;AN000;
-	push	ds				; "  "	  "  "			;AN000;
-	pop	es				;Establish addressability	;AN000;
-	cmp	byte ptr es:DBCS_VECTOR,Yes	;Have we set this yet?		;AN000;
-	push	ax				;Save input character		;AN000;
-;	$IF	NE				;Nope				;AN000;
+	push	ds				;Save registers
+	push	si				; "  "	  "  "
+	push	ax				; "  "	  "  "
+	push	ds				; "  "	  "  "
+	pop	es				;Establish addressability
+	cmp	byte ptr es:DBCS_VECTOR,Yes	;Have we set this yet?
+	push	ax				;Save input character
+;	$IF	NE				;Nope
 	JE $$IF43
-	   mov	   al,0 			;Get DBCS environment vectors	;AN000;
-	   DOS_Call Hongeul			;  "  "    "  " 		;AN000;
-	   mov	   byte ptr es:DBCS_VECTOR,YES	;Indicate we've got vector      ;AN000;
-	   mov	   es:DBCS_Vector_Off,si	;Save the vector		;AN000;
-	   mov	   ax,ds			;				;AN000;
-	   mov	   es:DBCS_Vector_Seg,ax	;				;AN000;
-;	$ENDIF					; for next time in		;AN000;
+	   mov	   al,0 			;Get DBCS environment vectors
+	   DOS_Call Hongeul			;  "  "    "  "
+	   mov	   byte ptr es:DBCS_VECTOR,YES	;Indicate we've got vector
+	   mov	   es:DBCS_Vector_Off,si	;Save the vector
+	   mov	   ax,ds			;
+	   mov	   es:DBCS_Vector_Seg,ax	;
+;	$ENDIF					; for next time in
 $$IF43:
-	pop	ax				;Restore input character	;AN000;
-	mov	si,es:DBCS_Vector_Seg		;Get saved vector pointer	;AN000;
-	mov	ds,si				;				;AN000;
-	mov	si,es:DBCS_Vector_Off		;				;AN000;
-;	$SEARCH 				;Check all the vectors		;AN000;
+	pop	ax				;Restore input character
+	mov	si,es:DBCS_Vector_Seg		;Get saved vector pointer
+	mov	ds,si				;
+	mov	si,es:DBCS_Vector_Off		;
+;	$SEARCH 				;Check all the vectors
 $$DO45:
-	   cmp	   word ptr ds:[si],End_Of_Vector ;End of vector table? 	  ;AN000;
-;	$LEAVE	E				;Yes, done			;AN000;
+	   cmp	   word ptr ds:[si],End_Of_Vector ;End of vector table?
+;	$LEAVE	E				;Yes, done
 	JE $$EN45
-	   cmp	   al,ds:[si]			;See if char is in vector	;AN000;
-;	$EXITIF AE,AND				;If >= to lower, and		;AN000;
+	   cmp	   al,ds:[si]			;See if char is in vector
+;	$EXITIF AE,AND				;If >= to lower, and
 	JNAE $$IF45
-	   cmp	   al,ds:[si+1] 		; =< than higher range		;AN000;
-;	$EXITIF BE				; then DBCS character		;AN000;
+	   cmp	   al,ds:[si+1] 		; =< than higher range
+;	$EXITIF BE				; then DBCS character
 	JNBE $$IF45
-	   stc					;Set CY to indicate DBCS	;AN000;
-;	$ORELSE 				;Not in range, check next	;AN000;
+	   stc					;Set CY to indicate DBCS
+;	$ORELSE 				;Not in range, check next
 	JMP SHORT $$SR45
 $$IF45:
-	   add	   si,DBCS_Vector_Size		;Get next DBCS vector		;AN000;
-;	$ENDLOOP				;We didn't find DBCS char       ;AN000;
+	   add	   si,DBCS_Vector_Size		;Get next DBCS vector
+;	$ENDLOOP				;We didn't find DBCS char
 	JMP SHORT $$DO45
 $$EN45:
-	   clc					;Clear CY for exit		;AN000;
-;	$ENDSRCH				;				;AN000;
+	   clc					;Clear CY for exit
+;	$ENDSRCH				;
 $$SR45:
-	pop	ax				;Restore registers		;AN000;
-	pop	si				; "  "	  "  "			;AN000;
-	pop	ds				;Restore data segment		;AN000;
-	ret					;				;AN000;
+	pop	ax				;Restore registers
+	pop	si				; "  "	  "  "
+	pop	ds				;Restore data segment
+	ret					;
 
-Check_DBCS_Character endp			;				;AN000;
+Check_DBCS_Character endp			;
 
 ;=========================================================================
 ; Scan_For_Invalid_Char : This routine scans the bad character table
@@ -710,7 +703,7 @@ Check_DBCS_Character endp			;				;AN000;
 ;		  NC			- Character good
 ;=========================================================================
 
-Procedure Scan_For_Invalid_Char 						;an000; dms;
+Procedure Scan_For_Invalid_Char
 
 	push	ax								;an000; dms;save ax
 	push	cx								;an000; dms;save cx
@@ -727,16 +720,16 @@ Procedure Scan_For_Invalid_Char 						;an000; dms;
 	JMP SHORT $$EN51
 $$IF51:
 		stc								;an000; dms;flag a bad character
-;	$endif									;an000; dms;
+;	$endif
 $$EN51:
 
 	pop	di								;an000; dms;restore di
 	pop	cx								;an000; dms;restore cx
 	pop	ax								;an000; dms;restore ax
 
-	ret									;an000; dms;
+	ret
 
-Scan_For_Invalid_Char	endp							;an000; dms;
+Scan_For_Invalid_Char	endp
 
 
 code	ends

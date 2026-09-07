@@ -1,5 +1,3 @@
-;	SCCSID = @(#)exe.asm	1.1 85/04/10
-;	SCCSID = @(#)exe.asm	1.1 85/04/10
 BREAK <EXEC and EXE file structures>
 ;
 ; EXEC arg block - load/go program

@@ -35,10 +35,6 @@
 ; NOTES: THIS MODULE IS TO BE PREPPED BY SALUT WITH THE "PR" OPTIONS.
 ;	 LINK EDLIN+EDLCMD1+EDLCMD2+EDLMES+EDLPARSE
 ;
-; REVISION HISTORY:
-;
-;	AN000	VERSION 4.00 - IMPLEMENTS THE SYSTEM PARSER (SYSPARSE)
-;
 ; COPYRIGHT: "THE IBM PERSONAL COMPUTER EDLIN UTILITY"
 ;	     "VERSION 4.00 (C) COPYRIGHT 1988"
 ;	     "LICENSED MATERIAL - PROPERTY OF Microsoft"
@@ -73,7 +69,7 @@ cstack	ends
 DATA	SEGMENT PUBLIC BYTE
 
 	extrn	path_name:byte
-	extrn	org_ds:word			;an000; dms;
+	extrn	org_ds:word
 
 	public	parse_switch_b			;an000;parse switch result
 	public	filespec			;an000;actual filespec
@@ -142,7 +138,7 @@ DATA	ENDS
 DG	GROUP	CODE,CONST,cstack,DATA
 
 code	segment public	byte			;an000;code segment
-	assume cs:dg,ds:dg,es:dg,ss:CStack	;an000;
+	assume cs:dg,ds:dg,es:dg,ss:CStack
 
 	public	parser_command			;an000;share this routine
 
@@ -158,9 +154,9 @@ include parse.asm				;an000;parser
 parser_command	proc	near			;an000;parse routine
 
 	push	es				;an000;save registers
-	push	ds				;an000;
-	push	di				;an000;
-	push	si				;an000;
+	push	ds
+	push	di
+	push	si
 
 	mov	dg:parse_switch_b,false 	;an000;init. to false
 	xor	cx,cx				;an000;set cx to 0
@@ -168,7 +164,7 @@ parser_command	proc	near			;an000;parse routine
 	mov	di,offset dg:parms		;an000;point to parms
 	mov	si,parse_command		;an000;point to ds:81h
 	mov	ds,dg:org_ds			;an000;get ds at entry
-	assume	ds:nothing			;an000;
+	assume	ds:nothing
 
 parse_continue: 				;an000;loop return point
 
@@ -181,21 +177,21 @@ parse_continue: 				;an000;loop return point
 ;	$if	e				;an000;yes we do
 	JNE $$IF1
 		call build_fs			;an000;save filespec
-;	$else					;an000;
+;	$else
 	JMP SHORT $$EN1
 $$IF1:
 		cmp  parse_switch_b,(true) AND 0FFh	;an000;see if already set
 ;		$if  nz 			;an000;if not
 		JZ $$IF3
 		     call val_sw		;an000;see which switch
-;		$else				;an000;
+;		$else
 		JMP SHORT $$EN3
 $$IF3:
 		     mov  ax,too_many		;an000;set error level
 		     jmp  parse_end		;an000;exit parser
-;		$endif				;an000;
+;		$endif
 $$EN3:
-;	$endif					;an000;
+;	$endif
 $$EN1:
 
 	pop	si
@@ -205,9 +201,9 @@ parse_end:					;an000;end parse routine
 
 	pop	si				;an000;restore registers
 	pop	di				;an000; for return to caller
-	pop	ds				;an000;
-	assume	ds:dg				;an000;
-	pop	es				;an000;
+	pop	ds
+	assume	ds:dg
+	pop	es
 
 	ret					;an000;return to caller
 
@@ -224,10 +220,10 @@ parser_command	endp				;an000;end parser_command
 build_fs	proc	near			;an000;save filespec
 
 	push	ax				;an000;save affected regs.
-	push	di				;an000;
-	push	si				;an000;
-	push	ds				;an000;
-	push	es				;an000;
+	push	di
+	push	si
+	push	ds
+	push	es
 
 	mov	di,offset dg:filespec		;an000;point to filespec buffer
 	lds	si,dword ptr es:parse_fs_off	;an000;get offset
@@ -240,15 +236,15 @@ build_cont:					;an000;continue routine
 	JZ $$IF7
 		stosb				;an000;move byte to filespec
 		jmp build_cont			;an000;continue buffer fill
-;	$endif					;an000;
+;	$endif
 $$IF7:
 	stosb					;an000;save nul
 
 	pop	es				;an000;restore regs
-	pop	ds				;an000;
-	pop	si				;an000;
-	pop	di				;an000;
-	pop	ax				;an000;
+	pop	ds
+	pop	si
+	pop	di
+	pop	ax
 
 	ret					;an000;return to caller
 
@@ -268,5 +264,5 @@ val_sw		endp				;an000;end proc
 
 
 code	ends					;an000;end segment
-	end					;an000;
+	end
 

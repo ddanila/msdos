@@ -60,22 +60,9 @@
 ;	 For LINK instructions, refer to the PROLOG of the main module,
 ;	 ASSIGN.SAL
 ;
-; REVISION HISTORY: AN000 - Version 4.00: PARSER, System Message Handler,
-;					  Status report
-;
 ; COPYRIGHT: "Microsoft DOS ASSIGN Utility"
 ;	     "Version 4.00 (C)Copyright 1988 Microsoft"
 ;	     "Licensed Material - Program Property of Microsoft"
-;
-;
-;	AN000	->		New Code
-;
-;	AN001	-> PTM P3954	Release the environmental vector and close
-;				all handles.
-;
-;	AN002	-> PTM P3918	Parse error messages must conform to spec.
-;				All parse error messages should display
-;				the offending parameters.
 ;
 ;
 ;****************** END OF SPECIFICATIONS *****************************
@@ -127,7 +114,7 @@ BREAK	MACRO	subtitle
 	PAGE
 	ENDM
 .xcref	break
-	INCLUDE SYSMSG.INC		;AN000;
+	INCLUDE SYSMSG.INC
 	INCLUDE SYSVAR.INC
 	INCLUDE CURDIR.INC
 	INCLUDE MULT.INC
@@ -196,9 +183,9 @@ page
 NO_ERROR equ	0			;return code zero from the parser
 					;********** CNS *****************
 ;Std_Con_String_Output EQU 9		 ;  9
-PSP_Env 		equ	2ch	;Environmental vector segment in PSP	;an001; dms;
-Get_PSP 		equ	62h	; DOS function call to get PSP address	;an001; dms;
-Handle_Close		equ	3eh	;close handle				;an001; dms;
+PSP_Env 		equ	2ch	;Environmental vector segment in PSP
+Get_PSP 		equ	62h	; DOS function call to get PSP address
+Handle_Close		equ	3eh	;close handle
 
 Set_Default_Drive	EQU	14	;  E
 Get_Default_Drive	EQU	25	; 19
@@ -405,7 +392,7 @@ DoMapDrive:
 ; DS:BX points to the drive byte being munged.	AL is the old value.  Save
 ; it away.
 ;
-;	$ENDIF				;AC000;
+;	$ENDIF
 $$IF1:
 					;SaveFCB:
 	call	EnterAssign		; NS-Enter Assign's critical section
@@ -542,7 +529,7 @@ DoDL:
 DNJ1:
 	    jmp     DoNothing		; NS- default drive was requested
 					; NS- thus no mapping needed
-;	$ENDIF				;AC000;
+;	$ENDIF
 $$IF5:
 	mov	al,dl			; NS- not default case so no need doctor
 	call	EnterAssign		; NS- so enter ASSIGN crit. section again
@@ -591,13 +578,13 @@ DoIOCTL:
 	RestoreReg <BX,AX>
 	SaveReg <AX,BX>
 	cmp	ax,IOCTL_READ_BLOCK	;(4404h) IOCTL read string from block dev
-	jz	DoMapBX 		;AC000;
+	jz	DoMapBX
 					;    jz    DoMapBX
 	cmp	ax,IOCTL_WRITE_BLOCK	;(4405h) IOCTL write string from block dev
-	jz	DoMapBX 		;AC000;
+	jz	DoMapBX
 					;    jz    DoMapBX
 	cmp	ax,IOCTL_BLOCK_CHANGE	;(4408h) IOCTL is removable
-	jz	DoMapBX 		;AC000;
+	jz	DoMapBX
 					;    jz    DoMapBX
 	cmp	ax,IOCTL_BLOCK_REMOTE	;(4409h) IOCTL block dev redir (network)
 	jnz	DNJ2			;AC000;;NORMAL CALL
@@ -669,13 +656,13 @@ DoSetGetMedia:
 		JMP SHORT $$EN8
 $$IF8:
 			jmp	DoNothing		;an000; dms;pass to interrupt
-;		$endif					;an000; dms;
+;		$endif
 $$EN8:
-;	$else						;an000; dms;
+;	$else
 	JMP SHORT $$EN7
 $$IF7:
 		jmp	DoNothing			;an000; dms;pass to interrupt
-;	$endif						;an000; dms;
+;	$endif
 $$EN7:
 
 	iret				; back to user
@@ -703,7 +690,7 @@ DoOnce:
 		call	maplet		; convert to real drive letter
 
 		mov	[bx],al 	; place in new drive letter
-;	    $ENDIF			;AC000;
+;	    $ENDIF
 $$IF14:
 DNJ3:
 	    jmp     DoNothing		; restore and go on!
@@ -766,25 +753,25 @@ DoRename:
 	mov	drive_save,al
 	mov	drive_address,bx
 	cmp	ah,':'			; drive letter present?
-;	$IF	Z			;AC000;
+;	$IF	Z
 	JNZ $$IF17
 
 	    call    maplet		; convert to real drive letter
 
 	    mov     [bx],al		; place in new drive letter
-;	$ENDIF				;AC000;
+;	$ENDIF
 $$IF17:
 					;DoES:
 	mov	ax,es:[di]		;NS- Get the 2nd drive from the command linepSOP
 	mov	drive_save2,al		;NS- Save possible drive
 	cmp	ah,':'			;NS- exclude if no colon present
-;	$IF	Z			;AC000;
+;	$IF	Z
 	JNZ $$IF19
 
 	    call    maplet		;NS- go convert letter to actual drive #
 
 	    mov     es:[di],al		;NS- new drive value
-;	$ENDIF				;AC000;
+;	$ENDIF
 $$IF19:
 					;DoIt:
 	RestoreReg <BX,AX>		; get back original registers
@@ -817,12 +804,12 @@ $$IF19:
 DoGetDefault:
 	call	Assign_Check
 
-;	$IF	Z			;AC000;
+;	$IF	Z
 	JNZ $$IF21
 					;DNJ4:
 	    jmp     DoNothing
 
-;	$ENDIF				;AC000;
+;	$ENDIF
 $$IF21:
 	RestoreReg <BX,AX>
 	mov	al,default_drive
@@ -861,7 +848,7 @@ DoSetDefault:
 
 	    mov     al,drive_save
 	    mov     default_drive,al	; Set ours too, it's valid!
-;	$ENDIF				;AC000;
+;	$ENDIF
 $$IF23:
 					;BadDrive:
 	pop	ax			; Set return info
@@ -905,12 +892,12 @@ RestInt:
 ;************************************************************************************
 mapdrv0:				;a = 0 , b = 1
 	inc	al
-;	$IF	NZ			;AC000;
+;	$IF	NZ
 	JZ $$IF25
 
 	    call    mapdrv1
 
-;	$ENDIF				;AC000;
+;	$ENDIF
 $$IF25:
 					;Wrap0:
 	dec	al
@@ -919,16 +906,16 @@ $$IF25:
 ;************************************************************************************
 mapdrv1:
 	cmp	al,26
-;	$IF	NA			;AC000;
+;	$IF	NA
 	JA $$IF27
 
 	    cmp     al,0		; check for default
-;	    $IF     Z			;AC000;
+;	    $IF     Z
 	    JNZ $$IF28
 
 		mov	al,default_drive
 		mov	drive_save,al
-;	    $ENDIF			;AC000;
+;	    $ENDIF
 $$IF28:
 
 	    push    bx			;a = 1, b = 2
@@ -941,7 +928,7 @@ $$IF28:
 	    mov     ah,ch
 	    pop     cx
 	    pop     bx
-;	$ENDIF				;AC000;
+;	$ENDIF
 $$IF27:
 	ret
 
@@ -987,7 +974,7 @@ int2F:
 
 	    jmp     int2F_vec		; No, Chain to next guy
 
-;	$ENDIF				;AC000;
+;	$ENDIF
 $$IF31:
 					;MINE:
 	CMP	AL,mplex_get_seg	;(01h)
@@ -999,7 +986,7 @@ $$IF31:
 					;RETURN THE SEGID IN ES
 		PUSH	CS
 		POP	ES		; Call 1 gets our segment in ES
-;	    $ENDIF			;AC000;
+;	    $ENDIF
 $$IF34:
 					;QUER:
 	    MOV     AL,MPLEX_INSTALLED	;(0FFh)  I AM here
@@ -1016,20 +1003,20 @@ assign_check:
 	xor	ax,ax
 	mov	si,ax
 	mov	cx,26
-;	$SEARCH 			;AC000;
+;	$SEARCH
 $$DO37:
 					;scn:
 	    mov     al,drives[si]
 	    INC     SI
 	    cmp     ax,si
-;	$EXITIF NZ,NUL			;AC000;
+;	$EXITIF NZ,NUL
 	JNZ $$SR37
 
-;	$ENDLOOP LOOP			;AC000;
+;	$ENDLOOP LOOP
 	LOOP $$DO37
 
 	    xor     ax,ax		; reset z flag
-;	$ENDSRCH			;AC000;
+;	$ENDSRCH
 $$SR37:
 					;scndone:
 	pop	cx
@@ -1101,23 +1088,23 @@ page
 
 	BREAK	<INITIALIZATION - NOT STAY RESIDENT>
 
-	EXTRN	SYSPARSE:NEAR			;AN000;
+	EXTRN	SYSPARSE:NEAR
 
-ODDX			equ	01H		;AN000;
-EVENX			equ	00H		;AN000;
-PAD_CHAR		equ	' '		;AN000;
-SEMICOLON		equ	';'		;AN000;
-SPACE			equ	' '		;AN000;
-EQUAL			equ	'='		;AN000;
-PLUS			equ	'+'		;AN000;
-good_parse_finish	equ	0ffffh		;an000;
+ODDX			equ	01H
+EVENX			equ	00H
+PAD_CHAR		equ	' '
+SEMICOLON		equ	';'
+SPACE			equ	' '
+EQUAL			equ	'='
+PLUS			equ	'+'
+good_parse_finish	equ	0ffffh
 ;******************************************************************************
-STATUS_ONLY	db	0			;AN000;
-STRING_CTR	db	0			;AN000;
-STATUS_FLAG	db	0			;AN000;
-ERR_CODE	db	0			;AN000;
-POS_FLAG	db	'n'			;AN000;
-PARMS_AVAIL	db	'n'			;AN000;
+STATUS_ONLY	db	0
+STRING_CTR	db	0
+STATUS_FLAG	db	0
+ERR_CODE	db	0
+POS_FLAG	db	'n'
+PARMS_AVAIL	db	'n'
 PAR_RETC	dw	0			;AN000; used for the return code
 DRV_X		db	0			;AN000; from the parser
 save_dr_tbl_ptr dw	?			;an000;drive table pointer
@@ -1129,8 +1116,8 @@ inv		dd	?
 STring		dd	?			;AN000;string holder
 
 
-INCLUDE ASSGPARM.INC				;AN000;
-INCLUDE ASSGMSG.INC				;AN000;
+INCLUDE ASSGPARM.INC
+INCLUDE ASSGMSG.INC
 
 
 assume	cs:code, ds:code, ss:code, es:code
@@ -1169,7 +1156,7 @@ ASGN_NO_HELP:
 	pop	ax				;an000; restore ax
 
 	call	SYSLOADMSG			;AN000; ;does DOS version check
-;	$IF	C				;AN000;
+;	$IF	C
 	JNC $$IF41
 						;remainder of info given
 	    call    SYSDISPMSG			;AN000; ;by the msg retriever
@@ -1195,7 +1182,7 @@ page
 					;OKDOS:
 	mov	ax,ds:[pdb_environ]	;get your Process Data Block Address
 	or	ax,ax			;check to see if space available
-;	$IF	NZ			;AC000;
+;	$IF	NZ
 	JZ $$IF43
 					;    jz    nofree
 	    push    es			; save code segment value
@@ -1300,14 +1287,14 @@ $$DO45:
 ;	$LEAVE	NE			;AN000;code 0 no error keep
 	JNE $$EN45
 					;AN000;parsing
-	    call    CHK_PARSER		;AN000;
+	    call    CHK_PARSER
 
 	    mov     Parm_Ptr2,si	;an002; dms;ptr to 1st. parm
 	    call    SYSPARSE		;AN000;go parse the command line
 	    mov     par_retc,ax 	;AN000; dms;set flag
 					;AN000;restore the parm return code
 
-;	$ENDDO				;AN000;
+;	$ENDDO
 	JMP SHORT $$DO45
 $$EN45:
 
@@ -1319,10 +1306,10 @@ $$EN45:
 		mov	Parm_Ptr1,ax	;an002; dms;place in variable
 		pop	ax		;an002; dms;restore ax
 		call	PARSE_ERR	;an000; dms;display error & exit
-;	$endif				;an000; dms;
+;	$endif
 $$IF48:
 
-	cmp	PARMS_AVAIL,'y' 	;AN000;
+	cmp	PARMS_AVAIL,'y'
 ;	$IF	E			;AN000; If there are parms available
 	JNE $$IF50
 	    cmp     ax,0		;AN000; see if the return code was no error
@@ -1334,17 +1321,17 @@ $$IF48:
 ;	    $ENDIF			;AN000; you also get an error
 $$IF51:
 
-	    xor     ax,ax		;AN000;
-	    mov     al,String_ctr	;AN000;
+	    xor     ax,ax
+	    mov     al,String_ctr
 	    mov     bx,0002h
-	    div     bl			;AN000;
+	    div     bl
 
 	    cmp     ah,EVENX
 ;	    $IF     NE			;AN000; if the drives did not pair off
 	    JE $$IF53
 		mov	ax,parse10
 		call	PARSE_ERR
-;	    $ENDIF			;AN000;
+;	    $ENDIF
 $$IF53:
 
 	    cmp     POS_FLAG,'n'	;AN000;has a drive been specified
@@ -1357,24 +1344,24 @@ $$IF53:
 ;	    $ENDIF			;AN000;command line
 $$IF55:
 					;AN000; hook in the code
-;	$ENDIF				;AN000;
+;	$ENDIF
 $$IF50:
 
 page
 
-	cmp	STATUS_ONLY,0		;AN000;
-;	$IF	E			;AN000;
+	cmp	STATUS_ONLY,0
+;	$IF	E
 	JNE $$IF58
 
-		call	Get_Vectors	;get current vectors			;an001; dms;
-		call	Set_Vectors	;set new vectors			;an001; dms;
+		call	Get_Vectors	;get current vectors
+		call	Set_Vectors	;set new vectors
 
 ;	$ELSE				;AN000;END of HOOK-IN
 	JMP SHORT $$EN58
 $$IF58:
 
-	    call    REPORT_STATUS	;AN000;
-	    call    EXIT_PROG		;AN000;
+	    call    REPORT_STATUS
+	    call    EXIT_PROG
 
 ;	$ENDIF
 $$EN58:
@@ -1436,7 +1423,7 @@ page
 ;	$IF	E,AND				;AN000; drive letter?
 	JNE $$IF61
 	cmp	ah,EVENX			;AN000; and no remainder?
-;	$IF	E				;AN000;
+;	$IF	E
 	JNE $$IF61
 	    inc     STRING_CTR			;AN000; increment counter
 	    mov     PARMS_AVAIL,'y'		;AN000; signal parms entered
@@ -1449,14 +1436,14 @@ page
 	    add     bx,ax			;AC000; get the drive address
 	    mov     save_dr_tbl_ptr,bx		;an000; save the drive table pointer
 	    pop     ax				;an000; restore ax
-;	$ENDIF					;AN000;
+;	$ENDIF
 $$IF61:
 
 	cmp	RES_TYPE,2			;AN000; check for 2nd drive
 ;	$IF	E,AND				;AN000; drive entered?
 	JNE $$IF63
 	cmp	ah,EVENX			;AN000; and not first?
-;	$IF	NE				;AN000;
+;	$IF	NE
 	JE $$IF63
 	    inc     STRING_CTR			;AN000; increment counter
 	    mov     PARMS_AVAIL,'y'		;AN000; signal parms entered
@@ -1469,7 +1456,7 @@ $$IF61:
 	    mov     POS_FLAG,'y'		;AN000; yes you have valid positionals
 	    pop     ax				;an000; restore ax
 	    mov     Parm_Ptr1,si		;an002; dms;ptr to 1st. parm
-;	$ENDIF					;AN000;
+;	$ENDIF
 $$IF63:
 
 	cmp	RES_SYN,0			;AN000; See if a switch was specified
@@ -1483,7 +1470,7 @@ $$IF63:
 ;	$ENDIF					;AN000; was on the command line
 $$IF65:
 
-	ret					;AN000;
+	ret
 
 
 	CHK_PARSER ENDP
@@ -1516,7 +1503,7 @@ drvchk:
 		pop	bx
 		add	bx,ax
 		test	es:[bx].curdir_flags,curdir_inuse
-;		$IF	NZ			;AC000;
+;		$IF	NZ
 		JZ $$IF69
 
 		    pop     ax
@@ -1568,7 +1555,7 @@ $$DO73:
 
 	    cmp     cl,es:[bx]			;AN000; ;compare the table value
 							;to the table contents
-;	    $IF     NE				;AN000;
+;	    $IF     NE
 	    JE $$IF75
 		push	bx			;an000; save bx - we stomp it
 		push	cx			;an000; save cx - we stomp it
@@ -1597,19 +1584,19 @@ $$DO73:
 		pop	cx			;an000; restore cx
 		pop	bx			;an000; restore bx
 
-;	    $ENDIF				;AN000;
+;	    $ENDIF
 $$IF75:
 
 	    inc     bx				;an000; next drive in vector
 	    inc     cl				;AN000; next letter to address
 
-;	$ENDDO					;AN000;
+;	$ENDDO
 	JMP SHORT $$DO73
 $$EN73:
 	pop	es				;an000; restore es
 	assume	es:code 			;an000; tell the linker
 
-	ret					;AN000;
+	ret
 
 REPORT_STATUS ENDP
 page
@@ -1624,10 +1611,10 @@ EXIT_PROG PROC	NEAR
 
 
 	mov	ah,EXIT 		;AC000;(4ch) RETURN TO DOS WITH ERRORLEVEL
-	int	DOS_CALL		;AC000;
+	int	DOS_CALL
 
 
-	ret				;AC000;
+	ret
 
 EXIT_PROG ENDP
 ;*******************************  CNS *******************************************
@@ -1646,8 +1633,8 @@ PARSE_ERR	proc	near		;an000; dms;report an error
 	push	ax			;an000;save ax
 	mov	byte ptr ds:[si],0	;an002;null terminate string
 	mov	dx,Parm_Ptr1		;an002;move ptr to sublist
-	mov	Parse_Sub_Off,dx	;an002;
-	mov	Parse_Sub_Seg,ds	;an002;
+	mov	Parse_Sub_Off,dx
+	mov	Parse_Sub_Seg,ds
 
 	mov	bx,STDERR		;an000;print to standard out
 	mov	cx,1			;an002;1 replaceable parm
@@ -1660,46 +1647,46 @@ PARSE_ERR	proc	near		;an000; dms;report an error
 	call	EXIT_PROG		;AN000;exit ASSIGN due to error
 
 
-PARSE_ERR	endp			;an000; dms;
+PARSE_ERR	endp
 
-Release_Environment	proc	near						;an001; dms;
+Release_Environment	proc	near
 
-	push	ax			;save regs				;an001; dms;
-	push	bx			;					;an001; dms;
-	push	es			;					;an001; dms;
-	mov	ah,Get_PSP		; get the PSP segment			;an001; dms;
-	int	21h			; invoke INT 21h			;an001; dms;
-	mov	es,bx			; BX contains PSP segment - put in ES	;an001; dms;
-	mov	bx,word ptr es:[PSP_Env]; get segment of environmental vector	;an001; dms;
-	mov	es,bx			; place segment in ES for Free Memory	;an001; dms;
-	mov	ah,Dealloc		; Free Allocated Memory 		;an001; dms;
-	int	21h			; invoke INT 21h			;an001; dms;
-	pop	es			; restore regs				;an001; dms;
-	pop	bx			;					;an001; dms;
-	pop	ax			;					;an001; dms;
+	push	ax			;save regs
+	push	bx			;
+	push	es			;
+	mov	ah,Get_PSP		; get the PSP segment
+	int	21h			; invoke INT 21h
+	mov	es,bx			; BX contains PSP segment - put in ES
+	mov	bx,word ptr es:[PSP_Env]; get segment of environmental vector
+	mov	es,bx			; place segment in ES for Free Memory
+	mov	ah,Dealloc		; Free Allocated Memory
+	int	21h			; invoke INT 21h
+	pop	es			; restore regs
+	pop	bx			;
+	pop	ax			;
 
-	ret				; return to caller			;an001; dms;
+	ret				; return to caller
 
 Release_Environment	endp
 
-Close_Handles		proc	near	;close handles 0-4			;an001; dms;
+Close_Handles		proc	near	;close handles 0-4
 
-	push	bx			;save regs				;an001; dms;
-	mov	bx,4			;close all standard files		;an001; dms;
+	push	bx			;save regs
+	mov	bx,4			;close all standard files
 
 Close_Handle_Loop:
 
-	mov	ah,Handle_Close 	;close file handle			;an001; dms;
-	int	21h			;					;an001; dms;
-	dec	bx			;next handle				;an001; dms;
-	jns	Close_Handle_Loop	;continue				;an001; dms;
+	mov	ah,Handle_Close 	;close file handle
+	int	21h			;
+	dec	bx			;next handle
+	jns	Close_Handle_Loop	;continue
 
-	pop	bx			;restore regs				;an001; dms;
-	ret				;					;an001; dms;
+	pop	bx			;restore regs
+	ret				;
 
-Close_Handles		endp		;					;an001; dms;
+Close_Handles		endp		;
 
-Get_Vectors		proc	near	;get original vectors			;an001; dms;
+Get_Vectors		proc	near	;get original vectors
 
 	    mov     ax,(GET_INTERRUPT_VECTOR SHL 8)+ABS_DISK_READ ;(3525h) get the int 25 vector
 	    int     DOS_CALL
@@ -1732,17 +1719,17 @@ Get_Vectors		proc	near	;get original vectors			;an001; dms;
 ;	    $IF     NZ			;AC000; NOT INSTALLED
 	    JZ $$IF78
 
-		call	RELOAD_CURDIR	;AC000;
+		call	RELOAD_CURDIR
 
 ;	    $ENDIF
 $$IF78:
 
-	ret				;					;an001; dms;
+	ret				;
 
-Get_Vectors		endp		;					;an001; dms;
+Get_Vectors		endp		;
 
 
-Set_Vectors		proc	near	;set to new vectors			;an001; dms;
+Set_Vectors		proc	near	;set to new vectors
 
 	    mov     ah,Get_Default_Drive ;(19H)
 	    int     DOS_CALL
@@ -1772,16 +1759,16 @@ Set_Vectors		proc	near	;set to new vectors			;an001; dms;
 	    mov     ax,(SET_INTERRUPT_VECTOR SHL 8) + DOS_CALL ;(2521H)
 	    int     DOS_CALL
 
-	    call    Close_Handles	;close handles 0-4			;an001; dms;
-	    call    Release_Environment ;release the environmental vector	;an001; dms;
+	    call    Close_Handles	;close handles 0-4
+	    call    Release_Environment ;release the environmental vector
 
 	    mov     dx,prog_size	;end but stay resident
 	    mov     ah,KEEP_PROCESS	;(31h) NS- ASSIGN loaded in mem
 	    int     DOS_CALL
 
-	ret				;					;an001; dms;
+	ret				;
 
-Set_Vectors		endp		;					;an001; dms;
+Set_Vectors		endp		;
 
 
 

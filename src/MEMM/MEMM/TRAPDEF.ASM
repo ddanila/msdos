@@ -11,23 +11,6 @@
 ;
 ;   Module:   TRAPDEF.ASM - I/O trap Dispatch table
 ;
-;   Version:  0.04
-;
-;   Date:     July 1, 1986
-;
-;   Author:
-;
-;******************************************************************************
-;
-;   Change log:
-;
-;     DATE    REVISION			DESCRIPTION
-;   --------  --------	-------------------------------------------------------
-;   08/11/86		Split from IOTrap.asm
-;   
-;   7/26/88   		Added Trap handler entries for DMA ports on Channel 4
-;			 - Jaywant H Bharadwaj
-;
 ;******************************************************************************
 ;
 .lfcond 				; list false conditionals

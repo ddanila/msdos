@@ -1,5 +1,3 @@
-;	SCCSID = @(#)filemode.asm	1.1 85/04/10
-;	SCCSID = @(#)filemode.asm	1.1 85/04/10
 BREAK <Standard I/O assignments>
 
 stdin	    EQU     0

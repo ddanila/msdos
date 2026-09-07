@@ -1,4 +1,3 @@
-;	SCCSID = @(#)segcheck.asm	1.2 85/07/24
 TITLE   SegCheck - internal consistency check
 NAME    SegCheck
 

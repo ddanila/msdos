@@ -1,4 +1,3 @@
-;	SCCSID = @(#)stdsw.asm	1.1 85/04/10
 ; Use the switches below to produce the standard Microsoft version or the IBM
 ; version of the operating system
 

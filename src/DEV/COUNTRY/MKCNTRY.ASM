@@ -126,7 +126,7 @@ cntrycnt=0
 	ctryent <CENTRYSIZE,CID_SV,437,,,sv437_data>	    ; Sweden
 	ctryent <CENTRYSIZE,CID_SV,850,,,sv850_data>	    ;
 	ctryent <CENTRYSIZE,CID_DK,850,,,dk850_data>	    ; Denmark
-	ctryent <CENTRYSIZE,CID_DK,865,,,dk865_data>	    ; DCR060 CNS ***** ;AN000;
+	ctryent <CENTRYSIZE,CID_DK,865,,,dk865_data>	    ; DCR060 CNS *****
 	ctryent <CENTRYSIZE,CID_SW,850,,,sw850_data>	    ; Switzerland
 	ctryent <CENTRYSIZE,CID_SW,437,,,sw437_data>	    ;
 	ctryent <CENTRYSIZE,CID_NO,850,,,no850_data>	    ; Norway
@@ -722,7 +722,7 @@ sw437_info	   label   word
 ;*** CNS Change date separator from slash to period - DCR 357
 no865_info	   label   word
 		ctable	<>
-		cinfo	<CID_NO,865,DATE_DMY,'K','r',,,,'.',,',',,'.',,'.',,2,2,HR24,,';'> ;AN000;
+		cinfo	<CID_NO,865,DATE_DMY,'K','r',,,,'.',,',',,'.',,'.',,2,2,HR24,,';'>
 ;*** CNS Change date separator from slash to period - DCR 357
 ;*** Field #14
 ;
@@ -1202,7 +1202,7 @@ sw_collate	label	word
 		db	207,208,209,210,211,212,213,214
 		db	215,216,217,218,140,141,219,220
 		db	221,222,223,224,225,226,227,228
-		db	001,060,061,062,063,064,065,066  ;DCR059 CNS ******  ;AN000;
+		db	001,060,061,062,063,064,065,066  ;DCR059 CNS ******
 		db	067,068,069,070,071,072,073,074
 		db	032,033,034,035,036,037,038,039
 		db	040,041,075,076,077,078,079,080
@@ -1877,7 +1877,7 @@ pr437_ucase	label	word
 ;
 ta437_ucase	label	word
 		ctable	<,'UCASE  ',128>
-;***CNS PTM2390 table omitted	;AN000;
+;***CNS PTM2390 table omitted
 ;***CNS restored for PTM 2575 to establish consistent and maintain 3.3 &
 ;under compatibility
 	       db      128,154,069,065,142,065,143,128
@@ -2116,22 +2116,22 @@ ca850_ucase	label	word
 	       db      248,249,250,251,252,253,254,255
 ;
 ;***CNS PTM2390 table omitted
-;		 db	 128,154,069,065,142,065,143,128    ;AN000;
-;		 db	 069,069,069,073,073,073,142,143    ;AN000;
-;		 db	 144,146,146,079,153,079,085,085    ;AN000;
-;		 db	 089,153,154,155,156,157,158,159    ;AN000;
-;		 db	 065,073,079,085,165,165,166,167    ;AN000;
-;		 db	 168,169,170,171,172,173,174,175    ;AN000;
-;		 db	 176,177,178,179,180,181,182,183    ;AN000;
-;		 db	 184,185,186,187,188,189,190,191    ;AN000;
-;		 db	 192,193,194,195,196,197,198,199    ;AN000;
-;		 db	 200,201,202,203,204,205,206,207    ;AN000;
-;		 db	 208,209,210,211,212,213,214,215    ;AN000;
-;		 db	 216,217,218,219,220,221,222,223    ;AN000;
-;		 db	 224,225,226,227,228,229,230,231    ;AN000;
-;		 db	 232,233,234,235,236,237,238,239    ;AN000;
-;		 db	 240,241,242,243,244,245,246,247    ;AN000;
-;		 db	 248,249,250,251,252,253,254,255    ;AN000;
+;		 db	 128,154,069,065,142,065,143,128
+;		 db	 069,069,069,073,073,073,142,143
+;		 db	 144,146,146,079,153,079,085,085
+;		 db	 089,153,154,155,156,157,158,159
+;		 db	 065,073,079,085,165,165,166,167
+;		 db	 168,169,170,171,172,173,174,175
+;		 db	 176,177,178,179,180,181,182,183
+;		 db	 184,185,186,187,188,189,190,191
+;		 db	 192,193,194,195,196,197,198,199
+;		 db	 200,201,202,203,204,205,206,207
+;		 db	 208,209,210,211,212,213,214,215
+;		 db	 216,217,218,219,220,221,222,223
+;		 db	 224,225,226,227,228,229,230,231
+;		 db	 232,233,234,235,236,237,238,239
+;		 db	 240,241,242,243,244,245,246,247
+;		 db	 248,249,250,251,252,253,254,255
 ;***CNS PTM2390 table omitted
 ;
 ;;la850_ucase	  label   word	- LA wants same as spain
@@ -2228,7 +2228,7 @@ sw850_ucase	  label   word
 		db	210,211,212,216,215,222,142,143
 		db	144,146,146,226,153,227,234,235
 		db	089,153,154,157,156,157,158,159
-		db	181,214,224,233,165,165,166,167 ;DCR059 CNS ** ;AN000;
+		db	181,214,224,233,165,165,166,167 ;DCR059 CNS **
 		db	168,169,170,171,172,173,174,175
 		db	176,177,178,179,180,181,182,183
 		db	184,185,186,187,188,189,190,191
@@ -2386,62 +2386,62 @@ fclend		label	word
 ;
 ; ----------------------------------------------------------------------------
 ;					;***CNS
-uk_dbcs 	label	word		;AN000;
-fr_dbcs 	label	word		;AN000;
-gr_dbcs 	label	word		;AN000;
-sp_dbcs 	label	word		;AN000;
-it_dbcs 	label	word		;AN000;
-sv_dbcs 	label	word		;AN000;
-dk_dbcs 	label	word		;AN000;
-sw_dbcs 	label	word		;AN000;
-no_dbcs 	label	word		;AN000;
-nl_dbcs 	label	word		;AN000;
-be_dbcs 	label	word		;AN000;
-fi_dbcs 	label	word		;AN000;
-is_dbcs 	label	word		;AN000;
-ca_dbcs 	label	word		;AN000;
-as_dbcs 	label	word		;AN000;
-po_dbcs 	label	word		;AN000;
-us_dbcs 	label	word		;AN000;
-la_dbcs 	label	word		;AN000;
-afe_dbcs	label	word		;AN000;
-jp437_dbcs	label	word		;AN000;
-ko437_dbcs	label	word		;AN000;
-pr437_dbcs	label	word		;AN000;
-ta437_dbcs	label	word		;AN000;
-		ctable	<,'DBCS   ',dbcsterm-dbcsbegin>         ;AN000;
-dbcsbegin	label	word					;AN000;
-dbcsterm	db	0,0					;AN000;
-dbcsend 	label	word					;AN000;
+uk_dbcs 	label	word
+fr_dbcs 	label	word
+gr_dbcs 	label	word
+sp_dbcs 	label	word
+it_dbcs 	label	word
+sv_dbcs 	label	word
+dk_dbcs 	label	word
+sw_dbcs 	label	word
+no_dbcs 	label	word
+nl_dbcs 	label	word
+be_dbcs 	label	word
+fi_dbcs 	label	word
+is_dbcs 	label	word
+ca_dbcs 	label	word
+as_dbcs 	label	word
+po_dbcs 	label	word
+us_dbcs 	label	word
+la_dbcs 	label	word
+afe_dbcs	label	word
+jp437_dbcs	label	word
+ko437_dbcs	label	word
+pr437_dbcs	label	word
+ta437_dbcs	label	word
+		ctable	<,'DBCS   ',dbcsterm-dbcsbegin>
+dbcsbegin	label	word
+dbcsterm	db	0,0
+dbcsend 	label	word
 ;
 ;    Japan DBCS lead byte table
 ;
-jp932_dbcs	label	word					;AN000;
-		ctable	<,'DBCS   ',db932end-db932bgn>          ;AN000;
-db932bgn	label	word					;AN000;
-		db	081h,09Fh				;AN000;
-		db	0E0h,0FCh				;AN000;
-db932term	db	000h,000h				;AN000;
-db932end	equ	$					;AN000;
+jp932_dbcs	label	word
+		ctable	<,'DBCS   ',db932end-db932bgn>
+db932bgn	label	word
+		db	081h,09Fh
+		db	0E0h,0FCh
+db932term	db	000h,000h
+db932end	equ	$
 ;
 ;    Korea DBCS lead byte table
 ;
-ko934_dbcs	label	word					;AN000;
-		ctable	<,'DBCS   ',db934end-db934bgn>          ;AN000;
-db934bgn	label	word					;AN000;
-		db	081h,0BFh				;AN000;
-db934term	db	000h,000h				;AN000;
-db934end	equ	$					;AN000;
+ko934_dbcs	label	word
+		ctable	<,'DBCS   ',db934end-db934bgn>
+db934bgn	label	word
+		db	081h,0BFh
+db934term	db	000h,000h
+db934end	equ	$
 ;
 ;    PRC and Taiwan DBCS lead byte table
 ;
-pr936_dbcs	label	word					;AN000;
-ta938_dbcs	label	word					;AN000;
-		ctable	<,'DBCS   ',db936end-db936bgn>          ;AN000;
-db936bgn	label	word					;AN000;
-		db	081h,0FCh				;AN000;
-db936term	db	000h,000h				;AN000;
-db936end	equ	$					;AN000;
+pr936_dbcs	label	word
+ta938_dbcs	label	word
+		ctable	<,'DBCS   ',db936end-db936bgn>
+db936bgn	label	word
+		db	081h,0FCh
+db936term	db	000h,000h
+db936end	equ	$
 
 page
 ; ---------------------------------------------------------------

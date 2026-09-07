@@ -11,24 +11,8 @@ page	58,132
 ;
 ;   Module:   MapLinear
 ;
-;   Version:  0.04
-;
-;   Date:     June 2, 1986
-;
-;   Author:
-;
 ;******************************************************************************
 ;
-;   Change log:
-;
-;     DATE    REVISION			DESCRIPTION
-;   --------  --------	-------------------------------------------------------
-;   06/08/86  Original
-;   06/28/86  0.02	Name changed from MEMM386 to MEMM
-;   07/05/86  0.04	DiagByte moved to _DATA
-;   07/06/86  0.04	changed assume to DGROUP
-;
-;******************************************************************************
 ;
 ;   Functional Description:
 ;	This routine in this module takes a "virtual" addresses specified by

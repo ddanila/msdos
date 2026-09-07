@@ -283,63 +283,61 @@ FON		    ENDS
 PACKET		    STRUC      ;USED BY MINOR CODES: 6AH,4AH,4DH (SELECT, QUERY SELECTED, PREPARE END)
 PACKLEN 	    DW	 2     ;LENGTH OF PACKET IN BYTES, FOR DBCS COUNTRIES, LENGTH OF DBCS TABLE (IF NON-ZERO) WILL be added
 PACKCPID	    DW	 0     ;CODE PAGE ID
-PACKVECTOR1	    DB	 0     ;start of vector list if included							    ;AN000;
-		    DB	 0												    ;AN000;
-		    DB	 0												    ;AN000;
-		    DB	 0												    ;AN000;
-		    DB	 0												    ;AN000;
-		    DB	 0												    ;AN000;
-		    DB	 0												    ;AN000;
-		    DB	 0												    ;AN000;
-		    DB	 0												    ;AN000;
-		    DB	 0												    ;AN000;
-		    DB	 0												    ;AN000;
-		    DB	 0												    ;AN000;
-		    DB	 0												    ;AN000;
-		    DB	 0												    ;AN000;
-		    DB	 0												    ;AN000;
-		    DB	 0												    ;AN000;
-		    DB	 0												    ;AN000;
-		    DB	 0     ; holders for maximum possible number of 						    ;AN000;
-		    DB	 0     ; DBCS vector pairs									    ;AN000;
-		    DB	 0     ;											    ;AN000;
-		    DB	 0     ;											    ;AN000;
-		    DB	 0     ;											    ;AN000;
-PACKVECTOR12	    DB	 0     ;											    ;AN000;
-		    DB	 0     ;											    ;AN000;
-PACKET		    ENDS												    ;AN000;
-															    ;AN000;
-DBCS_head	    STRUC      ;return from function 6507, pointed to by ES:DI, addressed via "DBCS_header"                 ;AN000;
-info_id 	    DB	 7												    ;AN000;
-table_ptr	    DD	 0     ;used to address DBCS_tabl								    ;AN000;
+PACKVECTOR1	    DB	 0     ;start of vector list if included
+		    DB	 0
+		    DB	 0
+		    DB	 0
+		    DB	 0
+		    DB	 0
+		    DB	 0
+		    DB	 0
+		    DB	 0
+		    DB	 0
+		    DB	 0
+		    DB	 0
+		    DB	 0
+		    DB	 0
+		    DB	 0
+		    DB	 0
+		    DB	 0
+		    DB	 0     ; holders for maximum possible number of
+		    DB	 0     ; DBCS vector pairs
+		    DB	 0     ;
+		    DB	 0     ;
+		    DB	 0     ;
+PACKVECTOR12	    DB	 0     ;
+		    DB	 0     ;
+PACKET		    ENDS
+DBCS_head	    STRUC      ;return from function 6507, pointed to by ES:DI, addressed via "DBCS_header"
+info_id 	    DB	 7
+table_ptr	    DD	 0     ;used to address DBCS_tabl
 DBCS_head	    ENDS
-															    ;AN000;
-DBCS_tabl	    STRUC      ;map of DBCS table, addressed via DBCS_table						    ;AN000;
-table_len	    DW	 6     ;length in bytes of the list of vectors							    ;AN000;
-vector1 	    DB	 0     ;start of vector list									    ;AN000;
-		    DB	 0												    ;AN000;
-		    DB	 0												    ;AN000;
-		    DB	 0												    ;AN000;
-		    DB	 0												    ;AN000;
-		    DB	 0												    ;AN000;
-		    DB	 0												    ;AN000;
-		    DB	 0												    ;AN000;
-		    DB	 0												    ;AN000;
-		    DB	 0												    ;AN000;
-		    DB	 0     ;each vector is two bytes, a start value and an						    ;AN000;
-		    DB	 0     ;end value										    ;AN000;
-		    DB	 0												    ;AN000;
-		    DB	 0												    ;AN000;
-		    DB	 0												    ;AN000;
-		    DB	 0												    ;AN000;
-		    DB	 0												    ;AN000;
-		    DB	 0												    ;AN000;
-		    DB	 0												    ;AN000;
-		    DB	 0												    ;AN000;
-		    DB	 0												    ;AN000;
-		    DB	 0												    ;AN000;
-		    DB	 0												    ;AN000;
-		    DB	 0												    ;AN000;
+DBCS_tabl	    STRUC      ;map of DBCS table, addressed via DBCS_table
+table_len	    DW	 6     ;length in bytes of the list of vectors
+vector1 	    DB	 0     ;start of vector list
+		    DB	 0
+		    DB	 0
+		    DB	 0
+		    DB	 0
+		    DB	 0
+		    DB	 0
+		    DB	 0
+		    DB	 0
+		    DB	 0
+		    DB	 0     ;each vector is two bytes, a start value and an
+		    DB	 0     ;end value
+		    DB	 0
+		    DB	 0
+		    DB	 0
+		    DB	 0
+		    DB	 0
+		    DB	 0
+		    DB	 0
+		    DB	 0
+		    DB	 0
+		    DB	 0
+		    DB	 0
+		    DB	 0
 DBCS_tabl	    ENDS
 
 

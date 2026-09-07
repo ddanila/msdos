@@ -82,8 +82,6 @@
 ;	 For LINK instructions, refer to the PROLOG of the main module,
 ;	 NLSFUNC.SAL
 ;
-; REVISION HISTORY: A000 Version 4.00: add PARSER, System Message Handler,
-;
 ; COPYRIGHT: "The DOS NLSFUNC Utility"
 ;	     "Version 4.00 (C)Copyright 1988 Microsoft
 ;	     "Licensed Material - Program Property of Microsoft "

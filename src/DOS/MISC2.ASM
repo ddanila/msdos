@@ -1,4 +1,3 @@
-;	SCCSID = @(#)misc2.asm	1.1 85/04/10
 TITLE MISC2 - Miscellanious routines for MS-DOS
 NAME  MISC2
 ;
@@ -22,14 +21,6 @@ NAME  MISC2
 ;   MSG_RETRIEVAL		  ; DOS 4.0
 ;   Fake_Version		  ; DOS 4.0
 ;
-;   Revision history:
-;
-;	Created: ARR 30 March 1983
-;
-;	A000   version 4.0   Jan. 1988
-;	A001   DCR 486 - Share installation for >32mb drives
-;	A006   DCR 503 - fake version number for IBMCACHE
-
 .xlist
 ;
 ; get the appropriate segment definitions
@@ -41,24 +32,24 @@ CODE	SEGMENT BYTE PUBLIC  'CODE'
 
 .xcref
 include dossym.inc
-include fastseek.inc		       ;AN000;
-include fastxxxx.inc		       ;AN000;
+include fastseek.inc
+include fastxxxx.inc
 .cref
 .list
 
 	i_need	THISCDS,DWORD
 	I_Need	RetryLoop,WORD
 	I_need	fSharing,BYTE		; TRUE => server-issued call
-	I_need	FastTable,BYTE		;AN000;
-	I_need	FastFlg,BYTE		;AN000;
-	I_need	User_SP_2F,WORD 	;AN000;
-	I_need	User_SP,WORD		;AN000;
-	I_need	User_SS,WORD		;AN000;
-	I_need	SysInitTable,BYTE	;AN000;
-	I_need	EXTERR,WORD		;AN000;
-	I_need	MSG_EXTERROR,DWORD	;AN000;
-	I_need	fshare,byte		;AN001;
-	I_need	Special_version,WORD	;AN006;
+	I_need	FastTable,BYTE
+	I_need	FastFlg,BYTE
+	I_need	User_SP_2F,WORD
+	I_need	User_SP,WORD
+	I_need	User_SS,WORD
+	I_need	SysInitTable,BYTE
+	I_need	EXTERR,WORD
+	I_need	MSG_EXTERROR,DWORD
+	I_need	fshare,byte
+	I_need	Special_version,WORD
 if debug
 	I_need	BugLev,WORD
 	I_need	BugTyp,WORD
@@ -79,7 +70,7 @@ Procedure   StrCmp,NEAR
 	SaveReg <SI,DI,AX>
 Cmplp:
 	LODSB
- IF  DBCS				;AN000;
+ IF  DBCS
 	invoke	testkanj		;AN000;; 2/13/KK
 	jz	notkanj1		;AN000;; 2/13/KK
 	dec	si			;AN000;; Do source again 2/13/KK
@@ -88,9 +79,9 @@ Cmplp:
 	cmpsb				;AN000;; Second byte of kanji char 2/13/KK
 	JNZ	PopRet			;AN000;; Strings dif	 2/13/KK
 	mov	al,byte ptr [SI-1]	;AN000;; Need last byte in AL  2/13/KK
-	jmp	short Tend		;AN000;
+	jmp	short Tend
 notkanj1:				;AN000;; 2/13/KK
- ENDIF					;AN000;
+ ENDIF
 	CALL	uCase			; convert to upper case
 	Invoke	PathChrCmp		; convert / to \
 	MOV	AH,AL
@@ -126,7 +117,7 @@ Procedure   StrCpy,NEAR
 	SaveReg <AX>
 CPYLoop:
 	LODSB
- IF  DBCS			;AN000;
+ IF  DBCS
 	invoke	testkanj	;AN000;; 2/13/KK
 	jz	notkanj2	;AN000;; 2/13/KK
 	STOSB			;AN000;; 2/13/KK
@@ -135,7 +126,7 @@ CPYLoop:
 	jmp	short CPYLoop	;AN000;; 3/31/KK
 
 notkanj2:			;AN000;; 2/13/KK
- ENDIF				;AN000;
+ ENDIF
 	CALL	uCase			; convert to upper case
 	Invoke	PathChrCmp		; convert / to \
 	STOSB
@@ -352,8 +343,8 @@ Break	<FastInit - Initialize FastTable entries >
 ;
 ;
 
-Procedure   FastInit,NEAR				      ;AN000;
-	ASSUME	CS:DOSGroup,DS:NOTHING,ES:NOTHING,SS:NOTHING  ;AN000;
+Procedure   FastInit,NEAR
+	ASSUME	CS:DOSGroup,DS:NOTHING,ES:NOTHING,SS:NOTHING
 
 	MOV	DI,OFFSET DOSGROUP:FastTable + 2   ;AN000;FO. points to fastxxx entry
 	DEC	BX		  ;AN000;FO.;; decrement index
@@ -362,7 +353,7 @@ Procedure   FastInit,NEAR				      ;AN000;
 	SHL	BX,1		  ;AN000;FO.
 	ADD	DI,BX		  ;AN000;FO. index to the entry
 	MOV	AX,WORD PTR CS:[DI+2] ;AN000;FO. get entry segment
-fcheck: 			      ;AN000;
+fcheck:
 	MOV	CX,CS		  ;AN000;FO.;; get DOS segment
 	CMP	AX,CX		  ;AN000;FO.;; first time installed ?
 	JZ	ok_install	  ;AN000;FO.;; yes
@@ -370,7 +361,7 @@ fcheck: 			      ;AN000;
 	JZ	ok_install	  ;AN000;FO.;
 	STC			  ;AN000;FO.;; already installed !
 	JMP	SHORT FSret	  ;AN000;FO. set carry
-ok_install:			      ;AN000;
+ok_install:
 	CMP	SI,-1		      ;AN000;FO.;  Query only ?
 	JZ	FSret		      ;AN000;FO.;  yes
 	MOV	CX,DS		      ;AN000;FO.;  get FASTXXX entry segment
@@ -381,7 +372,7 @@ ok_install:			      ;AN000;
 	ADD	DI,DX			   ;AN000;FO.;	index to a FASTXXX flag
 	OR	byte ptr CS:[DI],Fast_yes  ;AN000;FO.;	indicate installed
 
-FSret:					     ;AN000;
+FSret:
 	return				     ;AN000;FO.
 EndProc FastInit			     ;AN000;FO.
 
@@ -545,8 +536,8 @@ Break	<MSG_RETRIEVAL- get beginning addr of system and parser messages>
 ;   Outputs:	ES:DI points to addr when get
 ;
 
-Procedure   MSG_RETRIEVAL,NEAR					  ;AN000;
-	ASSUME	CS:DOSGroup,DS:NOTHING,ES:NOTHING,SS:NOTHING	  ;AN000;
+Procedure   MSG_RETRIEVAL,NEAR
+	ASSUME	CS:DOSGroup,DS:NOTHING,ES:NOTHING,SS:NOTHING
 
 	PUSH	AX		    ;AN000;;MS. save regs
 	PUSH	SI		    ;AN000;;MS. save regs
@@ -555,7 +546,7 @@ Procedure   MSG_RETRIEVAL,NEAR					  ;AN000;
 	TEST	AL,1		    ;AN000;;MS. get ?
 	JZ	toget		    ;AN000;;MS. yes
 	DEC	AL		    ;AN000;;MS.
-toget:				    ;AN000;
+toget:
 	SHL	AL,1		    ;AN000;;MS. times 2
 	XOR	AH,AH		    ;AN000;;MS.
 	ADD	SI,AX		    ;AN000;;MS. position to the entry
@@ -564,14 +555,14 @@ toget:				    ;AN000;
 	MOV	WORD PTR CS:[SI],DI    ;AN000;;MS. set MSG
 	MOV	WORD PTR CS:[SI+2],ES  ;AN000;;MS. address to ES:DI
 	JMP	SHORT MSGret		     ;AN000;;MS. exit
-getget: 				     ;AN000;
+getget:
 	LES	DI,DWORD PTR CS:[SI]	     ;AN000;;MS. get msg addr
-MSGret: 				     ;AN000;
+MSGret:
 	POP	SI			     ;AN000;;MS.
 	POP	AX			     ;AN000;;MS.
 	return				     ;AN000;;MS. exit
 
-EndProc MSG_RETRIEVAL			     ;AN000;
+EndProc MSG_RETRIEVAL
 
 
 Break	<Fake_version - set/reset version flag>
@@ -583,8 +574,8 @@ Break	<Fake_version - set/reset version flag>
 ;   Outputs:	version number is changed
 ;
 
-Procedure   Fake_version,NEAR					  ;AN000;
-	ASSUME	CS:DOSGroup,DS:NOTHING,ES:NOTHING,SS:NOTHING	  ;AN000;
+Procedure   Fake_version,NEAR
+	ASSUME	CS:DOSGroup,DS:NOTHING,ES:NOTHING,SS:NOTHING
 
 	MOV	[Special_version],DX   ;AN006;MS.
 	return			       ;AN006;;MS. exit

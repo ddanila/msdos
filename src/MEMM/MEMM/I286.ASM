@@ -11,33 +11,8 @@ page	58,132
 ;
 ;   Module:   i286.asm - Support Routines for protected mode system
 ;
-;   Version:  0.02
-;
-;   Date:     January 31, 1986
-;
-;   Author:
-;
 ;******************************************************************************
 ;
-;   Change log:
-;
-;     DATE    REVISION			DESCRIPTION
-;   --------  --------	-------------------------------------------------------
-;   01/31/86  Original
-;   02/05/86  A 	added is286, is386
-;   05/12/86  B 	Cleanup and segment reorganization
-;   06/03/86  C 	added push/pop es to Init_GDT and changed Ring 0
-;			stack to STACK0 and STACK0_SIZE.
-;   06/28/86  0.02	Name changed from MEMM386 to MEMM
-;
-;******************************************************************************
-;
-;   Functional Description:
-;
-;	Anthony Short
-;	26th Dec 1985
-;
-;	DESCRIPTION
 ;
 ;	These routines manage the various 286 memory management
 ;	tables and manipulate descriptors and selectors.

@@ -1,4 +1,3 @@
-;	SCCSID = @(#)msinit.asm 1.2 85/07/23
 ; TITLE MSINIT.ASM -- MS-DOS INITIALIZATION CODE
 ; AN000 version 4.0 Jan. 1988
 ; AN007 PTM 3957 - fake version for IBMCACHE.COM
@@ -32,20 +31,20 @@ include fastopen.inc
 	I_need	SysInitTable,BYTE	 ; sys init table for SYSINIT
 	I_need	FastOpenTable,BYTE	 ; table for FASTOPEN
 	I_need	FETCHI_TAG,WORD 	 ; TAG CHECK
-	I_need	Special_Entries,WORD	 ; address of special entries ;AN007;
+	I_need	Special_Entries,WORD	 ; address of special entries
 	I_need	SetverResidentTable,BYTE
-	I_need	IFS_DOS_CALL,DWORD	 ; IFS IBMDOS CALL entry      ;AN000;
-	I_need	HASHINITVAR,WORD	 ; hash table variables       ;AN000;
-	I_need	Packet_Temp,WORD	 ; used for initial Hash table;AN000;
-	I_need	BUF_HASH_PTR,DWORD	 ; used for initial Hash table;AN000;
-	I_need	SWAP_ALWAYS_AREA,DWORD	 ; swap always area addr    ;AN000;
-	I_need	SWAP_ALWAYS_AREA_LEN,WORD; swap always area length  ;AN000;
-	I_need	SWAP_IN_DOS,DWORD	 ; swap in dos area	    ;AN000;
-	I_need	SWAP_IN_DOS_LEN,WORD	 ; swap in dos area length  ;AN000;
-	I_need	SWAP_AREA_LEN,WORD	 ; swap area length	    ;AN000;
-	I_need	SWAP_START,BYTE 	 ; swap start addr	    ;AN000;
-	I_need	SWAP_ALWAYS,BYTE	 ; swap always addr	    ;AN000;
-	I_need	Hash_Temp,WORD		 ; temporary Hash table     ;AN000;
+	I_need	IFS_DOS_CALL,DWORD	 ; IFS IBMDOS CALL entry
+	I_need	HASHINITVAR,WORD	 ; hash table variables
+	I_need	Packet_Temp,WORD	 ; used for initial Hash table
+	I_need	BUF_HASH_PTR,DWORD	 ; used for initial Hash table
+	I_need	SWAP_ALWAYS_AREA,DWORD	 ; swap always area addr
+	I_need	SWAP_ALWAYS_AREA_LEN,WORD; swap always area length
+	I_need	SWAP_IN_DOS,DWORD	 ; swap in dos area
+	I_need	SWAP_IN_DOS_LEN,WORD	 ; swap in dos area length
+	I_need	SWAP_AREA_LEN,WORD	 ; swap area length
+	I_need	SWAP_START,BYTE 	 ; swap start addr
+	I_need	SWAP_ALWAYS,BYTE	 ; swap always addr
+	I_need	Hash_Temp,WORD		 ; temporary Hash table
 
 CODE		SEGMENT BYTE PUBLIC 'CODE'
 	Extrn	IRETT:NEAR,INT2F:NEAR,CALL_ENTRY:NEAR,QUIT:NEAR,IFS_DOSCALL:FAR
@@ -101,9 +100,9 @@ SETFINDPB:
 ;	MOV	DI,OFFSET DOSGroup:SYSBUF	; Set up one default buffer
 ;	MOV	WORD PTR [BUFFHEAD+2],ES
 ;	MOV	WORD PTR [BUFFHEAD],DI
-;;	MOV	WORD PTR [Hash_Temp+4],ES   ;LB. intitialize one Hash entry   ;AN000;
-;;	MOV	WORD PTR [Hash_Temp+2],DI   ;LB.			      ;AN000;
-;;	MOV	WORD PTR [Hash_Temp+6],0    ;LB. dirty count =0 	      ;AN000;
+;;	MOV	WORD PTR [Hash_Temp+4],ES   ;LB. intitialize one Hash entry
+;;	MOV	WORD PTR [Hash_Temp+2],DI   ;LB.
+;;	MOV	WORD PTR [Hash_Temp+6],0    ;LB. dirty count =0
 ;;	MOV	WORD PTR ES:[DI.buf_ID],00FFH
 ;;	MOV	WORD PTR ES:[DI.buf_next],DI  ;;;1/19/88
 ;;	MOV	WORD PTR ES:[DI.buf_prev],DI  ;;;1/19/88
@@ -548,44 +547,44 @@ OUTDONE:
 	MOV	WORD PTR ES:[SI.SYSI_Country_Tab + 2],ES
 	MOV	WORD PTR ES:[SI.SYSI_InitVars + 2],ES
 
-	MOV	WORD PTR ES:[BUFFHEAD+2],ES	  ;LB. DOS 4.00 buffer head pointer ;AN000;
-	MOV	SI,OFFSET DOSGROUP:HASHINITVAR	  ;LB. points to Hashinitvar	   ;AN000;
-	MOV	WORD PTR ES:[BUFFHEAD],SI	  ;LB.				   ;AN000;
-	MOV	WORD PTR ES:[BUF_HASH_PTR+2],ES   ;LB.				   ;AN000;
-	MOV	SI,OFFSET DOSGROUP:Hash_Temp	  ;LB.				   ;AN000;
-	MOV	WORD PTR ES:[BUF_HASH_PTR],SI	  ;LB.				   ;AN000;
+	MOV	WORD PTR ES:[BUFFHEAD+2],ES	  ;LB. DOS 4.00 buffer head pointer
+	MOV	SI,OFFSET DOSGROUP:HASHINITVAR	  ;LB. points to Hashinitvar
+	MOV	WORD PTR ES:[BUFFHEAD],SI	  ;LB.
+	MOV	WORD PTR ES:[BUF_HASH_PTR+2],ES   ;LB.
+	MOV	SI,OFFSET DOSGROUP:Hash_Temp	  ;LB.
+	MOV	WORD PTR ES:[BUF_HASH_PTR],SI	  ;LB.
 
 	MOV	SI,OFFSET DOSGROUP:FastOpenTable
 	MOV	WORD PTR ES:[SI.FASTOPEN_NAME_CACHING + 2],ES
 	MOV	ES:[FETCHI_TAG],22642	  ; TAG for IBM,
 					  ; Fetchi's serial # = 822642
-	MOV	WORD PTR ES:[IFS_DOS_CALL+2],ES   ;IFS. 			;AN000;
-	MOV	SI,OFFSET DOSGROUP:IFS_DOSCALL	  ;IFS. 			;AN000;
-	MOV	WORD PTR ES:[IFS_DOS_CALL],SI	  ;IFS. 			;AN000;
+	MOV	WORD PTR ES:[IFS_DOS_CALL+2],ES   ;IFS.
+	MOV	SI,OFFSET DOSGROUP:IFS_DOSCALL	  ;IFS.
+	MOV	WORD PTR ES:[IFS_DOS_CALL],SI	  ;IFS.
 
-	MOV	DI,OFFSET DOSGROUP:SWAP_START	  ;IFS. 			;AN000;
-	MOV	CX,OFFSET DOSGROUP:SWAP_END	  ;IFS. 			;AN000;
-	MOV	DX,OFFSET DOSGroup:Swap_Always	  ;IFS. 			;AN000;
-	MOV	BP,CX			;IFS.					;AN000;
-	SUB	BP,DI			;IFS.					;AN000;
-	SHR	BP,1			;IFS. div by 2, remainder in carry	;AN000;
-	ADC	BP,0			;IFS. div by 2 + round up		;AN000;
-	SHL	BP,1			;IFS. round up to 2 boundary.		;AN000;
-	MOV	ES:[SWAP_AREA_LEN],BP	;IFS.					;AN000;
+	MOV	DI,OFFSET DOSGROUP:SWAP_START	  ;IFS.
+	MOV	CX,OFFSET DOSGROUP:SWAP_END	  ;IFS.
+	MOV	DX,OFFSET DOSGroup:Swap_Always	  ;IFS.
+	MOV	BP,CX			;IFS.
+	SUB	BP,DI			;IFS.
+	SHR	BP,1			;IFS. div by 2, remainder in carry
+	ADC	BP,0			;IFS. div by 2 + round up
+	SHL	BP,1			;IFS. round up to 2 boundary.
+	MOV	ES:[SWAP_AREA_LEN],BP	;IFS.
 
-	SUB	CX,DX			;IFS.					;AN000;
-	SUB	DX,DI			;IFS.					;AN000;
-	SHR	CX,1			;IFS. div by 2, remainder in carry	;AN000;
-	ADC	CX,0			;IFS. div by 2 + round up		;AN000;
-	SHL	CX,1			;IFS. round up to 2 boundary.		;AN000;
-	MOV	ES:[SWAP_IN_DOS_LEN],CX 	    ;IFS.			;AN000;
-	MOV	WORD PTR ES:[SWAP_ALWAYS_AREA],DI   ;IFS.			;AN000;
-	MOV	WORD PTR ES:[SWAP_ALWAYS_AREA+2],ES ;IFS.			;AN000;
-	OR	DX,8000H			    ;IFS.			;AN000;
-	MOV	ES:[SWAP_ALWAYS_AREA_LEN],DX	    ;IFS.			;AN000;
-	MOV	DI,OFFSET DOSGroup:Swap_Always	    ;IFS.			;AN000;
-	MOV	WORD PTR ES:[SWAP_IN_DOS],DI	    ;IFS.			;AN000;
-	MOV	WORD PTR ES:[SWAP_IN_DOS+2],ES	    ;IFS.			;AN000;
+	SUB	CX,DX			;IFS.
+	SUB	DX,DI			;IFS.
+	SHR	CX,1			;IFS. div by 2, remainder in carry
+	ADC	CX,0			;IFS. div by 2 + round up
+	SHL	CX,1			;IFS. round up to 2 boundary.
+	MOV	ES:[SWAP_IN_DOS_LEN],CX 	    ;IFS.
+	MOV	WORD PTR ES:[SWAP_ALWAYS_AREA],DI   ;IFS.
+	MOV	WORD PTR ES:[SWAP_ALWAYS_AREA+2],ES ;IFS.
+	OR	DX,8000H			    ;IFS.
+	MOV	ES:[SWAP_ALWAYS_AREA_LEN],DX	    ;IFS.
+	MOV	DI,OFFSET DOSGroup:Swap_Always	    ;IFS.
+	MOV	WORD PTR ES:[SWAP_IN_DOS],DI	    ;IFS.
+	MOV	WORD PTR ES:[SWAP_IN_DOS+2],ES	    ;IFS.
 
 
 

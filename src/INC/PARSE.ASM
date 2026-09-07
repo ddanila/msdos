@@ -1,4 +1,4 @@
-	PAGE				;AN000;
+	PAGE
 ;  $SALUT (4,4,8,41)
 ;(deleted).XLIST
 ;(deleted)INCLUDE   STRUC.INC ;AN020;structured macro definitions for .IF,.ELSE etc.
@@ -12,15 +12,15 @@
 ;					 ES must point to psdata.
 ;
 ;
-IFNDEF basesw				;AN022;
-   psdata_seg EQU   CS			;AN022;
-ELSE					;AN022;
+IFNDEF basesw
+   psdata_seg EQU   CS
+ELSE
    IF  basesw				;AN022;IF "basesw  EQU  1" specified by caller THEN
-       psdata_seg EQU	DS		;AN022;
-   ELSE 				;AN022;
+       psdata_seg EQU	DS
+   ELSE
        psdata_seg EQU	ES		;AN022;ELSE only other choice is ES (basesw EQU 0)
-   ENDIF				;AN022;
-ENDIF					;AN022;
+   ENDIF
+ENDIF
 
 ifndef incsw				;AN000; (tm03) Someone doesn't want to include psdata
    incsw equ	 1			;AN000; include psdata.inc (tm03)
@@ -28,10 +28,10 @@ endif					;AN000; (tm03)
 if incsw				;AN000; If incsw = 1 then (tm03)
    include psdata.inc			;AN000;    include psdata.inc (tm03)
 endif					;AN000; endif		  (tm03)
-   PAGE 				;AN000;
-IF1					;AN000;
-   %OUT INCLUDING COMP=COMMON DSN=PARSE.ASM...;AN000;
-ENDIF					;AN000;
+   PAGE
+IF1
+   %OUT INCLUDING COMP=COMMON DSN=PARSE.ASM...
+ENDIF
 ;***********************************************************************
 ; SysParse;
 ;
@@ -63,158 +63,14 @@ ENDIF					;AN000;
 ; Vars: $P_Ordinal(RW), $P_RC(RW), $P_SI_Save(RW), $P_DX(R), $P_Terminator(R)
 ;	$P_SaveSI_Cmpx(W), $P_Flags(RW), $P_Found_SYNONYM(R), $P_Save_EOB(W)
 ;
-;-------- Modification History -----------------------------------------
-;
-;  4/04/87 : Created by K. K,
-;  4/28/87 : $P_Val_YH assemble error (tm01)
-;	   : JMP SHORT assemble error (tm02)
-;  5/14/87 : Someone doesn't want to include psdata (tm03)
-;  6/12/87 : $P_Bridge is missing when TimeSw equ 0 and (CmpxSw equ 1 or
-;	     DateSW equ 1)	      (tm04)
-;  6/12/87 : $P_SorD_Quote is missing when QusSw equ 0 and CmpxSW equ 1
-;				      (tm05) in PSDATA.INC
-;  6/12/87 : $P_FileSp_Char and $P_FileSP_Len are missing
-;	     when FileSW equ 0 and DrvSW equ 1 (tm06) in PSDATA.INC
-;  6/18/87 : $VAL1 and $VAL3, $VAL2 and $VAL3 can be used in the same
-;	     value-list block	      (tm07)
-;  6/20/87 : Add $P_SW to check if there's an omiting parameter after
-;	     switch (keyword) or not. If there is, backup si for next call
-;	     (tm08)
-;  6/24/87 : Complex Item checking does not work correctly when CmpSW equ 1
-;	     and DateSW equ 0 and TimeSW equ 0 (tm09)
-;  6/24/87 : New function flag $P_colon_is_not_necessary for switch
-;	     /+15 and /+:15 are allowed for user (tm10)
-;  6/29/87 : ECS call changes DS register but it causes the address problem
-;	     in user's routines. $P_Chk_DBCS (tm11)
-;  7/10/87 : Switch with no_match flag (0x0000H) does not work correctly
-;					  (tm12)
-;  7/10/87 : Invalid switch/keyword does not work correctly
-;					  (tm13)
-;  7/10/87 : Drive_only breaks 3 bytes after the result buffer
-;					  (tm14)
-;  7/12/87 : Too_Many_Operands sets DX=0 as the PARSE result
-;					  (tm15)
-;  7/24/87 : Negative lower bound on numeric ranges cause trouble
+; Parser-local data uses PSDATA_SEG; DS may point to the caller's PSP.
+; Quoted strings use double quotes only. Some older procedure descriptions
+; still mention single quotes.
 
-;  7/24/87 : Quoted strings being returned with quotes.
-
-;  7/28/87 : Kerry S (;AN018;)
-;	     Non optional value on switch (match flags<>0 and <>1) not flagged
-;	     as an error when missing.	Solution: return error 2.  Modules
-;	     affected: $P_Chk_SW_Control.
-
-;  7/29/87 : Kerry S (;AN019;)
-;	     Now allow the optional bit in match flags for switches.  This
-;	     allows the switch to be encountered with a value or without a
-;	     value and no error is returned.
-;
-
-;  8/28/87 : Ed K, Kerry S (;AN020;)
-;  9/14/87   In PROC $P_Get_DecNum, when checking for field separators
-;	     within a date response, instead of checking just for the one
-;	     character defined by the COUNTRY DEPENDENT INFO, check for
-;	     all three chars, "-", "/", and ".". Change $P_Chk_Switch to allow
-;	     slashes in date strings when DateSw (assembler switch) is set.
-
-;  9/1/87  : Kerry S (;AN021)
-;	     In PROC $P_String_Comp, when comparing the switch or keyword on
-;	     the command line with the string in the control block the
-;	     comparing was stopping at a colon (switch) or equal (keyword)
-;	     on the command line and assuming a match.	This allowed a shorter
-;	     string on the command line than in the synonym list in the control
-;	     block.  I put in a test for a null in the control block so the
-;	     string in the control block must be the same length as the string
-;	     preceeding the colon or equal on the command line.
-
-;  8/28/87 : Kerry S (;AN022;)
-;	     All references to data in PSDATA.INC had CS overrides.  This caused
-;	     problems for people who included it themselves in a segment other
-;	     than CS.  Added switch to allow including PSDATA.INC in any
-;	     segment.
-
-;  9/16/87 : Ed K (;AN023;) PTM1040
-;	     in $p_set_cdi PROC, it assumes CS points to psdata. Change Push CS
-;	     into PUSH PSDATA_SEG.  In $P_Get_DecNum PROC, fix AN020
-;	     forced both TIME and DATE to use the delims, "-","/",".".
-;	     Created FLag, in $P_time_Format PROC, to request the delim in
-;	     BL be used if TIME is being parsed.
-
-;  9/24/87 : Ed K
-;	     Removed the include to STRUC.INC.	Replaced the STRUC macro
-;	     invocations with their normally expanded code; made comments
-;	     out of the STRUC macro invocation statements to maintain readability.
-
-;  9/24/87 : Ed K (;AN024;) PTM1222
-;	     When no CONTROL for a keyword found, tried to fill in RESULT
-;	     pointed to by non-existant CONTROL.
-
-; 10/15/87 : Ed K (;AN025;) PTM1672
-;	     A quoted text string can be framed only by double quote.  Remove
-;	     support to frame quoted text string with single quote.
-;	     (apostrophe) $P_SorD_Quote is removed from PSDATA.INC.
-;	     $P_SQuote EQU also removed from PSDATA.INC.  Any references to
-;	     single quote in PROC prologues are left as is for history reasons.
-
-;	     This fixes another bug, not mentioned in p1672, in that two
-;	     quote chars within a quoted string is supposed to be reported as
-;	     one quote character, but is reported as two quotes.  This changed
-;	     two instructions in PROC $P_Quoted_Str.
-
-;	     Also fixed are several JMP that caused a NOP, these changed to
-;	     have the SHORT operator to avoid the unneeded NOP.
-
-;	     The code and PSDATA.INC have been aligned for ease of reading.
-
-; 10/26/87 : Ed K (;AN026;) PTM2041, DATE within SWITCH, BX reference to
-;	     psdata buffer should have psdata_seg.
-
-; 10/27/87 : Ed K (;AN027;) PTM2042 comma between keywords implies
-;	     positional missing.
-
-; 11/06/87 : Ed K (;AN028;) PTM 2315 Parser should not use line feed
-;	     as a line delimiter, should use carriage return.
-;	     Define switch: LFEOLSW, if on, accept LF as end of line char.
-
-; 11/11/87 : Ed K (;AN029;) PTM 1651 GET RID OF WHITESPACE AROUND "=".
-
-; 11/18/87 : Ed K (;AN030;) PTM 2551 If filename is just "", then
-;	     endless loop since SI is returned still pointing to start
-;	     of that parm.
-
-; 11/19/87 : Ed K (;AN031;) PTM 2585 date & time getting bad values.
-;	     Vector to returned string has CS instead of Psdata_Seg, but
-;	     when tried to fix it on previous version, changed similar
-;	     but wrong place.
-
-; 12/09/87 : Bill L (;AN032;) PTM 2772 colon and period are now valid
-;	     delimiters between hours, minutes, seconds for time. And period
-;	     and comma are valid delimiters between seconds and 100th second.
-
-; 12/14/87 : Bill L (;AN033;) PTM 2722 if illegal delimiter characters
-;	     in a filespec, then flag an error.
-
-; 12/22/87 : Bill L (;AN034;)	    All local data to parser is now
-;	     indexed off of the psdata_seg equate instead of the DS register.
-;	     Using this method, DS can point to the segment of PSP or to psdata
-;  -->	     local parser data. Why were some references to local data changed
-;	     to do this before, but not all ?????
-
-; 02/02/88 : Ed K (;AC035;) INSPECT utility, suggests optimizations.
-
-; 02/05/88 : Ed K (;AN036;) P3372-UPPERCASE TRANSLATION, PSDATA_SEG HOSED.
-;
-; 02/08/88 : Ed K (;AN037;) P3410-AVOID POP OF CS, CHECK BASESW FIRST.
-
-; 02/19/88 : Ed K (;AN038;) p3524 above noon and "am" should be error
-
-; 02/23/88 : Ed K (;AN039;) p3518 accept "comma" and "period" as decimal
-;	     separator in TIME before hundredths field.
-;
-;***********************************************************************
 IF FarSW				;AN000;(Check if need far return)
-SysParse proc far			;AN000;
-ELSE					;AN000;
-SysParse proc near			;AN000;
+SysParse proc far
+ELSE
+SysParse proc near
 ENDIF					;AN000;(of FarSW)
 ;	$SALUT	(4,9,17,41)
 	mov	psdata_seg:$P_Flags,0	;AC034; Clear all internal flags
@@ -230,18 +86,18 @@ ENDIF					;AN039; FOR TIME ONLY
 	mov	psdata_seg:$P_Found_SYNONYM,0 ;AC034; initalize synonym pointer
 
 	mov	word ptr psdata_seg:$P_DX,0   ;AC034; (tm15)
-IF KeySW				;AN029;
+IF KeySW
 ;IN CASE THE USER PUT OPTIONAL WHITESPACE CHARS AROUND THE "=" USED IN
 ;KEYWORD DEFINITIONS, SCAN THE COMMAND LINE AND COMPRESS OUT ANY WHITESPACES
 ;NEXT TO "=" BEFORE STARTING THE USUAL PARSING.
-       push	 cx			;AN029;
-       push	 dx			;AN029;
-       push	 di			;AN029;
+       push	 cx
+       push	 dx
+       push	 di
 
        push	 si			;AN029; remember where command line starts
        mov	 cx,-1			;AN029; init counter
 ;      $do
-$P_loc_eol:				;AN029;
+$P_loc_eol:
 	  inc	    cx			;AN029; bump counter of chars up to EOL
 	  lodsb 			;AN029; get a char from command line
 	  CALL	    $P_Chk_EOL		;AN029; see if AL is EOL char
@@ -257,38 +113,38 @@ $P_loc_eol:				;AN029;
 
 ;REPEAT UNTIL ONE PASS IS MADE WHEREIN NO CHANGES WERE MADE
 ;  $do
-$P_DO1: 			   ;AN029;
+$P_DO1:
        push si			   ;AN029; remember where string started
        MOV  CX,psdata_seg:$P_COUNT_TO_EOL ;AN029;AC034;; set  count to no. chars in string,
 				   ;AN029; not counting the EOL char
        XOR  BX,BX		   ;AN029;SET $P_REG_BL_DQ_SW TO "NOT IN QUOTES", AND...
 				   ;AN029;SET $P_REG_BH_CG_SW TO "NO CHANGES MADE"
 ;MAKE ONE PASS THRU THE STRING, LOOKING AT EACH CHARACTER
-;      $do			   ;AN029;
-$P_DO2: 			   ;AN029;
-	   cmp	BYTE PTR [SI],$P_double_quote ;AN029;
+;      $do
+$P_DO2:
+	   cmp	BYTE PTR [SI],$P_double_quote
 ;	   $if	e		   ;AN029;if a double quote was found
-	   JNE $P_IF3		   ;AN029;
+	   JNE $P_IF3
 	       NOT  $P_REG_BL_DQ_SW ;AN029;TOGGLE THE DOUBLE QUOTE STATE SWITCH
-;	   $endif		   ;AN029;
-$P_IF3: 			   ;AN029;
+;	   $endif
+$P_IF3:
 	   OR	$P_REG_BL_DQ_SW,$P_REG_BL_DQ_SW ;AN029;IS THE DOUBLE QUOTE SWITCH SET?
 ;	   $if	Z		   ;AN029;IF NOT IN DOUBLE QUOTES
-	   JNZ $P_IF5		   ;AN029;
+	   JNZ $P_IF5
 	       mov  ax,word ptr [si] ;AN029; get pair to be checked out
 	       cmp  ax,$P_BL_EQ    ;AN029;" ="
-;	       $if  e,or	   ;AN029;
-	       JE $P_LL6	   ;AN029;
+;	       $if  e,or
+	       JE $P_LL6
 	       cmp  ax,$P_EQ_BL    ;AN029;"= "
-;	       $if  e,or	   ;AN029;
-	       JE $P_LL6	   ;AN029;
+;	       $if  e,or
+	       JE $P_LL6
 	       cmp  ax,$P_EQ_TB    ;AN029; "=<tab>"
-;	       $if  e,or	   ;AN029;
-	       JE $P_LL6	   ;AN029;
+;	       $if  e,or
+	       JE $P_LL6
 	       cmp  ax,$P_TB_EQ    ;AN029;"<tab>="
 ;	       $if  e		   ;AN029;if this pair to be replaced with a single "="
-	       JNE $P_IF6	   ;AN029;
-$P_LL6: 			   ;AN029;
+	       JNE $P_IF6
+$P_LL6:
 		   mov	BYTE PTR [SI],$P_Keyword ;AN029; "="
 		   inc	si	   ;AN029;point to next char after the new "="
 		   mov	di,si	   ;AN029;move target right after new "="
@@ -309,21 +165,21 @@ $P_LL6: 			   ;AN029;
 		   DEC	psdata_seg:$P_COUNT_TO_EOL ;AN029;AC034;;because just threw away a char
 		   dec	CX	   ;AN029;DITTO
 ;	       $endif		   ;AN029;comparand pair found?
-$P_IF6: 			   ;AN029;
+$P_IF6:
 ;	   $endif		   ;AN029;double quote switch?
-$P_IF5: 			   ;AN029;
+$P_IF5:
 	   inc	si		   ;AN029;bump index to look at next char in command string
 	   dec	CX		   ;AN029;one less char to look at
 ;(deleted ;AC035;)  CMP  CX,0		    ;AN029;is char count all gone yet?
 ;      $enddo LE		   ;AN029;quit if no more chars
-       JNLE $P_DO2		   ;AN029;
+       JNLE $P_DO2
        pop  si			   ;AN029;remember where string started
        OR   $P_REG_BH_CG_SW,$P_REG_BH_CG_SW ;AN029;WAS "A CHANGE MADE"?
 ;  $enddo Z			   ;AN029;QUIT when no changes were made
-   JNZ $P_DO1			   ;AN029;
-   pop	di			   ;AN029;
-   pop	dx			   ;AN029;
-   pop	cx			   ;AN029;
+   JNZ $P_DO1
+   pop	di
+   pop	dx
+   pop	cx
 
 ;NOW THAT ALL WHITESPACE SURROUNDING "=" HAVE BEEN COMPRESSED OUT,
 ;RESUME NORMAL PARSING...
@@ -333,27 +189,27 @@ ENDIF					;AN029; KEYWORDS SUPPORTED?
 
 ;--------------------------- End of Line
 	mov	ax,$P_RC_EOL		;AN000; set exit code to -1
-	push	bx			;AN000;
+	push	bx
 	mov	bx,es:[di].$P_PARMSX_Address ;AN000; Get the PARMSX address to
 	cmp	cl,es:[bx].$P_MinP	;AN000; check ORDINAL to see if the minimum
 	jae	$P_Fin			;AN000; positional found.
 
 	mov	ax,$P_Op_Missing	;AN000; If no, set exit code to missing operand
-$P_Fin: 				;AN000;
-	pop	bx			;AN000;
+$P_Fin:
+	pop	bx
 	jmp	$P_Single_Exit		;AN000; return to the caller
 
 ;---------------------------
-$P_Start:				;AN000;
+$P_Start:
 	mov	psdata_seg:$P_SaveSI_Cmpx,si ;AN000;AC034;  save ptr to command line for later use by complex,
 	push	bx			;AN000; quoted string or file spec.
-	push	di			;AN000;
-	push	bp			;AN000;
+	push	di
+	push	bp
 	lea	bx,psdata_seg:$P_STRING_BUF ;AC034; set buffer to copy from command string
 	test	psdata_seg:$P_Flags2,$P_Extra ;AC034; 3/9 extra delimiter encountered ?
 	jne	$P_Pack_End		;AN000; 3/9 if yes, no need to copy
 
-$P_Pack_Loop:				;AN000;
+$P_Pack_Loop:
 	lodsb				;AN000; Pick a operand from buffer
 	call	$P_Chk_Switch		;AN000; Check switch character
 	jc	$P_Pack_End_BY_EOL	;AN020; if carry set found delimiter type slash, need backup si, else continue
@@ -378,13 +234,13 @@ $P_PAck_End_backup_si:			;AN000; (tm08)
 	dec	si			;AN000; (tm08)
 	jmp	short $P_Pack_End	;AN025; (tm08)
 
-$P_PL01:				;AN000;
+$P_PL01:
 	mov	psdata_seg:[bx],al	;AN000; move byte to STRING_BUF
 	cmp	al,$P_Keyword		;AN000; if it is equal character,
 	jne	$P_PL00 		;AN000; then
 
 	or	psdata_seg:$P_Flags2,$P_equ ;AC034; remember it in flag
-$P_PL00:				;AN000;
+$P_PL00:
 	inc	bx			;AN000; ready to see next byte
 	call	$P_Chk_DBCS		;AN000; was it 1st byte of DBCS ?
 	jnc	$P_Pack_Loop		;AN000; if no, process to next byte
@@ -394,14 +250,14 @@ $P_PL00:				;AN000;
 	inc	bx			;AN000; update pointer
 	jmp	short $P_Pack_Loop	;AN000; process to next byte
 
-$P_Pack_End_BY_EOL:			;AN000;
+$P_Pack_End_BY_EOL:
 	dec	si			;AN000; backup si pointer
-$P_Pack_End:				;AN000;
+$P_Pack_End:
 	mov	psdata_seg:$P_SI_Save,si     ;AC034; save next pointer, SI
 	mov	byte ptr psdata_seg:[bx],$P_NULL ;AN000; put NULL at the end
 	mov	psdata_seg:$P_Save_EOB,bx    ;AC034; 3/17/87 keep the address for later use of complex
 	mov	bx,es:[di].$P_PARMSX_Address ;AN000; get PARMSX address
-	lea	si,psdata_seg:$P_STRING_BUF  ;AC034;
+	lea	si,psdata_seg:$P_STRING_BUF
 	cmp	byte ptr psdata_seg:[si],$P_Switch ;AN000; the operand begins w/ switch char ?
 	je	$P_SW_Manager		     ;AN000; if yes, process as switch
 
@@ -425,28 +281,28 @@ $P_Positional_Manager:			;AN000; else process as positional
 	call	$P_Chk_Pos_Control	;AN000; Do process for positional
 	jmp	short $P_Return_to_Caller ;AN000; and return to the caller
 
-$P_Too_Many_Error:			;AN000;
+$P_Too_Many_Error:
 	mov	psdata_seg:$P_RC,$P_Too_Many ;AC034; set exit code
 	jmp	short $P_Return_to_Caller ;AN000; and return to the caller
 ;
-$P_SW_Manager:				;AN000;
+$P_SW_Manager:
 	mov	al,es:[bx].$P_MaxP	;AN000; get maxp
 	xor	ah,ah			;AN000; ax = maxp
-	inc	ax			;AN000;
+	inc	ax
 	shl	ax,1			;AN000; ax = (ax+1)*2
 	add	bx,ax			;AN000; now bx points to maxs
-	mov	cl,es:[bx]		;AN000;
+	mov	cl,es:[bx]
 	xor	ch,ch			;AN000; cx = maxs
 	or	cx,cx			;AN000; at least one switch ?
-	je	$P_SW_Not_Found 	;AN000;
+	je	$P_SW_Not_Found
 
 	inc	bx			;AN000; now bx points to 1st CONTROL address
 
-$P_SW_Mgr_Loop: 			;AN000;
-	push	bx			;AN000;
+$P_SW_Mgr_Loop:
+	push	bx
 	mov	bx,es:[bx]		;AN000; bx points to Switch CONTROL itself
 	call	$P_Chk_SW_Control	;AN000; do process for switch
-	pop	bx			;AN000;
+	pop	bx
 	jnc	$P_Return_to_Caller	;AN000; if the CONTROL is for the switch, exit
 
 	inc	bx			;AC035; add '2' to
@@ -455,33 +311,33 @@ $P_SW_Mgr_Loop: 			;AN000;
 ;(changed ;AC035;)  add     bx,2	;AN000; else bx points to the next CONTROL
 	loop	$P_SW_Mgr_Loop		;AN000; and loop
 
-$P_SW_Not_Found:			;AN000;
+$P_SW_Not_Found:
 	mov	psdata_seg:$P_RC,$P_Not_In_SW ;AC034; here no CONTROL for the switch has
 	jmp	short $P_Return_to_Caller0    ;AN000; not been found, means error.
 ;
-$P_Key_Manager: 			;AN000;
+$P_Key_Manager:
 	mov	al,es:[bx].$P_MaxP	;AN000; get maxp
 	xor	ah,ah			;AN000; ax = maxp
-	inc	ax			;AN000;
+	inc	ax
 	shl	ax,1			;AN000; ax = (ax+1)*2
 	add	bx,ax			;AN000; now bx points to maxs
-	mov	al,es:[bx]		;AN000;
+	mov	al,es:[bx]
 	xor	ah,ah			;AN000; ax = maxs
-	shl	ax,1			;AN000;
+	shl	ax,1
 	inc	ax			;AN000; ax = ax*2+1
 	add	bx,ax			;AN000; now bx points to maxk
-	mov	cl,es:[bx]		;AN000;
+	mov	cl,es:[bx]
 	xor	ch,ch			;AN000; cx = maxk
 	or	cx,cx			;AN000; at least one keyword ?
-	je	$P_Key_Not_Found	;AN000;
+	je	$P_Key_Not_Found
 
 	inc	bx			;AN000; now bx points to 1st CONTROL
 
-$P_Key_Mgr_Loop:			;AN000;
-	push	bx			;AN000;
+$P_Key_Mgr_Loop:
+	push	bx
 	mov	bx,es:[bx]		;AN000; bx points to keyword CONTROL itself
 	call	$P_Chk_Key_Control	;AN000; do process for keyword
-	pop	bx			;AN000;
+	pop	bx
 	jnc	$P_Return_to_Caller	;AN000; if the CONTROL is for the keyword, exit
 
 	inc	bx			;AC035; add '2' to
@@ -490,7 +346,7 @@ $P_Key_Mgr_Loop:			;AN000;
 ;(changed ;AC035;)  add     bx,2	;AN000; else bx points to the next CONTROL
 	loop	$P_Key_Mgr_Loop 	;AN000; and loop
 
-$P_Key_Not_Found:			;AN000;
+$P_Key_Not_Found:
 	mov	psdata_seg:$P_RC,$P_Not_In_Key ;AC034; here no CONTROL for the keyword has
 $P_Return_to_Caller0:			;AN000; not been found, means error.
 
@@ -500,20 +356,20 @@ $P_Return_to_Caller0:			;AN000; not been found, means error.
 ;(deleted ;AN024;)	 mov	 ah,$P_No_Tag		 ;AN000;     result
 ;(deleted ;AN024;)	 call	 $P_Fill_Result 	 ;AN000;	    buffer
 
-$P_Return_to_Caller:			;AN000;
-	pop	bp			;AN000;
-	pop	di			;AN000;
-	pop	bx			;AN000;
+$P_Return_to_Caller:
+	pop	bp
+	pop	di
+	pop	bx
 	mov	cx,psdata_seg:$P_Ordinal    ;AC034; return next ordinal
 	mov	ax,psdata_seg:$P_RC	    ;AC034; return exit code
 	mov	si,psdata_seg:$P_SI_Save    ;AC034; return next operand pointer
 	mov	dx,psdata_seg:$P_DX	    ;AC034; return result buffer address
 	mov	bl,psdata_seg:$P_Terminator ;AC034; return delimiter code found
-$P_Single_Exit: 			;AN000;
-	clc				;AN000;
-	ret				;AN000;
-SysParse endp				;AN000;
-PAGE					;AN000;
+$P_Single_Exit:
+	clc
+	ret
+SysParse endp
+PAGE
 ;***********************************************************************
 ; $P_Chk_Pos_Control
 ;
@@ -528,38 +384,38 @@ PAGE					;AN000;
 ;
 ; Vars: $P_Ordinal(W), $P_RC(W)
 ;***********************************************************************
-$P_Chk_Pos_Control proc 		;AN000;
-	push	ax			;AN000;
-	mov	ax,es:[bx].$P_Match_Flag ;AN000;
+$P_Chk_Pos_Control proc
+	push	ax
+	mov	ax,es:[bx].$P_Match_Flag
 	test	ax,$P_Repeat		;AN000; repeat allowed ?
 	jne	$P_CPC00		;AN000; then do not increment ORDINAL
 
 	inc	psdata_seg:$P_ORDINAL	;AC034; update the ordinal
-$P_CPC00:				;AN000;
+$P_CPC00:
 	cmp	byte ptr psdata_seg:[si],$P_NULL ;AN000; no data ?
-	jne	$P_CPC01		;AN000;
+	jne	$P_CPC01
 
 	test	ax,$P_Optional		;AN000; yes, then is it optional ?
-	jne	$P_CPC02		;AN000;
+	jne	$P_CPC02
 
 	mov	psdata_seg:$P_RC,$P_Op_Missing ;AC034; no, then error	     3/17/87
-	jmp	short $P_CPC_Exit	;AN000;
+	jmp	short $P_CPC_Exit
 
-$P_CPC02:				;AN000;
-	push	ax			;AN000;
+$P_CPC02:
+	push	ax
 	mov	al,$P_String		;AN000; if it is optional return NULL
 	mov	ah,$P_No_Tag		;AN000; no item tag indication
-	call	$P_Fill_Result		;AN000;
-	pop	ax			;AN000;
-	jmp	short $P_CPC_Exit	;AN000;
+	call	$P_Fill_Result
+	pop	ax
+	jmp	short $P_CPC_Exit
 
-$P_CPC01:				;AN000;
-	call	$P_Check_Match_Flags	;AN000;
-$P_CPC_Exit:				;AN000;
-	pop	ax			;AN000;
-	ret				;AN000;
-$P_Chk_Pos_Control endp 		;AN000;
-PAGE					;AN000;
+$P_CPC01:
+	call	$P_Check_Match_Flags
+$P_CPC_Exit:
+	pop	ax
+	ret
+$P_Chk_Pos_Control endp
+PAGE
 ;***********************************************************************
 ; $P_Chk_Key_Control
 ;
@@ -574,7 +430,7 @@ PAGE					;AN000;
 ;
 ; Vars: $P_RC(W), $P_SaveSI_Cmpx(W), $P_KEYorSW_Ptr(R), $P_Flags(W)
 ;***********************************************************************
-$P_Chk_Key_Control proc 		;AN000;
+$P_Chk_Key_Control proc
 IF	KeySW				;AN000;(Check if keyword is supported)
 	or	psdata_seg:$P_Flags2,$P_Key_Cmp ;AC034; Indicate keyword for later string comparison
 	call	$P_Search_KEYorSW	;AN000; Search the keyword in the CONTROL block
@@ -586,37 +442,37 @@ IF	KeySW				;AN000;(Check if keyword is supported)
 	mov	ax,psdata_seg:$P_KEYorSW_Ptr ;AC034;	      ^       ^
 	sub	ax,si			;AN000;  SI	KEYorSW
 	add	psdata_seg:$P_SaveSI_Cmpx,ax ;AC034; update for complex, quoted or file spec.
-	pop	ax			;AN000;
+	pop	ax
 ;
 	mov	si,psdata_seg:$P_KEYorSW_Ptr ;AC034; set si just after equal char
 	cmp	byte ptr psdata_seg:[si],$P_NULL ;AN000; any data after equal ?
 	je	$P_Chk_Key_Err1 	;AN000; if no, syntax error
 
 	call	$P_Check_Match_Flags	;AN000; else, process match flags
-	clc				;AN000;
-	jmp	short $P_Chk_Key_Exit	;AN000;
+	clc
+	jmp	short $P_Chk_Key_Exit
 
-$P_Chk_Key_Err0:			;AN000;
+$P_Chk_Key_Err0:
 	stc				;AN000; not found in keyword synonym list
-	jmp	short $P_Chk_Key_Exit	;AN000;
+	jmp	short $P_Chk_Key_Exit
 
-$P_Chk_Key_Err1:			;AN000;
+$P_Chk_Key_Err1:
 	mov	psdata_seg:$P_RC,$P_Syntax ;AC034; no parameter is not specified after "="
-$P_Chk_Key_ErrExit:			;AN000;
-	push	ax			;AN000;
+$P_Chk_Key_ErrExit:
+	push	ax
 	mov	al,$P_String		;AN000; set
 	mov	ah,$P_No_Tag		;AN000;    result
 	call	$P_Fill_Result		;AN000; 	 buffer
-	pop	ax			;AN000;
-	clc				;AN000;
-$P_Chk_Key_Exit:			;AN000;
-	ret				;AN000;
+	pop	ax
+	clc
+$P_Chk_Key_Exit:
+	ret
 ELSE					;AN000;(of IF KeySW)
 	stc				;AN000;this logic works when the KeySW
 	ret				;AN000;is reset.
 ENDIF					;AN000;(of KeySW)
-$P_Chk_Key_Control endp 		;AN000;
-PAGE					;AN000;
+$P_Chk_Key_Control endp
+PAGE
 ;***********************************************************************
 IF	KeySW+SwSW			;AN000;(Check if keyword or switch is supported)
 ; $P_Search_KEYorSW:
@@ -630,50 +486,50 @@ IF	KeySW+SwSW			;AN000;(Check if keyword or switch is supported)
 ;
 ; Use:	 $P_String_Comp, $P_MoveBP_NUL, $P_Found_SYNONYM
 ;***********************************************************************
-$P_Search_KEYorSW proc			;AN000;
-	push	bp			;AN000;
-	push	cx			;AN000;
+$P_Search_KEYorSW proc
+	push	bp
+	push	cx
 	mov	cl,es:[bx].$P_nid	;AN000; Get synonym count
 	xor	ch,ch			;AN000; and set it to cx
 	or	cx,cx			;AN000; No synonyms specified ?
 	je	$P_KEYorSW_Not_Found	;AN000; then indicate not found by CY
 
 	lea	bp,es:[bx].$P_KEYorSW	;AN000; BP points to the 1st synonym
-$P_KEYorSW_Loop:			;AN000;
+$P_KEYorSW_Loop:
 	call	$P_String_Comp		;AN000; compare string in buffer w/ the synonym
 	jnc	$P_KEYorSW_Found	;AN000; If match, set it to synonym pointer
 
 	call	$P_MoveBP_NUL		;AN000; else, bp points to the next string
 	loop	$P_KEYorSW_Loop 	;AN000; loop nid times
-$P_KEYorSW_Not_Found:			;AN000;
+$P_KEYorSW_Not_Found:
 	stc				;AN000; indicate not found in synonym list
 	jmp	short $P_KEYorSW_Exit	;AN000; and exit
 
-$P_KEYorSW_Found:			;AN000;
+$P_KEYorSW_Found:
 	mov	psdata_seg:$P_Found_SYNONYM,bp ;AC034; set synonym pointer
 	clc				;AN000; indicate found
-$P_KEYorSW_Exit:			;AN000;
-	pop	cx			;AN000;
-	pop	bp			;AN000;
-	ret				;AN000;
-$P_Search_KEYorSW endp			;AN000;
+$P_KEYorSW_Exit:
+	pop	cx
+	pop	bp
+	ret
+$P_Search_KEYorSW endp
 ;***********************************************************************
 ; $P_MoveBP_NUL
 ;***********************************************************************
-$P_MoveBP_NUL proc			;AN000;
-$P_MBP_Loop:				;AN000;
+$P_MoveBP_NUL proc
+$P_MBP_Loop:
 	cmp	byte ptr es:[bp],$P_NULL ;AN000; Increment BP that points
 	je	$P_MBP_Exit		;AN000; to the synomym list
 
 	inc	bp			;AN000; until
 	jmp	short $P_MBP_Loop	;AN000; NULL encountered.
 
-$P_MBP_Exit:				;AN000;
+$P_MBP_Exit:
 	inc	bp			;AN000; bp points to next to NULL
-	ret				;AN000;
-$P_MoveBP_NUL endp			;AN000;
+	ret
+$P_MoveBP_NUL endp
 ENDIF					;AN000;(of KeySW+SwSW)
-PAGE					;AN000;
+PAGE
 ;***********************************************************************
 ; $P_Chk_SW_Control
 ;
@@ -688,7 +544,7 @@ PAGE					;AN000;
 ;
 ; Vars:  $P_SaveSI_Cmpx(W), $P_KEYorSW_Ptr(R), $P_Flags(W)
 ;***********************************************************************
-$P_Chk_SW_Control proc			;AN000;
+$P_Chk_SW_Control proc
 
 
 IF	SwSW				;AN000;(Check if switch is supported)
@@ -702,7 +558,7 @@ IF	SwSW				;AN000;(Check if switch is supported)
 	mov	ax,psdata_seg:$P_KEYorSW_Ptr ;AC034;	      ^       ^
 	sub	ax,si			;AN000;  SI	KEYorSW
 	add	psdata_seg:$P_SaveSI_Cmpx,ax ;AC034; update for complex list
-	pop	ax			;AN000;
+	pop	ax
 ;
 	mov	si,psdata_seg:$P_KEYorSW_Ptr ;AC034; set si at the end or colon
 	cmp	byte ptr psdata_seg:[si],$P_NULL ;AN000; any data after colon
@@ -712,7 +568,7 @@ IF	SwSW				;AN000;(Check if switch is supported)
 	jne	$P_Chk_if_data_required ;AN000; if yes,
 
 	mov	psdata_seg:$P_RC,$P_Syntax ;AC034; return syntax error
-	jmp	short $P_Chk_SW_Exit	;AN000;
+	jmp	short $P_Chk_SW_Exit
 
 $P_Chk_if_data_required:		;AN018; no data, no colon
 	cmp	es:[bx].$P_Match_Flag,0 ;AN018; should have data? zero match flag means switch followed by nothing is OK
@@ -722,32 +578,32 @@ $P_Chk_if_data_required:		;AN018; no data, no colon
 	jnz	$P_Chk_SW_Exit		;AN019; if so, then leave, else yell
 
 	mov	psdata_seg:$P_RC,$P_Op_Missing ;AC034; return required operand missing
-	jmp	short $P_Chk_SW_Exit	;AN018;
+	jmp	short $P_Chk_SW_Exit
 
-$P_CSW00:				;AN000;
+$P_CSW00:
 	call	$P_Check_Match_Flags	;AN000; process match flag
 	clc				;AN000; indicate match
-	jmp	short $P_Chk_SW_Single_Exit ;AN000;
+	jmp	short $P_Chk_SW_Single_Exit
 
-$P_Chk_SW_Err0: 			;AN000;
+$P_Chk_SW_Err0:
 	stc				;AN000; not found in switch synonym list
-	jmp	short $P_Chk_SW_Single_Exit ;AN000;
+	jmp	short $P_Chk_SW_Single_Exit
 
-$P_Chk_SW_Exit: 			;AN000;
-	push	ax			;AN000;
+$P_Chk_SW_Exit:
+	push	ax
 	mov	al,$P_String		;AN000; set
 	mov	ah,$P_No_Tag		;AN000;    result
 	call	$P_Fill_Result		;AN000; 	 buffer
-	pop	ax			;AN000;
-	clc				;AN000;
-$P_Chk_SW_Single_Exit:			;AN000;
-	ret				;AN000;
+	pop	ax
+	clc
+$P_Chk_SW_Single_Exit:
+	ret
 ELSE					;AN000;(of IF SwSW)
 	stc				;AN000; this logic works when the SwSW
 	ret				;AN000; is reset.
 ENDIF					;AN000;(of SwSW)
-$P_Chk_SW_Control endp			;AN000;
-PAGE					;AN000;
+$P_Chk_SW_Control endp
+PAGE
 ;***********************************************************************
 ; $P_Fill_Result
 ;
@@ -770,86 +626,86 @@ PAGE					;AN000;
 ;
 ; Vars: $P_DX(W)
 ;***********************************************************************
-$P_Fill_Result proc			;AN000;
-	push	di			;AN000;
+$P_Fill_Result proc
+	push	di
 	mov	di,es:[bx].$P_Result_Buf ;AN000; di points to result buffer
 	mov	psdata_seg:$P_DX,di	;AC034; set returned result address
 	mov	es:[di].$P_Type,al	;AN000; store type
 	mov	es:[di].$P_Item_Tag,ah	;AN000; store item tag
-	push	ax			;AN000;
+	push	ax
 	mov	ax,psdata_seg:$P_Found_SYNONYM ;AC034; if yes,
 	mov	es:[di].$P_SYNONYM_Ptr,ax ;AN000;   then set it to the result
-	pop	ax			;AN000;
-$P_RLT04:				;AN000;
+	pop	ax
+$P_RLT04:
 	cmp	al,$P_Number		;AN000; if number
-	jne	$P_RLT00		;AN000;
+	jne	$P_RLT00
 
-$P_RLT02:				;AN000;
+$P_RLT02:
 	mov	word ptr es:[di].$P_Picked_Val,dx ;AN000; then store 32bit
 	mov	word ptr es:[di+2].$P_Picked_Val,cx ;AN000;	number
-	jmp	short $P_RLT_Exit	;AN000;
+	jmp	short $P_RLT_Exit
 
-$P_RLT00:				;AN000;
+$P_RLT00:
 	cmp	al,$P_List_Idx		;AN000; if list index
-	jne	$P_RLT01		;AN000;
+	jne	$P_RLT01
 
 	mov	word ptr es:[di].$P_Picked_Val,dx ;AN000; then store list index
-	jmp	short $P_RLT_Exit	;AN000;
+	jmp	short $P_RLT_Exit
 
-$P_RLT01:				;AN000;
+$P_RLT01:
 	cmp	al,$P_Date_F		;AN000; Date format ?
-	je	$P_RLT02		;AN000;
+	je	$P_RLT02
 
 	cmp	al,$P_Time_F		;AN000; Time format ?
-	je	$P_RLT02		;AN000;
+	je	$P_RLT02
 ;
 	cmp	al,$P_Drive		;AN000; drive format ?
-	jne	$P_RLT03		;AN000;
+	jne	$P_RLT03
 
 	mov	byte ptr es:[di].$P_Picked_Val,dl ;AN000; store drive number
-	jmp	short $P_RLT_Exit	;AN000;
+	jmp	short $P_RLT_Exit
 
-$P_RLT03:				;AN000;
+$P_RLT03:
 	cmp	al,$P_Complex		;AN000; complex format ?
-	jne	$P_RLT05		;AN000;
+	jne	$P_RLT05
 
 	mov	ax,psdata_seg:$P_SaveSI_Cmpx ;AC034; then get pointer in command buffer
 	inc	ax			;AN000; skip left Parentheses
 	mov	word ptr es:[di].$P_Picked_Val,ax ;AN000; store offset
 	mov	word ptr es:[di+2].$P_Picked_Val,ds ;AN000; store segment
-	jmp	short $P_RLT_Exit	;AN000;
+	jmp	short $P_RLT_Exit
 
-$P_RLT05:				;AN000;
+$P_RLT05:
 ;------------------------  AL = 3, 5, or 9
 	mov	word ptr es:[di].$P_Picked_Val,si ;AN000; store offset of STRING_BUF
 ;(replaced ;AN031;)  mov word ptr es:[di+word].$P_Picked_Val,cs ;AN000; store segment of STRING_BUF
 	mov	word ptr es:[di+2].$P_Picked_Val,Psdata_Seg ;AN031; store segment of STRING_BUF
 ;
-	push	ax			;AN000;
+	push	ax
 	test	byte ptr es:[bx].$P_Function_Flag,$P_CAP_File ;AN000; need CAPS by file table?
-	je	$P_RLT_CAP00		;AN000;
+	je	$P_RLT_CAP00
 
 	mov	al,$P_DOSTBL_File	;AN000; use file upper case table
-	jmp	short $P_RLT_CAP02	;AN000;
+	jmp	short $P_RLT_CAP02
 
-$P_RLT_CAP00:				;AN000;
+$P_RLT_CAP00:
 	test	byte ptr es:[bx].$P_Function_Flag,$P_CAP_Char ;AN000; need CAPS by char table ?
-	je	$P_RLT_CAP01		;AN000;
+	je	$P_RLT_CAP01
 
 	mov	al,$P_DOSTBL_Char	;AN000; use character upper case table
-$P_RLT_CAP02:				;AN000;
+$P_RLT_CAP02:
 	call	$P_Do_CAPS_String	;AN000;  process CAPS along the table
-$P_RLT_CAP01:				;AN000;
-	pop	ax			;AN000;
+$P_RLT_CAP01:
+	pop	ax
 	test	byte ptr es:[bx].$P_Function_Flag,$P_Rm_Colon ;AN000; removing colon at end ?
-	je	$P_RLT_Exit		;AN000;
+	je	$P_RLT_Exit
 
 	call	$P_Remove_Colon 	;AN000; then process it.
-$P_RLT_Exit:				;AN000;
-	pop	di			;AN000;
-	ret				;AN000;
-$P_Fill_Result endp			;AN000;
-PAGE					;AN000;
+$P_RLT_Exit:
+	pop	di
+	ret
+$P_Fill_Result endp
+PAGE
 ;***********************************************************************
 ; $P_Check_Match_Flags
 ;
@@ -874,9 +730,9 @@ PAGE					;AN000;
 ;	     $P_Time_Format, $P_Complex_Format, $P_File_Foemat
 ;	     $P_Drive_Format
 ;***********************************************************************
-$P_Check_Match_Flags proc		;AN000;
+$P_Check_Match_Flags proc
 	mov	psdata_seg:$P_err_flag,$P_NULL ;AN033;AC034;; clear filespec error flag.
-	push	ax			;AN000;
+	push	ax
 	mov	ax,es:[bx].$P_Match_Flag ;AN000; load match flag(16bit) to ax
 
 	or	ax,ax			;AC035; test ax for zero
@@ -901,29 +757,29 @@ $P_Mat: 				;AN000; (tm12)
 
 IF	CmpxSW				;AN000;(Check if complex item is supported)
 	test	ax,$P_Cmpx_S		;AN000; Complex string
-	je	$P_Match01		;AN000;
+	je	$P_Match01
 
 	mov	psdata_seg:$P_RC,$P_No_Error ;AC034; assume no error
 	call	$P_Complex_Format	;AN000; do process
 	cmp	psdata_seg:$P_RC,$P_Syntax ;AC034; if error, examine the next type
-	jne	$P_Bridge		;AN000;
+	jne	$P_Bridge
 
-$P_Match01:				;AN000;
+$P_Match01:
 ENDIF					;AN000;(of CmpxSW)
 IF	DateSW				;AN000;(Check if date format is supported)
 	test	ax,$P_Date_S		;AN000; Date string
-	je	$P_Match02		;AN000;
+	je	$P_Match02
 
 	mov	psdata_seg:$P_RC,$P_No_Error ;AC034; assume no error
 	call	$P_Date_Format		;AN000; do process
 	cmp	psdata_seg:$P_RC,$P_Syntax ;AC034; if error, examine the next type
-	jne	$P_Bridge		;AN000;
+	jne	$P_Bridge
 
-$P_Match02:				;AN000;
+$P_Match02:
 ENDIF					;AN000;(of DateSW)
 IF	TimeSW				;AN000;(Check if time format is supported)
 	test	ax,$P_Time_S		;AN000; Time string
-	je	$P_Match03		;AN000;
+	je	$P_Match03
 
 	mov	psdata_seg:$P_RC,$P_No_Error ;AC034; assume no error
 	call	$P_Time_Format		;AN000; do process
@@ -935,7 +791,7 @@ IF	TimeSW				;AN000;(Check if time format is supported)
 ENDIF					;AN000;(of TimeSW)  (tm04)
 	jmp	short $P_Match03	;AN025; (tm09)
 
-$P_Bridge:				;AN000;
+$P_Bridge:
 ;	jmp	short $P_Match_Exit (tm02)
 
 IFDEF TPARSE_SHORT_JUMPS
@@ -944,81 +800,81 @@ ELSE
        jmp	$P_Match_Exit		;AN000; (tm02)
 ENDIF
 
-$P_Match03:				;AN000;
+$P_Match03:
 ; ENDIF ;AN000;(of TimeSW) (tm04)
 IF	NumSW				;AN000;(Check if numeric value is supported)
 	test	ax,$P_Num_Val		;AN000; Numeric value
-	je	$P_Match04		;AN000;
+	je	$P_Match04
 
 	mov	psdata_seg:$P_RC,$P_No_Error ;AC034; assume no error
 	call	$P_Value		;AN000; do process
 	cmp	psdata_seg:$P_RC,$P_Syntax ;AC034; if error, examine the next type
-	jne	$P_Match_Exit		;AN000;
+	jne	$P_Match_Exit
 
-$P_Match04:				;AN000;
+$P_Match04:
 	test	ax,$P_SNUM_Val		;AN000; Signed numeric value
-	je	$P_Match05		;AN000;
+	je	$P_Match05
 
 	mov	psdata_seg:$P_RC,$P_No_Error ;AC034; assume no error
 	call	$P_SValue		;AN000; do process
 	cmp	psdata_seg:$P_RC,$P_Syntax ;AC034; if error, examine the next type
-	jne	$P_Match_Exit		;AN000;
+	jne	$P_Match_Exit
 
-$P_Match05:				;AN000;
+$P_Match05:
 ENDIF					;AN000;(of NumSW)
 IF	DrvSW				;AN000;(Check if drive only is supported)
 	test	ax,$P_Drv_Only		;AN000; Drive only
-	je	$P_Match06		;AN000;
+	je	$P_Match06
 
 	mov	psdata_seg:$P_RC,$P_No_Error ;AC034; assume no error
 	call	$P_File_Format		;AN000; 1st, call file format
 	call	$P_Drive_Format 	;AN000; check drive format, next
 	cmp	psdata_seg:$P_RC,$P_Syntax ;AC034; if error, examinee the next type
-	jne	$P_Match_Exit		;AN000;
+	jne	$P_Match_Exit
 
-$P_Match06:				;AN000;
+$P_Match06:
 ENDIF					;AN000;(of DrvSW)
 IF	FileSW				;AN000;(Check if file spec is supported)
 	test	ax,$P_File_Spc		;AN000; File spec
-	je	$P_Match07		;AN000;
+	je	$P_Match07
 
 	mov	psdata_seg:$P_RC,$P_No_Error ;AC034; assume no error
 	call	$P_File_Format		;AN000; do process
 	cmp	psdata_seg:$P_RC,$P_Syntax ;AC034; if error, examine the next type
-	jne	$P_Match_Exit		;AN000;
+	jne	$P_Match_Exit
 
-$P_Match07:				;AN000;
+$P_Match07:
 ENDIF					;AN000;(of FileSW)
 IF	QusSW				;AN000;(Check if quoted string is supported)
 	test	ax,$P_Qu_String 	;AN000; Quoted string
-	je	$P_Match08		;AN000;
+	je	$P_Match08
 
 	mov	psdata_seg:$P_RC,$P_No_Error ;AC034; assume no error
 	call	$P_Quoted_Format	;AN000; do process
 	cmp	psdata_seg:$P_RC,$P_Syntax ;AC034; if error, examine the next type
-	jne	$P_Match_Exit		;AN000;
+	jne	$P_Match_Exit
 
-$P_Match08:				;AN000;
+$P_Match08:
 ENDIF					;AN000;(of QusSW)
 	test	ax,$P_Simple_S		;AN000; Simple string
-	je	$P_Match09		;AN000;
+	je	$P_Match09
 
 	mov	psdata_seg:$P_RC,$P_No_Error ;AC034; assume no error
 	call	$P_Simple_String	;AN000; do process
 ;;;;	cmp	psdata_seg:$P_RC,$P_Syntax ;AC034; These two lines will be alive
 ;;;;	jne	$P_Match_Exit			   ;when extending the match_flags.
-$P_Match09:				;AN000;
-$P_Match_Exit:				;AN000;
+$P_Match09:
+$P_Match_Exit:
 	cmp	psdata_seg:$P_err_flag,$P_error_filespec ;AC034; bad filespec ?
 	jne	$P_Match2_Exit		;AN033; no, continue
 	cmp	psdata_seg:$P_RC,$P_No_Error ;AN033;AC034;; check for other errors ?
 	jne	$P_Match2_Exit		;AN033; no, continue
 	mov	psdata_seg:$P_RC,$P_Syntax ;AN033;AC034;; set error flag
-$P_Match2_Exit: 			;AN033;
-	pop	ax			;AN000;
-	ret				;AN000;
-$P_Check_Match_Flags endp		;AN000;
-PAGE					;AN000;
+$P_Match2_Exit:
+	pop	ax
+	ret
+$P_Check_Match_Flags endp
+PAGE
 ;***********************************************************************
 ; $P_Remove_Colon;
 ;
@@ -1030,16 +886,16 @@ PAGE					;AN000;
 ;
 ; Use:	$P_Chk_DBCS
 ;***********************************************************************
-$P_Remove_Colon proc			;AN000;
-	push	ax			;AN000;
-	push	si			;AN000;
-$P_RCOL_Loop:				;AN000;
+$P_Remove_Colon proc
+	push	ax
+	push	si
+$P_RCOL_Loop:
 	mov	al,psdata_seg:[si]	;AN000; get character
 	or	al,al			;AN000; end of string ?
 	je	$P_RCOL_Exit		;AN000; if yes, just exit
 
 	cmp	al,$P_Colon		;AN000; is it colon ?
-	jne	$P_RCOL00		;AN000;
+	jne	$P_RCOL00
 
 	cmp	byte ptr psdata_seg:[si+byte],$P_NULL ;AN000; if so, next is NULL ?
 	jne	$P_RCOL00		;AN000; no, then next char
@@ -1047,21 +903,21 @@ $P_RCOL_Loop:				;AN000;
 	mov	byte ptr psdata_seg:[si],$P_NULL ;AN000; yes, remove colon
 	jmp	short $P_RCOL_Exit	;AN000; and exit.
 
-$P_RCOL00:				;AN000;
+$P_RCOL00:
 	call	$P_Chk_DBCS		;AN000; if not colon, then check if
 	jnc	$P_RCOL01		;AN000; DBCS leading byte.
 
 	inc	si			;AN000; if yes, skip trailing byte
-$P_RCOL01:				;AN000;
+$P_RCOL01:
 	inc	si			;AN000; si points to next byte
 	jmp	short $P_RCOL_Loop	;AN000; loop until NULL encountered
 
-$P_RCOL_Exit:				;AN000;
-	pop	si			;AN000;
-	pop	ax			;AN000;
-	ret				;AN000;
-$P_Remove_Colon endp			;AN000;
-PAGE					;AN000;
+$P_RCOL_Exit:
+	pop	si
+	pop	ax
+	ret
+$P_Remove_Colon endp
+PAGE
 ;***********************************************************************
 ; $P_Do_CAPS_String;
 ;
@@ -1076,12 +932,12 @@ PAGE					;AN000;
 ;
 ; Use:	$P_Do_CAPS_Char, $P_Chk_DBCS
 ;***********************************************************************
-$P_Do_CAPS_String proc			;AN000;
-	push	si			;AN000;
-	push	dx			;AN000;
+$P_Do_CAPS_String proc
+	push	si
+	push	dx
 	mov	dl,al			;AN000; save info id
 
-$P_DCS_Loop:				;AN000;
+$P_DCS_Loop:
 	mov	al,psdata_seg:[si]	;AN000; load charater and
 	call	$P_Chk_DBCS		;AN000; check if DBCS leading byte
 	jc	$P_DCS00		;AN000; if yes, do not need CAPS
@@ -1092,17 +948,17 @@ $P_DCS_Loop:				;AN000;
 	call	$P_Do_CAPS_Char 	;AN000; Here a SBCS char need to be CAPS
 	mov	psdata_seg:[si],al	;AN000; stored upper case char to buffer
 	jmp	short $P_DCS01		;AN000; process nexit
-$P_DCS00:				;AN000;
+$P_DCS00:
 	inc	si			;AN000; skip DBCS leading and trailing byte
-$P_DCS01:				;AN000;
+$P_DCS01:
 	inc	si			;AN000; si point to next byte
 	jmp	short $P_DCS_Loop	;AN000; loop until NULL encountered
-$P_DCS_Exit:				;AN000;
-	pop	dx			;AN000;
-	pop	si			;AN000;
-	ret				;AN000;
-$P_Do_CAPS_String endp			;AN000;
-PAGE					;AN000;
+$P_DCS_Exit:
+	pop	dx
+	pop	si
+	ret
+$P_Do_CAPS_String endp
+PAGE
 ;***********************************************************************
 ; $P_Do_CAPS_Char;
 ;
@@ -1117,31 +973,31 @@ PAGE					;AN000;
 ;
 ; Use:	INT 21h /w AH=65h
 ;***********************************************************************
-$P_Do_CAPS_Char proc			;AN000;
+$P_Do_CAPS_Char proc
 	cmp	al,$P_ASCII80		;AN000; need upper case table ?
-	jae	$P_DCC_Go		;AN000;
+	jae	$P_DCC_Go
 
 	cmp	al,"a"                  ;AN000; if no,
 	jb	$P_CAPS_Ret		;AN000;   check if  "a" <= AL <= "z"
 
-	cmp	al,"z"                  ;AN000;
+	cmp	al,"z"
 	ja	$P_CAPS_Ret		;AN000;   if yes, make CAPS
 
 	and	al,$P_Make_Upper	;AN000;   else do nothing.
-	jmp	short $P_CAPS_Ret	;AN000;
+	jmp	short $P_CAPS_Ret
 
-$P_DCC_Go:				;AN000;
-	push	bx			;AN000;
-	push	es			;AN000;
-	push	di			;AN000;
+$P_DCC_Go:
+	push	bx
+	push	es
+	push	di
 IF	CAPSW				;AN000;(Check if uppercase conversion is supported)
-	lea	di,psdata_seg:$P_File_CAP_Ptr ;AC034;
+	lea	di,psdata_seg:$P_File_CAP_Ptr
 	cmp	dl,$P_DOSTBL_File	;AN000; Use file CAPS table ?
-	je	$P_DCC00		;AN000;
+	je	$P_DCC00
 
 ENDIF					;AN000;(of CAPSW)
 	lea	di,psdata_seg:$P_Char_CAP_Ptr ;AC034; or use char CAPS table ?
-$P_DCC00:				;AN000;
+$P_DCC00:
 	cmp	psdata_seg:[di],dl	;AN000; already got table address ?
 	je	$P_DCC01		;AN000; if no,
 
@@ -1153,12 +1009,12 @@ $P_DCC00:				;AN000;
 IFDEF BASESW				;AN037; If BASESW has been defined, and
   IFE BASESW				;AN037; If ES is psdata base
 	push	PSDATA_SEG		;AN037; save current base reg
-  ENDIF 				;AN037;
-ENDIF					;AN037;
+  ENDIF
+ENDIF
 
 	push	ax			;AN000; get CAPS table thru DOS call
-	push	cx			;AN000;
-	push	dx			;AN000;
+	push	cx
+	push	dx
 
 
 	push	PSDATA_SEG		;AC036; pass current base seg into
@@ -1173,15 +1029,15 @@ ENDIF					;AN037;
 					;DI already set to point to buffer
 	int	21h			;AN000; es:di point to buffer that
 					;now has been filled in with info
-	pop	dx			;AN000;
-	pop	cx			;AN000;
-	pop	ax			;AN000;
+	pop	dx
+	pop	cx
+	pop	ax
 IFDEF BASESW				;AN037; If BASESW has been defined, and
   IFE BASESW				;AN037; If ES is psdata base
 	pop	PSDATA_SEG		;AN037; restore current base reg
-  ENDIF 				;AN037;
-ENDIF					;AN037;
-$P_DCC01:				;AN000;
+  ENDIF
+ENDIF
+$P_DCC01:
 
 ;In this next section, ES will be used as the base of the XLAT table, provided
 ; by the previous GET COUNTRY INFO DOS call.  This usage of ES is made
@@ -1190,8 +1046,8 @@ $P_DCC01:				;AN000;
 IFDEF BASESW				;AN037; If BASESW has been defined, and
   IFE BASESW				;AN037; If ES is psdata base
 	push	PSDATA_SEG		;AN037; save current base reg
-  ENDIF 				;AN037;
-ENDIF					;AN037;
+  ENDIF
+ENDIF
 	mov	bx,psdata_seg:[di+$P_DOS_TBL_Off] ;AN000; get offset of table
 	mov	es,psdata_seg:[di+$P_DOS_TBL_Seg] ;AN000; get segment of table
 	inc	bx			;AC035; add '2' to
@@ -1204,15 +1060,15 @@ ENDIF					;AN037;
 IFDEF BASESW				;AN037; If BASESW has been defined, and
   IFE BASESW				;AN037; If ES is psdata base
 	pop	PSDATA_SEG		;AN037; restore current base reg
-  ENDIF 				;AN037;
-ENDIF					;AN037;
-	pop	di			;AN000;
-	pop	es			;AN000;
-	pop	bx			;AN000;
-$P_CAPS_Ret:				;AN000;
-	ret				;AN000;
-$P_Do_CAPS_Char endp			;AN000;
-PAGE					;AN000;
+  ENDIF
+ENDIF
+	pop	di
+	pop	es
+	pop	bx
+$P_CAPS_Ret:
+	ret
+$P_Do_CAPS_Char endp
+PAGE
 ;***********************************************************************
 IF	NumSW				;AN000;(Check if numeric value is supported)
 ; $P_Value / $P_SValue
@@ -1233,42 +1089,42 @@ IF	NumSW				;AN000;(Check if numeric value is supported)
 ; Vars: $P_RC(W), $P_Flags(RW)
 ;***********************************************************************
 $P_SValue proc				;AN000; when signed value here
-	push	ax			;AN000;
+	push	ax
 	or	psdata_seg:$P_Flags2,$P_Signed	    ;AC034; indicate a signed numeric
 	and	psdata_seg:$P_Flags2,0ffh-$P_Neg  ;AC034; assume positive value
 	mov	al,psdata_seg:[si]	;AN000; get sign
 	cmp	al,$P_Plus		;AN000; "+" ?
-	je	$P_SVal00		;AN000;
+	je	$P_SVal00
 
 	cmp	al,$P_Minus		;AN000; "-" ?
 	jne	$P_Sval01		;AN000; else
 
 	or	psdata_seg:$P_Flags2,$P_Neg ;AC034; set this is negative value
-$P_SVal00:				;AN000;
+$P_SVal00:
 	inc	si			;AN000; skip sign char
-$P_Sval01:				;AN000;
+$P_Sval01:
 	call	$P_Value		;AN000; and process value
-	pop	ax			;AN000;
-	ret				;AN000;
-$P_SValue endp				;AN000;
+	pop	ax
+	ret
+$P_SValue endp
 ;***********************************************************************
-$P_Value proc				;AN000;
-	push	ax			;AN000;
-	push	cx			;AN000;
-	push	dx			;AN000;
-	push	si			;AN000;
+$P_Value proc
+	push	ax
+	push	cx
+	push	dx
+	push	si
 	xor	cx,cx			;AN000; cx = higher 16 bits
 	xor	dx,dx			;AN000; dx = lower 16 bits
 	push	bx			;AN000; save control pointer
-$P_Value_Loop:				;AN000;
+$P_Value_Loop:
 	mov	al,psdata_seg:[si]	;AN000; get character
 	or	al,al			;AN000; end of line ?
-	je	$P_Value00		;AN000;
+	je	$P_Value00
 
 	call	$P_0099 		;AN000; make asc(0..9) to bin(0..9)
-	jc	$P_Value_Err0		;AN000;
+	jc	$P_Value_Err0
 
-	xor	ah,ah			;AN000;
+	xor	ah,ah
 	mov	bp,ax			;AN000; save binary number
 	shl	dx,1			;AN000; to have 2*x
 	rcl	cx,1			;AN000; shift left w/ carry
@@ -1300,11 +1156,11 @@ $P_Value_Loop:				;AN000;
 	inc	si			;AN000; update pointer
 	jmp	short $P_Value_Loop	;AN000; loop until NULL encountered
 ;
-$P_Value_Err0:				;AN000;
-	pop	bx			;AN000;
+$P_Value_Err0:
+	pop	bx
 	jmp	$P_Value_Err		;AN000; Bridge
 ;
-$P_Value00:				;AN000;
+$P_Value00:
 	pop	bx			;AN000; restore control pointer
 	test	psdata_seg:$P_Flags2,$P_Neg ;AC034; here cx,dx = 32bit value
 	je	$P_Value01		;AN000; was it negative ?
@@ -1317,133 +1173,133 @@ $P_Value01:				;AN000; / nval =0
 	mov	si,es:[bx].$P_Value_List ;AN000; si points to value list
 	mov	al,es:[si]		;AN000; get nval
 	cmp	al,$P_nval_None 	;AN000; no value list ?
-	jne	$P_Value02		;AN000;
+	jne	$P_Value02
 
 	mov	al,$P_Number		;AN000; Set type
 	mov	ah,$P_No_Tag		;AN000; No ITEM_TAG set
 IFDEF TPARSE_SHORT_JUMPS
 	jmp	short $P_Value_Exit	; JWasm: COMMAND transient layout
 ELSE
-	jmp	$P_Value_Exit		;AN000;
+	jmp	$P_Value_Exit
 ENDIF
 
 $P_Value02:				;AN000; / nval = 1
 IF	Val1SW				;AN000;(Check if value list id #1 is supported)
 ;(tm07) cmp	al,$P_nval_Range	;AN000; have range list ?
-;(tm07) jne	$P_Value03		;AN000;
+;(tm07) jne	$P_Value03
 
-	inc	si			;AN000;
+	inc	si
 	mov	al,es:[si]		;AN000; al = number of range
 	cmp	al,$P_No_nrng		;AN000; (tm07)
 	je	$P_Value03		;AN000; (tm07)
 
 	inc	si			;AN000; si points to 1st item_tag
-$P_Val02_Loop:				;AN000;
-	test	psdata_seg:$P_Flags2,$P_Signed ;AC034;
-	jne	$P_Val02_Sign		;AN000;
+$P_Val02_Loop:
+	test	psdata_seg:$P_Flags2,$P_Signed
+	jne	$P_Val02_Sign
 
 	cmp	cx,es:[si+$P_Val_XH]	;AN000; comp cx with XH
-	jb	$P_Val02_Next		;AN000;
+	jb	$P_Val02_Next
 
-	ja	$P_Val_In		;AN000;
+	ja	$P_Val_In
 
 	cmp	dx,es:[si+$P_Val_XL]	;AN000; comp dx with XL
-	jb	$P_Val02_Next		;AN000;
+	jb	$P_Val02_Next
 
-$P_Val_In:				;AN000;
+$P_Val_In:
 ;;;;;;	cmp	cx,es:$P_Val_YH]	; comp cx with YH (tm01)
 	cmp	cx,es:[si+$P_Val_YH]	;AN000; comp cx with YH (tm01)
-	ja	$P_Val02_Next		;AN000;
+	ja	$P_Val02_Next
 
-	jb	$P_Val_Found		;AN000;
+	jb	$P_Val_Found
 
 	cmp	dx,es:[si+$P_Val_YL]	;AN000; comp dx with YL
-	ja	$P_Val02_Next		;AN000;
+	ja	$P_Val02_Next
 
-	jmp	short $P_Val_Found	;AN000;
+	jmp	short $P_Val_Found
 
-$P_Val02_Sign:				;AN000;
+$P_Val02_Sign:
 	cmp	cx,es:[si+$P_Val_XH]	;AN000; comp cx with XH
-	jl	$P_Val02_Next		;AN000;
+	jl	$P_Val02_Next
 
-	jg	$P_SVal_In		;AN000;
+	jg	$P_SVal_In
 
 	cmp	dx,es:[si+$P_Val_XL]	;AN000; comp dx with XL
-	jl	$P_Val02_Next		;AN000;
+	jl	$P_Val02_Next
 
-$P_SVal_In:				;AN000;
+$P_SVal_In:
 	cmp	cx,es:[si+$P_Val_YH]	;AN000; comp cx with YH
-	jg	$P_Val02_Next		;AN000;
+	jg	$P_Val02_Next
 
-	jl	$P_Val_Found		;AN000;
+	jl	$P_Val_Found
 
 	cmp	dx,es:[si+$P_Val_YL]	;AN000; comp dx with YL
-	jg	$P_Val02_Next		;AN000;
+	jg	$P_Val02_Next
 
-	jmp	short $P_Val_Found	;AN000;
+	jmp	short $P_Val_Found
 
-$P_Val02_Next:				;AN000;
-	add	si,$P_Len_Range 	;AN000;
+$P_Val02_Next:
+	add	si,$P_Len_Range
 	dec	al			;AN000; loop nrng times in AL
-	jne	$P_Val02_Loop		;AN000;
+	jne	$P_Val02_Loop
 					; / Not found
-	mov	psdata_seg:$P_RC,$P_Out_of_Range ;AC034;
-	mov	al,$P_Number		;AN000;
+	mov	psdata_seg:$P_RC,$P_Out_of_Range
+	mov	al,$P_Number
 	mov	ah,$P_No_Tag		;AN000; No ITEM_TAG set
-	jmp	short $P_Value_Exit	;AN000;
+	jmp	short $P_Value_Exit
 
 ENDIF					;AN000;(of Val1SW)
 IF	Val1SW+Val2SW			;AN000;(Check if value list id #1 or #2 is supported)
-$P_Val_Found:				;AN000;
-	mov	al,$P_Number		;AN000;
+$P_Val_Found:
+	mov	al,$P_Number
 	mov	ah,es:[si]		;AN000; found ITEM_TAG set
-	jmp	short $P_Value_Exit	;AN000;
+	jmp	short $P_Value_Exit
 
 ENDIF					;AN000;(of Val1SW+Val2SW)
 $P_Value03:				;AN000; / nval = 2
 IF	Val2SW				;AN000;(Check if value list id #2 is supported)
 ;;;;	cmp	al,$P_nval_Value	; have match list ? ASSUME nval=2,
 ;;;;	jne	$P_Value04		; even if it is 3 or more.
-;(tm07) inc	si			;AN000;
+;(tm07) inc	si
 ;(tm07) mov	al,es:[si]		;AN000; al = nrng
-	mov	ah,$P_Len_Range 	;AN000;
+	mov	ah,$P_Len_Range
 	mul	ah			;AN000;  Skip nrng field
-	inc	ax			;AN000;
+	inc	ax
 	add	si,ax			;AN000; si points to nnval
 	mov	al,es:[si]		;AN000; get nnval
 	inc	si			;AN000; si points to 1st item_tag
-$P_Val03_Loop:				;AN000;
+$P_Val03_Loop:
 	cmp	cx,es:[si+$P_Val_XH]	;AN000; comp cx with XH
-	jne	$P_Val03_Next		;AN000;
+	jne	$P_Val03_Next
 
 	cmp	dx,es:[si+$P_Val_XL]	;AN000; comp dx with XL
-	je	$P_Val_Found		;AN000;
+	je	$P_Val_Found
 
-$P_Val03_Next:				;AN000;
+$P_Val03_Next:
 	add	si,$P_Len_Value 	;AN000; points to next value choice
 	dec	al			;AN000; loop nval times in AL
-	jne	$P_Val03_Loop		;AN000;
+	jne	$P_Val03_Loop
 					;AN000; / Not found
-	mov	psdata_seg:$P_RC,$P_Not_in_Val ;AC034;
-	mov	al,$P_Number		;AN000;
+	mov	psdata_seg:$P_RC,$P_Not_in_Val
+	mov	al,$P_Number
 	mov	ah,$P_No_Tag		;AN000; No ITEM_TAG set
-	jmp	short $P_Value_Exit	;AN000;
+	jmp	short $P_Value_Exit
 
 ENDIF					;AN000;(of Val2SW)
 $P_Value04:				;AN000; / nval = 3 or else
-$P_Value_Err:				;AN000;
-	mov	psdata_seg:$P_RC,$P_Syntax ;AC034;
+$P_Value_Err:
+	mov	psdata_seg:$P_RC,$P_Syntax
 	mov	al,$P_String		;AN000; Set type
 	mov	ah,$P_No_Tag		;AN000; No ITEM_TAG set
-$P_Value_Exit:				;AN000;
-	call	$P_Fill_Result		;AN000;
-	pop	si			;AN000;
-	pop	dx			;AN000;
-	pop	cx			;AN000;
-	pop	ax			;AN000;
-	ret				;AN000;
-$P_Value endp				;AN000;
-PAGE					;AN000;
+$P_Value_Exit:
+	call	$P_Fill_Result
+	pop	si
+	pop	dx
+	pop	cx
+	pop	ax
+	ret
+$P_Value endp
+PAGE
 ;***********************************************************************
 ; $P_Check_OVF
 ;
@@ -1456,25 +1312,25 @@ PAGE					;AN000;
 ;
 ; Vars:     $P_Flags(R)
 ;***********************************************************************
-$P_Check_OVF proc			;AN000;
-	pushf				;AN000;
+$P_Check_OVF proc
+	pushf
 	test	psdata_seg:$P_Flags2,$P_Neg ;AC034; is it negative value ?
 	jne	$P_COVF 		;AN000; if no, check overflow
 
 	popf				;AN000; by the CY bit
-	ret				;AN000;
+	ret
 
-$P_COVF:				;AN000;
+$P_COVF:
 	popf				;AN000; else,
 	jo	$P_COVF00		;AN000; check overflow by the OF
 
 	clc				;AN000; indicate it with CY bit
 	ret				;AN000; CY=0 means no overflow
 
-$P_COVF00:				;AN000;
+$P_COVF00:
 	stc				;AN000; and CY=1 means overflow
-	ret				;AN000;
-$P_Check_OVF endp			;AN000;
+	ret
+$P_Check_OVF endp
 ENDIF					;AN000;(of FarSW)
 ;***********************************************************************
 ; $P_0099;
@@ -1486,22 +1342,22 @@ ENDIF					;AN000;(of FarSW)
 ; Output:    CY = 1 : AL is not number
 ;	     CY = 0 : AL contains binary value
 ;***********************************************************************
-$P_0099 proc				;AN000;
-	cmp	al,"0"                  ;AN000;
+$P_0099 proc
+	cmp	al,"0"
 	jb	$P_0099Err		;AN000;  must be 0 =< al =< 9
 
-	cmp	al,"9"                  ;AN000;
+	cmp	al,"9"
 	ja	$P_0099Err		;AN000;  must be 0 =< al =< 9
 
 	sub	al,"0"                  ;AN000; make char -> bin
 	clc				;AN000; indicate no error
-	ret				;AN000;
+	ret
 
-$P_0099Err:				;AN000;
+$P_0099Err:
 	stc				;AN000; indicate error
-	ret				;AN000;
-$P_0099 endp				;AN000;
-PAGE					;AN000;
+	ret
+$P_0099 endp
+PAGE
 ;***********************************************************************
 ; $P_Simple_String
 ;
@@ -1517,11 +1373,11 @@ PAGE					;AN000;
 ;
 ; Vars: $P_RC(W)
 ;***********************************************************************
-$P_Simple_String proc			;AN000;
-	push	ax			;AN000;
-	push	bx			;AN000;
-	push	dx			;AN000;
-	push	di			;AN000;
+$P_Simple_String proc
+	push	ax
+	push	bx
+	push	dx
+	push	di
 	mov	di,es:[bx].$P_Value_List ;AN000; di points to value list
 	mov	al,es:[di]		;AN000; get nval
 	or	al,al			;AN000; no value list ?
@@ -1530,19 +1386,19 @@ $P_Simple_String proc			;AN000;
 	mov	ah,$P_No_Tag		;AN000; No ITEM_TAG set
 	jmp	short $P_Sim_Exit	;AN000; and set result buffer
 
-$P_Sim00:				;AN000;
+$P_Sim00:
 IF	Val3SW+KeySW			;AN000;(Check if keyword or value list id #3 is supported)
 	cmp	al,$P_nval_String	;AN000; String choice list provided ?
 	jne	$P_Sim01		;AN000; if no, syntax error
 
-	inc	di			;AN000;
+	inc	di
 	mov	al,es:[di]		;AN000; al = nrng
-	mov	ah,$P_Len_Range 	;AN000;
+	mov	ah,$P_Len_Range
 	mul	ah			;AN000;  Skip nrng field
 	inc	ax			;AN000; ax = (nrng*9)+1
 	add	di,ax			;AN000; di points to nnval
 	mov	al,es:[di]		;AN000; get nnval
-	mov	ah,$P_Len_Value 	;AN000;
+	mov	ah,$P_Len_Value
 	mul	ah			;AN000; Skip nnval field
 	inc	ax			;AN000; ax = (nnval*5)+1
 	add	di,ax			;AN000; di points to nstrval
@@ -1551,39 +1407,39 @@ IF	Val3SW+KeySW			;AN000;(Check if keyword or value list id #3 is supported)
 	inc	di			;AC035;  DI reg
 					;AN000; di points to 1st string in list
 ;(replaced ;AC035;) add     di,2	;AN000; di points to 1st string in list
-$P_Sim_Loop:				;AN000;
+$P_Sim_Loop:
 	mov	bp,es:[di]		;AN000; get string pointer
 	call	$P_String_Comp		;AN000; compare it with operand
 	jnc	$P_Sim_Found		;AN000; found on list ?
 
 	add	di,$P_Len_String	;AN000; if no, point to next choice
 	dec	al			;AN000; loop nstval times in AL
-	jne	$P_Sim_Loop		;AN000;
+	jne	$P_Sim_Loop
 					;AN000; / Not found
-	mov	psdata_seg:$P_RC,$P_Not_In_Str ;AC034;
+	mov	psdata_seg:$P_RC,$P_Not_In_Str
 	mov	ah,$P_No_Tag		;AN000; No ITEM_TAG set
-	jmp	short $P_Sim_Exit	;AN000;
+	jmp	short $P_Sim_Exit
 
-$P_Sim_Found:				;AN000;
+$P_Sim_Found:
 	mov	ah,es:[di-1]		;AN000; set item_tag
-	mov	al,$P_List_Idx		;AN000;
+	mov	al,$P_List_Idx
 	mov	dx,es:[di]		;AN000; get address of STRING
-	jmp	short $P_Sim_Exit0	;AN000;
+	jmp	short $P_Sim_Exit0
 ENDIF					;AN000;(of Val3SW+KeySW)
-$P_Sim01:				;AN000;
-	mov	psdata_seg:$P_RC,$P_Syntax ;AC034;
+$P_Sim01:
+	mov	psdata_seg:$P_RC,$P_Syntax
 	mov	ah,$P_No_Tag		;AN000; No ITEM_TAG set
-$P_Sim_Exit:				;AN000;
+$P_Sim_Exit:
 	mov	al,$P_String		;AN000; Set type
-$P_Sim_Exit0:				;AN000;
-	call	$P_Fill_Result		;AN000;
-	pop	di			;AN000;
-	pop	dx			;AN000;
-	pop	bx			;AN000;
-	pop	ax			;AN000;
-	ret				;AN000;
-$P_Simple_String endp			;AN000;
-PAGE					;AN000;
+$P_Sim_Exit0:
+	call	$P_Fill_Result
+	pop	di
+	pop	dx
+	pop	bx
+	pop	ax
+	ret
+$P_Simple_String endp
+PAGE
 ;***********************************************************************
 ; $P_String_Comp:
 ;
@@ -1599,13 +1455,13 @@ PAGE					;AN000;
 ;
 ; Vars: $P_KEYor_SW_Ptr(W), $P_Flags(R). $P_KEYorSW_Ptr
 ;***********************************************************************
-$P_String_Comp proc			;AN000;
-	push	ax			;AN000;
-	push	bp			;AN000;
-	push	dx			;AN000;
-	push	si			;AN000;
+$P_String_Comp proc
+	push	ax
+	push	bp
+	push	dx
+	push	si
 	mov	dl,$P_DOSTBL_Char	;AN000; use character case map table
-$P_SCOM_Loop:				;AN000;
+$P_SCOM_Loop:
 	mov	al,psdata_seg:[si]	;AN000; get command character
 	call	$P_Chk_DBCS		;AN000; DBCS ?
 	jc	$P_SCOM00		;AN000; yes,DBCS
@@ -1613,19 +1469,19 @@ $P_SCOM_Loop:				;AN000;
 	call	$P_Do_CAPS_Char 	;AN000; else, upper case map before comparison
 IF	KeySW+SwSW			;AN000;(Check if keyword or switch is supported)
 	test	psdata_seg:$P_Flags2,$P_Key_Cmp ;AC034; keyword search ?
-	je	$P_SCOM04		;AN000;
+	je	$P_SCOM04
 
 	cmp	al,$P_Keyword		;AN000; "=" is delimiter
 	jne	$P_SCOM03		;AN000;IF "=" on command line AND  (bp+1=> char after the "=" in synonym list)
 
 	cmp	byte ptr es:[bp+1],$P_NULL ;AN021;   at end of keyword string in the control block THEN
-	jne	$P_SCOM_DIFFER		;AN021;
+	jne	$P_SCOM_DIFFER
 
 	jmp	short $P_SCOM05 	;AN000;   keyword found in synonym list
 
-$P_SCOM04:				;AN000;
+$P_SCOM04:
 	test	psdata_seg:$P_Flags2,$P_SW_Cmp ;AC034; switch search ?
-	je	$P_SCOM03		;AN000;
+	je	$P_SCOM03
 
 	cmp	al,$P_Colon		;AN000; ":" is delimiter, at end of switch on command line
 	jne	$P_SCOM03		;AN000; continue compares
@@ -1637,7 +1493,7 @@ $P_SCOM05:				;AN000;   found a match
 	inc	si			;AN000; si points to just after "=" or ":"
 	jmp	short $P_SCOM_Same	;AN000; exit
 
-$P_SCOM03:				;AN000;
+$P_SCOM03:
 ENDIF					;AN000;(of KeySW+SwSW)
 	cmp	al,es:[bp]		;AN000; compare operand w/ a synonym
 	jne	$P_SCOM_Differ0 	;AN000; if different, check ignore colon option
@@ -1655,16 +1511,16 @@ $P_SCOM00:				;AN000; Here al is DBCS leading byte
 
 	inc	si			;AN000; else, load next byte
 	mov	al,psdata_seg:[si]	;AN000; and
-	inc	bp			;AN000;
+	inc	bp
 	cmp	al,es:[bp]		;AN000; compare 2nd byte
 	jne	$P_SCOM_Differ		;AN000; if not match, say different, too
 
 	inc	si			;AN000; else update operand pointer
 	inc	bp			;AN000; 		and synonym pointer
-$P_SCOM01:				;AN000;
+$P_SCOM01:
 	jmp	short $P_SCOM_Loop	;AN000; loop until NULL or "=" or "/" found in case
 
-$P_SCOM_Differ0:			;AN000;
+$P_SCOM_Differ0:
 
 IF	SwSW				;AN000;(tm10)
 	test	psdata_seg:$P_Flags2,$P_SW ;AC034;(tm10)
@@ -1691,28 +1547,28 @@ ENDIF					;AN000;(tm10)
 
 	jmp	short $p_SCOM_Same	;AN000; else, say same
 
-$P_SCOM02:				;AN000;
+$P_SCOM02:
 	cmp	al,$P_NULL		;AN000; end up NULL and :
-	jne	$P_SCOM_Differ		;AN000;
+	jne	$P_SCOM_Differ
 
 	cmp	byte ptr es:[bp],$P_Colon ;AN000; if no, say different
 	je	$p_SCOM_Same		;AN000; else, say same
 
-$P_SCOM_Differ: 			;AN000;
+$P_SCOM_Differ:
 	stc				;AN000; indicate not found
-	jmp	short $P_SCOM_Exit	;AN000;
+	jmp	short $P_SCOM_Exit
 
-$P_SCOM_Same:				;AN000;
+$P_SCOM_Same:
 	mov	psdata_seg:$P_KEYorSW_Ptr,si ;AC034; for later use by keyword or switch
 	clc				;AN000; indicate found
-$P_SCOM_Exit:				;AN000;
-	pop	si			;AN000;
-	pop	dx			;AN000;
-	pop	bp			;AN000;
-	pop	ax			;AN000;
-	ret				;AN000;
-$P_String_Comp endp			;AN000;
-PAGE					;AN000;
+$P_SCOM_Exit:
+	pop	si
+	pop	dx
+	pop	bp
+	pop	ax
+	ret
+$P_String_Comp endp
+PAGE
 ;***********************************************************************
 IF	DateSW				;AN000;(Check if date format is supported)
 ; $P_Date_Format
@@ -1729,19 +1585,19 @@ IF	DateSW				;AN000;(Check if date format is supported)
 ;
 ; Vars: $P_RC(W), $P_1st_Val(RW), $P_2nd_Val(RW), $P_3rd_Val(RW)
 ;***********************************************************************
-$P_Date_Format proc			;AN000;
-	push	ax			;AN000;
-	push	cx			;AN000;
-	push	dx			;AN000;
-	push	si			;AN000;
-	push	bx			;AN000;
-	push	si			;AN000;
+$P_Date_Format proc
+	push	ax
+	push	cx
+	push	dx
+	push	si
+	push	bx
+	push	si
 	call	$P_Set_CDI		;AN000; set country dependent information before process
 ;	mov	bl,psdata_seg:[si].$P_CDI_DateS ;load date separator ;AN020; (deleted)
 ;					note: the country info is still needed
 ;					to determine the order of the fields,
 ;					but the separator char is no longer used.
-	pop	si			;AN000;
+	pop	si
 	mov	psdata_seg:$P_1st_Val,0 ;AC034; set initial value
 	mov	psdata_seg:$P_2nd_Val,0 ;AC034; set initial value
 	mov	psdata_seg:$P_3rd_Val,0 ;AC034; set initial value
@@ -1761,25 +1617,25 @@ $P_Date_Format proc			;AN000;
 
 	call	$P_Get_DecNum		;AN000; get 3rd number	      |
 $P_DateF_Err0:				;AN000; Bridge	  <-----------+
-	jc	$P_DateF_Error		;AN000;
+	jc	$P_DateF_Error
 
-	mov	psdata_seg:$P_3rd_Val,ax ;AC034;
+	mov	psdata_seg:$P_3rd_Val,ax
 	or	bl,bl			;AN000; end of line ?
-	jne	$P_DateF_Error		;AN000;
+	jne	$P_DateF_Error
 
-$P_DateF_YMD:				;AN000;
+$P_DateF_YMD:
 	mov	bx,psdata_seg:$P_Country_Info.$P_CDI_DateF ;AC034; get date format
-	cmp	bx,$P_Date_YMD		;AN000;
-	je	$P_DateF00		;AN000;
+	cmp	bx,$P_Date_YMD
+	je	$P_DateF00
 
-	mov	ax,psdata_seg:$P_1st_Val ;AC034;
-	or	ah,ah			;AN000;
-	jne	$P_DateF_Error		;AN000;
+	mov	ax,psdata_seg:$P_1st_Val
+	or	ah,ah
+	jne	$P_DateF_Error
 
 	mov	cl,al			;AN000; set month
-	mov	ax,psdata_seg:$P_2nd_Val ;AC034;
+	mov	ax,psdata_seg:$P_2nd_Val
 	or	ah,ah			;AN000; if overflow, error.
-	jne	$P_DateF_Error		;AN000;
+	jne	$P_DateF_Error
 
 	mov	ch,al			;AN000; set date
 	mov	dx,psdata_seg:$P_3rd_Val ;AC034; set year
@@ -1787,27 +1643,27 @@ $P_DateF_YMD:				;AN000;
 	jne	$P_DateF01		;AN000; if it is DMY
 
 	xchg	ch,cl			;AN000;  then swap M <-> D
-$P_DateF01:				;AN000;
-	jmp	short $P_DateF02	;AN000;
+$P_DateF01:
+	jmp	short $P_DateF02
 
 $P_DateF00:				;AN000; / here format = YMD
 	mov	dx,psdata_seg:$P_1st_Val ;AC034; set year
-	mov	ax,psdata_seg:$P_2nd_Val ;AC034;
+	mov	ax,psdata_seg:$P_2nd_Val
 	or	ah,ah			;AN000; if overflow, error
-	jne	$P_DateF_Error		;AN000;
+	jne	$P_DateF_Error
 
 	mov	cl,al			;AN000; set month
-	mov	ax,psdata_seg:$P_3rd_Val ;AC034;
+	mov	ax,psdata_seg:$P_3rd_Val
 	or	ah,ah			;AN000; if overflow, error
-	jne	$P_DateF_Error		;AN000;
+	jne	$P_DateF_Error
 
 	mov	ch,al			;AN000; set date
-$P_DateF02:				;AN000;
+$P_DateF02:
 	cmp	dx,100			;AN000; year is less that 100 ?
-	jae	$P_DateF03		;AN000;
+	jae	$P_DateF03
 
 	add	dx,1900 		;AN000; set year 19xx
-$P_DateF03:				;AN000;
+$P_DateF03:
 	pop	bx			;AN000; recover CONTROL block
 	pop	si			;AN000; recover string pointer
 	mov	ah,$P_No_Tag		;AN000; set
@@ -1815,21 +1671,21 @@ $P_DateF03:				;AN000;
 	call	$P_Fill_Result		;AN000; 	   buffer
 	jmp	short $P_Date_Format_Exit ;AN000;	to Date
 
-$P_DateF_Error: 			;AN000;
+$P_DateF_Error:
 	pop	bx			;AN000; recover CONTROL block
 	pop	si			;AN000; recover string pointer
 	mov	ah,$P_No_Tag		;AN000; set
 	mov	al,$P_String		;AN000;     result
 	call	$P_Fill_Result		;AN000; 	   buffer  to string
 	mov	psdata_seg:$P_RC,$P_Syntax ;AC034; indicate syntax error
-$P_Date_Format_Exit:			;AN000;
-	pop	dx			;AN000;
-	pop	cx			;AN000;
-	pop	ax			;AN000;
-	ret				;AN000;
-$P_Date_Format endp			;AN000;
+$P_Date_Format_Exit:
+	pop	dx
+	pop	cx
+	pop	ax
+	ret
+$P_Date_Format endp
 ENDIF					;AN000;(of DateSW)
-PAGE					;AN000;
+PAGE
 ;***********************************************************************
 IF	TimeSW+DateSW			;AN000;(Check if time or date format is supported)
 ; $P_Set_CDI:
@@ -1842,29 +1698,29 @@ IF	TimeSW+DateSW			;AN000;(Check if time or date format is supported)
 ;
 ; Use:	INT 21h w/ AH = 38h
 ;***********************************************************************
-$P_Set_CDI proc 			;AN000;
-	lea	si,psdata_seg:$P_Country_Info ;AC034;
+$P_Set_CDI proc
+	lea	si,psdata_seg:$P_Country_Info
 	cmp	psdata_seg:[si].$P_CDI_DateF,$P_NeedToBeRead ;AN000; already read ?
-	je	$P_Read_CDI		;AN000;
+	je	$P_Read_CDI
 
 	jmp	short $P_Set_CDI_Exit	;AN000; then do nothing
 
 $P_Read_CDI:				;AN000; else read CDI thru DOS
-	push	ds			;AN000;
-	push	dx			;AN000;
-	push	ax			;AN000;
-	push	PSDATA_SEG		;AC023;
+	push	ds
+	push	dx
+	push	ax
+	push	PSDATA_SEG
 	pop	ds			;AN000; set segment register
 	mov	ax,$P_DOS_Get_CDI	;AN000; get country information
 	mov	dx,si			;AN000; set offset of CDI in local data area
-	int	21h			;AN000;
-	pop	ax			;AN000;
-	pop	dx			;AN000;
-	pop	ds			;AN000;
-$P_Set_CDI_Exit:			;AN000;
-	ret				;AN000;
-$P_Set_CDI endp 			;AN000;
-PAGE					;AN000;
+	int	21h
+	pop	ax
+	pop	dx
+	pop	ds
+$P_Set_CDI_Exit:
+	ret
+$P_Set_CDI endp
+PAGE
 ;***********************************************************************
 ; $P_Get_DecNum:
 ;
@@ -1880,17 +1736,17 @@ PAGE					;AN000;
 ;
 ; Use:	$P_0099
 ;***********************************************************************
-$P_Get_DecNum proc			;AN000;
-	push	cx			;AN000;
-	push	dx			;AN000;
+$P_Get_DecNum proc
+	push	cx
+	push	dx
 	xor	cx,cx			;AN000; cx will have final value
-$P_GetNum_Loop: 			;AN000;
+$P_GetNum_Loop:
 	mov	al,psdata_seg:[si]	;AN000; load character
 	or	al,al			;AN000; end of line ?
 	je	$P_GetNum00		;AN000; if yes, exit
 
-	cmp	psdata_seg:$P_Got_Time,0 ;AC034; ;is this numeric in a time field?    ;AC023
-	je	$P_Do_Date_Delims	;AN000;no, go check out Date delimiters  ;AC023
+	cmp	psdata_seg:$P_Got_Time,0 ;AC034; ;is this numeric in a time field?
+	je	$P_Do_Date_Delims	;AN000;no, go check out Date delimiters
 
 ; Determine which delimiter(s) to check for.  Colon & period  or period only
 	cmp	bl,$P_colon_period	;AN032; ;Time
@@ -1899,13 +1755,13 @@ $P_GetNum_Loop: 			;AN000;
 	cmp	al,$P_Colon		;AN032; ;Is this a valid delimiter ?
 	je	$P_GetNum01		;AN032; ;yes, exit
 
-$P_Do_Time_Delim1:			;AN000;
+$P_Do_Time_Delim1:
 	cmp	al,$P_Period		;;AC032;;AC023;Is this a valid delimiter ?
 	je	$P_GetNum01		;AC023; yes, exit
 
-	jmp	short $P_Neither_Delims ;AN023;
+	jmp	short $P_Neither_Delims
 
-$P_Do_Date_Delims:			;AN000;
+$P_Do_Date_Delims:
 ;Regardless of the date delimiter character specified in the country
 ;dependent information, check for the presence of any one of these
 ;three field delimiters: "-", "/", or ".".
@@ -1918,45 +1774,45 @@ $P_Do_Date_Delims:			;AN000;
 	cmp	al,$P_Period		;AN020;is this a date delimiter character?
 	je	$P_GetNum01		;AN000; if yes, exit
 
-$P_Neither_Delims:			;AN023;
+$P_Neither_Delims:
 
 	call	$P_0099 		;AN000; convert it to binary
 	jc	$P_GetNum_Exit		;AN000; if error exit
 
-	mov	ah,0			;AN000;
-	xchg	ax,cx			;AN000;
-	mov	dx,10			;AN000;
+	mov	ah,0
+	xchg	ax,cx
+	mov	dx,10
 	mul	dx			;AN000; ax = ax * 10
 	or	dx,dx			;AN000; overflow
 	jne	$P_GetNum02		;AN000; then exit
 
-	add	ax,cx			;AN000;
-	jc	$P_GetNum_Exit		;AN000;
+	add	ax,cx
+	jc	$P_GetNum_Exit
 
-	xchg	ax,cx			;AN000;
-	inc	si			;AN000;
-	jmp	short $P_GetNum_Loop	;AN000;
+	xchg	ax,cx
+	inc	si
+	jmp	short $P_GetNum_Loop
 
-$P_GetNum00:				;AN000;
+$P_GetNum00:
 	mov	bl,al			;AN000; set bl to NULL
 	clc				;AN000; indicate no error
-	jmp	short $P_GetNum_Exit	;AN000;
+	jmp	short $P_GetNum_Exit
 
-$P_GetNum01:				;AN000;
+$P_GetNum01:
 	inc	si			;AN000; si points to next number
 	clc				;AN000; indicate no error
-	jmp	short $P_GetNum_Exit	;AN000;
+	jmp	short $P_GetNum_Exit
 
-$P_GetNum02:				;AN000;
+$P_GetNum02:
 	stc				;AN000; indicate error
-$P_GetNum_Exit: 			;AN000;
+$P_GetNum_Exit:
 	mov	ax,cx			;AN000;return value
-	pop	dx			;AN000;
-	pop	cx			;AN000;
-	ret				;AN000;
-$P_Get_DecNum endp			;AN000;
+	pop	dx
+	pop	cx
+	ret
+$P_Get_DecNum endp
 ENDIF					;AN000;(of TimeSW+DateSW)
-PAGE					;AN000;
+PAGE
 ;***********************************************************************
 IF	TimeSW				;AN000;(Check if time format is supported)
 ; $P_Time_Format
@@ -1974,23 +1830,23 @@ IF	TimeSW				;AN000;(Check if time format is supported)
 ; Vars: $P_RC(W), $P_Flags(R), $P_1st_Val(RW), $P_2nd_Val(RW)
 ;	$P_3rd_Val(RW), $P_4th_Val(RW)
 ;***********************************************************************
-$P_Time_Format proc			;AN000;
-	push	ax			;AN000;
-	push	cx			;AN000;
-	push	dx			;AN000;
-	push	si			;AN000;
-	push	bx			;AN000;
-	push	si			;AN000;
+$P_Time_Format proc
+	push	ax
+	push	cx
+	push	dx
+	push	si
+	push	bx
+	push	si
 	call	$P_Set_CDI		;AN000; Set country independent
 					; information before process
 ;(AN032; deleted)  mov	   bl,psdata_seg:[si].$P_CDI_TimeS ;load time separator
 ;(AN032; deleted)  mov	   bh,psdata_seg:[si].$P_CDI_Dec ;load decimal separator
 	test	byte ptr psdata_seg:[si].$P_CDI_TimeF,1 ;AN000; 24 hour system
-	pop	si			;AN000;
+	pop	si
 	jne	$P_TimeF00		;AN000; if no, means 12 hour system
 
 	call	$P_Time_2412		;AN000; this routine handle "am" "pm"
-$P_TimeF00:				;AN000;
+$P_TimeF00:
 	mov	psdata_seg:$P_1st_Val,0 ;AC034; set initial value
 	mov	psdata_seg:$P_2nd_Val,0 ;AC034; set initial value
 	mov	psdata_seg:$P_3rd_Val,0 ;AC034; set initial value
@@ -2000,27 +1856,27 @@ $P_TimeF00:				;AN000;
 					; delimiters between hours,
 					;  minutes,seconds
 	call	$P_Get_DecNum		;AN000; get 1st number
-	jc	$P_TimeF_Err0		;AN000;
+	jc	$P_TimeF_Err0
 
-	mov	psdata_seg:$P_1st_Val,ax ;AC034;
+	mov	psdata_seg:$P_1st_Val,ax
 	or	bl,bl			;AN000; end of line ?
-	je	$P_TimeF_Rlt		;AN000;
+	je	$P_TimeF_Rlt
 
 	call	$P_Get_DecNum		;AN000; get 2nd number
 	jc	$P_TimeF_Err0		;AC038; if OK
 
-	mov	psdata_seg:$P_2nd_Val,ax ;AC034;
+	mov	psdata_seg:$P_2nd_Val,ax
 	or	bl,bl			;AN000; end of line ?
-	je	$P_TimeF_Rlt		;AN000;
+	je	$P_TimeF_Rlt
 
 ;(;AN032; deleted) mov	   bl,bh		   ;set decimal separator
 	mov	bl,$P_period_only	;AN032; flag, which to decimal separator
 	call	$P_Get_DecNum		;AN000; get 3rd number
 	jc	$P_TimeF_Err0		;AC039; if problem, bridge to error
 
-	mov	psdata_seg:$P_3rd_Val,ax ;AC034;
+	mov	psdata_seg:$P_3rd_Val,ax
 	or	bl,bl			;AN000; end of line ?
-;(DELETED ;AN039;)  je $P_TimeF_Rlt	;AN000;
+;(DELETED ;AN039;)  je $P_TimeF_Rlt
 	jne	$P_Time_4		;AN039; NOT END OF LINE,
 					;AN039;   GO TO 4TH NUMBER
 	test	psdata_seg:$P_Flags1,$P_Time_Again ;AN039; HAS TIME PARSE
@@ -2052,16 +1908,16 @@ $P_TimeF00:				;AN000;
 $P_Time_4:				;AN039; READY FOR 4TH (HUNDREDTHS) NUMBER
 	call	$P_Get_DecNum		;AN000; get 4th number
 $P_TimeF_Err0:				;AN000; Bridge
-	jc	$P_TimeF_Error		;AN000;
+	jc	$P_TimeF_Error
 
-	mov	psdata_seg:$P_4th_Val,ax ;AC034;
+	mov	psdata_seg:$P_4th_Val,ax
 	or	bl,bl			;AN000; After hundredth, no data allowed
 	jne	$P_TimeF_Error		;AN000; if some, then error
 
-$P_TimeF_RLT:				;AN000;
-	mov	ax,psdata_seg:$P_1st_Val ;AC034;
+$P_TimeF_RLT:
+	mov	ax,psdata_seg:$P_1st_Val
 	or	ah,ah			;AN000; if overflow then error
-	jne	$P_TimeF_Err		;AN000;
+	jne	$P_TimeF_Err
 
 	test	psdata_seg:$P_Flags1,$P_Time12am ;AN038;if "am" specified
 	jz	$P_Time_notAM		;AN038;skip if no "AM" specified
@@ -2071,7 +1927,7 @@ $P_TimeF_RLT:				;AN000;
 	jne	$P_Time_notAM		;AN038; for noon exactly,
 
 	xor	al,al			;AN038; set hour = zero
-$P_Time_notAM:				;AN038;
+$P_Time_notAM:
 	test	psdata_seg:$P_Flags2,$P_Time12 ;AC034; if 12 hour system and pm is specified
 	je	$P_TimeSkip00		;AN000; then
 
@@ -2084,21 +1940,21 @@ $P_Time_notAM:				;AN038;
 	cmp	al,24			;AN038; after adding 12, now cannot be >24
 	ja	$P_TimeF_Err		;AN038; if too big, error
 
-$P_TimeSkip00:				;AN000;
+$P_TimeSkip00:
 	mov	dl,al			;AN000; set hour
-	mov	ax,psdata_seg:$P_2nd_Val ;AC034;
+	mov	ax,psdata_seg:$P_2nd_Val
 	or	ah,ah			;AN000; if overflow then error
-	jne	$P_TimeF_Err		;AN000;
+	jne	$P_TimeF_Err
 
 	mov	dh,al			;AN000; set minute
-	mov	ax,psdata_seg:$P_3rd_Val ;AC034;
+	mov	ax,psdata_seg:$P_3rd_Val
 	or	ah,ah			;AN000; if overflow then error
-	jne	$P_TimeF_Err		;AN000;
+	jne	$P_TimeF_Err
 
 	mov	cl,al			;AN000; set second
-	mov	ax,psdata_seg:$P_4th_Val ;AC034;
+	mov	ax,psdata_seg:$P_4th_Val
 	or	ah,ah			;AN000; if overflow then error
-	jne	$P_TimeF_Err		;AN000;
+	jne	$P_TimeF_Err
 
 	mov	ch,al			;AN000; set hundredth
 	pop	bx			;AN000; recover CONTROL block
@@ -2108,22 +1964,22 @@ $P_TimeSkip00:				;AN000;
 	call	$P_Fill_Result		;AN000; 	 buffer
 	jmp	short $P_Time_Format_Exit ;AN000;    to time
 
-$P_TimeF_Error: 			;AN000;
-$P_TimeF_Err:				;AN000;
+$P_TimeF_Error:
+$P_TimeF_Err:
 	pop	bx			;AN000; recover CONTROL block
 	pop	si			;AN000; recover string pointer
 	mov	ah,$P_No_Tag		;AN000; set
 	mov	al,$P_String		;AN000;     result
 	call	$P_Fill_Result		;AN000; 	  buffer to string
 	mov	psdata_seg:$P_RC,$P_Syntax ;AC034; return syntax error
-$P_Time_Format_Exit:			;AN000;
+$P_Time_Format_Exit:
 	mov	psdata_seg:$P_Got_Time,0 ;AN023;AC034;; finished with this time field
-	pop	dx			;AN000;
-	pop	cx			;AN000;
-	pop	ax			;AN000;
-	ret				;AN000;
-$P_Time_Format endp			;AN000;
-PAGE					;AN000;
+	pop	dx
+	pop	cx
+	pop	ax
+	ret
+$P_Time_Format endp
+PAGE
 ;***********************************************************************
 ; $P_Time_2412:
 ;
@@ -2136,10 +1992,10 @@ PAGE					;AN000;
 ;
 ; Vars:  $P_Flags(W)
 ;***********************************************************************
-$P_Time_2412 proc			;AN000;
-	push	ax			;AN000;
-	push	si			;AN000;
-$P_T12_Loop:				;AN000;
+$P_Time_2412 proc
+	push	ax
+	push	si
+$P_T12_Loop:
 	mov	al,psdata_seg:[si]	;AN000; Move
 	inc	si			;AN000;     si
 	or	al,al			;AN000;       to
@@ -2148,19 +2004,19 @@ $P_T12_Loop:				;AN000;
 	mov	al,psdata_seg:[si-word] ;AN000; get char just before NULL
 	or	al,$P_Make_Lower	;AN000; lower case map
 	cmp	al,"p"                  ;AN000; only "p" of "pm" ?
-	je	$P_T1200		;AN000;
+	je	$P_T1200
 
 	cmp	al,"a"                  ;AN000; only "a" of "am" ?
-	je	$P_T1201		;AN000;
+	je	$P_T1201
 
 	cmp	al,"m"                  ;AN000; "m" of "am" or "pm"
-	jne	$P_T12_Exit		;AN000;
+	jne	$P_T12_Exit
 
-	dec	si			;AN000;
-	mov	al,psdata_seg:[si-word] ;AN000;
+	dec	si
+	mov	al,psdata_seg:[si-word]
 	or	al,$P_Make_lower	;AN000; lower case map
 	cmp	al,"p"                  ;AN000; "p" of "pm" ?
-	je	$P_T1200		;AN000;
+	je	$P_T1200
 
 	cmp	al,"a"                  ;AN000; "a" of "am" ?
 	je	$P_T1201		;AN000; go process "a"
@@ -2173,15 +2029,15 @@ $P_T1200:				;AN000; "P" found
 
 $P_T1201:				;AN000; "A" found
 	or	psdata_seg:$P_Flags1,$P_Time12AM ;AN038; flag "AM" found
-$P_Tclr_chr:				;AN038;
+$P_Tclr_chr:
 	mov	byte ptr psdata_seg:[si-2],$P_NULL ;AN000; null out special char
-$P_T12_Exit:				;AN000;
-	pop	si			;AN000;
-	pop	ax			;AN000;
-	ret				;AN000;
-$P_Time_2412 endp			;AN000;
+$P_T12_Exit:
+	pop	si
+	pop	ax
+	ret
+$P_Time_2412 endp
 ENDIF					;AN000;(of TimeSW)
-PAGE					;AN000;
+PAGE
 ;***********************************************************************
 IF	CmpxSW				;AN000;(Check if complex item is supported)
 ; $P_Complex_Format:
@@ -2199,16 +2055,16 @@ IF	CmpxSW				;AN000;(Check if complex item is supported)
 ;
 ; Vars: $P_RC(W), $P_SI_Save(W), $P_SaveSI_Cmpx(R), $P_Save_EOB(R)
 ;***********************************************************************
-$P_Complex_Format proc			;AN000;
-	push	ax			;AN000;
-	push	bx			;AN000;
-	push	si			;AN000;
+$P_Complex_Format proc
+	push	ax
+	push	bx
+	push	si
 	mov	bx,psdata_seg:$P_SaveSI_Cmpx ;AC034; bx points to user buffer
 	cmp	byte ptr [bx],$P_Lparen ;AN000; 1st char = left parentheses
-	jne	$P_Cmpx_Err		;AN000;
+	jne	$P_Cmpx_Err
 
 	xor	ah,ah			;AN000; ah = parentheses counter
-$P_Cmpx_Loop:				;AN000;
+$P_Cmpx_Loop:
 	mov	al,[bx] 		;AN000; load character from command buffer
 	call	$P_Chk_EOL		;AN000; if it is one of EOL
 	je	$P_CmpxErr0		;AN000; then error exit.
@@ -2220,7 +2076,7 @@ $P_Cmpx_Loop:				;AN000;
 					;AN000; increment parentheses counter
 ;(replaced ;AC035;) add     ah,1	;AN000; increment parentheses counter
 	jc	$P_CmpxErr0		;AN000; if overflow, error
-$P_Cmpx00:				;AN000;
+$P_Cmpx00:
 	cmp	al,$P_Rparen		;AN000; right parentheses ?
 	jne	$P_Cmpx01		;AN000; then
 
@@ -2231,60 +2087,60 @@ $P_Cmpx00:				;AN000;
 
 	je	$P_Cmpx03		;AN000; ok, valid complex
 
-$P_Cmpx01:				;AN000;
+$P_Cmpx01:
 ;(deleted ;AN025;) call $P_Chk_DSQuote	;AN000; double or single quotation mark ? 3/17/KK
 	cmp	al,$P_DQuote		;AN025; double quotation mark?
 	jne	$P_Cmpx04		;AN000; 3/17/KK
 
 	mov	psdata_seg:[si],al	;AN000; here quoted string is found in the complex list.
-	inc	si			;AN000;
+	inc	si
 	inc	bx			;AN000; bx points to 2nd character
 	call	$P_Quoted_Str		;AN000; skip pointers until closing of quoted string
 	jc	$P_CmpxErr0		;AN000; if error in quoted string syntax then exit
 
-	jmp	short $P_Cmpx05 	;AN000;
+	jmp	short $P_Cmpx05
 
-$P_Cmpx04:				;AN000;
+$P_Cmpx04:
 	call	$P_Chk_DBCS		;AN000; was it a lead byte of DBCS ?
-	jnc	$P_Cmpx02		;AN000;
+	jnc	$P_Cmpx02
 
 	mov	psdata_seg:[si],al	;AN000; then store 1st byte
-	inc	si			;AN000;
-	inc	bx			;AN000;
+	inc	si
+	inc	bx
 	mov	al,[bx] 		;AN000; load 2nd byte
-$P_Cmpx02:				;AN000;
+$P_Cmpx02:
 	mov	psdata_seg:[si],al	;AN000; store SBCS or 2nd byte of DBCS
-$P_Cmpx05:				;AN000;
-	inc	si			;AN000;
-	inc	bx			;AN000;
+$P_Cmpx05:
+	inc	si
+	inc	bx
 	jmp	short $P_Cmpx_Loop	;AN000; loop
-;----					;AN000;
-$P_Cmpx03:				;AN000;
-	mov	byte ptr psdata_seg:[si],al ;AN000;
-	mov	byte ptr psdata_seg:[si+byte],$P_NULL ;AN000;
+;----
+$P_Cmpx03:
+	mov	byte ptr psdata_seg:[si],al
+	mov	byte ptr psdata_seg:[si+byte],$P_NULL
 	mov	byte ptr [bx],$P_NULL	;AN000; replace right parentheses with NULL
 	mov	si,bx			;AN000; skip whitespaces
 	inc	si			;AN000;     after
 	call	$P_Skip_Delim		;AN000;        right parentheses
 	mov	psdata_seg:$P_SI_Save,si ;AC034; save next pointer, SI
-	jmp	short $P_Cmpx_Exit	;AN000;
+	jmp	short $P_Cmpx_Exit
 
-$P_CmpxErr0:				;AN000;
+$P_CmpxErr0:
 	mov	si,psdata_seg:$P_Save_EOB ;AC034; if EOF encountered, restore
 	mov	byte ptr psdata_seg:[si],$P_NULL ;AN000; EOB mark
-$P_Cmpx_Err:				;AN000;
-	mov	psdata_seg:$P_RC,$P_Syntax ;AC034;
-$P_Cmpx_Exit:				;AN000;
-	mov	ah,$P_No_Tag		;AN000;
-	mov	al,$P_Complex		;AN000;
-	pop	si			;AN000;
-	pop	bx			;AN000;
-	call	$P_Fill_Result		;AN000;
-	pop	ax			;AN000;
-	ret				;AN000;
-$P_Complex_Format endp			;AN000;
+$P_Cmpx_Err:
+	mov	psdata_seg:$P_RC,$P_Syntax
+$P_Cmpx_Exit:
+	mov	ah,$P_No_Tag
+	mov	al,$P_Complex
+	pop	si
+	pop	bx
+	call	$P_Fill_Result
+	pop	ax
+	ret
+$P_Complex_Format endp
 ENDIF					;AN000;(of CpmxSW)
-PAGE					;AN000;
+PAGE
 ;***********************************************************************
 IF	QusSW				;AN000;(Check if quoted string is supported)
 ; $P_Quoted_Format:
@@ -2302,10 +2158,10 @@ IF	QusSW				;AN000;(Check if quoted string is supported)
 ;
 ; Vars: $P_RC(W), $P_SI_Save(W), $P_SaveSI_Cmpx(R),$P_Save_EOB(R)
 ;***********************************************************************
-$P_Quoted_Format proc			;AN000;
-	push	ax			;AN000;
-	push	bx			;AN000;
-	push	si			;AN000;
+$P_Quoted_Format proc
+	push	ax
+	push	bx
+	push	si
 	mov	bx,psdata_seg:$P_SaveSI_Cmpx ;AC034; bx points to user buffer
 	mov	al,byte ptr [bx]	;AN000; get 1st character
 ;(deleted ;AN025;) call $P_Chk_DSQuote	;AN000; is it single or double quote ?
@@ -2313,34 +2169,34 @@ $P_Quoted_Format proc			;AN000;
 	jne	$P_Qus_Err		;AN000; if no, error
 
 ;	mov	psdata_seg:[si],al	;AN000; move it to internal buffer
-;	inc	si			;AN000;
+;	inc	si
 	inc	bx			;AN000; bx points to 2nd character
 	call	$P_Quoted_Str		;AN000; skip pointers to the closing of quoted string
 	jc	$P_Qus_Err0		;AN000; if invali quoted string syntax, exit
 
 	mov	byte ptr psdata_seg:[si+byte],$P_NULL ;AN000; end up with NULL
-	mov	si,bx			;AN000;
-	inc	si			;AN000;
+	mov	si,bx
+	inc	si
 	call	$P_Skip_Delim		;AN000; skip whitespaces after closing quote
 	mov	psdata_seg:$P_SI_Save,si ;AC034; save next pointer, SI
-	jmp	short $P_Qus_Exit	;AN000;
+	jmp	short $P_Qus_Exit
 
-$P_Qus_Err0:				;AN000;
+$P_Qus_Err0:
 	mov	si,psdata_seg:$P_Save_EOB ;AC034; if EOF encountered, restore
 	mov	byte ptr psdata_seg:[si],$P_NULL ;AN000; EOB mark
-$P_Qus_Err:				;AN000;AN000
+$P_Qus_Err:
 	mov	psdata_seg:$P_RC,$P_Syntax ;AC034; indicate syntax error
-$P_Qus_Exit:				;AN000;
+$P_Qus_Exit:
 	mov	ah,$P_No_Tag		;AN000; set
 	mov	al,$P_Quoted_String	;AN000;    result
 	pop	si			;AN000; 	 buffer
 	pop	bx			;AN000; 	       to
 	call	$P_Fill_Result		;AN000; 		 quoted string
-	pop	ax			;AN000;
-	ret				;AN000;
-$P_Quoted_Format endp			;AN000;
+	pop	ax
+	ret
+$P_Quoted_Format endp
 ENDIF					;AN000;(of QusSW)
-PAGE					;AN000;
+PAGE
 ;***********************************************************************
 ; $P_Chk_DSQuote;
 ;
@@ -2363,7 +2219,7 @@ IF	QusSW+CmpxSW			;AN000;(Check if quoted string or complex item is supported)
 ;(deleted ;AN025;)	   cmp	   al,$P_SQuote 	   ; 1st char = single quotation ?
 ;(deleted ;AN025;)	   ret				   ;
 ;(deleted ;AN025;) $P_Chk_DSQuote endp			   ;
-    PAGE				;AN000;
+    PAGE
 ;***********************************************************************
 ; $P_Quoted_Str:
 ;
@@ -2379,24 +2235,24 @@ IF	QusSW+CmpxSW			;AN000;(Check if quoted string or complex item is supported)
 ;
 ; Vars: $P_SorD_Quote(R)
 ;***********************************************************************
-$P_Quoted_Str proc			;AN000;
-	push	ax			;AN000;
-$P_Qus_Loop:				;AN000;
+$P_Quoted_Str proc
+	push	ax
+$P_Qus_Loop:
 	mov	ax,[bx] 		;AN000; 3/17/87
-	call	$P_Chk_EOL		;AN000;
-	je	$P_Qustr_Err0		;AN000;
+	call	$P_Chk_EOL
+	je	$P_Qustr_Err0
 
 ;(deleted ;AN025;) cmp al,$P_SorD_Quote ;AN000; quotation ?   3/17/87
 	cmp	al,$P_DQuote		;AN025; double quote?
-	jne	$P_Qus00		;AN000;
+	jne	$P_Qus00
 
 ;(deleted ;AN025;) cmp ah,$P_SorD_Quote ;AN000; contiguous quotation 3/17/87
 	cmp	ah,$P_DQuote		;AN025; double quote?
-	jne	$P_Qus02		;AN000;
+	jne	$P_Qus02
 
 ;(deleted ;AN025:) mov word ptr psdata_seg:[si],ax ;AN000; 3/17/87
 	mov	byte ptr psdata_seg:[si],al ;AN025; save one of the quotes
-;(deleted ;AN025:) add si,2		;AN000;
+;(deleted ;AN025:) add si,2
 
 	inc	si			;AC035; add '1' to SI reg
 					;AN025; adjust target index
@@ -2405,35 +2261,35 @@ $P_Qus_Loop:				;AN000;
 	inc	bx			;AC035;  BX reg
 					;AN000; adjust source index by 2 to skip extra quote
 ;(changed ;AC035;) add	   bx,2 	;AN000; adjust source index by 2 to skip extra quote
-	jmp	short $P_Qus_Loop	;AN000;
+	jmp	short $P_Qus_Loop
 
-$P_Qus00:				;AN000;
+$P_Qus00:
 	call	$P_Chk_DBCS		;AN000; was it a lead byte of DBCS ?
-	jnc	$P_Qus01		;AN000;
+	jnc	$P_Qus01
 
 	mov	psdata_seg:[si],al	;AN000; store 1st byte
-	inc	si			;AN000;
-	inc	bx			;AN000;
+	inc	si
+	inc	bx
 	mov	al,[bx] 		;AN000; load 2nd byte
-$P_Qus01:				;AN000;
+$P_Qus01:
 	mov	psdata_seg:[si],al	;AN000; store SBCS or 2nd byte of DBCS
-	inc	si			;AN000;
-	inc	bx			;AN000;
-	jmp	short $P_Qus_Loop	;AN000;
+	inc	si
+	inc	bx
+	jmp	short $P_Qus_Loop
 
-$P_Qustr_Err0:				;AN000;
+$P_Qustr_Err0:
 	stc				;AN000; indicate error
-	jmp	short $P_Quoted_Str_Exit ;AN000;
+	jmp	short $P_Quoted_Str_Exit
 
-$P_Qus02:				;AN000;
-	mov	byte ptr psdata_seg:[si],0 ;AN000;
+$P_Qus02:
+	mov	byte ptr psdata_seg:[si],0
 	clc				;AN000; indicate no error
-$P_Quoted_Str_Exit:			;AN000;
-	pop	ax			;AN000;
-	ret				;AN000;
-$P_Quoted_Str endp			;AN000;
+$P_Quoted_Str_Exit:
+	pop	ax
+	ret
+$P_Quoted_Str endp
 ENDIF					;AN000;(of QusSW+CmpxSW)
-PAGE					;AN000;
+PAGE
 ;***********************************************************************
 IF	FileSW+DrvSW			;AN000;(Check if file spec or drive only is supported)
 ; $P_File_Format;
@@ -2451,10 +2307,10 @@ IF	FileSW+DrvSW			;AN000;(Check if file spec or drive only is supported)
 ; Vars: $P_RC(W), $P_SI_Save(W), $P_Terminator(W), $P_SaveSI_Cmpx(R)
 ;	$P_SaveSI_Cmpx(R)
 ;***********************************************************************
-$P_File_Format proc			;AN000;
-	push	ax			;AN000;
-	push	di			;AN000;
-	push	si			;AN000;
+$P_File_Format proc
+	push	ax
+	push	di
+	push	si
 	mov	di,psdata_seg:$P_SaveSI_cmpx ;AC034; get user buffer address
 $P_FileF_Loop0: 			;AN000; / skip special characters
 	mov	al,psdata_seg:[si]	;AN000; load character
@@ -2468,53 +2324,53 @@ $P_FileF_Loop0: 			;AN000; / skip special characters
 ;AN033; deleted   inc	  si			  ;   the
 ;AN033; deleted   jmp	  short $P_FileF_Loop0	  ;	  character
 	mov	psdata_seg:$P_err_flag,$P_error_filespec ;AN033;AC034;; set error flag- bad char.
-	pop	si			;AN033;
-	mov	byte ptr psdata_seg:[si],$P_NULL ;AN033;
-	pop	di			;AN033;
-	jmp	short $P_FileF02	;AN033;
+	pop	si
+	mov	byte ptr psdata_seg:[si],$P_NULL
+	pop	di
+	jmp	short $P_FileF02
 
 
-$P_FileF_Err:				;AN000;
-	pop	si			;AN000;
-	mov	byte ptr psdata_seg:[si],$P_NULL ;AN000;
+$P_FileF_Err:
+	pop	si
+	mov	byte ptr psdata_seg:[si],$P_NULL
 ;(deleted ;AN030;) mov di,$P_SaveSI_cmpx ;AN000; get user buffer address
 ;(deleted ;AN030;) mov $P_SI_Save,di	 ;AN000; update pointer to user buffer
-	pop	di			;AN000;
+	pop	di
 	test	es:[bx].$P_Match_Flag,$P_Optional ;AN000; is it optional ?
-	jne	$P_FileF02		;AN000;
+	jne	$P_FileF02
 
 	mov	psdata_seg:$P_RC,$P_Op_Missing ;AC034; 3/17/87
-	jmp	short $P_FileF02	;AN000;
+	jmp	short $P_FileF02
 
-$P_FileF03:				;AN000;
+$P_FileF03:
 	pop	ax			;AN000; discard save si
 	push	si			;AN000; save new si
-$P_FileF_Loop1: 			;AN000;
+$P_FileF_Loop1:
 	mov	al,psdata_seg:[si]	;AN000; load character (not special char)
 	or	al,al			;AN000; end of line ?
-	je	$P_FileF_RLT		;AN000;
+	je	$P_FileF_RLT
 
 	call	$P_FileSp_Chk		;AN000; File special character ?
-	je	$P_FileF00		;AN000;
+	je	$P_FileF00
 
 	call	$P_Chk_DBCS		;AN000; no, then DBCS ?
-	jnc	$P_FileF01		;AN000;
+	jnc	$P_FileF01
 	inc	di			;AN000; if yes, skip next byte
-	inc	si			;AN000;
-$P_FileF01:				;AN000;
-	inc	di			;AN000;
-	inc	si			;AN000;
-	jmp	short $P_FileF_Loop1	;AN000;
+	inc	si
+$P_FileF01:
+	inc	di
+	inc	si
+	jmp	short $P_FileF_Loop1
 ;
-$P_FileF00:				;AN000;
-	mov	psdata_seg:$P_Terminator,al ;AC034;
+$P_FileF00:
+	mov	psdata_seg:$P_Terminator,al
 	mov	byte ptr psdata_seg:[si],$P_NULL ;AN000; update end of string
-	inc	di			;AN000;
+	inc	di
 	mov	psdata_seg:$P_SI_Save,di ;AC034; update next pointer in command line
-$P_FileF_RLT:				;AN000;
-	pop	si			;AN000;
-	pop	di			;AN000;
-$P_FileF02:				;AN000;
+$P_FileF_RLT:
+	pop	si
+	pop	di
+$P_FileF02:
 
 	pop	ax			;AN000; (tm14)
 	test	ax,$P_File_Spc		;AN000; (tm14)
@@ -2525,13 +2381,13 @@ $P_FileF02:				;AN000;
 	mov	ah,$P_No_Tag		;AN000; set
 	mov	al,$P_File_Spec 	;AN000;    result
 	call	$P_Fill_Result		;AN000; 	 buffer to file spec
-	pop	ax			;AN000;
+	pop	ax
 
 $P_Drv_Only_Exit:			;AN000; (tm14)
 
-	ret				;AN000;
-$P_File_Format endp			;AN000;
-PAGE					;AN000;
+	ret
+$P_File_Format endp
+PAGE
 ;***********************************************************************
 ; $P_FileSp_Chk
 ;
@@ -2542,26 +2398,26 @@ PAGE					;AN000;
 ;
 ; Output:    ZF = 1 , AL is one of special characters
 ;***********************************************************************
-$P_FileSp_Chk proc			;AN000;
-	push	bx			;AN000;
-	push	cx			;AN000;
+$P_FileSp_Chk proc
+	push	bx
+	push	cx
 	lea	bx,psdata_seg:$P_FileSp_Char ;AC034; special character table
 	mov	cx,$P_FileSp_Len	;AN000; load length of it
-$P_FileSp_Loop: 			;AN000;
+$P_FileSp_Loop:
 	cmp	al,psdata_seg:[bx]	;AN000; is it one of special character ?
-	je	$P_FileSp_Exit		;AN000;
+	je	$P_FileSp_Exit
 
-	inc	bx			;AN000;
-	loop	$P_FileSp_Loop		;AN000;
+	inc	bx
+	loop	$P_FileSp_Loop
 
 	inc	cx			;AN000; reset ZF
-$P_FileSp_Exit: 			;AN000;
-	pop	cx			;AN000;
-	pop	bx			;AN000;
-	ret				;AN000;
-$P_FileSp_Chk endp			;AN000;
+$P_FileSp_Exit:
+	pop	cx
+	pop	bx
+	ret
+$P_FileSp_Chk endp
 ENDIF					;AN000;(of FileSW+DrvSW)
-PAGE					;AN000;
+PAGE
 ;***********************************************************************
 IF	DrvSW				;AN000;(Check if drive only is supported)
 ; $P_Drive_Format;
@@ -2578,26 +2434,26 @@ IF	DrvSW				;AN000;(Check if drive only is supported)
 ;
 ; Vars: $P_RC(W)
 ;***********************************************************************
-$P_Drive_Format proc			;AN000;
-	push	ax			;AN000;
-	push	dx			;AN000;
-	mov	al,psdata_seg:[si]	;AN000;
+$P_Drive_Format proc
+	push	ax
+	push	dx
+	mov	al,psdata_seg:[si]
 	or	al,al			;AN000; if null string
 	je	$P_Drv_Exit		;AN000; do nothing
 
 	call	$P_Chk_DBCS		;AN000; is it leading byte ?
-	jc	$P_Drv_Err		;AN000;
+	jc	$P_Drv_Err
 
 	cmp	word ptr psdata_seg:[si+byte],$P_Colon ;AN000; "d", ":", 0  ?
-	je	$P_DrvF00		;AN000;
+	je	$P_DrvF00
 
 	test	es:[bx].$P_Match_Flag,$P_Ig_Colon ;AN000; colon can be ignored?
-	je	$P_Drv_Err		;AN000;
+	je	$P_Drv_Err
 
 	cmp	byte ptr psdata_seg:[si+byte],$P_NULL ;AN000; "d", 0  ?
-	jne	$P_Drv_Err		;AN000;
+	jne	$P_Drv_Err
 
-$P_DrvF00:				;AN000;
+$P_DrvF00:
 	or	al,$P_Make_Lower	;AN000; lower case
 	cmp	al,"a"                  ;AN000; drive letter must
 	jb	$P_Drv_Err		;AN000; in range of
@@ -2610,17 +2466,17 @@ $P_DrvF00:				;AN000;
 	mov	ah,$P_No_Tag		;AN000;    result
 	mov	al,$P_Drive		;AN000; 	 buffer
 	call	$P_Fill_Result		;AN000; 	       to drive
-	jmp	short $P_Drv_Exit	;AN000;
+	jmp	short $P_Drv_Exit
 
-$P_Drv_Err:				;AN000;
-	mov	psdata_seg:$P_RC,$P_Syntax ;AC034;
-$P_Drv_Exit:				;AN000;
-	pop	dx			;AN000;
-	pop	ax			;AN000;
-	ret				;AN000;
-$P_Drive_Format endp			;AN000;
+$P_Drv_Err:
+	mov	psdata_seg:$P_RC,$P_Syntax
+$P_Drv_Exit:
+	pop	dx
+	pop	ax
+	ret
+$P_Drive_Format endp
 ENDIF					;AN000;(of DrvSW)
-PAGE					;AN000;
+PAGE
 ;***********************************************************************
 ; $P_Skip_Delim;
 ;
@@ -2638,9 +2494,9 @@ PAGE					;AN000;
 ;
 ; Vars:     $P_Flags(R)
 ;***********************************************************************
-$P_Skip_Delim proc			;AN000;
-$P_Skip_Delim_Loop:			;AN000;
-	LODSB				;AN000;
+$P_Skip_Delim proc
+$P_Skip_Delim_Loop:
+	LODSB
 	call	$P_Chk_EOL		;AN000; is it EOL character ?
 	je	$P_Skip_Delim_CY	;AN000; if yes, exit w/ CY on
 
@@ -2656,21 +2512,21 @@ $P_Skip_Delim_Loop:			;AN000;
 	dec	si			;AN000; backup si for next call (tm08)
 	jmp	short $P_Exit_At_Extra	;AN000; else exit w/ CY off
 
-$P_Skip_Delim_CY:			;AN000;
+$P_Skip_Delim_CY:
 	stc				;AN000; indicate EOL
-	jmp	short $P_Skip_Delim_Exit ;AN000;
+	jmp	short $P_Skip_Delim_Exit
 
-$P_Skip_Delim_NCY:			;AN000;
+$P_Skip_Delim_NCY:
 	clc				;AN000; indicate non delim
 $P_Skip_Delim_Exit:			;AN000; in this case, need
 	dec	si			;AN000;  backup index pointer
-	ret				;AN000;
+	ret
 
-$P_Exit_At_Extra:			;AN000;
+$P_Exit_At_Extra:
 	clc				;AN000; indicate extra delim
-	ret				;AN000;
-$P_Skip_Delim endp			;AN000;
-PAGE					;AN000;
+	ret
+$P_Skip_Delim endp
+PAGE
 ;***********************************************************************
 ; $P_Chk_EOL;
 ;
@@ -2681,46 +2537,46 @@ PAGE					;AN000;
 ;
 ; Output:   ZF = 1 if one of End of Line characters
 ;**********************************************************************
-$P_Chk_EOL proc 			;AN000;
-	push	bx			;AN000;
-	push	cx			;AN000;
+$P_Chk_EOL proc
+	push	bx
+	push	cx
 	cmp	al,$P_CR		;AN000; Carriage return ?
-	je	$P_Chk_EOL_Exit 	;AN000;
+	je	$P_Chk_EOL_Exit
 
 	cmp	al,$P_NULL		;AN000; zero ?
-	je	$P_Chk_EOL_Exit 	;AN000;
+	je	$P_Chk_EOL_Exit
 
 IF LFEOLSW				;AN028; IF LF TO BE ACCEPTED AS EOL
 	cmp	al,$P_LF		;AN000; Line feed ?
-	je	$P_Chk_EOL_Exit 	;AN000;
-ENDIF					;AN028;
+	je	$P_Chk_EOL_Exit
+ENDIF
 
 	cmp	byte ptr es:[di].$P_Num_Extra,$P_I_Have_EOL ;AN000; EOL character specified ?
-	jb	$P_Chk_EOL_Exit 	;AN000;
+	jb	$P_Chk_EOL_Exit
 
-	xor	bx,bx			;AN000;
+	xor	bx,bx
 	mov	bl,es:[di].$P_Len_Extra_Delim ;AN000; get length of delimiter list
 	add	bx,$P_Len_PARMS 	;AN000; skip it
 	cmp	byte ptr es:[bx+di],$P_I_Use_Default ;AN000; No extra EOL character ?
-	je	$P_Chk_EOL_NZ		;AN000;
+	je	$P_Chk_EOL_NZ
 
 	xor	cx,cx			;AN000; Get number of extra chcracter
-	mov	cl,es:[bx+di]		;AN000;
-$P_Chk_EOL_Loop:			;AN000;
-	inc	bx			;AN000;
+	mov	cl,es:[bx+di]
+$P_Chk_EOL_Loop:
+	inc	bx
 	cmp	al,es:[bx+di]		;AN000; Check extra EOL character
-	je	$P_Chk_EOL_Exit 	;AN000;
+	je	$P_Chk_EOL_Exit
 
-	loop	$P_Chk_EOL_Loop 	;AN000;
+	loop	$P_Chk_EOL_Loop
 
-$P_Chk_EOL_NZ:				;AN000;
+$P_Chk_EOL_NZ:
 	cmp	al,$P_CR		;AN000; reset ZF
-$P_Chk_EOL_Exit:			;AN000;
-	pop	cx			;AN000;
-	pop	bx			;AN000;
-	ret				;AN000;
-$P_Chk_EOL endp 			;AN000;
-PAGE					;AN000;
+$P_Chk_EOL_Exit:
+	pop	cx
+	pop	bx
+	ret
+$P_Chk_EOL endp
+PAGE
 ;***********************************************************************
 ; $P_Chk_Delim;
 ;
@@ -2736,71 +2592,71 @@ PAGE					;AN000;
 ;	    SI points to the next character
 ; Vars:  $P_Terminator(W), $P_Flags(W)
 ;***********************************************************************
-$P_Chk_Delim proc			;AN000;
-	push	bx			;AN000;
-	push	cx			;AN000;
+$P_Chk_Delim proc
+	push	bx
+	push	cx
 	mov	psdata_seg:$P_Terminator,$P_Space   ;AC034; Assume terminated by space
-	and	psdata_seg:$P_Flags2,0ffh-$P_Extra ;AC034;
+	and	psdata_seg:$P_Flags2,0ffh-$P_Extra
 	cmp	al,$P_Space		;AN000; Space ?
-	je	$P_Chk_Delim_Exit	;AN000;
+	je	$P_Chk_Delim_Exit
 
 	cmp	al,$P_TAB		;AN000; TAB ?
-	je	$P_Chk_Delim_Exit	;AN000;
+	je	$P_Chk_Delim_Exit
 
 	cmp	al,$P_Comma		;AN000; Comma ?
-	je	$P_Chk_Delim_Exit0	;AN000;
+	je	$P_Chk_Delim_Exit0
 
-$P_Chk_Delim00: 			;AN000;
+$P_Chk_Delim00:
 	cmp	al,$P_DBSP1		;AN000; 1st byte of DBCS Space ?
-	jne	$P_Chk_Delim01		;AN000;
+	jne	$P_Chk_Delim01
 
 	cmp	byte ptr [si],$P_DBSP2	;AN000; 2nd byte of DBCS Space ?
-	jne	$P_Chk_Delim01		;AN000;
+	jne	$P_Chk_Delim01
 
-	mov	al,$P_Space		;AN000;
+	mov	al,$P_Space
 	inc	si			;AN000; make si point to next character
 	cmp	al,al			;AN000; Set ZF
-	jmp	short $P_Chk_Delim_Exit ;AN000;
+	jmp	short $P_Chk_Delim_Exit
 
-$P_Chk_Delim01: 			;AN000;
+$P_Chk_Delim01:
 	cmp	byte ptr es:[di].$P_Num_Extra,$P_I_Have_Delim ;AN000; delimiter character specified ?
-	jb	$P_Chk_Delim_Exit	;AN000;
+	jb	$P_Chk_Delim_Exit
 
-	xor	cx,cx			;AN000;
+	xor	cx,cx
 	mov	cl,es:[di].$P_Len_Extra_Delim ;AN000; get length of delimiter list
 	or	cx,cx			;AN000; No extra Delim character ?
-	je	$P_Chk_Delim_NZ 	;AN000;
+	je	$P_Chk_Delim_NZ
 
 	mov	bx,$P_Len_PARMS-1	;AN000; set bx to 1st extra delimiter
-$P_Chk_Delim_Loop:			;AN000;
-	inc	bx			;AN000;
+$P_Chk_Delim_Loop:
+	inc	bx
 	cmp	al,es:[bx+di]		;AN000; Check extra Delim character
-	je	$P_Chk_Delim_Exit0	;AN000;
+	je	$P_Chk_Delim_Exit0
 
 	loop	$P_Chk_Delim_Loop	;AN000; examine all extra delimiter
 
-$P_Chk_Delim_NZ:			;AN000;
+$P_Chk_Delim_NZ:
 	cmp	al,$P_Space		;AN000; reset ZF
-$P_Chk_Delim_Exit:			;AN000;
+$P_Chk_Delim_Exit:
 ;;;;	jne	$P_ChkDfin
-;;;;	mov	psdata_seg:$P_Terminator,al ;AN034;
-$P_ChkDfin:				;AN000;
-	pop	cx			;AN000;
-	pop	bx			;AN000;
-	ret				;AN000;
+;;;;	mov	psdata_seg:$P_Terminator,al
+$P_ChkDfin:
+	pop	cx
+	pop	bx
+	ret
 
-$P_Chk_Delim_Exit0:			;AN000;
+$P_Chk_Delim_Exit0:
 	mov	psdata_seg:$P_Terminator,al ;AC034; keep terminated delimiter
 	test	psdata_seg:$P_Flags2,$P_Equ  ;AN027;AC034;; if terminating a key=
 	jnz	$P_No_Set_Extra 	;AN027; then do not set the EXTRA bit
 
 	or	psdata_seg:$P_Flags2,$P_Extra ;AC034; flag terminated extra delimiter or comma
-$P_No_Set_Extra:			;AN027;
+$P_No_Set_Extra:
 	cmp	al,al			;AN000; set ZF
-	jmp	short $P_Chk_Delim_Exit ;AN000;
+	jmp	short $P_Chk_Delim_Exit
 
-$P_Chk_Delim endp			;AN000;
-PAGE					;AN000;
+$P_Chk_Delim endp
+PAGE
 ;***********************************************************************
 ; $P_Chk_Switch;
 ;
@@ -2823,35 +2679,35 @@ PAGE					;AN000;
 
 ; Use:	 $P_0099
 ;***********************************************************************
-$P_Chk_Switch proc			;AN000;
+$P_Chk_Switch proc
 
 ;AN020;; Function: Check if AL is the switch character from 2nd position of $P_STRING_BUF
 ;AN020;; Output:   ZF = 1 if switch character
-;AN020;;	lea	bp,$P_STRING_BUF ;AN000;
+;AN020;;	lea	bp,$P_STRING_BUF
 ;AN020;;	cmp	bx,bp		 ;AN000; 1st position ?
-;AN020;;	je	$P_Chk_S_Exit_1  ;AN000;
-;AN020;;	cmp	al,$P_Switch	 ;AN000;
-;AN020;;	jmp	short $P_Chk_S_Exit_0  ;AN000;
-;AN020;;$P_Chk_S_Exit_1:		       ;AN000;
+;AN020;;	je	$P_Chk_S_Exit_1
+;AN020;;	cmp	al,$P_Switch
+;AN020;;	jmp	short $P_Chk_S_Exit_0
+;AN020;;$P_Chk_S_Exit_1:
 ;AN020;;	cmp	al,$P_Switch	 ;AN000; (tm08)
 ;AN020;;	jne	$P_Nop		;AN000; (tm08)
 ;AN020;;	or	$P_Flags2,$P_SW  ;AN000; (tm08) It could be valid switch
 ;AN020;;$P_Nop: 			;AN000; (tm08)
-;AN020;;	inc	bp		       ;AN000;
+;AN020;;	inc	bp
 ;AN020;;	cmp	bx,bp		       ;AN000; reset ZF
-;AN020;;$P_Chk_S_Exit_0:		       ;AN000;
-;AN020;;	jne	$P_Chk_S_Exit	       ;AN000;
+;AN020;;$P_Chk_S_Exit_0:
+;AN020;;	jne	$P_Chk_S_Exit
 ;AN020;;	mov	   $P_Terminator,al    ;AN000; store switch character
-;AN020;;$P_Chk_S_Exit:			       ;AN000;
+;AN020;;$P_Chk_S_Exit:
 
 	LEA	BP,psdata_seg:$P_String_Buf ;AN020;AC034; BP=OFFSET of $P_String_Buf even in group addressing
 ;	.IF <BX NE BP> THEN		;AN020;IF not first char THEN
-	cmp	BX,BP			;AN000;
-	je	$P_STRUC_L2		;AN000;
+	cmp	BX,BP
+	je	$P_STRUC_L2
 
 ;	    .IF <AL EQ $P_Switch> THEN	;AN020;otherwise see if a slash
-	    cmp     AL,$P_Switch	;AN000;
-	    jne     $P_STRUC_L5 	;AN000;
+	    cmp     AL,$P_Switch
+	    jne     $P_STRUC_L5
 
 		STC			;AN020;not in first position and is slash, now see if might be in date string
 IF	DateSw				;AN020;caller looking for date, see if this may be part of one
@@ -2859,41 +2715,41 @@ IF	DateSw				;AN020;caller looking for date, see if this may be part of one
 		MOV	AL,PSDATA_SEG:[BX-1] ;AN026;AL=char before the current char
 		CALL	$P_0099 	;AN020;return carry set if not numeric
 ;		.IF   NC ;AND		;AN020;IF previous char numeric AND
-		jc	$P_STRUC_L7	;AN000;
+		jc	$P_STRUC_L7
 
 		    MOV     AL,[SI]	;AN020;AL=char after the current char
 		    CALL    $P_0099	;AN020;return carry set if not numeric
 ;(deleted)	    .IF     NC THEN	;AN020;IF next char numeric THEN could be a date
 ;(deleted)		CLC		;AN020;reset CF so "/" not treated as a delimiter
-;(deleted)	    .ENDIF		;AN026;
+;(deleted)	    .ENDIF
 ;		.ENDIF			;AN020;ENDIF looks like date (number/number)
-$P_STRUC_L7:				;AN000;
+$P_STRUC_L7:
 		POP	AX		;AN020;restore AL to input char
 ENDIF					;AN020;DateSw
-;	    .ELSE			;AN020;
-	    jmp     short $P_STRUC_L1	;AN000;
+;	    .ELSE
+	    jmp     short $P_STRUC_L1
 
-$P_STRUC_L5:				;AN000;
+$P_STRUC_L5:
 		CLC			;AN020;not a slash
-;	    .ENDIF			;AN020;
+;	    .ENDIF
 ;	.ELSE				;AN020;is first char in the buffer, ZF=0
-	jmp	short $P_STRUC_L1	;AN000;
+	jmp	short $P_STRUC_L1
 
-$P_STRUC_L2:				;AN000;
-;	    .IF <AL EQ $P_Switch> THEN	;AN020;
-	    cmp     AL,$P_Switch	;AN000;
-	    jne     $P_STRUC_L12	;AN000;
+$P_STRUC_L2:
+;	    .IF <AL EQ $P_Switch> THEN
+	    cmp     AL,$P_Switch
+	    jne     $P_STRUC_L12
 
 		OR	psdata_seg:$P_Flags2,$P_SW ;AN020;AC034;;could be valid switch, first char and is slash
-;	    .ENDIF			;AN020;
-$P_STRUC_L12:				;AN000;
+;	    .ENDIF
+$P_STRUC_L12:
 	    CLC 			;AN020;CF=0 indicating first char
-;	.ENDIF				;AN020;
-$P_STRUC_L1:				;AN000;
+;	.ENDIF
+$P_STRUC_L1:
 
-	ret				;AN000;
-$P_Chk_Switch endp			;AN000;
-	PAGE				;AN000;
+	ret
+$P_Chk_Switch endp
+	PAGE
 ;**************************************************************************
 ; $P_Chk_DBCS:
 ;
@@ -2909,74 +2765,74 @@ $P_Chk_Switch endp			;AN000;
 ;
 ; Vars:  $P_DBCSEV_Seg(RW), $P_DBCSEV_Off(RW)
 ;***************************************************************************
-$P_Chk_DBCS PROC			;AN000;
+$P_Chk_DBCS PROC
 ;
-	PUSH	DS			;AN000;
-	PUSH	SI			;AN000;
+	PUSH	DS
+	PUSH	SI
 	PUSH	bx			;AN000; (tm11)
 	CMP	psdata_seg:$P_DBCSEV_SEG,0 ;AC034; ALREADY SET ?
-	JNE	$P_DBCS00		;AN000;
+	JNE	$P_DBCS00
 
-	PUSH	AX			;AN000;
+	PUSH	AX
 ;	PUSH	BX			;AN000; (tm11)
 	PUSH	ds			;AN000; (tm11)
-	PUSH	CX			;AN000;
-	PUSH	DX			;AN000;
-	PUSH	DI			;AN000;
-	PUSH	BP			;AN000;
-	PUSH	ES			;AN000;
-	XOR	SI,SI			;AN000;
-	MOV	DS,SI			;AN000;
+	PUSH	CX
+	PUSH	DX
+	PUSH	DI
+	PUSH	BP
+	PUSH	ES
+	XOR	SI,SI
+	MOV	DS,SI
 	MOV	AX,$P_DOS_GetEV 	;AN000; GET DBCS EV CALL
-	INT	21H			;AN000;
+	INT	21H
 
 ;	MOV	AX,DS			;AN000; (tm11)
 ;	OR	AX,AX			;AN000; (tm11)
 	MOV	bx,DS			;AN000; (tm11)
 	OR	bx,bx			;AN000; (tm11)
-	POP	ES			;AN000;
-	POP	BP			;AN000;
-	POP	DI			;AN000;
-	POP	DX			;AN000;
-	POP	CX			;AN000;
+	POP	ES
+	POP	BP
+	POP	DI
+	POP	DX
+	POP	CX
 ;	POP	BX			;AN000; (tm11)
 	POP	ds			;AN000; (tm11)
-	POP	AX			;AN000;
-	JE	$P_NON_DBCS		;AN000;
+	POP	AX
+	JE	$P_NON_DBCS
 
-$P_DBCS02:				;AN000;
+$P_DBCS02:
 	MOV	psdata_seg:$P_DBCSEV_OFF,SI ;AC034; save EV offset
 ;	MOV	psdata_seg:$P_DBCSEV_SEG,DS ;AC034; save EV segment
 	MOV	psdata_seg:$P_DBCSEV_SEG,bx ;AC034; save EV segment (tm11)
-$P_DBCS00:				;AN000;
+$P_DBCS00:
 	MOV	SI,psdata_seg:$P_DBCSEV_OFF ;AC034; load EV offset
 	MOV	DS,psdata_seg:$P_DBCSEV_SEG ;AC034; and segment
 
-$P_DBCS_LOOP:				;AN000;
+$P_DBCS_LOOP:
 	CMP	WORD PTR [SI],0 	;AN000; zero vector ?
 	JE	$P_NON_DBCS		;AN000; then exit
 
-	CMP	AL,[SI] 		;AN000;
+	CMP	AL,[SI]
 	JB	$P_DBCS01		;AN000; Check if AL is in
 
 	CMP	AL,[SI+BYTE]		;AN000;   range of
 	JA	$P_DBCS01		;AN000;      the vector
 
 	STC				;AN000; if yes, indicate DBCS and exit
-	JMP	short $P_DBCS_EXIT	;AN000;
+	JMP	short $P_DBCS_EXIT
 
-$P_DBCS01:				;AN000;
+$P_DBCS01:
 	INC	SI			;AC035; add '2' to
 	INC	SI			;AC035;  SI reg
 					;AN000; get next vector
 ;(changed ;AC035;) ADD	   SI,2 	;AN000; get next vector
 	JMP	short $P_DBCS_LOOP	;AN000; loop until zero vector found
 
-$P_NON_DBCS:				;AN000;
+$P_NON_DBCS:
 	CLC				;AN000; indicate SBCS
-$P_DBCS_EXIT:				;AN000;
+$P_DBCS_EXIT:
 	POP	bx			;AN000; (tm11)
-	POP	SI			;AN000;
-	POP	DS			;AN000;
-	RET				;AN000;
-$P_Chk_DBCS ENDP			;AN000;
+	POP	SI
+	POP	DS
+	RET
+$P_Chk_DBCS ENDP

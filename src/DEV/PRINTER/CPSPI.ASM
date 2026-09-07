@@ -120,9 +120,6 @@ STACK_ALLOCATED  DW -1			;; end of extended resident area
 ;	       FIND_RIGHT_BR:  Looks for a right bracket.
 ;
 ;
-; Change history:
-; ---------------
-;
 ;
 ;LOGIC:
 ;------

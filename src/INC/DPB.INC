@@ -1,5 +1,3 @@
-;	SCCSID = @(#)dpb.asm	1.1 85/04/10
-;	SCCSID = @(#)dpb.asm	1.1 85/04/10
 BREAK <DPB structure>
 ;----+----+----+----+----+----+----+----+----+----+----+----+----+----+----;
 ;	     C	A  V  E  A  T	  P  R	O  G  R  A  M  M  E  R		   ;

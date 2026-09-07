@@ -1,5 +1,3 @@
-;	SCCSID = @(#)find.asm	1.1 85/04/10
-;	SCCSID = @(#)find.asm	1.1 85/04/10
 Break	<find first/next buffer>
 
 find_buf    STRUC

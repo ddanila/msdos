@@ -12,8 +12,6 @@
 ;
 ;  Module:	ROM_SRCH - search for option ROMS and RAM
 ;
-;  Version:	0.04
-;
 ;  Date	:	June 5,1986
 ;
 ;  Authors:	SP, BT

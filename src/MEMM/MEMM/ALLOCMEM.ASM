@@ -11,26 +11,7 @@
 ;
 ;	Module: AllocMem - allocate memory for EMM Pages Pool
 ;
-;	Version: 0.05
-;
-;	Date:	May 24,1986
-;
-;	Author:
-;
 ;******************************************************************************
-;
-;	Change Log:
-;
-;	DATE	 REVISION	Description
-;	-------- --------	--------------------------------------------
-;	05/24/86 Original
-;	06/28/86 0.02		code read changes to various routines
-;	07/05/86 0.04		Changes due to segment re-org
-;	07/06/86 0.04		Made EXT_RES a define
-;	07/06/86 0.04		Changed to DGROUP assume
-;	07/10/86 0.05		added NOHIMEM flag
-;	06/02/88 pc		change from VDISK allocation to INT-15 method
-;	07/26/88 isp		completed work in changing over to int15 alloc
 ;
 ;******************************************************************************
 ;   Functional Description:

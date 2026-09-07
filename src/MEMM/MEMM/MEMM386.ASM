@@ -11,25 +11,7 @@
 ;
 ;	Module: MEMM386 - main module
 ;
-;	Version: 0.04
-;
-;	Date:	May 24,1986
-;
-;	Author:
-;
 ;******************************************************************************
-;
-;	Change Log:
-;
-;	DATE	 REVISION	Description
-;	-------- --------	--------------------------------------------
-;	04/24/86 Original	From EMML LIM driver.
-;	06/26/86 0.02		Put CLD in Inst_Chk
-;	06/28/86 0.02		Name change from MEMM386 to MEMM.
-;	07/05/86 0.04		Changed segment to R_CODE
-;	06/07/88		exclude VDISK header info's since we are
-;				using INT-15 method now (Paul Chan)
-;	06/21/88		Removed VDISK stuff.
 ;
 ;******************************************************************************
 ;   Functional Description:
@@ -56,12 +38,6 @@
 ;    Syntax:
 ;
 ; device=[d]:[<path>]MEMM.EXE [SIZE] [Mx] [ON | OFF | AUTO]
-;
-;
-;    NOTE: SUNILP - See if we need the /X option for excluding segments from
-;    being mappable.  This turned out to be quite useful in ps2emm and since
-;    here we are dealing with different hardware this option may turn out
-;    essential here**** WISH001
 ;
 ;    The following sections describe the optional arguments which the
 ;    user may specify for MEMM.EXE at load time (in the CONFIG.SYS

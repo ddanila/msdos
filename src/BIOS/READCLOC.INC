@@ -1,4 +1,3 @@
-;	SCCSID = @(#)readclock.asm	1.2 85/07/25
 ;************************************************************************
 ;
 ;   read_real_date reads real-time clock for date and returns the number

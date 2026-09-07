@@ -66,38 +66,6 @@
 /*                                                                        */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *  */
 /*                                                                        */
-/*  MODIFICATIONS:                                                        */
-/*                                                                        */
-/*    RW     :  R. W		                           1986           */
-/*                                                                        */
-/*    ;AC000;:  Changed code for DOS Version 4.00   S.M    1987           */
-/*                                                                        */
-/*    ;AN000;:  New code for DOS Version 4.00       S.M    1987           */
-/*              ;AN000;A - Append/X                                       */
-/*              ;AN000;EA- Extended Attributes                            */
-/*              ;AN000;EC- Extended Country Info                          */
-/*              ;AN000;M - Message handler                                */
-/*              ;AN000;P - Parser                                         */
-/*              ;AN000;U - /U (update switch)                             */
-/*                                                                        */
-/*    ;Ax001;:  New code required - PTM0000001      S.M    1987           */
-/*              Set archive bit ON after replace                          */
-/*                                                                        */
-/*    ;Ax002;:  Change code req'd - PTM0003154      S.M    1988           */
-/*              Enable filesize update in directory                       */
-/*                                                                        */
-/*    ;Ax003;:  Change code req'd - PTM0003753      S.M    1988           */
-/*              Dsearchf return garbage                                   */
-/*                                                                        */
-/*    ;Ax004;:  Change code req'd - PTM0003891      S.M    1988           */
-/*              One char subdir name not handled                          */
-/*                                                                        */
-/*    ;Ax005;:  Change code req'd - PTM0003907      S.M    1988           */
-/*              Incorrect message responses                               */
-/*                                                                        */
-/*    ;Ax006;:  Change code req'd - PTM0004124      S.M    1988           */
-/*              Incorrect message responses                               */
-/*                                                                        */
 /**************************************************************************/
 
 #include "comsub.h"                                                            /* ;AN000;P DBCS functions */

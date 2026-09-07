@@ -1,4 +1,3 @@
-;	SCCSID = @(#)IOCTL.INC	1.15 85/09/05
 TITLE	IOCTL - IOCTL system call
 NAME	IOCTL
 
@@ -9,16 +8,6 @@ NAME	IOCTL
 ;
 ; $IOCTL
 ;
-;   Revision history:
-;
-;	Created: ARR 4 April 1983
-;
-;	GenericIOCTL added:		KGS	22 April 1985
-;
-;	A000	version 4.00	Jan. 1988
-
-
-
 .xlist
 ;
 ; get the appropriate segment definitions
@@ -32,7 +21,7 @@ CODE	SEGMENT BYTE PUBLIC  'CODE'
 INCLUDE DOSSYM.INC
 INCLUDE DEVSYM.INC
 include ioctl.inc
-include ifssym.inc			 ;AN000;
+include ifssym.inc
 .cref
 .list
 
@@ -47,8 +36,8 @@ include ifssym.inc			 ;AN000;
 	I_need	OPENBUF,BYTE
 	I_need	ExtErr,WORD
 	I_need	DrvErr,BYTE
-	I_need	USER_IN_AX,WORD 		;AN000;
-	I_need	Temp_Var2,WORD			;AN000;
+	I_need	USER_IN_AX,WORD
+	I_need	Temp_Var2,WORD
 
 BREAK <IOCTL - munge on a handle to do device specific stuff>
 
@@ -418,7 +407,7 @@ GENERICIOCTL:
 	jne	ioctl_bad_fun		; no handles with Generic IOCTL.
 	CALL	Check_If_Net		; ES:DI := Get_hdr_block of device in BL
 	JNZ	ioctl_bad_fun		; There are no "net devices", and they
-	PUSH	ES			;   certainly don't know how to do this ;AN000;
+	PUSH	ES			;   certainly don't know how to do this
 	PUSH	DI				 ;AN000;IFS.
 	LES	DI,[THISCDS]			 ;AN000;IFS.	 ;
 	TEST	ES:[DI.curdir_flags],curdir_isnet;AN000;IFS.	 ; local IFS ?
@@ -509,8 +498,7 @@ ASSUME	DS:NOTHING
 Ioctl_Drive_attr:
 
 ;;;;;	MOV	AL,BL			;AC000;; Drive
-;;;;;	invoke	GETTHISDRV		;AC000;
-;;;;;					;AC000;
+;;;;;	invoke	GETTHISDRV
 ;;;;;	JC	ioctl_drv_err		; drive not valid
 	call	Get_Driver_BL
 	JC	ioctl_drv_err		; drive not valid
@@ -667,7 +655,7 @@ entry TEST_IFS_REMOTE2
 	TEST	ES:[DI.curdir_flags],curdir_isnet
 	JZ	belocal 		       ;AN000;	 ;IFS.
 	LES	DI,ES:[DI.curdir_ifs_hdr]      ;AN000;	 ;IFS.	test if remote
-TEST_REMOTE:				       ;AN000;
+TEST_REMOTE:
 	TEST	ES:[DI.ifs_attribute],IFSREMOTE;AN000;	 ;IFS.
 belocal:
 	POP	DI
@@ -728,8 +716,8 @@ EndProc $IOCTL
 ;Output: Z flag set, local file
 ;
 
-	procedure   TEST_IFS_REMOTE,NEAR  ;AN000;
-	ASSUME	DS:NOTHING,ES:NOTHING	  ;AN000;
+	procedure   TEST_IFS_REMOTE,NEAR
+	ASSUME	DS:NOTHING,ES:NOTHING
 
 	TEST	ES:[DI.sf_flags],sf_isnet ;AN000;;IFS.	ifs ?
 	JZ	nonifs			  ;AN000;;IFS.	no
@@ -737,9 +725,9 @@ EndProc $IOCTL
 	PUSH	DI		       ;AN000;;IFS.
 	LES	DI,ES:[DI.sf_IFS_hdr]  ;AN000;;IFS. get ifs header
 	JMP	TEST_REMOTE	       ;AN000;;IFS.
-nonifs: 			       ;AN000;
+nonifs:
 	return			       ;AN000;;IFS.
-EndProc TEST_IFS_REMOTE 	       ;AN000;
+EndProc TEST_IFS_REMOTE
 
 CODE ENDS
 END

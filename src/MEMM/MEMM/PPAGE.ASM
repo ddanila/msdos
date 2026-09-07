@@ -11,21 +11,12 @@
 ;
 ;   Module:	PPAGE - Find Mappable Physical Pages
 ;
-;   Version:	0.01
-;
-;   Date:	Aug 1, 1988
-;
-;   Author:	ISP
 ;		COMMENTS** This routine needs extensive work to do a better
 ;			   job of identification of unmappable segments. That
 ;			   is why we seem to have a whole lot of procedures
 ;			   which don't do much now.
 ;******************************************************************************
 ;
-;	Change Log:
-;
-;	DATE	 REVISION	Description
-;	-------- --------	--------------------------------------------
 ;******************************************************************************
 ;   Functional Description:
 ;   This module initialises the mappable physical pages in memory.

@@ -1409,14 +1409,14 @@ ShCloseDone:
 ;  int 3
    nop
 
-ifs_flag equ 8000h			;				       ;AN000;
+ifs_flag equ 8000h			;
 					;---------------------------------------
 					; Do nothing for device or network
 					;---------------------------------------
    mov	bx,es:[di].sf_mode
    and	bx,sf_isnet + devid_device
 
-;  $if	z,and,long			; if not device and		       ;AC000;
+;  $if	z,and,long			; if not device and
    JZ $$XL1
    JMP $$IF4
 $$XL1:
@@ -1424,7 +1424,7 @@ $$XL1:
    mov	bx,es:[di].sf_MFT
    or	bx,bx
 
-;  $if	nz,,long			; if not network		       ;AC000;
+;  $if	nz,,long			; if not network
    JNZ $$XL2
    JMP $$IF4
 $$XL2:
@@ -1439,22 +1439,22 @@ $$XL2:
        lds  si,cs:[bx].MFT_SPTR
        mov  cx,ax
 
-;      $search				;				       ;AC000;
+;      $search				;
 $$DO5:
 
 	   CallInstall PointComp,multDOS,20 ; pointers different?
 
-;	   $if	z			; if ourselves			       ;AC000;
+;	   $if	z			; if ourselves
 	   JNZ $$IF6
 
-	       lds  si,[si].sf_chain	; move to next			       ;AC000;
+	       lds  si,[si].sf_chain	; move to next
 
-;	   $endif			; endif - ourselves		       ;AC000;
+;	   $endif			; endif - ourselves
 $$IF6:
 
 	   or	si,si
 
-;      $leave z 			;				       ;AC000;
+;      $leave z 			;
        JZ $$EN5
 
 					;---------------------------------------
@@ -1465,30 +1465,30 @@ $$IF6:
 					;	   for shrink
 					; CX = 3 for new instance copy.
 					;---------------------------------------
-	   cmp	cx,2			;				       ;AC000;
+	   cmp	cx,2			;
 
-;      $exitif a			;				       ;AC000;
+;      $exitif a			;
        JNA $$IF5
 					;---------------------------------------
 					; CX = 3 for new instance copy.
 					; CX = 4 for codepage and high attrib update
 					;---------------------------------------
-	   cmp	cx,3			; cx = 3 ?			       ;an000;
-;	   $if	e			; yes				       ;an000;
+	   cmp	cx,3			; cx = 3 ?
+;	   $if	e			; yes
 	   JNE $$IF10
-	       call New_Sft		;				       ;AN000;
-;;	   $else			; cx = 4			       ;an000;
-;;	       call New_CP_Attrib	; update codepage and high attrib      ;an000;
-;	   $endif			;				       ;an000;
+	       call New_Sft		;
+;;	   $else			; cx = 4
+;;	       call New_CP_Attrib	; update codepage and high attrib
+;	   $endif			;
 $$IF10:
 
-;      $orelse				;				       ;AC000;
+;      $orelse				;
        JMP SHORT $$SR5
 $$IF5:
 
 	   or	cx,cx
 
-;	   $if	z			; if cx = 0 then		       ;AC000;
+;	   $if	z			; if cx = 0 then
 	   JNZ $$IF13
 					;---------------------------------------
 					; CX = 0 for updating of time
@@ -1499,17 +1499,17 @@ $$IF5:
 	       mov  [si].sf_time,bx
 	       mov  bx,es:[di].sf_date
 	       mov  [si].sf_date,bx
-	       test [si].sf_flags,ifs_flag ;				       ;AN000;
+	       test [si].sf_flags,ifs_flag ;
 
-;	       $if  nz			; if non-FAT			       ;AC003;
+;	       $if  nz			; if non-FAT
 	       JZ $$IF14
 
-		   call Call_IFS	; tell IFS of SFT change	       ;AN000;
+		   call Call_IFS	; tell IFS of SFT change
 
-;	       $endif			; endif non- FAT		       ;AN000;
+;	       $endif			; endif non- FAT
 $$IF14:
 
-;	   $else			; else - must be >0 and <2	       ;AC000;
+;	   $else			; else - must be >0 and <2
 	   JMP SHORT $$EN13
 $$IF13:
 					;---------------------------------------
@@ -1524,27 +1524,27 @@ $$IF13:
 	       mov  word ptr [si].sf_size,bx
 	       mov  bx,word ptr es:[di].sf_size+2
 	       mov  word ptr [si].sf_size+2,bx
-	       test [si].sf_flags,ifs_flag ;				       ;AN000;
+	       test [si].sf_flags,ifs_flag ;
 
-;	       $if  nz			; if non-FAT			       ;AC003;
+;	       $if  nz			; if non-FAT
 	       JZ $$IF17
 
-		   invoke Call_IFS	; tell IFS of SFT change	       ;AN000;
+		   invoke Call_IFS	; tell IFS of SFT change
 
-;	       $else			; else - its FAT		       ;AN000;
+;	       $else			; else - its FAT
 	       JMP SHORT $$EN17
 $$IF17:
 
 		   mov	bx,es:[di].sf_firclus
 		   mov	[si].sf_firclus,bx
-		   cmp	cx,2		;				       ;AC000;
+		   cmp	cx,2		;
 
-;		   $if	z,or		; if SFT is shrinking or	       ;AC000;
+;		   $if	z,or		; if SFT is shrinking or
 		   JZ $$LL19
 
-		   cmp	[si].sf_lstclus,0 ; lstclus UN-set from a create?      ;AC000;
+		   cmp	[si].sf_lstclus,0 ; lstclus UN-set from a create?
 
-;		   $if	z		; If it is, set lstclus and cluspos too;AC000;
+;		   $if	z		; If it is, set lstclus and cluspos too
 		   JNZ $$IF19
 $$LL19:
 					;---------------------------------------
@@ -1554,24 +1554,24 @@ $$LL19:
 		       mov  [si].sf_cluspos,0 ; retrace from start
 		       mov  [si].sf_lstclus,bx ; ditto
 
-;		   $endif		; endif - set lstclus and cluspos      ;AC000;
+;		   $endif		; endif - set lstclus and cluspos
 $$IF19:
 
-;	       $endif			; endif  FAT			       ;AN000;
+;	       $endif			; endif  FAT
 $$EN17:
 
-;	   $endif			; enndif - > 0			       ;AC000;
+;	   $endif			; enndif - > 0
 $$EN13:
 					;---------------------------------------
 					; Link to next SFT
 					;---------------------------------------
 	   lds	si,[si].sf_chain
 
-;      $endloop 			;				       ;AC000;
+;      $endloop 			;
        JMP SHORT $$DO5
 $$EN5:
 
-;      $endsrch 			;				       ;AC000;
+;      $endsrch 			;
 $$SR5:
 					;---------------------------------------
 					; All Done
@@ -1580,7 +1580,7 @@ $$SR5:
 
        LeaveCrit critShare
 
-;  $endif				; endif - device and network	       ;AC000;
+;  $endif				; endif - device and network
 $$IF4:
 
    ret
@@ -1633,7 +1633,7 @@ $$IF4:
 ;
 ;******************+  END  OF PSEUDOCODE +**************************************
 
-   Procedure New_Sft,near		;				       ;AN000;
+   Procedure New_Sft,near		;
 
    mov	bx,[si].sf_time 		; update time
    mov	es:[di].sf_time,bx
@@ -1643,14 +1643,14 @@ $$IF4:
    mov	word ptr es:[di].sf_size,bx
    mov	bx,word ptr [si].sf_size+2
    mov	word ptr es:[di].sf_size+2,bx
-   test es:[di].sf_flags,ifs_flag	;				       ;AN000;
+   test es:[di].sf_flags,ifs_flag	;
 
-;  $if	nz				; if non-FAT			       ;AC003;
+;  $if	nz				; if non-FAT
    JZ $$IF26
 
-       call Call_IFS			; tell IFS of SFT change	       ;AN000;
+       call Call_IFS			; tell IFS of SFT change
 
-;  $else				; else - its FAT		       ;AN000;
+;  $else				; else - its FAT
    JMP SHORT $$EN26
 $$IF26:
 
@@ -1659,12 +1659,12 @@ $$IF26:
        mov  es:[di].sf_cluspos,0	; retrace from start
        mov  es:[di].sf_lstclus,bx	; ditto
 
-;  $endif				; endif  FAT			       ;AN000;
+;  $endif				; endif  FAT
 $$EN26:
 
-   ret					; we'er done                           ;AN000;
+   ret					; we'er done
 
-   EndProc New_Sft			;				       ;AN000;
+   EndProc New_Sft			;
 
    Break <New_CP_Attrib - update the codepage and attrib in SFT>
 
@@ -1707,23 +1707,23 @@ $$EN26:
 ;
 ;******************+  END  OF PSEUDOCODE +**************************************
 
-;; Procedure New_CP_Attrib,near 	;				       ;AN000;
+;; Procedure New_CP_Attrib,near 	;
 
-;; mov	bx,es:[di].SF_Codepage		; update codepage		       ;an000;
-;; mov	[si].SF_Codepage,bx		;an000; dms;
-;; mov	bl,es:[di].SF_Attr_Hi		; update high attribute 	       ;an000;
-;; mov	[si].SF_Attr,bl 		;an000; dms;
-;; test es:[di].sf_flags,ifs_flag	;				       ;AN000;
+;; mov	bx,es:[di].SF_Codepage		; update codepage
+;; mov	[si].SF_Codepage,bx
+;; mov	bl,es:[di].SF_Attr_Hi		; update high attribute
+;; mov	[si].SF_Attr,bl
+;; test es:[di].sf_flags,ifs_flag	;
 
-;; $if	nz				; if non-FAT			       ;AC003;
+;; $if	nz				; if non-FAT
 
-;;     call Call_IFS			; tell IFS of SFT change	       ;AN000;
+;;     call Call_IFS			; tell IFS of SFT change
 
-;; $endif				; endif  FAT			       ;AN000;
+;; $endif				; endif  FAT
 
-;; ret					; we'er done                           ;AN000;
+;; ret					; we'er done
 
-;; EndProc New_CP_Attrib		;				       ;AN000;
+;; EndProc New_CP_Attrib		;
 
 
    Break <Call_IFS - warn IFS that SFT has changed>
@@ -1762,13 +1762,13 @@ $$EN26:
 ;
 ;******************+  END  OF PSEUDOCODE +**************************************
 
-   Procedure Call_IFS,near		;				       ;AN000;
+   Procedure Call_IFS,near		;
 
-   CallInstall BlockUpdate,MultIFS,44,CX,CX ;				       ;AC005;
+   CallInstall BlockUpdate,MultIFS,44,CX,CX ;
 
-   ret					;				       ;AN000;
+   ret					;
 
-   EndProc Call_IFS			;				       ;AN000;
+   EndProc Call_IFS			;
 
    Break <Internal error routines>
 
@@ -1846,82 +1846,82 @@ INT2F  PROC FAR
 ;      00h its anyone else  - clear skip_check
 ;			    - return 0FFh - loaded
 
-       test al,80h			; is it share?			       ;AN010;
-;      $if  nz				; if it is			       ;AN010;
+       test al,80h			; is it share?
+;      $if  nz				; if it is
        JZ $$IF29
-	   and	al,1			; is /NC set			       ;AN010;
-	   mov	al,0F0H 		; assume a quiet return 	       ;AN010;
-;	   $if	nz			; if it is			       ;AN010;
+	   and	al,1			; is /NC set
+	   mov	al,0F0H 		; assume a quiet return
+;	   $if	nz			; if it is
 	   JZ $$IF30
-	       cmp  skip_check,1	; is skip_check set ?		       ;AN011;
-;	       $if  ne			; if it is			       ;AN011;
+	       cmp  skip_check,1	; is skip_check set ?
+;	       $if  ne			; if it is
 	       JE $$IF31
-		   mov	state_change,1	; set the change state flag	       ;AN011;
-;	       $endif			;				       ;AN011;
+		   mov	state_change,1	; set the change state flag
+;	       $endif			;
 $$IF31:
-	       mov  skip_check,1	; set skip_check		       ;AN010;
-;	   $else			;  /NC not requested		       ;AN010;
+	       mov  skip_check,1	; set skip_check
+;	   $else			;  /NC not requested
 	   JMP SHORT $$EN30
 $$IF30:
-	       cmp  skip_check,1	; is skip_check set ?		       ;AN010;
-;	       $if  e			; if it is			       ;AN010;
+	       cmp  skip_check,1	; is skip_check set ?
+;	       $if  e			; if it is
 	       JNE $$IF34
-		   mov	state_change,1	; set the change state flag	       ;AN011;
-		   mov	skip_check,0	; reset skip_check		       ;AN010;
-;	       $else			; else , its already clear	       ;AN010;
+		   mov	state_change,1	; set the change state flag
+		   mov	skip_check,0	; reset skip_check
+;	       $else			; else , its already clear
 	       JMP SHORT $$EN34
 $$IF34:
-		   mov	al,0FFH 	;    and we are loaded		       ;AN010;
-;	       $endif			;				       ;AN010;
+		   mov	al,0FFH 	;    and we are loaded
+;	       $endif			;
 $$EN34:
-;	   $endif			;				       ;AN010;
+;	   $endif			;
 $$EN30:
 
-;      $else				;				       ;AN010;
+;      $else				;
        JMP SHORT $$EN29
 $$IF29:
-	   cmp	al,40h			; is it IFSFUNC?		       ;AN010;
-;	   $if	ne			; if it is not			       ;AN010;
+	   cmp	al,40h			; is it IFSFUNC?
+;	   $if	ne			; if it is not
 	   JE $$IF39
 
-	       or   al,al		;    loop it any other value caus'     ;AC010;
+	       or   al,al		;    loop it any other value caus'
 Freeze:
-	       jnz  freeze		;    no one should EVER issue this     ;AC010;
-	       cmp  skip_check,1	; is skip_check set ?		       ;AN010;
-;	       $if  e			; if it is			       ;AN011;
+	       jnz  freeze		;    no one should EVER issue this
+	       cmp  skip_check,1	; is skip_check set ?
+;	       $if  e			; if it is
 	       JNE $$IF40
-		   mov	state_change,1	; set the change state flag	       ;AN011;
-;	       $endif			;				       ;AN011;
+		   mov	state_change,1	; set the change state flag
+;	       $endif			;
 $$IF40:
-	       mov  skip_check,0	;    and believe it !		       ;AN011;
+	       mov  skip_check,0	;    and believe it !
 
-;	   $endif			;				       ;AN010;
+;	   $endif			;
 $$IF39:
-	   mov	al,0FFH 		;  else - say we are here	       ;AN010;
-;      $endif				;				       ;AN010;
+	   mov	al,0FFH 		;  else - say we are here
+;      $endif				;
 $$EN29:
        cmp  state_change,1		; SHARE installed state may have change;AN011;d
-;      $if  e				;    - update DOS		       ;AN011;
+;      $if  e				;    - update DOS
        JNE $$IF44
-	   push ax			;				       ;AN011;
-	   push es			;  this is interesting -	       ;AN011;
-	   MOV	AH,Get_In_Vars		;    if SHARE =1 and DOS =1 - no change;AN011;
-	   INT	21h			;    if SHARE = 		       ;AN011;
+	   push ax			;
+	   push es			;  this is interesting -
+	   MOV	AH,Get_In_Vars		;    if SHARE =1 and DOS =1 - no change
+	   INT	21h			;    if SHARE =
 
 	   ASSUME ES:DOSGROUP
 
-	   mov	al,skip_check		; get the SHARE operating mode	       ;AN011;
-	   cmp	al,1			;  is it a /nc	  -  tell DOS  " 1 "   ;AN011;
-;	   $if	ne			; if not			       ;AN011;
+	   mov	al,skip_check		; get the SHARE operating mode
+	   cmp	al,1			;  is it a /nc	  -  tell DOS  " 1 "
+;	   $if	ne			; if not
 	   JE $$IF45
-	       dec  al			;   "full" SHARE  -  tell DOS  " -1 "  ;AN011;
-;	   $endif			;				       ;AN011;
+	       dec  al			;   "full" SHARE  -  tell DOS  " -1 "
+;	   $endif			;
 $$IF45:
-	   MOV	fShare,al		; tell DOS we are here		       ;AN011;
-	   pop	es			;				       ;AN011;
-	   pop	ax			;				       ;AN011;
-	   mov	state_change,0		; REset the change state flag	       ;AN011;
-;      $endif				;				       ;AN011;
+	   MOV	fShare,al		; tell DOS we are here
+	   pop	es			;
+	   pop	ax			;
+	   mov	state_change,0		; REset the change state flag
+;      $endif				;
 $$IF44:
 
        ASSUME ES:nothing
@@ -2135,14 +2135,14 @@ SW_VALUE	DD	  ?	   ; SPACE FOR VALUE
    MOV	CX,initlocks			; count for loop
    MOV	AX,0
 
-;  $do					;				       ;AC000;
+;  $do					;
 $$DO48:
 
        MOV  [SI].RLR_next,AX		; link in previous
        MOV  AX,SI			; this is now previous
        ADD  SI,SIZE RLR_Entry		; move to next object
 
-;  $enddo loop				;				       ;AC000;
+;  $enddo loop				;
    LOOP $$DO48
 
    MOV	FreLock,AX			; point to beginning of free list
@@ -2175,16 +2175,16 @@ $$DO48:
 
    ASSUME ES:DOSGROUP
 
-   mov	al,skip_check			; get the SHARE operating mode	       ;AN011;
-   cmp	al,1				;  is it a /nc	  -  tell DOS  " 1 "   ;AN011;
+   mov	al,skip_check			; get the SHARE operating mode
+   cmp	al,1				;  is it a /nc	  -  tell DOS  " 1 "
 
-;  $if	ne				; if not			       ;AN011;
+;  $if	ne				; if not
    JE $$IF50
-       dec  al				;   "full" SHARE  -  tell DOS  " -1 "  ;AN011;
+       dec  al				;   "full" SHARE  -  tell DOS  " -1 "
 ;  $endif				;
 $$IF50:
 
-   MOV	fShare,al			; tell DOS we are here		       ;AC011;
+   MOV	fShare,al			; tell DOS we are here
 					;---------------------------------------
 					; Cram in the new jump table
 					;---------------------------------------
@@ -2203,13 +2203,13 @@ $$IF50:
 
    CMP	KeepCount,0
 
-;  $if	z,and				; if the ",0"  part and 	       ;AC000;
+;  $if	z,and				; if the ",0"  part and
    JNZ $$IF52
 
    LDS	SI,ES:[BX].SYSI_FCB		; point to the existing cache
    CMP	[SI].sfCount,4
 
-;  $if	z				; if the "4,"  part then	       ;AC000;
+;  $if	z				; if the "4,"  part then
    JNZ $$IF52
 
 					;---------------------------------------
@@ -2255,7 +2255,7 @@ $$IF50:
        ADD  SI,AX
        PUSH SI
 
-;  $endif				; endif - "4,0" 		       ;AC000;
+;  $endif				; endif - "4,0"
 $$IF52:
 
 					;---------------------------------------
@@ -2268,7 +2268,7 @@ $$IF52:
    MOV	CX,ES:[DI].SFCount
    LEA	DI,[DI].SFTable
 
-;  $do					;				       ;AC000;
+;  $do					;
 $$DO54:
 
        MOV  ES:[DI].sf_ref_count,0
@@ -2276,7 +2276,7 @@ $$DO54:
        MOV  WORD PTR ES:[DI].sf_position+2,0
        ADD  DI,SIZE sf_entry
 
-;  $enddo loop				;				       ;AC000;
+;  $enddo loop				;
    LOOP $$DO54
 
    STI
@@ -2286,14 +2286,14 @@ $$DO54:
    XOR	BX,BX
    MOV	CX,5				; StdIN,StdOUT,StdERR,StdAUX,StdPRN
 
-;  $do					; Close STD handles before	       ;AC000;
+;  $do					; Close STD handles before
 $$DO56:
 					; keep process
        MOV  AH,CLOSE
        INT  21H
        INC  BX
 
-;  $enddo loop				;				       ;AC000;
+;  $enddo loop				;
    LOOP $$DO56
 
    POP	DX				; T+R size in DX
@@ -2349,19 +2349,19 @@ SHARE_CHK_SL:
   INT  21H
 SHARE_NO_HELP:
 
-   PUSH DS				; save PSP segment for later stack     ;AC001;
+   PUSH DS				; save PSP segment for later stack
 					;     relocation
 
 					;---------------------------------------
 					; Load Messages
 					;---------------------------------------
-   call ShLoadMsg			;				       ;AN000;
+   call ShLoadMsg			;
 					;---------------------------------------
 					; At this point, the DOS version is OK.
 					;  (checked by SYSLOADMSG)
 					;  Now - Check the DOS data version
 					;---------------------------------------
-;  $if	c,or				; if not same as us			;AC009;
+;  $if	c,or				; if not same as us
    JC $$LL58
 
    MOV	AH,Get_In_Vars
@@ -2373,12 +2373,12 @@ SHARE_NO_HELP:
 
    ASSUME ES:NOTHING
 
-;  $if	ne				; if not same as us			;AC000;
+;  $if	ne				; if not same as us
    JE $$IF58
 $$LL58:
-       mov  ax,(Utility_Msg_CLASS shl 8) + Bad_DOS_Ver ;			;AN000;
-       call ShDispMsg			;					;AN000;
-;  $endif				; endif - not same as us		;AC000;
+       mov  ax,(Utility_Msg_CLASS shl 8) + Bad_DOS_Ver ;
+       call ShDispMsg			;
+;  $endif				; endif - not same as us
 $$IF58:
 
 					;---------------------------------------
@@ -2387,47 +2387,47 @@ $$IF58:
    mov	ax,ds:[pdb_environ]
    or	ax,ax
 
-;  $if	nz				; if > 0 deallocate memory	       ;AC000;
+;  $if	nz				; if > 0 deallocate memory
    JZ $$IF60
        mov  es,ax
        mov  ah,dealloc
        int  21h
-;  $endif				; endif - > 0 deallocate memory        ;AC000;
+;  $endif				; endif - > 0 deallocate memory
 $$IF60:
 
 					;---------------------------------------
 					; Parse the command line
 					;---------------------------------------
-   call ShComndParse			;				       ;AN000;
+   call ShComndParse			;
 					;---------------------------------------
 					; Check to see if share already installed.
 					;---------------------------------------
-   mov	al,skip_check			;				       ;AN010;
-   or	al,80h				; signal its SHARE calling	       ;AN010;
-   mov	ah,multShare			;				       ;AC010;
-   INT	2Fh				;				       ;AC010;
-   CMP	AL,0FFh 			;				       ;AC010;
+   mov	al,skip_check			;
+   or	al,80h				; signal its SHARE calling
+   mov	ah,multShare			;
+   INT	2Fh				;
+   CMP	AL,0FFh 			;
 
-;  $if	z				; if we'er already loaded              ;AC010;
+;  $if	z				; if we'er already loaded
    JNZ $$IF62
-       mov  ax,(UTILITY_MSG_CLASS shl 8) + Sh_Already_Loaded ;		       ;AC010;
-       call ShDispMsg			;				       ;AC010;
-;  $endif				; endif - we'er already loaded         ;AC010;
+       mov  ax,(UTILITY_MSG_CLASS shl 8) + Sh_Already_Loaded ;
+       call ShDispMsg			;
+;  $endif				; endif - we'er already loaded
 $$IF62:
 
 					;---------------------------------------
 					; Check to see if share installed and
 					; a toggle was just performed
 					;---------------------------------------
-   CMP	AL,0F0h 			;				       ;AN010;
+   CMP	AL,0F0h 			;
 
-;  $if	z				; if we'er already loaded              ;AN010;
+;  $if	z				; if we'er already loaded
    JNZ $$IF64
 
-       MOV  AX,(EXIT SHL 8)		;				       ;AN010;
-       INT  21h 			; Return to DOS with RC = 0	       ;AN010;
+       MOV  AX,(EXIT SHL 8)		;
+       INT  21h 			; Return to DOS with RC = 0
 
-;  $endif				; endif - we'er already loaded         ;AN010;
+;  $endif				; endif - we'er already loaded
 $$IF64:
 
 					;---------------------------------------
@@ -2436,8 +2436,8 @@ $$IF64:
 					; for everything in our little 64K here.
 					; First get avail count of paras.
 					;---------------------------------------
-   pop	es				; recover PSP segment		       ;AC002;
-   push es				;				       ;AC002;
+   pop	es				; recover PSP segment
+   push es				;
    MOV	BX,CS
    MOV	AX,ES:[PDB_Block_Len]
    SUB	AX,BX
@@ -2448,10 +2448,10 @@ $$IF64:
 					;---------------------------------------
    CMP	AX,1000h
 
-;  $if	a				; if more than we can handle	       ;AC000;
+;  $if	a				; if more than we can handle
    JNA $$IF66
        MOV  AX,1000h			;  force it
-;  $endif				; endif - more than we can handle      ;AC000;
+;  $endif				; endif - more than we can handle
 $$IF66:
 
 					;---------------------------------------
@@ -2484,23 +2484,23 @@ $$IF66:
 
    CMP	DX,BX				; try upper half first
 
-;  $if	a,or				; if most significant is bigger or     ;AC000;
+;  $if	a,or				; if most significant is bigger or
    JA $$LL68
 
-;  $if	e,and				; if equal and			       ;AC000;
+;  $if	e,and				; if equal and
    JNE $$IF68
 
    CMP	AX,CX				;
 
-;  $if	a				; if least significant is bigger       ;AC000;
+;  $if	a				; if least significant is bigger
    JNA $$IF68
 $$LL68:
 
-       mov  ax,(EXT_ERR_CLASS shl 8) + No_Mem_Error ; issue error message      ;AN000;
+       mov  ax,(EXT_ERR_CLASS shl 8) + No_Mem_Error ; issue error message
 
-       call ShDispMsg			;				       ;AN000;
+       call ShDispMsg			;
 
-;  $endif				; endif - bigger		       ;AC000;
+;  $endif				; endif - bigger
 $$IF68:
 
 					;--------------------------------------
@@ -2508,9 +2508,9 @@ $$IF68:
 					; will run into problems with growing
 					; the stack into the lock records.
 					;---------------------------------------
-   POP	AX				; this is the entry value for DS (PSP) ;AC001;
-   MOV	SS,AX				;				       ;AC001;
-   MOV	SP,100h 			;				       ;AC001;
+   POP	AX				; this is the entry value for DS (PSP)
+   MOV	SS,AX				;
+   MOV	SP,100h 			;
 
    ASSUME SS:NOTHING
 					;---------------------------------------
@@ -2555,38 +2555,38 @@ $$IF68:
 
 ;			  $SALUT (4,27,34,41)
 
-Bad_DOS_Ver		  equ	 1	; Incorrect DOS version 	       ;AN000;
-Sh_Already_Loaded	  equ	 2	; SHARE already loaded message number  ;AN000;
-No_Mem_Error		  equ	 8	; insufficient memory message number   ;AN000;
+Bad_DOS_Ver		  equ	 1	; Incorrect DOS version
+Sh_Already_Loaded	  equ	 2	; SHARE already loaded message number
+No_Mem_Error		  equ	 8	; insufficient memory message number
 
 ;  $SALUT (4,4,9,41)
 
-   Procedure ShLoadMsg,near		;				       ;AN000;
+   Procedure ShLoadMsg,near		;
 					;---------------------------------------
 					; Load the Messages
 					;---------------------------------------
-EXTRN SYSLOADMSG:NEAR			;				       ;AN000;
+EXTRN SYSLOADMSG:NEAR			;
 
-   call SYSLOADMSG			;				       ;AN000;
+   call SYSLOADMSG			;
 
-;  $IF	C				; if we have a MAJOR problem	       ;AN000;
+;  $IF	C				; if we have a MAJOR problem
    JNC $$IF70
        mov  ah,dh			; save the class
-       call ShDispMsg			;				       ;AN000;
+       call ShDispMsg			;
 					; For pre DOS 2.0, we may come back
        xor  ax,ax			;   here - so do it the old way
        push ss				;   just in case
        push ax				;
 
-xxx    proc far 			;				       ;AN000;
-       ret				;				       ;AN000;
-xxx    endp				;				       ;AN000;
+xxx    proc far 			;
+       ret				;
+xxx    endp				;
 
-;  $ENDIF				; endif - we have a MAJOR problem      ;AN000;
+;  $ENDIF				; endif - we have a MAJOR problem
 $$IF70:
 
 
-   ret					;				       ;AN000;
+   ret					;
 
    EndProc ShLoadMsg			;
 
@@ -2663,71 +2663,71 @@ SHARE_Name_Size 	  equ	 $ - Share_Name
 			  db	 0	; make it a Z string
 ;  $SALUT (4,4,9,41)
 
-   Procedure ShDispMsg,near		;				       ;AN000;
+   Procedure ShDispMsg,near		;
 					;---------------------------------------
 					; Set up required parameters
 					;--------------------------------------
-   MOV	BX,STDERR			;display message on STD ERROR	       ;AN000;
-   XOR	CX,CX				;no substitution required	       ;AN000;
-   XOR	DX,DX				;set flags to 0 		       ;AN000;
-   DEC	DH				;and class to utility		       ;AN000;
+   MOV	BX,STDERR			;display message on STD ERROR
+   XOR	CX,CX				;no substitution required
+   XOR	DX,DX				;set flags to 0
+   DEC	DH				;and class to utility
    cmp	ah,PARSE_ERR_CLASS		;
-;  $if	be,and				;				       ;AC009;
+;  $if	be,and				;
    JNBE $$IF72
    mov	dh,ah				;
-;  $if	e				; set up implied substitution	       ;AC009;
+;  $if	e				; set up implied substitution
    JNE $$IF72
 
        ASSUME DS:nothing,ES:DOSGROUP
 
-       mov  num_ins,cl			; set number of inserts to 0	       ;AN009;
-       mov  BYTE PTR max_ins,030h	; set maximum size of insert	       ;AN009;
-       mov  BYTE PTR min_ins,1		; set minimum size of insert	       ;AN009;
-       push ds				; set up segment		       ;AN009;
-       pop  [msg_segment]		;				       ;AN009;
-       mov  BYTE PTR ds:[si],0		; turn it into a ASCIIZ string	       ;AN009;
-       cmp  si,msg_offset		; is there something there?	       ;AN009;
-;      $if  a				; if it is...			       ;AN009;
+       mov  num_ins,cl			; set number of inserts to 0
+       mov  BYTE PTR max_ins,030h	; set maximum size of insert
+       mov  BYTE PTR min_ins,1		; set minimum size of insert
+       push ds				; set up segment
+       pop  [msg_segment]		;
+       mov  BYTE PTR ds:[si],0		; turn it into a ASCIIZ string
+       cmp  si,msg_offset		; is there something there?
+;      $if  a				; if it is...
        JNA $$IF73
-	   inc	cx			;				       ;AN009;
-;      $endif				;				       ;AN009;
+	   inc	cx			;
+;      $endif				;
 $$IF73:
 ;  $endif				;
 $$IF72:
-   cmp	al,Sh_Already_Loaded		; SHARE already loaded message ?       ;AN000;
-;  $if	e				; if it is...			       ;AN000;
+   cmp	al,Sh_Already_Loaded		; SHARE already loaded message ?
+;  $if	e				; if it is...
    JNE $$IF76
        inc  cx				;
-       mov  msg_offset,OFFSET SHARE_name ; ensure the pointer is right	       ;AN010;
+       mov  msg_offset,OFFSET SHARE_name ; ensure the pointer is right
 ;  $endif				;
 $$IF76:
-   push cs				; ensure that SYSMSG has proper        ;AC009;
-   pop	ds				;	   addressability	       ;AC009;
-   lea	si,SUBLIST			; point to sublist		       ;AC009;
-   xor	ah,ah				;				       ;AN000;
+   push cs				; ensure that SYSMSG has proper
+   pop	ds				;	   addressability
+   lea	si,SUBLIST			; point to sublist
+   xor	ah,ah				;
 
 					;--------------------------------------
 					; Output the Message
 					;---------------------------------------
-EXTRN SYSDISPMSG:NEAR			;				       ;AN000;
+EXTRN SYSDISPMSG:NEAR			;
 
-   CALL SYSDISPMSG			;				       ;AN000;
+   CALL SYSDISPMSG			;
 
-;  $IF	C				; if error occured		       ;AN000;
+;  $IF	C				; if error occured
    JNC $$IF78
 
-       CALL Get_DOS_Error		; a DOS extended error occured	       ;AN000;
-       CALL SYSDISPMSG			; try to issue it		       ;AN000;
+       CALL Get_DOS_Error		; a DOS extended error occured
+       CALL SYSDISPMSG			; try to issue it
 
-;  $ENDIF				; endif - error occured 	       ;AN000;
+;  $ENDIF				; endif - error occured
 $$IF78:
 
-   MOV	AX,(EXIT SHL 8) + 0FFH		; exit to DOS			       ;AN000;
-   INT	21h				;				       ;AN000;
+   MOV	AX,(EXIT SHL 8) + 0FFH		; exit to DOS
+   INT	21h				;
 
-   ret					; may return if pre DOS 2.0	       ;AN000;
+   ret					; may return if pre DOS 2.0
 
-   EndProc ShDispMsg			;				       ;AN000;
+   EndProc ShDispMsg			;
 
    BREAK < Get_DOS_Error >
 
@@ -2763,16 +2763,16 @@ $$IF78:
 
    Get_DOS_Error PROC NEAR
 
-   mov	ax,(GetExtendedError shl 8)	; DOS ext. error		       ;AN000;
+   mov	ax,(GetExtendedError shl 8)	; DOS ext. error
    xor	bx,bx
-   push es				;				       ;AN000;
-   INT	21h				;    GetExtendedError + not_used <5900>;AN000;
+   push es				;
+   INT	21h				;    GetExtendedError + not_used <5900>
    pop	es
-   mov	bx,STDERR			; fix up bx			       ;AN000;
-   xor	cx,cx				; fix up cx			       ;AN000;
+   mov	bx,STDERR			; fix up bx
+   xor	cx,cx				; fix up cx
    mov	dh,EXT_ERR_CLASS		; set class to dos error
 
-   ret					;				       ;AN000;
+   ret					;
 
    ENDPROC Get_DOS_Error
 
@@ -2827,153 +2827,153 @@ $$IF78:
 					; Parse Equates
 					;--------------------------------------
 
-EOL			  equ	 -1	; Indicator for End-Of-Line	       ;AN000;
-NOERROR 		  equ	 0	; Return Indicator for No Errors       ;AN000;
-FILE_SWITCH		  equ	 1	; this is a file switch 	       ;AN000;
-LOCK_SWITCH		  equ	 2	; this is a lock switch 	       ;AN000;
-Syntax_Error		  equ	 9	; maximum PARSE error # 	       ;AN000;
+EOL			  equ	 -1	; Indicator for End-Of-Line
+NOERROR 		  equ	 0	; Return Indicator for No Errors
+FILE_SWITCH		  equ	 1	; this is a file switch
+LOCK_SWITCH		  equ	 2	; this is a lock switch
+Syntax_Error		  equ	 9	; maximum PARSE error #
 
 ;  $SALUT (4,4,9,41)
 
-   Procedure ShComndParse,near		;				       ;AN000;
+   Procedure ShComndParse,near		;
 					;--------------------------------------
 					;  Get address of command line
 					;--------------------------------------
-EXTRN SYSPARSE:NEAR			;				       ;AN000;
+EXTRN SYSPARSE:NEAR			;
 
-   MOV	SI,0081H			; OFFSET OF COMMAND LINE IN PSP        ;AN000;
-   MOV	AH,62H				; AH=GET PSP ADDRESS FUNCTION CALL     ;AN000;
-   INT	21H				; PSP SEGMENT RETURNED IN BX	       ;AN000;
-   MOV	DS,BX				; PUT PSP SEG IN DS		       ;AN000;
-   MOV	CX,0				; NUMBER OF PARMS PROCESSED SO FAR     ;AN000;
-   PUSH CS				;				       ;AN000;
-   POP	ES				;				       ;AN000;
+   MOV	SI,0081H			; OFFSET OF COMMAND LINE IN PSP
+   MOV	AH,62H				; AH=GET PSP ADDRESS FUNCTION CALL
+   INT	21H				; PSP SEGMENT RETURNED IN BX
+   MOV	DS,BX				; PUT PSP SEG IN DS
+   MOV	CX,0				; NUMBER OF PARMS PROCESSED SO FAR
+   PUSH CS				;
+   POP	ES				;
 
-   ASSUME ES:SHARE			;				       ;AN000;
+   ASSUME ES:SHARE			;
 
 					;--------------------------------------
 					;  Loop for each operand at DS:SI
 					;--------------------------------------
-;  $do					;				       ;AN000;
+;  $do					;
 $$DO80:
 
-       LEA  DI,PARMS			; ADDRESS OF PARSE CONTROLS	       ;AN000;
-       MOV  DX,0			; RESERVED			       ;AN000;
-       mov  msg_offset,si		; save the start scan point	       ;AC009;
-       CALL SYSPARSE			; PARSE IT!			       ;AN000;
-       CMP  AX,EOL			; ARE WE AT END OF COMMAND LINE ?      ;AN000;
+       LEA  DI,PARMS			; ADDRESS OF PARSE CONTROLS
+       MOV  DX,0			; RESERVED
+       mov  msg_offset,si		; save the start scan point
+       CALL SYSPARSE			; PARSE IT!
+       CMP  AX,EOL			; ARE WE AT END OF COMMAND LINE ?
 
-;  $leave e				;				       ;AN000;
+;  $leave e				;
    JE $$EN80
 
-       CMP  AX,NOERROR			; ANY ERRORS?			       ;AN000;
+       CMP  AX,NOERROR			; ANY ERRORS?
 
-;      $if  ne,or			; if parse says error or	       ;AN000;
+;      $if  ne,or			; if parse says error or
        JNE $$LL82
 
-       MOV  AX,Syntax_Error		; Parse syntax error - just in case    ;AN000;
-       MOV  BX,DX			; PLACE RESULT ADDRESS IN BX	       ;AN000;
-       CMP  BX,OFFSET SWITCH_BUFF	;				       ;AN000;
+       MOV  AX,Syntax_Error		; Parse syntax error - just in case
+       MOV  BX,DX			; PLACE RESULT ADDRESS IN BX
+       CMP  BX,OFFSET SWITCH_BUFF	;
 
-;      $if  ne				; if no pointer 		       ;AN000;
+;      $if  ne				; if no pointer
        JE $$IF82
 $$LL82:
 
-	   call PARSE_ERROR		;   call error routine		       ;AN000;
+	   call PARSE_ERROR		;   call error routine
 
-;      $endif				; endif - error 		       ;AN000;
+;      $endif				; endif - error
 $$IF82:
 
-       MOV  AX,WORD PTR SW_VALUE	; load the value		       ;AN000;
-       MOV  BX,SW_SYN			; load pointer to synonym	       ;AN000;
+       MOV  AX,WORD PTR SW_VALUE	; load the value
+       MOV  BX,SW_SYN			; load pointer to synonym
 
 					;--------------------------------------
 					;  If user said  /F:n, then
 					;--------------------------------------
 
-       CMP  BX,OFFSET F_SW		; IF USER SPECIFIED /F		       ;AN000;
+       CMP  BX,OFFSET F_SW		; IF USER SPECIFIED /F
 
-;      $if  e				;				       ;AN000;
+;      $if  e				;
        JNE $$IF84
 
-	   CMP	INITspace,AX		; is default < requested ?	       ;AN000;
+	   CMP	INITspace,AX		; is default < requested ?
 
-;	   $if	b			; if default is <		       ;AN000;
+;	   $if	b			; if default is <
 	   JNB $$IF85
-	       MOV  INITspace,AX	; save the new value		       ;AN000;
-;	   $endif			; endif   (else leave it alone)        ;AN000;
+	       MOV  INITspace,AX	; save the new value
+;	   $endif			; endif   (else leave it alone)
 $$IF85:
 
-;      $else				; else - CHECK FOR LOCKS	       ;AN000;
+;      $else				; else - CHECK FOR LOCKS
        JMP SHORT $$EN84
 $$IF84:
 
 					;---------------------------------------
 					;  If user said /L:m, then update INITlocks
 					;---------------------------------------
-	   CMP	BX,OFFSET L_SW		; IF USER SPECIFIED /L		       ;AN000;
+	   CMP	BX,OFFSET L_SW		; IF USER SPECIFIED /L
 
-;	   $if	e			; if it is				;AN000;
+;	   $if	e			; if it is
 	   JNE $$IF88
 
-	       CMP  INITlocks,AX	; is default < requested ?	       ;AN000;
+	       CMP  INITlocks,AX	; is default < requested ?
 
-;	       $if  b			; if default is <		       ;AN000;
+;	       $if  b			; if default is <
 	       JNB $$IF89
-		   MOV	INITlocks,AX	;   save the value		       ;AN000;
-;	       $endif			; endif      (else leave it alone)     ;AN000;
+		   MOV	INITlocks,AX	;   save the value
+;	       $endif			; endif      (else leave it alone)
 $$IF89:
 
-;	   $else			; else - CHECK FOR TOGGLE	       ;AN010;
+;	   $else			; else - CHECK FOR TOGGLE
 	   JMP SHORT $$EN88
 $$IF88:
 
 					;---------------------------------------
 					;  If user said /NC, then update check_flag
 					;---------------------------------------
-	       CMP  BX,OFFSET N_SW	; IF USER SPECIFIED /NC 	       ;AN010;
-;	       $if  ne			; if error			       ;AC010;
+	       CMP  BX,OFFSET N_SW	; IF USER SPECIFIED /NC
+;	       $if  ne			; if error
 	       JE $$IF92
-		   MOV	AX,Syntax_Error ; Parse syntax error		       ;AN000;
-		   call PARSE_ERROR	;   call error routine		       ;AN000;
-;	       $endif			; endif - error 		       ;AC010;
+		   MOV	AX,Syntax_Error ; Parse syntax error
+		   call PARSE_ERROR	;   call error routine
+;	       $endif			; endif - error
 $$IF92:
 
-	       mov  skip_check,1	; set the skip check flag	       ;AN010;
+	       mov  skip_check,1	; set the skip check flag
 
-;	   $endif			; endif - CHECK FOR TOGGLE	       ;AN010;
+;	   $endif			; endif - CHECK FOR TOGGLE
 $$EN88:
 
-;      $endif				; endif - CHECK FOR LOCKS	       ;AN000;
+;      $endif				; endif - CHECK FOR LOCKS
 $$EN84:
 
-;  $enddo				; CHECK FOR NEXT PARM		       ;AN000;
+;  $enddo				; CHECK FOR NEXT PARM
    JMP SHORT $$DO80
 $$EN80:
 
-   ret					; NORMAL RETURN TO CALLER	       ;AN000;
+   ret					; NORMAL RETURN TO CALLER
 
 					;---------------------------------------
 					;  If any other parameter specified,
 					;  display message and quit
 					;---------------------------------------
-PARSE_ERROR:				;				       ;AN000;
+PARSE_ERROR:				;
 
-   cmp	al,Syntax_Error 		; error 1 to 9 ?		       ;AN000;
+   cmp	al,Syntax_Error 		; error 1 to 9 ?
 
-;  $if	a				; if parse error		       ;AN000;
+;  $if	a				; if parse error
    JNA $$IF97
 
        mov  al,Syntax_Error		; Parse syntax error
 
-;  $endif				; endif errors			       ;AN000;
+;  $endif				; endif errors
 $$IF97:
 
    lea	bx,Parse_Ret_Code
    xlat cs:[bx]
-   mov	ah,PARSE_ERR_CLASS		; set class to parse error	       ;AN000;
+   mov	ah,PARSE_ERR_CLASS		; set class to parse error
 
-   CALL ShDispMsg			; display the parse error	       ;AN000;
+   CALL ShDispMsg			; display the parse error
 
    ret					; this should never be used
 
@@ -2990,7 +2990,7 @@ Parse_Ret_Code label byte
    db	9				; Ret Code 8 - Parameter val not allowed
    db	9				; Ret Code 9 - Parm format not correct
 
-   EndProc ShComndParse 		;				       ;AN000;
+   EndProc ShComndParse 		;
 
    include msgdcl.inc
 

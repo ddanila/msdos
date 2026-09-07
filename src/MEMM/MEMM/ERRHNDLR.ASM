@@ -10,10 +10,6 @@
 ;
 ;    Module:	ErrHndlr - Recover from exception and priveledged operation errors
 ;
-;    Version:	0.04
-;
-;    Date:	June 6,1986
-;
 ;    Authors:	Brad Tate    
 ;
 ;******************************************************************************

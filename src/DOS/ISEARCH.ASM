@@ -1,4 +1,3 @@
-;	SCCSID = @(#)isearch.asm	1.1 85/04/10
 TITLE	DOS_SEARCH - Internal SEARCH calls for MS-DOS
 NAME	DOS_SEARCH
 ; Low level routines for doing local and NET directory searches
@@ -6,15 +5,6 @@ NAME	DOS_SEARCH
 ;   DOS_SEARCH_FIRST
 ;   DOS_SEARCH_NEXT
 ;   RENAME_NEXT
-;
-;   Revision history:
-;
-;	Created: ARR 30 March 1983
-;	A000	version 4.00  Jan. 1988
-;	A001	PTM 3564 -- serach for fastopen
-
-;
-; get the appropriate segment definitions
 ;
 .xlist
 include dosseg.asm
@@ -117,10 +107,10 @@ ENDIF
 
 LOCAL_SEARCH_FIRST:
 	EnterCrit   critDisk
-	TEST	[DOS34_FLAG],SEARCH_FASTOPEN  ;AN000;
-	JZ	NOFN			      ;AN000;
-	OR	[FastOpenflg],Fastopen_Set    ;AN000;
-NOFN:					      ;AN000;
+	TEST	[DOS34_FLAG],SEARCH_FASTOPEN
+	JZ	NOFN
+	OR	[FastOpenflg],Fastopen_Set
+NOFN:
 	MOV	[NoSetDir],1		; if we find a dir, don't change to it
 	CALL	CHECK_QUESTION		;AN000;;FO. is '?' in path
 	JNC	norm_getpath		;AN000;;FO. no
@@ -165,10 +155,10 @@ found_it:
 	INC	DI
 	PUSH	DS			;FO.;AN001; save ds
 	TEST	[Fastopenflg],Set_For_Search	  ;FO.;AN001; from fastopen
-	JZ	notfast 			  ;FO.;AN001;
-	MOV	SI,BX				  ;FO.;AN001;
-	MOV	DS,WORD PTR [CURBUF+2]		  ;FO.;AN001;
-	JMP	SHORT movmov			  ;FO.;AN001;
+	JZ	notfast 			  ;FO.
+	MOV	SI,BX				  ;FO.
+	MOV	DS,WORD PTR [CURBUF+2]		  ;FO.
+	JMP	SHORT movmov			  ;FO.
 
 
 notfast:
@@ -342,22 +332,22 @@ EndProc DOS_SEARCH_NEXT
 ;Output: carry clear, if no '?'
 ;	 carry set, if '?' exists
 
-	procedure   CHECK_QUESTION,NEAR ;AN000;
-	ASSUME	ES:NOTHING,DS:NOTHING	;AN000;
+	procedure   CHECK_QUESTION,NEAR
+	ASSUME	ES:NOTHING,DS:NOTHING
 
 	Context	DS			; DS:SI -> final path in retained DOS data
 	MOV	SI,[WFP_START]		;AN000;;FO.
-getnext:				;AN000;
+getnext:
 	LODSB				;AN000;;FO. get char
 	OR	AL,AL			;AN000;;FO. is it null
 	JZ	NO_Question		;AN000;;FO. yes
 	CMP	AL,'?'                  ;AN000;;FO. is '?'
 	JNZ	getnext 		;AN000;;FO. no
 	STC				;AN000;;FO.
-NO_Question:				;AN000;
+NO_Question:
 	return				;AN000;;FO.
 
-EndProc CHECK_QUESTION			;AN000;
+EndProc CHECK_QUESTION
 
 CODE	ENDS
     END

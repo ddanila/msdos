@@ -33,17 +33,6 @@
 ; NOTES: THIS MODULE IS TO BE PREPPED BY SALUT WITH THE "PR" OPTIONS.
 ;	 LINK EDLIN+EDLCMD1+EDLCMD2+EDLMES+EDLPARSE
 ;
-; REVISION HISTORY:
-;
-;	AN000	VERSION 4.00 - REVISIONS MADE RELATE TO THE FOLLOWING:
-;
-;				- IMPLEMENT SYSPARSE
-;				- IMPLEMENT MESSAGE RETRIEVER
-;				- IMPLEMENT DBCS ENABLING
-;				- ENHANCED VIDEO SUPPORT
-;				- EXTENDED OPENS
-;				- SCROLLING ERROR
-;
 ; COPYRIGHT: "MS DOS EDLIN UTILITY"
 ;	     "VERSION 4.00 (C) COPYRIGHT 1988 Microsoft"
 ;
@@ -134,23 +123,23 @@ sw_missing equ	03h			;an000;not a valid switch
 
 ;======== Strucs =========================================================
 
-Display_Buffer_Struc Struc		;an000;dms;
+Display_Buffer_Struc Struc
 
-	Display_Info_Level db	   ?	;an000;dms;
-	Display_Reserved db	 ?	;an000;dms;
-	Display_Buffer_Size dw	    ?	;an000;dms;
-	Display_Flags dw      ? 	;an000;dms;
-	Display_Mode db      ?		;an000;dms;
+	Display_Info_Level db	   ?
+	Display_Reserved db	 ?
+	Display_Buffer_Size dw	    ?
+	Display_Flags dw      ?
+	Display_Mode db      ?
 					;  TEXT=01
 					;  APA =02
-	Display_Mode_Reserved db      ? ;an000;dms;
+	Display_Mode_Reserved db      ?
 	Display_Colors dw      ?	;an000;dms;# of colors
 	Display_Width_Pixels dw      ?	;an000;dms;# of pixels in width
 	Display_Length_Pixels dw      ? ;an000;dms;# of pixels in len.
 	Display_Width_Char dw	   ?	;an000;dms;# of chars in width
 	Display_Length_Char dw	    ?	;an000;dms;# of chars in length
 
-Display_Buffer_Struc ends		;an000;dms;
+Display_Buffer_Struc ends
 
 
 

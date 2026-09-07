@@ -30,15 +30,6 @@
 ;	 LINK DEBUG+DEBCOM1+DEBCOM2+DEBCOM3+DEBASM+DEBUASM+DEBERR+
 ;	      DEBCONST+DEBDATA+DEBMES
 ;
-; REVISION HISTORY:
-;
-;	AN000	VERSION 4.00 - REVISIONS MADE RELATE TO THE FOLLOWING:
-;	AC000	VERSION 4.00 -
-;
-;				- IMPLEMENT DBCS HANDLING	DMS:6/17/87
-;				- IMPLEMENT MESSAGE RETRIEVER	DMS:6/17/87
-;				- IMPLEMENT > 32MB SUPPORT	DMS:6/17/87
-;
 ; COPYRIGHT: "MS DOS DEBUG UTILITY"
 ;	     "VERSION 4.00 (C) COPYRIGHT 1988 Microsoft"
 ;	     "LICENSED MATERIAL - PROPERTY OF Microsoft  "
@@ -112,11 +103,11 @@ ASSUME	CS:DG,DS:DG,ES:DG,SS:DG
 	PUBLIC	REG,LOAD
 	PUBLIC	NAMED,DWRITE
 	PUBLIC	DISPREG,ERR,DELIM1,DELIM2,delim0
-	public	getchrup,open1,open2,open3,open4,oc_file,opnret 		;an001;bgb
-	public	delete_a_file, parse_a_file, exec_a_file, open_a_file, create_a_file ;an001;bgb
-	public	gcur,ifhex							;an001;bgb
-	public	comtail 							;an001;bgb
-	extrn	test_lead:near							;an001;bgb
+	public	getchrup,open1,open2,open3,open4,oc_file,opnret
+	public	delete_a_file, parse_a_file, exec_a_file, open_a_file, create_a_file
+	public	gcur,ifhex
+	public	comtail
+	extrn	test_lead:near
 	EXTRN	OUTSI:NEAR,OUTDI:NEAR,INBUF:NEAR,SCANB:NEAR,SCANP:NEAR
 	EXTRN	COMMAND:NEAR,DISASLN:NEAR,SET_TERMINATE_VECTOR:NEAR
 	EXTRN	RESTART:NEAR,TERMINATE:NEAR,DRVERR:NEAR
@@ -391,15 +382,15 @@ FERR:
 	CALL	SAVCHG
 ERR:
 	push	si				;an000;save affected registers
-	push	di				;an000;
-	push	cx				;an000;
+	push	di
+	push	cx
 	mov	cx,03h				;an000;move only three bytes
 	mov	di,offset dg:err_type		;an000;point to buffer
 	mov	si,dx				;an000;dx holds the string
 	rep	movsb				;an000;fill up the buffer
 	pop	cx				;an000;restore registers
-	pop	di				;an000;
-	pop	si				;an000;
+	pop	di
+	pop	si
 	MOV	DX,OFFSET DG:ERRMES_PTR
 	JMP	PRINT
 
@@ -543,28 +534,25 @@ OPNRET:
 	POP	DS
 	RETURN
 
-GETCHRUP:									;an001;bgb
-	lodsb				;get the character from [si]		;an001;bgb
-	call	test_lead		;is it a dbcs lead byte?		;an001;bgb
-;	$IF	C			;yes					;an001;bgb
+GETCHRUP:
+	lodsb				;get the character from [si]
+	call	test_lead		;is it a dbcs lead byte?
+;	$IF	C			;yes
 	JNC $$IF3
-	    inc     si			;bump ptr to past 2nd dbcs byte 	;an001;bgb
+	    inc     si			;bump ptr to past 2nd dbcs byte
 	    mov     fnd_dbcs,1		;found a dbcs char
-	    jmp     gcur		;dont capitalize it			;an001;bgb
-;	$ENDIF									;an001;bgb
+	    jmp     gcur		;dont capitalize it
+;	$ENDIF
 $$IF3:
-					;					;an001;bgb
 	mov	fnd_dbcs,0		;did not find a dbcs char
-	cmp	al,lower_a		;is it >= "a" ? 			;an001;bgb
-	jb	gcur			;no - exit				;an001;bgb
-										;an001;bgb
-	cmp	al,lower_z		;is it =< "z" ? 			;an001;bgb
-	ja	gcur			;no - exit				;an001;bgb
-										;an001;bgb
-;if we get here, the char is lowercase, so change it				;an001;bgb
-	sub	al,32			;convert to uppercase			;an001;bgb
-	mov	[si-1],al		;move it back (si points 1 past)	;an001;bgb
-gcur:	return									;an001;bgb
+	cmp	al,lower_a		;is it >= "a" ?
+	jb	gcur			;no - exit
+	cmp	al,lower_z		;is it =< "z" ?
+	ja	gcur			;no - exit
+;if we get here, the char is lowercase, so change it
+	sub	al,32			;convert to uppercase
+	mov	[si-1],al		;move it back (si points 1 past)
+gcur:	return
 
 DELIM0:
 	CMP	AL,CHAR_LEFT_BRACKET
@@ -718,11 +706,11 @@ PRMIO:
 ;	$if	z			;an000;we will write to sector(s)
 	JNZ $$IF5
 		call ABSWRT		;an000;logical sector write
-;	$else				;an000;
+;	$else
 	JMP SHORT $$EN5
 $$IF5:
 		call ABSREAD		;an000;we will read sector(s)
-;	$endif				;an000;
+;	$endif
 $$EN5:
 
 
@@ -1250,7 +1238,7 @@ ABSREAD 	proc	near		;an000;read logical sector(s)
 
 	push	ds			;an000;save affected regs
 	push	cx			;an000;save affected regs
-	push	bx			;an000;
+	push	bx
 
 	mov	cx,-1			;an000;extended format
 	mov	bx,offset dg:rel_read_write_tab  ;an000;point to read/write table
@@ -1258,8 +1246,8 @@ ABSREAD 	proc	near		;an000;read logical sector(s)
 	pop	bx			;an000;discard stack word
 
 	pop	bx			;an000;restore regs
-	pop	cx			;an000;
-	pop	ds			;an000;
+	pop	cx
+	pop	ds
 
 	ret				;an000;return to caller
 
@@ -1286,8 +1274,8 @@ ABSREAD 	endp			;an000;end proc
 ABSWRT		proc	near		;an000;write logical sector(s)
 
 	push	ds			;an000;save affected regs
-	push	cx			;an000;
-	push	bx			;an000;
+	push	cx
+	push	bx
 
 	mov	cx,-1			;an000;extended format
 	mov	bx,offset dg:rel_read_write_tab  ;an000;point to read/write table
@@ -1295,8 +1283,8 @@ ABSWRT		proc	near		;an000;write logical sector(s)
 	pop	bx			;an000;discard stack word
 
 	pop	bx			;an000;restore regs
-	pop	cx			;an000;
-	pop	ds			;an000;
+	pop	cx
+	pop	ds
 
 	ret				;an000;return to caller
 

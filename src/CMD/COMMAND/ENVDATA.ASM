@@ -1,5 +1,3 @@
-;	SCCSID = @(#)envdata.asm	1.1 85/05/14
-;	SCCSID = @(#)envdata.asm	1.1 85/05/14
 ; This file is included by command.asm and is used as the default command
 ; environment.
 
@@ -18,7 +16,7 @@ USERPATH LABEL	BYTE
 
 	DB	0		; Null path
 	DB	"COMSPEC="
-ECOMSPEC DB	"\COMMAND.COM"      ;AC062
+ECOMSPEC DB	"\COMMAND.COM"
 	DB	134 DUP (0)
 
 ENVIREND	LABEL	BYTE

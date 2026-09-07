@@ -11,29 +11,8 @@ page	58,132
 ;
 ;   Module:   RetReal - Return-To-Real routine(s) for the 386
 ;
-;   Version:  0.04
-;
-;   Date:     February 20, 1986
-;
-;   Author:
-;
 ;******************************************************************************
 ;
-;   Change log:
-;
-;     DATE    REVISION			DESCRIPTION
-;   --------  --------	-------------------------------------------------------
-;   02/20/86  Original
-;   05/12/86  A 	Cleanup and segment reorganization
-;   06/01/86		Removed Real386a (loadall version) and left only
-;			RetReal via PE bit
-;   06/21/86  0.02	Saved Eax
-;   06/28/86  0.02	Name changed from MEMM386 to MEMM
-;   07/02/86  0.03	Reset TSS busy bit
-;   07/05/86  0.04	Added Real_Seg label for _TEXT fixup
-;   07/06/86  0.04	changed assume to DGROUP
-;
-;******************************************************************************
 ;
 ;   Functional Description:
 ;

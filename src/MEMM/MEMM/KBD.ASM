@@ -11,31 +11,8 @@ page	58,132
 ;
 ;   Module:   KBD.ASM - - protected mode AT keyboard driver for debugger
 ;
-;   Version:  0.04
-;
-;   Date:     January 31, 1986
-;
-;   Author:
-;
 ;******************************************************************************
 ;
-;   Change log:
-;
-;     DATE    REVISION			DESCRIPTION
-;   --------  --------	-------------------------------------------------------
-;   01/31/86  Original
-;	      A-	Removed STIs and changed CLI/STIs to keep interrupt
-;			status stable (OFF) during debugger execution.	The
-;			specific problem was in reporting unexpected traps
-;			fielded from Virtual Mode during DOS execution,
-;			e.g. timer ticks.
-;	      B-	Fixed Ctrl-NumLock, Ctrl-Alt-Del, Ctrl-Break, and
-;			Shift-PrtSc
-;   05/12/86  C Cleanup and segment reorganization
-;   06/28/86  0.02	Name changed from MEMM386 to MEMM
-;   07/05/86  0.04	Moved to DCODE segment
-;
-;******************************************************************************
 ;
 ;   Functional Description:
 ;
@@ -58,29 +35,8 @@ page	58,132
 ;		- changed "data" segment to "romdata"
 ;
 ;
-;	SCCSID = @(#)keybxx.asm 4.1 85/10/09
-;------------------------------------------------------
-;
-;	KEYBXX - foreign keyboard driver.
-;
-;	April 1985 by Michael Hanson
 ;	Copyright 1985 by Microsoft Corporation
 ;
-;	KeybXX is a keyboard handling program using tables
-;	supplied in a separate file to do foreign language
-;	keyboard support. It is the basis for the KEYB??.EXE
-;	programs which use this program and the corresponding
-;	table defined in KEYB??.ASM.
-;
-;	KeybXX.OBJ must be linked with one of the Keyb??.OBJ
-;	programs to work, the KEYB?? file must be first.
-;	See the accompanying makefile for examples.
-;
-;	Note: KEYB?? refers to any of KEYBFR ( French ),
-;		KEYBGR (German), KEYBUK (United Kingdom),
-;		KEYBIT (Italian), KEYBSP (Spanish) and
-;		KEYBDV (Dvorak).  These are the currently
-;		defined data tables for KEYBXX.
 ;
 ;	Compatability notes:
 ;	1.	The IBM foreign keyboard drivers don't return
@@ -89,13 +45,6 @@ page	58,132
 ;		compatibility, KEYBXX doesn't return anything
 ;		in this case either.
 ;
-;	2.	For the AT the keyboard driver should do a post
-;		call (int 15).	The ROM keyboard driver does, but
-;		IBM's foreign keyboard drivers appear not to.
-;		Currently KEYBXX does a post code, though only
-;		one is issued at any one time (that is, only 1 post
-;		call for the 2 characters returned by an illegal
-;		accent combination).
 ;
 ;	This program is a modified version of the keyboard handler from -
 ;

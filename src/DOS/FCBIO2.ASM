@@ -1,5 +1,3 @@
-;	SCCSID = @(#)fcbio2.asm 1.2 85/07/23
-;	SCCSID = @(#)fcbio2.asm 1.2 85/07/23
 TITLE	FCBIO2 - FCB system calls
 NAME	FCBIO2
 
@@ -21,19 +19,9 @@ NAME	FCBIO2
 ;   $FCB_RANDOM_READ	    written fcbio   fcbio
 ;   $FCB_RANDOM_WRITE	    written fcbio   fcbio
 ;
-;   Revision history:
-;
-;	Created: ARR 4 April 1983
-;		 MZ  6 June  1983 completion of functions
-;		 MZ 15 Dec   1983 Brain damaged programs close FCBs multiple
-;				  times.  Change so successive closes work by
-;				  always returning OK.	Also, detect I/O to
-;				  already closed FCB and return EOF.
-;		 MZ 16 Jan   1984 More braindamage.  Need to separate info
-;				  out of sft into FCB for reconnection
-;
-;	A000	version 4.00  Jan. 1988
-;
+; Compatibility: repeated FCB closes succeed; I/O on a closed FCB returns EOF.
+; Keep reconnection information in the FCB even after its SFT has been closed.
+
 .xlist
 ;
 ; get the appropriate segment definitions

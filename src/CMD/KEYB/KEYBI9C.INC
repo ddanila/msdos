@@ -15,12 +15,6 @@
 ;;	 External declarations and equates for procedures in file
 ;;	 KEYBI9C.ASM
 ;;
-;; Change History:
-;; ---------------
-;;
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-				       ;;
 	EXTRN	 KEYB_INT_9:NEAR       ;;
 	EXTRN	 BUFFER_FILL:NEAR      ;;
 	EXTRN	 ERROR_BEEP :NEAR      ;;

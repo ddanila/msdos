@@ -30,12 +30,6 @@
 ;	 LINK DEBUG+DEBCOM1+DEBCOM2+DEBCOM3+DEBASM+DEBUASM+DEBERR+
 ;	      DEBCONST+DEBDATA+DEBMES
 ;
-; REVISION HISTORY:
-;
-;	AN000	VERSION 4.00 - REVISIONS MADE RELATE TO THE FOLLOWING:
-;
-;				- IMPLEMENT EMS FUNCTIONS	DSM:6/24/87
-;
 ; COPYRIGHT: "MS DOS DEBUG UTILITY"
 ;	     "VERSION 4.00 (C) COPYRIGHT 1988 Microsoft"
 ;	     "LICENSED MATERIAL - PROPERTY OF Microsoft  "
@@ -122,7 +116,7 @@ DEBEMS: 					;an000;entry to module
 ;	$if  z					;an000;no parms found
 	JNZ $$IF1
 	     call XM_PARSE_ERROR		;an000;tell user of error
-;	$else					;an000;
+;	$else
 	JMP SHORT $$EN1
 $$IF1:
 	     mov  al,[si]			;an000;grab parm
@@ -130,44 +124,44 @@ $$IF1:
 ;	     $if  e				;an000;yes
 	     JNE $$IF3
 		  inc  si			;an000;point to next byte
-		  call XM_EMS_MAP		;an000;
-;	     $else				;an000;
+		  call XM_EMS_MAP
+;	     $else
 	     JMP SHORT $$EN3
 $$IF3:
 		  cmp  al,"S"			;an000;is it a status check?
 ;		  $if  e			;an000;yes
 		  JNE $$IF5
 		       inc  si			;an000;point to next byte
-		       call XM_EMS_STATUS	;an000;
-;		  $else 			;an000;
+		       call XM_EMS_STATUS
+;		  $else
 		  JMP SHORT $$EN5
 $$IF5:
 		       cmp  al,"D"		;an000;Deallocate pages?
 ;		       $if  e			;an000;yes
 		       JNE $$IF7
 			    inc   si		;an000;point to next byte
-			    call  XM_EMS_DEALL	;an000;
-;		       $else			;an000;
+			    call  XM_EMS_DEALL
+;		       $else
 		       JMP SHORT $$EN7
 $$IF7:
 			    cmp  al,"A" 	;an000;Allocate pages?
 ;			    $if  e		;an000;yes
 			    JNE $$IF9
 				 inc  si	;an000;point to next byte
-				 call XM_EMS_ALLOC    ;an000;
-;			    $else		;an000;
+				 call XM_EMS_ALLOC
+;			    $else
 			    JMP SHORT $$EN9
 $$IF9:
 				call GETEOL	;an000;check out parm
-;			    $endif		;an000;
+;			    $endif
 $$EN9:
-;		       $endif			;an000;
+;		       $endif
 $$EN7:
-;		  $endif			;an000;
+;		  $endif
 $$EN5:
-;	    $endif				;an000;
+;	    $endif
 $$EN3:
-;	$endif					;an000;
+;	$endif
 $$EN1:
 
 	ret					;an000;return to caller
@@ -199,22 +193,22 @@ XM_EMS_ALLOC	proc	near			;an000;XM functions
 		  pushf 			;an000;save our flags
 		  call XM_DISP1 		;an000;tell user results
 		  popf				;an000;restore our flags
-;	     $else				;an000;
+;	     $else
 	     JMP SHORT $$EN17
 $$IF17:
 		  call XM_ERROR 		;an000;print error message
-;	     $endif				;an000;
+;	     $endif
 $$EN17:
 ;	$else					;an000;EMS not active
 	JMP SHORT $$EN16
 $$IF16:
 	     call XM_ERROR			;an000;say why not active
-;	$endif					;an000;
+;	$endif
 $$EN16:
 
 	ret					;an000;return to caller
 
-XM_EMS_ALLOC	  endp				;an000;
+XM_EMS_ALLOC	  endp
 
 
 ;=========================================================================
@@ -243,22 +237,22 @@ XM_EMS_MAP	proc	near			;an000;XM functions
 		  pushf 			;an000;save our flags
 		  call XM_DISP2 		;an000;tell user results
 		  popf				;an000;restore our flags
-;	     $else				;an000;
+;	     $else
 	     JMP SHORT $$EN23
 $$IF23:
 		   call XM_ERROR		;an000;tell error
-;	     $endif				;an000;
+;	     $endif
 $$EN23:
 ;	$else					;an000;EMS not active
 	JMP SHORT $$EN22
 $$IF22:
 	     call XM_ERROR			;an000;say why not active
-;	$endif					;an000;
+;	$endif
 $$EN22:
 
 	ret					;an000;return to caller
 
-XM_EMS_MAP	  endp				;an000;
+XM_EMS_MAP	  endp
 
 ;=========================================================================
 ; XM_GET_MAN_STATUS :  This routine will determine if EMS is active for
@@ -286,27 +280,27 @@ XM_GET_MAN_STATUS proc near			;an000;see if EMS active
 	JNE $$IF28
 		stc				;an000;flag no ems
 		mov	ah,XM_NOT_INST		;an000;signal EMS not installed
-;	$else					;an000;
+;	$else
 	JMP SHORT $$EN28
 $$IF28:
 		call	XM_INSTALL_CHECK	;an000;see if EMS installed
 ;		$if	z			;AN000;IS EMS INSTALLED
 		JNZ $$IF30
 			clc			;AN000;EMS INSTALLED - FLAG IT
-;		$else				;an000;
+;		$else
 		JMP SHORT $$EN30
 $$IF30:
 			stc			;AN000;FLAG EMS NOT INSTALLED
 			mov  ah,XM_NOT_INST	;an000;signal EMS not installed
-;		$endif				;an000;
+;		$endif
 $$EN30:
-;	$endif					;an000;
+;	$endif
 $$EN28:
 
 	RET					;AN000;RETURN TO CALLER
 
 
-XM_GET_MAN_STATUS endp				;an000;
+XM_GET_MAN_STATUS endp
 
 
 
@@ -338,22 +332,22 @@ XM_PAGE_PROMPT	  proc near			;an000;prompt user for number
 ;	     $if  c				;an000;no an error occurred
 	     JNC $$IF35
 		  call PERR			;an000;display ^ error
-;	     $else				;an000;
+;	     $else
 	     JMP SHORT $$EN35
 $$IF35:
 		  mov  dg:XM_PAGE,dl		;an000;save page count
-;	     $endif				;an000;
+;	     $endif
 $$EN35:
-;	$else					;an000;
+;	$else
 	JMP SHORT $$EN34
 $$IF34:
 	     call PERR				;an000;display ^ error
-;	$endif					;an000;
+;	$endif
 $$EN34:
 
 	ret					;an000;return to caller
 
-XM_PAGE_PROMPT	  endp				;an000;
+XM_PAGE_PROMPT	  endp
 
 
 ;=========================================================================
@@ -385,22 +379,22 @@ XM_LOG_PROMPT	  proc near			;an000;prompt user for the
 ;	     $if  c				;an000;no an error occurred
 	     JNC $$IF41
 		  call PERR			;an000;display ^ error
-;	     $else				;an000;
+;	     $else
 	     JMP SHORT $$EN41
 $$IF41:
 		  mov  dg:XM_LOG,dl		;an000;save logical page
-;	     $endif				;an000;
+;	     $endif
 $$EN41:
-;	$else					;an000;
+;	$else
 	JMP SHORT $$EN40
 $$IF40:
 	     call PERR				;an000;display ^ error
-;	$endif					;an000;
+;	$endif
 $$EN40:
 
 	ret					;an000;return to caller
 
-XM_LOG_PROMPT	  endp				;an000;
+XM_LOG_PROMPT	  endp
 
 
 ;=========================================================================
@@ -432,22 +426,22 @@ XM_PHY_PROMPT	  proc near			;an000;prompt user for the
 ;	     $if  c				;an000;no an error occurred
 	     JNC $$IF47
 		  call PERR			;an000;display ^ error
-;	     $else				;an000;
+;	     $else
 	     JMP SHORT $$EN47
 $$IF47:
 		  mov  dg:XM_PHY,dl		;an000;save logical page
-;	     $endif				;an000;
+;	     $endif
 $$EN47:
-;	$else					;an000;
+;	$else
 	JMP SHORT $$EN46
 $$IF46:
-	     call PERR				;an000;
-;	$endif					;an000;
+	     call PERR
+;	$endif
 $$EN46:
 
 	ret					;an000;return to caller
 
-XM_PHY_PROMPT	  endp				;an000;
+XM_PHY_PROMPT	  endp
 
 
 ;=========================================================================
@@ -478,22 +472,22 @@ XM_HAN_PROMPT	  proc near			;an000;prompt user for the
 ;	     $if  c				;an000;no an error occurred
 	     JNC $$IF53
 		  call PERR			;an000;display ^ error
-;	     $else				;an000;
+;	     $else
 	     JMP SHORT $$EN53
 $$IF53:
 		  mov  dg:XM_HANDLE,dx		;an000;save logical page
-;	     $endif				;an000;
+;	     $endif
 $$EN53:
-;	$else					;an000;
+;	$else
 	JMP SHORT $$EN52
 $$IF52:
 	     call PERR				;an000;display ^ error
-;	$endif					;an000;
+;	$endif
 $$EN52:
 
 	ret					;an000;return to caller
 
-XM_HAN_PROMPT	  endp				;an000;
+XM_HAN_PROMPT	  endp
 
 
 
@@ -525,7 +519,7 @@ XM_GET_HAN_ALLOC  proc near			;an000;create handle and alloc.
 
 	ret					;an000;return to caller
 
-XM_GET_HAN_ALLOC  endp				;an000;
+XM_GET_HAN_ALLOC  endp
 
 ;=========================================================================
 ; XM_MAP_MEMORY :      This routine will map the requested logical page
@@ -547,7 +541,7 @@ XM_MAP_MEMORY	  proc near			;an000;map a logical page to
 						;      a physical page in
 						;      EMS
 	push bx 				;an000;save regs.
-	push dx 				;an000;
+	push dx
 	mov  ah,EMS_MAP_MEMORY			;an000;function 44h
 	mov  al,dg:XM_PHY			;an000;physical page to map
 	xor  bh,bh				;an000;zero byte
@@ -556,11 +550,11 @@ XM_MAP_MEMORY	  proc near			;an000;map a logical page to
 	int  67h				;an000;call EMS
 	or   ah,ah				;an000;was there an error
 	pop  dx 				;an000;restore regs.
-	pop  bx 				;an000;
+	pop  bx
 
 	ret					;an000;return to caller
 
-XM_MAP_MEMORY	  endp				;an000;
+XM_MAP_MEMORY	  endp
 
 
 ;=========================================================================
@@ -587,7 +581,7 @@ XM_DISP1	  proc near			;an000;display messages
 
 	ret					;an000;return to caller
 
-XM_DISP1	  endp				;an000;
+XM_DISP1	  endp
 
 
 ;=========================================================================
@@ -613,7 +607,7 @@ XM_DISP2	  proc near			;an000;display messages
 
 	ret					;an000;return to caller
 
-XM_DISP2	  endp				;an000;
+XM_DISP2	  endp
 
 ;=========================================================================
 ; XM_ERROR:	  This routine will determine what error we have by
@@ -733,7 +727,7 @@ $$IF80:
 	JNE $$IF82
 	     mov  dx,offset dg:XM_ERRFF_PTR	;an000;point to message
 	     jmp  XM_ERROR_CONT 		;an000;print error
-;	$endif					;an000;
+;	$endif
 $$IF82:
 
 	mov  dx,offset dg:XM_ERR_GEN_PTR	;an000;general error message
@@ -744,7 +738,7 @@ XM_ERROR_CONT:
 
 	ret					;an000;return to caller
 
-XM_ERROR	  endp				;an000;
+XM_ERROR	  endp
 
 ;=========================================================================
 ; XM_PARSE_ERROR :     This routine will display that an error has occurred
@@ -765,7 +759,7 @@ XM_PARSE_ERROR	  proc near			;an000;input error message
 	call STD_PRINTF 			;an000;call message ret.
 	ret					;an000;return to caller
 
-XM_PARSE_ERROR	  endp				;an000;
+XM_PARSE_ERROR	  endp
 
 
 
@@ -790,12 +784,12 @@ XM_EMS_STATUS	proc	near			;an000;XM functions
 	JMP SHORT $$EN84
 $$IF84:
 	     call XM_ERROR			;an000;say why not active
-;	$endif					;an000;
+;	$endif
 $$EN84:
 
 	ret					;an000;return to caller
 
-XM_EMS_STATUS	  endp				;an000;
+XM_EMS_STATUS	  endp
 
 
 ;=========================================================================
@@ -817,7 +811,7 @@ XM_CURR_STATUS		proc	near		;an000;current EMS status
 
 	mov  ah,EMS_HANDLE_PAGES		;an000;get handle pages
 	mov  di,offset dg:XM_HANDLE_PAGES_BUF	;an000;point to the buffer
-	int  67h				;an000;
+	int  67h
 
 	or   ah,ah				;an000;see if an error occurred
 ;	$if  z					;an000;no error
@@ -835,7 +829,7 @@ $$DO88:
 		       call STD_PRINTF		;an000;print it
 		       add  di,04h		;an000;next record
 		       dec  bx			;an000;decrement counter
-;	     $enddo				;an000;
+;	     $enddo
 	     JMP SHORT $$DO88
 $$EN88:
 
@@ -854,7 +848,7 @@ $$DO91:
 		       call  STD_PRINTF 	;an000;print it
 		       dec   cx 		;an000;decrease counter
 		       add   di,04		;an000;adjust pointer
-;	     $enddo				;an000;
+;	     $enddo
 	     JMP SHORT $$DO91
 $$EN91:
 
@@ -865,11 +859,11 @@ $$EN91:
 	JMP SHORT $$EN87
 $$IF87:
 	     call  XM_ERROR			;an000;display the error
-;	$endif					;an000;
+;	$endif
 $$EN87:
-	ret					;an000;
+	ret
 
-XM_CURR_STATUS		endp			;an000;
+XM_CURR_STATUS		endp
 
 ;=========================================================================
 ; XM_UNALL_COUNT :	This routine generates a line of the status report
@@ -884,18 +878,18 @@ XM_CURR_STATUS		endp			;an000;
 ;	Date:	       8/05/86
 ;=========================================================================
 
-XM_UNALL_COUNT		proc	near		;an000;
+XM_UNALL_COUNT		proc	near
 
 	mov	ah,EMS_UNALL_PG_CNT		;an000;see how many pages
 						;      remaining
-	int	67h				;an000;
+	int	67h
 	or	ah,ah				;an000;see if error
 
 ;	$if	z				;an000;no error
 	JNZ $$IF96
 		push	bx			;an000;save bx
 		push	dx			;an000;save dx
-		call	CRLF			;an000;
+		call	CRLF
 		pop	dx			;an000;restore dx
 		pop	bx			;an000;restore bx
 		mov	ax,dx			;an000;total page count
@@ -905,12 +899,12 @@ XM_UNALL_COUNT		proc	near		;an000;
 		mov	dx,offset dg:XM_UNALL_PTR ;an000;"%1 of a total %2 EMS
 						;      pages have been allocated",cr,lf
 		call	STD_PRINTF		;an000;print it
-;	$endif					;an000;
+;	$endif
 $$IF96:
 
-	ret					;an000;
+	ret
 
-XM_UNALL_COUNT		endp			;an000;
+XM_UNALL_COUNT		endp
 
 
 ;=========================================================================
@@ -926,11 +920,11 @@ XM_UNALL_COUNT		endp			;an000;
 ;	Date:	       8/05/86
 ;=========================================================================
 
-XM_HANDLE_COUNT 	proc	near		;an000;
+XM_HANDLE_COUNT 	proc	near
 
 	mov	ah,EMS_HANDLE_CNT		;an000;see how many handles
 						;      possible
-	int	67h				;an000;
+	int	67h
 	or	ah,ah				;an000;see if error
 
 ;	$if	z				;an000;no error
@@ -942,12 +936,12 @@ XM_HANDLE_COUNT 	proc	near		;an000;
 						;an000;"%1 of a total %2 EMS
 						;      handles have been allocated",cr,lf
 		call	STD_PRINTF		;an000;print it
-;	$endif					;an000;
+;	$endif
 $$IF98:
 
-	ret					;an000;
+	ret
 
-XM_HANDLE_COUNT 	endp			;an000;
+XM_HANDLE_COUNT 	endp
 
 
 ;=========================================================================
@@ -971,9 +965,9 @@ XM_GET_FRAME_SEG	proc	near		;an000;find the frame segment
 	mov	ax,word ptr es:[di]		;an000;get frame segment
 	mov	dg:XM_FRAME,ax			;an000;place in print var
 
-	ret					;an000;
+	ret
 
-XM_GET_FRAME_SEG	endp			;an000;
+XM_GET_FRAME_SEG	endp
 
 ;=========================================================================
 ; XM_INSTALL_CHECK:	This routine performs function 51h, int 67h to
@@ -992,12 +986,12 @@ XM_INSTALL_CHECK	proc	near		;an000;see if EMS installed
 
 	MOV	AH,EMS_GET_MAN_STAT		;AN000;GET EMS STATUS
 	XOR	AL,AL				;an000;clear low byte
-	INT	67h				;an000;
+	INT	67h
 	OR	AH,AH				;an000;check for error
 ;	$IF	Z				;an000;no error
 	JNZ $$IF100
 		MOV	AH,EMS_VERSION		;an000;get version number
-		INT	67h			;an000;
+		INT	67h
 		CMP	AL,EMS_LIM_40		;an000;LIM 4.0 ?
 ;		$IF	AE			;an000;4.0 or greater
 		JNAE $$IF101
@@ -1008,14 +1002,14 @@ XM_INSTALL_CHECK	proc	near		;an000;see if EMS installed
 $$IF101:
 			MOV	AH,01h		;an000;set up for flag pass
 			OR	AH,AH		;an000;set flag to NZ
-;		$ENDIF				;an000;
+;		$ENDIF
 $$EN101:
-;	$ENDIF					;an000;
+;	$ENDIF
 $$IF100:
 
-	ret					;an000;
+	ret
 
-XM_INSTALL_CHECK	endp			;an000;
+XM_INSTALL_CHECK	endp
 
 
 
@@ -1038,29 +1032,29 @@ XM_EMS_DEALL		proc	near		;an000;deallocate EMS pages
 	JC $$IF105
 	     call XM_DEALL_PROMPT		;an000;prompt user for handle
 	     mov  ah,EMS_PAGE_DEALL		;an000;function 45h, int 67h
-	     int  67h				;an000;
+	     int  67h
 
 	     or   ah,ah 			;an000;error?
 ;	     $if  nz				;an000;yes
 	     JZ $$IF106
 		  call XM_ERROR 		;an000;say why
-;	     $else				;an000;
+;	     $else
 	     JMP SHORT $$EN106
 $$IF106:
 		  mov  dx,offset dg:XM_DEALL_PTR;an000;"Handle %1 deallocated"
 		  call STD_PRINTF		;an000;print message
-;	     $endif				;an000;
+;	     $endif
 $$EN106:
-;	$else					;an000;
+;	$else
 	JMP SHORT $$EN105
 $$IF105:
 	     call XM_ERROR			;an000;print type of error
-;	$endif					;an000;
+;	$endif
 $$EN105:
 
-	ret					;an000;
+	ret
 
-XM_EMS_DEALL		endp			;an000;
+XM_EMS_DEALL		endp
 
 ;=========================================================================
 ; XM_DEALL_PROMPT :	This routine prompts the user for the handle to be
@@ -1084,22 +1078,22 @@ XM_DEALL_PROMPT 	proc	near		;an000;prompt user for handle
 ;	     $if  c				;an000;no an error occurred
 	     JNC $$IF112
 		  call PERR			;an000;display ^ error
-;	     $else				;an000;
+;	     $else
 	     JMP SHORT $$EN112
 $$IF112:
 		  mov  dg:XM_DEALL_HAN,dx	;an000;save handle to deallocate
-;	     $endif				;an000;
+;	     $endif
 $$EN112:
-;	$else					;an000;
+;	$else
 	JMP SHORT $$EN111
 $$IF111:
 	     call PERR				;an000;display ^ error
-;	$endif					;an000;
+;	$endif
 $$EN111:
 
 	ret					;an000;return to caller
 
-XM_DEALL_PROMPT 	endp			;an000;
+XM_DEALL_PROMPT 	endp
 
 
 ;=========================================================================
@@ -1112,14 +1106,14 @@ XM_DEALL_PROMPT 	endp			;an000;
 ;			CX    - Number of elements in array
 ;=========================================================================
 
-XM_FRAME_BUFFER 	proc	near		;an000;
+XM_FRAME_BUFFER 	proc	near
 
 	mov	ax,EMS_PG_FRAME 		;an000;get frame buffer
-	int	67h				;an000;
+	int	67h
 
-	ret					;an000;
+	ret
 
-XM_FRAME_BUFFER 	endp			;an000;
+XM_FRAME_BUFFER 	endp
 
 
 CODE	ENDS

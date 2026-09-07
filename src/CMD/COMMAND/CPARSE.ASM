@@ -1,6 +1,4 @@
  page 80,132
-;	SCCSID = @(#)cparse.asm 1.1 85/05/14
-;	SCCSID = @(#)cparse.asm 1.1 85/05/14
 	INCLUDE comsw.asm
 
 .xlist
@@ -13,12 +11,12 @@
 .cref
 
 
-TRANDATA	SEGMENT PUBLIC BYTE	;AC000;
-	EXTRN	BADCD_PTR:WORD		;AC022;
-	EXTRN	BADCPMES_ptr:word	;AC000;
+TRANDATA	SEGMENT PUBLIC BYTE
+	EXTRN	BADCD_PTR:WORD
+	EXTRN	BADCPMES_ptr:word
 TRANDATA	ENDS
 
-TRANSPACE	SEGMENT PUBLIC BYTE	;AC000;
+TRANSPACE	SEGMENT PUBLIC BYTE
 	EXTRN	comma:byte
 	EXTRN	cpyflag:byte
 	EXTRN	CURDRV:BYTE
@@ -38,7 +36,7 @@ ASSUME	CS:TRANGROUP,DS:TRANGROUP,ES:TRANGROUP,SS:NOTHING
 
 	EXTRN	CERROR:NEAR
 
-	PUBLIC	BADCDERR		;AC022;
+	PUBLIC	BADCDERR
 	PUBLIC	CPARSE
 
 SWCOUNT EQU	6			; Must agree with length of switch_list
@@ -198,14 +196,14 @@ anum_char:
 
 ;;;;	IF	KANJI		3/3/KK
 	invoke	TESTKANJ
-	jz	NOTKANJ 			;AC048;
+	jz	NOTKANJ
 	call	move_char
 	lodsb
 	jmp	short notspecial
 
 NOTKANJ:					;AN048; If not kanji
 	cmp	cpyflag,1			;AN048; and if we're in COPY
-	jnz	testdot 			;AN048;
+	jnz	testdot
 	invoke	upconv				;AN048; upper case the char
 
 TESTDOT:
@@ -330,7 +328,7 @@ badperr2:
 badperr:
 BADCDERR:					;AC022; Issue "Invalid Directory"
 	MOV	DX,OFFSET TRANGROUP:BADCD_ptr	;AC022;     message
-	JMP	CERROR				;AC022;
+	JMP	CERROR
 
 cperror:
 	dec	si				; adjust the pointer
@@ -359,7 +357,7 @@ a_switch:
 	call	move_char			;AN057; store second byte
 	or	bp,fBadSwitch			;AN057; DBCS switch is invalid
 	jmp	short out_token 		;AN057; don't bother checking switch
-a_switch_notkanj:				;AN057;
+a_switch_notkanj:
 	cmp	al,'-'			; DOS 6 COPY/XCOPY-style /-Y switch?
 	jne	Store_swt
 	call	move_char

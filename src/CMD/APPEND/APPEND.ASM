@@ -31,50 +31,6 @@ msg_utilname<APPEND>
 ;			     - /X	Extended support, SEARCH, FIND and EXEC
 ;			     - /E	Use DOS Environment for path(s)
 ;
-;      Revision History:
-;      @@01 07/11/86 Fix hang in TopView start			    PTM P00000??
-;      @@02 07/28/86 Fix APPEND size problem			    PTM P0000045
-;      @@03 07/29/86 Fix APPEND status with /E problem		    PTM P00000??
-;      @@04 07/30/86 Fix second APPEND hang			    PTM P0000053
-;      @@05 08/13/86 Fix parameter error			    PTM P0000125
-;      @@06 08/20/86 Fix APPEND xxx fails in TopView		    PTM P0000217
-;      @@07 08/21/86 Resurrect APPEND version message		    PTM P0000252
-;      @@08 08/21/86 APPEND=path first time hangs		    PTM P0000254
-;      @@09 08/22/86 APPEND gets wrong path under nested COMMAND    PTM P0000276
-;      @@10 08/28/86 Change message for @@05			    PTM P0000291
-;      @@11 09/10/86 Support message profile and make
-;		     msg length variable.	R.G.		    PTM P0000479
-;      @@12 09/25/86 Allow second external append call. (RG)	    PTM P0000515
-;      @@13 09/30/86 APPEND gets wrong path under nested COMMAND    PTM P0000600
-;		     Again. Fix in COMMAND now, so remove @@09 changes
-;      @@14 10/01/86 Lower case drive in path files		    PTM P0000600
-;      @@15 10/06/86 Include "," and "=" in skip leading of
-;		     argument area parsing.			    PTM P0000677
-;      @@16 10/06/86 Fix not using full APPEND path		    PTM P0000794
-;      @@17 12/03/86 When searching for "APPEND=" string in
-;		     environment, make sure delimiter precedes.(RG) PTM P0000893
-;
-;-------------------------------------------------------------------
-;
-;      AN000	     3.30 changes, GGA 6/87 new code.			P000
-;      AN001	     Support DRIVE and PATH modes			D043
-;      AN002	     Add truename function				P1276
-;      AN003	     Add extended handle open function			D250
-;      AN005
-;      AN006	     Add DBCS support
-;      AN007	     Release Environmental Vector space 		P2666
-;      AN008	     Allow equal symbol with append - APPEND=A:/1;	P2901
-;      AN009	     Release Environmental Vector on only the		P3333
-;		     first invocation of APPEND
-;      AN010	     display invalid parm from command line		P3908
-;
-;
-;-----------------------------------------------------------------------------
-;Date	       Rev     Comments
-;-----------------------------------------------------------------------------
-;06-02-86      0.0     Begin conversion to PC/DOS version
-;06-20-86      0.0     End conversion to PC/DOS version
-;
 page
 
 cseg		segment public para 'CODE'
@@ -111,7 +67,7 @@ DPL_PID 	DW	0		;REDIRECTOR PROCESS ID
 DPL		ENDS
 include sysmac.lib
 include versiona.inc
-include appendp.inc			; parseing stuff for append			 ;AN004;
+include appendp.inc			; parseing stuff for append
 .list
 ;		extrn	end_address:near	; end of stay resident stuff
 
@@ -137,7 +93,7 @@ include appendp.inc			; parseing stuff for append			 ;AN004;
 
 ;	Environmental Vector
 
-PSP_Env 	equ	2ch		;Environmental vector segment in PSP	;an007; dms;
+PSP_Env 	equ	2ch		;Environmental vector segment in PSP
 
 ;	Interrupts
 
@@ -159,7 +115,7 @@ set_DTA 	equ	1ah		; DOS function set DTA
 get_crit_err	equ	3524h		; DOS function call to get INT 24 vector
 set_crit_err	equ	2524h		; DOS function call to set INT 24 vector
 get_PSP 	equ	62h		; DOS function call to get PSP address
-Free_Alloc_Mem	equ	49h		; DOS function call to free alloc. mem. ;an007; dms;
+Free_Alloc_Mem	equ	49h		; DOS function call to free alloc. mem.
 
 print_string	equ	09h		; DOS function call to get print a string
 ctrl_break	equ	33h		; DOS function call to get/set ctrl-break
@@ -181,20 +137,20 @@ applic_2f	equ	0aeh		; int 2f function code for applications
 COMMAND_2f	equ	-1		; int 2f subfunction code for COMMAND call
 append_inst	equ	0ffh		; flag means append is there
 
-;	INT 2f sub-function codes						;AN000;
+;	INT 2f sub-function codes
 
 are_you_there	equ	0		; function code for presence check
 old_dir_ptr	equ	1		; means APPEND 1.0 is trying to run
 get_app_version equ	2		; fun code for get ver request
 tv_vector	equ	3		; fun code for set TV vector
 dir_ptr 	equ	4		; function code to return dirlist ptr
-get_state	equ	6		; function code to return append ;AN001;
-					; state 			 ;AN001;
-set_state	equ	7		; function code to set append	 ;AN001;
-					; state 			 ;AN001;
+get_state	equ	6		; function code to return append
+					; state
+set_state	equ	7		; function code to set append
+					; state
 
 DOS_version	equ	10h		; function call to get DOS version
-true_name	equ	11h		; one-shot truename fcn for ASCIIZ ops ;AN002;
+true_name	equ	11h		; one-shot truename fcn for ASCIIZ ops
 
 ;	DOS INT 21 function calls that APPEND traps
 
@@ -205,17 +161,15 @@ dat_tim 	equ	57h
 FCB_sch1	equ	11h
 handle_fnd1	equ	4eh
 exec_proc	equ	4bh
-ext_handle_opn	equ	6ch								  ;AN003;
+ext_handle_opn	equ	6ch
 
 break	macro			; this is a dummy break macro so PDB.INC
 	endm			; won't blow up in the build
 
-;	define some things for PDB (PSP)						  ;AN002;
-											  ;AN002;
-include pdb.inc 									  ;AN002;
-											  ;AN002;
-true_name_flag		equ	01h	; flag for true name function			  ;AN002;
-eo_create		equ	00f0h	; mask to check extended opens for create	  ;AN003;
+;	define some things for PDB (PSP)
+include pdb.inc
+true_name_flag		equ	01h	; flag for true name function
+eo_create		equ	00f0h	; mask to check extended opens for create
 
 ;	Error codes that don't mean stop looking
 
@@ -227,8 +181,8 @@ FCB_no_more_files	equ	18	; no more matching files
 handle_no_more_files	equ	18	; no more matching files
 
 ;	Equates for TOPVIEW barrier
-TV_TRUE equ	-1			; this was changed from TRUE	 ;AN000;
-					; because 3.30 parser uses TRUE  ;AN000;
+TV_TRUE equ	-1			; this was changed from TRUE
+					; because 3.30 parser uses TRUE
 false	equ	0			;
 
 ;	Message equates
@@ -288,26 +242,23 @@ temp_IP_save	dw	0		; IP saved during stack ops (set_return_flags)
 FCB_drive_id	db	0		; save the drive id for FCB opens here
 
 ;------------------------
-;	DBCS stuff here 								 ;AN006;
-											 ;AN006;
-DBCSEV_OFF	DW	0		; OFFSET OF DBCS EV				 ;AN006;
-DBCSEV_SEG	DW	0		; SEGMENT OF DBCS EV				 ;AN006;
-											 ;AN006;
-;DEFAULT DBCS ENVIRONMENTAL VECTOR							 ;AN006;
-EVEV	DB	00H,00H 								 ;AN006;
-	DB	00H,00H 								 ;AN006;
-	DB	00H,00H 								 ;AN006;
-											 ;AN006;
+;	DBCS stuff here
+DBCSEV_OFF	DW	0		; OFFSET OF DBCS EV
+DBCSEV_SEG	DW	0		; SEGMENT OF DBCS EV
+;DEFAULT DBCS ENVIRONMENTAL VECTOR
+EVEV	DB	00H,00H
+	DB	00H,00H
+	DB	00H,00H
 dbcs_fb 	dw	0		; offset of DBCS first byte chars found
 ;------------------------
 
-initial_pass	dw	0		; flag used to indicate inital APPEND		 ;AN007;
+initial_pass	dw	0		; flag used to indicate inital APPEND
 
-incoming_DX	dw	0		; used for saves for extended open		  ;AN003;
-incoming_SI	dw	0		; used for saves for extended open		  ;AN003;
-incoming_DI	dw	0		; used for saves for extended open		  ;AN003;
-incoming_DS	dw	0		; used for saves for extended open		  ;AN003;
-true_name_count dw	0		; used to save number of chars in true_name dir   ;AN003;
+incoming_DX	dw	0		; used for saves for extended open
+incoming_SI	dw	0		; used for saves for extended open
+incoming_DI	dw	0		; used for saves for extended open
+incoming_DS	dw	0		; used for saves for extended open
+true_name_count dw	0		; used to save number of chars in true_name dir
 
 int_save_ip	dw	0		; save registers here during critical
 int_save_cs	dw	0		; error handler stack ops
@@ -366,24 +317,22 @@ ext_err_dpl	DPL	<>		; reserve a DPL for get/set extended error code
 save_ext_err	DPL	<>		; reserve a DPL for first extended
 					; error code
 
-;-------------------------------------------------------------------	 ;AN001;
-;									 ;AN001;
-;	mode_flags	This status word is used to control the various  ;AN001;
-;			APPEND functions and modes.			 ;AN001;
-;									 ;AN001;
-;-------------------------------------------------------------------	 ;AN001;
-mode_flags	dw	Path_mode + Drive_mode + Enabled		 ;AN001;
-					; mode control flags		 ;AN001;
-					; initially - path, drive and	 ;AN001;
-					; enabled			 ;AN001;
+;-------------------------------------------------------------------
+;	mode_flags	This status word is used to control the various
+;			APPEND functions and modes.
+;-------------------------------------------------------------------
+mode_flags	dw	Path_mode + Drive_mode + Enabled
+					; mode control flags
+					; initially - path, drive and
+					; enabled
 
-;	equates for mode_flags follow:					 ;AN001;
+;	equates for mode_flags follow:
 
 X_mode		equ	8000h		; in /X mode
 E_mode		equ	4000h		; in /E mode
-Path_mode	equ	2000h		; PATH in string OK		 ;AN001;
-Drive_mode	equ	1000h		; DRIVE in string OK		 ;AN001;
-Enabled 	equ	0001h		; APPEND enabled		 ;AN001;
+Path_mode	equ	2000h		; PATH in string OK
+Drive_mode	equ	1000h		; DRIVE in string OK
+Enabled 	equ	0001h		; APPEND enabled
 
 ;-------------------------------------------------------------------
 
@@ -408,18 +357,18 @@ crlf	label	byte
 	db	CR,LF
 crlf_len equ	 $ - crlf
 
-;*******************************************************************		;an010;bgb
-; parser message display area							;an010;bgb
-;*******************************************************************		;an010;bgb
-inv_parm    db	0bh	;length 						;an010;bgb
-	    db	0	;reserved						;an010;bgb
-si_off	    dw	0	;put offset of command line here			;an010;bgb
-si_seg	    dw	0	;put segment of command line here			;an010;bgb
-	    db	0	;use percent zero					;an010;bgb
-	    db	Left_Align+Char_Field_ASCIIZ ;type of data			;an010;bgb
-	    db	128			;max width				;an010;bgb
-	    db	1			;min width				;an010;bgb
-	    db	' '			;pad char				;an010;bgb
+;*******************************************************************
+; parser message display area
+;*******************************************************************
+inv_parm    db	0bh	;length
+	    db	0	;reserved
+si_off	    dw	0	;put offset of command line here
+si_seg	    dw	0	;put segment of command line here
+	    db	0	;use percent zero
+	    db	Left_Align+Char_Field_ASCIIZ ;type of data
+	    db	128			;max width
+	    db	1			;min width
+	    db	' '			;pad char
 
 ;-------------------------------------------------------------------
 ;
@@ -428,7 +377,7 @@ si_seg	    dw	0	;put segment of command line here			;an010;bgb
 ;-------------------------------------------------------------------
 
 MSG_SERVICES <MSGDATA>
-MSG_SERVICES <DISPLAYmsg,CHARmsg>						;an010;bgb
+MSG_SERVICES <DISPLAYmsg,CHARmsg>
 MSG_SERVICES <APPEND.CLA,APPEND.CL1,APPEND.CTL>
 
 .xlist
@@ -498,17 +447,17 @@ interrupt_hook:
 resident_routine:
 	pushf				; save the user's flags (old stack)
 
-	cmp	tv_flag,TV_TRUE 	; see if in TV			 ;AN000;
+	cmp	tv_flag,TV_TRUE 	; see if in TV
 	je	use_old 		; yes, old_vect
 
 check_fcb_open: 							  ; @@01
 
-;-------------------------------------------------------------------	 ;AN001;
-;	first, check to see if APPEND disabled, if so, skip everything	 ;AN001;
-;	and go to real INT 21 handler					 ;AN001;
-;-------------------------------------------------------------------	 ;AN001;
-	test	mode_flags,Enabled	; APPEND disabled?		 ;AN001;
-	jz	real_jump		; yes, skip all other checks	 ;AN001;
+;-------------------------------------------------------------------
+;	first, check to see if APPEND disabled, if so, skip everything
+;	and go to real INT 21 handler
+;-------------------------------------------------------------------
+	test	mode_flags,Enabled	; APPEND disabled?
+	jz	real_jump		; yes, skip all other checks
 
 	cmp	ah,FCB_opn		; FCB open?
 	jump	E,FCB_open		; yes, do the APPEND
@@ -516,9 +465,8 @@ check_fcb_open: 							  ; @@01
 	cmp	ah,handle_opn		; handle open?
 	jump	E,handle_open		; yes, do the APPEND
 
-	cmp	ah,ext_handle_opn	; extended handle open? 			  ;AN003;
-	jump	E,ext_handle_open	; yes, do the APPEND				  ;AN003;
-											  ;AN003;
+	cmp	ah,ext_handle_opn	; extended handle open?
+	jump	E,ext_handle_open	; yes, do the APPEND
 	cmp	ah,file_sz		; file size?
 	jump	E,FCB_open		; yes, do the APPEND
 
@@ -532,7 +480,7 @@ check_fcb_open: 							  ; @@01
 	cmp	ah,handle_fnd1		; find?
 	jump	E,handle_find1		; yes, do the APPEND
 
-	cmp	tv_flag,TV_TRUE 	; cant do in TopView		 ;AN000;
+	cmp	tv_flag,TV_TRUE 	; cant do in TopView
 	je	skip_exec
 	cmp	ax,exec_proc*256+0	; EXEC?
 	jump	E,exec_pgm		; yes, do the APPEND
@@ -549,7 +497,7 @@ skip_exec:
 ;-----------------------------------------------------------------------------
 
 real_jump:
-	cmp	tv_flag,TV_TRUE 	; see if called by TV		 ;AN000;
+	cmp	tv_flag,TV_TRUE 	; see if called by TV
 	jne	use_old 		; yes, use old vect
 
 	popff				; restore user's flags
@@ -854,31 +802,25 @@ exec_pgm:
 ;	mov	expected_ext_error,handle_no_more_files
 	jmp	short handle_openx
 
-;-----------------------------------------------------------------------------		  ;AN003;
-;	ext_handle_open - APPEND extended handle open function					       ;AN003;
-;-----------------------------------------------------------------------------		  ;AN003;
-ext_handle_open:									  ;AN003;
-	test	dx,eo_create		; does this call specify create?		  ;AN003;
-	jz	no_eo_create		; no, we can continue				  ;AN003;
-											  ;AN003;
-	jmp	real_jump		; yes, do nothing but pass on to real		  ;AN003;
-					; INT 21 handler				  ;AN003;
-											  ;AN003;
-;	getting here means the caller did not specify the create option 		  ;AN003;
-											  ;AN003;
-no_eo_create:										  ;AN003;
-											  ;AN003;
-	mov	incoming_BX,bx		; save user's registers                           ;AN003;
-	mov	incoming_CX,cx		; extended open sure does use a lot		  ;AN003;
-	mov	incoming_DX,dx		; of registers					  ;AN003;
-	mov	incoming_SI,si								  ;AN003;
-	mov	incoming_DI,di								  ;AN003;
-	mov	incoming_ES,es								  ;AN003;
-	mov	incoming_DS,ds								  ;AN003;
-											  ;AN003;
-	mov	expected_error,handle_file_not_found					  ;AN003;
-	jmp	short handle_openx	; for now ...					  ;AN003;
-											  ;AN003;
+;-----------------------------------------------------------------------------
+;	ext_handle_open - APPEND extended handle open function
+;-----------------------------------------------------------------------------
+ext_handle_open:
+	test	dx,eo_create		; does this call specify create?
+	jz	no_eo_create		; no, we can continue
+	jmp	real_jump		; yes, do nothing but pass on to real
+					; INT 21 handler
+;	getting here means the caller did not specify the create option
+no_eo_create:
+	mov	incoming_BX,bx		; save user's registers
+	mov	incoming_CX,cx		; extended open sure does use a lot
+	mov	incoming_DX,dx		; of registers
+	mov	incoming_SI,si
+	mov	incoming_DI,di
+	mov	incoming_ES,es
+	mov	incoming_DS,ds
+	mov	expected_error,handle_file_not_found
+	jmp	short handle_openx	; for now ...
 ;-----------------------------------------------------------------------------
 ;	handle_open - APPEND handle open function
 ;-----------------------------------------------------------------------------
@@ -945,16 +887,12 @@ handle_search:
 
 ;	all done with the prep stuff, let's get down to business
 
-;-------------------------------------------------------------------	 ;AN001;
-;									 ;AN001;
-;	before doing anything else, check DRIVE and PATH modes		 ;AN001;
-;									 ;AN001;
-;-------------------------------------------------------------------	 ;AN001;
-;									 ;AN001;
+;-------------------------------------------------------------------
+;	before doing anything else, check DRIVE and PATH modes
+;-------------------------------------------------------------------
 
-	pushf				; save flags			 ;AN001;
-	push	ax			; save AX			 ;AN001;
-									 ;AN001;
+	pushf				; save flags
+	push	ax			; save AX
 	cmp	incoming_AX,exec_proc*256 ; is this call an exec?
 	je	drive_and_path_ok
 
@@ -963,14 +901,13 @@ handle_search:
 ;	Set up ES:SI to point to incoming string
 ;-------------------------------------------------------------------
 
-	cmp	incoming_AX,ext_handle_opn*256+0 ;is this call an ext open?		  ;AN003;
-	jne	no_eo13 								  ;AN003;
-	mov	si,incoming_SI		; DS:SI points to original name for ex open	  ;AN003;
-	mov	es,incoming_DS		; but this code wants ES:SI to point to it	 ;AN003;
-	lea	di,fname		; DS:DI points to fname area			  ;AN003;
-	jmp	eo_skip3		; skip the old stuff				  ;AN003;
-											  ;AN003;
-no_eo13:										   ;AN003;
+	cmp	incoming_AX,ext_handle_opn*256+0 ;is this call an ext open?
+	jne	no_eo13
+	mov	si,incoming_SI		; DS:SI points to original name for ex open
+	mov	es,incoming_DS		; but this code wants ES:SI to point to it
+	lea	di,fname		; DS:DI points to fname area
+	jmp	eo_skip3		; skip the old stuff
+no_eo13:
 	les	si,dword ptr handle_ptr ; ES:SI points to original handle
 	lea	di,fname		; DS:DI points to fname area
 eo_skip3:
@@ -1008,8 +945,8 @@ check_path_mode:
 	je	drive_and_path_ok	; no, everything is OK
 					; yes, fall through and exit w/error
 
-;-------------------------------------------------------------------	 ;AN001;
-;	getting here means that Drive_mode is disabled and that a drive  ;AN001;
+;-------------------------------------------------------------------
+;	getting here means that Drive_mode is disabled and that a drive
 ;	letter was found.  This means we give up on this APPEND operatio ;AN001; n
 
 drive_or_path_conflict:
@@ -1017,7 +954,7 @@ drive_or_path_conflict:
 	pop	ax			; clean up stack
 	popff
 
-;	restore_regs			; restore some regs				  ;AN002;
+;	restore_regs			; restore some regs
 ;	pop	ax
 
 	mov	ext_err_flag,1		; we need to set extended error info
@@ -1030,25 +967,23 @@ drive_or_path_conflict:
 	jmp	no_more_to_try2
 
 
-drive_and_path_ok:							 ;AN001;
-	pop	ax			; restore AX			 ;AN001;
-	popff				; restore flags 		 ;AN001;
-									 ;AN001;
-;-------------------------------------------------------------------	 ;AN001;
-;	end of code to check DRIVE and PATH modes			 ;AN001;
-;-------------------------------------------------------------------	 ;AN001;
+drive_and_path_ok:
+	pop	ax			; restore AX
+	popff				; restore flags
+;-------------------------------------------------------------------
+;	end of code to check DRIVE and PATH modes
+;-------------------------------------------------------------------
 
-	cmp	incoming_AX,ext_handle_opn*256+0 ;is this call an ext open?		  ;AN003;
-	jne	no_eo1									  ;AN003;
-	mov	si,incoming_SI		; DS:SI points to original name for ex open	  ;AN003;
-	mov	es,incoming_DS		; but this code wants ES:SI to point to it	 ;AN003;
-	lea	di,fname		; DS:DI points to fname area			  ;AN003;
-	jmp	eo_skip1		; skip the old stuff				  ;AN003;
-											  ;AN003;
-no_eo1: 										  ;AN003;
+	cmp	incoming_AX,ext_handle_opn*256+0 ;is this call an ext open?
+	jne	no_eo1
+	mov	si,incoming_SI		; DS:SI points to original name for ex open
+	mov	es,incoming_DS		; but this code wants ES:SI to point to it
+	lea	di,fname		; DS:DI points to fname area
+	jmp	eo_skip1		; skip the old stuff
+no_eo1:
 	les	si,dword ptr handle_ptr ; ES:SI points to original handle
 	lea	di,fname		; DS:DI points to fname area
-eo_skip1:										  ;AN003;
+eo_skip1:
 	call	get_fname		; strip just the 8.3 filename from
 					; the original ASCIIZ string
 	call	address_path		; address the path
@@ -1066,7 +1001,7 @@ try_another2:
 	push	cx			; save CX
 	call	get_app_dir		; this routine will return with a dir
 					; to try in try_dir
-	mov	true_name_count,cx	; save number of chars for later us		  ;AN003;
+	mov	true_name_count,cx	; save number of chars for later us
 	pop	cx
 	mov	app_dirs_ptr,si 	; save updated pointer
 
@@ -1084,37 +1019,29 @@ try_app_dir2:
 	mov	cx,incoming_CX
 	lea	dx,try_dir		; point to new ASCIIZ string
 
-	cmp	incoming_AX,ext_handle_opn*256+0     ; extended open?			  ;AN003;
-	jne	not_eo1 								  ;AN003;
-											  ;AN003;
-;	this is an extended open call							  ;AN003;
-											  ;AN003;
-	save_regs									  ;AN003;
-											  ;AN003;
-	mov	si,dx			; ext open wants DS:SI -> filename		  ;AN003;
-	push	cs									  ;AN003;
-	pop	ds									  ;AN003;
-											  ;AN003;
-	mov	ax,incoming_AX		; function code 				  ;AN003;
-	mov	bx,incoming_BX		; mode word					  ;AN003;
-	mov	cx,incoming_CX		; attributes					  ;AN003;
-	mov	dx,incoming_DX		; flags 					  ;AN003;
-	mov	es,incoming_ES		; ES:DI parm_list pointer			  ;AN003;
-	mov	di,incoming_DI								  ;AN003;
-											  ;AN003;
-	call	int_21			; try the extended open 			  ;AN003;
-											  ;AN003;
-	restore_regs									  ;AN003;
-	pushf				; save flags					  ;AN003;
-;	mov	es,incoming_ES		; restore es as it was				  ;AN003;
-	jmp	not_exec2		; go find out what happened			  ;AN003;
-											  ;AN003;
-											  ;AN003;
-not_eo1:										  ;AN003;
+	cmp	incoming_AX,ext_handle_opn*256+0     ; extended open?
+	jne	not_eo1
+;	this is an extended open call
+	save_regs
+	mov	si,dx			; ext open wants DS:SI -> filename
+	push	cs
+	pop	ds
+	mov	ax,incoming_AX		; function code
+	mov	bx,incoming_BX		; mode word
+	mov	cx,incoming_CX		; attributes
+	mov	dx,incoming_DX		; flags
+	mov	es,incoming_ES		; ES:DI parm_list pointer
+	mov	di,incoming_DI
+	call	int_21			; try the extended open
+	restore_regs
+	pushf				; save flags
+;	mov	es,incoming_ES		; restore es as it was
+	jmp	not_exec2		; go find out what happened
+not_eo1:
 	cmp	incoming_AX,exec_proc*256+0	; exec pgm call
 	jne	not_exec1
 
-;	this is an exec call								  ;AN003;
+;	this is an exec call
 
 	push	es
 	push	bx
@@ -1198,50 +1125,41 @@ found_it_remote:			; come here only if the file was found in
 	mov	ax_after_21,ax		; save AX
 
 
-;											  ;AN002;
-;	Find out if this process has the true_name flag set in thier PSP.		  ;AN002;
-;	At this point, DS:DX points to the true name of the found file			  ;AN002;
-;											  ;AN002;
-											  ;AN002;
-	push	ax			; save some regs				  ;AN002;
+;	Find out if this process has the true_name flag set in thier PSP.
+;	At this point, DS:DX points to the true name of the found file
+	push	ax			; save some regs
 	save_regs
-											  ;AN002;
-	mov	ah,get_PSP		; function code for get PSP operation		  ;AN002;
-	call	int_21			; get the PSP, segment returned in BX		  ;AN002;
-	mov	es,bx			; need to use it as a segment			  ;AN002;
-	mov	di,PDB_Append		; get pointer to APPEND flag in PDB		  ;AN002;
-											  ;AN002;
-	mov	ax,es:[di]		; get APPEND flag into AX			  ;AN002;
-	test	ax,true_name_flag	; is true name flag armed?			  ;AN002;
-	jz	no_true_name		; no, don't copy true name                        ;AN002;
-											  ;AN002;
-	sub	ax,true_name_flag	; clear true name flag				  ;AN002;
-	mov	es:[di],ax		; save it in PSP				  ;AN002;
-											  ;AN002;
-	mov	di,word ptr handle_ptr+0	; get user's buffer pointer ES:DI         ;AN002;
-	mov	es,word ptr handle_ptr+2						  ;AN002;
+	mov	ah,get_PSP		; function code for get PSP operation
+	call	int_21			; get the PSP, segment returned in BX
+	mov	es,bx			; need to use it as a segment
+	mov	di,PDB_Append		; get pointer to APPEND flag in PDB
+	mov	ax,es:[di]		; get APPEND flag into AX
+	test	ax,true_name_flag	; is true name flag armed?
+	jz	no_true_name		; no, don't copy true name
+	sub	ax,true_name_flag	; clear true name flag
+	mov	es:[di],ax		; save it in PSP
+	mov	di,word ptr handle_ptr+0	; get user's buffer pointer ES:DI
+	mov	es,word ptr handle_ptr+2
 
 ;	find out if this is a handle find or an open or an exec
 
 	cmp	incoming_AX,exec_proc*256+0   ; exec?
 	je	no_true_name		; yes, do nothing with true name
-											  ;AN002;
 	cmp	incoming_AX,handle_fnd1*256+0	; handle find?
 	jne	not_hf			; no, go do the easy stuff
-											  ;AN002;
 ;	function we are doing is a handle find, must get part of true_name
 ;	string from append path, part from DTA.  Messy!
 
 	lea	si,try_dir		; buffer that has last APPEND path tried
 
-	mov	cx,true_name_count	; get number of chars in true_name dir		  ;AN002;
+	mov	cx,true_name_count	; get number of chars in true_name dir
 
 copy_true_name_loop2:
-	mov	ah,ds:[si]		; get byte of append dir path			  ;AN002;
-	mov	es:[di],ah		; copy it to user's buffer                        ;AN002;
-	inc	si			; in this loop, the null is not copied		  ;AN002;
-	inc	di									  ;AN002;
-	loop	copy_true_name_loop2							  ;AN002;
+	mov	ah,ds:[si]		; get byte of append dir path
+	mov	es:[di],ah		; copy it to user's buffer
+	inc	si			; in this loop, the null is not copied
+	inc	di
+	loop	copy_true_name_loop2
 
 ;	put in the "\"
 
@@ -1265,33 +1183,29 @@ copy_true_name_loop2:
 	pop	es
 
 copy_true_name_loop3:
-	mov	ah,ds:[si+30]	     ; get byte of actual filename		       ;AN002;
-	mov	es:[di],ah		; copy it to user's buffer                        ;AN002;
-	cmp	ah,null 		; is it a null? 				  ;AN002;
-	je	true_name_copied	; yes, all done 				  ;AN002;
-	inc	si			; in this loop the null is copied		  ;AN002;
-	inc	di									  ;AN002;
-	jmp	copy_true_name_loop3							  ;AN002;
+	mov	ah,ds:[si+30]	     ; get byte of actual filename
+	mov	es:[di],ah		; copy it to user's buffer
+	cmp	ah,null 		; is it a null?
+	je	true_name_copied	; yes, all done
+	inc	si			; in this loop the null is copied
+	inc	di
+	jmp	copy_true_name_loop3
 
 not_hf:
 	mov	si,dx			; make DS:SI point to true name
 
-copy_true_name_loop:									  ;AN002;
-	mov	ah,ds:[si]		; get byte of true name 			  ;AN002;
-	mov	es:[di],ah		; copy it to user's buffer                        ;AN002;
-	cmp	ah,null 		; is it a null? 				  ;AN002;
-	je	true_name_copied	; yes, all done 				  ;AN002;
-	inc	si									  ;AN002;
-	inc	di									  ;AN002;
-	jmp	copy_true_name_loop							  ;AN002;
-											  ;AN002;
-true_name_copied:									  ;AN002;
-											  ;AN002;
-no_true_name:										  ;AN002;
-	restore_regs			; restore some regs				  ;AN002;
+copy_true_name_loop:
+	mov	ah,ds:[si]		; get byte of true name
+	mov	es:[di],ah		; copy it to user's buffer
+	cmp	ah,null 		; is it a null?
+	je	true_name_copied	; yes, all done
+	inc	si
+	inc	di
+	jmp	copy_true_name_loop
+true_name_copied:
+no_true_name:
+	restore_regs			; restore some regs
 	pop	ax
-											  ;AN002;
-											  ;AN002;
 no_more_to_try2:
 
 	call	ctrl_break_restore	; restore normal control break address
@@ -1353,18 +1267,16 @@ check_for_path: 			; input:  ES:SI -> original string
 
 walk_handle_string:
 
-	push	ax									 ;AN006;
-	mov	al,es: byte ptr [si]	; is this a dbcs char?				 ;AN006;
-	call	Chk_DBCS								 ;AN006;
-	pop	ax									 ;AN006;
-											 ;AN006;
-	jnc	no_dbcs1		; no, keep looking				 ;AN006;
+	push	ax
+	mov	al,es: byte ptr [si]	; is this a dbcs char?
+	call	Chk_DBCS
+	pop	ax
+	jnc	no_dbcs1		; no, keep looking
 
-	add	si,2			; yes, skip it and the next char		 ;AN006;
-	jmp	walk_handle_string	; the next char could be a "\", but		 ;AN006;
-					; would not mean a path was found		 ;AN006;
-											 ;AN006;
-no_dbcs1:										 ;AN006;
+	add	si,2			; yes, skip it and the next char
+	jmp	walk_handle_string	; the next char could be a "\", but
+					; would not mean a path was found
+no_dbcs1:
 	cmp	es: byte ptr [si],"\"	; is the char a "\"?
 	je	found_path		; yes, set flag and return
 	cmp	es: byte ptr [si],"/"	; is the char a "/"?
@@ -1472,13 +1384,13 @@ check_cmd_name: 			; See if APPEND 		    @@12
 ccn_skip_leading:			;				    @@12
 	lodsb				; skip leading stuff		    @@12
 
-	call	Chk_DBCS		; find out if this is DBCS			 ;AN006;
-	jnc	no_dbcs2		; no, keep looking				 ;AN006;
-	lodsb				; yes, skip it and the next byte		 ;AN006;
-	jmp	ccn_skip_leading	; the second byte will be skipper when		 ;AN006;
-					; we go back through				 ;AN006;
+	call	Chk_DBCS		; find out if this is DBCS
+	jnc	no_dbcs2		; no, keep looking
+	lodsb				; yes, skip it and the next byte
+	jmp	ccn_skip_leading	; the second byte will be skipper when
+					; we go back through
 
-no_dbcs2:										 ;AN006;
+no_dbcs2:
 	cmp	al," "			;	blank			    @@12
 	je	ccn_skip_leading	;				    @@12
 	cmp	al,tab_char		;	tab			    @@12
@@ -1504,12 +1416,11 @@ ccn_02: 				;				    @@12
 	mov	di,si			;				    @@12
 	lodsb				;				    @@12
 ccn_cont:				;				    @@12
-	call	Chk_DBCS								 ;AN006;
-	jnc	no_dbcs3		; no, carry on					 ;AN006;
-	add	si,2			; yes, skip it and the next byte		 ;AN006;
-	jmp	ccn_20									 ;AN006;
-											 ;AN006;
-no_dbcs3:										 ;AN006;
+	call	Chk_DBCS
+	jnc	no_dbcs3		; no, carry on
+	add	si,2			; yes, skip it and the next byte
+	jmp	ccn_20
+no_dbcs3:
 	cmp	al,"\"			; move di up upon "\"		    @@12
 	jne	ccn_20			;				    @@12
 	mov	di,si			;				    @@12
@@ -1552,34 +1463,20 @@ ccn_ret:				;				    @@12
 	ret				;				    @@12
 
 page
-;-------------------------------------------------------------------	 ;AN000;
-;									 ;AN000;
-;	do_appends							 ;AN000;
-;									 ;AN000;
-;	This is the INT 2F handler for the APPEND			 ;AN000;
-;			  subfunction					 ;AN000;
-;									 ;AN000;
-;	New functions added for 3.30:					 ;AN000;
-;									 ;AN000;
-;									 ;AN000;
-;									 ;AN000;
-;	Get /X status							 ;AN000;
-;									 ;AN000;
-;	Input:	AX = B706						 ;AN000;
-;									 ;AN000;
-;	Output: BX = 0000	/X not active				 ;AN000;
-;		   = 0001	/X active				 ;AN000;
-;									 ;AN000;
-;									 ;AN000;
-;									 ;AN000;
-;	Set /X status							 ;AN000;
-;									 ;AN000;
-;	Input:	AX = B707						 ;AN000;
-;									 ;AN000;
-;		BX = 0000	turn /X off				 ;AN000;
-;		BX = 0001	turn /X on (active)			 ;AN000;
-;									 ;AN000;
-;-------------------------------------------------------------------	 ;AN000;
+;-------------------------------------------------------------------
+;	do_appends
+;	This is the INT 2F handler for the APPEND
+;			  subfunction
+;	New functions added for 3.30:
+;	Get /X status
+;	Input:	AX = B706
+;	Output: BX = 0000	/X not active
+;		   = 0001	/X active
+;	Set /X status
+;	Input:	AX = B707
+;		BX = 0000	turn /X off
+;		BX = 0001	turn /X on (active)
+;-------------------------------------------------------------------
 ;
 do_appends:
 	cmp	al,are_you_there	; is the function request for presence?
@@ -1613,7 +1510,7 @@ ck3:
 	pop	es			;
 	lea	di,tv_entry
 
-	xor	byte ptr tv_flag,TV_TRUE ; set flag			  ;AN000;
+	xor	byte ptr tv_flag,TV_TRUE ; set flag
 	iret
 
 ck4:					;
@@ -1624,14 +1521,13 @@ ck4:					;
 	push	cs
 	pop	ds
 
-	call	sysloadmsg						 ;AN000;
-									 ;AN000;
-	mov	ax,1			; message number		 ;AN000;
-	mov	bx,STDERR		; handle			 ;AN000;
-	xor	cx,cx			; sub count			 ;AN000;
-	xor	dl,dl			; no input			 ;AN000;
-	mov	dh,-1			; message class 		 ;AN000;
-	call	sysdispmsg						 ;AN000;
+	call	sysloadmsg
+	mov	ax,1			; message number
+	mov	bx,STDERR		; handle
+	xor	cx,cx			; sub count
+	xor	dl,dl			; no input
+	mov	dh,-1			; message class
+	call	sysdispmsg
 
 	pop	ds
 	mov	al,1
@@ -1648,59 +1544,47 @@ ck5:					;
 	mov	dh,byte ptr version_loc+1 ; minor version num
 	iret
 
-ck6:									 ;AN000;
-	cmp	al,get_state		; is it get state call? 	 ;AN001;
-	jne	ck7			; no, look some more		 ;AN000;
-									 ;AN000;
-	mov	bx,mode_flags		; get mode bits 		 ;AN000;
-	iret				; return to user		 ;AN000;
-									 ;AN000;
-ck7:									 ;AN000;
-	cmp	al,set_state		; is it set state  call?	 ;AN001;
-	jne	ck8			; no, look some more		 ;AN000;
-									 ;AN000;
-	mov	mode_flags,bx		; save the new state		 ;AN001;
-	iret								 ;AN000;
-									 ;AN000;
-ck8:									 ;AN000;
+ck6:
+	cmp	al,get_state		; is it get state call?
+	jne	ck7			; no, look some more
+	mov	bx,mode_flags		; get mode bits
+	iret				; return to user
+ck7:
+	cmp	al,set_state		; is it set state  call?
+	jne	ck8			; no, look some more
+	mov	mode_flags,bx		; save the new state
+	iret
+ck8:
 
-	cmp	al,true_name		; is it the set true name function?		  ;AN002;
-	jne	ck9			; no, look some more				  ;AN002;
-											  ;AN002;
-	push	ax			; save some regs				  ;AN002;
-	push	bx									  ;AN002;
-	push	es									  ;AN002;
-	push	di									  ;AN002;
-											  ;AN002;
-											  ;AN002;
+	cmp	al,true_name		; is it the set true name function?
+	jne	ck9			; no, look some more
+	push	ax			; save some regs
+	push	bx
+	push	es
+	push	di
 ;	get the PSP and then get the APPEND flags byte
 
-	mov	ah,get_PSP		; function code to get PSP address		  ;AN002;
-	call	int_21			; get the PSP address				  ;AN002;
-	mov	es,bx			; need to use it as a segment			  ;AN002;
-	mov	di,PDB_Append		; get pointer to APPEND flag in PDB		  ;AN002;
-											  ;AN002;
+	mov	ah,get_PSP		; function code to get PSP address
+	call	int_21			; get the PSP address
+	mov	es,bx			; need to use it as a segment
+	mov	di,PDB_Append		; get pointer to APPEND flag in PDB
 ;	is the flag already set?
 
-	mov	ax,es:[di]		; get APPEND flag into AX			  ;AN002;
-	test	ax,true_name_flag	; is it set?					  ;AN002;
-	jnz	no_set_true_name	; yes, do nothing				  ;AN002;
-											  ;AN002;
+	mov	ax,es:[di]		; get APPEND flag into AX
+	test	ax,true_name_flag	; is it set?
+	jnz	no_set_true_name	; yes, do nothing
 ;	set the true_name flag
 
-set_true_name:										  ;AN002;
-	add	ax,true_name_flag	; set true name flag				  ;AN002;
-	mov	es:[di],ax		; save in PSP					  ;AN002;
-											  ;AN002;
+set_true_name:
+	add	ax,true_name_flag	; set true name flag
+	mov	es:[di],ax		; save in PSP
 no_set_true_name:
-	pop	di			; restore some regs				  ;AN002;
-	pop	es									  ;AN002;
-	pop	bx									  ;AN002;
-	pop	ax									  ;AN002;
-											  ;AN002;
-	iret				; return					  ;AN002;
-											  ;AN002;
-ck9:											  ;AN002;
+	pop	di			; restore some regs
+	pop	es
+	pop	bx
+	pop	ax
+	iret				; return
+ck9:
 
 ;-------------------------------------------------------------------
 ;	fill in additional 2F functions here
@@ -1730,7 +1614,7 @@ page
 
 tv_barrier:
 
-	cmp	tv_flag,TV_TRUE 	; in Topview			 ;AN000;
+	cmp	tv_flag,TV_TRUE 	; in Topview
 	jne	no_barrier
 
 	push	ax
@@ -1834,16 +1718,16 @@ append_fname:
 
 ;	find the end of the dir name
 
-	mov	dbcs_fb,-1		; set flag for no dbcs first byte chars 	 ;AN006;
+	mov	dbcs_fb,-1		; set flag for no dbcs first byte chars
 
 walk_dir_name:
 	mov	al,byte ptr [di]	; get a char from dir name
 	cmp	al,null 		; are we at the end?
 	je	end_of_dir		; yes, add on the fname
 
-	call	Chk_DBCS		; char is in al 				 ;AN006;
-	jnc	no_dbcs4		; no, keep looking				 ;AN006;
-	mov	dbcs_fb,di		; save offset					 ;AN006;
+	call	Chk_DBCS		; char is in al
+	jnc	no_dbcs4		; no, keep looking
+	mov	dbcs_fb,di		; save offset
 	inc	di			; skip second byte
 
 no_dbcs4:
@@ -1855,24 +1739,22 @@ no_dbcs4:
 end_of_dir:
 	mov	al,byte ptr [di-1]	; get last char of dir name
 	cmp	al,"\"			; is it a dir seperator?
-	jne	check_next_dir_sep	; no, check the next dir sep char		 ;AN006;
-											 ;AN006;
-	sub	di,2			; yes, must find out if real dir sep		 ;AN006;
-					; or DBCS second byte				 ;AN006;
-	cmp	dbcs_fb,di		; is the char before our dir sep a DBCS 	 ;AN006;
-					; first byte?					 ;AN006;
-	jne	no_dbcs4a		; no, must check for the next dir sep		 ;AN006;
-					; yes, this means we must put in a dir sep	 ;AN006;
-	add	di,2			; restore di					 ;AN006;
-	jmp	put_in_dir_sep		; put int the dir sep char			 ;AN006;
-											 ;AN006;
-no_dbcs4a:										 ;AN006;
-	add	di,1			; restore di, then check next dir sep		 ;AN006;
+	jne	check_next_dir_sep	; no, check the next dir sep char
+	sub	di,2			; yes, must find out if real dir sep
+					; or DBCS second byte
+	cmp	dbcs_fb,di		; is the char before our dir sep a DBCS
+					; first byte?
+	jne	no_dbcs4a		; no, must check for the next dir sep
+					; yes, this means we must put in a dir sep
+	add	di,2			; restore di
+	jmp	put_in_dir_sep		; put int the dir sep char
+no_dbcs4a:
+	add	di,1			; restore di, then check next dir sep
 
 check_next_dir_sep:
 	cmp	al,"/"			; is it the other dir seperator?
 	je	add_fname		; yes, no need to add one
-put_in_dir_sep: 									 ;AN006;
+put_in_dir_sep:
 	mov	al,"\"			; get dir seperator
 	stosb				; add to end of dir
 
@@ -1903,14 +1785,14 @@ eo_name:
 get_fname:
 
 	mov	bx,si			; save the pointer
-	mov	dbcs_fb,-1		; set the dbcs flag off 			 ;AN006;
+	mov	dbcs_fb,-1		; set the dbcs flag off
 
 gfn1:
 	mov	ah,ES:byte ptr [si]	; get a char from the source
 	cmp	ah,null 		; is it a null?
 	je	got_the_end		; yes, we found the end
 
-	call	chk_dbcs		; is this char a DBCS first byte?		 ;AN006;
+	call	chk_dbcs		; is this char a DBCS first byte?
 	jnc	no_dbcs5		; no, carry on
 	mov	dbcs_fb,si		; yes, save pointer
 	inc	si			; skip second byte
@@ -1924,7 +1806,7 @@ got_the_end:
 	cmp	ah,"/"			; did we find a /
 	je	went_too_far		; yes, we found the start
 	cmp	ah,"\"			; did we find a \
-	je	found_bslash		; yes, we found the start			 ;AN006;
+	je	found_bslash		; yes, we found the start
 	cmp	ah,":"			; did we find a :
 	je	went_too_far		; yes, we found the start
 	cmp	si,bx			; are we back to the original start?
@@ -1932,17 +1814,16 @@ got_the_end:
 	dec	si			; step back a char, then look some more
 	jmp	got_the_end
 
-found_bslash:				; found a backslash, must figure out if 	 ;AN006;
-					; is second byte of DBCS			 ;AN006;
-	dec	si			; point to next char				 ;AN006;
+found_bslash:				; found a backslash, must figure out if
+					; is second byte of DBCS
+	dec	si			; point to next char
 	cmp	si,dbcs_fb		; do they match?
-	jne	no_dbcs5a		; no, fix up si and carry on			 ;AN006;
-	dec	si			; skip dbcs byte and loop some more		 ;AN006;
-	jmp	got_the_end								 ;AN006;
+	jne	no_dbcs5a		; no, fix up si and carry on
+	dec	si			; skip dbcs byte and loop some more
+	jmp	got_the_end
 
-no_dbcs5a:										 ;AN006;
-	inc	si			; went too far by one extra			 ;AN006;
-											 ;AN006;
+no_dbcs5a:
+	inc	si			; went too far by one extra
 went_too_far:
 	inc	si			; went one char too far back
 
@@ -1968,7 +1849,7 @@ done_with_fname:
 
 reset_stack:
 
-;	reset the stack 								  ;AN002;
+;	reset the stack
 
 	popff				; restore flags from real open
 	mov	ss,Stack_Segment	; Get original stack segment
@@ -1982,34 +1863,26 @@ reset_stack:
 
 set_return_flags:
 
-;	must be sure to clear the true_name flag before leaving 			  ;AN002;
-											  ;AN002;
-	push	ax			; save some regs				  ;AN002;
-	push	bx									  ;AN002;
-	push	es									  ;AN002;
-	push	di									  ;AN002;
-											  ;AN002;
-	mov	ah,get_PSP		; function code for get PSP operation		  ;AN002;
-	call	int_21			; get the PSP, segment returned in BX		  ;AN002;
-	mov	es,bx			; need to use it as a segment			  ;AN002;
-	mov	di,PDB_Append		; get pointer to APPEND flag in PDB		  ;AN002;
-											  ;AN002;
-	mov	ax,es:[di]		; get APPEND flag into AX			  ;AN002;
-	test	ax,true_name_flag	; is true name flag armed?			  ;AN002;
-	jz	reset_stack2		; no, don't copy true name                        ;AN002;
-											  ;AN002;
-	sub	ax,true_name_flag	; clear true name flag				  ;AN002;
-	mov	es:[di],ax		; save it in PSP				  ;AN002;
-											  ;AN002;
-											  ;AN002;
-reset_stack2:										  ;AN002;
-											  ;AN002;
-	pop	di			; restore					  ;AN002;
-	pop	es									  ;AN002;
-	pop	bx									  ;AN002;
-	pop	ax									  ;AN002;
-											  ;AN002;
-	cmp	tv_flag,TV_TRUE 					 ;AN000;
+;	must be sure to clear the true_name flag before leaving
+	push	ax			; save some regs
+	push	bx
+	push	es
+	push	di
+	mov	ah,get_PSP		; function code for get PSP operation
+	call	int_21			; get the PSP, segment returned in BX
+	mov	es,bx			; need to use it as a segment
+	mov	di,PDB_Append		; get pointer to APPEND flag in PDB
+	mov	ax,es:[di]		; get APPEND flag into AX
+	test	ax,true_name_flag	; is true name flag armed?
+	jz	reset_stack2		; no, don't copy true name
+	sub	ax,true_name_flag	; clear true name flag
+	mov	es:[di],ax		; save it in PSP
+reset_stack2:
+	pop	di			; restore
+	pop	es
+	pop	bx
+	pop	ax
+	cmp	tv_flag,TV_TRUE
 	jne	tv_flag_not_set
 
 	mov	ax,2003h		; clear open barrier
@@ -2025,8 +1898,8 @@ tv_flag_not_set:
 	popff				; discard bad flags
 	mov	ax,incoming_AX		; set exec parms
 
-	push	ds			; save DS, this must be done					;an005;
-					; to pervent DS from being trashed on return to caller		;an005;
+	push	ds			; save DS, this must be done
+					; to pervent DS from being trashed on return to caller
 
 	push	cs
 	pop	ds
@@ -2035,7 +1908,7 @@ tv_flag_not_set:
 	mov	es,incoming_ES
 	call	int_21			; issue the exec
 
-	pop	ds			; restore DS							; an005;
+	pop	ds			; restore DS
 
 	pushf
 
@@ -2065,7 +1938,7 @@ not_exec3:
 
 get_app_dir:
 
-	xor	cx,cx			; keep a count of chars in cx			  ;AN003;
+	xor	cx,cx			; keep a count of chars in cx
 copy_dir:
 	mov	ah,es:byte ptr [si]	; get the char, and copy it into dest
 	cmp	ah,null 		; find a null?
@@ -2077,7 +1950,7 @@ copy_dir:
 	mov	byte ptr [di],ah	; if not null or semi-colon, then copy it
 	inc	si			; increment both pointers
 	inc	di
-	inc	cx			; count of chars				  ;AN003;
+	inc	cx			; count of chars
 	jmp	copy_dir		; do it some more
 
 update_pointer:
@@ -2321,7 +2194,7 @@ page
 ;
 ;	SS, SP saved incase call is EXEC which blows them away
 int_21: 				;
-	cmp	tv_flag,TV_TRUE 	; see if being re-entered	 ;AN000;
+	cmp	tv_flag,TV_TRUE 	; see if being re-entered
 	jne	use_old_vec		; yes, pass through to DOS
 
 	pushf				; to comp for iret pops
@@ -2439,7 +2312,7 @@ cap_dl: 					; convert dl to uppercase
 cap_dlx:
 	ret
 
-;	end_address:				; this is the end of the TSR stuff		 ;AN002;
+;	end_address:				; this is the end of the TSR stuff
 
 page
 ;-----------------------------------------------------------------------------
@@ -2513,14 +2386,13 @@ APND_NO_HELP:
 	jne	bad_append_ver		; no, cough up an error messsage  ; @@07
 
 
-	call	sysloadmsg						 ;AN000;
-									 ;AN000;
-	mov	ax,9			; message number		 ;AN000;
-	mov	bx,STDERR		; handle			 ;AN000;
-	xor	cx,cx			; sub count			 ;AN000;
-	xor	dl,dl			; no input			 ;AN000;
-	mov	dh,-1			; message class 		 ;AN000;
-	call	sysdispmsg						 ;AN000;
+	call	sysloadmsg
+	mov	ax,9			; message number
+	mov	bx,STDERR		; handle
+	xor	cx,cx			; sub count
+	xor	dl,dl			; no input
+	mov	dh,-1			; message class
+	call	sysdispmsg
 ;	mov	cx,len_second_APPEND_msg; length of string		 ;AN000;   ; @@04
 ;	lea	dx,second_APPEND_msg	; second load message		 ;AN000;   ; @@04
 ;	call	print_STDERR		; display error message 	 ;AN000;   ; @@04
@@ -2532,14 +2404,13 @@ APND_NO_HELP:
 	call	terminate		; exit to DOS			  ; @@05
 
 bad_append_ver: 			; append version mismatch	  ; @@07
-	call	sysloadmsg						 ;AN000;
-									 ;AN000;
-	mov	ax,1			; message number		 ;AN000;
-	mov	bx,STDERR		; handle			 ;AN000;
-	xor	cx,cx			; sub count			 ;AN000;
-	xor	dl,dl			; no input			 ;AN000;
-	mov	dh,-1			; message class 		 ;AN000;
-	call	sysdispmsg						 ;AN000;
+	call	sysloadmsg
+	mov	ax,1			; message number
+	mov	bx,STDERR		; handle
+	xor	cx,cx			; sub count
+	xor	dl,dl			; no input
+	mov	dh,-1			; message class
+	call	sysdispmsg
 ;	mov	cx,len_bad_append_msg					 ;AN000;   ; @@07
 ;	lea	dx,bad_append_msg	; bad app message		 ;AN000;   ; @@07
 ;	call	print_STDERR						 ;AN000;   ; @@07
@@ -2551,7 +2422,7 @@ bad_append_ver: 			; append version mismatch	  ; @@07
 
 not_there_yet:								  ; @@04
 
-	mov	cs:initial_pass,-1	; set a flag for initial pass			 ;AN007;
+	mov	cs:initial_pass,-1	; set a flag for initial pass
 	call	do_command		; do actual APPEND
 
 	mov	bx,4			; close all standard files
@@ -2563,7 +2434,7 @@ do_closes:
 
 	call	set_vectors		; set append vectors on success   ; @@05
 
-	call	Release_Environment	; release the environmental vector space	;an007; dms;
+	call	Release_Environment	; release the environmental vector space
 
 	lea	dx,end_address+15	; normal end
 	mov	cl,4			; calc end address in paragraphs
@@ -2703,36 +2574,33 @@ not_already_there:
 bad_DOS:
 	cmp	al,01			; DOS 1x or below has no handle fcns ; fixed P134 9/10/87 - gga
 	ja	use_STDERR
-;	lea	dx,bad_DOS_msg		; bad DOS message				  ;AN000;
-;	mov	ah,print_string 							  ;AN000;
-;	call	int_21									  ;AN000;
-	call	sysloadmsg						 ;AN000;
-									 ;AN000;
-	mov	ax,8			; message number		 ;AN000;
-	mov	bx,NO_HANDLE		; no handle			 ;AN000;
-	xor	cx,cx			; sub count			 ;AN000;
-	xor	dl,dl			; no input			 ;AN000;
-	mov	dh,-1			; message class 		 ;AN000;
-	call	sysdispmsg						 ;AN000;
+;	lea	dx,bad_DOS_msg		; bad DOS message
+;	mov	ah,print_string
+;	call	int_21
+	call	sysloadmsg
+	mov	ax,8			; message number
+	mov	bx,NO_HANDLE		; no handle
+	xor	cx,cx			; sub count
+	xor	dl,dl			; no input
+	mov	dh,-1			; message class
+	call	sysdispmsg
 
 
 	call	ctrl_break_rest
 	int	termpgm 		; return to DOS 		  ; @@05
 
 use_STDERR:
-									 ;AN000;
-	call	sysloadmsg						 ;AN000;
-									 ;AN000;
-	mov	ax,8			; message number		 ;AN000;
-	mov	bx,STDERR		; handle			 ;AN000;
-	xor	cx,cx			; sub count			 ;AN000;
-	xor	dl,dl			; no input			 ;AN000;
-	mov	dh,-1			; message class 		 ;AN000;
-	call	sysdispmsg						 ;AN000;
+	call	sysloadmsg
+	mov	ax,8			; message number
+	mov	bx,STDERR		; handle
+	xor	cx,cx			; sub count
+	xor	dl,dl			; no input
+	mov	dh,-1			; message class
+	call	sysdispmsg
 
-;	mov	cx,len_bad_DOS_msg	; length of string		 ;AN000;
-;	lea	dx,bad_DOS_msg		; bad DOS message		 ;AN000;
-;	call	print_STDERR		; display error message 	 ;AN000;
+;	mov	cx,len_bad_DOS_msg	; length of string
+;	lea	dx,bad_DOS_msg		; bad DOS message
+;	call	print_STDERR		; display error message
 
 	call	ctrl_break_rest
 	mov	al,0ffh 		; bad DOS version		  ; @@05
@@ -2748,14 +2616,13 @@ check_assign:
 ;	ASSIGN has been loaded before APPEND, bad news!
 
 assign_there:
-	call	sysloadmsg						 ;AN000;
-									 ;AN000;
-	mov	ax,6			; message number		 ;AN000;
-	mov	bx,STDERR		; handle			 ;AN000;
-	xor	cx,cx			; sub count			 ;AN000;
-	xor	dl,dl			; no input			 ;AN000;
-	mov	dh,-1			; message class 		 ;AN000;
-	call	sysdispmsg						 ;AN000;
+	call	sysloadmsg
+	mov	ax,6			; message number
+	mov	bx,STDERR		; handle
+	xor	cx,cx			; sub count
+	xor	dl,dl			; no input
+	mov	dh,-1			; message class
+	call	sysdispmsg
 
 ;	mov	cx,len_append_assign_msg; length of string
 ;	lea	dx,append_assign_msg
@@ -2776,14 +2643,13 @@ TopView_there:								  ; @@01
 ;	mov	cx,len_append_TV_msg	; length of string		  ; @@01
 ;	lea	dx,append_TV_msg					  ; @@01
 ;	call	print_STDERR		; display error message 	  ; @@01
-	call	sysloadmsg						 ;AN000;
-									 ;AN000;
-	mov	ax,7			; message number		 ;AN000;
-	mov	bx,STDERR		; handle			 ;AN000;
-	xor	cx,cx			; sub count			 ;AN000;
-	xor	dl,dl			; no input			 ;AN000;
-	mov	dh,-1			; message class 		 ;AN000;
-	call	sysdispmsg						 ;AN000;
+	call	sysloadmsg
+	mov	ax,7			; message number
+	mov	bx,STDERR		; handle
+	xor	cx,cx			; sub count
+	xor	dl,dl			; no input
+	mov	dh,-1			; message class
+	call	sysdispmsg
 
 									  ; @@01
 conflict_exit:								  ; @@01
@@ -2838,7 +2704,7 @@ process_argsx:				; process all arguments
 	xor	cx,cx			; ordinal value, must start as 0
 	xor	dx,dx			; must be 0
 
-	call	Scan_For_Equal		; yes - let's see if we have "=" symbol ;an008; dms;
+	call	Scan_For_Equal		; yes - let's see if we have "=" symbol
 					; parse past it if we do
 
 get_pars_info:
@@ -2957,15 +2823,15 @@ done_copy_dirs:
 end_of_line_reached:
 	mov	old_syntax,0		; process old format operands
 
-	cmp	cs:initial_pass,-1	; is this the first APPEND			 ;AN006;
-	je	first_one		; yes, clear flag and exit			 ;AN006;
+	cmp	cs:initial_pass,-1	; is this the first APPEND
+	je	first_one		; yes, clear flag and exit
 
 	cmp	cs:parse_flag,0 	; if this flag is off, means null command line
 					; was nothing on the command line
 	je	display_dirs		; go display the dirs
 
-first_one:										 ;AN006;
-	mov	cs:initial_pass,0	; clear first pass flag 			 ;AN006;
+first_one:
+	mov	cs:initial_pass,0	; clear first pass flag
 
 done_for_now:
 normal_exit:
@@ -2975,10 +2841,10 @@ normal_exit:
 
 
 parse_error:
-	push	ax			;save parser error code 		;an010;bgb
-	call	sysloadmsg						 ;AN000;
-	pop	ax			;restore parser error coed		;an010;bgb
-	call	do_parse_err							;an010;bgb
+	push	ax			;save parser error code
+	call	sysloadmsg
+	pop	ax			;restore parser error coed
+	call	do_parse_err
 	jmp	bad_parmx		; display message and get out
 
 ;-------------------------------------------------------------------
@@ -3080,45 +2946,43 @@ parse_error:
 bad_path:				; bad paath operand
 ;	mov	cx,len_path_error_msg	; length of string
 ;	lea	dx,path_error_msg
-	call	sysloadmsg						 ;AN000;
-									 ;AN000;
-	mov	ax,3			; message number		 ;AN000;
-	mov	bx,STDERR		; handle			 ;AN000;
-	xor	cx,cx			; sub count			 ;AN000;
-	xor	dl,dl			; no input			 ;AN000;
-	mov	dh,-1			; message class 		 ;AN000;
-;gga	call	sysdispmsg						 ;AN000;
+	call	sysloadmsg
+	mov	ax,3			; message number
+	mov	bx,STDERR		; handle
+	xor	cx,cx			; sub count
+	xor	dl,dl			; no input
+	mov	dh,-1			; message class
+;gga	call	sysdispmsg
 
 	jmp	short bad_parmx
 
 bad_path_parm:				; bad parameter 		  ; @@05
 ;	mov	cx,len_path_parm_error_msg   ; length of string 	  ; @@05
 ;	lea	dx,path_parm_error_msg					  ; @@05
-	call	sysloadmsg						 ;AN000;
-	mov	ax,3			; message number		 ;AN000;
-	mov	bx,STDERR		; standard error		 ;AN000;
-	xor	cx,cx			; sub count			 ;AN000;
-	xor	dl,dl			; no input			 ;AN000;
-	mov	dh,-1			; message class 		 ;AN000;
+	call	sysloadmsg
+	mov	ax,3			; message number
+	mov	bx,STDERR		; standard error
+	xor	cx,cx			; sub count
+	xor	dl,dl			; no input
+	mov	dh,-1			; message class
 	jmp	short bad_parmx 					  ; @@05
 bad_parm:				; bad parameter
 ;	mov	cx,len_parm_error_msg	; length of string
 ;	lea	dx,parm_error_msg
-	call	sysloadmsg						 ;AN000;
-									 ;AN000;
-	mov	ax,3			; message number		 ;AN000;
-	mov	bx,STDERR		; standard error		 ;AN000;
-	xor	cx,cx			; sub count			 ;AN000;
-	xor	dl,dl			; no input			 ;AN000;
-	mov	dh,-1			; message class 		 ;AN000;
+	call	sysloadmsg
+	mov	ax,3			; message number
+	mov	bx,STDERR		; standard error
+	xor	cx,cx			; sub count
+	xor	dl,dl			; no input
+	mov	dh,-1			; message class
 
 bad_parmx:				; bad parameter
 	push	ds
 	push	cs
 	pop	ds
 ;	call	print_STDERR		; display error message
-	lea	si,inv_parm		; point to msg parm			;an010;bgb
-	call	sysdispmsg						 ;AN000;
+	lea	si,inv_parm		; point to msg parm
+	call	sysdispmsg
 	pop	ds
 	call	ctrl_break_rest
 	mov	al,1							  ; @@05
@@ -3193,18 +3057,17 @@ no_dirs_appended:
 	push	cs
 	pop	ds
 
-	call	sysloadmsg						 ;AN000;
-									 ;AN000;
-	mov	ax,5			; message number		 ;AN000;
-	mov	bx,STDERR		; handle			 ;AN000;
-	xor	cx,cx			; sub count			 ;AN000;
-	xor	dl,dl			; no input			 ;AN000;
-	mov	dh,-1			; message class 		 ;AN000;
-	call	sysdispmsg						 ;AN000;
+	call	sysloadmsg
+	mov	ax,5			; message number
+	mov	bx,STDERR		; handle
+	xor	cx,cx			; sub count
+	xor	dl,dl			; no input
+	mov	dh,-1			; message class
+	call	sysdispmsg
 
-;	lea	dx,no_append_msg	; no dirs message		 ;AN000;
-;	mov	cx,len_no_append_msg	; length of string		 ;AN000;
-;	call	print_STDOUT						 ;AN000;
+;	lea	dx,no_append_msg	; no dirs message
+;	mov	cx,len_no_append_msg	; length of string
+;	call	print_STDOUT
 	pop	ds
 	jmp	exit_append2		; APPEND = = fix		    ;GGA
 
@@ -3312,7 +3175,7 @@ set_vectors:				; set append hooks		  ; @@05
 terminate:				; terminate to dos or return	  ; @@05
 	cmp	res_append,0						  ; @@05
 	jne	is_res							  ; @@05
-	call	Release_Environment	; release environmental vector		;ac009; dms;
+	call	Release_Environment	; release environmental vector
 	mov	ah,term_proc		; return to DOS on first time	  ; @@05
 	call	int_21							  ; @@05
 is_res: 								  ; @@05
@@ -3332,23 +3195,23 @@ print_STDERR:
 	call	int_21
 	ret
 
-Release_Environment:								;an007; dms;
+Release_Environment:
 
-	push	ax			;save regs				;an007; dms;
-	push	bx			;					;an007; dms;
-	push	es			;					;an007; dms;
-	mov	ah,Get_PSP		; get the PSP segment			;an007; dms;
-	call	int_21			; invoke INT 21h			;an007; dms;
-	mov	es,bx			; BX contains PSP segment - put in ES	;an007; dms;
-	mov	bx,word ptr es:[PSP_Env]; get segment of environmental vector	;an007; dms;
-	mov	es,bx			; place segment in ES for Free Memory	;an007; dms;
-	mov	ah,Free_Alloc_Mem	; Free Allocated Memory 		;an007; dms;
-	int	21h			; invoke INT 21h			;an007; dms;
-	pop	es			; restore regs				;an007; dms;
-	pop	bx			;					;an007; dms;
-	pop	ax			;					;an007; dms;
+	push	ax			;save regs
+	push	bx			;
+	push	es			;
+	mov	ah,Get_PSP		; get the PSP segment
+	call	int_21			; invoke INT 21h
+	mov	es,bx			; BX contains PSP segment - put in ES
+	mov	bx,word ptr es:[PSP_Env]; get segment of environmental vector
+	mov	es,bx			; place segment in ES for Free Memory
+	mov	ah,Free_Alloc_Mem	; Free Allocated Memory
+	int	21h			; invoke INT 21h
+	pop	es			; restore regs
+	pop	bx			;
+	pop	ax			;
 
-	ret				; return to caller			;an007; dms;
+	ret				; return to caller
 
 ;=========================================================================
 ; Scan_For_Equal	: This routine scans the command line from the
@@ -3372,99 +3235,94 @@ Release_Environment:								;an007; dms;
 
 Scan_For_Equal:
 
-	push	ax				; save regs			;an008; dms;
-	push	cx				;				;an008; dms;
+	push	ax				; save regs
+	push	cx				;
 
-	xor	cx,cx				; clear cx			;an008; dms;
-	mov	cl,byte ptr ds:[80h]		; get length of command line	;an008; dms;
+	xor	cx,cx				; clear cx
+	mov	cl,byte ptr ds:[80h]		; get length of command line
 
 Scan_For_Equal_Loop:
 
-	cmp	cx,0				; at end?			;an008; dms;
-	jbe	Scan_For_Equal_Exit		; exit loop			;an008; dms;
-	mov	al,byte ptr ds:[si]		; get 1st. character		;an008; dms;
-	call	Chk_DBCS			; DBCS lead byte?		;an008; dms;
-	jnc	Scan_For_Equal_No_DBCS		; no				;an008; dms;
-		cmp	byte ptr ds:[si],81h	; blank lead byte		;an008; dms;
-		jne	Scan_For_Equal_Exit	; exit with adjusted SI 	;an008; dms;
-		cmp	byte ptr ds:[si+1],40h	; DBCS blank			;an008; dms;
-		jne	Scan_For_Equal_Exit	; exit with adjusted SI 	;an008; dms;
+	cmp	cx,0				; at end?
+	jbe	Scan_For_Equal_Exit		; exit loop
+	mov	al,byte ptr ds:[si]		; get 1st. character
+	call	Chk_DBCS			; DBCS lead byte?
+	jnc	Scan_For_Equal_No_DBCS		; no
+		cmp	byte ptr ds:[si],81h	; blank lead byte
+		jne	Scan_For_Equal_Exit	; exit with adjusted SI
+		cmp	byte ptr ds:[si+1],40h	; DBCS blank
+		jne	Scan_For_Equal_Exit	; exit with adjusted SI
 
-		add	si,2			; yes - DBCS lead byte		;an008; dms;
-		sub	dx,2			; decrease counter		;an008; dms;
+		add	si,2			; yes - DBCS lead byte
+		sub	dx,2			; decrease counter
 		jmp	Scan_For_Equal_Loop
 
 Scan_For_Equal_No_DBCS:
 
-	cmp	al,"="				; = found?			;an008; dms;
-	je	Scan_For_Equal_Next		; next character		;an008; dms;
-	cmp	al,20h				; space?			;an008; dms;
-	je	Scan_For_Equal_Next		; next character		;an008; dms;
-	cmp	al,09h				; tab?				;an008; dms;
-	je	Scan_For_Equal_Next		; next character		;an008; dms;
-	jmp	Scan_For_Equal_Exit		; exit with adjusted SI 	;an008; dms;
+	cmp	al,"="				; = found?
+	je	Scan_For_Equal_Next		; next character
+	cmp	al,20h				; space?
+	je	Scan_For_Equal_Next		; next character
+	cmp	al,09h				; tab?
+	je	Scan_For_Equal_Next		; next character
+	jmp	Scan_For_Equal_Exit		; exit with adjusted SI
 
 Scan_For_Equal_Next:
 
-	inc	si				; adjust ptr			;an008; dms;
-	dec	cx				; decrease counter		;an008; dms;
-	jmp	Scan_For_Equal_Loop		; continue loop 		;an008; dms;
+	inc	si				; adjust ptr
+	dec	cx				; decrease counter
+	jmp	Scan_For_Equal_Loop		; continue loop
 
 Scan_For_Equal_Exit:
 
-	pop	cx				;				;an008; dms;
-	pop	ax				;				;an008; dms;
+	pop	cx				;
+	pop	ax				;
 
-	ret					; return to caller		;an008; dms;
+	ret					; return to caller
 
 
 
-;=========================================================================	;an010;bgb
-; do_parse_err		: This routine sets up for the display of a parse	;an010;bgb
-;			  error, and displays the offending parameter.		;an010;bgb
-;										;an010;bgb
-;	Inputs	: DS:SI - points just past offending parm in command line	;an010;bgb
-;										;an010;bgb
-;	Outputs : si_off- parm for msg ret.					;an010;bgb
-;		  si_seg- parm for msg ret.					;an010;bgb
-;		  command line - hex zero at end of offending parm		;an010;bgb
-;										;an010;bgb
-;	Date	: 3/29/88							;an010;bgb
-;	Version : DOS 4.0 (wow!)						;an010;bgb
-;=========================================================================	;an010;bgb
-do_parse_err	PROC								;an010;bgb
-;;;;;;;;mov	ax,3 ;removed- parser handles this				;an010;bgb
-	mov	bx,STDERR		; handle				;an010;bgb
-;;;;;;;;xor	cx,cx			; sub count				;an010;bgb
-	mov	cx,1			;display invalid parm			;an010;bgb
-	xor	dl,dl			; no input				;an010;bgb
-	mov	dh,02			; message class of parse error		;an010;bgb
-;;;;;;;;mov	cs:si_off,81h		   ;initialize pointer			;an010;bgb
-										;an010;bgb
-	   dec	  si			;point to last byte of invalid parm	;an010;bgb
-public decsi									;an010;bgb
-decsi:	   cmp	   byte ptr [si],' '	;are we pointing to a space?		;an010;bgb
-;	   $IF	   E,OR 		;if so, we dont want to do that 	;an010;bgb
+;=========================================================================
+; do_parse_err		: This routine sets up for the display of a parse
+;			  error, and displays the offending parameter.
+;	Inputs	: DS:SI - points just past offending parm in command line
+;	Outputs : si_off- parm for msg ret.
+;		  si_seg- parm for msg ret.
+;		  command line - hex zero at end of offending parm
+;	Date	: 3/29/88
+;	Version : DOS 4.0 (wow!)
+;=========================================================================
+do_parse_err	PROC
+;;;;;;;;mov	ax,3 ;removed- parser handles this
+	mov	bx,STDERR		; handle
+;;;;;;;;xor	cx,cx			; sub count
+	mov	cx,1			;display invalid parm
+	xor	dl,dl			; no input
+	mov	dh,02			; message class of parse error
+;;;;;;;;mov	cs:si_off,81h		   ;initialize pointer
+	   dec	  si			;point to last byte of invalid parm
+public decsi
+decsi:	   cmp	   byte ptr [si],' '	;are we pointing to a space?
+;	   $IF	   E,OR 		;if so, we dont want to do that
 	   JE $$LL1
-	   cmp	   byte ptr [si],0dh	;are we pointing to CR? 		;an010;bgb
-;	   $IF	   E			;if so, we dont want to do that 	;an010;bgb
+	   cmp	   byte ptr [si],0dh	;are we pointing to CR?
+;	   $IF	   E			;if so, we dont want to do that
 	   JNE $$IF1
 $$LL1:
-	       dec   si 		;find the last byte of parm		;an010;bgb
-	       jmp   decsi							;an010;bgb
-;	   $ENDIF								;an010;bgb
+	       dec   si 		;find the last byte of parm
+	       jmp   decsi
+;	   $ENDIF
 $$IF1:
-	   mov	   byte ptr [si+1],00	  ;zero terminate display string	;an010;bgb
-nextsi: 									;an010;bgb
-public nextsi									;an010;bgb
-	   dec	   si			;look at previous char			;an010;bgb
-	   cmp	   byte ptr [si],' '	;find parm separator			;an010;bgb
-	   jnz	   nextsi		;loop until begin of parm found 	;an010;bgb
-										;an010;bgb
-	mov	cs:si_off,si		;mov si into display parms		;an010;bgb
-	mov	cs:si_seg,ds		   ;initialize pointer			;an010;bgb
-	ret					; return to caller		;an010;bgb
-do_parse_err	ENDP								;an010;bgb
+	   mov	   byte ptr [si+1],00	  ;zero terminate display string
+nextsi:
+public nextsi
+	   dec	   si			;look at previous char
+	   cmp	   byte ptr [si],' '	;find parm separator
+	   jnz	   nextsi		;loop until begin of parm found
+	mov	cs:si_off,si		;mov si into display parms
+	mov	cs:si_seg,ds		   ;initialize pointer
+	ret					; return to caller
+do_parse_err	ENDP
 
 
 ;-------------------------------------------------------------------
@@ -3474,7 +3332,7 @@ do_parse_err	ENDP								;an010;bgb
 MSG_SERVICES <LOADmsg>
 MSG_SERVICES <APPEND.CLB,APPEND.CL2,APPEND.CTL>
 
-end_address:				; this is the end of the TSR stuff		 ;AN004;
+end_address:				; this is the end of the TSR stuff
 
 include parse.asm			; include the parser code
 include msgdcl.inc

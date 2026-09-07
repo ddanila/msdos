@@ -15,9 +15,9 @@ title	       C to Message Retriever
 ;
 ;-------------------------------------------------------------------
 
-	INCLUDE SYSMSG.INC		;PERMIT SYSTEM MESSAGE HANDLER DEFINITION ;AN000;
+	INCLUDE SYSMSG.INC		;PERMIT SYSTEM MESSAGE HANDLER DEFINITION
 
-	MSG_UTILNAME <MEM>		;IDENTIFY THE COMPONENT 		;AN000;
+	MSG_UTILNAME <MEM>		;IDENTIFY THE COMPONENT
 
 ;-------------------------------------------------------------------
 ;-------------------------------------------------------------------
@@ -44,7 +44,7 @@ _DATA	SEGMENT
 	MSG_SERVICES <MSGDATA>
 	MSG_SERVICES <LOADmsg,FARmsg>
 	MSG_SERVICES <DISPLAYmsg,GETmsg,CHARmsg,NUMmsg>
-	MSG_SERVICES <MEM.CLA,MEM.CLB,MEM.CL1,MEM.CL2,MEM.CTL>			     ;AN000;
+	MSG_SERVICES <MEM.CLA,MEM.CLB,MEM.CL1,MEM.CL2,MEM.CTL>
 
 
 data_sysloadmsg proc far

@@ -227,15 +227,15 @@
 
 Parse_Sublist	label	word
 
-		db	Sublist_Length	;sublist length 			;an002; dms;
-		db	Reserved	;reserved for future growth		;an002; dms;
-Parse_Sub_Off	dw	?		;offset of replaceable parm		;an002; dms;
-Parse_Sub_Seg	dw	?		;segment of replaceable parm		;an002; dms;
-		db	0		;replaceable parm 0			;an002; dms;
-		db	Left_Align+Char_Field_ASCIIZ ;				;an002; dms;
-		db	40		;max width				;an002; dms;
-		db	1		;min width				;an002; dms;
-		db	20h		;blank fill				;an002; dms;
+		db	Sublist_Length	;sublist length
+		db	Reserved	;reserved for future growth
+Parse_Sub_Off	dw	?		;offset of replaceable parm
+Parse_Sub_Seg	dw	?		;segment of replaceable parm
+		db	0		;replaceable parm 0
+		db	Left_Align+Char_Field_ASCIIZ ;
+		db	40		;max width
+		db	1		;min width
+		db	20h		;blank fill
 
 
 

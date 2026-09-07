@@ -1,4 +1,3 @@
-/*static char *SCCSID = "@(#)doscalls.hwc	10.3 87/05/27";*/
 struct DateTime {
 	unsigned char hour;
 	unsigned char minutes;

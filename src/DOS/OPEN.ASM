@@ -1,4 +1,3 @@
-;	SCCSID = @(#)open.asm	1.1 85/04/10
 TITLE	DOS_OPEN - Internal OPEN call for MS-DOS
 NAME	DOS_OPEN
 ; Low level routines for openning a file from a file spec.
@@ -10,15 +9,6 @@ NAME	DOS_OPEN
 ;   SET_SFT_MODE
 ;   Code_Page_Mismatched_Error		   ; DOS 4.00
 ;
-;   Revision history:
-;
-;	Created: ARR 30 March 1983
-;	A000	version 4.00   Jan. 1988
-;
-
-;
-; get the appropriate segment definitions
-;
 .xlist
 include dosseg.asm
 
@@ -29,8 +19,8 @@ CODE	SEGMENT BYTE PUBLIC  'CODE'
 include dossym.inc
 include devsym.inc
 include fastopen.inc
-include fastxxxx.inc		       ;AN000;
-include ifssym.inc		       ;AN000;
+include fastxxxx.inc
+include ifssym.inc
 .cref
 .list
 
@@ -127,17 +117,17 @@ Break	<DOS_Open - internal file access>
 	POP	ES
 ;Extended open hooks
 
-	TEST	[EXTOPEN_ON],ext_open_on    ;FT. from extnded open		;AN000;
-	JZ	NOEXTOP 		    ;FT. no, do normal			;AN000;
-IFS_extopen:									;AN000;
-	MOV	AL,byte ptr [SAVE_CX]	    ;FT. al= create attribute		;AN000;
-	PUSH	AX			    ;FT. pass create attr to IFS	;AN000;
-	MOV	AX,(multNET SHL 8) OR 46    ;FT. issue extended open verb	;AN000;
-	INT	2FH			    ;FT.				;AN000;
-	POP	BX			    ;FT. trash bx			;AN000;
-	MOV	[EXTOPEN_ON],0		    ;FT.				;AN000;
-	JNC	update_size		    ;IFS. file may be opened		;AN000;
-	return				    ;FT.				;AN000;
+	TEST	[EXTOPEN_ON],ext_open_on    ;FT. from extnded open
+	JZ	NOEXTOP 		    ;FT. no, do normal
+IFS_extopen:
+	MOV	AL,byte ptr [SAVE_CX]	    ;FT. al= create attribute
+	PUSH	AX			    ;FT. pass create attr to IFS
+	MOV	AX,(multNET SHL 8) OR 46    ;FT. issue extended open verb
+	INT	2FH			    ;FT.
+	POP	BX			    ;FT. trash bx
+	MOV	[EXTOPEN_ON],0		    ;FT.
+	JNC	update_size		    ;IFS. file may be opened
+	return				    ;FT.
 NOEXTOP:
 ;Extended open hooks
 
@@ -156,12 +146,12 @@ TEST_RE_NET:
 	TEST	ES:[SI.curdir_flags],curdir_isnet
 	POP	ES
 	JZ	LOCAL_OPEN
-;	CALL	IFS_SHARE_CHECK 	;IFS. check IFS share,may create share	;AN000;
-;	JC	nomore			;IFS. share violation			;AN000;
+;	CALL	IFS_SHARE_CHECK 	;IFS. check IFS share,may create share
+;	JC	nomore			;IFS. share violation
 ;Extended open hooks
 
-	TEST	[EXTOPEN_ON],ext_open_on    ;FT. from extnded open		;AN000;
-	JNZ	IFS_extopen		    ;FT. isuue extended open		;AN000;
+	TEST	[EXTOPEN_ON],ext_open_on    ;FT. from extnded open
+	JNZ	IFS_extopen		    ;FT. isuue extended open
 ;Extended open hooks
 
 IF (NOT Installed) AND 0FFFFh
@@ -171,13 +161,13 @@ ELSE
 	MOV	AX,(multNET SHL 8) OR 22
 	INT	2FH
 	POP	BX			; clean stack
-;	JC	nomore			;IFS. error				;AN000;
-update_size:									;AN000;
-;	CALL	OWN_SHARE		;IFS. IFS owns share ?			;AN000;
-;	JZ	nomore2 		;IFS. yes				;AN000;
-;	MOV	AX,3			;IFS. update file size for all SFT	;AN000;
-;	LES	DI,ThisSFT		;IFS.					;AN000;
-;	call	JShare + 14 * 4 	;IFS. call ShSu 			;AN000;
+;	JC	nomore			;IFS. error
+update_size:
+;	CALL	OWN_SHARE		;IFS. IFS owns share ?
+;	JZ	nomore2 		;IFS. yes
+;	MOV	AX,3			;IFS. update file size for all SFT
+;	LES	DI,ThisSFT		;IFS.
+;	call	JShare + 14 * 4 	;IFS. call ShSu
 nomore2:
 ;	CLC
 nomore:
@@ -266,23 +256,23 @@ FillSFT:
 	RestoreReg  <SI,DS>
 open_ok:
 ;;; File Tagging DOS 4.00
-;	OR	AH,AH		       ;FT. device ?				;AN000;
-;	JS	NORM0		       ;FT. yes, don't do code page matching    ;AN000;
-;	CMP	[CPSWFLAG],0	       ;FT. code page matching on		;AN000;
-;	JZ	NORM0		       ;FT. no					;AN000;
-;	CMP	ES:[BX].dir_CODEPG,0   ;FT. code page 0 			;AN000;
-;	JZ	NORM0		       ;FT. yes do nothing			;AN000;
-;	PUSH	AX		       ;FT.					;AN000;
-;	invoke	Get_Global_CdPg        ;FT. get global code page		;AN000;
-;	CMP	ES:[BX].dir_CODEPG,AX  ;FT. equal to global code page		;AN000;
-;	JZ	NORM1		       ;FT. yes 				;AN000;
-;	call	Code_Page_Mismatched_Error ;FT. 				;AN000;
-;	CMP	AL,0		       ;FT. ignore ?				;AN000;
-;	JZ	NORM1		       ;FT.					;AN000;
-;	POP	AX		       ;FT.					;AN000;
-;	JMP	open_bad_access        ;FT. set carry and return		;AN000;
-NORM1:										;AN000;
-;	POP	AX		       ;FT.					;AN000;
+;	OR	AH,AH		       ;FT. device ?
+;	JS	NORM0		       ;FT. yes, don't do code page matching
+;	CMP	[CPSWFLAG],0	       ;FT. code page matching on
+;	JZ	NORM0		       ;FT. no
+;	CMP	ES:[BX].dir_CODEPG,0   ;FT. code page 0
+;	JZ	NORM0		       ;FT. yes do nothing
+;	PUSH	AX		       ;FT.
+;	invoke	Get_Global_CdPg        ;FT. get global code page
+;	CMP	ES:[BX].dir_CODEPG,AX  ;FT. equal to global code page
+;	JZ	NORM1		       ;FT. yes
+;	call	Code_Page_Mismatched_Error ;FT.
+;	CMP	AL,0		       ;FT. ignore ?
+;	JZ	NORM1		       ;FT.
+;	POP	AX		       ;FT.
+;	JMP	open_bad_access        ;FT. set carry and return
+NORM1:
+;	POP	AX		       ;FT.
 NORM0:
 
 ;;; File Tagging DOS 4.00
@@ -303,13 +293,13 @@ else
 	Call	ShSU
 endif
 ;; DOS 4.00 10/27/86
-	LES	DI,ThisSFT			   ; if this is a newly 	;AN000;
-	CMP	ES:[DI.sf_firclus],0		   ; created file then		;AN000;
-	JZ	no_fastseek			   ; do nothing 		;AN000;
-	MOV	CX,ES:[DI.sf_firclus]		   ; first cluster #		;AN000;
-	LES	DI,ES:[DI.sf_devptr]		   ; pointer to DPB		;AN000;
-	MOV	DL,ES:[DI.dpb_drive]		   ; drive #			;AN000;
-	invoke	FastSeek_Open			   ; call fastseek		;AN000;
+	LES	DI,ThisSFT			   ; if this is a newly
+	CMP	ES:[DI.sf_firclus],0		   ; created file then
+	JZ	no_fastseek			   ; do nothing
+	MOV	CX,ES:[DI.sf_firclus]		   ; first cluster #
+	LES	DI,ES:[DI.sf_devptr]		   ; pointer to DPB
+	MOV	DL,ES:[DI.dpb_drive]		   ; drive #
+	invoke	FastSeek_Open			   ; call fastseek
 no_fastseek:
 
 ;; DOS 4.00 10/27/86
@@ -403,19 +393,19 @@ EndProc DO_SHARE_CHECK
 ; Output: Zero set, use IFS SHARE
 ;	  otherwise, use DOS SHARE
 
-procedure OWN_SHARE,NEAR		;AN000;
-	DOSAssume   CS,<DS>,"OWN_SHARE" ;AN000;
-	ASSUME	ES:NOTHING		;AN000;
+procedure OWN_SHARE,NEAR
+	DOSAssume   CS,<DS>,"OWN_SHARE"
+	ASSUME	ES:NOTHING
 
-;	PUSH	DS			;IFS. save reg				;AN000;
-;	PUSH	SI			;IFS. save reg				;AN000;
-;	LDS	SI,ES:[DI.sf_IFS_HDR]	;IFS. ds:si-> IFS header		;AN000;
-;	TEST	[SI.IFS_ATTRIBUTE],IFSUSESHARE	;IFS. save reg			;AN000;
-;	POP	SI			;IFS. retore reg			;AN000;
-;	POP	DS			;IFS. restore reg			;AN000;
-	return				;IFS. return				;AN000;
+;	PUSH	DS			;IFS. save reg
+;	PUSH	SI			;IFS. save reg
+;	LDS	SI,ES:[DI.sf_IFS_HDR]	;IFS. ds:si-> IFS header
+;	TEST	[SI.IFS_ATTRIBUTE],IFSUSESHARE	;IFS. save reg
+;	POP	SI			;IFS. retore reg
+;	POP	DS			;IFS. restore reg
+	return				;IFS. return
 
-EndProc OWN_SHARE			;AN000;
+EndProc OWN_SHARE
 
 
 ; Input: THISCDS -> CDS
@@ -423,65 +413,65 @@ EndProc OWN_SHARE			;AN000;
 ; Output: Zero set, use IFS SHARE
 ;	  otherwise, use DOS SHARE
 
-procedure OWN_SHARE2,NEAR		  ;AN000;
-	DOSAssume   CS,<DS>,"OWN_SHARE2"  ;AN000;
-	ASSUME	ES:NOTHING		  ;AN000;
+procedure OWN_SHARE2,NEAR
+	DOSAssume   CS,<DS>,"OWN_SHARE2"
+	ASSUME	ES:NOTHING
 
-;	CMP	WORD PTR [THISCDS],-1	;IFS. UNC ?				;AN000;
-;	JZ	ifs_hasit		;IFS. yes				;AN000;
-;	PUSH	DS			;IFS. save reg				;AN000;
-;	PUSH	SI			;IFS. save reg				;AN000;
-;	LDS	SI,[THISCDS]		;IFS. DS:SI -> ThisCDS			;AN000;
-;	LDS	SI,[SI.curdir_IFS_HDR]	;IFS. ds:si-> IFS header		;AN000;
-;	TEST	[SI.IFS_ATTRIBUTE],IFSUSESHARE	;IFS.				;AN000;
-;	POP	SI			;IFS. retore reg			;AN000;
-;	POP	DS			;IFS. restore reg			;AN000;
-ifs_hasit:				;AN000;
-	return				;IFS. return				;AN000;
+;	CMP	WORD PTR [THISCDS],-1	;IFS. UNC ?
+;	JZ	ifs_hasit		;IFS. yes
+;	PUSH	DS			;IFS. save reg
+;	PUSH	SI			;IFS. save reg
+;	LDS	SI,[THISCDS]		;IFS. DS:SI -> ThisCDS
+;	LDS	SI,[SI.curdir_IFS_HDR]	;IFS. ds:si-> IFS header
+;	TEST	[SI.IFS_ATTRIBUTE],IFSUSESHARE	;IFS.
+;	POP	SI			;IFS. retore reg
+;	POP	DS			;IFS. restore reg
+ifs_hasit:
+	return				;IFS. return
 
-EndProc OWN_SHARE2			;AN000;
+EndProc OWN_SHARE2
 
 
 ; Input: ES:DI -> SFT
 ; Functions: set THISDPB
 ; Output: none
 
-procedure SET_THISDPB,NEAR		       ;AN000;
-	DOSAssume   CS,<DS>,"SET_THISDPB"      ;AN000;
-	ASSUME	ES:NOTHING		       ;AN000;
+procedure SET_THISDPB,NEAR
+	DOSAssume   CS,<DS>,"SET_THISDPB"
+	ASSUME	ES:NOTHING
 
-;	PUSH	DS			;IFS. save reg				;AN000;
-;	PUSH	SI			;IFS. save reg				;AN000;
-;	LDS	SI,[THISCDS]		;IFS. ds:si-> CDS			;AN000;
-;	LDS	SI,[SI.CURDIR_DEVPTR]	;IFS. ds:si-> DPB			;AN000;
-;	MOV	WORD PTR [THISDPB],SI	;IFS. set THISDPB			;AN000;
-;	MOV	WORD PTR [THISDPB+2],DS ;IFS.					;AN000;
-;	POP	SI			;IFS. retore reg			;AN000;
-;	POP	DS			;IFS. restore reg			;AN000;
-	return				;IFS. return				;AN000;
+;	PUSH	DS			;IFS. save reg
+;	PUSH	SI			;IFS. save reg
+;	LDS	SI,[THISCDS]		;IFS. ds:si-> CDS
+;	LDS	SI,[SI.CURDIR_DEVPTR]	;IFS. ds:si-> DPB
+;	MOV	WORD PTR [THISDPB],SI	;IFS. set THISDPB
+;	MOV	WORD PTR [THISDPB+2],DS ;IFS.
+;	POP	SI			;IFS. retore reg
+;	POP	DS			;IFS. restore reg
+	return				;IFS. return
 
-EndProc SET_THISDPB			;AN000;
+EndProc SET_THISDPB
 
 
 ; Input: ES:DI -> SFT
 ; Functions: check IFS share
 ; Output: none
 
-procedure IFS_SHARE_CHECK,NEAR			   ;AN000;
-	DOSAssume   CS,<DS>,"IFS_SHARE_CHECK"      ;AN000;
-	ASSUME	ES:NOTHING			   ;AN000;
+procedure IFS_SHARE_CHECK,NEAR
+	DOSAssume   CS,<DS>,"IFS_SHARE_CHECK"
+	ASSUME	ES:NOTHING
 
 
-;	CALL	OWN_SHARE		;IFS. IFS owns share			;AN000;
-;	JZ	IFSSHARE		;IFS. yes				;AN000;
-;	PUSH	AX			;IFS. save mode 			;AN000;
-;	CALL	SET_THISDPB		;IFS. set THISDPB for SHARE_VIOLATION	;AN000;
-;	CALL	DO_SHARE_CHECK		;IFS. check share			;AN000;
-;	POP	AX			;IFS. restore mode and share ok 	;AN000;
-IFSSHARE:				;AN000;
-	return				;IFS. return				;AN000;
+;	CALL	OWN_SHARE		;IFS. IFS owns share
+;	JZ	IFSSHARE		;IFS. yes
+;	PUSH	AX			;IFS. save mode
+;	CALL	SET_THISDPB		;IFS. set THISDPB for SHARE_VIOLATION
+;	CALL	DO_SHARE_CHECK		;IFS. check share
+;	POP	AX			;IFS. restore mode and share ok
+IFSSHARE:
+	return				;IFS. return
 
-EndProc IFS_SHARE_CHECK 		;AN000;
+EndProc IFS_SHARE_CHECK
 
 ; Inputs:
 ;	AX is mode
@@ -547,24 +537,24 @@ EndProc Check_Access_AX
 ; OutPut: AL =0    ignore
 ;	     =3    fail
 
-procedure Code_Page_Mismatched_Error,NEAR		 ;AN000;
-	DOSAssume   CS,<DS>,"Code_Page_Mismatched_Error" ;AN000;
-	ASSUME	ES:NOTHING				 ;AN000;
+procedure Code_Page_Mismatched_Error,NEAR
+	DOSAssume   CS,<DS>,"Code_Page_Mismatched_Error"
+	ASSUME	ES:NOTHING
 
-;	PUSH	DS		       ;FT.					;AN000;
-;	Context DS		       ;FT. ds=cs				;AN000;
-;	MOV	AH,0A9H 	       ;FT. fail,ignore,device,write		;AN000;
-;	MOV	DI,error_I24_gen_failure		 ;FT. set error 	;AN000;
-;	MOV	[EXTERR],error_Code_Page_Mismatched	 ;FT.			;AN000;
-;	MOV	[EXTERR_CLASS],errCLASS_NotFnd		 ;FT.			;AN000;
-;	MOV	[EXTERR_ACTION],errACT_Abort		 ;FT.			;AN000;
-;	MOV	[EXTERR_LOCUS],errLOC_Unk		 ;FT.			;AN000;
-;	MOV	word ptr [EXITHOLD + 2],ES		 ;FT. save es:bp	;AN000;
-;	MOV	word ptr [EXITHOLD],BP			 ;FT.			;AN000;
-;	invoke	NET_I24_ENTRY				 ;FT. issue int 24H	;AN000;
-;	POP	DS					 ;FT.			;AN000;
-;	return						 ;FT.			;AN000;
+;	PUSH	DS		       ;FT.
+;	Context DS		       ;FT. ds=cs
+;	MOV	AH,0A9H 	       ;FT. fail,ignore,device,write
+;	MOV	DI,error_I24_gen_failure		 ;FT. set error
+;	MOV	[EXTERR],error_Code_Page_Mismatched	 ;FT.
+;	MOV	[EXTERR_CLASS],errCLASS_NotFnd		 ;FT.
+;	MOV	[EXTERR_ACTION],errACT_Abort		 ;FT.
+;	MOV	[EXTERR_LOCUS],errLOC_Unk		 ;FT.
+;	MOV	word ptr [EXITHOLD + 2],ES		 ;FT. save es:bp
+;	MOV	word ptr [EXITHOLD],BP			 ;FT.
+;	invoke	NET_I24_ENTRY				 ;FT. issue int 24H
+;	POP	DS					 ;FT.
+;	return						 ;FT.
 
-EndProc Code_Page_Mismatched_Error			 ;AN000;
+EndProc Code_Page_Mismatched_Error
 CODE	ENDS
     END

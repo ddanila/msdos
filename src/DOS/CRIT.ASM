@@ -1,4 +1,3 @@
-;	SCCSID = @(#)crit.asm	1.1 85/04/10
 TITLE CRIT - Critical Section Routines
 NAME  CRIT
 ;
@@ -6,11 +5,6 @@ NAME  CRIT
 ;
 ;   Critical section handlers
 ;
-;   Modification history:
-;
-;       Created: ARR 30 March 1983
-;
-
 .xlist
 ;
 ; get the appropriate segment definitions

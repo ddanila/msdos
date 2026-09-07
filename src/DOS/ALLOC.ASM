@@ -1,28 +1,10 @@
-;	SCCSID = @(#)alloc.asm	1.1 85/04/09
 TITLE ALLOC.ASM - memory arena manager
 NAME Alloc
 ;
-; Memory related system calls and low level routines for MSDOS 2.X.
+; Memory allocation system calls and arena management.
 ; I/O specs are defined in DISPATCH.
-;
-;   $ALLOC
-;   $SETBLOCK
-;   $DEALLOC
-;   $AllocOper
-;   arena_free_process
-;   arena_next
-;   check_signature
-;   Coalesce
-;
-;   Modification history:
-;
-;       Created: ARR 30 March 1983
-;
 
 .xlist
-;
-; get the appropriate segment definitions
-;
 include dosseg.asm
 
 CODE    SEGMENT BYTE PUBLIC  'CODE'

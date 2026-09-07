@@ -5,17 +5,15 @@
 INCLUDE STRUC.INC		 ;macro library for 'struc'
 .LIST
 
-;ษออออออออออออออออออออออออออออออออ  P R O L O G  อออออออออออออออออออออออออออออออออออออออออป				   ;AN000;
-;บ											  บ				   ;AN000;
-															   ;AN000;
+;ษออออออออออออออออออออออออออออออออ  P R O L O G  อออออออออออออออออออออออออออออออออออออออออป
+;บ											  บ
 ;  AC000 - P3200: Was displaying a message that Sam Nunn had deleted from the
 ;		  USA.MSG file because it looked like a common message.  Now
 ;		  I use a different (better) message.  It was "Invalid paramters",
 ;		  is now "Function not supported - ????".
 
-;บ											  บ				   ;AN000;
-;ศออออออออออออออออออออออออออออออออ  P R O L O G  อออออออออออออออออออออออออออออออออออออออออผ				   ;AN000;
-															   ;AN000;
+;บ											  บ
+;ศออออออออออออออออออออออออออออออออ  P R O L O G  อออออออออออออออออออออออออออออออออออออออออผ
 SIGNITURE SEGMENT AT 0C000H
 	ORG	0
 SIGWORD DW	?			;SIGNITURE OF THE EGA IS STORED HERE IF THE CARD IS PRESENT
@@ -294,10 +292,10 @@ BW40	PROC	NEAR
 
 	.ELSE
 
-	    MOV   DI,0			  ;the screen mode is always the first parm					   ;AC000;
-	    MOV   BP,OFFSET parm_lst   ;address the parm list via parm_list which is [BP]				   ;AC000;
-	    MOV   CX,parm_list[DI].value1										   ;AC000;
-	    MOV   not_supported_ptr,CX	       ;FILL IN pointer to the parameter that is not supported			  ;AC000;
+	    MOV   DI,0			  ;the screen mode is always the first parm
+	    MOV   BP,OFFSET parm_lst   ;address the parm list via parm_list which is [BP]
+	    MOV   CX,parm_list[DI].value1
+	    MOV   not_supported_ptr,CX	       ;FILL IN pointer to the parameter that is not supported
 	    DISPLAY Function_not_supported	;'Function not supported - BW40"
 	    MOV     NOERROR,FALSE
 
@@ -325,10 +323,10 @@ BW80	PROC	NEAR
 
 	.ELSE
 
-	    MOV   DI,0			  ;the screen mode is always the first parm					   ;AC000;
-	    MOV   BP,OFFSET parm_lst   ;address the parm list via parm_list which is [BP]				   ;AC000;
-	    MOV   CX,parm_list[DI].value1										   ;AC000;
-	    MOV   not_supported_ptr,CX	       ;FILL IN pointer to the parameter that is not supported			  ;AC000;
+	    MOV   DI,0			  ;the screen mode is always the first parm
+	    MOV   BP,OFFSET parm_lst   ;address the parm list via parm_list which is [BP]
+	    MOV   CX,parm_list[DI].value1
+	    MOV   not_supported_ptr,CX	       ;FILL IN pointer to the parameter that is not supported
 	    DISPLAY Function_not_supported	;'Function not supported - BW80"
 	    MOV     NOERROR,FALSE
 
@@ -357,10 +355,10 @@ MONO	PROC	NEAR
 
 	.ELSE
 
-	    MOV   DI,0			  ;the screen mode is always the first parm					   ;AC000;
-	    MOV   BP,OFFSET parm_lst   ;address the parm list via parm_list which is [BP]				   ;AC000;
-	    MOV   CX,parm_list[DI].value1										   ;AC000;
-	    MOV   not_supported_ptr,CX	       ;FILL IN pointer to the parameter that is not supported			  ;AC000;
+	    MOV   DI,0			  ;the screen mode is always the first parm
+	    MOV   BP,OFFSET parm_lst   ;address the parm list via parm_list which is [BP]
+	    MOV   CX,parm_list[DI].value1
+	    MOV   not_supported_ptr,CX	       ;FILL IN pointer to the parameter that is not supported
 	    DISPLAY Function_not_supported	;'Function not supported - MONO"
 	    MOV     NOERROR,FALSE
 
@@ -387,10 +385,10 @@ CO40	PROC	NEAR
 
 	.ELSE
 
-	    MOV   DI,0			  ;the screen mode is always the first parm					   ;AC000;
-	    MOV   BP,OFFSET parm_lst   ;address the parm list via parm_list which is [BP]				   ;AC000;
-	    MOV   CX,parm_list[DI].value1										   ;AC000;
-	    MOV   not_supported_ptr,CX	       ;FILL IN pointer to the parameter that is not supported			  ;AC000;
+	    MOV   DI,0			  ;the screen mode is always the first parm
+	    MOV   BP,OFFSET parm_lst   ;address the parm list via parm_list which is [BP]
+	    MOV   CX,parm_list[DI].value1
+	    MOV   not_supported_ptr,CX	       ;FILL IN pointer to the parameter that is not supported
 	    DISPLAY Function_not_supported	;'Function not supported - CO40"
 	    MOV     NOERROR,FALSE
 
@@ -418,10 +416,10 @@ CO80	PROC	NEAR
 
 	.ELSE
 
-	    MOV   DI,0			  ;the screen mode is always the first parm					   ;AC000;
-	    MOV   BP,OFFSET parm_lst   ;address the parm list via parm_list which is [BP]				   ;AC000;
-	    MOV   CX,parm_list[DI].value1										   ;AC000;
-	    MOV   not_supported_ptr,CX	       ;FILL IN pointer to the parameter that is not supported			  ;AC000;
+	    MOV   DI,0			  ;the screen mode is always the first parm
+	    MOV   BP,OFFSET parm_lst   ;address the parm list via parm_list which is [BP]
+	    MOV   CX,parm_list[DI].value1
+	    MOV   not_supported_ptr,CX	       ;FILL IN pointer to the parameter that is not supported
 	    DISPLAY Function_not_supported	;'Function not supported - CO80"
 	    MOV     NOERROR,FALSE
 

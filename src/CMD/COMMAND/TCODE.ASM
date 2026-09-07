@@ -1,6 +1,4 @@
  page 80,132
-;	SCCSID = @(#)tcode.asm	1.1 85/05/14
-;	SCCSID = @(#)tcode.asm	1.1 85/05/14
 TITLE	Part1 COMMAND Transient Routines
 
 	INCLUDE comsw.asm
@@ -13,11 +11,11 @@ TITLE	Part1 COMMAND Transient Routines
 .cref
 
 
-CODERES 	SEGMENT PUBLIC BYTE	;AC000;
+CODERES 	SEGMENT PUBLIC BYTE
 	EXTRN	EXEC_WAIT:NEAR
 CODERES ENDS
 
-DATARES 	SEGMENT PUBLIC BYTE	;AC000;
+DATARES 	SEGMENT PUBLIC BYTE
 	EXTRN	BATCH:WORD
 	EXTRN	CALL_BATCH_FLAG:byte
 	EXTRN	CALL_FLAG:BYTE
@@ -37,14 +35,14 @@ DATARES 	SEGMENT PUBLIC BYTE	;AC000;
 	EXTRN	VERVAL:WORD
 DATARES ENDS
 
-TRANDATA	SEGMENT PUBLIC BYTE	;AC000;
-	EXTRN	BadNam_Ptr:word 	;AC000;
+TRANDATA	SEGMENT PUBLIC BYTE
+	EXTRN	BadNam_Ptr:word
 	EXTRN	RE_OUT_APP:BYTE
 	EXTRN	RE_OUTSTR:BYTE
 TRANDATA	ENDS
 
-TRANSPACE	SEGMENT PUBLIC BYTE	;AC000;
-	EXTRN	APPEND_EXEC:BYTE	;AN041;
+TRANSPACE	SEGMENT PUBLIC BYTE
+	EXTRN	APPEND_EXEC:BYTE
 	EXTRN	ARG1S:WORD
 	EXTRN	ARG2S:WORD
 	EXTRN	ARGTS:WORD
@@ -78,7 +76,7 @@ TRANSPACE	ENDS
 ; This code is loaded at the end of memory and may be overwritten by
 ; memory-intensive user programs.
 
-TRANCODE	SEGMENT PUBLIC BYTE	;AC000;
+TRANCODE	SEGMENT PUBLIC BYTE
 
 ASSUME	CS:TRANGROUP,DS:NOTHING,ES:NOTHING,SS:NOTHING
 
@@ -191,7 +189,7 @@ ASSUME	SS:TRANGROUP
 	STI
 	MOV	ES,AX
 	MOV	DS,AX				;AN000; set DS to transient
-ASSUME	ES:TRANGROUP,DS:TRANGROUP		;AC000;
+ASSUME	ES:TRANGROUP,DS:TRANGROUP
 	invoke	TSYSLOADMSG			;AN000; preload messages
 	invoke	SETSTDINOFF			;AN026; turn off critical error on STDIN
 	invoke	SETSTDOUTOFF			;AN026; turn off critical error on STDOUT
@@ -334,7 +332,7 @@ TESTFORBAT:
 	mov	es,[batch]			;AN000; get batch segment
 	mov	di,batfile			;AN000; get batch file name
 	push	cs				;AN000; get local segment to DS
-	pop	ds				;AN000;
+	pop	ds
 	mov	dx,offset trangroup:combuf	;AN000; pass communications buffer
 	int	2fh				;AN000; call the shell
 	cmp	al,shell_action 		;AN000; does shell have a commmand?

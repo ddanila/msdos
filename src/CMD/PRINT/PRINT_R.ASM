@@ -109,7 +109,7 @@ HERRINT 		DD   ?		;Place to save Hard error interrupt
 LISTDEV 		DD   ?		;Pointer to Device
 COLPOS			DB   0		;Column position for TAB processing
 CURRFIL 		DB   0
-CURRCP			DW   -1 	; Current file's CP in binary           ;AN000;
+CURRCP			DW   -1 	; Current file's CP in binary
 NXTCHR			DW   ?
 CURRHAND		DW   -1
 PrinterNum		DW   no_lptx	; index for printer
@@ -263,25 +263,25 @@ InnerHardInt:
 
    call TestSetServer
 
-;  $if	nc				;				       ;AC000;
+;  $if	nc				;
    JC $$IF1
 
        inc  [TICKCNT]			;Tick
        inc  [TICKSUB]			;Tick
        cmp  [SLICECNT],0
 
-;      $if  nz				;				       ;AC000;
+;      $if  nz				;
        JZ $$IF2
 
 	   dec	[SLICECNT]		;Count down
 
-;      $else				;				       ;AC000;
+;      $else				;
        JMP SHORT $$EN2
 $$IF2:
 
 	   cmp	BUSY,0			; interrupting ourself ?
 
-;	   $if	z,and			; if NOT interupting ourselves and ... ;AC000;
+;	   $if	z,and			; if NOT interupting ourselves and ...
 	   JNZ $$IF4
 
 	   push ax			; check for nested interrupts
@@ -295,7 +295,7 @@ x:
 	   and	al,0FEH 		; mask timer int
 	   pop	ax
 
-;	   $if	z,and			; if there are no other ints to service;AC000;
+;	   $if	z,and			; if there are no other ints to service
 	   JNZ $$IF4
 
 	   push ds
@@ -315,7 +315,7 @@ x:
 	   pop	SI
 	   pop	DS
 
-;	   $if	z			; if no errors			       ;AC000;
+;	   $if	z			; if no errors
 	   JNZ $$IF4
 
 	       inc  [BUSY]		;Exclude furthur interrupts
@@ -324,7 +324,7 @@ x:
 	       sti			;Keep things rolling
 	       test fFake,-1
 
-;	       $if  z			;if needed			       ;AC000;
+;	       $if  z			;if needed
 	       JNZ $$IF5
 
 		   push ax
@@ -332,7 +332,7 @@ x:
 		   out	AKPORT,al
 		   pop	ax
 
-;	       $endif			; endif 			       ;AC000;
+;	       $endif			; endif
 $$IF5:
 
 	       call DOINT
@@ -343,25 +343,25 @@ $$IF5:
 	       pop  ax
 	       dec  Busy		;Done, let others in
 
-;	   $endif			;				       ;AC000;
+;	   $endif			;
 $$IF4:
 
-;      $endif				;				       ;AC000;
+;      $endif				;
 $$EN2:
 
        Call LeaveServer
 
-;  $endif				;				       ;AC000;
+;  $endif				;
 $$IF1:
 
    test fFake,-1
 
-;  $if	z				;				       ;AC000;
+;  $if	z				;
    JNZ $$IF10
 
        jmp  [NEXTINT]			; chain to next clock routine
 
-;  $endif				;				       ;AC000;
+;  $endif				;
 $$IF10:
 
    iret
@@ -375,12 +375,12 @@ SPINT:					; INT 28H entry point
 
    call TestSetServer
 
-;  $if	nc				; if no server			       ;AC000;
+;  $if	nc				; if no server
    JC $$IF12
 
        cmp  [BUSY],0
 
-;      $if  z				; if not busy			       ;AC000;
+;      $if  z				; if not busy
        JNZ $$IF13
 
 	   inc	[BUSY]			; exclude hardware interrupt
@@ -395,12 +395,12 @@ SPINT:					; INT 28H entry point
 	   pop	ax
 	   dec	Busy
 
-;      $endif				;				       ;AC000;
+;      $endif				;
 $$IF13:
 
        call LeaveServer
 
-;  $endif				;				       ;AC000;
+;  $endif				;
 $$IF12:
 
    jmp	[SPNEXT]			;Chain to next INT 28
@@ -420,7 +420,7 @@ EnterPRINT:
 
    test SofInt,-1
 
-;  $if	z				;if not soft int		       ;AC000;
+;  $if	z				;if not soft int
    JNZ $$IF16
 
        mov  ah,GetExtendedError
@@ -434,7 +434,7 @@ EnterPRINT:
        mov  SaveState.DPL_DS,DS
        mov  SaveState.DPL_ES,ES
 
-;  $endif				;				       ;AC000;
+;  $endif				;
 $$IF16:
 
    ret
@@ -445,7 +445,7 @@ LeavePRINT:
 
    test SofInt,-1
 
-;  $if	z				; if soft int			       ;AC000;
+;  $if	z				; if soft int
    JNZ $$IF18
 
        mov  ax,(ServerCall SHL 8) + 10
@@ -454,7 +454,7 @@ LeavePRINT:
        mov  dx,OFFSET CodeR:SaveState
        call Do_21
 
-;  $endif				;				       ;AC000;
+;  $endif				;
 $$IF18:
 
    ret
@@ -509,7 +509,7 @@ GOAHEAD:
 
 DONEJMPJP:
 
-   popf 				;				       ;AC000;
+   popf 				;
 
 DONEJMPJ:
 
@@ -540,7 +540,7 @@ STATCHK:
    pushf
    cmp	[CURRFIL],0
    jz	DONEJMPJP			;File got cancelled by error
-   popf 				;				       ;AC000;
+   popf 				;
    jz	DOCHAR				;Printer ready
    cmp	[SOFINT],0
    jnz	DONEJMP 			;If soft int give up
@@ -558,12 +558,12 @@ DOCHAR:
    jz	FILEOFJ 			;CPM EOF
    cmp	al,0Dh				;CR?
 
-;  $if	z				; if CR 			       ;AC000;
+;  $if	z				; if CR
    JNZ $$IF20
 
        mov  [COLPOS],0
 
-;  $endif				;				       ;AC000;
+;  $endif				;
 $$IF20:
 
    cmp	al,9				;TAB?
@@ -645,7 +645,7 @@ CONTEXT_BACK:
 
    cmp	[CONTXTFLAG],0
 
-;  $if	nz				; if not in context		       ;AC000;
+;  $if	nz				; if not in context
    JZ $$IF24
 
        SaveReg <AX,BX>
@@ -655,7 +655,7 @@ CONTEXT_BACK:
        RestoreReg <BX,AX>
        mov  [CONTXTFLAG],0
 
-;  $endif				;				       ;AC000;
+;  $endif				;
 $$IF24:
 
    ret
@@ -666,7 +666,7 @@ CONTEXT_SWITCH:
 
    cmp	[CONTXTFLAG],0
 
-;  $if	z				; if context off		       ;AC000;
+;  $if	z				; if context off
    JNZ $$IF26
 
        SaveReg <BX,AX>
@@ -680,7 +680,7 @@ CONTEXT_SWITCH:
        RestoreReg <AX,BX>
        mov  [CONTXTFLAG],1
 
-;  $endif				;				       ;AC000;
+;  $endif				;
 $$IF26:
 
    ret
@@ -707,7 +707,7 @@ READBUFF:
 
 NOHERR:
 
-   popf 				;				       ;AC000;
+   popf 				;
    jc	FILEOF
    cmp	ax,0
    jz	FILEOF				;Read EOF?
@@ -718,7 +718,7 @@ NOHERR:
    mov	cx,[BLKSIZ]
    sub	cx,ax
 
-;  $if	ncxz				; if buffer is not completely full     ;AC000;
+;  $if	ncxz				; if buffer is not completely full
    JCXZ $$IF28
 
        push cs
@@ -727,7 +727,7 @@ NOHERR:
        cld
        rep  stosb			; pad the buffer
 
-;  $endif				; endif 			       ;AC000;
+;  $endif				; endif
 $$IF28:
 
    jmp	DONEJMP
@@ -747,7 +747,7 @@ FilClose:
    call Set24
    mov	pAbort,-1
    mov	bx,[CURRHAND]
-   call CloseFile			;				       ;AC000;
+   call CloseFile			;
    call Res24
    mov	[CURRFIL],0			; No file
    mov	[CURRHAND],-1			; Invalid handle
@@ -777,17 +777,17 @@ CompQAgn:
    call Set24
    mov	[PABORT],0			;No abort
    mov	dx,si				; DS:DX points to file name
-   call OpenFile			; try opening new file		       ;AC000;
+   call OpenFile			; try opening new file
    pushf
    call Res24
    cmp	[PAbort],0
    je	NoI24a
-   popf 				;				       ;AC000;
+   popf 				;
    jmp	short CompQAgn			; try next file
 
 NoI24a:
 
-   popf 				;				       ;AC000;
+   popf 				;
    jnc	GotNewFile
    call PrtOpErr
    jmp	short CompQAgn
@@ -833,7 +833,7 @@ PrtOpErr:
 
    mov	si,OFFSET CodeR:ErrMes
    call ListMes
-   mov	si,ErrMesT2_ptr 		;				       ;AC000;
+   mov	si,ErrMesT2_ptr 		;
    call ListMes
    mov	si,OFFSET CodeR:FileQueue
    call ListMes2
@@ -938,7 +938,7 @@ DSKERR:
 
    cmp	[PABORT],0
 
-;  $if	z				; if not to ignore		       ;AC000;
+;  $if	z				; if not to ignore
    JNZ $$IF30
 
        sti
@@ -957,24 +957,24 @@ DSKERR:
 
        ASSUME DS:CodeR,ES:CodeR
 
-       mov  si,BADDRVM_PTR		; Fix up Drive ID for FATMES	       ;AC000;
-       add  ds:[si],al			;				       ;AC000;
+       mov  si,BADDRVM_PTR		; Fix up Drive ID for FATMES
+       add  ds:[si],al			;
        mov  si,OFFSET CodeR:ERRMES
        call LISTMES
        test AH,080H
 
-;      $if  z				; if not fat error		       ;AC000;
+;      $if  z				; if not fat error
        JNZ $$IF31
 
 	   and	di,0FFh
 	   cmp	di,12
 
-;	   $if	a			; if greater - force it to 12	       ;AC000;
+;	   $if	a			; if greater - force it to 12
 	   JNA $$IF32
 
 	       mov  di,12
 
-;	   $endif			;				       ;AC000;
+;	   $endif			;
 $$IF32:
 
 	   mov	[I24_ERR],di
@@ -982,22 +982,22 @@ $$IF32:
 	   mov	di,WORD PTR [di+MESBAS] ; Get pointer to error message
 	   mov	si,di
 	   call LISTMES 		; Print error type
-	   mov	si,ERRMEST_PTR		;				       ;AC000;
+	   mov	si,ERRMEST_PTR		;
 	   call LISTMES
 	   mov	si,OFFSET CodeR:FileQueue ; print filename
 	   call ListMes2		; print name
 	   mov	si,OFFSET CodeR:BelMes
 	   call ListMes
 
-;      $else				;				       ;AC000;
+;      $else				;
        JMP SHORT $$EN31
 $$IF31:
 
 	   mov	[I24_ERR],0FFh
-	   mov	si,FATMES_PTR		;				       ;AC000;
+	   mov	si,FATMES_PTR		;
 	   call LISTMES
 
-;      $endif				;				       ;AC000;
+;      $endif				;
 $$EN31:
 
        inc  [PABORT]			;Indicate abort
@@ -1010,7 +1010,7 @@ $$EN31:
        pop  cx
        pop  bx
 
-;  $endif				;				       ;AC000;
+;  $endif				;
 $$IF30:
 
    xor	al,al				;Ignore
@@ -1105,7 +1105,7 @@ GoForIt:
 
    ASSUME DS:nothing
 
-;  $if	nc				; if no error			       ;AC000;
+;  $if	nc				; if no error
    JC $$IF37
 
        ASSUME DS:CodeR,ES:nothing
@@ -1121,12 +1121,12 @@ GoForIt:
 
        ASSUME DS:nothing
 
-;  $endif				;				       ;AC000;
+;  $endif				;
 $$IF37:
 
    pushf
    call Context_Back
-   popf 				;				       ;AC000;
+   popf 				;
    cli
    dec	BUSY				; leaves carry alone!
    pop	ds
@@ -1231,7 +1231,7 @@ CanAll:
        mov  bx,[CurrHand]		; close the current file
        call Set24
        mov  [PAbort],1			; no Int24's
-       call CloseFile			; close the file		       ;AC000;
+       call CloseFile			; close the file
        call Res24
        mov  [CurrFil],0 		; no files to print
        mov  [CurrHand],-1		; invalidate handle
@@ -1245,7 +1245,7 @@ CanAll:
        mov  si,OFFSET CodeR:FileQueue
        mov  [QueueTail],si		; next free entry is the first
        mov  byte ptr [si],0		; nul first byte of firts entry
-       mov  si,AllCan_PTR		;				       ;AC000;
+       mov  si,AllCan_PTR		;
        call ListMes			; print cancelation message
        mov  si,OFFSET CodeR:BelMes
        call ListMes			; ring!!
@@ -1257,7 +1257,7 @@ CanAll:
        call Close_Dev
        clc
 
-;  $endif				;				       ;AC000;
+;  $endif				;
 $$IF39:
 
    ret
@@ -1379,12 +1379,12 @@ NameFound:
    mov	[ACanOcrd],1			; remember we found a file
    cmp	bx,OFFSET CodeR:FileQueue	; is the file being printed?
 
-;  $if	e,and				; if it is and ..................      ;AC000;
+;  $if	e,and				; if it is and ..................
    JNE $$IF41
 
    cmp	[CanFlg],0			;				:
 
-;  $if	e				; if not in cancel mode ........:      ;AC000;
+;  $if	e				; if not in cancel mode ........:
    JNE $$IF41
 
 					;---------------------------------------
@@ -1396,7 +1396,7 @@ NameFound:
        mov  bx,[CurrHand]		; close the current file
        call Set24
        mov  [PAbort],1			; no Int24's
-       call CloseFile			; close the file		       ;AC000;
+       call CloseFile			; close the file
        call Res24
        mov  [CurrFil],0 		; no files to print
        mov  [CurrHand],-1		; invalidate handle
@@ -1407,11 +1407,11 @@ NameFound:
 					;--- print cancelation message
 					;---------------------------------------
        push bx
-       mov  si,CanMes_PTR		;				       ;AC000;
+       mov  si,CanMes_PTR		;
        call ListMes			; print cancelation message
        mov  si,bx			; points to filename
        call ListMes2			; print filename
-       mov  si,CanFilNam_PTR		;				       ;AC000;
+       mov  si,CanFilNam_PTR		;
        call ListMes
        mov  si,OFFSET CodeR:BelMes
        call ListMes			; ring!!
@@ -1421,7 +1421,7 @@ NameFound:
 					;---------------------------------------
        call Close_Dev
 
-;  $endif				;				       ;AC000;
+;  $endif				;
 $$IF41:
 
    mov	di,bx				; DI points to entry to cancel
@@ -1429,12 +1429,12 @@ $$IF41:
    add	si,MaxFileLen			; SI points to next entry
    cmp	si,[QueueTail]			; is the entry being canceled the last?
 
-;  $if	e				; if it is			       ;AC000;
+;  $if	e				; if it is
    JNE $$IF43
 
        mov  byte ptr [di],0		; yes, just nul the first byte
 
-;  $else				;				       ;AC000;
+;  $else				;
    JMP SHORT $$EN43
 $$IF43:
 
@@ -1443,7 +1443,7 @@ $$IF43:
        cld
        rep  movsb			; compact the queue
 
-;  $endif				;				       ;AC000;
+;  $endif				;
 $$EN43:
 
    mov	ax,[QueueTail]			; remember new end of queue
@@ -1481,18 +1481,18 @@ StartAnFil2:
    call Set24
    mov	[PAbort],0
    mov	dx,si
-   call OpenFile			; try to open the file		       ;AC000;
+   call OpenFile			; try to open the file
    pushf
    call Res24
    cmp	[PAbort],0
    je	NoI24b
-   popf 				;				       ;AC000;
+   popf 				;
    call CompQ				; compact file queue
    jmp	short StartAnFil2
 
 NoI24b:
 
-   popf 				;				       ;AC000;
+   popf 				;
    jnc	GoodNewCurr
    call PrtOpErr			; print open error
    call CompQ				; compact file queue
@@ -1526,51 +1526,51 @@ AmbChk:
    mov	si,dx
    cld
 
-;  $do					;				       ;AC000;
+;  $do					;
 $$DO46:
 
        lodsb
        or   al,al			; the nul?
 
-;  $enddo e				;				       ;AC000;
+;  $enddo e				;
    JNE $$DO46
 
    dec	si				; points to nul
    std					; scan backwards
 
-;  $do					;				       ;AC000;
+;  $do					;
 $$DO48:
 
        lodsb
        cmp  al,"*"
 
-;      $if  e				; if a *			       ;AC000;
+;      $if  e				; if a *
        JNE $$IF49
 
 	   mov	[AmbCan],1
 
-;      $endif				;				       ;AC000;
+;      $endif				;
 $$IF49:
 
        cmp  al,"?"
 
-;      $if  e				; if a ?			       ;AC000;
+;      $if  e				; if a ?
        JNE $$IF51
 
 	   mov	[AmbCan],1
 
-;      $endif				;				       ;AC000;
+;      $endif				;
 $$IF51:
 
        cmp  al,[PChar]
 
-;  $enddo e				;				       ;AC000;
+;  $enddo e				;
    JNE $$DO48
 
    cld					; be safe
    cmp	[AmbCan],1			; an ambigous cancel?
 
-;  $if	e				; if its an ambiguous cancel	       ;AC000;
+;  $if	e				; if its an ambiguous cancel
    JNE $$IF54
 
 					;---------------------------------------
@@ -1609,47 +1609,47 @@ $$IF51:
        mov  si,OFFSET CodeR:ACName
        mov  cx,8
 
-;      $do				;				       ;AC000;
+;      $do				;
 $$DO55:
 
 	   lodsb			; move name
 	   cmp	al,20h
 
-;      $leave e 			;				       ;AC000;
+;      $leave e 			;
        JE $$EN55
 
 	   stosb
 
-;      $enddo loop			;				       ;AC000;
+;      $enddo loop			;
        LOOP $$DO55
 $$EN55:
 
        mov  si,OFFSET CodeR:ACExt
        cmp  byte ptr [si],20h		; extension starts with blank ?
 
-;      $if  ne				; if it does not		       ;AC000;
+;      $if  ne				; if it does not
        JE $$IF58
 
 	   mov	al,"."
 	   stosb
 	   mov	cx,3
 
-;	   $do				;				       ;AC000;
+;	   $do				;
 $$DO59:
 
 	       lodsb			; move name
 	       cmp  al,20h
 
-;	   $leave e			;				       ;AC000;
+;	   $leave e			;
 	   JE $$EN59
 
 	       stosb
 
-;	   $enddo loop			;				       ;AC000;
+;	   $enddo loop			;
 	   LOOP $$DO59
 $$EN59:
 
-;      $endif				;				       ;AC000;
+;      $endif				;
 $$IF58:
 
        mov  byte ptr es:[di],0		; nul terminate
@@ -1660,7 +1660,7 @@ $$IF58:
        push cs
        pop  es
 
-;  $endif				;				       ;AC000;
+;  $endif				;
 $$IF54:
 
    ASSUME ES:CodeR
@@ -1760,12 +1760,12 @@ CopyDone:				;   avoid possible problems...
    call Set24
    mov	[PAbort],0
    pop	dx				; get pointer to filename
-   call OpenFile			;				       ;AC000;
+   call OpenFile			;
    pushf
    push dx
    call Res24
    pop	dx
-;;;popff				;; dcl removed for p1020	       ;AC000;
+;;;popff				;; dcl removed for p1020
    popf 				;; dcl to fix p1020
    jnc	GOTFIL
 					;---------------------------------------
@@ -1828,16 +1828,16 @@ GotFil:
 
    cmp	[CURRFIL],0			; currently printing?
 
-;  $if	nz				; if currently printing 	       ;AC000;
+;  $if	nz				; if currently printing
    JZ $$IF64
 
        mov  bx,ax			; busy, close handle
        call Set24
        mov  [PAbort],1			; no Int24's
-       call CloseFile			; close the file		       ;AC000;
+       call CloseFile			; close the file
        call Res24
 
-;  $else				;				       ;AC000;
+;  $else				;
    JMP SHORT $$EN64
 $$IF64:
 					;---------------------------------------
@@ -1853,7 +1853,7 @@ $$IF64:
 					;---------------------------------------
        call Open_Dev
 
-;  $endif				;				       ;AC000;
+;  $endif				;
 $$EN64:
 
    clc
@@ -1881,7 +1881,7 @@ DO_21:
 
    CMP	BYTE PTR CS:[INT15FLAG],0
 
-;  $if	nz				; if for PRINT			       ;AC000;
+;  $if	nz				; if for PRINT
    JZ $$IF67
 
        push ds
@@ -1899,10 +1899,10 @@ DO_21:
        lds  bx,CS:[INT15PTR]
        dec  BYTE PTR [BX]
        popf				;
-       pop  bx				;AC000;
+       pop  bx
        pop  ds
 
-;  $else				;				       ;AC000;
+;  $else				;
    JMP SHORT $$EN67
 $$IF67:
 
@@ -1910,7 +1910,7 @@ $$IF67:
        int  21h
        call OnSave
 
-;  $endif				;				       ;AC000;
+;  $endif				;
 $$EN67:
 
    ret
@@ -2043,59 +2043,59 @@ POPRET:
 
 
 
-   MOV	[PRTDPL.DPL_DS],DS		;				       ;AN010;
-   PUSH CS				;				       ;AN010;
-   POP	DS				;				       ;AN010;
+   MOV	[PRTDPL.DPL_DS],DS		;
+   PUSH CS				;
+   POP	DS				;
 
-   MOV	[PRTDPL.DPL_BX],BX		;				       ;AN010;
-   MOV	BL,AL				; set up DRIVE ID		       ;AN010;
-   SUB	BL,40h				; convert to number		       ;AN010;
-   XOR	AL,AL				; remove file ID		       ;AN010;
-   MOV	[PRTDPL.DPL_AX],AX		;				       ;AN010;
-   MOV	[PRTDPL.DPL_CX],CX		;				       ;AN010;
-   MOV	[PRTDPL.DPL_DX],DX		;				       ;AN010;
-   MOV	[PRTDPL.DPL_SI],SI		;				       ;AN010;
-   MOV	[PRTDPL.DPL_DI],DI		;				       ;AN010;
-   MOV	[PRTDPL.DPL_ES],ES		;				       ;AN010;
-   XOR	AX,AX				;				       ;AN010;
-   MOV	[PRTDPL.DPL_reserved],AX	;				       ;AN010;
-   MOV	[PRTDPL.DPL_UID],AX		;				       ;AN010;
-   MOV	AX,CS				;				       ;AN010;
-   SUB	AX,10h				;				       ;AN010;
-   MOV	[PRTDPL.DPL_PID],AX		;				       ;AN010; ;				      ;AN010;
+   MOV	[PRTDPL.DPL_BX],BX		;
+   MOV	BL,AL				; set up DRIVE ID
+   SUB	BL,40h				; convert to number
+   XOR	AL,AL				; remove file ID
+   MOV	[PRTDPL.DPL_AX],AX		;
+   MOV	[PRTDPL.DPL_CX],CX		;
+   MOV	[PRTDPL.DPL_DX],DX		;
+   MOV	[PRTDPL.DPL_SI],SI		;
+   MOV	[PRTDPL.DPL_DI],DI		;
+   MOV	[PRTDPL.DPL_ES],ES		;
+   XOR	AX,AX				;
+   MOV	[PRTDPL.DPL_reserved],AX	;
+   MOV	[PRTDPL.DPL_UID],AX		;
+   MOV	AX,CS				;
+   SUB	AX,10h				;
+   MOV	[PRTDPL.DPL_PID],AX		;				       ;AN010; ;
 					; IOCtl call to see if target drive is local
-					;   x = IOCTL (getdrive, Drive+1)      ;AN010;
-   mov	ax,(IOCTL SHL 8) + 9		;				       ;AN010;
-   INT	21h				; IOCtl + dev_local  <4409>	       ;AN010;
+					;   x = IOCTL (getdrive, Drive+1)
+   mov	ax,(IOCTL SHL 8) + 9		;
+   INT	21h				; IOCtl + dev_local  <4409>
 
-   MOV	BX,[PRTDPL.DPL_BX]		; restore register		       ;AN010;
+   MOV	BX,[PRTDPL.DPL_BX]		; restore register
 
-;  $if	nc,and				; target drive local and	       ;AN010;
+;  $if	nc,and				; target drive local and
    JC $$IF70
 
-   test dx,1200H			; check if (x & 0x1000) 	       ;AN010;
+   test dx,1200H			; check if (x & 0x1000)
 					;      (redirected or shared)
-;  $if	z				; if RC indicates NOT a network drive  ;AN010;
+;  $if	z				; if RC indicates NOT a network drive
    JNZ $$IF70
 
-       MOV  DX,OFFSET CODER:PRTDPL	;				       ;AN010;
-       MOV  AX,(ServerCall SHL 8)	; make a SERVER DOS call	       ;AN010;
+       MOV  DX,OFFSET CODER:PRTDPL	;
+       MOV  AX,(ServerCall SHL 8)	; make a SERVER DOS call
 
-;  $else				;				       ;AN010;
+;  $else				;
    JMP SHORT $$EN70
 $$IF70:
 
-       MOV  DX,[PRTDPL.DPL_DX]		; fix up reg			       ;AN010;
-       MOV  AX,[PRTDPL.DPL_AX]		; make a normal DOS call	       ;AN010;
-       PUSH [PRTDPL.DPL_DS]		; fix up segment reg		       ;AN010;
-       POP  DS				;				       ;AN010;
+       MOV  DX,[PRTDPL.DPL_DX]		; fix up reg
+       MOV  AX,[PRTDPL.DPL_AX]		; make a normal DOS call
+       PUSH [PRTDPL.DPL_DS]		; fix up segment reg
+       POP  DS				;
 
-;  $endif				;				       ;AN010;
+;  $endif				;
 $$EN70:
 
-   CALL My21				;				       ;AN010;
+   CALL My21				;
 
-   RET					;				       ;AN010;
+   RET					;
 
    TO_DOS ENDP
 
@@ -2156,7 +2156,7 @@ Open_Dev:
    mov	dx,PrinterNum
    cmp	dx,-1
 
-;  $if	nz				;				       ;AC000;
+;  $if	nz				;
    JZ $$IF73
 
        mov  ax,0203h			; redirector lock
@@ -2173,7 +2173,7 @@ $$IF73:
    pop	ax
    mov	bl,DEVOPN			; Device OPEN
    call OP_CL_OP
-   popf 				;				       ;AC000;
+   popf 				;
    pop	bx
 
    ret
@@ -2188,7 +2188,7 @@ OP_CL_OP:
 
    test [SI.SDEVATT],DEVOPCL
 
-;  $if	nz				;				       ;AC000;
+;  $if	nz				;
    JZ $$IF75
 
        push cs
@@ -2199,7 +2199,7 @@ OP_CL_OP:
        mov  [IOCALL],DOPCLHL
        call DOCALL
 
-;  $endif				;				       ;AC000;
+;  $endif				;
 $$IF75:
 
    pop	si
@@ -2231,7 +2231,7 @@ Close_Dev:
    mov	dx,PrinterNum
    cmp	dx,-1
 
-;  $if	nz				;				       ;AC000;
+;  $if	nz				;
    JZ $$IF77
 
        mov  ax,0202h			; redirector CLOSE
@@ -2239,14 +2239,14 @@ Close_Dev:
        mov  ax,0204h			; redirector clear
        int  2Fh
 
-;  $endif				;				       ;AC000;
+;  $endif				;
 $$IF77:
 
    mov	ax,(SET_PRINTER_FLAG SHL 8) +00
    int	21h
    pop	dx
    pop	ax
-   popf 				;				       ;AC000;
+   popf 				;
    pop	bx
 
    ret
@@ -2262,22 +2262,22 @@ PSTAT:
    call DOCALL
    test [IOSTAT],IOERROR
 
-;  $if	nz				;				       ;AC000;
+;  $if	nz				;
    JZ $$IF79
 
        or   [IOSTAT],IOBUSY		;If error, show buisy
 
-;  $endif				;				       ;AC000;
+;  $endif				;
 $$IF79:
 
    test [IOSTAT],IOBUSY
 
-;  $if	z				; if				       ;AC000;
+;  $if	z				; if
    JNZ $$IF81
 
        mov  [ERRCNT],0
 
-;  $endif				;				       ;AC000;
+;  $endif				;
 $$IF81:
 
    pop	bx
@@ -2352,7 +2352,7 @@ INT_13_RETADDR		DW   OFFSET CodeR:INT_13_BACK
 
    pushf
    dec	[BUSY]
-   popf 				;				       ;AC000;
+   popf 				;
 
    ret	2				;Chuck saved flags
 
@@ -2624,80 +2624,80 @@ nop
 ;int 3
 nop
 
-   mov	bx,dx				; save pointer for later	       ;AN000;
-   mov	ax,(Set_CTRL_C_Trapping shl 8) + get_CPSW ; set up for INT 21 - 33     ;AN000;
+   mov	bx,dx				; save pointer for later
+   mov	ax,(Set_CTRL_C_Trapping shl 8) + get_CPSW ; set up for INT 21 - 33
 					;	      to see if CPSW is active
-   call My21				; call MY_21			       ;AN000;
-   xchg dx,bx				; recover pointer		       ;AN000;
-   cmp	bl,CPSW_on			; is CPSW active ?		       ;AN000;			;AN000;
+   call My21				; call MY_21
+   xchg dx,bx				; recover pointer
+   cmp	bl,CPSW_on			; is CPSW active ?
 
-;  $if	e				; if CPSW is active		       ;AC006;
+;  $if	e				; if CPSW is active
    JNE $$IF83
 
-       mov  ax,(ExtOpen shl 8) + 0	; set for INT 21-6C		       ;AN000;
-       xor  cx,cx			;		   Extended Open       ;AN000;
-       mov  bx,open_mode		;				       ;AN000;
-       mov  si,dx			; set DS:SI to name		       ;AC006;
-       mov  dx,(ignore_cp shl 8) + (failopen shl 4) + openit ; open if exists  ;AC001;
-       mov  di,cx			;				       ;AC001;
-       dec  di				;				       ;AC001;
+       mov  ax,(ExtOpen shl 8) + 0	; set for INT 21-6C
+       xor  cx,cx			;		   Extended Open
+       mov  bx,open_mode		;
+       mov  si,dx			; set DS:SI to name
+       mov  dx,(ignore_cp shl 8) + (failopen shl 4) + openit ; open if exists
+       mov  di,cx			;
+       dec  di				;
        mov  al,ds:[si]			; recover drive - TO_DOS needs it
-       call TO_DOS			; call TO_DOS to open file (SERVER DOS);AC010;
+       call TO_DOS			; call TO_DOS to open file (SERVER DOS)
 
-;      $if  nc,and			; if no error and		       ;AN000;
+;      $if  nc,and			; if no error and
        JC $$IF84
 
-       mov  bx,ax			;				       ;AN001;
-       mov  ax,(File_Times SHL 8) + get_ea_by_handle ; now find out what CP    ;AN001;
-       mov  cx,list_size		;				       ;AN001;
-       lea  si,query_list		;				       ;AN001;
-       lea  di,list			;				       ;AN001;
-       call My21			; to get the CP 		       ;AN001;
+       mov  bx,ax			;
+       mov  ax,(File_Times SHL 8) + get_ea_by_handle ; now find out what CP
+       mov  cx,list_size		;
+       lea  si,query_list		;
+       lea  di,list			;
+       call My21			; to get the CP
 
-;      $if  nc,and			; if no error and		       ;AN000;
+;      $if  nc,and			; if no error and
        JC $$IF84
 
-       mov  ax,bx			; move HANDLE back to where its needed ;AN001;
+       mov  ax,bx			; move HANDLE back to where its needed
 
-       mov  bx,[code_page]		; is there a valid CP ? 	       ;AC006;
+       mov  bx,[code_page]		; is there a valid CP ?
 
-       cmp  bx,0			; is there a valid CP ? 	       ;AC006;
+       cmp  bx,0			; is there a valid CP ?
 
-;      $if  g				; if valid CP ie: 0 < CP < -1	       ;AN000;
+;      $if  g				; if valid CP ie: 0 < CP < -1
        JNG $$IF84
 
-	   cmp	[PrinterNum],no_lptx	; is there a valid LPTx ?	       ;AN000;			;AN000;
+	   cmp	[PrinterNum],no_lptx	; is there a valid LPTx ?
 
-;	   $if	ne			; if valid LPTx available	       ;AN000;
+;	   $if	ne			; if valid LPTx available
 	   JE $$IF85
 
-	       mov  cx,ax		; save file handle		       ;AN008;
-	       mov  [CURRCP],bx 	; update CURRCP 		       ;AN000;
-	       mov  dx,[PrinterNum]	;				       ;AN000;
-	       mov  ax,(major_code shl 8) + minor_code ; semophore PRINTER.SYS ;AN000;
-	       int  2Fh 		; call INT 2F to lock and set	       ;AN000;
+	       mov  cx,ax		; save file handle
+	       mov  [CURRCP],bx 	; update CURRCP
+	       mov  dx,[PrinterNum]	;
+	       mov  ax,(major_code shl 8) + minor_code ; semophore PRINTER.SYS
+	       int  2Fh 		; call INT 2F to lock and set
 					;     PRINTER.SYS to CURRCP
-	       mov  ax,cx		; restore file handle		       ;AN008;
-;	   $endif			; endif 			       ;AN000;
+	       mov  ax,cx		; restore file handle
+;	   $endif			; endif
 $$IF85:
-;      $endif				; endif 			       ;AN006;
+;      $endif				; endif
 $$IF84:
 
-;  $else				; else				       ;AN000;
+;  $else				; else
    JMP SHORT $$EN83
 $$IF83:
 
        mov  si,dx
        mov  al,ds:[si]			; recover drive - TO_DOS needs it
-       mov  ah,(open)			; set up for INT 21 - 3D Open	       ;AN000;
-       mov  cx,016h			; set up search attribute for Server   ;AN011;
+       mov  ah,(open)			; set up for INT 21 - 3D Open
+       mov  cx,016h			; set up search attribute for Server
 					;			    DOS Open
-       call TO_DOS			; call TO_DOS to open file (SERVER DOS);AC010;
+       call TO_DOS			; call TO_DOS to open file (SERVER DOS)
 
-;  $endif				; endif 			       ;AN000;
+;  $endif				; endif
 $$EN83:
 
-   ret					; return			       ;AN000;
+   ret					; return
 
    OpenFile ENDP
 
@@ -2755,27 +2755,27 @@ $$EN83:
 
    CloseFile PROC NEAR
 
-   cmp	[CURRCP],0			; is 0 < CHECKCP < -1 ? 	       ;AN000;
+   cmp	[CURRCP],0			; is 0 < CHECKCP < -1 ?
 
-;  $if	g				; if CHECKCP is valid		       ;AN000;
+;  $if	g				; if CHECKCP is valid
    JNG $$IF90
 
-       push bx				; save file handle		       ;AN000;
-       xor  bx,bx			; set CP to unlock		       ;AN000;
-       dec  bx				;				       ;AN000;
-       mov  dx,[PrinterNum]		; set which LPTx		       ;AN000;
-       mov  ax,(major_code shl 8) + minor_code ; semophore to PRINTER.SYS      ;AN000;
-       int  2Fh 			; call INT 2F to unlock PRINTER.SYS    ;AN000;
-       mov  [CURRCP],0			; reset CHECKCP 		       ;AN000;
-       pop  bx				; recover file handle		       ;AN000;
+       push bx				; save file handle
+       xor  bx,bx			; set CP to unlock
+       dec  bx				;
+       mov  dx,[PrinterNum]		; set which LPTx
+       mov  ax,(major_code shl 8) + minor_code ; semophore to PRINTER.SYS
+       int  2Fh 			; call INT 2F to unlock PRINTER.SYS
+       mov  [CURRCP],0			; reset CHECKCP
+       pop  bx				; recover file handle
 
-;  $endif				; endif 			       ;AN000;
+;  $endif				; endif
 $$IF90:
 
-   mov	ax,(close shl 8)		; set up for INT 21 - close	       ;AN000;
-   call My21				; call My21 to close file	       ;AC010;
+   mov	ax,(close shl 8)		; set up for INT 21 - close
+   call My21				; call My21 to close file
 
-   ret					; return			       ;AN000;
+   ret					; return
 
    CloseFile ENDP
 
@@ -2887,12 +2887,12 @@ LISTNAME		DB   "PRN     " ;Device name
 
    mov	di,OFFSET CodeR:LISTNAME
 
-;  $search				;				       ;AN000;
+;  $search				;
 $$DO92:
 
        test [si.SDEVATT],DEVTYP 	;
 
-;      $if  nz,and			; if type is character		       ;AN000;
+;      $if  nz,and			; if type is character
        JZ $$IF93
 
        push si				;
@@ -2903,10 +2903,10 @@ $$DO92:
        pop  di				;
        pop  si				;
 
-;      $if  z				; if the end was reached with a match  ;AN000;
+;      $if  z				; if the end was reached with a match
        JNZ $$IF93
 
-	   stc				; signal end			       ;AN000;
+	   stc				; signal end
 
 ;      $else
        JMP SHORT $$EN93
@@ -2914,10 +2914,10 @@ $$IF93:
 
 	   clc				; keep looking
 
-;      $endif				;				       ;AN000;
+;      $endif				;
 $$EN93:
 
-;  $exitif c				;				       ;AN000;
+;  $exitif c				;
    JNC $$IF92
 
        mov  WORD PTR [CALLAD+2],ds	;Get I/O routines
@@ -2940,21 +2940,21 @@ $$EN93:
 
        call chk_int17_dev
 
-;  $orelse				;				       ;AN000;
+;  $orelse				;
    JMP SHORT $$SR92
 $$IF92:
 
        lds  si,[si.SDEVNEXT]		;
        cmp  si,-1			;
 
-;  $endloop z				;				       ;AN000;
+;  $endloop z				;
    JNZ $$DO92
 
        push cs
        pop  ds
        stc
 
-;  $endsrch				;				       ;AN000;
+;  $endsrch				;
 $$SR92:
 
    ret
@@ -3002,34 +3002,34 @@ $$SR92:
 
    chk_int17_dev PROC NEAR
 
-;  $search				;				       ;AC000;
+;  $search				;
 $$DO100:
        mov  si,bp
        mov  cl,[di]
        inc  di
 
-;      $if  ncxz			;				       ;AC000;
+;      $if  ncxz			;
        JCXZ $$IF101
 
-	   clc				;				       ;AC000;
+	   clc				;
 
-;      $else				;				       ;AC000;
+;      $else				;
        JMP SHORT $$EN101
 $$IF101:
 
-	   stc				;				       ;AC000;
+	   stc				;
 
-;      $endif				;				       ;AC000;
+;      $endif				;
 $$EN101:
 
-;  $exitif c				;				       ;AC000;
+;  $exitif c				;
    JNC $$IF100
 
        mov  di,OFFSET CodeR:INT_14_HITLIST
 
-       call chk_int14_dev		;				       ;AC000;
+       call chk_int14_dev		;
 
-;  $orelse				;				       ;AC000;
+;  $orelse				;
    JMP SHORT $$SR100
 $$IF100:
 
@@ -3040,7 +3040,7 @@ $$IF100:
        inc  di
        sahf
 
-;  $endloop z				;				       ;AC000;
+;  $endloop z				;
    JNZ $$DO100
 
        xor  bh,bh
@@ -3049,7 +3049,7 @@ $$IF100:
        mov  [FLAG17_14],1
        clc
 					;
-;  $endsrch				;				       ;AC000;
+;  $endsrch				;
 $$SR100:
 
    ret
@@ -3097,33 +3097,33 @@ $$SR100:
 
    chk_int14_dev PROC NEAR
 
-;  $search				;				       ;AC000;
+;  $search				;
 $$DO108:
 
        mov  si,bp
        mov  cl,[di]
        inc  di
 
-;      $if  ncxz			;				       ;AC000;
+;      $if  ncxz			;
        JCXZ $$IF109
 
-	   clc				;				       ;AC000;
+	   clc				;
 
-;      $else				;				       ;AC000;
+;      $else				;
        JMP SHORT $$EN109
 $$IF109:
 
-	   stc				;				       ;AC000;
+	   stc				;
 
-;      $endif				;				       ;AC000;
+;      $endif				;
 $$EN109:
 
-;  $exitif c				;				       ;AC000;
+;  $exitif c				;
    JNC $$IF108
 
        mov  [FLAG17_14],0
 
-;  $orelse				;				       ;AC000;
+;  $orelse				;
    JMP SHORT $$SR108
 $$IF108:
 
@@ -3134,17 +3134,17 @@ $$IF108:
        inc  di
        sahf
 
-;  $endloop z				;				       ;AC000;
+;  $endloop z				;
    JNZ $$DO108
 
        xor  bh,bh
        mov  [INT_14_NUM],bx
        mov  [FLAG17_14],2
 
-;  $endsrch				;				       ;AC000;
+;  $endsrch				;
 $$SR108:
 
-   clc					;				       ;AC015;
+   clc					;
 
    ret
 
@@ -3192,8 +3192,8 @@ $$SR108:
 
    ASSUME CS:CodeR,DS:CodeR,ES:nothing,SS:nothing
 
-   mov	ax,(CLASS_B shl 8) + BADMES	;				       ;AC000;
-   call GoDispMsg			;				       ;AC002;
+   mov	ax,(CLASS_B shl 8) + BADMES	;
+   call GoDispMsg			;
 ;*********************************************************************
    mov	ax,(SET_PRINTER_FLAG SHL 8)	; Set flag to Idle
    int	21h
@@ -3358,8 +3358,8 @@ SET_HDSPINT:
 
 NO_HDSPINT:
 
-   mov	ax,(CLASS_B shl 8) + GOODMES	;				       ;AC000;
-   call GoDispMsg			;				       ;AC002;
+   mov	ax,(CLASS_B shl 8) + GOODMES	;
+   call GoDispMsg			;
 
 					;---------------------------------------
 					;--- Move transient

@@ -1,4 +1,3 @@
-;	SCCSID = @(#)search.asm 1.1 85/04/10
 TITLE	SEARCH - Directory scan system calls
 NAME	SEARCH
 
@@ -16,11 +15,6 @@ NAME	SEARCH
 ;   $Find_Next		  written
 ;   PackName		  written
 ;
-;   Modification history:
-;
-;	Created: ARR 4 April 1983
-;
-
 .xlist
 ;
 ; get the appropriate segment definitions
@@ -132,16 +126,16 @@ SearchDrv:
 NORMFCB2:
 	MOV	AL,BL			; User Drive byte
 	STOSB
- IF  DBCS									;AN000;
-	MOVSW				; 2/13/KK				;AN000;
-	CMP	BYTE PTR ES:[DI-2],5	; 2/13/KK				;AN000;
-	JNZ	NOTKTRAN		; 2/13/KK				;AN000;
-	MOV	BYTE PTR ES:[DI-2],0E5H ; 2/13/KK				;AN000;
-NOTKTRAN:				; 2/13/KK				;AN000;
-	MOV	CX,15			; 2/13/KK				;AN000;
- ELSE										;AN000;
-	MOV	CX,16			; 32 / 2 words of dir entry		;AN000;
- ENDIF										;AN000;
+ IF  DBCS
+	MOVSW				; 2/13/KK
+	CMP	BYTE PTR ES:[DI-2],5	; 2/13/KK
+	JNZ	NOTKTRAN		; 2/13/KK
+	MOV	BYTE PTR ES:[DI-2],0E5H ; 2/13/KK
+NOTKTRAN:				; 2/13/KK
+	MOV	CX,15			; 2/13/KK
+ ELSE
+	MOV	CX,16			; 32 / 2 words of dir entry
+ ENDIF
 	REP	MOVSW
 	transfer FCB_Ret_OK
 
@@ -250,15 +244,15 @@ FindSet:
 	MOVSW				; dir_size (2 words)
 	MOVSW
 	POP	SI			; Point back to dir_name
- IF  DBCS									;AN000;
-	PUSH	DI			; XXXX save dest name 2/13/KK		;AN000;
-	CALL	PackName							;AN000;
-	POP	DI			; XXXX Recover dest name 2/13/KK	;AN000;
-	CMP	BYTE PTR ES:[DI],05H	; XXXX Need fix?	 2/13/KK	;AN000;
-	JNZ	FNXXX			; XXXX No		 2/13/KK	;AN000;
-	MOV	BYTE PTR ES:[DI],0E5H	; XXXX Yes, Fix 	 2/13/KK	;AN000;
-FNXXX:					; 2/13/KK				;AN000;
- ELSE										;AN000;
+ IF  DBCS
+	PUSH	DI			; XXXX save dest name 2/13/KK
+	CALL	PackName
+	POP	DI			; XXXX Recover dest name 2/13/KK
+	CMP	BYTE PTR ES:[DI],05H	; XXXX Need fix?	 2/13/KK
+	JNZ	FNXXX			; XXXX No		 2/13/KK
+	MOV	BYTE PTR ES:[DI],0E5H	; XXXX Yes, Fix 	 2/13/KK
+FNXXX:					; 2/13/KK
+ ELSE
 	CALL	PackName
  ENDIF
 	transfer    Sys_Ret_OK		; bye with no errors
@@ -337,7 +331,7 @@ EndProc PackName
 	procedure   GET_FAST_SEARCH,NEAR
 	ASSUME	DS:NOTHING,ES:NOTHING
 
-	OR	[DOS34_FLAG],SEARCH_FASTOPEN  ;FO.trigger fastopen		;AN000;
+	OR	[DOS34_FLAG],SEARCH_FASTOPEN  ;FO.trigger fastopen
 	invoke	DOS_SEARCH_FIRST
 	return
 

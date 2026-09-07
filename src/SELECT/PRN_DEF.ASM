@@ -8,20 +8,20 @@
 ; in the autoexec.bat file.
 ;
 ;********************************************************************************
-PAGE	, 132				   ;AN000;
-.ALPHA					;AN000;
-.XLIST					;AN000;
-INCLUDE MACROS.INC			;AN000;
-INCLUDE STRUC.INC			;AN000;
-.LIST					;AN000;
+PAGE	, 132
+.ALPHA
+.XLIST
+INCLUDE MACROS.INC
+INCLUDE STRUC.INC
+.LIST
 
 ;***************************************************************************
 ; Define the public subroutines in this module
 ;***************************************************************************
-PUBLIC	 GET_PRINTER_TITLES_ROUTINE	 ;AN000;
-PUBLIC	 GET_PRINTER_INFO_ROUTINE	 ;AN000;
-PUBLIC	 RELEASE_PRINTER_INFO_ROUTINE	 ;AN000;
-PUBLIC	 CHANGE_AUTOEXEC_ROUTINE	 ;AN000;
+PUBLIC	 GET_PRINTER_TITLES_ROUTINE
+PUBLIC	 GET_PRINTER_INFO_ROUTINE
+PUBLIC	 RELEASE_PRINTER_INFO_ROUTINE
+PUBLIC	 CHANGE_AUTOEXEC_ROUTINE
 ;***************************************************************************
 ; Define the public values in this module
 ;***************************************************************************
@@ -32,23 +32,23 @@ PUBLIC	 MAX_NAME			;AN000; The longest name in the list
 PUBLIC	 SIZE_NAMES			;AN000; The number of bytes between each printer name (abs)
 PUBLIC	 SEL_FLG			;AN000; AN000; SELECT runtime flag
 
-EXTRN	 SYSPARSE: FAR;AN000;
-EXTRN	 POS_ZERO: FAR;AN000;
-EXTRN	 COPY_ROUTINE: FAR;AN000;
-EXTRN	 I_PRINTER: WORD;AN000;
-EXTRN	 N_PRINTER_TYPE: BYTE;AN000;
-EXTRN	 S_MODE_PARM: WORD;AN000;
-EXTRN	 S_CP_DRIVER: WORD;AN000;
-EXTRN	 S_CP_PREPARE: WORD;AN000;
-EXTRN	 S_GRAPH_PARM: WORD;AN000;
-EXTRN	 HOOK_INT_24:FAR;AN000;
-EXTRN	 RESTORE_INT_24:FAR;AN000;
-EXTRN	 INT_24_ERROR:WORD;AN000;
+EXTRN	 SYSPARSE: FAR
+EXTRN	 POS_ZERO: FAR
+EXTRN	 COPY_ROUTINE: FAR
+EXTRN	 I_PRINTER: WORD
+EXTRN	 N_PRINTER_TYPE: BYTE
+EXTRN	 S_MODE_PARM: WORD
+EXTRN	 S_CP_DRIVER: WORD
+EXTRN	 S_CP_PREPARE: WORD
+EXTRN	 S_GRAPH_PARM: WORD
+EXTRN	 HOOK_INT_24:FAR
+EXTRN	 RESTORE_INT_24:FAR
+EXTRN	 INT_24_ERROR:WORD
 
 
-EXTRN	 BIN_TO_CHAR_ROUTINE:FAR;AN000;
+EXTRN	 BIN_TO_CHAR_ROUTINE:FAR
 
-DATA	SEGMENT BYTE PUBLIC 'DATA';AN000;
+DATA	SEGMENT BYTE PUBLIC 'DATA'
 
 
 SEL_FLG 	   DB	     0	  ;AN000; Select flag byte
@@ -72,12 +72,12 @@ MAX_NAME	   DW	     0	  ;AN000; The length of the longest printer name found in 
 START_NEXT_LINE    DW	     0	  ;AN000; The starting offset of the next line to parse
 APPEND_POINTER	   DW	     0	  ;AN000; Offset of the ASCII-N string to append to the SELECT line
 FILENAME	   DW	     0	  ;AN000; Offset of the ASCII-N string containing the filename
-CDP_FOUND	   DB	     0	  ;AN000;
-CPP_FOUND	   DB	     0	  ;AN000;
+CDP_FOUND	   DB	     0
+CPP_FOUND	   DB	     0
 
 
-W_VALUE       DW	0	;AN000;
-STRING_N      DB   10 DUP(0);AN000;
+W_VALUE       DW	0
+STRING_N      DB   10 DUP(0)
 
 
 ;AD000;JW BLANK_MODE	     DW   END_BLANK_MODE - $ - 3   ; The blank line for inserting mode parameters
@@ -94,7 +94,7 @@ READ_FLAG	   DB	     0			 ;AN000; Flag for use when reading data
     LAST_LINE	   EQU	     10B		 ;AN000; Indicates if this is the last line in the buffer
 
     RESET_EOF	   EQU	     11111110B		 ;AN000; Masks for resetting the flags
-    RESET_LST_LINE EQU	     11111101B ;AN000;
+    RESET_LST_LINE EQU	     11111101B
 
 PARSE_FLAG	   DB	     0			 ;AN000; Flag for use when parsing the data
     FIRST_PARSE    EQU	     1B 		 ;AN000; Indicates if this is the first line being parsed
@@ -102,8 +102,8 @@ PARSE_FLAG	   DB	     0			 ;AN000; Flag for use when parsing the data
     FIRST_NAME	   EQU	     100B		 ;AN000; Indicates if a printer names has already been found
 
     RESET_FIRST_PARSE	EQU  11111110B		 ;AN000; Masks for resetting the flags
-    RESET_LINE_DONE	EQU  11111101B	   ;AN000;
-    RESET_FIRST_NAME	EQU  11111011B	  ;AN000;
+    RESET_LINE_DONE	EQU  11111101B
+    RESET_FIRST_NAME	EQU  11111011B
 
 ;***************************************************************************
 ; Error codes returned.
@@ -119,15 +119,15 @@ ERR_TOO_MANY_DEFS	EQU	  8		 ;AN000; There are too many defintion in the file
 ERR_NUMBER_MATCH	EQU	  9		 ;AN000; The number of actual definition do not match the number expected
 ERR_ALLOCATING_MEM	EQU	  10		 ;AN000; There was an error allocating memory
 ERR_CDP_CPP		EQU	  11		 ;AN000; A prn defn had either a CDP or CPP but not both
-ERR_PRN_DEFN		EQU	  12  ;AN000;
+ERR_PRN_DEFN		EQU	  12
 
-TRUE			EQU	  1	     ;AN000;
-FALSE			EQU	  0	    ;AN000;
+TRUE			EQU	  1
+FALSE			EQU	  0
 
 
-E_CR			EQU	  13	     ;AN000;
-E_LF			EQU	  10	     ;AN000;
-E_FILE_TERM		EQU	  1AH  ;AN000;
+E_CR			EQU	  13
+E_LF			EQU	  10
+E_FILE_TERM		EQU	  1AH
 
 E_MAX_PRN_NAME_LEN	EQU	  40		 ;AN000; The maximum printer name length
 LENGTH_FILE_PTR 	EQU	  4		 ;AN000; The number of bytes in the file pointer
@@ -147,60 +147,60 @@ SIMPLE_STRING		EQU	  02000H	 ;AN000; Parser constant for searching for strings
 
 ; Control blocks for the parser.
 ;  The PARMS INPUT BLOCK
-PARMS	      LABEL	BYTE	   ;AN000;
+PARMS	      LABEL	BYTE
     PAR_EXTEN	   DW	OFFSET PARMSX	 ;AN000; Offset of the PARMS EXTENSION BLOCK
     PAR_NUM	   DB	2		 ;AN000; The number of further definitions
-		   DB	0	      ;AN000;
-		   DB	1	      ;AN000;
-		   DB	1AH	      ;AN000;
+		   DB	0
+		   DB	1
+		   DB	1AH
 
 ; The PARMS EXTENSION BLOCK
-PARMSX	      LABEL	BYTE;AN000;
-    PAX_MINP	   DB	0  ;AN000;
-    PAX_MAXP	   DB	1  ;AN000;
-		   DW	CONTROL_P1    ;AN000;
-    PAX_MAX_SW	   DB	0;AN000;
-    PAX_MAX_K1	   DB	0;AN000;
+PARMSX	      LABEL	BYTE
+    PAX_MINP	   DB	0
+    PAX_MAXP	   DB	1
+		   DW	CONTROL_P1
+    PAX_MAX_SW	   DB	0
+    PAX_MAX_K1	   DB	0
 
 ; The control blocks for the definition of positional parameters, switch and
 ; keywords.
-CONTROL_P1    EQU  $  ;AN000;
-CTL_FUNC_FL	   DW	2000H;AN000;
-		   DW	0002H	      ;AN000;
-		   DW	RESULT_P1     ;AN000;
-		   DW	VALUE_LIST_P1 ;AN000;
-		   DB	0	      ;AN000;
+CONTROL_P1    EQU  $
+CTL_FUNC_FL	   DW	2000H
+		   DW	0002H
+		   DW	RESULT_P1
+		   DW	VALUE_LIST_P1
+		   DB	0
 
-VALUE_LIST_P1	   EQU	$;AN000;
+VALUE_LIST_P1	   EQU	$
 VAL_NUM 	   DB	1	  ;AN000; Number of value definitions
 		   DB	1	  ;AN000; Number of range definitions
 		   DB	8	  ;AN000; Return value if parameter is in this range
-		   DD	0   ;AN000;
-		   DD	255 ;AN000;
+		   DD	0
+		   DD	255
 		   DB	0	  ;AN000; Number of actual value definitions
 NUM_STRINGS	   DB	2	  ;AN000; Number of string definitions
 		   DB	1	  ;AN000; Value to be returned if this string is matched
-		   DW	OFFSET KEYWORD_PARALLEL;AN000;
+		   DW	OFFSET KEYWORD_PARALLEL
 		   DB	2	  ;AN000; Value to be returned if this string is matched
-		   DW	OFFSET KEYWORD_SERIAL;AN000;
+		   DW	OFFSET KEYWORD_SERIAL
 
 		   DB	3	  ;AN000; Value to be returned if this string is matched
-		   DW	OFFSET KEYWORD_MODE;AN000;
+		   DW	OFFSET KEYWORD_MODE
 		   DB	4	  ;AN000; Value to be returned if this string is matched
-		   DW	OFFSET KEYWORD_CODE_DRIVER;AN000;
+		   DW	OFFSET KEYWORD_CODE_DRIVER
 		   DB	5	  ;AN000; Value to be returned if this string is matched
-		   DW	OFFSET KEYWORD_CODE_PREPARE;AN000;
+		   DW	OFFSET KEYWORD_CODE_PREPARE
 		   DB	6	  ;AN000; Value to be returned if this string is matched
-		   DW	OFFSET KEYWORD_GRAPHICS;AN000;
+		   DW	OFFSET KEYWORD_GRAPHICS
 
-KEYWORD_PARALLEL	DB   'P',0;AN000;
-KEYWORD_SERIAL		DB   'S',0;AN000;
-KEYWORD_MODE		DB   'SP',0;AN000;
-KEYWORD_CODE_DRIVER	DB   'CDP',0;AN000;
-KEYWORD_CODE_PREPARE	DB   'CPP',0;AN000;
-KEYWORD_GRAPHICS	DB   'GP',0;AN000;
+KEYWORD_PARALLEL	DB   'P',0
+KEYWORD_SERIAL		DB   'S',0
+KEYWORD_MODE		DB   'SP',0
+KEYWORD_CODE_DRIVER	DB   'CDP',0
+KEYWORD_CODE_PREPARE	DB   'CPP',0
+KEYWORD_GRAPHICS	DB   'GP',0
 
-RESULT_P1	   LABEL     BYTE;AN000;
+RESULT_P1	   LABEL     BYTE
 		   DB	0	  ;AN000; Type of operand returned
 MATCHED_TAG	   DB	0	  ;AN000; Matched item tag
 SYNONYM_PTR	   DW	0	  ;AN000; Offset of synonym returned
@@ -239,37 +239,37 @@ RESULT_FIELD	   DB	0,0,0,0   ;AN000; Unsure what this is...
 ;***************************************************************************
 ; Parser control blocks for parsing the AUTOEXEC.BAT file for 'SELECT'
 ;***************************************************************************
-SELECT_PARMX  LABEL	BYTE	 ;AN000;
-	      DB   1,1		    ;AN000;
-	      DW   SELECT_CONTROL   ;AN000;
-	      DB   0		    ;AN000;
-	      DB   0		    ;AN000;
+SELECT_PARMX  LABEL	BYTE
+	      DB   1,1
+	      DW   SELECT_CONTROL
+	      DB   0
+	      DB   0
 
-SELECT_CONTROL	   LABEL     BYTE;AN000;
-	      DW   2000H	    ;AN000;
-	      DW   2		    ;AN000;
-	      DW   RESULT_P1	    ;AN000;
-	      DW   SELECT_VALUE     ;AN000;
-	      DB   0		    ;AN000;
+SELECT_CONTROL	   LABEL     BYTE
+	      DW   2000H
+	      DW   2
+	      DW   RESULT_P1
+	      DW   SELECT_VALUE
+	      DB   0
 
-SELECT_VALUE  LABEL	BYTE	 ;AN000;
-	      DB   3		    ;AN000;
-	      DB   0		    ;AN000;
-	      DB   0		    ;AN000;
-	      DB   1		    ;AN000;
-	      DB   1		    ;AN000;
-	      DW   OFFSET SELECT_STR;AN000;
+SELECT_VALUE  LABEL	BYTE
+	      DB   3
+	      DB   0
+	      DB   0
+	      DB   1
+	      DB   1
+	      DW   OFFSET SELECT_STR
 
-SELECT_STR    DB   'SELECT',0;AN000;
+SELECT_STR    DB   'SELECT',0
 ALLOC_FLAG    DB   0
 ALLOCATED     EQU  80H
 
 
-DATA	ENDS			;AN000;
+DATA	ENDS
 
-CODE_FAR SEGMENT BYTE PUBLIC 'CODE';AN000;
+CODE_FAR SEGMENT BYTE PUBLIC 'CODE'
 
-	ASSUME	CS:CODE_FAR, DS:DATA, ES:DATA;AN000;
+	ASSUME	CS:CODE_FAR, DS:DATA, ES:DATA
 
 ;***************************************************************************
 ; Routines for extracting the printer names from the file data and storing
@@ -297,13 +297,13 @@ CODE_FAR SEGMENT BYTE PUBLIC 'CODE';AN000;
 ;	  AX, BX - Undefined.
 ;
 ;******************************************************************************
-GET_PRINTER_TITLES_ROUTINE   PROC FAR		 ;AN000;
+GET_PRINTER_TITLES_ROUTINE   PROC FAR
 						 ;
-    CALL HOOK_INT_24				 ;AN000;
+    CALL HOOK_INT_24
 ;;  int 3
 ;;  nop
 
-    PUSH ES					 ;AN000;
+    PUSH ES
     ;**********************************************************************
     ; Allocate the necessary memory for the buffer.  A maximum of 64K is
     ; allocated.
@@ -311,14 +311,14 @@ GET_PRINTER_TITLES_ROUTINE   PROC FAR		 ;AN000;
     CALL ALLOCATE_MEMORY			 ;AN000; Allocate the memory for the printer data
     .IF < C >					 ;AN000; Was there an error?
 	 JMP  EXIT_WITH_ERROR			 ;AN000; If so, exit the subroutine
-    .ENDIF					 ;AN000;
+    .ENDIF
     ;**********************************************************************
     ; See if there is enough memory to continue.
     ;**********************************************************************
     .IF < SEGMENT_SIZE B MINIMUM_MEMORY>	 ;AN000; Is there enough memory?
 	 MOV  BX, ERR_NOT_ENOUGH_MEM		 ;AN000; No! Return error code.
 	 JMP  EXIT_WITH_ERROR			 ;AN000; Exit the subroutine
-    .ENDIF					 ;AN000;
+    .ENDIF
     ;**********************************************************************
     ; Set the pointer for the file data buffer and save the size of this buffer.
     ;**********************************************************************
@@ -330,16 +330,16 @@ GET_PRINTER_TITLES_ROUTINE   PROC FAR		 ;AN000;
     ;**********************************************************************
     ; Open the printer definition file.
     ;**********************************************************************
-    MOV  INT_24_ERROR, 0			 ;AN000;
+    MOV  INT_24_ERROR, 0
     CALL POS_ZERO				 ;AN000; Turn the ASCII-N string into an ASCII-Z string
     MOV  DX, DI 				 ;AN000; Get address of the ASCII-N string
     ADD  DX, 2					 ;AN000; Address of the filename
     MOV  AX, 3D00H				 ;AN000; Open file for reading.
-    DOSCALL					 ;AN000;
+    DOSCALL
     .IF < C >					 ;AN000; Was there an error opening the file?
 	 MOV  BX, ERR_OPENING_FILE		 ;AN000; Yes! Return this error code
-	 JMP  EXIT_WITH_ERROR			 ;AN000;
-    .ENDIF					 ;AN000;
+	 JMP  EXIT_WITH_ERROR
+    .ENDIF
     MOV  FILE_HANDLE, AX			 ;AN000; Save the handle for the file
     ;**********************************************************************
     ; Initialize the variable which holds the file pointer at the beginning
@@ -357,7 +357,7 @@ GET_PRINTER_TITLES_ROUTINE   PROC FAR		 ;AN000;
     .IF < C >					 ;AN000; Was there an error reading from the file?
 	 MOV  BX, ERR_READING_FILE		 ;AN000; Return this error code
 	 JMP  EXIT_WITH_ERROR			 ;AN000; Return from this subroutine
-    .ENDIF					 ;AN000;
+    .ENDIF
     ;**********************************************************************
     ; Initialize the variables needed for the parsing.
     ;**********************************************************************
@@ -383,22 +383,22 @@ GET_PRINTER_TITLES_ROUTINE   PROC FAR		 ;AN000;
     ; is not, then read more data into the buffer starting with the start of
     ; the current line.
     ;**********************************************************************
-PARSE_NEXT_LINE:				 ;AN000;
+PARSE_NEXT_LINE:
     CALL SEARCH_LINE				 ;AN000; Search for the first parameter on the line
     .IF < C >					 ;AN000; Was there an error?
 	 JMP  EXIT_WITH_ERROR			 ;AN000; Yes! Exit the routine
-    .ENDIF					 ;AN000;
+    .ENDIF
     .IF < BIT PARSE_FLAG AND FIRST_PARSE >	 ;AN000; Looking for a value or a string?
 	 .IF < AX NE 0 >			 ;AN000; Was there an error?
 	      MOV  BX, ERR_FINDING_VALUE	 ;AN000; Yes! Return with this error code
-	      JMP  EXIT_WITH_ERROR		 ;AN000;
-	 .ENDIF 				 ;AN000;
+	      JMP  EXIT_WITH_ERROR
+	 .ENDIF
 	 MOV  AL, RESULT_FIELD			 ;AN000; Get the low order byte of the value
 	 MOV  NUM_PRINTER_DEFS, AL		 ;AN000; Store the number of definitions
 	 AND  PARSE_FLAG, RESET_FIRST_PARSE	 ;AN000; Indicate the first parse is finished
 	 MOV  VAL_NUM, RANGE_AND_STRING 	 ;AN000; Specify strings and ranges
 	 MOV  CTL_FUNC_FL, SIMPLE_STRING	 ;AN000; Look for specific strings only.
-    .ENDIF					 ;AN000;
+    .ENDIF
     ;**********************************************************************
     ; See if we found a printer name
     ;**********************************************************************
@@ -406,14 +406,14 @@ PARSE_NEXT_LINE:				 ;AN000;
 	 .IF < N_PRN_NAMES AE MAX_NUM_PRINTER_DEFS >	 ;AN000; Are there more the 255 printer defs?
 	      MOV  BX, ERR_TOO_MANY_DEFS	 ;AN000; If so, return this error.
 	      JMP  EXIT_WITH_ERROR		 ;AN000; Terminate the subroutine.
-	 .ENDIF 		     ;AN000;
+	 .ENDIF
 						 ; DX contains the address of the result block
 	 CALL COPY_PRINTER_NAME 		 ;AN000; Copy the name to the table
 	 .IF < C >				 ;AN000; Was there an error?
 	      MOV  BX, ERR_FINDING_NAME 	 ;AN000; Yes! Return this error code
-	      JMP  EXIT_WITH_ERROR		 ;AN000;
-	 .ENDIF 				 ;AN000;
-    .ENDIF					 ;AN000;
+	      JMP  EXIT_WITH_ERROR
+	 .ENDIF
+    .ENDIF
     ;**********************************************************************
     ; Start scanning the next line.
     ;**********************************************************************
@@ -421,26 +421,26 @@ PARSE_NEXT_LINE:				 ;AN000;
     MOV  CURRENT_PARSE_LOC, DI			 ;AN000; Save it
     .IF < CURRENT_PARSE_LOC EQ 0 >		 ;AN000; Is there more data?
 	 JMP  EXIT_WITHOUT_ERROR		 ;AN000; No! Exit the routine
-    .ENDIF		    ;AN000;
+    .ENDIF
     JMP  PARSE_NEXT_LINE			 ;AN000; Start processing this line
 						 ;
-EXIT_WITH_ERROR:				 ;AN000;
+EXIT_WITH_ERROR:
     STC 					 ;AN000; Set the carry flag, indicating error.
-    JMP  EXIT_ROUTINE				 ;AN000;
-EXIT_WITHOUT_ERROR:				 ;AN000;
+    JMP  EXIT_ROUTINE
+EXIT_WITHOUT_ERROR:
     MOV  CX, N_PRN_NAMES			 ;AN000; The number of entries in the table
     .IF < CL NE NUM_PRINTER_DEFS >		 ;AN000; Did the number of definitions agree with the expected number?
 	 MOV  BX, ERR_NUMBER_MATCH		 ;AN000; Return this error message
 	 JMP  EXIT_WITH_ERROR			 ;AN000; Return, setting the carry flag.
-    .ENDIF		  ;AN000;
+    .ENDIF
     CLC 					 ;AN000; Clear the carry flag - No error.
-EXIT_ROUTINE:					 ;AN000;
+EXIT_ROUTINE:
     CALL DEALLOCATE_MEMORY
-    POP  ES					 ;AN000;
-    CALL RESTORE_INT_24;AN000;
-    RET 					 ;AN000;
+    POP  ES
+    CALL RESTORE_INT_24
+    RET
 						 ;
-GET_PRINTER_TITLES_ROUTINE   ENDP		 ;AN000;
+GET_PRINTER_TITLES_ROUTINE   ENDP
 ;********************************************************************************
 ;
 ;SEARCH_LINE: Search for the first parameter on a line.
@@ -457,7 +457,7 @@ GET_PRINTER_TITLES_ROUTINE   ENDP		 ;AN000;
 ;OPERATION:
 ;
 ;********************************************************************************
-SEARCH_LINE   PROC NEAR 	    ;AN000;
+SEARCH_LINE   PROC NEAR
 
     MOV  DI, CURRENT_PARSE_LOC			 ;AN000; Get the current location in the buffer
     CALL SCAN_FOR_EOLN				 ;AN000; Search for the end of the line
@@ -472,7 +472,7 @@ SEARCH_LINE   PROC NEAR 	    ;AN000;
 	      .IF < C > 			 ;AN000; Was there an error reading from the file?
 		   MOV	BX, ERR_READING_FILE	 ;AN000; Return this error code
 		   JMP	EXIT_SEARCH_ERROR	 ;AN000; Return from this subroutine
-	      .ENDIF				 ;AN000;
+	      .ENDIF
 	      MOV  CURRENT_PARSE_LOC, NAMES_TABLE_SIZE ;AN000; Start back at the beginning of the buffer
 	      MOV  DI, CURRENT_PARSE_LOC	 ;AN000; Get the current parse location again.
 	      CALL SCAN_FOR_EOLN		 ;AN000; Once again look for the end of the line
@@ -480,32 +480,32 @@ SEARCH_LINE   PROC NEAR 	    ;AN000;
 	      .IF < C > 			 ;AN000; Was it found?
 		   MOV	BX, ERR_LINE_TOO_LONG	 ;AN000; No! Indicate an error.
 		   JMP	EXIT_SEARCH_ERROR	 ;AN000; Return with this error
-	      .ENDIF				 ;AN000;
-	 .ENDIF 				 ;AN000;
-    .ENDIF					 ;AN000;
+	      .ENDIF
+	 .ENDIF
+    .ENDIF
     ;**********************************************************************
     ; Set up the input parameters for the parse subroutine
     ;**********************************************************************
     MOV  DI, OFFSET PARMS			 ;AN000; Offset into ES of the PARMS control block
     MOV  SI, CURRENT_PARSE_LOC			 ;AN000; Where to start parsing
-    MOV  DX, 0					 ;AN000;
+    MOV  DX, 0
     MOV  CX, CX_ORDINAL_VALUE			 ;AN000; The value returned by the parse last time.
     PUSH DS					 ;AN000; Save the current data segment
     PUSH ES					 ;AN000; Save the file data segment
     MOV  AX, SEG DATA				 ;AN000; Get the current data segment
     MOV  ES, AX 				 ;AN000; This is the parser control blocks.
     MOV  AX, SEG_LOC			;AN000; Where the data to parse is located
-    MOV  DS, AX 				 ;AN000;
+    MOV  DS, AX
     CALL SYSPARSE				 ;AN000; Do the parsing
     POP  ES					 ;AN000; Restore the file data segment
     POP  DS					 ;AN000; Restore the data segment
     CLC 					 ;AN000; Indicate there were no errors
-    RET 					 ;AN000;
+    RET
 EXIT_SEARCH_ERROR:				 ;AN000; Here if there were errors
     STC 					 ;AN000; Indicate so to the calling program
-    RET 					 ;AN000;
+    RET
 
-SEARCH_LINE   ENDP;AN000;
+SEARCH_LINE   ENDP
 ;********************************************************************************
 ; ALLOCATE_MEMORY: Allocate a maximum of 64K of memory.
 ;
@@ -521,7 +521,7 @@ SEARCH_LINE   ENDP;AN000;
 ; Operation:
 ;
 ;********************************************************************************
-ALLOCATE_MEMORY    PROC NEAR;AN000;
+ALLOCATE_MEMORY    PROC NEAR
 
     AND  ALLOC_FLAG,NOT ALLOCATED
     MOV  BX, 0FFFH				 ;AN000; Try to allocate this amount of memory
@@ -532,7 +532,7 @@ ALLOCATE_MEMORY    PROC NEAR;AN000;
 	 MOV  SEGMENT_SIZE, BX			 ;AN000; Save the size asked for in this request
 	 MOV  AH, 48H				 ;AN000; DOS Fn. for allocating memory
 	 DOSCALL				 ;AN000; Allocate the memory
-    .ENDIF					 ;AN000;
+    .ENDIF
     .IF < C >					 ;AN000; Was there an error allocating the memory?
 	 MOV  BX, ERR_ALLOCATING_MEM		 ;AN000; Yes! Return an error code
 	 STC					 ;AN000; Indicate that there was an error
@@ -543,10 +543,10 @@ ALLOCATE_MEMORY    PROC NEAR;AN000;
 	 SHL  SEGMENT_SIZE, CL			 ;AN000;  to get the number of bytes.
 	 OR   ALLOC_FLAG,ALLOCATED
 	 CLC					 ;AN000; Indicate there was no error
-    .ENDIF					 ;AN000;
-    RET 					 ;AN000;
+    .ENDIF
+    RET
 
-ALLOCATE_MEMORY    ENDP;AN000;
+ALLOCATE_MEMORY    ENDP
 
 
 ;********************************************************************************
@@ -591,7 +591,7 @@ DEALLOCATE_MEMORY ENDP
 ;    If CY = 1: The end of the line was not found.
 ;
 ;*******************************************************************************
-SCAN_FOR_EOLN PROC NEAR;AN000;
+SCAN_FOR_EOLN PROC NEAR
 
     MOV  CX, BUFFER_START			 ;AN000; The offset in the segment of the buffer
     ADD  CX, AMOUNT_OF_DATA			 ;AN000; Get the offset of the end of the data
@@ -599,39 +599,39 @@ SCAN_FOR_EOLN PROC NEAR;AN000;
 						 ; CX - Contains the amount of data after pointer
     MOV  AL, 0					 ;AN000; Flag to indicate CR-LF has not been found yet
     .WHILE < CX A 0 >				 ;AN000; Search until the end of the data
-	 .IF < <BYTE PTR ES:[DI]> EQ E_FILE_TERM >;AN000;
-	      .IF < ZERO AL >	 ;AN000;
+	 .IF < <BYTE PTR ES:[DI]> EQ E_FILE_TERM >
+	      .IF < ZERO AL >
 		   MOV	END_CUR_LINE, DI	 ;AN000; Save this location in the string
 		   DEC	END_CUR_LINE		 ;AN000; Point to the real end of the line
-	      .ENDIF	       ;AN000;
-	      STC	       ;AN000;
-	      MOV  DI, 0       ;AN000;
-	      JMP  EXIT_SCAN   ;AN000;
-	 .ENDIF 	       ;AN000;
+	      .ENDIF
+	      STC
+	      MOV  DI, 0
+	      JMP  EXIT_SCAN
+	 .ENDIF
 	 .IF < <BYTE PTR ES:[DI]> EQ E_LF > OR	 ;AN000; Is this character a CR or a LF?
-	 .IF < <BYTE PTR ES:[DI]> EQ E_CR >	;AN000;
+	 .IF < <BYTE PTR ES:[DI]> EQ E_CR >
 	      .IF < ZERO AL >			 ;AN000; Has a CR or a LF already been found?
 		   MOV	END_CUR_LINE, DI	 ;AN000; Save this location in the string
 		   DEC	END_CUR_LINE		 ;AN000; Point to the real end of the line
-	      .ENDIF	       ;AN000;
+	      .ENDIF
 	      INC  AL				 ;AN000; Indicate that a CR or a LF has been found
 	 .ELSEIF < NONZERO AL > 		 ;AN000; If we have passed the CR-LF,
 	      CLC				 ;AN000;  Indicate we have found EOLN
 	      JMP  EXIT_SCAN			 ;AN000; Leave the subroutine
-	 .ENDIF 		;AN000;
+	 .ENDIF
 	 DEC  CX				 ;AN000; One less character to the end
 	 INC  DI				 ;AN000; Point to the next character
-    .ENDWHILE ;AN000;
+    .ENDWHILE
 
     .IF < AL AE 2 >				 ;AN000; Does the data run out right after the CR-LF?
 	 MOV  DI, 0				 ;AN000; Return 0 indicating so.
-    .ENDIF	 ;AN000;
+    .ENDIF
     STC 					 ;AN000; Indicate that the whole line is not there
 
-EXIT_SCAN:    ;AN000;
-    RET       ;AN000;
+EXIT_SCAN:
+    RET
 
-SCAN_FOR_EOLN ENDP;AN000;
+SCAN_FOR_EOLN ENDP
 ;*******************************************************************************
 ;
 ; Routine: COPY_PRINTER_NAME - Copy the name of the printer from the file
@@ -655,10 +655,10 @@ SCAN_FOR_EOLN ENDP;AN000;
 ;	  is cleared.
 ;
 ;*******************************************************************************
-COPY_PRINTER_NAME  PROC NEAR;AN000;
+COPY_PRINTER_NAME  PROC NEAR
 
-    PUSH DS   ;AN000;
-    PUSH ES   ;AN000;
+    PUSH DS
+    PUSH ES
     PUSH DX					 ;AN000; Save the address of the result block
     ;**********************************************************************
     ; Calculate the offset into the file data table for this entry
@@ -674,9 +674,9 @@ COPY_PRINTER_NAME  PROC NEAR;AN000;
     MOV  AL, DS:[BX+1]				 ;AN000; Get the matched item tag
     .IF < AL EQ 1 >				 ;AN000; Was the parameter a P?
 	 MOV  AL, 'P'                            ;AN000; Yes!
-    .ELSE					 ;AN000;
+    .ELSE
 	 MOV  AL, 'S'                            ;AN000; No! It was an S
-    .ENDIF					 ;AN000;
+    .ENDIF
     MOV  ES:[DI+40], AL 			 ;AN000; Store in the table
     ;**********************************************************************
     ; Skip the spaces between the printer type indicator and the printer name
@@ -700,23 +700,23 @@ COPY_PRINTER_NAME  PROC NEAR;AN000;
     INC  CX					 ;AN000; Get the length of the line
     .IF < CX A E_MAX_PRN_NAME_LEN >		 ;AN000; Is the length of the line too long?
 	 MOV  CX, E_MAX_PRN_NAME_LEN		 ;AN000; Yes! Make the line length the maximum size
-    .ENDIF					 ;AN000;
+    .ENDIF
     MOV  DX, CX 				 ;AN000; Save the line length for later use
     .WHILE < NONZERO CX >			 ;AN000; Do while there are more characters in the string
 	 MOV  AL, BYTE PTR ES:[SI]		 ;AN000; Get a character from the file data
 	 .IF < AL NE 32 >			 ;AN000; Is this character a space?
 	      MOV  BX, DX			 ;AN000; Get the line length
 	      SUB  BX, CX			 ;AN000; Get the length of the line copied so far
-	      INC  BX				 ;AN000;
+	      INC  BX
 	      .IF < MAX_NAME B BX >	     ;AN000; Is this name longer than the longest so far?
 		   MOV	MAX_NAME, BX	     ;AN000; Yes! This is the new maximum
-	      .ENDIF		  ;AN000;
-	 .ENDIF 		  ;AN000;
+	      .ENDIF
+	 .ENDIF
 	 MOV  BYTE PTR ES:[DI], AL		 ;AN000; Put the character in the names table
 	 INC  SI				 ;AN000; Increment string pointers
-	 INC  DI     ;AN000;
+	 INC  DI
 	 DEC  CX				 ;AN000; Decrement the number of characters left
-    .ENDWHILE ;AN000;
+    .ENDWHILE
     ;***********************************************************************
     ; Fill in the rest of the name area with spaces
     ;***********************************************************************
@@ -738,16 +738,16 @@ COPY_PRINTER_NAME  PROC NEAR;AN000;
     MOV  WORD PTR ES:[DI], CX			 ;AN000; Store the low order word in the list
     MOV  WORD PTR ES:[DI+2], DX 		 ;AN000; Store the high order word
     INC  N_PRN_NAMES			  ;AN000; Point to the next free area in the list
-    CLC 		 ;AN000;
-    JMP  EXIT_COPY	 ;AN000;
-NAME_NOT_FOUND: 	 ;AN000;
-    STC 		 ;AN000;
-EXIT_COPY:		 ;AN000;
-    POP  ES		 ;AN000;
-    POP  DS		 ;AN000;
-    RET 		 ;AN000;
+    CLC
+    JMP  EXIT_COPY
+NAME_NOT_FOUND:
+    STC
+EXIT_COPY:
+    POP  ES
+    POP  DS
+    RET
 
-COPY_PRINTER_NAME  ENDP  ;AN000;
+COPY_PRINTER_NAME  ENDP
 
 ;*******************************************************************************
 ; Routine: READ_FROM_HERE - Read from the file into the buffer starting from
@@ -762,7 +762,7 @@ COPY_PRINTER_NAME  ENDP  ;AN000;
 ; Operation:
 ;
 ;*******************************************************************************
-READ_FROM_HERE	   PROC NEAR;AN000;
+READ_FROM_HERE	   PROC NEAR
 						 ;
     ;**********************************************************************
     ; Update the R/W pointer in the file.
@@ -773,13 +773,13 @@ READ_FROM_HERE	   PROC NEAR;AN000;
     ADC  CX, 0					 ;AN000; Take care of the carry condition
     MOV  WORD PTR FILE_PTR_AT_START, DX 	 ;AN000; Store the new starting position
     MOV  WORD PTR FILE_PTR_AT_START[2], CX	 ;AN000; Store the high word of pointer
-    MOV  INT_24_ERROR, 0			 ;AN000;
+    MOV  INT_24_ERROR, 0
     MOV  AX, 4200H				 ;AN000; DOS Function for moving the file pointer
     MOV  BX, FILE_HANDLE			 ;AN000; Load the file handle
     DOSCALL					 ;AN000; Move the file pointer
     .IF < C >					 ;AN000; Was an error encountered?
 	 JMP  RETURN_WITH_ERROR 		 ;AN000; Yes! Exit the subroutine.
-    .ENDIF					 ;AN000;
+    .ENDIF
     ;**********************************************************************
     ; Read from the file into the data buffer
     ;**********************************************************************
@@ -801,15 +801,15 @@ READ_FROM_HERE	   PROC NEAR;AN000;
 	 OR   READ_FLAG, AT_EOF 		 ;AN000; Yes! Indicate that we are at EOF
 ;	 MOV  DI, AX				 ; Move number of characters into an index pointer
 ;	 MOV  BYTE PTR ES:[DI+NAMES_TABLE_SIZE], 00   ; Place a terminator at the end
-    .ENDIF		    ;AN000;
-    CLC 		    ;AN000;
-    RET 		    ;AN000;
+    .ENDIF
+    CLC
+    RET
 
-RETURN_WITH_ERROR:	    ;AN000;
-    STC 		    ;AN000;
-    RET 		    ;AN000;
+RETURN_WITH_ERROR:
+    STC
+    RET
 
-READ_FROM_HERE	   ENDP      ;AN000;
+READ_FROM_HERE	   ENDP
 
 ;********************************************************************************
 ; Routines for extracting all the information supplied in the profile for a
@@ -855,11 +855,11 @@ READ_FROM_HERE	   ENDP      ;AN000;
 ;   The first printer name has an index of 1.
 ;
 ;******************************************************************************
-GET_PRINTER_INFO_ROUTINE     PROC FAR;AN000;
+GET_PRINTER_INFO_ROUTINE     PROC FAR
 
 
 
-    CALL HOOK_INT_24				 ;AN000;
+    CALL HOOK_INT_24
 
 
 
@@ -885,48 +885,48 @@ GET_PRINTER_INFO_ROUTINE     PROC FAR;AN000;
     ;**********************************************************************
     .IF < DX B <WORD PTR FILE_PTR_AT_START+2>>	 ;AN000; Compare the high order words
 	 JMP  READ_MORE_INFORMATION		 ;AN000; Info in buffer is passed where we want.
-    .ELSE					 ;AN000;
+    .ELSE
 	 .IF < DX EQ < WORD PTR FILE_PTR_AT_START+2>> AND ;AN000; High words equal so
 	 .IF < CX B <WORD PTR FILE_PTR_AT_START>>	  ;AN000; compare the low order words
 	      JMP  READ_MORE_INFORMATION	 ;AN000; Info in buffer is passed where we want.
-	 .ENDIF 			  ;AN000;
-    .ENDIF			   ;AN000;
+	 .ENDIF
+    .ENDIF
     MOV  BX, WORD PTR FILE_PTR_AT_START+2	 ;AN000; File location at beginning of buffer
     MOV  SI, WORD PTR FILE_PTR_AT_START 	 ;AN000; Low order word
     ADD  SI, AMOUNT_OF_DATA			 ;AN000; Get the file pointer of the end of the buffer
     ADC  BX, 0					 ;AN000; Add in the high word
     .IF < DX A BX >				 ;AN000; If data we want is further in the file,
 	 JMP  READ_MORE_INFORMATION		 ;AN000; Read in more data
-    .ELSE		       ;AN000;
+    .ELSE
 	 .IF < DX EQ BX > AND			 ;AN000; If the high words are equal do the
 	 .IF < CX A SI >			 ;AN000; comparison on the low order words
 	      JMP  READ_MORE_INFORMATION	 ;AN000; Still not there, so read more info
-	 .ENDIF 			  ;AN000;
-    .ENDIF			   ;AN000;
+	 .ENDIF
+    .ENDIF
     MOV  AX, I_PRINTER				 ;AN000; Get the index of this printer name
     .IF < AL EQ NUM_PRINTER_DEFS >		 ;AN000; Is this the last one in the list?
 	 .IF < BIT READ_FLAG AND AT_EOF >	 ;AN000; If it is, and all the data has been read, process it
-	      JMP  PARSE_HERE		   ;AN000;
-	 .ELSE				   ;AN000;
+	      JMP  PARSE_HERE
+	 .ELSE
 	      JMP  READ_MORE_INFORMATION	 ;AN000; Not EOF, so read in more data just for safety
-	 .ENDIF 			  ;AN000;
-    .ENDIF			   ;AN000;
+	 .ENDIF
+    .ENDIF
     MOV  CX, WORD PTR ES:[DI+SIZE_NAMES+41] ;AN000; Get the pointer to the NEXT printer name
     MOV  DX, WORD PTR ES:[DI+SIZE_NAMES+43] ;AN000; Get the high order word
     .IF < DX A BX >				 ;AN000; See if the next printer name is in the buffer
 	 JMP  READ_MORE_INFORMATION		 ;AN000; If not, get more information
-    .ELSE		       ;AN000;
+    .ELSE
 	 .IF < DX EQ BX > AND			 ;AN000; If the high order words are equal,
 	 .IF < CX A SI >			 ;AN000; Compare the low order.  Is the name there?
 	      JMP  READ_MORE_INFORMATION	 ;AN000; If not, read more.
-	 .ENDIF 			  ;AN000;
-    .ENDIF			   ;AN000;
+	 .ENDIF
+    .ENDIF
     JMP  PARSE_HERE				 ;AN000; The necessary info is there, so parse it.
     ;**********************************************************************
     ; The specified printer information is not currently in the buffer.  It
     ; is necessary to read it from the printer profile file.
     ;**********************************************************************
-READ_MORE_INFORMATION:				 ;AN000;
+READ_MORE_INFORMATION:
     MOV  CX, WORD PTR ES:[DI+43]		 ;AN000; Get the file pointer of this printer name
     MOV  DX, WORD PTR ES:[DI+41]		 ;AN000; Get the low order word of pointer
     MOV  INT_24_ERROR, 0			 ;AN000; Indicate that no critical errors have occured yet
@@ -936,7 +936,7 @@ READ_MORE_INFORMATION:				 ;AN000;
     .IF < C >					 ;AN000; If CY = 1, there was an error
 	 MOV  BX, ERR_ACCESSING_FILE		 ;AN000; Return this error code
 	 JMP  ERROR_EXIT			 ;AN000; Jump to exit routine
-    .ENDIF	     ;AN000;
+    .ENDIF
     MOV  WORD PTR FILE_PTR_AT_START, AX 	 ;AN000; Set the new pointer at the beginning of the buffer
     MOV  WORD PTR FILE_PTR_AT_START+2, DX	 ;AN000; Set the high order word
     MOV  AH, 3FH				 ;AN000; DOS Fn. for reading from a file
@@ -949,30 +949,30 @@ READ_MORE_INFORMATION:				 ;AN000;
     POP  DS					 ;AN000; Load DS with the segment where to store the data
     DOSCALL					 ;AN000; Read in the data
     POP  DS					 ;AN000; Restore the data segment
-    .IF < C >	 ;AN000;
-	 MOV  BX, ERR_READING_FILE;AN000;
-	 JMP  ERROR_EXIT;AN000;
-    .ENDIF	 ;AN000;
+    .IF < C >
+	 MOV  BX, ERR_READING_FILE
+	 JMP  ERROR_EXIT
+    .ENDIF
     .IF < AX NE BUFFER_SIZE >			 ;AN000; Were less bytes read then asked for?
 	 OR   READ_FLAG, AT_EOF 		 ;AN000; If so, then we are at the end of file
     .ELSE					 ;AN000; Otherwise...
 	 AND  READ_FLAG, RESET_EOF		 ;AN000; We are not at end of file
-    .ENDIF		      ;AN000;
+    .ENDIF
     MOV  AMOUNT_OF_DATA, AX			 ;AN000; Save the amount of data actually read
     ;**********************************************************************
     ; The printer data is in the data buffer.  Begin to parse the data.
     ;**********************************************************************
-PARSE_HERE:		       ;AN000;
-    MOV  CDP_FOUND, FALSE      ;AN000;
-    MOV  CPP_FOUND, FALSE      ;AN000;
+PARSE_HERE:
+    MOV  CDP_FOUND, FALSE
+    MOV  CPP_FOUND, FALSE
     PUSH DI					 ;AN000; Save the pointer into the names table
     ;**********************************************************************
     ; Load the printer profile fields with defaults.
     ;**********************************************************************
-    COPY_STRING    S_MODE_PARM, 40, BLANK_STRING  ;AC000;JW
-    COPY_STRING    S_CP_DRIVER, 22, BLANK_STRING  ;AN000;
-    COPY_STRING    S_CP_PREPARE, 12, BLANK_STRING ;AN000;
-    COPY_STRING    S_GRAPH_PARM, 20, BLANK_STRING ;AN000;
+    COPY_STRING    S_MODE_PARM, 40, BLANK_STRING
+    COPY_STRING    S_CP_DRIVER, 22, BLANK_STRING
+    COPY_STRING    S_CP_PREPARE, 12, BLANK_STRING
+    COPY_STRING    S_GRAPH_PARM, 20, BLANK_STRING
     POP  DI					 ;AN000; Restore the pointer into the names table
     ;**********************************************************************
     ; Get the type of printer.
@@ -988,8 +988,8 @@ PARSE_HERE:		       ;AN000;
     SBB  CX, WORD PTR FILE_PTR_AT_START 	 ;AN000; Subtract the low order words
     ADD  CX, BUFFER_START			 ;AN000; Get the offset of the start of the definition
     MOV  CURRENT_PARSE_LOC, CX			 ;AN000; Save as the scan position
-    OR	 PARSE_FLAG, FIRST_NAME    ;AN000;
-PARSE_NEXT_PARM:		  ;AN000;
+    OR	 PARSE_FLAG, FIRST_NAME
+PARSE_NEXT_PARM:
     MOV  DI, CURRENT_PARSE_LOC			 ;AN000; Get the current scan position
     CALL SCAN_FOR_EOLN				 ;AN000; Search for the end of this line
     MOV  START_NEXT_LINE, DI			 ;AN000; Save the position of the start of the next line
@@ -1003,65 +1003,65 @@ PARSE_NEXT_PARM:		  ;AN000;
     MOV  AX, SEG DATA				 ;AN000; Get the current data segment
     MOV  ES, AX 				 ;AN000; This is the parser control blocks.
     MOV  AX, SEG_LOC				 ;AN000; Where the data to parse is located
-    MOV  DS, AX 				 ;AN000;
+    MOV  DS, AX
     CALL SYSPARSE				 ;AN000; Do the parsing
     POP  ES					 ;AN000; Restore the file data segment
     POP  DS					 ;AN000; Restore the data segment
     .IF < AX EQ 0FFFFH >			 ;AN000; Was the end of the line found?
 	 JMP  UPDATE_PARSE_PTR			 ;AN000; If so, start the next one
     .ELSEIF < NONZERO AX >			 ;AN000; Was an error encountered parsing the line?
-	 MOV  BX, ERR_PRN_DEFN	     ;AN000;
+	 MOV  BX, ERR_PRN_DEFN
 	 JMP  ERROR_EXIT			 ;AN000; If so, exit the subroutine
-    .ENDIF	     ;AN000;
+    .ENDIF
     MOV  AL, MATCHED_TAG			 ;AN000; Get which string was matched
     .IF < AL EQ 1 > OR				 ;AN000; Was this a printer name and type?
-    .IF < AL EQ 2 >	   ;AN000;
+    .IF < AL EQ 2 >
 	 .IF < BIT PARSE_FLAG AND FIRST_NAME >	 ;AN000; Is this the first name encountered?
 	      AND  PARSE_FLAG, RESET_FIRST_NAME  ;AN000; Indicate that the a name has been found
 	 .ELSE					 ;AN000; Otherwise...
 	      JMP  PARSING_DONE 		 ;AN000; This is the second name.  We are finished.
-	 .ENDIF 		   ;AN000;
+	 .ENDIF
     .ELSEIF < AL EQ 3 > 			 ;AN000; AL = 3 ==> Mode parameters
 	 CALL HANDLE_MODE			 ;AN000; Process
     .ELSEIF < AL EQ 4 > 			 ;AN000; AL = 4 ==> Code page driver parameters
-	 MOV  CDP_FOUND, TRUE	   ;AN000;
+	 MOV  CDP_FOUND, TRUE
 	 CALL HANDLE_CODE_DRIVER		 ;AN000; Process
     .ELSEIF < AL EQ 5 > 			 ;AN000; AL = 5 ==> Code page preparation parameters
-	 MOV  CPP_FOUND, TRUE	   ;AN000;
+	 MOV  CPP_FOUND, TRUE
 	 CALL HANDLE_CODE_PREPARE		 ;AN000; Process
     .ELSEIF < AL EQ 6 > 			 ;AN000; AL = 6 ==> Graphics parameters
 	 CALL HANDLE_GRAPHICS			 ;AN000; Process
-    .ENDIF		  ;AN000;
+    .ENDIF
     ;**********************************************************************
     ; The current line has been parsed.  Point to the next line.
     ;**********************************************************************
-UPDATE_PARSE_PTR:	  ;AN000;
+UPDATE_PARSE_PTR:
     MOV  AX, START_NEXT_LINE			 ;AN000; Get the address of the start of the next line
     MOV  CURRENT_PARSE_LOC, AX			 ;AN000; Save this as the start of the current line
     .IF < CURRENT_PARSE_LOC EQ 0 >		 ;AN000; Is there any more data?
 	 JMP  PARSING_DONE			 ;AN000; No. Exit the routine
-    .ENDIF					 ;AN000;
+    .ENDIF
     JMP  PARSE_NEXT_PARM			 ;AN000; Start the parsing again
     ;**********************************************************************
     ; The subroutine is finished.
     ;**********************************************************************
-PARSING_DONE:		    ;AN000;
-    MOV  AL, CDP_FOUND	    ;AN000;
-    XOR  AL, CPP_FOUND	    ;AN000;
-    .IF < NZ >		    ;AN000;
-	 MOV  BX, ERR_CDP_CPP	   ;AN000;
-	 JMP  ERROR_EXIT	   ;AN000;
-    .ENDIF		    ;AN000;
+PARSING_DONE:
+    MOV  AL, CDP_FOUND
+    XOR  AL, CPP_FOUND
+    .IF < NZ >
+	 MOV  BX, ERR_CDP_CPP
+	 JMP  ERROR_EXIT
+    .ENDIF
     CLC 					 ;AN000; Clear the carry - No errors
     JMP  EXIT_INFO				 ;AN000; Exit the subroutine
-ERROR_EXIT:	       ;AN000;
+ERROR_EXIT:
     STC 					 ;AN000; Set the carry - There were errors
-EXIT_INFO:    ;AN000;
+EXIT_INFO:
     POP  ES					 ;AN000; Restore the extra segment
-    CALL RESTORE_INT_24;AN000;
+    CALL RESTORE_INT_24
     RET 					 ;AN000; return
 
-GET_PRINTER_INFO_ROUTINE     ENDP;AN000;
+GET_PRINTER_INFO_ROUTINE     ENDP
 ;********************************************************************************
 ; HANDLE_MODE - Subroutine to process the mode parameter line in the printer
 ;    profile.
@@ -1074,7 +1074,7 @@ GET_PRINTER_INFO_ROUTINE     ENDP;AN000;
 ;	  in a format for use as the parameters for the MODE command.
 ;
 ;********************************************************************************
-HANDLE_MODE   PROC NEAR;AN000;
+HANDLE_MODE   PROC NEAR
 
 ;AD000;JW     PUSH SI
 ;AD000;JW     COPY_STRING    S_MODE_PARM, 13, BLANK_MODE
@@ -1132,7 +1132,7 @@ HANDLE_MODE   PROC NEAR;AN000;
     CALL COPY_LINE				 ;AN000; Copy the information from the file data  JW
     RET 					 ;AN000; Return 			    JW
 
-HANDLE_MODE   ENDP;AN000;
+HANDLE_MODE   ENDP
 ;AD000;JW ;********************************************************************************
 ;AD000;JW ; REMOVE_BLANKS: Remove the blanks from the S_MODE_PARM string.  Any trailing
 ;AD000;JW ;    commas are also removed.
@@ -1201,14 +1201,14 @@ HANDLE_MODE   ENDP;AN000;
 ;    This variable is assumed to be a maximum of 22 characters wide.
 ;
 ;********************************************************************************
-HANDLE_CODE_DRIVER PROC NEAR;AN000;
+HANDLE_CODE_DRIVER PROC NEAR
 
     MOV  DI, OFFSET S_CP_DRIVER 		 ;AN000; Offset of the variable to load
     MOV  CX, 22 				 ;AN000; Maximum width of the field
     CALL COPY_LINE				 ;AN000; Copy the information from the file data
-    RET 	       ;AN000;
+    RET
 
-HANDLE_CODE_DRIVER ENDP;AN000;
+HANDLE_CODE_DRIVER ENDP
 
 ;********************************************************************************
 ; HANDLE_CODE_PREPARE - Subroutine to process the code prepare parameter line
@@ -1224,14 +1224,14 @@ HANDLE_CODE_DRIVER ENDP;AN000;
 ;    The variable is assumed to be a maximum of 12 characters long.
 ;
 ;********************************************************************************
-HANDLE_CODE_PREPARE	PROC NEAR;AN000;
+HANDLE_CODE_PREPARE	PROC NEAR
 
     MOV  DI, OFFSET S_CP_PREPARE		 ;AN000; Offset of the variable to load
     MOV  CX, 12 				 ;AN000; Maximum length of the variable
     CALL COPY_LINE				 ;AN000; Copy the information from the file data
-    RET 	       ;AN000;
+    RET
 
-HANDLE_CODE_PREPARE	ENDP;AN000;
+HANDLE_CODE_PREPARE	ENDP
 
 ;********************************************************************************
 ; HANDLE_GRAPHICS - Subroutine to process the graphics parameter line in the
@@ -1247,14 +1247,14 @@ HANDLE_CODE_PREPARE	ENDP;AN000;
 ;    The variable is assumed to be a maximum of 20 characters long.
 ;
 ;********************************************************************************
-HANDLE_GRAPHICS    PROC NEAR;AN000;
+HANDLE_GRAPHICS    PROC NEAR
 
     MOV  DI, OFFSET S_GRAPH_PARM		 ;AN000; Offset of the variable to load
     MOV  CX, 20 				 ;AN000; Maximum width of the variable
     CALL COPY_LINE				 ;AN000; Load the variable with the data from the file
-    RET 	       ;AN000;
+    RET
 
-HANDLE_GRAPHICS    ENDP;AN000;
+HANDLE_GRAPHICS    ENDP
 
 ;********************************************************************************
 ; COPY_RESULT: Copy the string pointed to in the result block to the specified
@@ -1273,10 +1273,10 @@ HANDLE_GRAPHICS    ENDP;AN000;
 ;    by DS:DI.	The string is copied until a null character is encountered.
 ;
 ;********************************************************************************
-COPY_RESULT   PROC NEAR;AN000;
+COPY_RESULT   PROC NEAR
 
-    PUSH ES	       ;AN000;
-    PUSH SI	       ;AN000;
+    PUSH ES
+    PUSH SI
     MOV  BX, DX 				 ;AN000; Put address into an index register
     LES  SI, [BX+4]				 ;AN000; Get the address of the string to copy
     MOV  CX, 0					 ;AN000; Zero the string length indicator
@@ -1287,12 +1287,12 @@ COPY_RESULT   PROC NEAR;AN000;
 	 INC  SI				 ;AN000; Increment source pointer
 	 INC  DI				 ;AN000; Increment destination pointer
 	 INC  CX				 ;AN000; Increment number of characters moved
-    .ENDWHILE ;AN000;
-    POP  SI   ;AN000;
-    POP  ES   ;AN000;
-    RET       ;AN000;
+    .ENDWHILE
+    POP  SI
+    POP  ES
+    RET
 
-COPY_RESULT   ENDP;AN000;
+COPY_RESULT   ENDP
 
 ;********************************************************************************
 ; COPY_LINE - Copy a line from the printer profile data to a specified area.
@@ -1310,7 +1310,7 @@ COPY_RESULT   ENDP;AN000;
 ;    in CX, then only a portion of the line will be copied.
 ;
 ;********************************************************************************
-COPY_LINE     PROC NEAR;AN000;
+COPY_LINE     PROC NEAR
 
 
     PUSH SI					 ;AN000; Save the index regiter used by the parser
@@ -1321,12 +1321,12 @@ COPY_LINE     PROC NEAR;AN000;
     INC  AX					 ;AN000; Add to get the length of the line
     .IF < AX B CX >				 ;AN000; If length is greater then the maximum allowed,
 	 MOV  CX, AX				 ;AN000; use the shorter length
-    .ENDIF	  ;AN000;
+    .ENDIF
     PUSH CX					 ;AN000; Save the length used.
     PUSH ES					 ;AN000; Swap the values in the segment registers
-    PUSH DS	 ;AN000;
-    POP  ES	 ;AN000;
-    POP  DS	 ;AN000;
+    PUSH DS
+    POP  ES
+    POP  DS
     CLD 					 ;AN000; Move in the forward direction
     REP  MOVSB					 ;AN000; Move the data
     POP  CX					 ;AN000; Restore the line length
@@ -1334,12 +1334,12 @@ COPY_LINE     PROC NEAR;AN000;
     MOV  WORD PTR ES:[DI], CX			 ;AN000; Save the length of the string
     POP  SI					 ;AN000; Restore the parser pointer
     PUSH DS					 ;AN000; Swap the segment registers again
-    PUSH ES	 ;AN000;
-    POP  DS	 ;AN000;
-    POP  ES	 ;AN000;
-    RET 	 ;AN000;
+    PUSH ES
+    POP  DS
+    POP  ES
+    RET
 
-COPY_LINE     ENDP;AN000;
+COPY_LINE     ENDP
 
 ;********************************************************************************
 ; Routine to deallocate the memory used for the storage of the printer profile
@@ -1362,15 +1362,15 @@ COPY_LINE     ENDP;AN000;
 ; OPERATION: Closes the printer file and deallocated the memory.
 ;
 ;********************************************************************************
-RELEASE_PRINTER_INFO_ROUTINE	PROC FAR;AN000;
+RELEASE_PRINTER_INFO_ROUTINE	PROC FAR
 
 
 
 
-    CALL HOOK_INT_24				 ;AN000;
+    CALL HOOK_INT_24
 
 
-    PUSH ES					 ;AN000;
+    PUSH ES
     ;**********************************************************************
     ; Close the printer definition file
     ;**********************************************************************
@@ -1382,14 +1382,14 @@ RELEASE_PRINTER_INFO_ROUTINE	PROC FAR;AN000;
     ; Deallocate the memory used for the data buffer
     ;**********************************************************************
     MOV  AX, SEG_LOC				 ;AN000; Location of the data buffer
-    MOV  ES, AX 				 ;AN000;
+    MOV  ES, AX
     MOV  AH, 49H				 ;AN000; DOS Fn. for freeing allocated memory
     DOSCALL					 ;AN000; Free the memory
-    POP  ES					 ;AN000;
-    CALL RESTORE_INT_24;AN000;
-    RET 	 ;AN000;
+    POP  ES
+    CALL RESTORE_INT_24
+    RET
 
-RELEASE_PRINTER_INFO_ROUTINE ENDP;AN000;
+RELEASE_PRINTER_INFO_ROUTINE ENDP
 
 ;*******************************************************************************
 ; Routines for changing the SELECT command line in the AUTOEXEC.BAT.
@@ -1410,20 +1410,20 @@ RELEASE_PRINTER_INFO_ROUTINE ENDP;AN000;
 ; Operation:
 ;
 ;********************************************************************************
-CHANGE_AUTOEXEC_ROUTINE PROC FAR;AN000;
+CHANGE_AUTOEXEC_ROUTINE PROC FAR
 
 
 
     TEST SEL_FLG,INSTALLRW			 ;AN000; Is the install
 						 ;AN000;    diskette read/write
 						 ;AN000;   (has DISKCOPY occurred?)
-    JNZ  AUTO_OK				 ;AN000;
+    JNZ  AUTO_OK
     CLC 					 ;AN000; no error
     JMP  AUTO_EXIT_RO				 ;AN000; If not, exit
 
-AUTO_OK:		  ;AN000;
-    CALL HOOK_INT_24				 ;AN000;
-    PUSH ES					 ;AN000;
+AUTO_OK:
+    CALL HOOK_INT_24
+    PUSH ES
     MOV  APPEND_POINTER, SI			 ;AN000; Save the address of the string to be appended
     MOV  FILENAME, DI				 ;AN000; Save the address of the string containing the filename
     ;**********************************************************************
@@ -1433,7 +1433,7 @@ AUTO_OK:		  ;AN000;
     CALL ALLOCATE_MEMORY			 ;AN000; Allocate the memory needed
     .IF < C >					 ;AN000; Was there an error?
 	 JMP  AUTO_EXIT_ERROR			 ;AN000; Yes!  Exit the subroutine
-    .ENDIF					 ;AN000;
+    .ENDIF
     MOV  BUFFER_START, 0			 ;AN000; Save the offset of the start of the buffer
     COPY_WORD BUFFER_SIZE, SEGMENT_SIZE 	 ;AN000; Save the size of the buffer
     ;**********************************************************************
@@ -1448,7 +1448,7 @@ AUTO_OK:		  ;AN000;
     DOSCALL					 ;AN000; Open the file
     .IF < C >					 ;AN000; Was there an error?
 	 JMP  AUTO_EXIT_ERROR			 ;AN000; Exit the subroutine
-    .ENDIF					 ;AN000;
+    .ENDIF
     MOV  FILE_HANDLE, AX			 ;AN000; Save the file handle
     ;**********************************************************************
     ; Set the file pointer
@@ -1464,7 +1464,7 @@ AUTO_OK:		  ;AN000;
     CALL READ_FROM_HERE 			 ;AN000; Read data starting from this position
     .IF < C >					 ;AN000; Was there an error?
 	 JMP  AUTO_EXIT_ERROR			 ;AN000; Yes! Exit the subroutine
-   .ENDIF					 ;AN000;
+   .ENDIF
     ;**********************************************************************
     ; Setup the control blocks for the parser
     ;**********************************************************************
@@ -1476,20 +1476,20 @@ PARSE_FOR_SELECT:				 ;AN000; Here to parse the line
     CALL SEARCH_LINE				 ;AN000; Parse the line.
     .IF < C >					 ;AN000; Was there an error?
 	 JMP  AUTO_EXIT_ERROR			 ;AN000; Yes! Exit the subroutine
-    .ENDIF					 ;AN000;
+    .ENDIF
     .IF < AX EQ 0 >				 ;AN000; Did the parser file 'SELECT'?
 	 MOV  CURRENT_PARSE_LOC, SI		 ;AN000; Yes!  Save the position after select as parse location
-	 MOV  DX, WORD PTR FILE_PTR_AT_START[0];AN000;
-	 MOV  CX, WORD PTR FILE_PTR_AT_START[2];AN000;
-	 ADD  DX, CURRENT_PARSE_LOC   ;AN000;
-	 ADC  CX, 0		      ;AN000;
+	 MOV  DX, WORD PTR FILE_PTR_AT_START[0]
+	 MOV  CX, WORD PTR FILE_PTR_AT_START[2]
+	 ADD  DX, CURRENT_PARSE_LOC
+	 ADC  CX, 0
 	 MOV  INT_24_ERROR, 0			 ;AN000; Indicate that no critical errors have occured yet
-	 MOV  BX, FILE_HANDLE	 ;AN000;
-	 MOV  AX, 4200H 	 ;AN000;
-	 DOSCALL		 ;AN000;
+	 MOV  BX, FILE_HANDLE
+	 MOV  AX, 4200H
+	 DOSCALL
 	 .IF < C >				 ;AN000; Was there an error writing the data?
 	      JMP  AUTO_EXIT_ERROR		 ;AN000; Yes! Exit the subroutine
-	 .ENDIF 				 ;AN000;
+	 .ENDIF
 	 ;*****************************************************************
 	 ; Write the select parameters to the file
 	 ;*****************************************************************
@@ -1514,15 +1514,15 @@ PARSE_FOR_SELECT:				 ;AN000; Here to parse the line
 	 ; Truncate the file at the current file position
 	 ;*****************************************************************
 	 MOV  INT_24_ERROR, 0			 ;AN000; Indicate that no critical errors have occured yet
-	 MOV  CX, 0		 ;AN000;
-	 MOV  BX, FILE_HANDLE	 ;AN000;
-	 MOV  AH, 40H		 ;AN000;
-	 DOSCALL		 ;AN000;
+	 MOV  CX, 0
+	 MOV  BX, FILE_HANDLE
+	 MOV  AH, 40H
+	 DOSCALL
 	 ;*****************************************************************
 	 ; Close the file.
 	 ;*****************************************************************
 	 CALL RELEASE_PRINTER_INFO_ROUTINE	 ;AN000; Close the original autoexec file
-    .ELSE			     ;AN000;
+    .ELSE
 	 ;*****************************************************************
 	 ; Parse the next line.
 	 ;*****************************************************************
@@ -1530,9 +1530,9 @@ PARSE_FOR_SELECT:				 ;AN000; Here to parse the line
 	 MOV  CURRENT_PARSE_LOC, DI		 ;AN000; Save this as the current parse location
 	 .IF < CURRENT_PARSE_LOC EQ 0 > 	 ;AN000; If this is zero, then there is no more data
 	      JMP  AUTO_EXIT_CLEAR		 ;AN000; Exit the subroutine - No errors
-	 .ENDIF 				 ;AN000;
+	 .ENDIF
 	 JMP  PARSE_FOR_SELECT			 ;AN000; Parse the next line
-    .ENDIF					 ;AN000;
+    .ENDIF
     JMP  AUTO_EXIT_CLEAR			 ;AN000; Exit the subroutine - No errors
 
 AUTO_EXIT_ERROR:				 ;AN000; Here if there was an error
@@ -1545,12 +1545,12 @@ AUTO_EXIT_CLEAR:				 ;AN000; Exit here if NO errors.
 AUTO_EXIT:					 ;AN000; Here to exit
     CALL DEALLOCATE_MEMORY
     POP  ES					 ;AN000; Restore the extra segment
-    CALL RESTORE_INT_24;AN000;
-AUTO_EXIT_RO:	 ;AN000;
-    RET 					 ;AN000;
+    CALL RESTORE_INT_24
+AUTO_EXIT_RO:
+    RET
 
-CHANGE_AUTOEXEC_ROUTINE ENDP;AN000;
+CHANGE_AUTOEXEC_ROUTINE ENDP
 
-CODE_FAR    ENDS;AN000;
+CODE_FAR    ENDS
 
-END	      ;AN000;
+END

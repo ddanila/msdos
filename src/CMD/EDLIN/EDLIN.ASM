@@ -31,66 +31,9 @@
 ; NOTES: THIS MODULE IS TO BE PREPPED BY SALUT WITH THE "PR" OPTIONS.
 ;	 LINK EDLIN+EDLCMD1+EDLCMD2+EDLMES+EDLPARSE
 ;
-; REVISION HISTORY:
-;
-;	AN000	VERSION 4.00 - REVISIONS MADE RELATE TO THE FOLLOWING:
-;
-;				- IMPLEMENT SYSPARSE
-;				- IMPLEMENT MESSAGE RETRIEVER
-;				- IMPLEMENT DBCS ENABLING
-;				- ENHANCED VIDEO SUPPORT
-;				- EXTENDED OPENS
-;				- SCROLLING ERROR
-;
 ; COPYRIGHT: "MS DOS EDLIN UTILITY"
 ;	     "VERSION 4.00 (C) COPYRIGHT 1988 Microsoft"
 ;	     "LICENSED MATERIAL - PROPERTY OF Microsoft"
-;
-;
-;	MICROSOFT REVISION HISTORY:
-;									;
-;	V1.02										;
-;									;
-;	V2.00	9/13/82  M.A.U						;
-;									;
-;		2/23/82  Rev. 13	N. P					;
-;		    Changed to 2.0 system calls.				;
-;		    Added an error message for READ-ONLY files		;
-;									;
-;		11/7/83  Rev. 14	N. P					;
-;		    Changed to .EXE format and added Printf		;
-;									;
-;	V2.50	11/15/83 Rev. 1 	M.A. U					;
-;		    Official dos 2.50 version. Some random bug		;
-;		fixes and message changes.					;
-;									;
-;		11/30/83 Rev. 2 	MZ						;
-;		    Close input file before rename.				;
-;		    Jmp to replace after line edit				;
-;									;
-;		02/01/84 Rev. 3 	M.A. U			;
-;		    Now it is called 3.00 dos. Repaired problem 	;
-;		with using printf and having %'s as data.                       ;
-;									;
-;		02/15/84 MZ make out of space a fatal error with output;
-;									;
-;		03/28/84 MZ fixes bogus (totally) code in MOVE/COPY	;
-;									;
-;		04/02/84 MZ fixes DELETE and changes MOVE/COPY/EDIT	;
-;									;
-;	V3.20 08/29/86 Rev. 1 S.M. G					;
-;									;
-;		08/29/86 M001 MSKK TAR 593, TAB MOVEMENT		;
-;									;
-;		08/29/86 M002 MSKK TAR 157, BLKMOVE 1,1,1m, 1,3,1m	;
-;									;
-;		08/29/86 M003 MSKK TAR 476, EDLCMD2,MAKECAPS,kana char;
-;									;
-;		08/29/86 M004 MSKK TAR 191, Append load size		;
-;									;
-;		08/29/86 M005 IBMJ TAR Transfer Load command		;
-;
-;
 ;======================= END OF SPECIFICATIONS ===========================									;
 
 include edlequ.asm
@@ -147,8 +90,8 @@ cstack	ends
 
 DATA	SEGMENT PUBLIC WORD
 
-	extrn	arg_buf_ptr:word		;an000;
-	extrn	line_num_buf_ptr:word		;an000;
+	extrn	arg_buf_ptr:word
+	extrn	line_num_buf_ptr:word
 
 	public	path_name,ext_ptr,start,line_num,line_flag
 	public	arg_buf,wrt_handle,temp_path
@@ -166,12 +109,12 @@ DATA	SEGMENT PUBLIC WORD
 	public	temp_path			;an000;pointer to filespec buf
 
 Video_Buffer	label	word			;an000;buffer for video attr
-	db	0				;an000;dms;
-	db	0				;an000;dms;
-	dw	14				;an000;dms;
-	dw	0				;an000;dms;
-	db	?				;an000;dms;
-	db	0				;an000;dms;
+	db	0
+	db	0
+	dw	14
+	dw	0
+	db	?
+	db	0
 	dw	?				;an000;dms;# of colors
 	dw	?				;an000;dms;# of pixels in width
 	dw	?				;an000;dms;# of pixels in len.
@@ -278,7 +221,7 @@ EA_Buffer_Size	dw	?		;an000; dms;EA buffer's size
 EA_Parm_List	label	word		;an000; dms;EA parms
 		dd	dg:Start	;an000; dms;ptr to EA's
 		dw	0001h		;an000; dms;additional parms
-		db	06h		;an000; dms;
+		db	06h
 		dw	0002h		;an000; dms;iomode
 
 
@@ -380,10 +323,10 @@ SIMPED:
 	push	ax			;ac000;save for drive compare
 
 	push	cs			;an000;exchange cs/es
-	pop	es			;an000;
+	pop	es
 
 	push	cs			;an000;exchange cs/ds
-	pop	ds			;an000;
+	pop	ds
 	assume	ds:dg,es:dg		;an000;establish addressibility
 
 	MOV	dg:ENDING,0
@@ -404,9 +347,9 @@ SIMPED:
 	JNC $$IF1
 		mov ah,exit		;an000;exit EDLIN. PRE_LOAD_MESSAGE
 					;      has said why we are exiting
-		mov al,00h		;an000
+		mov al,00h
 		int 21h 		;an000;exit
-;	$endif				;an000;
+;	$endif
 $$IF1:
 
 
@@ -471,7 +414,7 @@ CMD_LINE:
 	JNZ $$IF3
 		call EDLIN_COMMAND	;an000;interface results
 					;      into EDLIN
-;	$else				;an000;
+;	$else
 	JMP SHORT $$EN3
 $$IF3:
 		cmp ax,too_many 	;an000;too many operands
@@ -485,17 +428,17 @@ $$IF5:
 ;		$if z			;an000;missing parm
 		JNZ $$IF7
 		    jmp noname		;an000;say why and exit
-;		$endif			;an000;
+;		$endif
 $$IF7:
 
 		cmp ax,sw_missing	;an000;is it an invalid switch
 ;		$if z			;an000;invalid switch
 		JNZ $$IF9
 		    jmp badopt		;an000;say why and exit
-;		$endif			;an000;
+;		$endif
 $$IF9:
 
-;	$endif				;an000;
+;	$endif
 $$EN3:
 
 ;=========================================================================
@@ -504,8 +447,8 @@ $$EN3:
 
 	push	ds			;an000;save reg.
 	push	cs			;an000;set up addressibility
-	pop	ds			;an000;
-	assume	ds:dg			;an000;
+	pop	ds
+	assume	ds:dg
 
 	push	ax			;an000;save reg.
 	mov	ax,offset dg:path_name	;an000;point to path_name
@@ -561,11 +504,11 @@ NOTBAK:
 ;	$if	b			;an000; dms;no
 	JNB $$IF12
 		call	EA_Fail_Exit	;an000; dms;say why and exit
-;	$endif				;an000; dms;
+;	$endif
 $$IF12:
 
 	mov	bx,RD_Handle		;an000; dms;set up for call
-	mov	EA_Flag,(True) AND 0FFh		;an000; dms;
+	mov	EA_Flag,(True) AND 0FFh
 	call	Get_Extended_Attrib	;an000; dms;get attribs
 
 	Jmp	HavFil			;work with the opened file
@@ -733,11 +676,11 @@ MAKFIL:
 ;	$if	e			;an000;yes
 	JNE $$IF14
 		mov	di,offset dg:EA_Parm_List ;an000; point to buffer
-;	$else				;an000;
+;	$else
 	JMP SHORT $$EN14
 $$IF14:
 		mov	di,0ffffh	;an000;nul parm list
-;	$endif				;an000;
+;	$endif
 $$EN14:
 	call	EXT_OPEN2		;an000;create file;DMS:6/10/87
 
@@ -812,10 +755,10 @@ Break	<Main command loop>
 ;
 COMMAND:
 	push	cs				;an000;set up addressibility
-	pop	ds				;an000;
-	push	cs				;an000;
-	pop	es				;an000;
-	assume	ds:dg,es:dg			;an000;
+	pop	ds
+	push	cs
+	pop	es
+	assume	ds:dg,es:dg
 
 	MOV	SP, STACK
 	MOV	AX,(SET_INTERRUPT_VECTOR SHL 8) OR 23H
@@ -1565,20 +1508,20 @@ Ended1:
 EDLIN_DISP_GET	proc	near			;an000;video attributes
 
 	push	ax				;an000;save affected regs.
-	push	bx				;an000;
-	push	cx				;an000;
-	push	dx				;an000;
-	push	si				;an000;
-	push	ds				;an000;
+	push	bx
+	push	cx
+	push	dx
+	push	si
+	push	ds
 
 	push	cs				;an000;exchange cs/ds
-	pop	ds				;an000;
+	pop	ds
 
 	mov	ax,440Ch			;an000;generic ioctl
 	mov	bx,Std_Out			;an000;Console
 	mov	cx,(Display_Attr shl 8) or Get_Display ;an000;get display
 	mov	dx,offset dg:Video_Buffer	;an000;buffer for video attr.
-	int	21h				;an000;
+	int	21h
 ;	$if	nc				;an000;function returned a
 	JC $$IF17
 						;      buffer
@@ -1596,15 +1539,15 @@ $$IF17:
 		dec	al			;an000;leave room for messages
 		mov	dg:Disp_Len,al		;an000;use default length
 		mov	dg:Disp_Width,Def_Disp_Width;an000;use default width
-;	$endif					;an000;
+;	$endif
 $$EN17:
 
 	pop	ds				;an000;restore affected regs.
-	pop	si				;an000;
-	pop	dx				;an000;
-	pop	cx				;an000;
-	pop	bx				;an000;
-	pop	ax				;an000;
+	pop	si
+	pop	dx
+	pop	cx
+	pop	bx
+	pop	ax
 
 	ret					;an000;return to caller
 
@@ -1629,7 +1572,7 @@ EXT_OPEN1	proc	near			;an000;open for R/W
 
 	assume	ds:dg
 	push	ds				;an000;save regs
-	push	si				;an000;
+	push	si
 
 	mov	ah,ExtOpen			;an000;extended open
 	mov	al,0				;an000;reserved by system
@@ -1637,7 +1580,7 @@ EXT_OPEN1	proc	near			;an000;open for R/W
 
 	int	21h				;an000;invoke function
 	pop	si				;an000;restore regs
-	pop	ds				;an000;
+	pop	ds
 
 	ret					;an000;return to caller
 
@@ -1661,7 +1604,7 @@ EXT_OPEN2	proc	near			;an000;create a file
 
 	assume	ds:dg
 	push	ds				;an000;save regs
-	push	si				;an000;
+	push	si
 
 	mov	ah,ExtOpen			;an000;extended open
 	mov	al,0				;an000;reserved by system
@@ -1670,7 +1613,7 @@ EXT_OPEN2	proc	near			;an000;create a file
 	int	21h				;an000;invoke function
 
 	pop	si				;an000;restore regs
-	pop	ds				;an000;
+	pop	ds
 
 	ret					;an000;return to caller
 
@@ -1694,7 +1637,7 @@ EXT_OPEN3	proc	near			;an000;create a file
 
 	assume	ds:dg
 	push	ds				;an000;save regs
-	push	si				;an000;
+	push	si
 
 	mov	ah,ExtOpen			;an000;extended open
 	mov	al,0				;an000;reserved by system
@@ -1703,7 +1646,7 @@ EXT_OPEN3	proc	near			;an000;create a file
 	int	21h				;an000;invoke function
 
 	pop	si				;an000;restore regs
-	pop	ds				;an000;
+	pop	ds
 
 	ret					;an000;return to caller
 
@@ -1731,9 +1674,9 @@ EXT_OPEN3	endp				;an000;end proc.
 EDLIN_COMMAND		proc	near		;an000;interface parser
 
 	push	ax				;an000;save regs.
-	push	cx				;an000;
-	push	di				;an000
-	push	si				;an000;
+	push	cx
+	push	di
+	push	si
 
 	mov	si,offset dg:filespec		;an000;get its offset
 	mov	di,offset dg:path_name		;an000;get its offset
@@ -1744,7 +1687,7 @@ EDLIN_COMMAND		proc	near		;an000;interface parser
 ;	$if	z				;an000;we have the switch
 	JNZ $$IF20
 		mov	[LOADMOD],01h		;an000;signal switch found
-;	$endif					;an000
+;	$endif
 $$IF20:
 
 ;	$do					;an000;while we have filespec
@@ -1765,9 +1708,9 @@ $$EN22:
 	mov	[FNAME_LEN],cx			;an000;save filespec's length
 
 	pop	si				;an000; restore regs
-	pop	di				;an000;
-	pop	cx				;an000;
-	pop	ax				;an000;
+	pop	di
+	pop	cx
+	pop	ax
 
 	ret					;an000;return to caller
 
@@ -1779,16 +1722,16 @@ EDLIN_COMMAND		endp			;an000;end proc
 ;
 ;=========================================================================
 
-Get_Extended_Attrib	proc	near		;an000; dms;
+Get_Extended_Attrib	proc	near
 
 	mov	ax,5702h			;an000; dms;get extended attrib
 	mov	si,0ffffh			;an000; dms;all attribs
 	mov	cx,dg:EA_Buffer_Size		;an000; dms;buffer size
 	mov	di,offset dg:Start		;an000; dms;point to buffer
-	int	21h				;an000; dms;
-	ret					;an000; dms;
+	int	21h
+	ret
 
-Get_Extended_Attrib	endp			;an000; dms;
+Get_Extended_Attrib	endp
 
 
 ;=========================================================================
@@ -1801,17 +1744,17 @@ Get_Extended_Attrib	endp			;an000; dms;
 ;
 ;=========================================================================
 
-Query_Extend_Attrib	proc	near		;an000; dms;
+Query_Extend_Attrib	proc	near
 
 	mov	ax,5702h			;an000; dms;get extended attrib
 	mov	si,0ffffh			;an000; dms;all attribs
 	mov	cx,0000h			;an000; dms;get buffer size
 	mov	di,offset dg:Start		;an000; dms;point to buffer
-	int	21h				;an000; dms;
+	int	21h
 	mov	dg:EA_Buffer_Size,cx		;an000; dms;save buffer size
-	ret					;an000; dms;
+	ret
 
-Query_Extend_Attrib	endp			;an000; dms;
+Query_Extend_Attrib	endp
 
 
 ;=========================================================================
@@ -1823,11 +1766,11 @@ Query_Extend_Attrib	endp			;an000; dms;
 ;	Outputs : DX	 - paras available
 ;=========================================================================
 
-Calc_Memory_Avail	proc	near		;an000; dms;
+Calc_Memory_Avail	proc	near
 
 	push	ds				;save ds for size calc
-	push	cx				;an000; dms;
-	push	di				;an000; dms;
+	push	cx
+	push	di
 
 	mov	ds,cs:[org_ds]
 	MOV	CX,DS:[2]
@@ -1835,13 +1778,13 @@ Calc_Memory_Avail	proc	near		;an000; dms;
 	SUB	CX,DI
 	mov	dx,cx				;an000; dms;put paras in DX
 
-	pop	di				;an000; dms;
-	pop	cx				;an000; dms;
-	pop	ds				;an000; dms;
+	pop	di
+	pop	cx
+	pop	ds
 
-	ret					;an000; dms;
+	ret
 
-Calc_Memory_Avail	endp			;an000; dms;
+Calc_Memory_Avail	endp
 
 ;=========================================================================
 ; EA_Fail_Exit		: This routine tells the user that there was
@@ -1852,20 +1795,20 @@ Calc_Memory_Avail	endp			;an000; dms;
 ;	Outputs : message
 ;=========================================================================
 
-EA_Fail_Exit		proc	near		;an000; dms;
+EA_Fail_Exit		proc	near
 
 	mov	dx,offset dg:MemFul_Ptr 	;an000; dms;"Insufficient
 
 	push	cs				;an000; dms;xchange ds/cs
-	pop	ds				;an000; dms;
+	pop	ds
 						;	     memory"
 	call	Std_Printf			;an000; dms;print message
 	mov	ah,exit 			;an000; dms;exit
 	xor	al,al				;an000; dms;clear al
-	int	21h				;an000; dms;
-	ret					;an000; dms;
+	int	21h
+	ret
 
-EA_Fail_Exit		endp			;an000; dms;
+EA_Fail_Exit		endp
 
 CODE	ENDS
 	END	EDLIN

@@ -1,4 +1,3 @@
-;	SCCSID = @(#)handle.asm 1.1 85/04/10
 TITLE	HANDLE - Handle-related system calls
 NAME	HANDLE
 ;
@@ -16,16 +15,8 @@ NAME	HANDLE
 ;   $Dup       written
 ;   $Dup2      written
 ;
-;   Revision history:
-;
-;	Created: MZ 28 March 1983
-;		 MZ 15 Dec   1982 Jeff Harbers and Multiplan hard disk copy
-;				  rely on certain values in AX when $CLOSE
-;				  succeeds even though we document it as
-;				  always trashing AX.
-;
-;	A000  version 4.00  Jan. 1988
-;
+; Applications such as Multiplan depend on AX after a successful $CLOSE,
+; even though the documented interface allows AX to be destroyed.
 
 .xlist
 ;
@@ -64,8 +55,8 @@ ENDIF
 ;	I_need	XA_device,BYTE		;AN000; XA device
 	I_need	XA_type,BYTE		;AN000; extended open subfunction
 ;	I_need	XA_handle,WORD		;AN000; handle
-	I_need	THISCDS,DWORD		;AN000;
-	I_need	DUMMYCDS,128		;AN000;
+	I_need	THISCDS,DWORD
+	I_need	DUMMYCDS,128
 	I_need	SAVE_ES,WORD		;AN000; saved ES
 	I_need	SAVE_DI,WORD		;AN000; saved DI
 	I_need	SAVE_DS,WORD		;AN000; saved DS
@@ -153,7 +144,7 @@ PostFree:
 ;
 	JC	CloseError
 	fmt TypSysCall,LevLog,<"$p: Close ok\n">
-	MOV	AH,close		; MZ Bogus multiplan fix
+	MOV	AH,close		; preserve the successful-close value expected by Multiplan
 	transfer    Sys_Ret_OK
 CloseError:
 	ASSUME	DS:NOTHING
@@ -256,7 +247,7 @@ larger:
 	PUSH	BX			; save requested number
 	ADD	BX,0FH			; adjust to paragraph boundary
 	MOV	CL,4
-	RCR	BX,CL			; DOS 4.00 fix				;AC000;
+	RCR	BX,CL			; DOS 4.00 fix
 	AND	BX,1FFFH		; clear most 3 bits
 
 	PUSH	BP
@@ -361,7 +352,7 @@ ReadSetup:
 	TEST	ES:[DI.sf_mode],INT_24_ERROR  ;AN000;;EO. need i24
 	JZ	needi24 		      ;AN000;;EO. yes
 	OR	[EXTOPEN_ON],EXT_OPEN_I24_OFF ;AN000;;EO. set it off
-needi24:				      ;AN000;
+needi24:
 
 ;; Extended Open
 	SaveReg <<WORD PTR [DMAAdd]>, <WORD PTR [DMAAdd+2]>>
@@ -428,8 +419,8 @@ EndProc $READ
 ;
 ;
 
-procedure   Align_Buffer,NEAR		;AN000;
-	ASSUME	CS:DOSGROUP,DS:NOTHING,ES:NOTHING,SS:DOSGROUP  ;AN000;
+procedure   Align_Buffer,NEAR
+	ASSUME	CS:DOSGROUP,DS:NOTHING,ES:NOTHING,SS:DOSGROUP
 	MOV	BX,DX			; copy offset
 	SaveReg <CX>			; don't stomp on count
 	MOV	CL,4			; bits to shift bytes->para
@@ -441,8 +432,8 @@ procedure   Align_Buffer,NEAR		;AN000;
 	AND	DX,0Fh			; normalize offset
 	MOV	WORD PTR [DMAAdd],DX	; use user DX as offset
 	MOV	WORD PTR [DMAAdd+2],DS	; use user DS as segment for DMA
-	return				;AN000;
-EndProc Align_Buffer			;AN000;
+	return
+EndProc Align_Buffer
 
 BREAK <$WRITE - write to a file handle>
 
@@ -582,62 +573,59 @@ procedure   $File_Times,NEAR
 	CMP	AL,2			; correct subfunction?
 	JAE	gsetxa
 	JMP	filetimes_ok		; Yes, continue
-;;;; DOS 4.00				;AN000;
-gsetxa: 				;AN000;
+;;;; DOS 4.00
+gsetxa:
 	EnterCrit   critSFT		;AN000;;FT. enter critical section
 	CMP	AL,4			;AN000;;FT. =4
 	JBE	gshandle		;AN000;;FT. 2,3,4   do get/set by handle
-funcerr:				;AN000;
+funcerr:
 	JMP	inval_func		;AN000;;FT. invalid function
-					;AN000;
-gshandle:				;AN000;
+gshandle:
 	MOV	[SAVE_ES],ES		;AN000;;FT. save regs
 	MOV	[SAVE_DI],DI		;AN000;;FT.
 	MOV	[SAVE_DS],DS		;AN000;;FT. save regs
 	MOV	[SAVE_SI],SI		;AN000;;FT.
 	MOV	[SAVE_CX],CX		;AN000;;FT.
 	MOV	[XA_TYPE],AL		;AN000;;FT.
-					;AN000;
 ;	MOV	[XA_handle],BX		;AN000;    ;FT. save handle
 	CALL	CheckOwner		;AN000;    ;FT. get sf pointer
 	JNC	getsetit		;AN000;    ;FT. good handle
 	LeaveCrit   critSFT		;AN000;    ;FT. leave critical section
 	JMP	LSeekError		;AN000;    ;FT. turkey handle
-					;AN000;
-getsetit:				;AN000;
+getsetit:
 	MOV	WORD PTR [ThisSFT],DI	;AN000;       ;FT. set ThisSFT
 	MOV	WORD PTR [ThisSFT+2],ES ;AN000;       ;FT. set ThisSFT
 ;	TEST	ES:[DI.sf_mode],INT_24_ERROR   ;AN000;;FT. mask INT 24
 ;	JZ	nomask			       ;AN000;;FT. no
 ;	OR	[EXTOPEN_ON],EXT_OPEN_I24_OFF  ;AN000;;FT. set bit for I24 handler
-nomask: 				       ;AN000;
+nomask:
 	TEST	ES:[DI.sf_flags],sf_isnet      ;AN000;;FT. remote handle
 	JZ	localhandle		       ;AN000;;FT. no
 	LeaveCrit   critSFT		       ;AN000;;FT. doesn't support Network
 
 	MOV	BL,[XA_TYPE]		       ;AN000;;FT.
-IFSsearch:				       ;AN000;
+IFSsearch:
 	MOV	AX,(multNET SHL 8) or 45       ;AN000;;FT. Get/Set XA support
-	INT	2FH			       ;AN000;
+	INT	2FH
 	JC	getseterror		       ;AN000;;FT. error
 	transfer    SYS_RET_OK		       ;AN000;;FT.
-localhandle:				       ;AN000;
+localhandle:
 ;	TEST	ES:[DI.sf_flags],devid_device  ;AN000;;FT. device
 ;	JZ	getsetfile8		       ;AN000;;FT. no
 ;	MOV	[XA_device],1		       ;AN000;;FT. indicating device
 ;	JMP	SHORT doXA		       ;AN000;;FT. do XA
-getsetfile8:				       ;AN000;
+getsetfile8:
 ;	MOV	[XA_device],0		       ;AN000;;FT. indicating File
 ;	LES	BP,ES:[DI.sf_devptr]	       ;AN000;;FT. ES:BP -> DPB
 
-doXA:					       ;AN000;
+doXA:
 ;	MOV	[XA_from],By_XA 	       ;AN000;;FT. from get/set XA
 ;	PUSH	[SAVE_ES]		       ;AN000;;FT. save XA list
 ;	PUSH	[SAVE_DI]		       ;AN000;;FT. save XA list
 
 	invoke	GetSet_XA		       ;AN000;;FT. issue Get/Set XA
 ;	POP	SI			       ;AN000;;FT. DS:SI -> XA list
-;	POP	DS			       ;AN000;
+;	POP	DS
 	JC	getexit 		       ;AN000;;FT. error
 ;	CMP	[XA_device],0		       ;AN000;;FT. device ?
 ;	JNZ	ftok			       ;AN000;;FT. yes, exit
@@ -654,7 +642,7 @@ getexit:				       ;AN000;;FT.
 	LeaveCrit   critSFT		       ;AN000;;FT. leave critical section
 
 
-getseterror:				       ;AN000;
+getseterror:
 	transfer    SYS_RET_ERR 	       ;AN000;;FT. mark file as dirty
 inval_func:
 

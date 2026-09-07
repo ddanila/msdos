@@ -1,5 +1,3 @@
-;       SCCSID = @(#)ifequ.asm  1.1 85/05/14
-;       SCCSID = @(#)ifequ.asm  1.1 85/05/14
 ;*************************************
 ; COMMAND EQUs which are switch dependant
 

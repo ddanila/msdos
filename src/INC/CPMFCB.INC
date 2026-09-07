@@ -1,5 +1,3 @@
-;       SCCSID = @(#)cpmfcb.asm 1.1 85/04/10
-;       SCCSID = @(#)cpmfcb.asm 1.1 85/04/10
 ;BREAK <File Control Block definition>
 
 ;

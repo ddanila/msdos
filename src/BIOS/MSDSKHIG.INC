@@ -43,7 +43,7 @@ Rd_rty:
 	test	word ptr ds:[di].flags,fNon_Removable
 	JNZ	RD_RET
 	BIOS_LOW_MEM CMP,<[Media_Set_For_Format]>,0,DS
-	jne	Rd_Skip1_DPT	;AN012;
+	jne	Rd_Skip1_DPT
 	push	ds		;J.K. 11/7/86 For retry, set the head settle time
 	push	ax		;to 0Fh. PTM845.
 	BIOS_LOW_READ LDS,SI,<DPT>,ES
@@ -52,15 +52,15 @@ Rd_rty:
 	mov	byte ptr ds:[si].disk_head_sttl, NormSettle
 	pop	ax
 	pop	ds
-Rd_Skip1_DPT:			;AN012;
+Rd_Skip1_DPT:
 ;SB33017*****************************************************************
 					; SET CMD TO READ (AH=2) AND  ;SB ;3.30
 	MOV	AX, 0201h		; NUM OF SECTORS TO 1 (AL=1)  ;SB ;3.30
 	BIOS_ROM_INT13			; CALL ROM-BIOS DISK ROUTINES ;SB ;3.30
 ;SB33017*****************************************************************
-	pushf			;AN012;
+	pushf
 	BIOS_LOW_MEM CMP,<[Media_Set_For_Format]>,0,DS
-	jne	Rd_Skip2_DPT	       ;AN012;
+	jne	Rd_Skip2_DPT
 	push	ds
 	push	ax
 	BIOS_LOW_READ LDS,SI,<DPT>,ES
@@ -68,8 +68,8 @@ Rd_Skip1_DPT:			;AN012;
 	mov	byte ptr ds:[si].disk_head_sttl, al
 	pop	ax
 	pop	ds
-Rd_Skip2_DPT:			;AN012;
-	popf			;AN012;
+Rd_Skip2_DPT:
+	popf
 	jnc	OKRET2
 	jmp	Rd_rty
 ERR_RD_RET:
@@ -296,9 +296,9 @@ SINGLE_ERR_RET:
 
 BADDRIVE:
 	MOV	AL,8			;Sector not found
-	jmp	short BadDrive_Ret	;AN004;AN005;AN006;
-UnformattedDrive:			;AN004;AN005;AN006;
-	mov	al,7			;AN004;Unknown media;AN005;AN006;
+	jmp	short BadDrive_Ret
+UnformattedDrive:
+	mov	al,7			;AN004;Unknown media
 BadDrive_Ret:
 	STC
 IORET:	RET
@@ -350,27 +350,27 @@ DISKIO:
 ;
 
 	mov	ax,dx			;AN000; save DX to AX
-	xor	si,si			;AN000;
-	add	dx,cx			;AN000;
-	adc	si,0			;AN000;
+	xor	si,si
+	add	dx,cx
+	adc	si,0
 	cmp	[di].DrvLim, 0		;AN000; Is this drive > 32 bit sector ?
-	je	Sanity32		;AN000;
-	cmp	si,0			;AN000;
-	jne	BADDRIVE		;AN000;
-	cmp	dx, [di].DrvLim 	;AN000;
-	ja	BADDRIVE		;AN000;
-	jmp	short SanityOK		;AN000;
-Sanity32:				;AN000;
-	BIOS_LOW_READ ADD,si,<[Start_Sec_H]>,DS	;AN000;
-	cmp	si, [di].DrvLim_H	;AN000;
-	jb	SanityOK		;AN000;
-	ja	BADDRIVE		;AN000;
-	cmp	dx, [di].DrvLim_L	;AN000;
-	ja	BADDRIVE		;AN000;
-SanityOK:				;AN000;
-	BIOS_LOW_READ MOV,dx,<[Start_Sec_H]>,DS	;AN000;
-	add	ax,word ptr [di].HIDSEC_L    ;AN000;
-	adc	dx,word ptr [di].Hidsec_H    ;AN000;
+	je	Sanity32
+	cmp	si,0
+	jne	BADDRIVE
+	cmp	dx, [di].DrvLim
+	ja	BADDRIVE
+	jmp	short SanityOK
+Sanity32:
+	BIOS_LOW_READ ADD,si,<[Start_Sec_H]>,DS
+	cmp	si, [di].DrvLim_H
+	jb	SanityOK
+	ja	BADDRIVE
+	cmp	dx, [di].DrvLim_L
+	ja	BADDRIVE
+SanityOK:
+	BIOS_LOW_READ MOV,dx,<[Start_Sec_H]>,DS
+	add	ax,word ptr [di].HIDSEC_L
+	adc	dx,word ptr [di].Hidsec_H
 ;J.K. Now DX;AX have the physical first sector.
 ;Since the following procedures is going to destroy AX, let's
 ;save it temporarily to SAVED_WORD.
@@ -424,29 +424,29 @@ BIOS_DISKIO_PATCH_END LABEL BYTE
 SKIP_SETUP:
 ;J.K. 32 bit sector calculation.
 ; DX;[Saved_Word] = starting sector number.
-	mov	ax,dx			;AN000;
-	xor	dx,dx			;AN000;
+	mov	ax,dx
+	xor	dx,dx
 	DIV	WORD PTR [DI].SECLIM	;DIVIDE BY SEC PER TRACK
-	BIOS_LOW_MEM MOV,<[Temp_H]>,ax,DS		;AN000;
+	BIOS_LOW_MEM MOV,<[Temp_H]>,ax,DS
 	BIOS_LOW_READ MOV,ax,<[Saved_Word]>,DS	;AN000; Restore the lower word
-	div	word ptr [di].SecLim	;AN000;
+	div	word ptr [di].SecLim
 ;Now, [Temp_H],AX = track #, DX = sector
 	INC	DL			;Sector number is 1 based.
 	BIOS_LOW_MEM MOV,<[CURSEC]>,DL,DS		;SAVE CURRENT SECTOR
 	MOV	CX,WORD PTR [DI].HDLIM	;GET NUMBER OF HEADS
 
-	push	ax			;AN000;
+	push	ax
 	XOR	DX,DX			;DIVIDE TRACKS BY HEADS PER CYLINDER
-	BIOS_LOW_READ MOV,ax,<[Temp_H]>,DS 	;AN000;
+	BIOS_LOW_READ MOV,ax,<[Temp_H]>,DS
 	DIV	CX
-	BIOS_LOW_MEM MOV,<[Temp_H]>,ax,DS		;AN000;
-	pop	ax			;AN000;
-	div	cx			;AN000;
+	BIOS_LOW_MEM MOV,<[Temp_H]>,ax,DS
+	pop	ax
+	div	cx
 ;Now, [Temp_H],AX = cyliner #, DX = head
-	BIOS_LOW_MEM CMP,<[Temp_H]>,0,DS		;AN000;
-	ja	BADDRIVE_brdg		;AN000;
+	BIOS_LOW_MEM CMP,<[Temp_H]>,0,DS
+	ja	BADDRIVE_brdg
 	cmp	AX, 1024		;AN000; 2**10 currently maxium for track #.
-	ja	BADDRIVE_brdg		;AN000;
+	ja	BADDRIVE_brdg
 	BIOS_LOW_MEM MOV,<[CURHD]>,DL,DS		;SAVE CURRENT HEAD
 	BIOS_LOW_MEM MOV,<[CURTRK]>,AX,DS		;SAVE CURRENT TRACK
 
@@ -477,8 +477,8 @@ IOSETUP PROC	NEAR
 ;
 ; DETERMINE PROPER HEAD SETTLE VALUES
 ;
-	BIOS_LOW_MEM CMP,<[Media_Set_For_Format]>,0,DS	;AN012;
-	jne	Skip_DPT_Setting		;AN012;
+	BIOS_LOW_MEM CMP,<[Media_Set_For_Format]>,0,DS
+	jne	Skip_DPT_Setting
 	MOV	CX,DS
 	BIOS_LOW_READ LDS,SI,<DWORD PTR [DPT]>,ES	; GET POINTER TO DISK BASE TABLE
 	BIOS_LOW_READ MOV,AL,<[EOT]>,DS
@@ -510,7 +510,7 @@ MOTOR_START_OK:
 GOTSLOWSETTLE:
 	MOV	DS,CX
 	BIOS_LOW_MEM MOV,<SETTLESLOW>,AL,DS
-Skip_DPT_Setting:			;AN012;
+Skip_DPT_Setting:
 	RET
 ;
 ; SET TIME OF LAST ACCESS, AND RESET DEFAULT VALUES IN THE DPT.
@@ -524,8 +524,8 @@ DONE:
 ;
 DIDDLEBACK:
 	pushf					;AN013;Save flag
-	BIOS_LOW_MEM CMP,<[Media_Set_For_Format]>,0,DS	;AN012;
-	jne	NoDiddleBack			;AN012;
+	BIOS_LOW_MEM CMP,<[Media_Set_For_Format]>,0,DS
+	jne	NoDiddleBack
 	PUSH	AX
 	MOV	DX,DS
 	BIOS_LOW_READ MOV,AL,<SETTLECURRENT>,DS
@@ -543,7 +543,7 @@ DIDDLEBACK:
 	MOV	[SI].DISK_MOTOR_STRT,AH
 	MOV	DS,DX
 	POP	AX
-NoDiddleBack:				;AN013;
+NoDiddleBack:
 	popf				;AN013;Restore flag
 RETZ:
 	RET
@@ -597,7 +597,7 @@ GOTMIN:
 	JMP	BLOCK
 IOSETUP ENDP
 
-DskErr_Brdg: jmp DskErr 		;AN003;
+DskErr_Brdg: jmp DskErr
 
 ;
 ;PERFORM DISK I/O WITH RETRIES
@@ -740,9 +740,9 @@ DOVERIFY PROC	NEAR
 ;SB34DISK004**************************************************************
 
 Not_SoftECC_Err:			;AN003;Other error.
-	call	ResetDisk		;AN003;
+	call	ResetDisk
 	BIOS_LOW_UNARY DEC,<VRetry_Cnt>
-	jmp	DskErr0 		;AN003;
+	jmp	DskErr0
 DOVERIFY ENDP
 ;
 ; NEED TO SPECIAL CASE THE CHANGE-LINE ERROR AH=06H.  IF WE GET THIS, WE
@@ -766,18 +766,18 @@ BIOS_DSKERR_PATCH_END LABEL BYTE
 ;---------------------------------------;|
 
 	BIOS_LOW_MEM CMP,<MultiTrk_Format_Flag>,1,DS ;AN007;Multi trk format request?
-	jne	DoChkAgain		   ;AN007;
+	jne	DoChkAgain
 	mov	bp, 1			   ;AN007;No more retry.
 	BIOS_LOW_MEM MOV,<MultiTrk_Format_Flag>,0,DS ;AN007;Clear the flag.
-DoChkAgain:				   ;AN007;
+DoChkAgain:
 	CALL	AGAIN
-DskErr0:				;AN003;
+DskErr0:
 	JZ	HARDERR
-	test	word ptr [di].FLAGS, fNon_Removable	;AN009;
-	jnz	Skip_TimeOut_Chk			;AN009;
+	test	word ptr [di].FLAGS, fNon_Removable
+	jnz	Skip_TimeOut_Chk
 	CMP	AH,80H			;TIMEOUT?
 	JZ	HARDERR 		;***
-Skip_TimeOut_Chk:			;AN009;
+Skip_TimeOut_Chk:
 	cmp	ah, 0cch		;AN003;Write Fault error?
 	jz	Write_Fault_Err 	;AN003; Then, don't retry.
 	BIOS_LOW_MEM MOV,<Soft_ECC_Cnt>,MAXERR,DS ;AN003;Set Soft_ECC_Cnt back to MAXERR
@@ -785,9 +785,9 @@ DSKERR1:
 	POP	AX			;RESTORE SECTOR COUNT
 	JMP	RETRY
 
-Write_Fault_Err:			;AN003;
+Write_Fault_Err:
 	mov	bp, 1			;AN003;Just retry only once for Write Fault error.
-	jmp	DskErr1 		;AN003;
+	jmp	DskErr1
 
 HARDERR:
 	PUBLIC	HARDERR
@@ -813,8 +813,8 @@ DSKERR	ENDP
 ; NOTE THAT THIS ROUTINE IS NEVER CALLED FOR A FIXED DISK.
 ;
 NORMSPEED PROC	NEAR
-	BIOS_LOW_MEM CMP,<[Media_Set_For_Format]>,0,DS	;AN012;
-	jne	FASTSPEED			;AN012;
+	BIOS_LOW_MEM CMP,<[Media_Set_For_Format]>,0,DS
+	jne	FASTSPEED
 	PUSH	DS
 	PUSH	AX
 	BIOS_LOW_READ MOV,AL,<SETTLESLOW>,DS
@@ -1046,21 +1046,21 @@ ps2_30_Problem: 			;J.K. 1/30/87; ps2_30 = PS2 Model 30.
 GOTERR13:
 	PUSHF
 	cmp	ah, 09h 		;AN011; DMA error?
-	je	Chk_ValidMedia_ERR13	;AN011;
+	je	Chk_ValidMedia_ERR13
 	cmp	ah, 11h 		;AN011; ECC error?
-	je	Chk_ValidMedia_ERR13	;AN011;
+	je	Chk_ValidMedia_ERR13
 	jmp	Skip_Ecc_Check		;AN011; Other error.  Just return back.
 
 Chk_ValidMedia_ERR13:			;AN011;If SetDrive fails, then just
 	push	ds			;AN011;    return back to INT 13h caller,
 	push	di			;AN011;      without performing ECC, DMA
 	push	ax			;AN011; 	error handling.
-	mov	al, dl			;AN011;
-	call	SetDrive_Physical	;AN011;
-	pop	ax			;AN011;
-	pop	di			;AN011;
-	pop	ds			;AN011;
-	jc	Skip_Ecc_Check		;AN011;
+	mov	al, dl
+	call	SetDrive_Physical
+	pop	ax
+	pop	di
+	pop	ds
+	jc	Skip_Ecc_Check
 
 ; TEST OF BIT PATTERN 08H LET OTHER ERRORS BE PASSED AS DMA ERRORS - PTR 32D0519
 ;	TEST	AH,08H			; DMA BIT
@@ -1575,7 +1575,7 @@ MOVE	PROC	NEAR
 ;     not 386 base machine.)
 ;----------------------------------------------------------------------------
 	public	DoubleWordMov
-DoubleWordMov:			;AN002;
+DoubleWordMov:
 	shr	cx, 1		;AN002;Make it a double word.
 	db	66h		;AN002;Machine code for double word mov
 	PUBLIC BIOS_DWORD_PATCH_END

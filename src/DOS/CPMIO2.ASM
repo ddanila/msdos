@@ -1,4 +1,3 @@
-;	SCCSID = @(#)cpmio2.asm 1.1 85/04/11
 TITLE	CPMIO2 - device IO for MSDOS
 NAME	CPMIO2
 
@@ -22,11 +21,6 @@ include dosseg.asm
 ;   $Std_Con_Input_Status
 ;   $Std_Con_Input_Flush
 ;
-;   Revision History:
-;
-;	AN000	 version 4.00 - Jan. 1988
-;
-
 CODE	SEGMENT BYTE PUBLIC  'CODE'
 	ASSUME	SS:DOSGROUP,CS:DOSGROUP
 
@@ -44,9 +38,9 @@ INCLUDE DEVSYM.INC
     i_need  CARPOS,BYTE
     i_need  CHARCO,BYTE
     i_need  PFLAG,BYTE
-    i_need  CurrentPDB,WORD			 ;AN000;
-    i_need  InterCon,BYTE			 ;AN000;
-    i_need  SaveCurFlg,BYTE			 ;AN000;
+    i_need  CurrentPDB,WORD
+    i_need  InterCon,BYTE
+    i_need  SaveCurFlg,BYTE
 
 
 Break
@@ -61,28 +55,28 @@ Break
 	procedure   $STD_CON_INPUT,NEAR   ;System call 1
 ASSUME	DS:NOTHING,ES:NOTHING
 
- IF  DBCS					;AN000;
-	push	word ptr [InterCon]		;AN000;
-	mov	[InterCon],01H			;AN000;
-	invoke	INTER_CON_INPUT_NO_ECHO 	;AN000;
-	pop	word ptr [InterCon]		;AN000;
-	pushf					;AN000;
-	push	AX				;AN000;
-	mov	[SaveCurFlg],0			;AN000;
-	jnz	sj0				;AN000;
-	mov	[SaveCurFlg],1			;AN000;
-sj0:						;AN000;
-	invoke	OUTT				;AN000;
-	mov	[SaveCurFLg],0			;AN000;
-	pop	AX				;AN000;
-	popf					;AN000;
-	jz	$STD_CON_INPUT			;AN000;
- ELSE						;AN000;
+ IF  DBCS
+	push	word ptr [InterCon]
+	mov	[InterCon],01H
+	invoke	INTER_CON_INPUT_NO_ECHO
+	pop	word ptr [InterCon]
+	pushf
+	push	AX
+	mov	[SaveCurFlg],0
+	jnz	sj0
+	mov	[SaveCurFlg],1
+sj0:
+	invoke	OUTT
+	mov	[SaveCurFLg],0
+	pop	AX
+	popf
+	jz	$STD_CON_INPUT
+ ELSE
 	invoke	$STD_CON_INPUT_NO_ECHO
 	PUSH	AX
 	invoke	OUTT
 	POP	AX
- ENDIF						;AN000;
+ ENDIF
 	return
 EndProc $STD_CON_INPUT
 
@@ -96,7 +90,7 @@ Break
 ;	None
 
 	procedure   $STD_CON_OUTPUT,NEAR   ;System call 2
-	public	OUTCHA			       ;AN000;
+	public	OUTCHA
 ASSUME	DS:NOTHING,ES:NOTHING
 
 	MOV	AL,DL
@@ -106,7 +100,7 @@ ASSUME	DS:NOTHING,ES:NOTHING
 	JB	CTRLOUT
 	CMP	AL,c_DEL
 	JZ	OUTCH
-OUTCHA: 				   ;AN000;
+OUTCHA:
 	INC	BYTE PTR [CARPOS]
 OUTCH:
 	PUSH	DS
@@ -121,7 +115,7 @@ OUTSKIP:
 	invoke	RAWOUT				;output the character
 	POP	SI
 	POP	DS
- IF  DBCS				;AN000;
+ IF  DBCS
 	TEST	[SaveCurFlg],01H	;AN000;print but no cursor adv? 2/13/KK
 	retnz				;AN000;if so then do not send to prt2/13/KK
  ENDIF
@@ -342,8 +336,8 @@ BADJFNCON:
 	return
 
 REDISPJ:
- IF  DBCS			  ;AN000;
-	mov	ds,[CurrentPDB]   ;AN000;
+ IF  DBCS
+	mov	ds,[CurrentPDB]
 				  ;AN000; set DS same as one from COMMAND entry
  ENDIF
 	CLI

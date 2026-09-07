@@ -1,7 +1,7 @@
-PAGE	60,132				   ;AN000;
-NAME	SELECT				   ;AN000;
-TITLE	INPUT.ASM - DOS SELECT.EXE	   ;AN000;
-SUBTTL	input.asm			   ;AN000;
+PAGE	60,132
+NAME	SELECT
+TITLE	INPUT.ASM - DOS SELECT.EXE
+SUBTTL	input.asm
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ;
@@ -10,10 +10,10 @@ SUBTTL	input.asm			   ;AN000;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 					;
 DATA	SEGMENT BYTE PUBLIC 'DATA'      ;AN000; Define Dummy data segment
-	PUBLIC	WR_ICBVEC		;AN000;
-	PUBLIC	KD_BACKSPACE		;AN000;
+	PUBLIC	WR_ICBVEC
+	PUBLIC	KD_BACKSPACE
 					;
-	INCLUDE PCEQUATE.INC		;AN000;
+	INCLUDE PCEQUATE.INC
 					;
 SND_FREQ       EQU  440 		;AN000;    ;frequency of error beep
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -105,8 +105,8 @@ WR_ICB1        DW   ICB_BEN+ICB_RTA+ICB_LFA+ICB_BKS ;AN000;option word one
 	       DW   0			     ;AN000;offset of plus sign string
 	       DW   0			     ;AN000;segment of plus sign string
 					     ;
-WR_PATH_CHAR  DB   "'",',0-9,,a-z,,A-Z,,---, $!"#%&()-.@\`_{}~^,,,' ;AN000;
-WR_PATH_CHAR_LEN  EQU ($-WR_PATH_CHAR)	     ;AN000;
+WR_PATH_CHAR  DB   "'",',0-9,,a-z,,A-Z,,---, $!"#%&()-.@\`_{}~^,,,'
+WR_PATH_CHAR_LEN  EQU ($-WR_PATH_CHAR)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; ICB 2  STR_EXT_PARMS
@@ -213,8 +213,8 @@ WR_ICB3        DW   ICB_BEN+ICB_RTA+ICB_LFA+ICB_BKS ;AN000;option word one
 	       DW   0			     ;AN000;segment of plus sign string
 					     ;;;
 					       ;
-WR_APPEND_CHAR	DB   "'",',0-9,,a-z,,A-Z,,---, ;$!"#%&()-.:@\`_{}~^,,,' ;AN000;
-WR_APPEND_CHAR_LEN  EQU ($-WR_APPEND_CHAR)     ;AN000;
+WR_APPEND_CHAR	DB   "'",',0-9,,a-z,,A-Z,,---, ;$!"#%&()-.:@\`_{}~^,,,'
+WR_APPEND_CHAR_LEN  EQU ($-WR_APPEND_CHAR)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; ICB 4  STR_DOS_APPEND
@@ -321,8 +321,8 @@ WR_ICB5        DW   ICB_BEN+ICB_RTA+ICB_LFA+ICB_BKS ;AN000;option word one
 	       DW   0			     ;AN000;segment of plus sign string
 					     ;;;;;;;;;;;;;
 							 ;
-WR_PROMPT_CHAR	DB   "'",',0-9,,a-z,,A-Z,,---,\/ $!"#%()*+-.;@`[]_{}~,,,' ;AN000;
-WR_PROMPT_CHAR_LEN  EQU ($-WR_PROMPT_CHAR)		 ;AN000;
+WR_PROMPT_CHAR	DB   "'",',0-9,,a-z,,A-Z,,---,\/ $!"#%()*+-.;@`[]_{}~,,,'
+WR_PROMPT_CHAR_LEN  EQU ($-WR_PROMPT_CHAR)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; ICB 6  STR_SHELL
@@ -586,8 +586,8 @@ WR_ICB10       DW   ICB_BEN+ICB_RTA+ICB_LFA+ICB_BKS ;AN000;option word one
 	       DW   0			     ;AN000;length of plus sign string
 	       DW   0			     ;AN000;offset of plus sign string
 	       DW   0			     ;AN000;segment of plus sign string
-WR_GRAPHIC_CHAR  DB   "'",',0-9,,a-z,,A-Z,\ !"#%()*+-.;@`[]_{}~/,,,' ;AN000;
-WR_GRAPHIC_CHAR_LEN  EQU ($-WR_GRAPHIC_CHAR)		 ;AN000;
+WR_GRAPHIC_CHAR  DB   "'",',0-9,,a-z,,A-Z,\ !"#%()*+-.;@`[]_{}~/,,,'
+WR_GRAPHIC_CHAR_LEN  EQU ($-WR_GRAPHIC_CHAR)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; ICB 11  STR_XMAEM
@@ -796,8 +796,8 @@ WR_ICB14       DW   ICB_BEN+ICB_RTA+ICB_LFA+ICB_BKS ;;AN000;;+ICB_CLR  ;option w
 	       DW   0			     ;AN000;length of plus sign string
 	       DW   0			     ;AN000;offset of plus sign string
 	       DW   0			     ;AN000;segment of plus sign string
-WR_ON_OFF_CHAR	DB   ' OFNofn'               ;AN000;
-WR_ON_OFF_CHAR_LEN  EQU ($-WR_ON_OFF_CHAR)   ;AN000;
+WR_ON_OFF_CHAR	DB   ' OFNofn'
+WR_ON_OFF_CHAR_LEN  EQU ($-WR_ON_OFF_CHAR)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; ICB 15  STR_BUFFERS
@@ -851,11 +851,11 @@ WR_ICB15       DW   ICB_BEN+ICB_RTA+ICB_LFA+ICB_BKS ;AN000;option word one
 	       DW   0			     ;AN000;offset of plus sign string
 	       DW   0			     ;AN000;segment of plus sign string
 					     ;
-WR_BUFFERS     DB   ' ,0-9,,,,'              ;AN000;
-WR_BUFFERS_LEN EQU  $-WR_BUFFERS	     ;AN000;
+WR_BUFFERS     DB   ' ,0-9,,,,'
+WR_BUFFERS_LEN EQU  $-WR_BUFFERS
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
-; ICB 16  STR_DOS_APPEND_P   formerly STR_CPSW	   ;AC000;JW
+; ICB 16  STR_DOS_APPEND_P   formerly STR_CPSW
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 WR_ICB16       DW   ICB_BEN+ICB_RTA+ICB_LFA+ICB_BKS ;AN000;option word one
@@ -958,8 +958,8 @@ WR_ICB17       DW   ICB_BEN+ICB_RTA+ICB_LFA+ICB_BKS ;AN000;option word one
 	       DW   0			     ;AN000;offset of plus sign string
 	       DW   0			     ;AN000;segment of plus sign string
 					     ;
-WR_FCBS        DB   ' ,0-9,,,,'              ;AN000;
-WR_FCBS_LEN    EQU  ($-WR_FCBS) 	     ;AN000;
+WR_FCBS        DB   ' ,0-9,,,,'
+WR_FCBS_LEN    EQU  ($-WR_FCBS)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; ICB 18  STR_FILES
@@ -1064,8 +1064,8 @@ WR_ICB19       DW   ICB_BEN+ICB_RTA+ICB_LFA+ICB_BKS ;AN000;option word one
 	       DW   0			     ;AN000;length of plus sign string
 	       DW   0			     ;AN000;offset of plus sign string
 	       DW   0			     ;AN000;segment of plus sign string
-WR_ASCII_CHAR  DB   ' ,a-z,,A-Z,'            ;AN000;
-WR_ASCII_CHAR_LEN  EQU ($-WR_ASCII_CHAR)     ;AN000;
+WR_ASCII_CHAR  DB   ' ,a-z,,A-Z,'
+WR_ASCII_CHAR_LEN  EQU ($-WR_ASCII_CHAR)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; ICB 20  STR_STACKS
@@ -1223,8 +1223,8 @@ WR_ICB22       DW   ICB_BEN+ICB_RTA+ICB_LFA+ICB_BKS ;AN000;option word one
 	       DW   0			     ;AN000;offset of plus sign string
 	       DW   0			     ;AN000;segment of plus sign string
 					     ;
-WR_NUM_PTR     DB   ' ,0-7,'                 ;AN000;
-WR_NUM_PTR_LEN EQU ($-WR_NUM_PTR)	     ;AN000;
+WR_NUM_PTR     DB   ' ,0-7,'
+WR_NUM_PTR_LEN EQU ($-WR_NUM_PTR)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; ICB 23  NUM_EXT_DISK
@@ -1278,8 +1278,8 @@ WR_ICB23       DW   ICB_BEN+ICB_RTA+ICB_LFA+ICB_BKS ;AN000;option word one
 	       DW   0			     ;AN000;offset of plus sign string
 	       DW   0			     ;AN000;segment of plus sign string
 					     ;
-WR_NUM_EXT     DB   ' 012'                   ;AN000;
-WR_NUM_EXT_LEN EQU ($-WR_NUM_EXT)	     ;AN000;
+WR_NUM_EXT     DB   ' 012'
+WR_NUM_EXT_LEN EQU ($-WR_NUM_EXT)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; ICB 24  NUM_YEAR
@@ -1647,7 +1647,7 @@ WR_ICB30       DW   ICB_BEN+ICB_RTA+ICB_LFA+ICB_BKS  ;;AN000;+ICB_CLR ;option wo
 					     ;
 ICB_DEFBUF30   DW   ICB_DEFBUF30_L	     ;AN000;Define default buffer ASCIIN
 	       DB   '850'                    ;AN000;Define default buffer
-ICB_DEFBUF30_L EQU  $-ICB_DEFBUF30-2	     ;AN000;
+ICB_DEFBUF30_L EQU  $-ICB_DEFBUF30-2
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; ICB 31 COUNTRY_LANG
@@ -1702,8 +1702,8 @@ WR_ICB31       DW   ICB_BEN+ICB_RTA+ICB_LFA+ICB_BKS  ;;AN000;+ICB_CLR ;option wo
 	       DW   0			     ;AN000;segment of plus sign string
 					     ;
 ICB_DEFBUF31   DW   ICB_DEFBUF31_L	     ;AN000;Define default buffer ASCIIN
-	       DB   'SG'                     ;AN000;
-ICB_DEFBUF31_L EQU  $-ICB_DEFBUF31-2	     ;AN000;
+	       DB   'SG'
+ICB_DEFBUF31_L EQU  $-ICB_DEFBUF31-2
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; Table of Key Definitions
@@ -1728,10 +1728,10 @@ KD_PLUS        DB   43,0		     ;AN000;ASCII plus sign
 ; Define Buffers and Strings
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-WR_ALLOW_CHAR  DB   ', --,'                  ;AN000;
-WR_ALLOW_CHAR_LEN  EQU ($-WR_ALLOW_CHAR)     ;AN000;
-WR_ALLOW_NUM   DB   ' ,0-9,'                 ;AN000;
-WR_ALLOW_NUM_LEN   EQU ($-WR_ALLOW_NUM)      ;AN000;
+WR_ALLOW_CHAR  DB   ', --,'
+WR_ALLOW_CHAR_LEN  EQU ($-WR_ALLOW_CHAR)
+WR_ALLOW_NUM   DB   ' ,0-9,'
+WR_ALLOW_NUM_LEN   EQU ($-WR_ALLOW_NUM)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-DATA	ENDS				     ;AN000;
-	END				     ;AN000;
+DATA	ENDS
+	END

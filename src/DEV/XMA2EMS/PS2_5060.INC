@@ -37,7 +37,7 @@
 ;³								      ³
 ;ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
 
-include SYSVAR.INC			;system variables structure		;an007; dms;
+include SYSVAR.INC			;system variables structure
 
 
 			     ;ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
@@ -73,7 +73,7 @@ ems_pgs_parm   dw    0			;temp value for /E parameter
 e_parm_def     equ   0FFFFh		;default...take all for ems
 MIN_EXTMEM_H   EQU   (1024+384)/16	;Translate table pointer for the lowest
 MIN_EXTMEM_X   EQU   (1024+384)/4	; addr extended memory can start at on
-BASE_MEM       EQU   1024		;Base planer memory			;an007; dms;
+BASE_MEM       EQU   1024		;Base planer memory
 					; a PS/2 (16K XMO and 4K XMA)
 PREV_EXT_PGS   DW    0			;Extended memory claimed by previous
 					; drivers
@@ -138,7 +138,7 @@ HLST_CHECK:
 H_NEXT_SLOT:
 	INC	CL				 ;Check next adapter slot  @RH2
 	CMP	CL,NUM_OF_SLOTS 		 ;Is it <= system slots?   @RH2
-	JB	H_SLOT_SCAN			 ;Yes..check next slot		;ac000; dms;
+	JB	H_SLOT_SCAN			 ;Yes..check next slot
 						 ;No fall through loop	    RH2
 
 			;ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
@@ -185,7 +185,7 @@ XMAA_CHECK:
 X_NEXT_SLOT:
 	INC	CL				 ;Check next adapter slot  @RH2
 	CMP	CL,NUM_OF_SLOTS 		 ;Is it <= system slots?   @RH2
-	JB	X_SLOT_SCAN			 ;Yes..check next slot		;ac000; dms;
+	JB	X_SLOT_SCAN			 ;Yes..check next slot
 						 ;No fall through loop	    RH2
 
 	CMP	TOTAL_SYS_PAGES,0	;If one or more cards are found    @RH4
@@ -206,28 +206,28 @@ X_NEXT_SLOT:
 					;³  comes in below XMO card)	      ³
 					;ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
 CALC_EXTENDED:
-	push	es			;this call kills these regs		;an007; dms;
-	push	bx			;					;an007; dms;
+	push	es			;this call kills these regs
+	push	bx			;
 
-	mov	ah,52h			;get the sysvars ptr			;an007; dms;
-	int	21h			; to get total ext. memory at boot	;an007; dms;
-	mov	ax,word ptr es:[bx].SYSI_Ext_Mem	;			;an007; dms;
+	mov	ah,52h			;get the sysvars ptr
+	int	21h			; to get total ext. memory at boot
+	mov	ax,word ptr es:[bx].SYSI_Ext_Mem	;
 
-	pop	bx			;restore regs				;an007; dms;
-	pop	es			;					;an007; dms;
+	pop	bx			;restore regs
+	pop	es			;
 
-	add	ax,Base_Mem		; + base memory 			;an007; dms;
-	MOV	CL,4			; convert to 16Kb pages 		;an007; dms;
-	SHR	AX,CL			;					;an007; dms;
-	sub	ax,cs:Total_Sys_Pages	;get page where card begins		;an007; dms;
+	add	ax,Base_Mem		; + base memory
+	MOV	CL,4			; convert to 16Kb pages
+	SHR	AX,CL			;
+	sub	ax,cs:Total_Sys_Pages	;get page where card begins
 
-	xor	di,di			;init. index value			;an008; dms
+	xor	di,di			;init. index value
 	CMP	MEM_CARD_TABLE.CARD_ID[DI],HLST_CARD_ID ;If 1st card holst @RH4
 	JE	FIND_H_1ST_TT				; then get hlst TT @RH4
 FIND_X_1ST_TT:				;XMAA is 1st card (lowest ext mem) @RH4
 ;;;;;	MOV	AX,MIN_EXTMEM_X 	;Set XMAA TT ptr at 1.384M and	   @RH4
-	shl	ax,1			;					;an000; dms;
-	shl	ax,1			;					;an000; dms;
+	shl	ax,1			;
+	shl	ax,1			;
 FIND_X_1ST_LOOP:			; search for start of ext mem	   @RH4
 	CALL	X_READ_TT		;Read trans tbl data at this addr  @RH4
 	CMP	BX,XMA_TT_INHIBIT	;If not inhibitted then mem here.  @RH4
@@ -266,17 +266,17 @@ FIRST_EXT_FOUND:
 	CMP	EMS_PGS_PARM,E_PARM_DEF ;If no /E parm specified then	   @RH4
 	JNE	CHECK_E_PARM		; use the remaining pages for EMS  @RH4
 	MOV	AX,TOTAL_SYS_PAGES	; (total on cards minus previously @RH4
-	cmp	Prev_Ext_Pgs,ax 	;Previous ext pages >= avail on cards?	;an000; dms;
-	jae	Default_Mem_Err_Exit	;yes - we have used the whole card	;an000; dms;
+	cmp	Prev_Ext_Pgs,ax 	;Previous ext pages >= avail on cards?
+	jae	Default_Mem_Err_Exit	;yes - we have used the whole card
 	SUB	AX,PREV_EXT_PGS 	; used for extended memory)	   @RH4
 	MOV	NEEDED_EMS_PGS,AX	;Set counter for marking PAL and TT@RH4
 	JMP	SHORT MARK_EXT_IN_PAL
 
 Default_Mem_Err_Exit:
 
-	mov	Init_Err,Error		;flag an error occurred 		;an000; dms;
-	lea	dx,No_EMS_Memory	;no memory on cards left		;an000; dms;
-	jmp	Init_50_60_Ret		;exit routine				;an000; dms;
+	mov	Init_Err,Error		;flag an error occurred
+	lea	dx,No_EMS_Memory	;no memory on cards left
+	jmp	Init_50_60_Ret		;exit routine
 
 CHECK_E_PARM:				;Else test user specified # EMS pgs@RH4
 	MOV	BX,EMS_PGS_PARM 	;Set counter for marking Page	   @RH4
@@ -293,7 +293,7 @@ CHECK_E_PARM:				;Else test user specified # EMS pgs@RH4
 					;³ Mark PAL for extended memory pages ³
 					;ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
 MARK_EXT_IN_PAL:
-	xor	di,di			;start at bottom of PAL to init EXT	;an002; dms;
+	xor	di,di			;start at bottom of PAL to init EXT
 MARK_NEW_IN_PAL:
 	MOV	CX,TOTAL_SYS_PAGES	;Loop for the 'new' extended pages @RH4
 	SUB	CX,NEEDED_EMS_PGS	; (left over from /E parm and not  @RH4
@@ -308,7 +308,7 @@ MARK_NEW_LP:				; will take it from the top	   @RH4
 
 MARK_PREV_IN_PAL:
 	MOV	AX,NEEDED_EMS_PGS	;Set offset into Page Alloc List   @RH4
-	add	ax,Resr_Ext_Pgs 	;get end of area for EMS pages		;an002; dms;
+	add	ax,Resr_Ext_Pgs 	;get end of area for EMS pages
 	MOV	DX,TYPE PAGE_ALLOC_LIST ; for the page where extended mem  @RH4
 	MUL	DX			; starts.  This is done by skipping@RH4
 	MOV	DI,AX			; over the EMS pages on bottom	   @RH4
@@ -327,25 +327,25 @@ MARK_PREV_LP:				;				   @RH4
 
 DIS_EMS_TT:
 
-	mov	cx,Resr_Ext_Pgs 		;get extended page count	;ac008; dms;
+	mov	cx,Resr_Ext_Pgs 		;get extended page count
 						;1 based page count
 
-	xor	di,di				;set mem card table ptr 	;an002; dms;
+	xor	di,di				;set mem card table ptr
 
 Card_Find_Chk:
 
-	cmp	cx,Mem_Card_Table.End_Pg_Num[di];page > ending page on card?	;ac008; dms;
-	ja	Card_Find_Loop			;yes - next card please 	;an002; dms;
-	add	Card_Ext_S16K,cx		;get 1st. avail page		;an008; dms;
-	mov	cx,Mem_Card_Table.End_Pg_Num[di];Calc # pages remaining on card ;an002; dms;
-	sub	cx,Resr_Ext_Pgs 		;				;ac008; dms;
-	inc	cx				;				;an002; dms;
-	jmp	Calc_Cards_EMS			;				;an002; dms;
+	cmp	cx,Mem_Card_Table.End_Pg_Num[di];page > ending page on card?
+	ja	Card_Find_Loop			;yes - next card please
+	add	Card_Ext_S16K,cx		;get 1st. avail page
+	mov	cx,Mem_Card_Table.End_Pg_Num[di];Calc # pages remaining on card
+	sub	cx,Resr_Ext_Pgs 		;
+	inc	cx				;
+	jmp	Calc_Cards_EMS			;
 
 Card_Find_Loop:
 
-	add	di,Type Mem_Card_Struc		;next pointer			;an002; dms;
-	jmp	Card_Find_Chk			;continue loop			;an002; dms;
+	add	di,Type Mem_Card_Struc		;next pointer
+	jmp	Card_Find_Chk			;continue loop
 
 
 CALC_CARDS_EMS:
@@ -398,9 +398,9 @@ NEXT_CARD_EMS:
 
 	ADD	DI,TYPE MEM_CARD_STRUC	;Next entry in the memory card	   @RH4
 
-	mov	cx,Mem_Card_Table.End_Pg_Num[di]	;calc pages on		;an002; dms;
-	sub	cx,Mem_Card_Table.Start_Pg_Num[di]	;card			;an002; dms;
-	inc	cx					;			;an002; dms;
+	mov	cx,Mem_Card_Table.End_Pg_Num[di]	;calc pages on
+	sub	cx,Mem_Card_Table.Start_Pg_Num[di]	;card
+	inc	cx					;
 
 	JMP	CALC_CARDS_EMS		; table.			   @RH4
 

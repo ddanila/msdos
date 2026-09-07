@@ -11,31 +11,7 @@
 ;
 ;   Module:	INIT - initialization code for MEMM
 ;
-;   Version:	0.05
-;
-;   Date:	May 24,1986
-;
-;   Author:
-;
 ;******************************************************************************
-;
-;	Change Log:
-;
-;	DATE	 REVISION	Description
-;	-------- --------	--------------------------------------------
-;	05/24/86 Original
-;	06/18/86 0.01		Added AUTO as a valid config line parameter.
-;	06/25/86 0.02		Added call to debug init.
-;	06/27/86 0.02		Check for Mx length = 2 and only 2
-;	06/28/86 0.02		Change name from MEMM386 to MEMM
-;	06/29/86 0.02		Size > 8192 were used instead of converted
-;				to 256
-;	07/03/86 0.04		Added TEXT_Seg
-;	07/06/86 0.04		changed assume to DGROUP
-;	07/06/86 0.04		moved init messages to LAST
-;	07/10/86 0.05		added int15 patch and int67 patch here
-;	07/20/88		removed debugger codes (pc)
-;	07/29/88		removed ON/OFF/AUTO support
 ;
 ;******************************************************************************
 ;   Functional Description:

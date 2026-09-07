@@ -2,14 +2,6 @@
 page	,132;
 title	Non-Contiguous IBMBIO Loader (MSLOAD)
 ;==============================================================================
-;REVISION HISTORY:
-;AN000 - New for DOS Version 4.00 - J.K.
-;AC000 - Changed for DOS Version 4.00 - J.K.
-;AN00x - PTMs for DOS Version 4.00 - J.K.
-;==============================================================================
-;AN001; - P1820 New Message SKL file				   10/20/87 J.K.
-;AN002; - D381	For SYS.COM, put the version number		   01/06/88 J.K.
-;==============================================================================
 ;JK, 1987 -
 ;     For DOS 4.00, MSLOAD program has been changed to allow:
 ;	  1. 32 bit calculation,
@@ -139,7 +131,7 @@ page
 Save_Input_Values:
 
 
-	mov	First_Sector_L,bx	   ;AC000;
+	mov	First_Sector_L,bx
 	mov	media_Byte,ch
 	mov	Drive_Number,dl
 	mov	word ptr Org_Rom_Disktable, si
@@ -168,10 +160,10 @@ Save_Input_Values:
 	pop	es			;;** DCL 8/3/87
 	assume	es:nothing
 
-	mov	cx,Boot_Sector.EXT_BOOT_BPB.EBPB_BYTESPERSECTOR      ;AN000;
-	mov	cs:Sector_Size, cx				     ;AN000;
-	mov	cl,Boot_Sector.EXT_BOOT_BPB.EBPB_SECTORSPERCLUSTER   ;AN000;
-	mov	cs:Sectors_Per_Cluster, cl			     ;AN000;
+	mov	cx,Boot_Sector.EXT_BOOT_BPB.EBPB_BYTESPERSECTOR
+	mov	cs:Sector_Size, cx
+	mov	cl,Boot_Sector.EXT_BOOT_BPB.EBPB_SECTORSPERCLUSTER
+	mov	cs:Sectors_Per_Cluster, cl
 	mov	cx,Boot_Sector.EXT_BOOT_BPB.EBPB_SECTORSPERTRACK     ;Get Sectors per track
 	mov	cs:Sectors_Per_Track,cx
 	mov	cx,Boot_Sector.EXT_BOOT_BPB.EBPB_HEADS		     ;Get BPB heads per cylinder
@@ -182,24 +174,24 @@ Save_Input_Values:
 	mov	cs:Reserved_Sectors,cx
 	mov	cx,word ptr Boot_Sector.EXT_BOOT_BPB.EBPB_HIDDENSECTOR	 ;Get hidden sectors
 	mov	cs:Hidden_Sectors_L,cx
-	mov	cx, Boot_Sector.EXT_BOOT_BPB.EBPB_TOTALSECTORS	     ;AN000;
-	mov	cs:Drive_Lim_L, cx				     ;AN000;
+	mov	cx, Boot_Sector.EXT_BOOT_BPB.EBPB_TOTALSECTORS
+	mov	cs:Drive_Lim_L, cx
 
 ;J.K. First of all, check if it the boot record is an extended one.
 ;J.K. This is just a safe guard in case some user just "copy" the 4.00 IBMBIO.COM
 ;J.K. to a media with a conventional boot record.
 
-	cmp	Boot_Sector.EXT_BOOT_SIG, EXT_BOOT_SIGNATURE		;AN000;
-	jne	Relocate						;AN000;
+	cmp	Boot_Sector.EXT_BOOT_SIG, EXT_BOOT_SIGNATURE
+	jne	Relocate
 	mov	cs:First_Sector_H, AX					;AN000; start data sector (high)
-	mov	ax,word ptr Boot_Sector.EXT_BOOT_BPB.EBPB_HIDDENSECTOR+2  ;AN000;
-	mov	cs:Hidden_Sectors_H,ax					  ;AN000;
+	mov	ax,word ptr Boot_Sector.EXT_BOOT_BPB.EBPB_HIDDENSECTOR+2
+	mov	cs:Hidden_Sectors_H,ax
 	cmp	cx, 0							;AN000; CX set already before (=Totalsectors)
-	jne	Relocate						;AN000;
-	mov	ax, word ptr Boot_Sector.EXT_BOOT_BPB.EBPB_BIGTOTALSECTORS   ;AN000;
-	mov	cs:Drive_Lim_L, ax					     ;AN000;
-	mov	ax, word ptr Boot_Sector.EXT_BOOT_BPB.EBPB_BIGTOTALSECTORS+2 ;AN000;
-	mov	cs:Drive_Lim_H, ax					  ;AN000;
+	jne	Relocate
+	mov	ax, word ptr Boot_Sector.EXT_BOOT_BPB.EBPB_BIGTOTALSECTORS
+	mov	cs:Drive_Lim_L, ax
+	mov	ax, word ptr Boot_Sector.EXT_BOOT_BPB.EBPB_BIGTOTALSECTORS+2
+	mov	cs:Drive_Lim_H, ax
 subttl	Relocate
 page
 ;
@@ -227,9 +219,9 @@ page
 ;
 Relocate:
 	assume	ds:nothing
-	cld				;AN000;
-	xor	si,si			;AN000;
-	mov	di,si			;AN000;
+	cld
+	xor	si,si
+	mov	di,si
 ;SB34LOAD000****************************************************************
 ;SB  Determine the number of paragraphs (16 byte blocks) of memory.
 ;SB	This involves invoking the memory size determination interrupt,
@@ -241,28 +233,28 @@ Relocate:
 	mov	cl,6			;
 	shl	ax,cl			;memory size in paragraphs
 ;SB34LOAD000****************************************************************
-	mov	cl,4			;AN000;
-	mov	dx, cs:Sector_Size	;AN000;
-	shr	dx,cl			;AN000;
-	inc	dx			;AN000;
-	sub	ax, dx			;AN000;
+	mov	cl,4
+	mov	dx, cs:Sector_Size
+	shr	dx,cl
+	inc	dx
+	sub	ax, dx
 	mov	cs:Fat_Segment, ax	;AN000;This will be used for FAT sector
-	mov	dx, offset total_length ;AN000;
-	shr	dx, cl			;AN000;
-	inc	dx			;AN000;
-	sub	ax, dx			;AN000;
+	mov	dx, offset total_length
+	shr	dx, cl
+	inc	dx
+	sub	ax, dx
 	mov	es, ax			;AN000;es:di -> place be relocated.
-	push	cs			;AN000;
+	push	cs
 	pop	ds			;AN000;ds:si -> source
-	mov	cx, offset total_length ;AN000;
-	rep	movsb			;AN000;
+	mov	cx, offset total_length
+	rep	movsb
 
-	push	es			;AN000;
-	mov	ax, offset Setup_stack	;AN000;
+	push	es
+	mov	ax, offset Setup_stack
 	push	ax			;AN000;massage stack for destination of cs:ip
-Dumbbb	proc	far			;AN000;
-	ret				;AN000;
-Dumbbb	endp				;AN000;
+Dumbbb	proc	far
+	ret
+Dumbbb	endp
 
 
 ;	 push	 cs				 ;Set up ds segreg
@@ -371,31 +363,31 @@ page
 ;----------------------------------------------------------------------
 Determine_FAT_Size:
 	mov	cs:FAT_Size,FAT12_bit		;AN000;Assume 12 bit fat
-	mov	dx, cs:Drive_Lim_H		;AN000;
-	mov	ax, cs:Drive_Lim_L		;AN000;
-	sub	ax, cs:Reserved_Sectors 	;AN000;
+	mov	dx, cs:Drive_Lim_H
+	mov	ax, cs:Drive_Lim_L
+	sub	ax, cs:Reserved_Sectors
 	sbb	dx, 0				;AN000;now, dx;ax = available total sectors
-	mov	bx, cs:Number_Of_FAT_Sectors	;AN000;
+	mov	bx, cs:Number_Of_FAT_Sectors
 	shl	bx, 1				;AN000;2 FATs
-	sub	ax, bx				;AN000;
+	sub	ax, bx
 	sbb	dx, 0				;AN000;now, dx;ax = tatal sectors - fat sectors
-	mov	bx, Boot_Sector.EXT_BOOT_BPB.EBPB_ROOTENTRIES ;AN000;
-	mov	cl, 4				;AN000;
+	mov	bx, Boot_Sector.EXT_BOOT_BPB.EBPB_ROOTENTRIES
+	mov	cl, 4
 	shr	bx, cl				;AN000;Sectors for dir entries = dir entries / Num_DIR_Sector
-	sub	ax, bx				;AN000;
-	sbb	dx, 0				;AN000;
-	xor	cx, cx				;AN000;
-	mov	cl, Boot_Sector.EXT_BOOT_BPB.EBPB_SECTORSPERCLUSTER ;AN000;
-	push	ax				;AN000;
-	mov	ax, dx				;AN000;
-	xor	dx, dx				;AN000;
-	div	cx				;AN000;
-	mov	cs:Temp_H, ax			;AN000;
-	pop	ax				;AN000;
+	sub	ax, bx
+	sbb	dx, 0
+	xor	cx, cx
+	mov	cl, Boot_Sector.EXT_BOOT_BPB.EBPB_SECTORSPERCLUSTER
+	push	ax
+	mov	ax, dx
+	xor	dx, dx
+	div	cx
+	mov	cs:Temp_H, ax
+	pop	ax
 ;J.K. We assume that cx > dx.
-	div	cx				;AN000;
-	cmp	ax, 4096-10			;AN000;
-;	 jb	 Determine_First_Cluster	 ;AN000;
+	div	cx
+	cmp	ax, 4096-10
+;	 jb	 Determine_First_Cluster
 	jb	Read_In_FirstClusters
 	mov	cs:FAT_Size, FAT16_Bit		;AN000;16 bit fat
 
@@ -457,30 +449,30 @@ page
 ;-----------------------------------------------------------------------
 
 Read_In_FirstClusters:
-	mov	ax, IBMLOADSIZE 			;AN000;
-	div	cs:Sectors_Per_Cluster			;AN000;
-	cmp	ah, 0					;AN000;
-	je	Set_Next_Cluster_Number 		;AN000;
-	xor	ah, ah					;AN000;
-	push	ax					;AN000;
-	mov	cx, cs:First_Sector_L			;AN000;
-	mov	cs:Start_Sector_L, cx			;AN000;
-	mov	cx, cs:First_Sector_H			;AN000;
-	mov	cs:Start_Sector_H, cx			;AN000;
+	mov	ax, IBMLOADSIZE
+	div	cs:Sectors_Per_Cluster
+	cmp	ah, 0
+	je	Set_Next_Cluster_Number
+	xor	ah, ah
+	push	ax
+	mov	cx, cs:First_Sector_L
+	mov	cs:Start_Sector_L, cx
+	mov	cx, cs:First_Sector_H
+	mov	cs:Start_Sector_H, cx
 	mul	cs:Sectors_Per_Cluster			;AN000; Now, AX=# of sectors
-	add	cs:Start_Sector_L, ax			;AN000;
-	adc	cs:Start_Sector_H, 0			;AN000;
-	pop	ax					;AN000;
-	push	ax					;AN000;
-	mov	di, BIOOFF				;AN000;
+	add	cs:Start_Sector_L, ax
+	adc	cs:Start_Sector_H, 0
+	pop	ax
+	push	ax
+	mov	di, BIOOFF
 	mul	cs:Size_Cluster 			;AN000;AX = # of bytes read in before this cluster
-	add	di, ax					;AN000;
-	xor	ax, ax					;AN000;
-	mov	es, ax					;AN000;
-	mov	al, cs:Sectors_Per_Cluster		;AN000;
-	mov	cs:Sector_Count, ax			;AN000;
-	call	Disk_Read				;AN000;
-	pop	ax					;AN000;
+	add	di, ax
+	xor	ax, ax
+	mov	es, ax
+	mov	al, cs:Sectors_Per_Cluster
+	mov	cs:Sector_Count, ax
+	call	Disk_Read
+	pop	ax
 	inc	ax					;AN000;# of clusters read in so far.
 
 subttl Set_Next_Cluster_Number
@@ -543,14 +535,14 @@ page
 ;	 mov	 ax,cs:Number_Of_FAT_Sectors   ;Get sectors/FAT
 ;	 mov	 cs:Sector_Count,ax	       ;Number of sectors to read
 ;	 mov	 ax,cs:Hidden_Sectors_L        ;Hidden+Reserved = start of FAT sector
-;	 mov	 dx,cs:Hidden_Sectors_H        ;AN000;
+;	 mov	 dx,cs:Hidden_Sectors_H
 ;	 add	 ax,cs:Reserved_Sectors
 ;	 adc	 dx, 0
 ;	 mov	 cs:Start_Sector_L,ax	     ;AC000;Save it, setup for disk read
-;	 mov	 cs:Start_Sector_H,dx	     ;AN000;
-;	 mov	 di, 800h			 ;AC000;
-;	 mov	 es, di 			 ;AC000;
-;	 xor	 di, di 			 ;AC000;
+;	 mov	 cs:Start_Sector_H,dx
+;	 mov	 di, 800h
+;	 mov	 es, di
+;	 xor	 di, di
 ;	 assume  es:nothing
 ;	 call	 Disk_Read
 ;
@@ -660,15 +652,15 @@ Get_Contiguous_Cluster:
 ;	 je	 GOTO_IBMBIO
 ;Got_Contig_Clusters:
 
-	xor	dx,dx			;AN000;
+	xor	dx,dx
 	sub	ax,2			;Zero base the cluster
 	xor	ch,ch
 	mov	cl,cs:Sectors_Per_Cluster ;Get sectors per cluster
 	mul	cx			;Get how many
 	add	ax,cs:First_Sector_L	;AC000;See where the data sector starts
-	adc	dx,cs:First_Sector_H	;AN000;
+	adc	dx,cs:First_Sector_H
 	mov	cs:Start_Sector_L,ax	;AC000;Save it
-	mov	cs:Start_Sector_H,dx	;AN000;
+	mov	cs:Start_Sector_H,dx
 	mov	di,cs:Next_Bio_Location ;Get where to put code
 	push	cs:Sector_Count 	;Save how many sectors
 	mov	ax,dosloadseg		;Get area to load code
@@ -716,10 +708,10 @@ page
 GO_IBMBIO:
 	mov	ch,cs:Media_Byte	;Restore regs required for MSINT
 	mov	dl,cs:Drive_Number	;Physical Drive number we booted from.
-	mov	bx,cs:First_Sector_L	;AC000;
+	mov	bx,cs:First_Sector_L
 	mov	ax,cs:First_Sector_H	;AN000; AX will be the First data sector (High)
 ;J.K. Don't need this information any more.
-;	mov	di,cs:Number_Of_FAT_Sectors ;AN000
+;	mov	di,cs:Number_Of_FAT_Sectors
 	jmp	far ptr IBMBIO_Address
 
 
@@ -783,14 +775,14 @@ DODIV:
 Try_Read:
 	PUSH	cx			;Save it
 	MOV	AX,cs:Start_Sector_L	;AC000; Get starting sector
-	mov	dx, cs:Start_Sector_H	;AN000;
+	mov	dx, cs:Start_Sector_H
 ;	 XOR	 DX,DX
-	push	ax			;AN000;
-	mov	ax, dx			;AN000;
-	xor	dx, dx			;AN000;
+	push	ax
+	mov	ax, dx
+	xor	dx, dx
 	DIV	word ptr cs:Sectors_Per_Track
-	mov	cs:Temp_H, ax	      ;AN000;
-	pop	ax			;AN000;
+	mov	cs:Temp_H, ax
+	pop	ax
 	div	word ptr cs:Sectors_Per_Track  ;AN000;[temp_h];AX = track, DX = sector number
 	MOV	bx,cs:Sectors_Per_Track ;Get number of sectors we can read in
 	sub	bx,dx			;this track
@@ -803,12 +795,12 @@ Got_Length:
 	MOV	bl,dl			;Start sector in DL
 	mov	dx, cs:Temp_H	      ;AN000;now, dx;ax = track
 ;	 XOR	 DX, DX
-	push	ax			;AN000;
-	mov	ax, dx			;AN000;
-	xor	dx, dx			;AN000;
+	push	ax
+	mov	ax, dx
+	xor	dx, dx
 	DIV	word ptr cs:Number_Of_Heads  ;Start cyl in ax,head in DL
-	mov	cs:Temp_h, ax	      ;AN000;
-	pop	ax			;AN000;
+	mov	cs:Temp_h, ax
+	pop	ax
 	div	word ptr cs:Number_of_Heads ;AN000;now [temp_h];AX = cyliner, dx = head
 ;J.K. At this moment, we assume that Temp_h = 0, AX <= 1024, DX <= 255
 	MOV	DH,DL
@@ -843,20 +835,20 @@ Got_Length:
 	int	13h
 	pop	di
 	pop	cx
-;	 loop	 Try_Read		 ;AC000;
+;	 loop	 Try_Read
        ;xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx error
-	dec	cx			;AN000;
-	jz	Read_Error		;AN000;
-	jmp	Try_Read		;AN000;
-Read_Error:				;AN000;
-	jmp	ErrorOut		;AN000;
+	dec	cx
+	jz	Read_Error
+	jmp	Try_Read
+Read_Error:
+	jmp	ErrorOut
 
 Read_OK:
 	xor	ah,ah			;Mask out read command, just get # read
 	sub	cs:Sector_Count,ax	;Bump number down
 	jz	Read_Finished
 	add	cs:Start_Sector_L,ax	;AC000;Where to start next time
-	adc	cs:Start_Sector_H, 0	;AN000;
+	adc	cs:Start_Sector_H, 0
 	xor	bx,bx			  ;Get number sectors read
 	mov	bl,al
 	mov	ax,cs:Sector_Size	;Bytes per sector
@@ -918,8 +910,8 @@ page
 ;----------------------------------------------------------------------
 Get_Next_FAT_Entry:
 
-	push	es				;AN000;
-	mov	ax, cs:FAT_Segment		;AN000;
+	push	es
+	mov	ax, cs:FAT_Segment
 	mov	es, ax				;AN000; es-> Fat area segment
 	assume	es:nothing
 
@@ -927,22 +919,22 @@ Get_Next_FAT_Entry:
 	mov	ax,cs:Last_Found_Cluster	;Get last cluster
 	cmp	cs:Fat_Size,FAT12_bit
 	jne	Got_16_Bit
-	mov	si, ax				;AN000;
-	shr	ax, 1				;AN000;
+	mov	si, ax
+	shr	ax, 1
 	add	si, ax				;AN000; si = ax*1.5 = ax+ax/2
-	call	Get_Fat_Sector			;AN000;
-	jne	Ok_cluster			;AN000;
-	mov	al, byte ptr es:[bx]		;AN000;
-	mov	byte ptr cs:Temp_cluster, al	;AN000;
-	inc	si				;AN000;
+	call	Get_Fat_Sector
+	jne	Ok_cluster
+	mov	al, byte ptr es:[bx]
+	mov	byte ptr cs:Temp_cluster, al
+	inc	si
 	call	Get_Fat_Sector			;AN000;read next FAT sector
-	mov	al, byte ptr es:[0]		;AN000;
-	mov	byte ptr cs:Temp_cluster+1, al	    ;AN000;
-	mov	ax, cs:Temp_cluster		    ;AN000;
-	jmp	short Even_Odd			;AN000;
-Ok_cluster:					;AN000;
-	mov	ax, es:[bx]			;AN000;
-Even_Odd:					;AN000;
+	mov	al, byte ptr es:[0]
+	mov	byte ptr cs:Temp_cluster+1, al
+	mov	ax, cs:Temp_cluster
+	jmp	short Even_Odd
+Ok_cluster:
+	mov	ax, es:[bx]
+Even_Odd:
 
 ;	 xor	 bx,bx
 ;	 mov	 bl,3				 ;Mult by 3
@@ -967,8 +959,8 @@ Test_EOF:
 Got_16_Bit:
 	shl	ax,1				;Multiply cluster by 2
 	mov	si,ax				;Get the final buffer offset
-	call	Get_Fat_Sector			;AN000;
-	mov	ax, es:[bx]			;AN000;
+	call	Get_Fat_Sector
+	mov	ax, es:[bx]
 ;	 mov	 ax,[si]+8000h			;Get new cluster
 	cmp	ax,0FFF8h
 	jae	Got_Cluster_Done
@@ -994,47 +986,47 @@ Get_Fat_Sector	proc	near
 ;      should save this byte, and read the next FAT sector to get the rest
 ;      of the FAT entry value.	(This will only happen with the 12 bit fat).
 
-	push	ax			;AN000;
-	push	si			;AN000;
-	push	di			;AN000;
-	push	dx			;AN000;
-	xor	dx, dx			;AN000;
-	mov	ax, si			;AN000;
-	mov	cx, cs:Sector_Size	;AN000;
+	push	ax
+	push	si
+	push	di
+	push	dx
+	xor	dx, dx
+	mov	ax, si
+	mov	cx, cs:Sector_Size
 	div	cx			;AN000;ax = sector number, dx = offset
 	cmp	ax, cs:Last_Fat_SecNum	;AN000;the same fat sector?
 	je	GFS_Split_Chk		;AN000;don't need to read it again.
-	mov	cs:Last_Fat_SecNum, ax	;AN000;
-	push	dx			;AN000;
-	xor	dx, dx			;AN000;
-	add	ax, cs:Hidden_Sectors_L ;AN000;
-	adc	dx, cs:Hidden_Sectors_H ;AN000;
-	add	ax, cs:Reserved_Sectors ;AN000;
-	adc	dx, 0			;AN000;
-	mov	cs:Start_Sector_L, ax	;AN000;
+	mov	cs:Last_Fat_SecNum, ax
+	push	dx
+	xor	dx, dx
+	add	ax, cs:Hidden_Sectors_L
+	adc	dx, cs:Hidden_Sectors_H
+	add	ax, cs:Reserved_Sectors
+	adc	dx, 0
+	mov	cs:Start_Sector_L, ax
 	mov	cs:Start_Sector_H, dx	;AN000;set up for Disk_Read
 	mov	cs:Sector_Count, 1	;AN000;1 sector
-	xor	di, di			;AN000;
-	call	Disk_Read		;AN000;
-	pop	dx			;AN000;
-	mov	cx, cs:Sector_Size	;AN000;
-GFS_Split_Chk:				;AN000;
+	xor	di, di
+	call	Disk_Read
+	pop	dx
+	mov	cx, cs:Sector_Size
+GFS_Split_Chk:
 	dec	cx			;AN000;now, cx= sector size - 1
 	cmp	dx, cx			;AN000;if the last byte of the sector, then splitted entry.
 	mov	bx, dx			;AN000;Set BX to DX
-	pop	dx			;AN000;
-	pop	di			;AN000;
-	pop	si			;AN000;
-	pop	ax			;AN000;
-	ret				;AN000;
-Get_Fat_Sector	endp			;AN000;
+	pop	dx
+	pop	di
+	pop	si
+	pop	ax
+	ret
+Get_Fat_Sector	endp
 
 
-Errorout:				;AN000;
-	push	cs			;AN000;
-	pop	ds			;AN000;
-	mov	si, offset Sysmsg	;AN000;
-	call	write			;AN000;
+Errorout:
+	push	cs
+	pop	ds
+	mov	si, offset Sysmsg
+	call	write
 ;SB34LOAD001****************************************************************
 ;SB  Wait for a keypress on the keyboard. Use the BIOS keyboard interrupt.
 ;SB	2 LOCS
@@ -1062,9 +1054,9 @@ Errorout:				;AN000;
 Write	proc  near			;show error messages
 ;In) DS:SI -> ASCIIZ string.
 
-	lodsb				;AN000;
-	or	al, al			;AN000;
-	jz	Endwr			;AN000;
+	lodsb
+	or	al, al
+	jz	Endwr
 ;SB34LOAD003****************************************************************
 ;SB  Write the character in al to the screen.
 ;SB    Use Video service 'Write teletype to active page' (ROM_TELETYPE)
@@ -1073,14 +1065,14 @@ Write	proc  near			;show error messages
 	mov	bl, 7			;"normal" attribute ?
 	int	10h			;video write
 ;SB34LOAD003****************************************************************
-	jmp	Write			;AN000;
-Endwr:					;AN000;
-	ret				;AN000;
+	jmp	Write
+Endwr:
+	ret
 Write	endp
 ;
 
-;include MSbtmes.inc	       ;AN000;
-include MSbio.cl1	       ;AN001;
+;include MSbtmes.inc
+include MSbio.cl1
 
 Relocate_Length   equ  $ - start
 Total_Length label byte

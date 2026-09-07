@@ -3,7 +3,7 @@
 ;	   Initialization...						 ;
 ;------------------------------------------------------------------------;
 
-RESR_EXT_PGS   DW    0			;Ext mem reserved here after EMS taken	;an002; dms;
+RESR_EXT_PGS   DW    0			;Ext mem reserved here after EMS taken
 
 MACH_MODEL_PTR	DD   0F000FFFEh 	;Byte in upper BIOS that indicates @RH1
 MODEL_BYTE	DB   ?		; which system you are on.	   @RH1
@@ -60,23 +60,23 @@ INIT	PROC
 	MOV	AH,9			;
 	INT	21H
 
-	push	ax			;save affected regs			;an000; dms;
-	push	bx			;					;an000; dms;
-	push	cx			;					;an000; dms;
-	push	dx			;					;an000; dms;
-	push	si			;					;an000; dms;
-	push	di			;					;an000; dms;
-	push	ds			;					;an000; dms;
+	push	ax			;save affected regs
+	push	bx			;
+	push	cx			;
+	push	dx			;
+	push	si			;
+	push	di			;
+	push	ds			;
 
 	CALL	GET_PARMS		;Get the user parameters
 
-	pop	ds			;restore affected regs			;an000; dms;
-	pop	di			;					;an000; dms;
-	pop	si			;					;an000; dms;
-	pop	dx			;					;an000; dms;
-	pop	cx			;					;an000; dms;
-	pop	bx			;					;an000; dms;
-	pop	ax			;					;an000; dms;
+	pop	ds			;restore affected regs
+	pop	di			;
+	pop	si			;
+	pop	dx			;
+	pop	cx			;
+	pop	bx			;
+	pop	ax			;
 
 	JE	PARMS_OK
 	    PUSH    CS
@@ -305,19 +305,19 @@ INT_67_INSTALL:
 ;------------------------
 ;-------------------------------------------------------------------
 	call	romscan 		; just for grins
-	jc	ROM_Scan_Fail		; error - prompt user to hit any key	;an000; dms;
-	jmp	Skip_Pars		; continue load of XMA2EMS		;an000; dms;
+	jc	ROM_Scan_Fail		; error - prompt user to hit any key
+	jmp	Skip_Pars		; continue load of XMA2EMS
 
 ROM_Scan_Fail:
 
-	PUSH	CS			;set up addressibility			;an000; dms;
-	POP	DS			;					;an000; dms;
-	MOV	DX,OFFSET Prompt_Msg	;Press any key to continue...		;an000; dms;
-	MOV	AH,9			;dos prt string 			;an000; dms;
+	PUSH	CS			;set up addressibility
+	POP	DS			;
+	MOV	DX,OFFSET Prompt_Msg	;Press any key to continue...
+	MOV	AH,9			;dos prt string
 	INT	21H			;
 
-	mov	ah,07h			;keyboard input without ECHO		;an000; dms;
-	int	21h			;wait until input			;an000; dms;
+	mov	ah,07h			;keyboard input without ECHO
+	int	21h			;wait until input
 	jmp	General_Failure 	;
 ;-------------------------------------------------------------------
 skip_pars:
@@ -385,9 +385,9 @@ $$IF117:
 	OR	AL,WARM_MASK		;turn on warm start bit
 	OUT	DX,AL			;write it back
 
-	call	Calc_INT15_Space	;calculate remaining INT 15h space	;an000; dms;
-	call	Steal_INT15		;hook INT 15h				;an000; dms;
-	call	Steal_Int13		;hook INT 13h				;an004; dms;
+	call	Calc_INT15_Space	;calculate remaining INT 15h space
+	call	Steal_INT15		;hook INT 15h
+	call	Steal_Int13		;hook INT 13h
 
 	JMP	COMMON_EXIT_PATH
 
@@ -580,52 +580,52 @@ BACK_CONV_MEM	ENDP
 ;�									�
 ;읕컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴켸
 INIT_PAL   PROC
-	push	cs					;set up addressibility	;an000; dms;
-	pop	ds					;			;an000; dms;
+	push	cs					;set up addressibility
+	pop	ds					;
 
-	cmp	Total_EMS_Pages,0			;any pages?		;an000; dms;
-	je	Init_Pal_End				;no - exit		;an000; dms;
+	cmp	Total_EMS_Pages,0			;any pages?
+	je	Init_Pal_End				;no - exit
 
-	mov	ax,Total_Sys_Pages			;top of EMS pages =	;an000; dms;
-	add	ax,Resr_Ext_Pgs 			;  total EMS pages +	;an000; dms;
-	dec	ax					;  rsv ext. pages - 1	;an000; dms;
+	mov	ax,Total_Sys_Pages			;top of EMS pages =
+	add	ax,Resr_Ext_Pgs 			;  total EMS pages +
+	dec	ax					;  rsv ext. pages - 1
 
 
-	mov	si,ax					;ptr to free page	;an000; dms;
-	shl	si,1					;make an index		;an000; dms;
-	mov	Page_List_Entry,Pal_Null		;set last entry to null ;ac007; dms;
-	shr	si,1					;convert to ptr value	;an007; dms;
-	mov	di,si					;place in di		;an007; dms;
+	mov	si,ax					;ptr to free page
+	shl	si,1					;make an index
+	mov	Page_List_Entry,Pal_Null		;set last entry to null
+	shr	si,1					;convert to ptr value
+	mov	di,si					;place in di
 
-	dec	ax					;next page		;an000; dms;
-	mov	cx,Total_EMS_Pages			;loop for all entries	;an000; dms;
-	dec	cx					;  but the last 	;an000; dms;
+	dec	ax					;next page
+	mov	cx,Total_EMS_Pages			;loop for all entries
+	dec	cx					;  but the last
 
 INIT_PAL_LP:
 
-	cmp	cx,0					;at end?		;an000; dms;
-	je	Init_Pal_Loop_Exit			;yes - exit		;an000; dms;
+	cmp	cx,0					;at end?
+	je	Init_Pal_Loop_Exit			;yes - exit
 
-	mov	si,ax					;ptr to next page	;ac007; dms;
-	shl	si,1					;make an index		;ac007; dms;
-	cmp	Page_Alloc_List[si],BacMem_Alloc	;backfilled memory?	;ac007; dms;
-	jne	Init_Pal_Entry				;no - set up ptr's      ;an000; dms;
-	dec	ax					;yes - next ptr value	;an000; dms;
-	jmp	Init_Pal_LP				;keep on looping	;an000; dms;
+	mov	si,ax					;ptr to next page
+	shl	si,1					;make an index
+	cmp	Page_Alloc_List[si],BacMem_Alloc	;backfilled memory?
+	jne	Init_Pal_Entry				;no - set up ptr's
+	dec	ax					;yes - next ptr value
+	jmp	Init_Pal_LP				;keep on looping
 INIT_PAL_ENTRY:
-	mov	Page_List_Entry,di			;set up ptr value	;ac007; dms;
-	mov	di,si					;next ptr value 	;ac007; dms;
-	shr	di,1					;make a ptr value	;an007; dms;
+	mov	Page_List_Entry,di			;set up ptr value
+	mov	di,si					;next ptr value
+	shr	di,1					;make a ptr value
 INIT_PAL_BOT:
-	dec	ax					;get next ptr value	;an000; dms;
-	dec	cx					;dec loop counter	;an000; dms;
-	jmp	INIT_PAL_LP				;continue looping	;an000; dms;
+	dec	ax					;get next ptr value
+	dec	cx					;dec loop counter
+	jmp	INIT_PAL_LP				;continue looping
 
 Init_Pal_Loop_Exit:
-	mov	Pal_Free_Ptr,di 			;init free ptr		;an007; dms;
+	mov	Pal_Free_Ptr,di 			;init free ptr
 
 INIT_PAL_END:
-	ret						;return to caller	;an000; dms;
+	ret						;return to caller
 INIT_PAL  ENDP
 
 ;-----------------------------------------------------------------------;
@@ -785,8 +785,8 @@ STEAL_INT15 PROC
 	PUSH	DS
 	push	ax
 
-	CMP	MODEL_BYTE,PS2MODEL80	;If a PS2/80 treat as XMA memory	;an000; dms;
-	je	Steal_INT15_Exit	;do not hook INT15h			;an000; dms;
+	CMP	MODEL_BYTE,PS2MODEL80	;If a PS2/80 treat as XMA memory
+	je	Steal_INT15_Exit	;do not hook INT15h
 
 	CMP	MODEL_BYTE,PC_AT	;If the model byte is for an 'AT'  @RH2
 	jne	Steal_INT15_Hook	; type (80286 processor), check    @RH2
@@ -826,33 +826,33 @@ STEAL_INT15 ENDP
 ;	the system.  This value will be used by all subsequent calls	;
 ;	to function 88h, INT 15h.					;
 ;-----------------------------------------------------------------------;
-Calc_INT15_Space	proc	near						;an000; dms;
+Calc_INT15_Space	proc	near
 
-	push	ax					;save regs		;an000; dms;
-	push	bx					;			;an000; dms;
-	push	cx					;			;an002; dms;
-	push	dx					;			;an000; dms;
+	push	ax					;save regs
+	push	bx					;
+	push	cx					;
+	push	dx					;
 
-	mov	ah,EM_Size_Get				;get extended mem	;an000; dms;
-	int	15h					;			;an000; dms;
+	mov	ah,EM_Size_Get				;get extended mem
+	int	15h					;
 
-	mov	cl,4					;divide by 16		;an002; dms;
-	shr	ax,cl					;  to get page count	;an002; dms;
+	mov	cl,4					;divide by 16
+	shr	ax,cl					;  to get page count
 
-	sub	ax,cs:Total_Sys_Pages			;new extended mem size	;an002; dms;
-	xor	dx,dx					;get K count		;an002; dms;
-	mov	bx,cs:Sixteen				;			;an002; dms;
-	mul	bx					;			;an002; dms;
-	mov	word ptr cs:EM_Ksize,ax 		;save new size		;an000; dms;
+	sub	ax,cs:Total_Sys_Pages			;new extended mem size
+	xor	dx,dx					;get K count
+	mov	bx,cs:Sixteen				;
+	mul	bx					;
+	mov	word ptr cs:EM_Ksize,ax 		;save new size
 
-	pop	dx					;restore regs		;an000; dms;
-	pop	cx					;			;an002; dms;
-	pop	bx					;			;an000; dms;
-	pop	ax					;			;an000; dms;
+	pop	dx					;restore regs
+	pop	cx					;
+	pop	bx					;
+	pop	ax					;
 
 	ret
 
-Calc_INT15_Space	endp							;an000; dms;
+Calc_INT15_Space	endp
 
 
 ;-----------------------------------------------------------------------;
@@ -860,12 +860,12 @@ Calc_INT15_Space	endp							;an000; dms;
 ;	so that subsequent calls to INT13H may properly handle DMA	;
 ;	to EMS pages.							;
 ;-----------------------------------------------------------------------;
-Steal_Int13 PROC								;an004; dms;
-	PUSH	DS								;an004; dms;
-	push	ax								;an004; dms;
+Steal_Int13 PROC
+	PUSH	DS
+	push	ax
 
-	CMP	MODEL_BYTE,PS2MODEL80	;If not a PS2/80 don't hook INT 13h   ;an004; dms;
-	jne	Steal_INT15_Exit	;					;an004; dms;
+	CMP	MODEL_BYTE,PS2MODEL80	;If not a PS2/80 don't hook INT 13h
+	jne	Steal_INT15_Exit	;
 
 	XOR	AX,AX
 	MOV	DS,AX			;set DS = 0

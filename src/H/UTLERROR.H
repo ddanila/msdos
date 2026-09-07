@@ -1,4 +1,3 @@
-/*      SCCSID = @(#)utlerror.h	8.7 87/03/09 */
 /* */
 /* error codes for utilities */
 /* */

@@ -7,22 +7,8 @@
 ;
 ;   Module:   EMMDEF.INC - defines for EMM code.
 ;
-;   Version:  0.04
-;
-;   Date:     June 21, 1986
-;
 ;******************************************************************************
 ;
-;   Change log:
-;
-;     DATE    REVISION			DESCRIPTION
-;   --------  --------	-------------------------------------------------------
-;   06/21/86  Original
-;   06/25/86  0.02	Changed HANDLE_CNT to 255 to match LIM spec (SBP).
-;   06/28/86  0.02	Name change from CEMM386 to CEMM (SBP).
-;   07/06/86  0.04	Changed save area struct (SBP).
-;   05/25/88            Changed to meet LIM 4.0 Spec (PC)
-;******************************************************************************
 ifndef	INC_LIST
 .xlist
 endif

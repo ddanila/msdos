@@ -14,12 +14,6 @@
 ;; ------------
 ;;       Include file containing equates used by all KEYB modules.
 ;;
-;; Change History:
-;; ---------------
-;;
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                                       ;;
 YES         EQU      1                 ;;
 NO          EQU      0                 ;;
                                        ;;

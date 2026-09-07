@@ -37,16 +37,6 @@
 ;; --------------------
 ;;		None
 ;;
-;; Change History:
-;; ---------------
-;;		CREATED 	March, 1987	RPS
-;;
-;; Psuedocode:
-;; -----------
-;;		None
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-				       ;;
 INCLUDE        VERSIONA.INC	       ;;AN003;;
 
 ifndef FALSE
@@ -203,7 +193,7 @@ $M_NO_HANDLE		EQU	-1     ;; No handle flag
 IFDEF COMMAND_MSG_TEMP_BUF_SZ
 $M_TEMP_BUF_SZ		EQU	COMMAND_MSG_TEMP_BUF_SZ ;; Utility-specific buffer bound
 ELSE
-$M_TEMP_BUF_SZ		EQU	64     ;; Size of temporary buffer	 ;AN003;
+$M_TEMP_BUF_SZ		EQU	64     ;; Size of temporary buffer
 ENDIF
 $M_NEXT_DBCS_VECTOR	EQU	2      ;; Amount to increment to get next vector
 $M_DBCS_TERM		EQU    0000    ;; DBCS vector table terminating flag
@@ -242,7 +232,7 @@ DISPLAYmsg		 =	FALSE  ;;   } Set default cases
 SETSTDIO		 =	FALSE  ;;  |
 NOCHECKSTDIN		 =	FALSE  ;;  |
 NOCHECKSTDOUT		 =	FALSE  ;;  |
-DISK_PROC		 =	FALSE  ;;  |			       ;AN003;
+DISK_PROC		 =	FALSE  ;;  |
 INPUTmsg		 =	FALSE  ;;  |
 CHARmsg 		 =	FALSE  ;;  |
 NUMmsg			 =	FALSE  ;;  |

@@ -1,4 +1,3 @@
-;	SCCSID = @(#)locmes.asm	1.1 85/06/13
 	title   LOCATE (EXE2BIN) Messages
 
 FALSE   EQU     0

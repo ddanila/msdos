@@ -41,9 +41,9 @@ ENDM
 
 INCLUDE VECTOR.INC
 INCLUDE MULT.INC
-INCLUDE ANSI.INC                ; WGR equates and structures                             ;AN000;
+INCLUDE ANSI.INC                ; WGR equates and structures
 .xlist
-INCLUDE STRUC.INC               ; WGR include STRUC macros                               ;AN000;
+INCLUDE STRUC.INC               ; WGR include STRUC macros
 .list
 
 BREAK <ANSI driver code>
@@ -54,29 +54,28 @@ BREAK <ANSI driver code>
         BRKADR=6CH              ;006C  BREAK VECTOR ADDRESS
         ASNMAX=400              ;WGR  (increased) SIZE OF KEY ASSIGNMENT BUFFER
 
-PUBLIC  SWITCH_X                ; WGR/X option for extended keyboard redefinition support;AN000;
-PUBLIC  SCAN_LINES              ; WGR                                                    ;AN000;
-PUBLIC  VIDEO_MODE_TABLE        ; WGR                                                    ;AN000;
-PUBLIC  VIDEO_TABLE_MAX         ; WGR                                                    ;AN000;
+PUBLIC  SWITCH_X                ; WGR/X option for extended keyboard redefinition support
+PUBLIC  SCAN_LINES              ; WGR
+PUBLIC  VIDEO_MODE_TABLE        ; WGR
+PUBLIC  VIDEO_TABLE_MAX         ; WGR
 public  MAX_VIDEO_TAB_NUM       ;P1767
-PUBLIC  PTRSAV                  ; WGR                                                    ;AN000;
-PUBLIC  ERR1                    ; WGR                                                    ;AN000;
-PUBLIC  ERR2                    ; WGR                                                    ;AN000;
-PUBLIC  EXT_16                  ; WGR                                                    ;AN000;
-PUBLIC  BRKADR                  ; WGR                                                    ;AN000;
-PUBLIC  BRKKY                   ; WGR                                                    ;AN000;
-PUBLIC  COUT                    ; WGR                                                    ;AN000;
-PUBLIC  BASE                    ; WGR                                                    ;AN000;
-PUBLIC  MODE                    ; WGR                                                    ;AN000;
-PUBLIC  MAXCOL                  ; WGR                                                    ;AN000;
-PUBLIC  TRANS                   ; WGR                                                    ;AN000;
-PUBLIC  STATUS                  ; WGR                                                    ;AN000;
-PUBLIC  EXIT                    ; WGR                                                    ;AN000;
-PUBLIC  NO_OPERATION            ; WGR                                                    ;AN000;
-PUBLIC  HDWR_FLAG               ; WGR                                                    ;AN000;
-public  Switch_L                ;AN004;
-public  Switch_K                ;AN005;
-                                                                                         ;AN000;
+PUBLIC  PTRSAV                  ; WGR
+PUBLIC  ERR1                    ; WGR
+PUBLIC  ERR2                    ; WGR
+PUBLIC  EXT_16                  ; WGR
+PUBLIC  BRKADR                  ; WGR
+PUBLIC  BRKKY                   ; WGR
+PUBLIC  COUT                    ; WGR
+PUBLIC  BASE                    ; WGR
+PUBLIC  MODE                    ; WGR
+PUBLIC  MAXCOL                  ; WGR
+PUBLIC  TRANS                   ; WGR
+PUBLIC  STATUS                  ; WGR
+PUBLIC  EXIT                    ; WGR
+PUBLIC  NO_OPERATION            ; WGR
+PUBLIC  HDWR_FLAG               ; WGR
+public  Switch_L
+public  Switch_K
 CODE    SEGMENT PUBLIC BYTE
 
    ASSUME CS:CODE,DS:NOTHING,ES:NOTHING
@@ -92,7 +91,7 @@ EXTRN   GRAPHICS_FLAG:BYTE      ; WGR graphics flag
 
 CONDEV:                                 ;HEADER FOR DEVICE "CON"
         DW      -1,-1
-        DW      1100000001010011B       ;WGR changed to match CON                        ;AC000;
+        DW      1100000001010011B       ;WGR changed to match CON
         DW      STRATEGY
         DW      ENTRY
         DB      'CON     '
@@ -102,26 +101,26 @@ CONDEV:                                 ;HEADER FOR DEVICE "CON"
 ;       COMMAND JUMP TABLES
 CONTBL:
         DW      CON$INIT
-        DW      NO_OPERATION         ; WGR                                               ;AC000;
-        DW      NO_OPERATION         ; WGR                                               ;AC000;
-        DW      NO_OPERATION         ; WGR                                               ;AC000;
+        DW      NO_OPERATION         ; WGR
+        DW      NO_OPERATION         ; WGR
+        DW      NO_OPERATION         ; WGR
         DW      CON$READ
         DW      CON$RDND
-        DW      NO_OPERATION         ; WGR                                               ;AC000;
+        DW      NO_OPERATION         ; WGR
         DW      CON$FLSH
         DW      CON$WRIT
         DW      CON$WRIT
-        DW      NO_OPERATION         ; WGR                                               ;AC000;
-        DW      NO_OPERATION         ; WGR                                               ;AC000;
-        DW      NO_OPERATION         ; WGR                                               ;AC000;
-        DW      NO_OPERATION         ; WGR                                               ;AC000;
-        DW      NO_OPERATION         ; WGR                                               ;AC000;
-        DW      NO_OPERATION         ; WGR                                               ;AC000;
-        DW      NO_OPERATION         ; WGR                                               ;AN000;
-        DW      NO_OPERATION         ; WGR                                               ;AN000;
-        DW      NO_OPERATION         ; WGR                                               ;AN000;
-        DW      GENERIC_IOCTL        ; WGR generic IOCTL routine offset                  ;AN000;
-MAX_CMD  EQU  ($ - CONTBL)/2         ; WGR size of CONTBL                                ;AN000;
+        DW      NO_OPERATION         ; WGR
+        DW      NO_OPERATION         ; WGR
+        DW      NO_OPERATION         ; WGR
+        DW      NO_OPERATION         ; WGR
+        DW      NO_OPERATION         ; WGR
+        DW      NO_OPERATION         ; WGR
+        DW      NO_OPERATION         ; WGR
+        DW      NO_OPERATION         ; WGR
+        DW      NO_OPERATION         ; WGR
+        DW      GENERIC_IOCTL        ; WGR generic IOCTL routine offset
+MAX_CMD  EQU  ($ - CONTBL)/2         ; WGR size of CONTBL
 
 CMDTABL DB      'A'
         DW      CUU             ;cursor up
@@ -198,7 +197,7 @@ START   =       20      ;FIRST BLOCK TO TRANSFER
 
 PTRSAV  DD      0
 
-BUF1:      BUF_DATA <>                  ; WGR Next CON Buffer area                       ;AN000;
+BUF1:      BUF_DATA <>                  ; WGR Next CON Buffer area
 
 STRATP  PROC    FAR
 
@@ -220,66 +219,66 @@ ENTRY:
         PUSH    ES
         PUSH    BX
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;                                         WGR                                            ;AN000;
-; Check if header link has to be set      WGR (Code ported from                          ;AN000;
-;                                         WGR  DISPLAY.SYS)                              ;AN000;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; WGR                                            ;AN000;
-        LEA     BX, BUF1                ; WGR                                            ;AN000;
-        MOV     DI,OFFSET CONDEV        ; WGR CON Device header                          ;AN000;
-                                        ; WGR                                            ;AN000;
-        MOV     CONPTR.DEV_HDRO,DI      ; WGR                                            ;AN000;
-        MOV     CONPTR.DEV_HDRS,CS      ; WGR                                            ;AN000;
-        CLD                             ; WGR all moves forward                          ;AN000;
-                                        ; WGR                                            ;AN000;
-        CMP     CONPTR.CON_STRAO, -1    ; WGR                                            ;AN000;
-        JNE     L4                      ; WGR has been linked to DOS CON                 ;AN000;
-        CMP     CONPTR.CON_STRAS, -1    ; WGR                                            ;AN000;
-        JNE     L4                      ; WGR has been linked to DOS CON                 ;AN000;
-                                        ; WGR  next device header :  ES:[DI]             ;AN000;
-        LDS     SI,DWORD PTR CONPTR.DEV_HDRO;WGR                                         ;AN000;
-        LES     DI,DWORD PTR HP.DH_NEXTO; WGR                                            ;AN000;
-                                        ; WGR                                            ;AN000;
-;$SEARCH WHILE                          ; WGR  pointer to next device header is NOT      ;AN000;
-L1:                                     ; WGR                                            ;AN000;
-        PUSH    ES                      ; WGR  -1                                        ;AN000;
-        POP     AX                      ; WGR                                            ;AN000;
-        CMP     AX,-1                   ; WGR                                            ;AN000;
-;$LEAVE  E,      AND                    ; WGR leave if both offset and segment are       ;AN000;
-        JNE     NOT0FFFF                ; WGR                                            ;AN000;
-                                        ; WGR                                            ;AN000;
-        CMP     DI,-1                   ; WGR  0FFFFH                                    ;AN000;
-;$LEAVE  E                              ; WGR                                            ;AN000;
-        JE      L4                      ; WGR                                            ;AN000;
-NOT0FFFF:                               ; WGR                                            ;AN000;
-        PUSH    DI                      ; WGR                                            ;AN000;
-        PUSH    SI                      ; WGR                                            ;AN000;
-        MOV     CX,NAME_LEN             ; WGR                                            ;AN000;
-        LEA     DI,NHD.DH_NAME          ; WGR                                            ;AN000;
-        LEA     SI,HP.DH_NAME           ; WGR                                            ;AN000;
-        REPE    CMPSB                   ; WGR                                            ;AN000;
-        POP     SI                      ; WGR                                            ;AN000;
-        POP     DI                      ; WGR                                            ;AN000;
-        AND     CX,CX                   ; WGR                                            ;AN000;
-;$EXITIF Z                              ; WGR Exit if name is found in linked hd.        ;AN000;
-        JNZ     L3                      ; WGR Name is not found                          ;AN000;
-                                        ; WGR Name is found in the linked header         ;AN000;
-        MOV     AX,NHD.DH_STRAO         ; WGR Get the STRATEGY address                   ;AN000;
-        MOV     CONPTR.CON_STRAO,AX     ; WGR                                            ;AN000;
-        MOV     AX,ES                   ; WGR                                            ;AN000;
-X1:     MOV     CONPTR.CON_STRAS,AX     ; WGR                                            ;AN000;
-                                        ; WGR                                            ;AN000;
-        MOV     AX,NHD.DH_INTRO         ; WGR Get the INTERRUPT address                  ;AN000;
-        MOV     CONPTR.CON_INTRO,AX     ; WGR                                            ;AN000;
-        MOV     AX,ES                   ; WGR                                            ;AN000;
-X2:     MOV     CONPTR.CON_INTRS,AX     ; WGR                                            ;AN000;
-                                        ; WGR                                            ;AN000;
-;$ORELSE                                ; WGR FInd next header to have the same          ;AN000;
-        JMP     L4                      ; WGR Device Name                                ;AN000;
-L3:                                     ; WGR                                            ;AN000;
-        LES     DI,DWORD PTR NHD.DH_NEXTO;WGR                                            ;AN000;
-;$ENDLOOP                               ; WGR                                            ;AN000;
-        JMP     L1                      ; WGR                                            ;AN000;
-L4:                                     ; WGR                                            ;AN000;
+;                                         WGR
+; Check if header link has to be set      WGR (Code ported from
+;                                         WGR  DISPLAY.SYS)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; WGR
+        LEA     BX, BUF1                ; WGR
+        MOV     DI,OFFSET CONDEV        ; WGR CON Device header
+                                        ; WGR
+        MOV     CONPTR.DEV_HDRO,DI      ; WGR
+        MOV     CONPTR.DEV_HDRS,CS      ; WGR
+        CLD                             ; WGR all moves forward
+                                        ; WGR
+        CMP     CONPTR.CON_STRAO, -1    ; WGR
+        JNE     L4                      ; WGR has been linked to DOS CON
+        CMP     CONPTR.CON_STRAS, -1    ; WGR
+        JNE     L4                      ; WGR has been linked to DOS CON
+                                        ; WGR  next device header :  ES:[DI]
+        LDS     SI,DWORD PTR CONPTR.DEV_HDRO;WGR
+        LES     DI,DWORD PTR HP.DH_NEXTO; WGR
+                                        ; WGR
+;$SEARCH WHILE                          ; WGR  pointer to next device header is NOT
+L1:                                     ; WGR
+        PUSH    ES                      ; WGR  -1
+        POP     AX                      ; WGR
+        CMP     AX,-1                   ; WGR
+;$LEAVE  E,      AND                    ; WGR leave if both offset and segment are
+        JNE     NOT0FFFF                ; WGR
+                                        ; WGR
+        CMP     DI,-1                   ; WGR  0FFFFH
+;$LEAVE  E                              ; WGR
+        JE      L4                      ; WGR
+NOT0FFFF:                               ; WGR
+        PUSH    DI                      ; WGR
+        PUSH    SI                      ; WGR
+        MOV     CX,NAME_LEN             ; WGR
+        LEA     DI,NHD.DH_NAME          ; WGR
+        LEA     SI,HP.DH_NAME           ; WGR
+        REPE    CMPSB                   ; WGR
+        POP     SI                      ; WGR
+        POP     DI                      ; WGR
+        AND     CX,CX                   ; WGR
+;$EXITIF Z                              ; WGR Exit if name is found in linked hd.
+        JNZ     L3                      ; WGR Name is not found
+                                        ; WGR Name is found in the linked header
+        MOV     AX,NHD.DH_STRAO         ; WGR Get the STRATEGY address
+        MOV     CONPTR.CON_STRAO,AX     ; WGR
+        MOV     AX,ES                   ; WGR
+X1:     MOV     CONPTR.CON_STRAS,AX     ; WGR
+                                        ; WGR
+        MOV     AX,NHD.DH_INTRO         ; WGR Get the INTERRUPT address
+        MOV     CONPTR.CON_INTRO,AX     ; WGR
+        MOV     AX,ES                   ; WGR
+X2:     MOV     CONPTR.CON_INTRS,AX     ; WGR
+                                        ; WGR
+;$ORELSE                                ; WGR FInd next header to have the same
+        JMP     L4                      ; WGR Device Name
+L3:                                     ; WGR
+        LES     DI,DWORD PTR NHD.DH_NEXTO;WGR
+;$ENDLOOP                               ; WGR
+        JMP     L1                      ; WGR
+L4:                                     ; WGR
 
         LDS     BX,CS:[PTRSAV]     ;GET PONTER TO I/O PACKET
 
@@ -290,7 +289,7 @@ L4:                                     ; WGR                                   
         MOV     SI,OFFSET CONTBL
         ADD     SI,AX
         ADD     SI,AX
-        CMP     AL,MAX_CMD              ; WGR not a call for ANSI...chain to lower device;AC000;
+        CMP     AL,MAX_CMD              ; WGR not a call for ANSI...chain to lower device
         JAE     NO_OPERATION
 
         LES     DI,DWORD PTR DS:[BX].TRANS
@@ -315,9 +314,9 @@ BUS$EXIT:                               ;DEVICE BUSY EXIT
         MOV     AH,00000011B
         JMP     SHORT ERR1
 
-NO_OPERATION:                           ; WGR                                            ;AN000;
-        CALL    PASS_CONTROL            ; WGR Pass control to lower CON                  ;AN000;
-        JMP     SHORT ERR2              ; WGR                                            ;AN000;
+NO_OPERATION:                           ; WGR
+        CALL    PASS_CONTROL            ; WGR Pass control to lower CON
+        JMP     SHORT ERR2              ; WGR
 
 ERR$EXIT:
         MOV     AH,10000001B            ;MARK ERROR RETURN
@@ -329,7 +328,7 @@ EXIT:   MOV     AH,00000001B
 ERR1:   LDS     BX,CS:[PTRSAV]
         MOV     WORD PTR [BX].STATUS,AX      ;MARK OPERATION COMPLETE
 ERR2:
-        POP     BX                      ; WGR                                            ;AN000;
+        POP     BX                      ; WGR
         POP     ES
         POP     DS
         POP     BP
@@ -341,21 +340,21 @@ ERR2:
         RET                             ;RESTORE REGS AND RETURN
 EXITP   ENDP
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;                                         WGR                                            ;AN000;
-;       PASS CONTROL                      WGR                                            ;AN000;
-;                                         WGR                                            ;AN000;
-;       This calls the attached device to perform any further                            ;AN000;
-;       action on the call!               WGR                                            ;AN000;
-;                                         WGR                                            ;AN000;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; WGR                                            ;AN000;
-PASS_CONTROL    PROC                    ; WGR                                            ;AN000;
-        LEA     SI,BUF1                 ; WGR                                            ;AN000;
-        LES     BX,CS:[PTRSAV]          ; WGR pass the request header to the             ;AN000;
-        CALL    DWORD PTR CS:[SI].CON_STRAO ; CON strategy routine.                      ;AN000;
-        CALL    DWORD PTR CS:[SI].CON_INTRO ; WGR interrupt the CON                      ;AN000;
-        RET                             ; WGR                                            ;AN000;
-PASS_CONTROL    ENDP                    ; WGR                                            ;AN000;
-;-----------------------------------------------                                         ;AN000;
+;                                         WGR
+;       PASS CONTROL                      WGR
+;                                         WGR
+;       This calls the attached device to perform any further
+;       action on the call!               WGR
+;                                         WGR
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; WGR
+PASS_CONTROL    PROC                    ; WGR
+        LEA     SI,BUF1                 ; WGR
+        LES     BX,CS:[PTRSAV]          ; WGR pass the request header to the
+        CALL    DWORD PTR CS:[SI].CON_STRAO ; CON strategy routine.
+        CALL    DWORD PTR CS:[SI].CON_INTRO ; WGR interrupt the CON
+        RET                             ; WGR
+PASS_CONTROL    ENDP                    ; WGR
+;-----------------------------------------------
 ;
 ;       BREAK KEY HANDLING
 ;
@@ -383,32 +382,31 @@ KEYPTR  DW      BUF
 REPORT  DB      ESC_CHAR,'[00;00R',CR        ;CURSOR POSTION REPORT BUFFER
 ALTAH   DB      0                       ;Special key handling
 
-EXT_16       DB      0                  ; WGR Extended INT 16h flag                      ;AN000;
-Switch_X     DB      OFF                ; WGR /X flag                                    ;AN000;
+EXT_16       DB      0                  ; WGR Extended INT 16h flag
+Switch_X     DB      OFF                ; WGR /X flag
 Switch_L     db      OFF                ;DCR397; 1= /L flag entered.
 Switch_K     db      OFF                ;AN005; To control EXT_16
-SCAN_LINES   DB      ?                  ; WGR flag for available scan lines (VGA)        ;AN000;
-HDWR_FLAG    DW      0                  ; WGR byte of flags indicating video support     ;AN000;
+SCAN_LINES   DB      ?                  ; WGR flag for available scan lines (VGA)
+HDWR_FLAG    DW      0                  ; WGR byte of flags indicating video support
 
-VIDEO_MODE_TABLE   LABEL   BYTE         ; WGR table containing applicable                ;AN000;
-MODE_TABLE   <>                         ; WGR video modes and corresponding              ;AN000;
-MODE_TABLE   <>                         ; WGR data.                                      ;AN000;
-MODE_TABLE   <>                         ; WGR this table is initialized at               ;AN000;
-MODE_TABLE   <>                         ; WGR INIT time                                  ;AN000;
-MODE_TABLE   <>                         ; WGR                                            ;AN000;
-MODE_TABLE   <>                         ; WGR                                            ;AN000;
-MODE_TABLE   <>                         ; WGR                                            ;AN000;
-MODE_TABLE   <>                         ; WGR                                            ;AN000;
-MODE_TABLE   <>                         ; WGR                                            ;AN000;
-MODE_TABLE   <>                         ; WGR                                            ;AN000;
-MODE_TABLE   <>                         ; WGR                                            ;AN000;
-MODE_TABLE   <>                         ; WGR                                            ;AN000;
-MODE_TABLE   <>                         ; WGR                                            ;AN000;
-MODE_TABLE   <>                         ; WGR                                            ;AN000;
-MODE_TABLE   <>                         ; WGR                                            ;AN000;
-VIDEO_TABLE_MAX     EQU  $              ; WGR maximum address for video table            ;AN000;
+VIDEO_MODE_TABLE   LABEL   BYTE         ; WGR table containing applicable
+MODE_TABLE   <>                         ; WGR video modes and corresponding
+MODE_TABLE   <>                         ; WGR data.
+MODE_TABLE   <>                         ; WGR this table is initialized at
+MODE_TABLE   <>                         ; WGR INIT time
+MODE_TABLE   <>                         ; WGR
+MODE_TABLE   <>                         ; WGR
+MODE_TABLE   <>                         ; WGR
+MODE_TABLE   <>                         ; WGR
+MODE_TABLE   <>                         ; WGR
+MODE_TABLE   <>                         ; WGR
+MODE_TABLE   <>                         ; WGR
+MODE_TABLE   <>                         ; WGR
+MODE_TABLE   <>                         ; WGR
+MODE_TABLE   <>                         ; WGR
+MODE_TABLE   <>                         ; WGR
+VIDEO_TABLE_MAX     EQU  $              ; WGR maximum address for video table
 MAX_VIDEO_TAB_NUM   EQU  ($-VIDEO_MODE_TABLE)/TYPE MODE_TABLE ;P1767 Max number of table
-                                                                                         ;AN000;
 ;-------------------------------------------------------------
 ;
 ;       CHROUT - WRITE OUT CHAR IN AL USING CURRENT ATTRIBUTE
@@ -465,11 +463,11 @@ lf:     inc     [row]
         JE      LF2                     ; GHG  Fix for ROUNDUP/PALACE
         CMP     AL,12H                  ; GHG  Fix for ROUNDUP/PALACE
         JE      LF2                     ; GHG  Fix for ROUNDUP/PALACE
-        .IF <GRAPHICS_FLAG EQ GRAPHICS_MODE> ; WGR                                       ;AN000;
-          MOV     AH,DEFAULT_LENGTH     ; WGR                                            ;AN000;
-        .ELSE                           ; WGR                                            ;AN000;
+        .IF <GRAPHICS_FLAG EQ GRAPHICS_MODE> ; WGR
+          MOV     AH,DEFAULT_LENGTH     ; WGR
+        .ELSE                           ; WGR
           MOV     AH,BYTE PTR [REQ_TXT_LENGTH] ; GHG  Fix for ROUNDUP/PALACE
-        .ENDIF                          ; WGR                                            ;AN000;
+        .ENDIF                          ; WGR
 LF2:                                    ; GHG  Fix for ROUNDUP/PALACE
         cmp     [row],AH                ; GHG  Fix for ROUNDUP/PALACE
         jb      setit
@@ -499,7 +497,7 @@ setit:  mov     dh,row
 
 scroll:
 ;AN006;AN008; Myscroll is only for Mode 2 and 3 of all display unit.
-;        .IF <BIT HDWR_FLAG eq CGA_ACTIVE>     ; GHG is this the CGA?            ;AN000;
+;        .IF <BIT HDWR_FLAG eq CGA_ACTIVE>     ; GHG is this the CGA?
            .IF < MODE eq 2 > or
            .IF < MODE eq 3 >
               jmp     myscroll
@@ -513,20 +511,20 @@ scroll:
 myscroll:
         mov     bh,[attr]
         mov     bl,' '
-        MOV     AL,[MAXCOL]                     ; WGR                                    ;AN000;
-        CBW                                     ; WGR                                    ;AN000;
-        INC     AX                              ; WGR                                    ;AN000;
-        MOV     BP,AX                           ; WGR                                    ;AN000;
-        MOV     SI,BP                           ; WGR                                    ;AN000;
-        ADD     SI,BP                           ; WGR                                    ;AN000;
-        .IF <GRAPHICS_FLAG EQ GRAPHICS_MODE>    ; WGR                                    ;AN000;
-          MOV     AX,DEFAULT_LENGTH             ; WGR                                    ;AN000;
-        .ELSE                                   ; WGR                                    ;AN000;
-          MOV     AX,[REQ_TXT_LENGTH]           ; WGR                                    ;AN000;
-        .ENDIF                                  ; WGR                                    ;AN000;
-        DEC     AX                              ; WGR                                    ;AN000;
-        MUL     BP                              ; WGR                                    ;AN000;
-        MOV     CX,AX                           ; WGR                                    ;AN000;
+        MOV     AL,[MAXCOL]                     ; WGR
+        CBW                                     ; WGR
+        INC     AX                              ; WGR
+        MOV     BP,AX                           ; WGR
+        MOV     SI,BP                           ; WGR
+        ADD     SI,BP                           ; WGR
+        .IF <GRAPHICS_FLAG EQ GRAPHICS_MODE>    ; WGR
+          MOV     AX,DEFAULT_LENGTH             ; WGR
+        .ELSE                                   ; WGR
+          MOV     AX,[REQ_TXT_LENGTH]           ; WGR
+        .ENDIF                                  ; WGR
+        DEC     AX                              ; WGR
+        MUL     BP                              ; WGR
+        MOV     CX,AX                           ; WGR
         mov     ax,[base]
         add     ax,[screen_seg]
         mov     es,ax
@@ -554,7 +552,7 @@ colorcard:
         int     int_IBM
 
         cmp     cs:[Hdwr_Flag], MCGA_ACTIVE ;AN006;AN007;above CGA level?
-        jae     Skip_Video_Off            ;AN006;AN007;
+        jae     Skip_Video_Off
 
         mov     dx,3dah
 wait2:  in      al,dx
@@ -563,18 +561,18 @@ wait2:  in      al,dx
         mov     al,25h
         mov     dx,3d8h
         out     dx,al                     ;turn off video
-Skip_Video_Off:                           ;AN006;
+Skip_Video_Off:
         rep     movsw
         mov     ax,bx
         mov     cx,bp
         rep     stosw
-        cmp     cs:[Hdwr_Flag], MCGA_ACTIVE ;AN006;AN007;
-        jae     Skip_Video_On             ;AN006;AN007;
+        cmp     cs:[Hdwr_Flag], MCGA_ACTIVE
+        jae     Skip_Video_On
         mov     al,29h
         mov     dx,3d8h
         out     dx,al                     ;turn on video
 
-Skip_Video_On:                            ;AN006;
+Skip_Video_On:
         mov     ax,8100H + CritDevice     ; Leave Device critical section
         int     int_IBM
 
@@ -607,33 +605,33 @@ INAGN:  CMP     KEYCNT,0
         JNZ     KEY5A
 
         XOR     AH,AH
-        .IF  <EXT_16 EQ ON>          ; WGR extended interrupt available?                 ;AN000;
-           MOV    AH,10h             ; WGR yes..perform extended call                    ;AN000;
-           INT    16H                ; WGR                                               ;AN000;
-           .IF  <SWITCH_X EQ OFF>    ; WGR /X switch used?                               ;AN000;
-              CALL   CHECK_FOR_REMAP ; WGR no....map to normal call                      ;AN000;
-           .ENDIF                    ; WGR                                               ;AN000;
-           CALL    SCAN              ; WGR check for redefinition                        ;AN000;
-           .IF  NZ  AND              ; WGR no redefinition?...and                        ;AN000;
-           .IF  <SWITCH_X EQ ON>     ; WGR /X switch used?                               ;AN000;
-              CALL   CHECK_FOR_REMAP ; WGR then remap..                                  ;AN000;
-              OR     BX,BX           ; WGR reset zero flag for jump test in old code     ;AN000;
-           .ENDIF                    ; WGR                                               ;AN000;
-        .ELSE                        ; WGR extended interrupt not available              ;AN000;
-           INT   16H                 ; WGR                                               ;AN000;
-           CALL    SCAN              ; WGR check for redefinition                        ;AN000;
-        .ENDIF                       ; WGR                                               ;AN000;
+        .IF  <EXT_16 EQ ON>          ; WGR extended interrupt available?
+           MOV    AH,10h             ; WGR yes..perform extended call
+           INT    16H                ; WGR
+           .IF  <SWITCH_X EQ OFF>    ; WGR /X switch used?
+              CALL   CHECK_FOR_REMAP ; WGR no....map to normal call
+           .ENDIF                    ; WGR
+           CALL    SCAN              ; WGR check for redefinition
+           .IF  NZ  AND              ; WGR no redefinition?...and
+           .IF  <SWITCH_X EQ ON>     ; WGR /X switch used?
+              CALL   CHECK_FOR_REMAP ; WGR then remap..
+              OR     BX,BX           ; WGR reset zero flag for jump test in old code
+           .ENDIF                    ; WGR
+        .ELSE                        ; WGR extended interrupt not available
+           INT   16H                 ; WGR
+           CALL    SCAN              ; WGR check for redefinition
+        .ENDIF                       ; WGR
         JNZ     ALT10           ;IF NO MATCH JUST RETURN IT
 
         DEC     CX
         DEC     CX
         INC     BX
         INC     BX
-        .IF  <AL EQ 0> OR              ; WGR check whether the                           ;AN000;
-        .IF  <AL EQ 0E0H> AND          ; WGR keypacket is an extended one?               ;AN000;
-        .IF  <SWITCH_X EQ 1>           ; WGR switch must be set for 0E0h extended        ;AN000;
-           DEC     CX                  ; WGR adjust pointers                             ;AN000;
-           INC     BX                  ; WGR appropiately                                ;AN000;
+        .IF  <AL EQ 0> OR              ; WGR check whether the
+        .IF  <AL EQ 0E0H> AND          ; WGR keypacket is an extended one?
+        .IF  <SWITCH_X EQ 1>           ; WGR switch must be set for 0E0h extended
+           DEC     CX                  ; WGR adjust pointers
+           INC     BX                  ; WGR appropiately
         .ENDIF
         MOV     KEYCNT,CL
         MOV     KEYPTR,BX
@@ -663,13 +661,13 @@ KEYLP:  MOV     CL,BYTE PTR [BX]
         XOR     CH,CH
         OR      CX,CX
         JZ      NOTFND
-        .IF  <AL EQ 0> OR              ; WGR check whether the                           ;AN000;
-        .IF  <AL EQ 0E0H> AND          ; WGR keypacket is an extended one.               ;AN000;
-        .IF  <SWITCH_X EQ ON>          ; WGR switch must be set for 0E0h extended        ;AN000;
-           CMP     AX,WORD PTR [BX+1]  ; WGR yes...compare the word                      ;AN000;
-        .ELSE                          ; WGR                                             ;AN000;
-           CMP     AL,BYTE PTR [BX+1]  ; WGR no...compare the byte                       ;AN000;
-        .ENDIF                         ; WGR                                             ;AN000;
+        .IF  <AL EQ 0> OR              ; WGR check whether the
+        .IF  <AL EQ 0E0H> AND          ; WGR keypacket is an extended one.
+        .IF  <SWITCH_X EQ ON>          ; WGR switch must be set for 0E0h extended
+           CMP     AX,WORD PTR [BX+1]  ; WGR yes...compare the word
+        .ELSE                          ; WGR
+           CMP     AL,BYTE PTR [BX+1]  ; WGR no...compare the byte
+        .ENDIF                         ; WGR
         JZ      MATCH
         ADD     BX,CX
         JMP     KEYLP
@@ -691,31 +689,31 @@ CON$RDND:
         JMP     SHORT RDEXIT
 
 RD1:    MOV     AH,1
-        .IF   <EXT_16 EQ ON>  ; WGR extended INT16 available?                            ;AN000;
-           ADD     AH,10H     ; WGR yes....adjust to extended call                       ;AN000;
+        .IF   <EXT_16 EQ ON>  ; WGR extended INT16 available?
+           ADD     AH,10H     ; WGR yes....adjust to extended call
         .ENDIF
         INT     16H
         JZ      CONBUS
         OR      AX,AX
         JNZ     RD2
         MOV     AH,0
-        .IF  <EXT_16 EQ ON>          ; WGR extended interrupt available?                 ;AN000;
-           MOV    AH,10h             ; WGR yes..perform extended call                    ;AN000;
-           INT    16H                ; WGR                                               ;AN000;
-           .IF  <SWITCH_X EQ OFF>    ; WGR /X switch used?                               ;AN000;
-              CALL   CHECK_FOR_REMAP ; WGR no....map to normal call                      ;AN000;
-           .ENDIF                    ; WGR                                               ;AN000;
-        .ELSE                        ; WGR                                               ;AN000;
-           INT    16H                ; WGR                                               ;AN000;
-        .ENDIF                       ; WGR                                               ;AN000;
+        .IF  <EXT_16 EQ ON>          ; WGR extended interrupt available?
+           MOV    AH,10h             ; WGR yes..perform extended call
+           INT    16H                ; WGR
+           .IF  <SWITCH_X EQ OFF>    ; WGR /X switch used?
+              CALL   CHECK_FOR_REMAP ; WGR no....map to normal call
+           .ENDIF                    ; WGR
+        .ELSE                        ; WGR
+           INT    16H                ; WGR
+        .ENDIF                       ; WGR
         JMP     CON$RDND
 
 RD2:    CALL    SCAN
-        .IF  NZ  AND                 ; WGR if no redefinition                            ;AN000;
-        .IF  <EXT_16 EQ ON> AND      ; WGR and extended INT16 used                       ;AN000;
-        .IF  <SWITCH_X EQ ON>        ; WGR and /x used ....then                          ;AN000;
-           CALL   CHECK_FOR_REMAP    ; WGR remap to standard call                        ;AN000;
-           OR     BX,BX              ; WGR reset zero flag for jump test in old code     ;AN000;
+        .IF  NZ  AND                 ; WGR if no redefinition
+        .IF  <EXT_16 EQ ON> AND      ; WGR and extended INT16 used
+        .IF  <SWITCH_X EQ ON>        ; WGR and /x used ....then
+           CALL   CHECK_FOR_REMAP    ; WGR remap to standard call
+           OR     BX,BX              ; WGR reset zero flag for jump test in old code
         .ENDIF
         JNZ     RDEXIT
 
@@ -743,15 +741,15 @@ CON$FLSH:
 ;       POP     DS
 
 Flush:  mov     ah,1
-        .IF  <EXT_16 EQ ON>     ; WGR is extended call available?                        ;AN000;
-           ADD    AH,10H        ; WGR yes....adjust for extended                         ;AN000;
-        .ENDIF                  ; WGR                                                    ;AN000;
+        .IF  <EXT_16 EQ ON>     ; WGR is extended call available?
+           ADD    AH,10H        ; WGR yes....adjust for extended
+        .ENDIF                  ; WGR
         int     16h
         jz      FlushDone
         mov     ah,0
-        .IF  <EXT_16 EQ ON>     ; WGR is extended call available?                        ;AN000;
-           ADD    AH,10H        ; WGR yes....adjust for extended                         ;AN000;
-        .ENDIF                  ; WGR                                                    ;AN000;
+        .IF  <EXT_16 EQ ON>     ; WGR is extended call available?
+           ADD    AH,10H        ; WGR yes....adjust for extended
+        .ENDIF                  ; WGR
         int     16h
         jmp     Flush
 FlushDone:
@@ -928,11 +926,11 @@ SETCUR: MOV     DX,WORD PTR COL
         INT     16
         JMP     S1A
 
-CUP:    .IF <GRAPHICS_FLAG EQ GRAPHICS_MODE>   ; WGR                                     ;AN000;
-          CMP     CL,DEFAULT_LENGTH            ; WGR                                     ;AN000;
-        .ELSE                                  ; WGR                                     ;AN000;
-          CMP     CL,BYTE PTR [REQ_TXT_LENGTH] ; WGR                                     ;AN000;
-        .ENDIF                                 ; WGR                                     ;AN000;
+CUP:    .IF <GRAPHICS_FLAG EQ GRAPHICS_MODE>   ; WGR
+          CMP     CL,DEFAULT_LENGTH            ; WGR
+        .ELSE                                  ; WGR
+          CMP     CL,BYTE PTR [REQ_TXT_LENGTH] ; WGR
+        .ENDIF                                 ; WGR
         JA      SETCUR
         MOV     AL,MAXCOL
         MOV     CH,BYTE PTR [BX+1]
@@ -959,26 +957,26 @@ CUU:    MOV     AX,00FFH
 CUU1:   MOV     BX,OFFSET ROW
         JMP     MOVCUR
 
-CUD:    .IF <GRAPHICS_FLAG EQ GRAPHICS_MODE>   ; WGR                                     ;AN000;
-          MOV     AH,DEFAULT_LENGTH            ; WGR                                     ;AN000;
-        .ELSE                                  ; WGR                                     ;AN000;
-          MOV     AH,BYTE PTR [REQ_TXT_LENGTH] ; WGR                                     ;AN000;
-        .ENDIF                                 ; WGR                                     ;AN000;
-        MOV     AL,1                           ; WGR                                     ;AN000;
+CUD:    .IF <GRAPHICS_FLAG EQ GRAPHICS_MODE>   ; WGR
+          MOV     AH,DEFAULT_LENGTH            ; WGR
+        .ELSE                                  ; WGR
+          MOV     AH,BYTE PTR [REQ_TXT_LENGTH] ; WGR
+        .ENDIF                                 ; WGR
+        MOV     AL,1                           ; WGR
         JMP     CUU1
 
-ExtKey:                                         ;AN003;
+ExtKey:
         cmp     dl, 0                           ;AN003; DL = previous parameter
-        jne     ExtKey_1                        ;AN003;
+        jne     ExtKey_1
         mov     Switch_X, OFF                   ;AN003; reset it if 0.
-        jmp     S1A                             ;AN003;
-ExtKey_1:                                       ;AN003;
+        jmp     S1A
+ExtKey_1:
         cmp     dl, 1                           ;AN003; 1 ?
-        je      SetExtKey                       ;AN003;
+        je      SetExtKey
         jmp     S1A                             ;AN003; ignore it
-SetExtKey:                                      ;AN003;
+SetExtKey:
         mov     Switch_X, ON                    ;AN003; set it if 1.
-        jmp     S1A                             ;AN003;
+        jmp     S1A
 
 PSCP:   MOV     AX,WORD PTR COL
         MOV     SAVCR,AX
@@ -1011,23 +1009,23 @@ SGR3:   POP     BX
 
 ED:     XOR     CX,CX
         MOV     WORD PTR COL,CX
-        MOV     DH,30                   ;                                      ;AN009;
-        MOV     AL,MODE                 ;                                      ;AN009;
-        CMP     AL,11H                  ;                                      ;AN009;
-        JE      ERASE                   ;                                      ;AN009;
-        CMP     AL,12H                  ;                                      ;AN009;
-        JE      ERASE                   ;                                      ;AN009;
-        .IF <GRAPHICS_FLAG EQ GRAPHICS_MODE>      ; WGR                                  ;AN000;
-          MOV     DH,DEFAULT_LENGTH               ; WGR                                  ;AN000;
-        .ELSE                                     ; WGR                                  ;AN000;
-          MOV     DH,BYTE PTR [REQ_TXT_LENGTH]    ; WGR                                  ;AN000;
-        .ENDIF                                    ; WGR                                  ;AN000;
+        MOV     DH,30                   ;
+        MOV     AL,MODE                 ;
+        CMP     AL,11H                  ;
+        JE      ERASE                   ;
+        CMP     AL,12H                  ;
+        JE      ERASE                   ;
+        .IF <GRAPHICS_FLAG EQ GRAPHICS_MODE>      ; WGR
+          MOV     DH,DEFAULT_LENGTH               ; WGR
+        .ELSE                                     ; WGR
+          MOV     DH,BYTE PTR [REQ_TXT_LENGTH]    ; WGR
+        .ENDIF                                    ; WGR
 ERASE:  MOV     DL,MAXCOL
-        .IF <GRAPHICS_FLAG EQ GRAPHICS_MODE>      ; WGR if we are in a graphics mode..   ;AN000;
-          XOR    BH,BH                            ; WGR then use 0 as attribute...       ;AN000;
-        .ELSE                                     ; WGR else...                          ;AN000;
-          MOV     BH,ATTR                         ; WGR ...use active attribute         ;AC000;
-        .ENDIF                                    ; WGR                                  ;AN000;
+        .IF <GRAPHICS_FLAG EQ GRAPHICS_MODE>      ; WGR if we are in a graphics mode..
+          XOR    BH,BH                            ; WGR then use 0 as attribute...
+        .ELSE                                     ; WGR else...
+          MOV     BH,ATTR                         ; WGR ...use active attribute
+        .ENDIF                                    ; WGR
         MOV     AX,0600H
         INT     16
 ED3:    JMP     SETCUR
@@ -1042,17 +1040,17 @@ BIN2ASC:MOV     DL,10
         DIV     DL
         ADD     AX,'00'
         RET
-DSR:    MOV     AH,REQ_CRSR_POS         ; WGR                                            ;AN000;
-        PUSH    BX                      ; WGR                                            ;AN000;
-        XOR     BH,BH                   ; WGR                                            ;AN000;
-        INT     10H                     ; WGR                                            ;AN000;
-        POP     BX                      ; WGR                                            ;AN000;
-        PUSH    DX                      ; WGR                                            ;AN000;
+DSR:    MOV     AH,REQ_CRSR_POS         ; WGR
+        PUSH    BX                      ; WGR
+        XOR     BH,BH                   ; WGR
+        INT     10H                     ; WGR
+        POP     BX                      ; WGR
+        PUSH    DX                      ; WGR
         MOV     AL,DH                   ;REPORT CURRENT CURSOR POSITION
         CALL    BIN2ASC
         MOV     WORD PTR REPORT+2,AX
-        POP     DX                      ; WGR                                            ;AN000;
-        MOV     AL,DL                   ; WGR                                            ;AN000;
+        POP     DX                      ; WGR
+        MOV     AL,DL                   ; WGR
         CALL    BIN2ASC
         MOV     WORD PTR REPORT+5,AX
         MOV     [KEYCNT],9
@@ -1064,28 +1062,28 @@ RM:     MOV     CL,1
 
 SM:     XOR     CX,CX
 SM1:    MOV     AL,DL
-        .IF <AL LT MODE7> OR        ;; WGR check to see if valid mode..                  ;AN000;
-        .IF <AL GE MODE13> AND      ;; WGR  (0-6,13-19)                                  ;AN000;
-        .IF <AL LE MODE19>          ;; WGR                                               ;AN000;
-          .IF <BIT HDWR_FLAG AND LCD_ACTIVE> ;; WGR is this the LCD?                     ;AN000;
-            PUSH   DS                 ;; WGR yes...                                      ;AN000;
-            PUSH   AX                 ;; WGR save mode                                   ;AN000;
-            MOV    AX,ROM_BIOS        ;; WGR                                             ;AN000;
-            MOV    DS,AX              ;; WGR get equipment status flag..                 ;AN000;
-            MOV    AX,DS:[EQUIP_FLAG] ;; WGR                                             ;AN000;
-            AND    AX,INIT_VID_MASK   ;; WGR clear initial video bits..                  ;AN000;
-            OR     AX,LCD_COLOR_MODE  ;; WGR .....set bits as color                      ;AN000;
-            MOV    DS:[EQUIP_FLAG],AX ;; WGR replace updated flag.                       ;AN000;
-            POP    AX                 ;; WGR restore mode.                               ;AN000;
-            POP    DS                 ;; WGR                                             ;AN000;
-          .ENDIF                      ;; WGR                                             ;AN000;
-          MOV     AH,SET_MODE       ;; WGR yes....set mode..                             ;AN000;
-          INT     10H               ;; WGR                                               ;AN000;
-        .ELSE                       ;; WGR no...check for 7 (wrap at EOL)                ;AN000;
-          .IF <AL EQ 7>             ;; WGR                                               ;AN000;
-            MOV    [WRAP],CL        ;; WGR yes....wrap...                                ;AN000;
-          .ENDIF                    ;; WGR                                               ;AN000;
-        .ENDIF                      ;; WGR                                               ;AN000;
+        .IF <AL LT MODE7> OR        ;; WGR check to see if valid mode..
+        .IF <AL GE MODE13> AND      ;; WGR  (0-6,13-19)
+        .IF <AL LE MODE19>          ;; WGR
+          .IF <BIT HDWR_FLAG AND LCD_ACTIVE> ;; WGR is this the LCD?
+            PUSH   DS                 ;; WGR yes...
+            PUSH   AX                 ;; WGR save mode
+            MOV    AX,ROM_BIOS        ;; WGR
+            MOV    DS,AX              ;; WGR get equipment status flag..
+            MOV    AX,DS:[EQUIP_FLAG] ;; WGR
+            AND    AX,INIT_VID_MASK   ;; WGR clear initial video bits..
+            OR     AX,LCD_COLOR_MODE  ;; WGR .....set bits as color
+            MOV    DS:[EQUIP_FLAG],AX ;; WGR replace updated flag.
+            POP    AX                 ;; WGR restore mode.
+            POP    DS                 ;; WGR
+          .ENDIF                      ;; WGR
+          MOV     AH,SET_MODE       ;; WGR yes....set mode..
+          INT     10H               ;; WGR
+        .ELSE                       ;; WGR no...check for 7 (wrap at EOL)
+          .IF <AL EQ 7>             ;; WGR
+            MOV    [WRAP],CL        ;; WGR yes....wrap...
+          .ENDIF                    ;; WGR
+        .ENDIF                      ;; WGR
         JMP     CPR
 
 KEYASN: XOR     DX,DX
@@ -1142,24 +1140,23 @@ GET1:   ADD     BX,OFFSET BUF
         RET
 
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; WGR                          ;AN000;
-;                                                           WGR                          ;AN000;
-; CHECK_FOR_REMAP:                                          WGR                          ;AN000;
-;                                                           WGR                          ;AN000;
-;   This function esnures that the keypacket                WGR                          ;AN000;
-;   passed to it in AX is mapped to a standard INT16h call  WGR                          ;AN000;
-;                                                           WGR                          ;AN000;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; WGR                          ;AN000;
-                                                                                         ;AN000;
-CHECK_FOR_REMAP PROC NEAR     ; WGR                                                      ;AN000;
-        .IF  <AL EQ 0E0h>     ; WGR is this an extended key?                             ;AN000;
-           OR   AH,AH         ; WGR probably...but check for alpha character             ;AN000;
-           .IF  NZ            ; WGR if it's not an alpha character ....then              ;AN000;
-              XOR   AL,AL     ; WGR map extended to standard                             ;AN000;
-           .ENDIF             ; WGR                                                      ;AN000;
-        .ENDIF                ; WGR                                                      ;AN000;
-        RET                   ; WGR                                                      ;AN000;
-CHECK_FOR_REMAP ENDP          ; WGR                                                      ;AN000;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; WGR
+;                                                           WGR
+; CHECK_FOR_REMAP:                                          WGR
+;                                                           WGR
+;   This function esnures that the keypacket                WGR
+;   passed to it in AX is mapped to a standard INT16h call  WGR
+;                                                           WGR
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; WGR
+CHECK_FOR_REMAP PROC NEAR     ; WGR
+        .IF  <AL EQ 0E0h>     ; WGR is this an extended key?
+           OR   AH,AH         ; WGR probably...but check for alpha character
+           .IF  NZ            ; WGR if it's not an alpha character ....then
+              XOR   AL,AL     ; WGR map extended to standard
+           .ENDIF             ; WGR
+        .ENDIF                ; WGR
+        RET                   ; WGR
+CHECK_FOR_REMAP ENDP          ; WGR
 
 
 BUF     DB      4,00,72H,16,0

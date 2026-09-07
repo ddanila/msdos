@@ -1,6 +1,4 @@
  page 80,132
-;	SCCSID = @(#)tbatch.asm 4.5 85/10/01
-;	SCCSID = @(#)tbatch.asm 4.5 85/10/01
 TITLE	Batch processing routines
 
 
@@ -10,13 +8,13 @@ TITLE	Batch processing routines
 	INCLUDE DOSSYM.INC
 	INCLUDE comseg.asm
 	INCLUDE comequ.asm
-	include doscntry.inc		;AN000;
+	include doscntry.inc
 	include version.inc
 .list
 .cref
 
 
-DATARES 	SEGMENT PUBLIC BYTE	;AC000;
+DATARES 	SEGMENT PUBLIC BYTE
 	EXTRN	BATCH:WORD
 	EXTRN	Batch_Abort:byte
 	EXTRN	call_batch_flag:byte
@@ -33,29 +31,29 @@ DATARES 	SEGMENT PUBLIC BYTE	;AC000;
 	EXTRN	RES_TPA:WORD
 	EXTRN	SINGLECOM:WORD
 	EXTRN	BATCHSTEP:BYTE
-	EXTRN	SUPPRESS:BYTE		;AC000;
+	EXTRN	SUPPRESS:BYTE
 DATARES ENDS
 
-TRANDATA	SEGMENT PUBLIC BYTE	;AC000;
+TRANDATA	SEGMENT PUBLIC BYTE
 	EXTRN	BADBAT_PTR:WORD
-	EXTRN	Extend_buf_ptr:word	;AC000;
-	EXTRN	Extend_buf_sub:byte	;AN022;
-	EXTRN	msg_disp_class:byte	;AC000;
+	EXTRN	Extend_buf_ptr:word
+	EXTRN	Extend_buf_sub:byte
+	EXTRN	msg_disp_class:byte
 	EXTRN	NEEDBAT_PTR:WORD
-	EXTRN	pausemes_ptr:word	;AC000;
+	EXTRN	pausemes_ptr:word
 TRANDATA	ENDS
 
-TRANSPACE	SEGMENT PUBLIC BYTE	;AC000;
+TRANSPACE	SEGMENT PUBLIC BYTE
 	EXTRN	BatBufPos:WORD
 	EXTRN	BATHAND:WORD
-	EXTRN	bwdbuf:byte		;AN022;
+	EXTRN	bwdbuf:byte
 	EXTRN	BYTCNT:WORD
 	EXTRN	COMBUF:BYTE
 	EXTRN	EXECPATH:BYTE
 	EXTRN	ID:BYTE
 	EXTRN	RCH_ADDR:DWORD
 	EXTRN	RESSEG:WORD
-	EXTRN	string_ptr_2:word	;AC000;
+	EXTRN	string_ptr_2:word
 	EXTRN	TPA:WORD
 	EXTRN	TRAN_TPA:WORD
 TRANSPACE	ENDS
@@ -69,7 +67,7 @@ ASSUME	CS:TRANGROUP,DS:NOTHING,ES:NOTHING,SS:NOTHING
 
 ;---------------
 
-TRANSPACE	SEGMENT PUBLIC BYTE	;AC000;
+TRANSPACE	SEGMENT PUBLIC BYTE
     extrn   arg:byte			; the arg structure!
 transpace   ends
 ;---------------
@@ -87,11 +85,11 @@ Procedure   PromptBat,NEAR
 	invoke	BATOPEN 			; attempt to open batch file
 	retnc
 	cmp	dx,error_file_not_found 	;AN022; Ask for diskette if file not found
-	jz	Bat_Remcheck			;AN022;
+	jz	Bat_Remcheck
 	cmp	dx,error_path_not_found 	;AN022; Ask for diskette if path not found
 	jz	Bat_Remcheck			;AN022;    Otherwise, issue message and exit
 	invoke	output_batch_name		;AN022; set up batch name in bwdbuf
-	jmp	short BatDie			;AN022;
+	jmp	short BatDie
 
 Bat_Remcheck:					;AN022; Go see if media is removable
 	CALL	[RCH_ADDR]			; DX has error number
@@ -125,7 +123,7 @@ ASKFORBAT:
 	PUSH	CS
 	POP	DS
 	ASSUME	DS:TranGroup
-	MOV	DX,OFFSET TRANGROUP:NEEDBAT_ptr  ;AN022;
+	MOV	DX,OFFSET TRANGROUP:NEEDBAT_ptr
 	invoke	std_eprintf			 ;Prompt for batch file on stderr
 	mov	dx,offset trangroup:pausemes_ptr ;AN000; get second part of message
 	invoke	std_eprintf			 ;AN000; print it to stderr
@@ -147,21 +145,21 @@ EndProc PromptBat
 ;*
 ;****************************************************************
 
-public	output_batch_name			;AN022;
+public	output_batch_name
 
-Output_batch_name    proc near			;AN022;
+Output_batch_name    proc near
 
 	push	ds				;AN022; save resident segment
 	mov	ds,[batch]			;AN022; get batch file segment
-assume	DS:nothing				;AN022;
+assume	DS:nothing
 	mov	SI,BatFile			;AN022; get offset of batch file
 	invoke	dstrlen 			;AN022; get length of string
 	mov	di,offset Trangroup:bwdbuf	;AN022; target for batch name
 	rep	movsb				;AN022; move the name
 
 	push	cs				;AN022; get local segment
-	pop	ds				;AN022;
-assume	DS:trangroup				;AN022;
+	pop	ds
+assume	DS:trangroup
 	mov	extend_buf_ptr,dx		;AN022; put message number in block
 	mov	msg_disp_class,ext_msg_class	;AN022; set up extended error msg class
 	mov	dx,offset TranGroup:Extend_Buf_ptr   ;AN022; get extended message pointer
@@ -171,7 +169,7 @@ assume	DS:trangroup				;AN022;
 
 	ret					;AN022; return
 
-Output_batch_name    endp			;AN022;
+Output_batch_name    endp
 
 Break	<GetKeystroke - get a keystroke and flush queue>
 
@@ -769,7 +767,7 @@ ASSUME	ES:RESGROUP
 	jz	skip_ioset			;AN043;   redirection was already set up
 	invoke	IOSET				; Set up any redirection
 
-skip_ioset:					;AN043;
+skip_ioset:
 	CALL	FREE_TPA			; G
 	cmp	es:[call_batch_flag],call_in_progress ;G
 	jz	getecho 			; G if we're in a call, don't execute
@@ -822,7 +820,7 @@ startbat:					;G
 	mov	ah,Find_First			;AN042; The find_first will return it
 	mov	dx,si				;AN042; Get the string
 	mov	cx,search_attr			;AN042; filetypes to search for
-	int	int_command			;AN042;
+	int	int_command
 
 	invoke	DStrLen
 ;

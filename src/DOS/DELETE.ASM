@@ -1,5 +1,3 @@
-;	SCCSID = @(#)delete.asm 1.3 85/10/18
-;	SCCSID = @(#)delete.asm 1.3 85/10/18
 TITLE	DOS_DELETE - Internal DELETE call for MS-DOS
 NAME	DOS_DELETE
 ; Low level routine for deleting files
@@ -17,14 +15,6 @@ NAME	DOS_DELETE
 ;   FastSeek_Insert	       ; DOS 4.00
 ;   FastSeek_Truncate	       ; DOS 4.00
 ;   FS_doit		       ; DOS 4.00
-;
-;   Revision history:
-;
-;   A000  version 4.00	Jan. 1988
-;
-
-;
-; get the appropriate segment definitions
 ;
 .xlist
 include dosseg.asm
@@ -109,27 +99,27 @@ fileDeleted = 10h
 
 	Invoke	TestNet
 	JNC	LOCAL_DELETE
-;	invoke	OWN_SHARE2		       ;IFS. IFS owns share ?		;AN000;
-;	JZ	ifsshare		       ;IFS. yes			;AN000;
-;	PUSH	WORD PTR [DMAADD+2]	       ;IFS. save DMAADD		;AN000;
-;	PUSH	WORD PTR [DMAADD]	       ;IFS.				;AN000;
-;	CALL	IFS_SEARCH_FIRST	       ;IFS. do search first		;AN000;
-;	JC	nofiles 		       ;IFS. file not existing		;AN000;
-delete_next_file:			       ;IFS.				;AN000;
-;	CALL	IFS_REN_DEL_CHECK	       ;IFS. do REN_DEL_CHECK		;AN000;
-;	JNC	share_okok		       ;IFS. share ok			;AN000;
-;	MOV	AX,error_sharing_violation     ;IFS. share violation		;AN000;
-;	JMP	SHORT nofiles		       ;IFS.				;AN000;
+;	invoke	OWN_SHARE2		       ;IFS. IFS owns share ?
+;	JZ	ifsshare		       ;IFS. yes
+;	PUSH	WORD PTR [DMAADD+2]	       ;IFS. save DMAADD
+;	PUSH	WORD PTR [DMAADD]	       ;IFS.
+;	CALL	IFS_SEARCH_FIRST	       ;IFS. do search first
+;	JC	nofiles 		       ;IFS. file not existing
+delete_next_file:			       ;IFS.
+;	CALL	IFS_REN_DEL_CHECK	       ;IFS. do REN_DEL_CHECK
+;	JNC	share_okok		       ;IFS. share ok
+;	MOV	AX,error_sharing_violation     ;IFS. share violation
+;	JMP	SHORT nofiles		       ;IFS.
 share_okok:
-;	MOV	AX,(multNET SHL 8) OR 19       ;IFS. delete it now		;AN000;
-;;	INT	2FH			       ;IFS.				;AN000;
-;	JC	nofiles 		       ;IFS. error			;AN000;
-;	invoke	DOS_SEARCH_NEXT 	       ;IFS. get next entry		;AN000;
-;	JNC	delete_next_file	       ;IFS.				;AN000;
-;	CLC				       ;IFS. no more files		;AN000;
+;	MOV	AX,(multNET SHL 8) OR 19       ;IFS. delete it now
+;;	INT	2FH			       ;IFS.
+;	JC	nofiles 		       ;IFS. error
+;	invoke	DOS_SEARCH_NEXT 	       ;IFS. get next entry
+;	JNC	delete_next_file	       ;IFS.
+;	CLC				       ;IFS. no more files
 nofiles:
-;	POP	WORD PTR [DMAADD]	       ;IFS. retor DMAADD		;AN000;
-;	POP	WORD PTR [DMAADD+2]	       ;IFS.				;AN000;
+;	POP	WORD PTR [DMAADD]	       ;IFS. retor DMAADD
+;	POP	WORD PTR [DMAADD+2]	       ;IFS.
 ;	ret				       ;IFS. return
 ifsshare:
 
@@ -229,10 +219,10 @@ DELFILE:
 	LDS	DI,[CURBUF]
 ASSUME	DS:NOTHING
 ;; Extended Attributes
-;	PUSH	AX			 ;FT. save cluster of XA		;AN000;
-;	MOV	AX,DS:[BX.dir_ExtCluster];FT.					;AN000;
-;	MOV	[Del_ExtCluster],AX	 ;FT.					;AN000;
-;	POP	AX			 ;FT,					;AN000;
+;	PUSH	AX			 ;FT. save cluster of XA
+;	MOV	AX,DS:[BX.dir_ExtCluster];FT.
+;	MOV	[Del_ExtCluster],AX	 ;FT.
+;	POP	AX			 ;FT,
 
 ;; Extended Attributes
 	TEST	[Attrib],attr_read_only ; are we deleting RO files too?
@@ -250,9 +240,9 @@ DoDelete:
 
 DEL_SHARE_OK:
 	Assert	ISBUF,<DS,DI>,"Del_Share_OK"
-	TEST	[DI.buf_flags],buf_dirty  ;LB. if already dirty 		;AN000;
-	JNZ	yesdirty		  ;LB.	  don't increment dirty count   ;AN000;
-	invoke	INC_DIRTY_COUNT 	  ;LB.					;AN000;
+	TEST	[DI.buf_flags],buf_dirty  ;LB. if already dirty
+	JNZ	yesdirty		  ;LB.	  don't increment dirty count
+	invoke	INC_DIRTY_COUNT 	  ;LB.
 	OR	[DI.buf_flags],buf_dirty
 yesdirty:
 	MOV	[BX],AH 		; Put in E5H or 0
@@ -279,13 +269,13 @@ yesdirty:
 ;; Extended Attributes
 DELEXT:
 
-;	MOV	BX,[Del_ExtCluster]	;FT. delete XA cluster chain		;AN000;
-;	CMP	BX,2			;FT.					;AN000;
-;	JB	DELNXT			;FT. XA has invalid cluster (too small) ;AN000;
-;	CMP	BX,ES:[BP.dpb_max_cluster];FT.					;AN000;
-;	JA	DELNXT			;FT. XA has invalid cluster (too big)	;AN000;
-;	invoke	RELEASE 		;FT. Free extended attrs cluster	;AN000;
-;	JC	No_fileJ		;FT.					;AN000;
+;	MOV	BX,[Del_ExtCluster]	;FT. delete XA cluster chain
+;	CMP	BX,2			;FT.
+;	JB	DELNXT			;FT. XA has invalid cluster (too small)
+;	CMP	BX,ES:[BP.dpb_max_cluster];FT.
+;	JA	DELNXT			;FT. XA has invalid cluster (too big)
+;	invoke	RELEASE 		;FT. Free extended attrs cluster
+;	JC	No_fileJ		;FT.
 
 ;; Extended Attributes
 DELNXT:
@@ -326,8 +316,8 @@ ASSUME	ES:NOTHING
 	MOV	AH,BYTE PTR ES:[DI]	; Get drive
 	SUB	AH,'A'                  ; Convert to 0-based
 	mov	byte ptr [VOLCHNG_FLAG],AH
-	XOR	BH,BH			;>32mb delte volume id from boot record ;AN000;
-	invoke	Set_Media_ID		;>32mb set voulme id to boot record	;AN000;
+	XOR	BH,BH			;>32mb delte volume id from boot record
+	invoke	Set_Media_ID		;>32mb set voulme id to boot record
 	invoke	FATRead_CDS		; force media check
 	POP	DI
 	POP	ES
@@ -389,7 +379,7 @@ ASSUME	ES:DOSGROUP
 	ADD	DI,CX		; Point to NUL at end of string
 	invoke	SkipBack	; Back up one element
 	INC	DI		; Point to start of last element
-	MOV	[SAVE_BX],DI	;IFS. save for DOS_RENAME			   ;AN000;
+	MOV	[SAVE_BX],DI	;IFS. save for DOS_RENAME
 	invoke	PackName	; Transfer name from entry to ASCIZ tail.
 	POP	SI		; Get back entry pointers
 	POP	BX
@@ -502,21 +492,20 @@ Break	<FastSeek_Open - create a file extent cache entry>
 ;
 ;
 
-	procedure  FastSeek_Open,NEAR						;AN000;
-ASSUME	DS:NOTHING,ES:NOTHING							;AN000;
-										;AN000;
-	TEST	[FastSeekflg],Fast_yes	       ; Fastseek installed ?		;AN000;
-	JZ	fs_no11 		       ; no				;AN000;
-	PUSH	SI			       ; save regs			;AN000;
-	PUSH	AX								;AN000;
-	MOV	AL,FSEC_open		       ; al = 11			;AN000;
-fseek_disp:									;AN000;
-	CALL	FSeek_dispatch		       ; call fastseek			;AN000;
-	POP	AX			       ; restore regs			;AN000;
-	POP	SI								;AN000;
-fs_no11:									;AN000;
-	return				       ; return 			;AN000;
-EndProc FastSeek_Open								;AN000;
+	procedure  FastSeek_Open,NEAR
+ASSUME	DS:NOTHING,ES:NOTHING
+	TEST	[FastSeekflg],Fast_yes	       ; Fastseek installed ?
+	JZ	fs_no11 		       ; no
+	PUSH	SI			       ; save regs
+	PUSH	AX
+	MOV	AL,FSEC_open		       ; al = 11
+fseek_disp:
+	CALL	FSeek_dispatch		       ; call fastseek
+	POP	AX			       ; restore regs
+	POP	SI
+fs_no11:
+	return				       ; return
+EndProc FastSeek_Open
 
 ; Inputs:
 ;	none
@@ -527,21 +516,19 @@ EndProc FastSeek_Open								;AN000;
 ;
 
 	procedure  FSeek_dispatch,NEAR
-ASSUME	DS:NOTHING,ES:NOTHING							;AN000;
-										;AN000;
-	MOV	AH,FastSeek_ID		      ; fastseek ID  = 1		;AN000;
- entry Fast_Dispatch			      ; future fastxxxx entry		;AN000;
-	PUSH	AX			      ; save ax 			;AN000;
-	MOV	AL,AH			      ; al=fastseek ID			;AN000;
-	XOR	AH,AH			      ; 				;AN000;
-	DEC	AX			      ; 				;AN000;
-	SHL	AX,1			      ; times 4 to get entry offset	;AN000;
-	SHL	AX,1								;AN000;
-										;AN000;
-	MOV	SI,OFFSET DOSGROUP:FastTable + 2	; index to the		;AN000;
-	ADD	SI,AX					; fastxxxx entry	;AN000;
-	POP	AX					; restore ax		;AN000;
-	CALL	DWORD PTR CS:[SI]			; call fastseek 	;AN000;
+ASSUME	DS:NOTHING,ES:NOTHING
+	MOV	AH,FastSeek_ID		      ; fastseek ID  = 1
+ entry Fast_Dispatch			      ; future fastxxxx entry
+	PUSH	AX			      ; save ax
+	MOV	AL,AH			      ; al=fastseek ID
+	XOR	AH,AH			      ;
+	DEC	AX			      ;
+	SHL	AX,1			      ; times 4 to get entry offset
+	SHL	AX,1
+	MOV	SI,OFFSET DOSGROUP:FastTable + 2	; index to the
+	ADD	SI,AX					; fastxxxx entry
+	POP	AX					; restore ax
+	CALL	DWORD PTR CS:[SI]			; call fastseek
 	return
 EndProc FSeek_dispatch
 
@@ -558,15 +545,15 @@ Break	<FastSeek_Close -  close a file extent entry>
 ;
 
 	procedure  FastSeek_Close,NEAR
-ASSUME	DS:NOTHING,ES:NOTHING							;AN000;
+ASSUME	DS:NOTHING,ES:NOTHING
 
-	TEST	[FastSeekflg],Fast_yes	       ; Fastseek installed ?		;AN000;
-	JZ	fs_no2			       ; no				;AN000;
-	PUSH	SI			       ; save regs			;AN000;
-	PUSH	AX			       ;				;AN000;
-	MOV	AL,FSEC_close		       ; al = 12			;AN000;
-	JMP	fseek_disp		       ; call fastseek			;AN000;
-EndProc FastSeek_Close								;AN000;
+	TEST	[FastSeekflg],Fast_yes	       ; Fastseek installed ?
+	JZ	fs_no2			       ; no
+	PUSH	SI			       ; save regs
+	PUSH	AX			       ;
+	MOV	AL,FSEC_close		       ; al = 12
+	JMP	fseek_disp		       ; call fastseek
+EndProc FastSeek_Close
 
 Break	<FastSeek_Delete - delete a file extent  entry>
 
@@ -581,16 +568,14 @@ Break	<FastSeek_Delete - delete a file extent  entry>
 ;
 
 	procedure  FastSeek_Delete,NEAR
-ASSUME	DS:NOTHING,ES:NOTHING							;AN000;
-										;AN000;
-	TEST	[FastSeekflg],Fast_yes	       ; Fastseek installed ?		;AN000;
-	JZ	fs_no2			       ; no				;AN000;
-	PUSH	SI			       ; save regs			;AN000;
-	PUSH	AX								;AN000;
-	MOV	AL,FSEC_delete		       ; al=13				;AN000;
-	JMP	fseek_disp		       ; call fastseek			;AN000;
-EndProc FastSeek_Delete 							;AN000;
-										;AN000;
+ASSUME	DS:NOTHING,ES:NOTHING
+	TEST	[FastSeekflg],Fast_yes	       ; Fastseek installed ?
+	JZ	fs_no2			       ; no
+	PUSH	SI			       ; save regs
+	PUSH	AX
+	MOV	AL,FSEC_delete		       ; al=13
+	JMP	fseek_disp		       ; call fastseek
+EndProc FastSeek_Delete
 ; Inputs:
 ;	FastSeekflg= 0 , not installed
 ;		     1 , installed
@@ -602,20 +587,20 @@ EndProc FastSeek_Delete 							;AN000;
 ;	None
 ;
 
-	procedure  Delete_FSeek,NEAR						;AN000;
-ASSUME	DS:NOTHING,ES:NOTHING							;AN000;
-	TEST	[FastSeekflg],Fast_yes	       ; Fastseek installed ?		;AN000;
-	JZ	fs_no2			       ; no				;AN000;
-	PUSH	CX			; save regs				;AN000;
-	PUSH	DX								;AN000;
-	MOV	CX,BX			; first cluster #			;AN000;
-	MOV	DL,ES:[BP.dpb_drive]	; drive #				;AN000;
-	CALL	FastSeek_Delete 	; call fastseek to delete an entry	;AN000;
-	POP	DX			; restore regs				;AN000;
-	POP	CX								;AN000;
-fs_no2: 									;AN000;
-	return				; exit					;AN000;
-EndProc Delete_FSeek								;AN000;
+	procedure  Delete_FSeek,NEAR
+ASSUME	DS:NOTHING,ES:NOTHING
+	TEST	[FastSeekflg],Fast_yes	       ; Fastseek installed ?
+	JZ	fs_no2			       ; no
+	PUSH	CX			; save regs
+	PUSH	DX
+	MOV	CX,BX			; first cluster #
+	MOV	DL,ES:[BP.dpb_drive]	; drive #
+	CALL	FastSeek_Delete 	; call fastseek to delete an entry
+	POP	DX			; restore regs
+	POP	CX
+fs_no2:
+	return				; exit
+EndProc Delete_FSeek
 
 Break	<FastSeek_Lookup - look up a cluster number>
 
@@ -631,19 +616,18 @@ Break	<FastSeek_Lookup - look up a cluster number>
 ;		   partially found, DI=last physical cluster #
 ;		      FSeek_logsave=last logical cluster #
 
-	procedure  FastSeek_Lookup,NEAR 					;AN000;
-ASSUME	DS:NOTHING,ES:NOTHING							;AN000;
+	procedure  FastSeek_Lookup,NEAR
+ASSUME	DS:NOTHING,ES:NOTHING
 
-	PUSH	AX			; save ax				;AN000;
-	MOV	AL,FSEC_lookup		; al = 14				;AN000;
-	PUSH	BX			; save bx				;AN000;
-	CALL	FS_doit 		; call fastseek 			;AN000;
-	MOV	[FSeek_logsave],BX	; save returned BX			;AN000;
-	POP	BX			; restore bx				;AN000;
-	POP	AX			; restore ax				;AN000;
-	return									;AN000;
-EndProc FastSeek_Lookup 							;AN000;
-										;AN000;
+	PUSH	AX			; save ax
+	MOV	AL,FSEC_lookup		; al = 14
+	PUSH	BX			; save bx
+	CALL	FS_doit 		; call fastseek
+	MOV	[FSeek_logsave],BX	; save returned BX
+	POP	BX			; restore bx
+	POP	AX			; restore ax
+	return
+EndProc FastSeek_Lookup
 
 Break	<FastSeek_Insert - insert a cluster number>
 
@@ -661,16 +645,15 @@ Break	<FastSeek_Insert - insert a cluster number>
 	procedure  FastSeek_Insert,NEAR
 ASSUME	DS:NOTHING,ES:NOTHING
 
-	TEST	[FastSeekflg],FS_insert 	; insert mode set ?		;AN000;
-	JZ	no_insert			; no				;AN000;
-										;AN000;
-	PUSH	AX				; save regs			;AN000;
-	PUSH	BX								;AN000;
-	MOV	AL,FSEC_insert			; al = 15			;AN000;
-FSentry:									;AN000;
-	CALL	FS_doit 			; call fastseek 		;AN000;
-	POP	BX				; restore regs			;AN000;
-	POP	AX								;AN000;
+	TEST	[FastSeekflg],FS_insert 	; insert mode set ?
+	JZ	no_insert			; no
+	PUSH	AX				; save regs
+	PUSH	BX
+	MOV	AL,FSEC_insert			; al = 15
+FSentry:
+	CALL	FS_doit 			; call fastseek
+	POP	BX				; restore regs
+	POP	AX
 no_insert:
 	return
 EndProc FastSeek_insert
@@ -689,16 +672,15 @@ Break	<FastSeek_Truncate - truncate cluster numbers>
 
 	procedure  FastSeek_Truncate,NEAR
 ASSUME	DS:NOTHING,ES:NOTHING
-										;AN000;
-	TEST	[FastSeekflg],Fast_yes	       ; Fastseek installed ?		;AN000;
-	JZ	fs_no			       ; no				;AN000;
-	PUSH	AX			       ; save regs			;AN000;
-	PUSH	BX								;AN000;
-	MOV	AL,FSEC_truncate	       ; al = 16			;AN000;
-	JMP	FSentry 		       ; call fastseek			;AN000;
-fs_no:										;AN000;
-	return									;AN000;
-EndProc FastSeek_Truncate							;AN000;
+	TEST	[FastSeekflg],Fast_yes	       ; Fastseek installed ?
+	JZ	fs_no			       ; no
+	PUSH	AX			       ; save regs
+	PUSH	BX
+	MOV	AL,FSEC_truncate	       ; al = 16
+	JMP	FSentry 		       ; call fastseek
+fs_no:
+	return
+EndProc FastSeek_Truncate
 
 ; Inputs:
 ;	FSeek_drive : drive number (0=A,1=B,,,)
@@ -711,23 +693,19 @@ EndProc FastSeek_Truncate							;AN000;
 ;
 	procedure  FS_doit,NEAR
 ASSUME	DS:NOTHING,ES:NOTHING
-										;AN000;
-	PUSH	CX			; save regs				;AN000;
-	PUSH	DX								;AN000;
-	PUSH	SI								;AN000;
-	MOV	DL,[FSeek_drive]	; set drive #				;AN000;
-	MOV	CX,[FSeek_firclus]	; set 1st cluster #			;AN000;
-	MOV	BX,[FSeek_logclus]	; set logical cluster # 		;AN000;
-										;AN000;
-	CALL	FSeek_dispatch		; call fastseek 			;AN000;
-										;AN000;
-					; carry clear if found in DI		;AN000;
-	POP	SI			; otherwise, carry set			;AN000;
-										;AN000;
-	POP	DX			; restore regs				;AN000;
-	POP	CX								;AN000;
-	return									;AN000;
-EndProc FS_doit 								;AN000;
+	PUSH	CX			; save regs
+	PUSH	DX
+	PUSH	SI
+	MOV	DL,[FSeek_drive]	; set drive #
+	MOV	CX,[FSeek_firclus]	; set 1st cluster #
+	MOV	BX,[FSeek_logclus]	; set logical cluster #
+	CALL	FSeek_dispatch		; call fastseek
+					; carry clear if found in DI
+	POP	SI			; otherwise, carry set
+	POP	DX			; restore regs
+	POP	CX
+	return
+EndProc FS_doit
 
 
 ; Inputs:
@@ -737,16 +715,16 @@ EndProc FS_doit 								;AN000;
 ; Outputs:
 ;	same as DOS_SEARCH_FIRST
 ;
-	procedure  IFS_SEARCH_FIRST,NEAR					;AN000;
-	DOSAssume   CS,<DS>,"IFS_SEARCH_FIRST"                                  ;AN000;
-	ASSUME	ES:NOTHING							;AN000;
+	procedure  IFS_SEARCH_FIRST,NEAR
+	DOSAssume   CS,<DS>,"IFS_SEARCH_FIRST"
+	ASSUME	ES:NOTHING
 
-;	MOV	WORD PTR [DMAADD+2],DS	       ;IFS. replace with scratch area	;AN000;;AN000;
-;	MOV	WORD PTR [DMAADD],OFFSET DOSGROUP:RENAMEDMA	;IFS.		;AN000;
-;	invoke	SET_THISDPB		       ;IFS. THISDPB set		;AN000;
-;	invoke	DOS_SEARCH_FIRST	       ;IFS. search first		;AN000;
-;	return									;AN000;
-EndProc IFS_SEARCH_FIRST							;AN000;
+;	MOV	WORD PTR [DMAADD+2],DS	       ;IFS. replace with scratch area
+;	MOV	WORD PTR [DMAADD],OFFSET DOSGROUP:RENAMEDMA	;IFS.
+;	invoke	SET_THISDPB		       ;IFS. THISDPB set
+;	invoke	DOS_SEARCH_FIRST	       ;IFS. search first
+;	return
+EndProc IFS_SEARCH_FIRST
 
 
 ; Inputs:
@@ -757,21 +735,21 @@ EndProc IFS_SEARCH_FIRST							;AN000;
 ; Outputs:
 ;	same as REN_DEL_CHECK
 ;
-	procedure  IFS_REN_DEL_CHECK,NEAR					;AN000;
-	DOSAssume   CS,<DS>,"IFS_REN_DEL_CHECK"                                 ;AN000;
-	ASSUME	ES:NOTHING							;AN000;
+	procedure  IFS_REN_DEL_CHECK,NEAR
+	DOSAssume   CS,<DS>,"IFS_REN_DEL_CHECK"
+	ASSUME	ES:NOTHING
 
-;	MOV	AX,WORD PTR [DMAADD+2]	       ;IFS. set up			;AN000;;AN000;
-;	MOV	WORD PTR [CURBUF+2],AX	       ;IFS. curbuf+2 : bx -> dir entry ;AN000;
-;	MOV	BX,WORD PTR [DMAADD]	       ;IFS.				;AN000;
-;	ADD	BX,21			       ;IFS.				;AN000;
-;	MOV	SI,BX			       ;IFS. curbuf+2:si -> dir_first	;AN000;
-;	ADD	SI,dir_first		       ;IFS.				;AN000;
-;	EnterCrit   critDisk		       ;IFS. enter critical section	;AN000;
-;	CALL	REN_DEL_Check		       ;IFS. share check		;AN000;
-;	LeaveCrit   critDisk		       ;IFS. leave critical section	;AN000;
-;	return									;AN000;
-EndProc IFS_REN_DEL_CHECK							;AN000;
+;	MOV	AX,WORD PTR [DMAADD+2]	       ;IFS. set up
+;	MOV	WORD PTR [CURBUF+2],AX	       ;IFS. curbuf+2 : bx -> dir entry
+;	MOV	BX,WORD PTR [DMAADD]	       ;IFS.
+;	ADD	BX,21			       ;IFS.
+;	MOV	SI,BX			       ;IFS. curbuf+2:si -> dir_first
+;	ADD	SI,dir_first		       ;IFS.
+;	EnterCrit   critDisk		       ;IFS. enter critical section
+;	CALL	REN_DEL_Check		       ;IFS. share check
+;	LeaveCrit   critDisk		       ;IFS. leave critical section
+;	return
+EndProc IFS_REN_DEL_CHECK
 
 CODE	ENDS
     END

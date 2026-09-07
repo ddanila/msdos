@@ -41,67 +41,6 @@
 ;*      2 - Some Error
 ;*
 ;*
-;*   Revision History:
-;*
-;*    V1.1    8/23/82         M.A.U.  (Microsoft)
-;*
-;*    V1.2    9/22/82         M.A.U.  (Microsoft)
-;*              Added the -c and -n options
-;*
-;*            9/23/82         M.A.U.  (Microsoft)
-;*              Added DOS version number control
-;*
-;*            10/07/82  Rev.2         M.A.U.  (Microsoft)
-;*              Changed quote for double quotes, and added
-;*            file name printing
-;*
-;*            10/20/82  Rev.3         M.A.U.  (Microsoft)
-;*              Modified IBM name to FIND, and changed the text
-;*            of some messages.
-;*
-;*            10/25/82  Rev.4         M.A.U.  (Microsoft)
-;*              Changed name to FIND and all messages to the
-;*            IBM form.
-;*
-;*            10/27/82  Rev.5         M.A.U.  (Microsoft)
-;*              Made the correct exit on version check in case
-;*            of a 1.x DOS.
-;*
-;*            11/4/82 Rev. 5          A.R. Reynolds  (Microsoft)
-;*               Messages moved to external module
-;*
-;*            11/10/82  Rev. 6        M.A. U.  (Microsoft)
-;*              Corrected problem with line numbers, and a problem
-;*            with seeking for 0 chars.
-;*
-;*            03/30/83  Rev. 7        M.A. U.  (Microsoft)
-;*              Added patch area for bug fixing.
-;*
-;*            04/14/83  Rev. 8        M.A. U.  (Microsoft)
-;*              Made changes for Kanji characters. (ugh!)
-;*
-;*            12/17/84  Rev. 9        Zibo  (Microsoft)
-;*              Fix boundary case for buffer containing exact line
-;*
-;*    V4.0 :  6/29/87                 Russ W (IBM)
-;*           Lines commented with ;AN000;
-;*              Add support for IBM Parse service routines
-;*              Add support for IBM Message Retriever Service Routines
-;*              Add support for Code Page File Tags
-;*              Made PROCs out of all labels that were targets of a call (not commented with AN000)
-;*              Removed patch area for "bug fixing"
-;*
-;*    V4.0 :  9/15/87                 Bill L, (IBM)
-;*           ;AN001; = DCR 201, changes to extended attributes support
-;*           ;AN002; = PTM 1090
-;*           ;AN003; = DCR 191
-;*           ;AN004; = PTM 1630
-;*           ;AN005; = PTM 1643, PTM 1675, PTM 1754
-;*           ;AN006; = DBCS support
-;*           ;AN007; = Optimizations to save disk space on ship diskettes
-;*
-;**********************************************************************
-
 ;--------------------------
 ;-      MACRO DEFINITIONS
 ;--------------------------
@@ -123,7 +62,7 @@ ENDM
 .cref                       ;
 ;---------------------------;
 
-MSG_UTILNAME <FIND>             ;AN000;
+MSG_UTILNAME <FIND>
 
 ;--------------------------
 ;-      EQUATES
@@ -177,20 +116,20 @@ msg_switch              equ     3       ;AN005; Invalid switch
 ;--     Parser equates
 ;-----------------------
  
-FarSW   equ     0                       ;AN000;
-DateSW  equ     0                       ;AN000;
-TimeSW  equ     0                       ;AN000;
-FileSW  equ     1                       ;AN000;
-CAPSW   equ     1                       ;AN000;
-CmpxSW  equ     0                       ;AN000;
-DrvSW   equ     0                       ;AN000;
-QusSW   equ     1                       ;AN000;
-NumSW   equ     0                       ;AN000;
-KeySW   equ     0                       ;AN000;
-SwSW    equ     1                       ;AN000;
-Val1SW  equ     0                       ;AN000;
-Val2SW  equ     0                       ;AN000;
-Val3SW  equ     0                       ;AN000;
+FarSW   equ     0
+DateSW  equ     0
+TimeSW  equ     0
+FileSW  equ     1
+CAPSW   equ     1
+CmpxSW  equ     0
+DrvSW   equ     0
+QusSW   equ     1
+NumSW   equ     0
+KeySW   equ     0
+SwSW    equ     1
+Val1SW  equ     0
+Val2SW  equ     0
+Val3SW  equ     0
 
 ;------------------------
 ; SUBLIST Equates
@@ -250,12 +189,12 @@ INCLUDE parse.asm
 ;* Extended Attribute Structures *
 ;*********************************
 querylist   struc                    ;AN001; ;query general list
-qea_num     dw      1                ;AN001;
-qea_type    db      EAISBINARY       ;AN001;
-qea_flags   dw      EASYSTEM         ;AN001;
-qea_namelen db      ?                ;AN001;
-qea_name    db      "        "       ;AN001;
-querylist   ends                     ;AN001;
+qea_num     dw      1
+qea_type    db      EAISBINARY
+qea_flags   dw      EASYSTEM
+qea_namelen db      ?
+qea_name    db      "        "
+querylist   ends
 
 cp_qlist    querylist <1,EAISBINARY,EASYSTEM,2,"CP">        ;AN001; ;query code page attr.
 
@@ -268,7 +207,7 @@ cp_list     label   word             ;AN001; ;code page attr. get/set list
             dw      2                ;AN001; ; ea value length
             db      "CP"             ;AN001; ; ea name
 cp          dw      ?                ;AN001; ; ea value (code page)
-cp_len      equ     ($ - cp_list)    ;AN001;
+cp_len      equ     ($ - cp_list)
 
 ;-------Save area for Code Pages
 src_cp  dw      ?               ;AN000; Save area for source code page
@@ -279,10 +218,10 @@ str_cp  dw      ?               ;AN005; Save area for search string code page
 
 ;-----------------------
 ;----- Misc  Data ------
-bufferDB db     6 dup(0)        ;AN006;
-dbcs_off dw     0               ;AN006;
-dbcs_seg dw     0               ;AN006;
-dbcs_len dw     0               ;AN006;
+bufferDB db     6 dup(0)
+dbcs_off dw     0
+dbcs_seg dw     0
+dbcs_len dw     0
 
 ccolon  db      ": "
 n1_buf  db      "["
@@ -313,9 +252,9 @@ line_cntr dw    0                       ;line counter
 ;-      MESSAGE RETRIEVER SUBSTITUTION LIST
 ;-------------------------------------------
 
-MSG_SERVICES <MSGDATA>          ;AN000;
+MSG_SERVICES <MSGDATA>
 
-sublist label dword             ;AN000;
+sublist label dword
 sl_size db      11              ;AN000; SUBLIST Size, in bytes
 sl_res  db      0               ;AN000; reserved
 sl_ptr_o dw     ?               ;AN000; Offset  PTR to data item
@@ -334,13 +273,13 @@ cpsw_state   db CPSWNotActive   ;AN000; Save area indicating state of Code Page 
 ;*                                               PARSER DATA STRUCTURES FOLLOW
 ;******************************************************************************
 
-parms   label   byte            ;AN000;
+parms   label   byte
         dw      parmsx          ;AN000; POINTER TO PARMS STRUCURE
         db      1               ;AN000; DELIMITER LIST FOLLOWS
         db      1               ;AN000; NUMBER OF ADDITIONAL DELIMITERS
         db      ";"             ;AN000; ADDITIONAL DELIMITER
 
-parms1  label   byte            ;AN005;
+parms1  label   byte
         dw      parmsx1         ;AN005; POINTER TO PARMS STRUCURE
         db      1               ;AN005; DELIMITER LIST FOLLOWS
         db      1               ;AN005; NUMBER OF ADDITIONAL DELIMITERS
@@ -349,7 +288,7 @@ parms1  label   byte            ;AN005;
 ;------------------------------
 ;- STRUCTURE TO DEFINE FIND SYNTAX REQUIREMENTS
 ;------------------------------
-parmsx  label   word            ;AN000;
+parmsx  label   word
         db      1,2             ;AN000; THERE ARE BETWEEN 1 AND 2 POSITIONAL PARMS
         dw      pos1            ;AN000; POINTER TO POSITIONAL DEFINITION AREA
         dw      pos2            ;AN000; POINTER TO POSITIONAL DEFINITION AREA
@@ -357,7 +296,7 @@ parmsx  label   word            ;AN000;
         dw      sw1             ;AN000; POINTER TO FIRST SWITCH DEFINITION AREA
         dw      0               ;AN000; THERE ARE NO KEYWORDS IN FIND SYNTAX
 
-parmsx1 label   word            ;AN005;
+parmsx1 label   word
         db      0,0             ;AN005; THERE ARE BETWEEN 1 AND 2 POSITIONAL PARMS
         db      1               ;AN005; THERE IS 1 SWITCH DEF AREA FOR "/V, /C, AND /N"
         dw      sw1             ;AN005; POINTER TO FIRST SWITCH DEFINITION AREA
@@ -366,7 +305,7 @@ parmsx1 label   word            ;AN005;
         ;------------------------------
         ;- STRUCTURE TO DEFINE POSITIONAL PARM
         ;------------------------------
-pos1    label   word            ;AN000;
+pos1    label   word
         dw      0080h           ;AN000; QUOTED STRING, REQUIRED
         dw      0000h           ;AN000; NO CAPITALIZE
         dw      ret_buff        ;AN000; PLACE RESULT IN RET_BUFF
@@ -376,7 +315,7 @@ pos1    label   word            ;AN000;
         ;------------------------------
         ;- STRUCTURE TO DEFINE POSITIONAL PARM
         ;------------------------------
-pos2    label   word            ;AN000;
+pos2    label   word
         dw      0203h           ;AN000; FILE NAME, OPTIONAL, REPEATS ALLOWED
         dw      0001h           ;AN000; CAPITALIZE BY FILE TABLE
         dw      ret_buff        ;AN000; PLACE RESULT IN RET_BUFF
@@ -387,29 +326,29 @@ pos2    label   word            ;AN000;
         ;------------------------------
         ;- STRUCTURE TO DEFINE THE SWITCHES
         ;------------------------------
-sw1     label   word            ;AN000;
+sw1     label   word
         dw      0               ;AN000; NO MATCH FLAGS
         dw      2               ;AN005; capitalize
         dw      ret_buff        ;AN000; PLACE RESULT IN RET_BUFF
         dw      novals          ;AN000; NO VALUE LIST
         db      4               ;DOS 5 adds /I to the switch list
-n_swch  db      "/N",0          ;AN000;
-v_swch  db      "/V",0          ;AN000;
-c_swch  db      "/C",0          ;AN000;
+n_swch  db      "/N",0
+v_swch  db      "/V",0
+c_swch  db      "/C",0
 i_swch  db      "/I",0          ;DOS 5 case-insensitive matching
 
 
         ;------------------------------
         ;- VALUE LIST DEFINITION FOR NO VALUES
         ;------------------------------
-novals  label   word            ;AN000;
+novals  label   word
         db      0               ;AN000;  VALUE LIST
 
 
         ;------------------------------
         ;- RETURN BUFFER FOR POSITIONAL PARAMETERS
         ;------------------------------
-ret_buff        label   word    ;AN000;
+ret_buff        label   word
 rb_type         db      ?       ;AN000; TYPE RETURNED
 rb_item_tag     db      ?       ;AN000; SPACE FOR ITEM TAG
 rb_synonym      dw      ?       ;AN000; ES:rb_synonym points to synonym
@@ -424,7 +363,7 @@ got_eol         db      FALSE   ;AN004;  if false then possibly more filenames o
 got_filename    db      FALSE   ;AN004;  if true then parser found a filename on command line
 got_srch_str    db      FALSE   ;AN000;  if true then parser found search string on command line
 ordinal         dw      0       ;AN000; parser ordinal
-crlf            db      CR,LF   ;AN000;
+crlf            db      CR,LF
 
 
 ;
@@ -471,7 +410,7 @@ crlf            db      CR,LF   ;AN000;
 ;*
 ;**************************************************************************
 
-        MSG_SERVICES <FIND.ctl,FIND.cla,FIND.cl1,FIND.cl2>      ;AN000;
+        MSG_SERVICES <FIND.ctl,FIND.cla,FIND.cl1,FIND.cl2>
         MSG_SERVICES <DISPLAYmsg,LOADmsg,CHARmsg,NOCHECKSTDIN>  ;AN003; Make retriever services available
 
 FIND_HELP_STR   DB "Searches for a text string in a file or files.",0Dh,0Ah
@@ -511,8 +450,8 @@ FIND_NO_HELP:
         call    sysloadmsg              ;AN000; Preload messages, Check DOS Version.
         jnc     Set_for_parse           ;AN000; If no error, parse command line
 
-        call    prt_find                ;AN005;
-        call    sysdispmsg              ;AN005;
+        call    prt_find
+        call    sysdispmsg
 
         mov     ah,Exit                 ;AN000; Terminate new way
         mov     al,0                    ;AN000; Errorlevel 0 (Compatible!)
@@ -525,7 +464,7 @@ Set_for_parse:
         call    get_dbcs_vector                         ;AN006; ;Get DOS dbcs table vector
 ;
         mov     ah,GetCurrentPSP                        ;AN000; Get PSP address, returned in BX
-        int     021h                                    ;AN000;
+        int     021h
         mov     ds,bx                                   ;AN000; Put PSP Seg in DS
         mov     si,081h                                 ;AN000; Offset of command line in PSP
         xor     cx,cx                                   ;AN000; Number of args processed so far = 0
@@ -543,11 +482,11 @@ p_parse:
         mov     cs:got_filename,FALSE        ;AN004; input file default is STDIN
 
         push    cs                      ;A0005; ensure es is correct
-        pop     es                      ;AN005;
+        pop     es
 
         call    clr_cntrs               ;AN005; set all counters to zero
         mov     cx,cs:ordinal           ;AN005; init parser ordinal
-        call    pre_parse               ;AN005;
+        call    pre_parse
 PARSER:
         push    cs                      ;A0000; ensure es is correct
         pop     es
@@ -605,13 +544,13 @@ open_read:
         je      o_cont                  ;AN004; no, open the file
         xor     ax,ax                   ;AN007; ;AN004; file handle (ax) = STDIN
         jmp     short cp_check          ;AN007; ;AN004; skip open of file
-o_cont:                                 ;AN004;
+o_cont:
         mov     dx,cs:file_name_buf     ;AC000;addrss. of the file name
 openit:
         mov     ah,open
         mov     al,0                    ;file open for reading
         int     021h                    ;call the DOS
-        ljc      do_open_error           ;AN000;
+        ljc      do_open_error
 ;-------Open was successful. Make sure codepages are the same
 cp_check:
         cmp     cs:cpsw_state,CPSWNotActive ;AN000; Is Code Page support active
@@ -649,7 +588,7 @@ say_name:
         xor     ch,ch
         call    prout
 
-        mov     dx,cs:file_name_buf     ;AC000;
+        mov     dx,cs:file_name_buf
         mov     cx,cs:file_name_len
         call    prout
 
@@ -691,7 +630,7 @@ regular:
         jmp     scan_rest               ;get another file
 
 do_open_error:
-        jmp     open_error              ;AN000;
+        jmp     open_error
 ;---------------------------
 ; We have read in an entire buffer.  Scan for a ^Z and terminate the buffer
 ; there.  Change only CX
@@ -843,7 +782,7 @@ comp_next_char:
         jbe     try_again_opt1          ; if there is only one available
         cmp     ax,word ptr [di]
         jz      kmatch1
-        jmp     short back_up           ;AN007;
+        jmp     short back_up
 
 nopre:
         lodsb
@@ -892,7 +831,7 @@ back_up_dbcs:
 
 try_again_opt1:
         pop     dx
-        jmp     short try_again_opt     ;AN007;
+        jmp     short try_again_opt
 
 
 kmatch1:
@@ -989,25 +928,25 @@ read_error:
 ;------ Set message number and go display it
 
         mov     ax,msg_read_error       ;AN000; Read error message
-        jmp     short r_error           ;AN007;
+        jmp     short r_error
 
 ;---------------------
 ;-      PRINT ERRORS
 ;---------------------
 open_error:
-        cmp     ax,ERROR_ACCESS_DENIED  ;AN000;
+        cmp     ax,ERROR_ACCESS_DENIED
         jnz     DoNorm
 
         mov     ax,msg_access_denied    ;AN000; Message for Access Denied
         jmp     short r_error           ;AN007; ;AN000; Do the rest
 
-DoNorm:                                 ;AN000;
+DoNorm:
         mov     ax,msg_file_not_found   ;AN000; Message for File Not Found
 
 r_error:
-        call    prt_find                ;AN005;
+        call    prt_find
         mov     cs:sl_ptr_s,ds          ;AN000; Save segment of subst text
-        mov     cx,cs:file_name_buf     ;AN000;
+        mov     cx,cs:file_name_buf
         mov     cs:sl_ptr_o,cx          ;AN000; Save offset  of subst text
         mov     cs:sl_flag,left_align+char_field_ASCIIZ ;AN000; Type of insertion text
         mov     bx,STDERR               ;AN000; Sent to STD OUT
@@ -1188,16 +1127,16 @@ next_kchar      endp
 ; exit:   none
 ; modifies: none
 ;--------------------------
-get_dbcs_vector proc near             ;AN006;
-        push es                       ;AN006;
-        push di                       ;AN006;
-        push ax                       ;AN006;
-        push bx                       ;AN006;
-        push cx                       ;AN006;
-        push dx                       ;AN006;
+get_dbcs_vector proc near
+        push es
+        push di
+        push ax
+        push bx
+        push cx
+        push dx
 ;
         mov  ax,cs                    ;AN006; ;segment of return buffer
-        mov  es,ax                    ;AN006;
+        mov  es,ax
         mov  di,offset bufferDB       ;AN006; ;offset of return buffer
         mov  ah,65h                   ;AN006; ;get extended country info
         mov  al,07h                   ;AN006; ;get DBCS environment table
@@ -1215,20 +1154,20 @@ get_dbcs_vector proc near             ;AN006;
         mov  cs:dbcs_seg,bx           ;AN006; ;save it
 ;
         mov  di,ax                    ;AN006; ;Point to DBCS table to get length
-        mov  es,bx                    ;AN006;
-        mov  ax,word ptr es:[di]      ;AN006;
-        mov  cs:dbcs_len,ax           ;AN006;
+        mov  es,bx
+        mov  ax,word ptr es:[di]
+        mov  cs:dbcs_len,ax
         add  cs:dbcs_off,2            ;AN006; ;change offset to point to table
 ;
-        pop  dx                       ;AN006;
-        pop  cx                       ;AN006;
-        pop  bx                       ;AN006;
-        pop  ax                       ;AN006;
-        pop  di                       ;AN006;
-        pop  es                       ;AN006;
+        pop  dx
+        pop  cx
+        pop  bx
+        pop  ax
+        pop  di
+        pop  es
 ;
-        ret                           ;AN006;
-get_dbcs_vector endp                  ;AN006;
+        ret
+get_dbcs_vector endp
 
 
 ;--------------------------
@@ -1237,7 +1176,7 @@ get_dbcs_vector endp                  ;AN006;
 ; exit:   Carry set if it is a kanji prefix
 ; modifies:     AX
 ;--------------------------
-is_prefix proc near                   ;AN006;
+is_prefix proc near
         push    es
         push    si
         push    ax
@@ -1290,12 +1229,12 @@ is_prefix       endp
 ;---------------------
 ;- Terminate process
 ;---------------------
-terminate       proc    near          ;AN000;
+terminate       proc    near
         mov     ah,exit               ;AN000; Terminate function call
         mov     al,cs:errlevel        ;AN000; Errorlevel placed in AL
         int     021h                  ;AN000; Terminate
         ret                           ;AN000; Meaningless return
-terminate       endp                  ;AN000;
+terminate       endp
 
 ;
 ;************************************************************
@@ -1313,12 +1252,12 @@ terminate       endp                  ;AN000;
 ;*    returned in AX with carry flag set.
 ;*
 ;************************************************************
-set_cp  proc    near                    ;AN000;
+set_cp  proc    near
         mov     ax,SetExtAttr           ;AN000; Set target codepage to that of source
         mov     di,offset cp_list       ;AC001; Input buffer address
         int     021h                    ;AN000; Call DOS
         ret                             ;AN000; Return to caller
-set_cp  endp                            ;AN000;
+set_cp  endp
 
 
 
@@ -1337,11 +1276,11 @@ set_cp  endp                            ;AN000;
 ;*    AX with carry flag set.
 ;*
 ;************************************************************
-get_cp  proc    near                    ;AN000;
-        push    ds                      ;AN005;
+get_cp  proc    near
+        push    ds
 
-        push    cs                      ;AN005;
-        pop     ds                      ;AN005;
+        push    cs
+        pop     ds
 
         mov     ax,GetExtAttr           ;AN000; Get codepage
         mov     di,offset cp_list       ;AN000; Input buffer address
@@ -1349,9 +1288,9 @@ get_cp  proc    near                    ;AN000;
         mov     cx,cp_len               ;AN001; buffer length
         int     021h                    ;AN000; Call to DOS
 
-        pop     ds                      ;AN005;
+        pop     ds
         ret                             ;AN000; Return to caller
-get_cp  endp                            ;AN000;
+get_cp  endp
 
 
 ;
@@ -1385,10 +1324,10 @@ get_cp  endp                            ;AN000;
 ;*      None
 ;*
 ;************************************************************
-display_msg     proc    near            ;AN000;
+display_msg     proc    near
         push    ds                      ;AN000; Save DS
         push    cs                      ;AN000; Substitution list segment
-        pop     ds                      ;AN000;
+        pop     ds
         mov     si,offset sublist       ;AN000; Substitution list offset
       ; mov     dh,-1                   ;AN000; Message class
                                         ; 1=DOS Extended error
@@ -1404,10 +1343,10 @@ display_msg     proc    near            ;AN000;
                                         ;       BH - Error Class
                                         ;       BL - Suggested action
                                         ;       CH - Locus
-disp_done:                              ;AN000;
+disp_done:
         pop     ds                      ;AN000; Restore DS
-        ret                             ;AN000;
-display_msg     ENDP                    ;AN000;
+        ret
+display_msg     ENDP
 
         PAGE
 ;************************************************************
@@ -1440,18 +1379,18 @@ EOL             equ    -1       ;AN000; Indicator for End-Of-Line
 NOERROR         equ     0       ;AN000; Return Indicator for No Errors
 SYNTAX          equ     9       ;AN000; Syntax error from parser
 
-SWITCH          equ     3       ;AN000;
-FILESPEC        equ     5       ;AN000;
-QUOTED_STRING   equ     9       ;AN000;
+SWITCH          equ     3
+FILESPEC        equ     5
+QUOTED_STRING   equ     9
 
-parse   proc    near                                    ;AN000;
+parse   proc    near
 ;--------------------------------------
 ; address of command line in DS:SI
 ;--------------------------------------
 ;------------------------------------------
 ;- Look for the search string and switches
 ;------------------------------------------
-parse_loop:                                             ;AN000;
+parse_loop:
         mov     di,offset parms                         ;AN000; Address of parse control block at ES:DI
         xor     dx,dx                                   ;AN000; Reserved
         call    sysparse                                ;AN000; Parse parm at DS:SI
@@ -1466,12 +1405,12 @@ p_next:                                                 ;AN004; continue
         je      CONT2                                   ;AN000; No, continue processing
 
         mov     dh,2                                    ;AN005; Its a PARSE message
-        call    display_and_die                         ;AN005;
+        call    display_and_die
 CONT2:                                                  ;AN000; Something valid was entered
         cmp     cs:rb_type,QUOTED_STRING                ;AN000; Is it a quoted string ?
         je      its_a_quoted_string                     ;AN000; Yes, go process it
         cmp     cs:rb_type,FILESPEC                     ;AN000; Is it a filespec?
-        jne     cont3                                   ;AN000;
+        jne     cont3
         mov     di,cs:rb_value_lo                       ;AN000;  Look for another
         mov     cs:got_filename,(TRUE) AND 0FFh                    ;AN004;  got a filename
         jmp     short end_parse                         ;AN007; ;AN000;  Look for another
@@ -1491,27 +1430,27 @@ its_a_quoted_string:                                    ;AN000; Found a quoted s
         mov     ax,msg_inv_parm                         ;AN000; Yes, Invalid parm!
         mov     dh,2                                    ;AN005; message class
         call    display_and_die                         ;AN000; Tell user and die gracefully
-its_ok:                                                 ;AN000;
+its_ok:
         mov     di,cs:rb_value_lo                       ;AN000; Get pointer to it
         mov     bx,offset st_buffer                     ;AN000; save buffer offset
         call    get_length                              ;AN000; get string length
         mov     cs:st_length,ax                         ;AN000; save length
         mov     cs:got_srch_str,(TRUE) AND 0FFh                    ;AN000; Indicate that we have it
-        jmp     parse_loop                              ;AN000;
+        jmp     parse_loop
 
 ;-----------------------------
 ;- A valid switch was entered
 ;-----------------------------
-its_a_switch:                                           ;AN000;
+its_a_switch:
         mov     bx,cs:rb_synonym                        ;AN000; Get offset of switch entered
         cmp     bx,offset n_swch                        ;AN000; Is it the /N switch?
         jne     chek_v                                  ;AN000:  Yes, process it.
         jmp     parse_loop                              ;AN000;  Look for another
-chek_v:                                                 ;AN000;
+chek_v:
         cmp     bx,offset v_swch                        ;AN000; Is it the /N switch?
         jne     chek_c                                  ;AN000:  Yes, process it.
         jmp     parse_loop                              ;AN000;  Look for another
-chek_c:                                                 ;AN000;
+chek_c:
         cmp     bx,offset c_swch                        ;AN000; Is it the /C switch?
         jne     chek_i                                  ;AN000:  No, try /I.
         jmp     parse_loop                              ;AN000;  Look for another
@@ -1527,18 +1466,18 @@ whoops:                                                 ;AN000; None of the abov
 
 end_parse:                                              ;AN000; A filename should be next
         cmp     cs:got_srch_str,(TRUE) AND 0FFh                    ;AN000; Do we already have one?
-        je      rett                                    ;AN000;
-        mov     ax,msg_required_missing                 ;AN005;
+        je      rett
+        mov     ax,msg_required_missing
         mov     dh,-1                                   ;AN005; message class
         call    display_and_die                         ;AN000; Yes, tell the poor user and terminate
-rett:                                                   ;AN000;
-        ret                                             ;AN000;
+rett:
+        ret
 
 doexit:
         mov     cs:errlevel,ERRORLEVEL_ZERO;AN000; Proper code
         call    terminate               ;AN000; reset codepage and terminate
 
-parse   endp                                            ;AN000;
+parse   endp
 
 
 ;------------------------------------
@@ -1552,17 +1491,17 @@ parse   endp                                            ;AN000;
 ;-  INPUT: none
 ;-
 ;------------------------------------
-pre_parse proc near                     ;AN005;
-        push    ax                      ;AN005;
-        push    bx                      ;AN005;
-        push    cx                      ;AN005;
-        push    dx                      ;AN005;
-        push    di                      ;AN005;
-        push    si                      ;AN005;
-        push    es                      ;AN005;
-        push    ds                      ;AN005;
+pre_parse proc near
+        push    ax
+        push    bx
+        push    cx
+        push    dx
+        push    di
+        push    si
+        push    es
+        push    ds
 ;
-pp_loop:                                ;AN005;
+pp_loop:
         mov     di,offset parms1        ;AN005; Address of parse control block at ES:DI
         xor     dx,dx                   ;AN005; Reserved
         call    sysparse                ;AN005; Parse parm at DS:SI
@@ -1581,7 +1520,7 @@ pp_next:
         jne     pp_loop                 ;AN005; No, continue processing
 
         cmp     cs:rb_type,SWITCH       ;AN005; Is it a switch ?
-        jne     pp_loop                 ;AN005;
+        jne     pp_loop
 
 ; got a switch
         mov     bx,cs:rb_synonym        ;AN005; Get offset of switch entered
@@ -1589,12 +1528,12 @@ pp_next:
         jne     pp_chek_v               ;AN005:  Yes, process it.
         mov     cs:n_flag,(TRUE) AND 0FFh          ;AN005;  Set the corresponding flag
         jmp     pp_loop                 ;AN005;  Look for another
-pp_chek_v:                              ;AN005;
+pp_chek_v:
         cmp     bx,offset v_swch        ;AN005; Is it the /N switch?
         jne     pp_chek_c               ;AN005:  Yes, process it.
         mov     cs:v_flag,(TRUE) AND 0FFh          ;AN005;  Set the corresponding flag
         jmp     pp_loop                 ;AN005;  Look for another
-pp_chek_c:                              ;AN005;
+pp_chek_c:
         cmp     bx,offset c_swch        ;AN005; Is it the /C switch?
         jne     pp_chek_i               ;AN005:  No, try /I.
         mov     cs:c_flag,(TRUE) AND 0FFh          ;AN005;  Set the corresponding flag
@@ -1611,17 +1550,17 @@ pp_error:                               ;AN005; None of the above (can we ever g
         call    display_and_die         ;AN005; Yes, tell the poor user and terminate
 
 pp_end:                                 ;AN005; A filename should be next
-        pop     ds                      ;AN005;
-        pop     es                      ;AN005;
-        pop     si                      ;AN005;
-        pop     di                      ;AN005;
-        pop     dx                      ;AN005;
-        pop     cx                      ;AN005;
-        pop     bx                      ;AN005;
-        pop     ax                      ;AN005;
+        pop     ds
+        pop     es
+        pop     si
+        pop     di
+        pop     dx
+        pop     cx
+        pop     bx
+        pop     ax
 ;
-        ret                             ;AN005;
-pre_parse endp                          ;AN005;
+        ret
+pre_parse endp
 
 
 ;------------------------------------
@@ -1635,21 +1574,21 @@ pre_parse endp                          ;AN005;
 ;-  INPUT: none
 ;-
 ;------------------------------------
-prt_find proc near                      ;AN005;
+prt_find proc near
         cmp     cs:got_filename,(TRUE) AND 0FFh    ;AN005; Check if should print "FIND:"
-        je      prt_ret                 ;AN005;
+        je      prt_ret
         push    ax                      ;AN005; Save error
-        push    dx                      ;AN005;
+        push    dx
         mov     dh,-1                   ;AN005; Display FIND:
-        mov     ax,msg_find             ;AN005;
+        mov     ax,msg_find
         xor     cx,cx                   ;AN007; ;AN005; No substitution text
         mov     bx,STDERR               ;AN005; Sent to STD OUT
         call    display_msg             ;AN005; Display the message
-        pop     dx                      ;AN005;
+        pop     dx
         pop     ax                      ;AN005; Restore error
 prt_ret:
-        ret                             ;AN005;
-prt_find endp                           ;AN005;
+        ret
+prt_find endp
 
 
 ;------------------------------------
@@ -1664,14 +1603,14 @@ prt_find endp                           ;AN005;
 ;-
 ;------------------------------------
 display_and_die proc near
-        call    prt_find                ;AN005;
+        call    prt_find
         xor     cx,cx                   ;AN007; ;AN000; No substitution text
         mov     cs:errlevel,ERRORLEVEL_TWO ;AC005; Error code for exit
 
         mov     bx,STDERR               ;AN000; Sent to STD OUT
         call    display_msg             ;AN000; Display the message
         call    terminate               ;AN000; and Terminate
-        ret                             ;AN000;
+        ret
 display_and_die endp
 
 ;------------------------------------
@@ -1697,11 +1636,11 @@ look_str:
         jz      no_save
         mov     es:[bx],dl              ;save character
         inc     bx                      ;save next character
-no_save:                                ;AN007;
+no_save:
         and     dl,dl                   ;AN007; ;check for eol (asciiz string)
         je      done_look               ;if so, exit
         cmp     dl,0dh                  ;AN005; check for eol (carriage return)
-        je      done_look               ;AN005;
+        je      done_look
         inc     ax                      ;increment length
         inc     di                      ;look at next character
         jmp     look_str

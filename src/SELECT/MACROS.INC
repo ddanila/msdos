@@ -16,44 +16,10 @@
 ;;
 ;;****************************************************************************
 ;;****************************************************************************
-;;  Macro Change History.
-;;
-;;  June 18, 1987 - Split MACROS.INC into 5 smaller files.  They are:
-;;			     MACROS.INC
-;;			     MACROS2.INC
-;;			     MACROS3.INC
-;;			     MACROS4.INC
-;;			     MACROS5.INC
-;;		   At the end of the files, there is an INCLUDE statement
-;;		   to include the next file.  Therefore, the modules which
-;;		   use these macros do not have to add more include statements.
-;;		   The only one that must have an INCLUDE statement is
-;;		   MACROS.INC.
-;;
-;;		  - Removed the PUSHH and POPP macros from the other macro
-;;		   definitions.
-;;
-;;  June 22, 1987 - Added the SCAN_PARAMETERS macro.
-;;
-;;  June 24, 1987 - Added the PREPARE_FILE, WRITE_LINE and SAVE_FILE macros.
-;;		  - Revised the SCAN_PARAMETERS macro to read two of the
-;;		    parameters from a file instead of the command line.
-;;
-;;  June 26, 1987 - Changed the EXEC_PROGRAM macros to perform a call to
-;;		    EXEC_PROGRAM_ROUTINE which performs the same tasks are the
-;;		    previously defined macro.  EXEC_PROGRAM_ROUTINE was added
-;;		    to ROUTINES.INC.
-;;
-;;  June 29, 1987 - Changed the GET_COUNTRY_INDEX to a subroutine call to
-;;		    GET_CNTY_INDEX_ROUTINE.  The routine has been changed
-;;		    to get the new information from the structure, NUM_DESIGNATES,
-;;		    CPSW_STAT, and RESERVED_1.
-;;		   - Changed GET_COUNTRY_DEFAULTS, GET_KEYBOARD_INDEX and
-;;		     GET_KEYBOARD macros to perform subroutines calls.
-;;
-;;****************************************************************************
-PAGE					;AN000;
-INCLUDE  MAC_EQU.INC			;AN000;
+;; Include MACROS.INC only; it includes the remaining macro files in order.
+
+PAGE
+INCLUDE  MAC_EQU.INC
 ;;****************************************************************************
 ;;
 ;;   PUSHH:	pushes the listed registers on the stack
@@ -70,11 +36,11 @@ INCLUDE  MAC_EQU.INC			;AN000;
 ;;   BE PUSHED ON A SINGLE LINE.
 ;;
 ;;****************************************************************************
-PUSHH	MACRO	REG_LIST		;;AN000;
-	IRP	REG,<REG_LIST>		;;AN000;
+PUSHH	MACRO	REG_LIST		;
+	IRP	REG,<REG_LIST>		;
 	PUSH	REG			;;AN000; save registers
-	ENDM				;;AN000;
-		ENDM			;;AN000;
+	ENDM				;
+		ENDM			;
 ;;****************************************************************************
 ;;
 ;;   POPP:     pops the listed registers on the stack
@@ -91,11 +57,11 @@ PUSHH	MACRO	REG_LIST		;;AN000;
 ;;   BE POPPED ON A SINGLE LINE.
 ;;
 ;;****************************************************************************
-POPP	MACRO	REG_LIST		;;AN000;
-	IRP	REG,<REG_LIST>		;;AN000;
+POPP	MACRO	REG_LIST		;
+	IRP	REG,<REG_LIST>		;
 	POP	REG			;;AN000; return registers to initial state
-	ENDM				;;AN000;
-		ENDM			;;AN000;
+	ENDM				;
+		ENDM			;
 ;;****************************************************************************
 ;;
 ;;   DOSCALL:  DOS interrupt 21 function call
@@ -113,9 +79,9 @@ POPP	MACRO	REG_LIST		;;AN000;
 ;;   REQUIRED VALUE.
 ;;
 ;;****************************************************************************
-DOSCALL MACRO				;;AN000;
+DOSCALL MACRO				;
 	INT	21H			;;AN000; call to DOS
-	ENDM				;;AN000;
+	ENDM				;
 ;;****************************************************************************
 ;;
 ;;   INIT_VAR: Load a variable with an immediate value.
@@ -132,9 +98,9 @@ DOSCALL MACRO				;;AN000;
 ;;	 immediate value specified in immed.
 ;;
 ;;****************************************************************************
-INIT_VAR   MACRO  VARIABLE,EXPRESSION		;;AN000;
+INIT_VAR   MACRO  VARIABLE,EXPRESSION		;
 	MOV	VARIABLE,EXPRESSION		;;AN000; move expression into variable
-	ENDM					;;AN000;
+	ENDM					;
 ;;****************************************************************************
 ;;
 ;;   COPY_WORD: Copy a word variable to another word variable.
@@ -150,10 +116,10 @@ INIT_VAR   MACRO  VARIABLE,EXPRESSION		;;AN000;
 ;;		 The contents of AX is destroyed.
 ;;
 ;;************************************************************************
-COPY_WORD  MACRO  VAR_DEST, VAR_SRC		;;AN000;
-	MOV	AX, VAR_SRC			;;AN000;
-	MOV	VAR_DEST,AX			;;AN000;
-	ENDM					;;AN000;
+COPY_WORD  MACRO  VAR_DEST, VAR_SRC		;
+	MOV	AX, VAR_SRC			;
+	MOV	VAR_DEST,AX			;
+	ENDM					;
 ;;****************************************************************************
 ;;
 ;;   COPY_BYTE: Copy a byte variable to another byte variable.
@@ -169,10 +135,10 @@ COPY_WORD  MACRO  VAR_DEST, VAR_SRC		;;AN000;
 ;;		 The contents of AL is destroyed.
 ;;
 ;;************************************************************************
-COPY_BYTE  MACRO  VAR_DEST, VAR_SRC		;;AN000;
-	MOV	AL, VAR_SRC			;;AN000;
-	MOV	VAR_DEST,AL			;;AN000;
-	ENDM					;;AN000;
+COPY_BYTE  MACRO  VAR_DEST, VAR_SRC		;
+	MOV	AL, VAR_SRC			;
+	MOV	VAR_DEST,AL			;
+	ENDM					;
 ;;****************************************************************************
 ;;
 ;;   COMP_WORDS:  Compare two 16 bit memory variable.
@@ -188,11 +154,11 @@ COPY_BYTE  MACRO  VAR_DEST, VAR_SRC		;;AN000;
 ;;	 flags are updated.  Refer to the ASSEMBLER reference for more details.
 ;;
 ;;************************************************************************
-COMP_WORDS	MACRO	VAR_DEST, VAR_SRC	;;AN000;
+COMP_WORDS	MACRO	VAR_DEST, VAR_SRC	;
 						;
-	MOV	AX, VAR_DEST			;;AN000;
-	CMP	AX, VAR_SRC			;;AN000;
-	ENDM					;;AN000;
+	MOV	AX, VAR_DEST			;
+	CMP	AX, VAR_SRC			;
+	ENDM					;
 ;;****************************************************************************
 ;;
 ;;   COMP_BYTES:  Compare two 8 bit memory variables.
@@ -208,11 +174,11 @@ COMP_WORDS	MACRO	VAR_DEST, VAR_SRC	;;AN000;
 ;;	 flags are updated.  Refer to the ASSEMBLER reference for more details.
 ;;
 ;;************************************************************************
-COMP_BYTES	MACRO	VAR_DEST, VAR_SRC	;;AN000;
+COMP_BYTES	MACRO	VAR_DEST, VAR_SRC	;
 						;
-	MOV	AL, VAR_DEST			;;AN000;
-	CMP	AL, VAR_SRC			;;AN000;
-	ENDM					;;AN000;
+	MOV	AL, VAR_DEST			;
+	CMP	AL, VAR_SRC			;
+	ENDM					;
 ;;****************************************************************************
 ;;
 ;;   INC_VAR:  Increment the specified memory variable by 1.
@@ -226,9 +192,9 @@ COMP_BYTES	MACRO	VAR_DEST, VAR_SRC	;;AN000;
 ;;   OPERATION:  The memory variable is incremented by one.
 ;;
 ;;************************************************************************
-INC_VAR 	MACRO	VAR_DEST		;;AN000;
-	INC	VAR_DEST			;;AN000;
-	ENDM					;;AN000;
+INC_VAR 	MACRO	VAR_DEST		;
+	INC	VAR_DEST			;
+	ENDM					;
 ;;****************************************************************************
 ;;
 ;;   DEC_VAR:  Decrement the specified memory variable by 1.
@@ -242,9 +208,9 @@ INC_VAR 	MACRO	VAR_DEST		;;AN000;
 ;;   OPERATION:  The memory variable is decremented by one.
 ;;
 ;;************************************************************************
-DEC_VAR 	MACRO	VAR_DEST		;;AN000;
-	DEC	VAR_DEST			;;AN000;
-	ENDM					;;AN000;
+DEC_VAR 	MACRO	VAR_DEST		;
+	DEC	VAR_DEST			;
+	ENDM					;
 ;;****************************************************************************
 ;;
 ;;   INIT:    initializes the DS to the beginning of the data
@@ -260,13 +226,13 @@ DEC_VAR 	MACRO	VAR_DEST		;;AN000;
 ;;   THE MACRO SIMPLY SETS UP THE DATA SEGMENT.
 ;;
 ;;****************************************************************************
-INIT	MACRO				;;AN000;
-	PUSH	DS			;;AN000;
+INIT	MACRO				;
+	PUSH	DS			;
 	XOR	AX,AX			;;AN000; make AX = 0
-	PUSH	AX			;;AN000;
-	MOV	AX,SEG DATA 		;;AN000;
+	PUSH	AX			;
+	MOV	AX,SEG DATA 		;
 	MOV	DS,AX			;;AN000; initialize DS reg to beginning of data
-	ENDM				;;AN000;
+	ENDM				;
 ;;**************************************************************************
 ;;
 ;;   MERGE_STRING: merges 2 string blocks together to form a third one
@@ -291,17 +257,17 @@ INIT	MACRO				;;AN000;
 ;;
 ;;
 ;;**************************************************************************************
-MERGE_STRING   MACRO   NAME_DEST, IMMED_MAX, NAME_SRC1, NAME_SRC2 ;;AN000;
+MERGE_STRING   MACRO   NAME_DEST, IMMED_MAX, NAME_SRC1, NAME_SRC2 ;
 
-	LEA	DI, NAME_DEST				;;AN000;
-	LEA	SI, NAME_SRC1				;;AN000;
-	MOV	AX, IMMED_MAX				;;AN000;
-	CALL	COPY_ROUTINE				;;AN000;
-	MOV	CX, IMMED_MAX				;;AN000;
-	LEA	DI, NAME_DEST				;;AN000;
-	LEA	SI, NAME_SRC2				;;AN000;
-	CALL	APPEND_STRING_ROUTINE			;;AN000;
-	ENDM						;;AN000;
+	LEA	DI, NAME_DEST				;
+	LEA	SI, NAME_SRC1				;
+	MOV	AX, IMMED_MAX				;
+	CALL	COPY_ROUTINE				;
+	MOV	CX, IMMED_MAX				;
+	LEA	DI, NAME_DEST				;
+	LEA	SI, NAME_SRC2				;
+	CALL	APPEND_STRING_ROUTINE			;
+	ENDM						;
 ;;**************************************************************************
 ;;
 ;;   APPEND_STRING:  Appends an ASCII-N string to the specified string.
@@ -320,12 +286,12 @@ MERGE_STRING   MACRO   NAME_DEST, IMMED_MAX, NAME_SRC1, NAME_SRC2 ;;AN000;
 ;;	 end of name_dest.
 ;;
 ;;**************************************************************************************
-APPEND_STRING	MACRO	NAME_DEST, IMMED_MAX, NAME_SRC	;;AN000;
-	MOV	CX, IMMED_MAX				;;AN000;
-	LEA	DI, NAME_DEST				;;AN000;
-	LEA	SI, NAME_SRC				;;AN000;
-	CALL	APPEND_STRING_ROUTINE			;;AN000;
-	ENDM						;;AN000;
+APPEND_STRING	MACRO	NAME_DEST, IMMED_MAX, NAME_SRC	;
+	MOV	CX, IMMED_MAX				;
+	LEA	DI, NAME_DEST				;
+	LEA	SI, NAME_SRC				;
+	CALL	APPEND_STRING_ROUTINE			;
+	ENDM						;
 ;;**************************************************************************
 ;;
 ;;   COPY_STRING: Copy ASCII-N string text.
@@ -344,13 +310,13 @@ APPEND_STRING	MACRO	NAME_DEST, IMMED_MAX, NAME_SRC	;;AN000;
 ;;	 The number of characters copied to name_dest will not exceed immed_max.
 ;;
 ;;**************************************************************************
-COPY_STRING MACRO  NAME_DEST, IMMED_MAX, NAME_SRC	;;AN000;
+COPY_STRING MACRO  NAME_DEST, IMMED_MAX, NAME_SRC	;
 							;
-	LEA	DI, NAME_DEST				;;AN000;
-	LEA	SI, NAME_SRC				;;AN000;
-	MOV	AX, IMMED_MAX				;;AN000;
-	CALL	COPY_ROUTINE				;;AN000;
-	ENDM						;;AN000;
+	LEA	DI, NAME_DEST				;
+	LEA	SI, NAME_SRC				;
+	MOV	AX, IMMED_MAX				;
+	CALL	COPY_ROUTINE				;
+	ENDM						;
 ;;**************************************************************************
 ;;
 ;;   PUSH_HEADING: Push screen label address to the SELECT stack
@@ -369,10 +335,10 @@ COPY_STRING MACRO  NAME_DEST, IMMED_MAX, NAME_SRC	;;AN000;
 ;;	 successful.
 ;;
 ;;****************************************************************************
-PUSH_HEADING	MACRO	IMMED_LAB			;;AN000;
-	MOV	AX, OFFSET IMMED_LAB			;;AN000;
-	CALL	PUSH_ROUTINE				;;AN000;
-	ENDM						;;AN000;
+PUSH_HEADING	MACRO	IMMED_LAB			;
+	MOV	AX, OFFSET IMMED_LAB			;
+	CALL	PUSH_ROUTINE				;
+	ENDM						;
 ;;**************************************************************************
 ;;
 ;;   POP_HEADING: Pop screen label address from the SELECT stack and jump
@@ -392,10 +358,10 @@ PUSH_HEADING	MACRO	IMMED_LAB			;;AN000;
 ;;	 A jump to the screen label address is also performed.
 ;;
 ;;****************************************************************************
-POP_HEADING	MACRO					;;AN000;
-	CALL	POP_ROUTINE				;;AN000;
-	JMP	SI					;;AN000;
-	ENDM						;;AN000;
+POP_HEADING	MACRO					;
+	CALL	POP_ROUTINE				;
+	JMP	SI					;
+	ENDM						;
 ;;****************************************************************************
 ;;
 ;;   DIR: get current directory
@@ -417,14 +383,14 @@ POP_HEADING	MACRO					;;AN000;
 ;;   IS RETURNED IN AX.
 ;;
 ;;****************************************************************************
-DIR   MACRO   DIR_BUFFER			;;AN000;
-    CALL HOOK_INT_24				;;AN000;
+DIR   MACRO   DIR_BUFFER			;
+    CALL HOOK_INT_24				;
 	MOV	SI,OFFSET DIR_BUFFER		;;AN000; pointer to 64 byte user area
 	MOV	DL,0				;;AN000; give directory of the default drive
 	MOV	AH,47H				;;AN000; get current directory
-	DOSCALL 				;;AN000;
-    CALL RESTORE_INT_24 			;;AN000;
-      ENDM					;;AN000;
+	DOSCALL 				;
+    CALL RESTORE_INT_24 			;
+      ENDM					;
 ;;****************************************************************************
 ;;
 ;;   MAKE_DIR: Make a Directory
@@ -444,16 +410,16 @@ DIR   MACRO   DIR_BUFFER			;;AN000;
 ;;
 ;;
 ;;****************************************************************************
-MAKE_DIR MACRO	dir_len 		;;AN000;
-    CALL HOOK_INT_24			;;AN000;
+MAKE_DIR MACRO	dir_len 		;
+    CALL HOOK_INT_24			;
 
-	MOV	DI,OFFSET dir_len	;;AN000;
+	MOV	DI,OFFSET dir_len	;
 	CALL	POS_ZERO		;;AN000; position the '0' at the end of the path
 	MOV	DX,OFFSET dir_len[2]	;;AN000; advance pointer to beginning of path
 	MOV	AH,39H			;;AN000; make directory interrupt
 	DOSCALL 			;;AN000; call to DOS interrupt 21
-	CALL  RESTORE_INT_24		;;AN000;
-	ENDM				;;AN000;
+	CALL  RESTORE_INT_24		;
+	ENDM				;
 ;;**************************************************************************
 ;;
 ;;   MAKE_DIR_PATHS: Create the specified directory including all the specified
@@ -475,11 +441,11 @@ MAKE_DIR MACRO	dir_len 		;;AN000;
 ;;
 ;;
 ;;****************************************************************************
-MAKE_DIR_PATHS	MACRO	NAME_DIR	;;AN000;
+MAKE_DIR_PATHS	MACRO	NAME_DIR	;
 
 	MOV	BX, OFFSET NAME_DIR	;;AN000; Address of the ASCII-N string
-	CALL	MAKE_DIR_PATHS_ROUTINE	;;AN000;
-	ENDM				;;AN000;
+	CALL	MAKE_DIR_PATHS_ROUTINE	;
+	ENDM				;
 ;;****************************************************************************
 ;;
 ;;   REMOVE_DIR: Remove Directory
@@ -500,16 +466,16 @@ MAKE_DIR_PATHS	MACRO	NAME_DIR	;;AN000;
 ;;   It is assumed that the string is located in the data segment
 ;;
 ;;****************************************************************************
-REMOVE_DIR   MACRO   dir_len		;;AN000;
+REMOVE_DIR   MACRO   dir_len		;
 
-    CALL HOOK_INT_24			;;AN000;
-	MOV	DI,OFFSET dir_len	;;AN000;
+    CALL HOOK_INT_24			;
+	MOV	DI,OFFSET dir_len	;
 	CALL	POS_ZERO		;;AN000; position the '0' at the end of the path
 	MOV	DX,OFFSET dir_len[2]	;;AN000; advance pointer to beginning of path
 	MOV	AH,3AH			;;AN000; remove the specified directory
 	DOSCALL 			;;AN000; call to DOS interrupt 21
-	CALL  RESTORE_INT_24		;;AN000;
-	ENDM				;;AN000;
+	CALL  RESTORE_INT_24		;
+	ENDM				;
 ;;**************************************************************************
 ;;
 ;;   CHANGE_DIR: Change the current directory to the specified directory.
@@ -527,14 +493,14 @@ REMOVE_DIR   MACRO   dir_len		;;AN000;
 ;;	 becomes the default directory.
 ;;
 ;;****************************************************************************
-CHANGE_DIR	MACRO	NAME_DIR	;;AN000;
+CHANGE_DIR	MACRO	NAME_DIR	;
 
-    CALL HOOK_INT_24			;;AN000;
+    CALL HOOK_INT_24			;
 	MOV	DI,OFFSET NAME_DIR	;;AN000; Get the offset of the string
 	CALL	POS_ZERO		;;AN000; Make into an ASCII-Z string
 	MOV	DX,OFFSET NAME_DIR+2	;;AN000; Get the start of the string
 	MOV	AH,3BH			;;AN000; DOS function call number
-	DOSCALL 			;;AN000;
-    CALL RESTORE_INT_24 		;;AN000;
-	ENDM				;;AN000;
-INCLUDE  MACROS2.INC			;;AN000;
+	DOSCALL 			;
+    CALL RESTORE_INT_24 		;
+	ENDM				;
+INCLUDE  MACROS2.INC			;

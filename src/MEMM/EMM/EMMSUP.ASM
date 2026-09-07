@@ -10,39 +10,8 @@ page	58,132
 ;
 ;   Module:	EMMSUP - EMM support routines 
 ;
-;   Version:	0.04
-;
-;   Date:	May 13, 1986
-;
 ;******************************************************************************
 ;
-;   Change log:
-;
-;     DATE    REVISION                  DESCRIPTION
-;   --------  --------  -------------------------------------------------------
-;   5/13/86   Original	Initial _TEXT
-;   6/14/86		Added _sotofar routine and removed stack define.
-;   			And added protected mode check to Map_Page (SBP).
-;   6/14/86		map_page now sets _current_map(SBP).
-;   6/14/86		moved save_current_map and restore_map from C code (SBP)
-;   6/14/86		brought SegOffTo24 and SetDescInfo in from LAST code
-;			segment as local routines(SBP).
-;   6/21/86    0.02	cld in copyout (SBP).
-;   6/21/86    0.02	MapHandlePage added.
-;   6/23/86    0.02	make_addr, sotofar removed. source_addr and dest_addr
-;			added.
-;   6/27/86    0.02	Fix for restore_map.
-;   6/28/86    0.02	Name change from CEMM386 to CEMM (SBP).
-;   7/06/86    0.04	Changed _emm_page,_emm_free, & _pft386 to ptrs (SBP).
-;   7/06/86    0.04	Changed assumes from _DATA to DGROUP (SBP).
-;   7/06/86    0.04	Changed internal save area structure (SBP).
-;   7/06/86    0.04	moved SavePageMap and RestorePageMap to .ASM (SBP).
-;   7/07/86    0.04	moved MapHandlePage,SavePageMap, and RestorePageMap to
-;			emmp.asm (SBP).
-;   5/09/88    1.01	moved routines names_match and flush_tlb from win386 
-;   9/01/88		rename SegOffTo24/SetDescInfo to
-;			SegOffTo24Resident/SetDescInfoResdient and made public
-;******************************************************************************
 ;
 ;   Functional Description:
 ;	Support routines for emm/386

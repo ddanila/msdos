@@ -27,10 +27,6 @@ SUBTTL	SELECT9.asm
 ;	- Format the drives
 ;	- Copy files
 ;
-;	CHANGE HISTORY:
-;
-;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 DATA	SEGMENT BYTE PUBLIC 'DATA'
 	EXTRN	DSKCPY_ERR:BYTE
 	EXTRN	DSKCPY_WHICH:BYTE

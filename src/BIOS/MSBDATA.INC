@@ -1,13 +1,4 @@
 ;==============================================================================
-;REVISION HISTORY:
-;AN000 - New for DOS Version 3.4 - J.K.
-;AC000 - Changed for DOS Version 3.4 - J.K.
-;ANxxx - PTR, DCRs
-;==============================================================================
-;AN001 - d9  Double word MOV instruction for 80386 based machine.    7/1/87 J.K.
-;AN002 - d25 Change DASD ERP to that recommended by Storage Systems. 7/29/87 J.K.
-;AN003; d304 Boot record structure change for OS2		     11/9/87 J.K.
-;==============================================================================
 	EXTRN	INIT:NEAR
 
 	PUBLIC	START$
@@ -173,9 +164,9 @@ NUMERR	=	ERROUT-ERRIN
 ;J.K. The buffer for a disk sector is going to be at a double word boundary
 ;     for 80386 machine.
 
-	IF ($-CODE) Mod 4				;AN001;
-		Org ($-CODE)+4-(($-CODE) Mod 4) 	;AN001;
-	ENDIF						;AN001;
+	IF ($-CODE) Mod 4
+		Org ($-CODE)+4-(($-CODE) Mod 4)
+	ENDIF
 
        PUBLIC DISKSECTOR
 DiskSector		DB	11 DUP(?) ; TAKE CARE OF 3 JUMP BYTES PLUS OEM NAME.

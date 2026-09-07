@@ -48,17 +48,6 @@ TITLE BOOT	SECTOR 1 OF TRACK 0 - BOOT LOADER
 ; tracks, sectors)
 ;
 ;==============================================================================
-;REVISION HISTORY:
-;AN000 - New for DOS Version 4.00 - J.K.
-;AC000 - Changed for DOS Version 4.00 - J.K.
-;AN00x - PTM number for DOS Version 4.00 - J.K.
-;==============================================================================
-;AN001; d52 Make the fixed positioned variable "CURHD" to be local.  7/6/87 J.K.
-;AN002; d48 Change head settle at boot time.			     7/7/87 J.K.
-;AN003; P1820 New message SKL file				   10/20/87 J.K.
-;AN004; D304 New structrue of Boot record for OS2.		   11/09/87 J.K.
-;==============================================================================
-
 ORIGIN	    EQU 7C00H			; Origin of bootstrap LOADER
 BIOSEG	    EQU 70H			; destingation segment of BIOS
 BioOff	    EQU 700H			; offset of bios
@@ -122,12 +111,12 @@ Ext_cTotSec label dword
 ctotsec_L dw	  0			;AN000; 32 bit version of NUMBER OF SECTORS
 ctotsec_H dw	  0			;AN000; (when 16 bit version is zero)
 ;
-Phydrv	  db	 80h			;AN004;
+Phydrv	  db	 80h
 Curhd	  db	  0h			;AN004; Current Head
-Ext_Boot_Sig	db    41		;AN000;
-Boot_Serial	dd    0 		;AN000;
-Boot_Vol_Label	db    'NO NAME    '     ;AN000;
-Boot_System_id	db    'FAT12   '        ;AN000;
+Ext_Boot_Sig	db    41
+Boot_Serial	dd    0
+Boot_Vol_Label	db    'NO NAME    '
+Boot_System_id	db    'FAT12   '
 
 ;J.K. Danger!!! If not 32 bit sector number calculation, FORMAT should
 ;set the value of cSecHid_h and Ext_cTotSec to 0 !!!
@@ -138,11 +127,11 @@ Public UDATA
 UDATA	LABEL	byte
 Sec9	  equ	byte ptr UDATA+0	;11 byte diskette parm. table
 BIOS$_L   EQU	WORD PTR UDATA+11
-BIOS$_H   equ	word ptr UDATA+13	;AN000;
+BIOS$_H   equ	word ptr UDATA+13
 CURTRK	  EQU	WORD PTR UDATA+15
 CURSEC	  EQU	BYTE PTR UDATA+17
 DIR$_L	  EQU	WORD PTR UDATA+18
-Dir$_H	  equ	word ptr UDATA+20	;AN000;
+Dir$_H	  equ	word ptr UDATA+20
 START:
 
 ;
@@ -177,14 +166,14 @@ START:
 if	$ le BIOS$_L
 	%OUT Don't destroy unexcuted code yet!!!
 endif
-	rep	movsb			;AN000;
-	push	es			;AN000;
+	rep	movsb
+	push	es
 	pop	ds			;AN000; DS = ES = code = 0.
-	assume	ds:code 		;AN000;
+	assume	ds:code
 ;	 mov	 byte ptr [di-2], 1	 ;AN000; Head settle time
 ;J.K. Change the head settle to 15 ms will slow the boot time quite a bit!!!
 	mov	byte ptr [di-2], 0fh	;AN002; Head settle time
-	mov	cx, SECLIM		;AN004;
+	mov	cx, SECLIM
 	mov	byte ptr [di-7], cl	;AN000; End of Track
 ;
 ; Place in new disk parameter table vector.
@@ -201,28 +190,28 @@ endif
 ;
 	INT	13H			;Reset the system
 ;	 JC	 RERROR
-	jc	CKErr			;AN000;
+	jc	CKErr
 ;
 ; The system is now prepared for us to begin reading.  First, determine
 ; logical sector numbers of the start of the directory and the start of the
 ; data area.
 
-	xor	ax,ax			;AN000;
+	xor	ax,ax
 	cmp	cTotSec,ax		;AN000; 32 bit calculation?
-	je	Dir_Cont		;AN000;
-	mov	cx,cTotSec		;AN000;
+	je	Dir_Cont
+	mov	cx,cTotSec
 	mov	cTotSec_L,cx		;AN000; cTotSec_L,cTotSec_H will be used for calculation
-Dir_Cont:				;AN000;
+Dir_Cont:
 	MOV	AL,cFat 		;Determine sector dir starts on
 	MUL	cSecFat 		;DX;AX
 	ADD	AX,cSecHid_L
-	adc	DX,cSecHid_H		;AN000;
+	adc	DX,cSecHid_H
 	ADD	AX,cSecRes
 	ADC	DX,0
 	MOV	[DIR$_L],AX		; DX;AX = cFat*cSecFat + cSecRes + cSecHid
-	mov	[DIR$_H],DX		;AN000;
+	mov	[DIR$_H],DX
 	MOV	[BIOS$_L],AX
-	mov	[BIOS$_H],DX		;AN000;
+	mov	[BIOS$_H],DX
 ;
 ; Take into account size of directory (only know number of directory entries)
 ;
@@ -233,7 +222,7 @@ Dir_Cont:				;AN000;
 	DEC	AX			; decrement so that we round up
 	DIV	BX			; convert to sector number
 	ADD	[BIOS$_L],AX		; Start sector # of Data area
-	adc	[BIOS$_H],0		;AN000;
+	adc	[BIOS$_H],0
 
 ;
 ; We load in the first directory sector and examine it to make sure the the
@@ -242,7 +231,7 @@ Dir_Cont:				;AN000;
 ; into 00500h
 ;
 	MOV	BX,DirOff		; sector to go in at 00500h
-	mov	dx,[DIR$_H]		;AN000;
+	mov	dx,[DIR$_H]
 	MOV	AX,[DIR$_L]		; logical sector of directory
 	CALL	DODIV			; convert to sector, track, head
 	jc	CKErr			;AN000; Overflow? BPB must be wrong!!
@@ -303,11 +292,11 @@ DoLoad:
 	mov	BX,BioOff		;offset of ibmbio(IBMLOAD) to be loaded.
 	mov	CX,IBMLOADSIZE		;# of sectors to read.
 	mov	AX, [BIOS$_L]		;Sector number to read.
-	mov	DX, [BIOS$_H]		;AN000;
-Do_While:				;AN000;
-	push	AX			;AN000;
-	push	DX			;AN000;
-	push	CX			;AN000;
+	mov	DX, [BIOS$_H]
+Do_While:
+	push	AX
+	push	DX
+	push	CX
 	call	DODIV			;AN000; DX;AX = sector number.
 	jc	Load_Failure		;AN000; Adjust stack. Show error message
 	mov	al, 1			;AN000; Read 1 sector at a time.
@@ -315,14 +304,14 @@ Do_While:				;AN000;
 					;when the first sector of IBMLOAD is the
 					;the last sector in a track.
 	call	DOCALL			;AN000; Read the sector.
-	pop	CX			;AN000;
-	pop	DX			;AN000;
-	pop	AX			;AN000;
+	pop	CX
+	pop	DX
+	pop	AX
 	jc	CkErr			;AN000; Read error?
 	add	AX,1			;AN000; Next sector number.
-	adc	DX,0			;AN000;
+	adc	DX,0
 	add	BX,ByteSec		;AN000; adjust buffer address.
-	loop	Do_While		;AN000;
+	loop	Do_While
 
 
 ;	 MOV	 AX,BiosFS		 ; get file size
@@ -437,10 +426,10 @@ DODIV:
 	DIV	HDLIM
 	MOV	CURHD,DL		;Also, Hdlim < 255.
 	MOV	CURTRK,AX
-	clc				;AN000;
-	ret				;AN000;
-DivOverFlow:				;AN000;
-	stc				;AN000;
+	clc
+	ret
+DivOverFlow:
+	stc
 EndWR:
 	ret
 
@@ -495,7 +484,7 @@ DOCALL: MOV	AH,ROM_DISKRD		;AC000;=2
 	RET
 
 ;	 include ibmbtmes.inc
-	include boot.cl1			;AN003;
+	include boot.cl1
 
 
 	IF IBMCOPYRIGHT
@@ -506,13 +495,13 @@ BIO	DB	"IO      SYS"
 DOS	DB	"MSDOS   SYS"
 	ENDIF
 
-Free	EQU (cbSec - 4) - ($-$start)		;AC000;
+Free	EQU (cbSec - 4) - ($-$start)
 ;Free	 EQU (cbSec - 5) - ($-$start)
 if Free LT 0
     %out FATAL PROBLEM:boot sector is too large
 endif
 
-	org	origin + (cbSec - 2)		;AN004;
+	org	origin + (cbSec - 2)
 ;	 org	 origin + (cbSec - 5)
 
 ;Warning!! Do not change the position of following unless

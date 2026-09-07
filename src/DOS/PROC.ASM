@@ -1,4 +1,3 @@
-;	SCCSID = @(#)proc.asm	1.1 85/04/10
 TITLE	IBMPROC - process maintenance
 NAME	IBMPROC
 
@@ -14,11 +13,6 @@ NAME	IBMPROC
 ;   $ABORT
 ;   abort_inner
 ;
-;   Modification history:
-;
-;	Created: ARR 30 March 1983
-;
-
 .xlist
 ;
 ; get the appropriate segment definitions

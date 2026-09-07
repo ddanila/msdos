@@ -1,4 +1,3 @@
-;	SCCSID = @(#)abort.asm	1.4 85/10/02
 TITLE   DOS_ABORT - Internal SFT close all files for proc call for MSDOS
 NAME    DOS_ABORT
 
@@ -7,15 +6,6 @@ NAME    DOS_ABORT
 ;
 ;   DOS_ABORT
 ;
-;   Modification history:
-;
-;       Created: ARR 30 March 1983
-;
-
-;
-; get the appropriate segment definitions
-;
-
 include dosseg.asm
 
 CODE    SEGMENT BYTE PUBLIC  'CODE'

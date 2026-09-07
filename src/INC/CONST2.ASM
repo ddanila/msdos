@@ -1,4 +1,3 @@
-;	SCCSID = @(#)const2.asm 1.4 85/07/24
 TITLE	CONST2 - More constants data
 NAME	CONST2
 

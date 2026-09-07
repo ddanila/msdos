@@ -1,5 +1,3 @@
-;	SCCSID = @(#)comseg.asm 1.1 85/05/14
-;	SCCSID = @(#)comseg.asm 1.1 85/05/14
 ; The following are all of the segments used in the load order
 
 CODERES 	SEGMENT PUBLIC BYTE	;AC000; resident code

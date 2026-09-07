@@ -10,23 +10,8 @@ page	58,132
 ;
 ;   Module:	EMM Dispatcher
 ;
-;   Version:	0.04
-;
-;   Date:	May 17, 1986
-;
 ;******************************************************************************
 ;
-;   Change log:
-;
-;     DATE    REVISION                  DESCRIPTION
-;   --------  --------  -------------------------------------------------------
-;   5/17/86	0	initial code
-;   6/14/86		modified registers on stack for exit and removed call
-;			to _emm_init (SBP).
-;   6/28/86    0.02	Name change from CEMM386 to CEMM (SBP).
-;   7/06/86    0.04	Changed data assumes to DGROUP (SBP).
-;   5/25/88             Changed function range check to cover LIM 4.0 (PC)
-;******************************************************************************
 ;
 ;   Functional Description:
 ;	This module serves to trap Int 67h, place

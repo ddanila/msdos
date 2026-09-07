@@ -10,11 +10,7 @@
 ;
 ;  Module:	EKBD - basic keyboard handler for error handler routine
 ;
-;  Version:	0.04
-;
 ;  Date :	June 10,1986
-;
-;  Author:
 ;
 ;******************************************************************************
 ;

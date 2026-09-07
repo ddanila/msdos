@@ -48,25 +48,3 @@
 ;
 ; NOTES:                The second part of this utility is GSHARE2.ASM
 ;
-; REVISION HISTORY:       Version 1.0  09/09/83 - first release              GL
-;                                      09/13/83 - Installability             MZ
-;                                      01/11/84 - FCB compatability changes  MZ
-;                         PTM P000438  08/21/86 - SFT LCK FIELDS not 0 error DL
-;                   Ax000 Ver 4.0      04/15/87 - changed:- Set_Block        FJG
-;                                                         - Clr_Block        FJG
-;                                                         - Chk_Block        FJG
-;                                                         - CLP              FJG
-;                                                  new:   - Set_Mult_Block   FJG
-;                                                         - Clr_Mult_Block   FJG
-;                                                         - Load_Regs        FJG
-;                                                         - Clr_List         FJG
-;                   Ax002  PTM P001658  10/15/87 - changed I/F to IBMDOS     FJG
-;                   Ax003  PTM P002064  10/15/87 - ShSU SFT - IFS call error FJG
-;                   Ax004  PTM P002121  10/29/87 - Clr_Mult_Block cx=-1 err  FJG
-;                   Ax005  PTM P002322  11/06/87 - Call_IFS - 2F semaphore   FJG
-;                   Ax006  DCR D000494  12/17/87 - DOS 4.00 function reductionFJG
-;                   Ax007  PTM P003841  03/17/88 - access error for Turbo L  FJG
-;                   Ax008  PTM P003880  03/17/88 - duped handle error        FJG
-;                   Ax009  PTM P003910  03/17/88 - wrong parse error format  FJG
-;                   Ax010  DCR D000526  04/27/88 - add /nc switch support    FJG
-;                   Ax011  PTM P004546  05/03/88 - add /nc support to fShare FJG

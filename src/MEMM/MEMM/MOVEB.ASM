@@ -11,25 +11,6 @@ page	58,132
 ;
 ;   Module:   MOVEB - move block code for MEMM
 ;
-;   Version:  0.05
-;
-;   Date:     05/22/86
-;
-;   Author:
-;
-;*************************************************************************
-;	CHANGE LOG:
-; DATE	    VERSION	Description
-;---------  --------	--------------------------------------------------
-; 05/15/86		Check source/target selector using verr,verw
-;			and add parity handler
-; 06/09/86		Added MapLinear call
-; 06/17/86		Added code to detect and "handle" writes to
-;			diag byte location.
-; 06/28/86  0.02	Name changed from MEMM386 to MEMM
-; 07/06/86  0.04	DiagByte moved to _DATA
-; 07/06/86  0.04	changed assume to DGROUP
-; 07/10/86  0.05	Added Real Mode patch code
 ;*************************************************************************
 .386p
 

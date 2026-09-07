@@ -162,15 +162,15 @@ EXEC_Path db	66 dup(0)
 
 Drive_Letter_Msg db "A:",0			;Drive for exec fail message
 
-SP_Save 	dw	?			;an000; dms;
-SS_Save 	dw	?			;an000; dms;
+SP_Save 	dw	?
+SS_Save 	dw	?
 
 
 ;These next two should stay togather
 ; ---------------------------------------
 						;
-Path_String db	"PATH=" 			;				;AN000;
-Len_Path_String equ $ - Path_String		;				;AN000;
+Path_String db	"PATH=" 			;
+Len_Path_String equ $ - Path_String		;
 						;
 ;----------------------------------------
 
@@ -180,7 +180,7 @@ Len_Path_String equ $ - Path_String		;				;AN000;
 ;These should stay togather
 ; ---------------------------------------
 						;
-Search_FORMAT db "FORMAT"			;				;AC000;
+Search_FORMAT db "FORMAT"			;
 Len_Search_FORMAT equ $ - Search_FORMAT 	;				;     ;
 Search_Format_End equ $
 						;				;     ;
@@ -212,38 +212,38 @@ code	segment public para 'code'
 IF FSExec					;an018; dms;if /FS: desired
 
 
-Procedure Exec_FS_Format			;				;AC000;
+Procedure Exec_FS_Format			;
 
 	Set_Data_Segment			;
-	call	Set_FCB1_Drive			;an000;dms;
+	call	Set_FCB1_Drive
 	call	Shrink				;				;     ;
-	mov	al,ExitStatus			;Setblock fail? 		;AC000;
+	mov	al,ExitStatus			;Setblock fail?
 	cmp	al,Error			; "  "	  "  "			;     ;
-;	$IF	NE				;Nah, keep crusin!		;AN000;
+;	$IF	NE				;Nah, keep crusin!
 	JE $$IF1
 	   call    Setup_Exec			;				;     ;
 	   call    Exec_Argv			;try exec from dir BASIC loaded ;     ;
-	   mov	   al,ExitStatus		;				;AC000;
+	   mov	   al,ExitStatus		;
 	   cmp	   al,Error			;				;     ;
-;	   $IF	   E,AND			;				;AC000;
+;	   $IF	   E,AND			;
 	   JNE $$IF2
 	   call    Exec_Cur_Directory		;				;     ;
-	   mov	   al,ExitStatus		;Try exec from cur directory	;AC000;
+	   mov	   al,ExitStatus		;Try exec from cur directory
 	   cmp	   al,Error			;				;     ;
-;	   $IF	   E,AND			;				;AC000;
+;	   $IF	   E,AND			;
 	   JNE $$IF2
 	   call    EXEC_Routine 		;				;     ;
-	   mov	   al,ExitStatus		;				;AC000;
+	   mov	   al,ExitStatus		;
 	   cmp	   al,Error			;				;     ;
-;	   $IF	   E				;				;AC000;
+;	   $IF	   E				;
 	   JNE $$IF2
   ;	      mov     bl,FCB1			;Get target drive from FCB
-  ;	      mov     bl,Drive			;an000;dms;
+  ;	      mov     bl,Drive
 	      push    ds			;an000;dms;save ds
 	      push    si			;an000;dms;save si
 	      mov     si,PSP_Segment		;an000;dms;get psp
 	      mov     ds,si			;an000;dms;put psp in ds
-	      assume  ds:PSP			;an000;dms;
+	      assume  ds:PSP
 
 	      mov     si,FCB1			;an000;dms;ptr to 1st. FCB
 	      mov     bl,byte ptr ds:[si]	;an000;dms;get drive ID
@@ -252,32 +252,32 @@ Procedure Exec_FS_Format			;				;AC000;
 	      pop     ds			;an000;dms;restore ds
 	      Set_Data_Segment			;an000;dms;set segments
 
-	      cmp     bl,0			;Is it default drive?		;AN000;
-;	      $IF     E 			;Yes, turn it into drive letter ;AN000;
+	      cmp     bl,0			;Is it default drive?
+;	      $IF     E 			;Yes, turn it into drive letter
 	      JNE $$IF3
-		 push	 ax			;Save exit code 		;AN000;
-		 DOS_Call Get_Default_Drive	;Get the default drive		;AN000;
-		 add	 al,"A" 		;Turn into drive letter 	;AN000;
-		 mov	 Drive_Letter_Msg,al	;Save it in message		;AN000;
-		 pop	 ax			;Get return code back		;AN000;
-;	      $ELSE				;Not default, A=1		;AN000;
+		 push	 ax			;Save exit code
+		 DOS_Call Get_Default_Drive	;Get the default drive
+		 add	 al,"A" 		;Turn into drive letter
+		 mov	 Drive_Letter_Msg,al	;Save it in message
+		 pop	 ax			;Get return code back
+;	      $ELSE				;Not default, A=1
 	      JMP SHORT $$EN3
 $$IF3:
-		 add	 bl,"A"-1		;Convert to drive letter	;AN000;
-		 mov	 Drive_Letter_Msg,bl	;				;AN000;
-;	      $ENDIF				;AN000;
+		 add	 bl,"A"-1		;Convert to drive letter
+		 mov	 Drive_Letter_Msg,bl	;
+;	      $ENDIF
 $$EN3:
-	      Message msgEXECFailure		;				;AC000;
-;	   $ELSE				;				;AN000;
+	      Message msgEXECFailure		;
+;	   $ELSE				;
 	   JMP SHORT $$EN2
 $$IF2:
-	      DOS_Call WaitProcess		;				;AC000;
+	      DOS_Call WaitProcess		;
 	      mov     ExitStatus,al		;				;     ;
-;	   $ENDIF				;				;AN000;
+;	   $ENDIF				;
 $$EN2:
 ;	$ENDIF
 $$IF1:
-	mov	Fatal_Error,YES 		;Not really, indicates FS used	;AN000;
+	mov	Fatal_Error,YES 		;Not really, indicates FS used
 	ret					;				;     ;
 
 Exec_FS_Format endp
@@ -293,7 +293,7 @@ Exec_FS_Format endp
 ;
 
 
-Procedure Shrink				;				;AC000;
+Procedure Shrink				;
 
 	mov	ax,cs				;an000; dms;get code segment
 	mov	bx,ds				;an000; dms;get data segment
@@ -309,16 +309,16 @@ Procedure Shrink				;				;AC000;
 	mov	es,ax
 	assume	es:nothing
 
-	DOS_Call SetBlock			;				;AC000;
-;	$IF	C				;If didn't work, quit           ;AC000;
+	DOS_Call SetBlock			;
+;	$IF	C				;If didn't work, quit
 	JNC $$IF9
 		Message msgEXECFailure		     ;				     ;	   ;
-		mov	ExitStatus,Error	     ;Bad stuff, time to quit	     ;AN000;
-;	$ENDIF					;				;AN000;
+		mov	ExitStatus,Error	     ;Bad stuff, time to quit
+;	$ENDIF					;
 $$IF9:
 	ret					;				;     ;
 
-Shrink	endp					;				;AN000;
+Shrink	endp					;
 
 
 ;
@@ -330,11 +330,11 @@ Shrink	endp					;				;AN000;
 ;
 ;
 
-Procedure Setup_Exec				;				;AC000;
+Procedure Setup_Exec				;
 
 	Set_Data_Segment
-	mov	ax,PSP_Segment			;Get segment of PSP		;AN000;
-	mov	ds,ax				;  "  "    "  " 		;AN000;
+	mov	ax,PSP_Segment			;Get segment of PSP
+	mov	ds,ax				;  "  "    "  "
 						;     ;
 	assume	ds:PSP
 						;Setup dword pointer to command line to be passed
@@ -360,7 +360,7 @@ Procedure Setup_Exec				;				;AC000;
 	ret					;				;     ;
 
 
-Setup_EXEC endp 				;				;AN000;
+Setup_EXEC endp 				;
 
 ;
 ;****************************************************************************
@@ -373,7 +373,7 @@ Setup_EXEC endp 				;				;AN000;
 ; FORMAT.COM
 ;
 
-Procedure EXEC_Argv				;				;AC000;
+Procedure EXEC_Argv				;
 
 	Set_Data_Segment			;DS,ES = DATA
 	cld					;				;     ;
@@ -383,25 +383,25 @@ Procedure EXEC_Argv				;				;AC000;
 	assume	ds:nothing
 
 	xor	si,si				;Start at beginning		;     ;
-;	$DO					;Find argv(0) location		;AN000;
+;	$DO					;Find argv(0) location
 $$DO11:
-;	   $DO					;Look for 0			;AN000;
+;	   $DO					;Look for 0
 $$DO12:
 	      inc     si			;Get character			;     ;
 	      cmp     byte ptr [si-1],0 	;Find string seperator? 	;     ;
-;	   $ENDDO  E				;Yep				;AC000;
+;	   $ENDDO  E				;Yep
 	   JNE $$DO12
 	   inc	   si				;Get next char			;     ;
 	   cmp	   byte ptr [si-1],0		;Are we at Argv(0)? (00?)	;     ;
-;	$ENDDO	E				;Yes if we found double 0's     ;AC000;
+;	$ENDDO	E				;Yes if we found double 0's
 	JNE $$DO11
 	add	si,2				;Skip the word count		;     ;
 	mov	di,si				;Save where string starts	;     ;
-;	$DO					;Find length of Argv(0) string	;AN000;
+;	$DO					;Find length of Argv(0) string
 $$DO15:
 	   inc	   si				;Get char			;     ;
 	   cmp	   byte ptr [si-1],0		;Is it the end? 		;     ;
-;	$ENDDO	E				;End found if 0 found		;AC000;
+;	$ENDDO	E				;End found if 0 found
 	JNE $$DO15
 	mov	cx,si				;Get number of bytes in string	;     ;
 	sub	cx,di				;Put in cx reg for rep count	;     ;
@@ -410,23 +410,23 @@ $$DO15:
 	rep	movsb				;Move the string		;     ;
 	Set_Data_Segment			;				;AN000'
 	dec	di				;Point at end of ArgV string	;     ;
-	std					;Look backwards 		;AN000;
-;	$DO					;Find 'FORMAT' in ARGV string	;AC000;
+	std					;Look backwards
+;	$DO					;Find 'FORMAT' in ARGV string
 $$DO17:
-	   mov	   cx,Len_Search_FORMAT 	;Get length to compare		;AC000;
-	   mov	   si,offset Search_FORMAT_End-1 ;Look at comp string from end	 ;AC000;
-	   repe    cmpsb			;See if same string		;AC000;
-;	$ENDDO	E				;				;AC000;
+	   mov	   cx,Len_Search_FORMAT 	;Get length to compare
+	   mov	   si,offset Search_FORMAT_End-1 ;Look at comp string from end
+	   repe    cmpsb			;See if same string
+;	$ENDDO	E				;
 	JNE $$DO17
-	mov	si,offset FS_String_Buffer	;				;AN000;
-	inc	di				;DI = replacement point-1	;AC000;
-	cld					;Set direction flag back	;AN000;
-	mov	cx,Len_FS_String_Buffer 	;Length of string to move	;AN000;
+	mov	si,offset FS_String_Buffer	;
+	inc	di				;DI = replacement point-1
+	cld					;Set direction flag back
+	mov	cx,Len_FS_String_Buffer 	;Length of string to move
 	rep	movsb				;Build part of the path 	;     ;
 	call	EXEC_Program			;				;     ;
 	ret					;				;     ;
 
-EXEC_ArgV endp					;				;AN000;
+EXEC_ArgV endp					;
 
 ;
 ;****************************************************************************
@@ -437,9 +437,9 @@ EXEC_ArgV endp					;				;AN000;
 ;
 ;
 
-Procedure EXEC_Program				;				;AC000;
+Procedure EXEC_Program				;
 
-	Set_Data_Segment			;				;AN000;
+	Set_Data_Segment			;
 	mov	ExitStatus,No_Error		;Setup to Exec the file 	;     ;
 	mov	dx,offset Exec_Path		;				;     ;
 	mov	bx,offset Exec_Block		;				;     ;
@@ -447,7 +447,7 @@ Procedure EXEC_Program				;				;AC000;
 	mov	word ptr SP_Save,sp		;an000; dms;save sp
 	mov	word ptr SS_Save,ss		;an000; dms;save ss
 
-	DOS_Call Exec				;				;AC000;
+	DOS_Call Exec				;
 
 	cli					;an000; dms;turn off int's
 	mov	sp,word ptr SP_Save		;an000; dms;retrieve sp
@@ -455,14 +455,14 @@ Procedure EXEC_Program				;				;AC000;
 	sti					;an000; dms;turn on int's
 
 
-;	$IF	C				;CY means failure		;AC000;
+;	$IF	C				;CY means failure
 	JNC $$IF19
 	   mov	   ExitStatus,Error		;Set error code 		;     ;
-;	$ENDIF					;				;AN000;
+;	$ENDIF					;
 $$IF19:
 	ret					;				;     ;
 
-EXEC_Program endp				;				;AN000;
+EXEC_Program endp				;
 
 
 ;
@@ -474,9 +474,9 @@ EXEC_Program endp				;				;AN000;
 ;
 ;
 
-Procedure EXEC_Routine				;				;AN000;
+Procedure EXEC_Routine				;
 
-	Set_Data_Segment			;				;AN000;
+	Set_Data_Segment			;
 	mov	ExitStatus,Error		;Assume the worst		;     ;
 	cld					;				;     ;
 	push	ds				;				;     ;
@@ -485,24 +485,24 @@ Procedure EXEC_Routine				;				;AN000;
 	assume	ds:nothing			;
 
 	xor	si,si				;Start at beginning		;     ;
-;	$SEARCH 				;				;AC000;
+;	$SEARCH 				;
 $$DO21:
 	   cmp	   word ptr ds:[si],0		;End of the Evironment? 	;     ;
-;	$EXITIF E				;Reached end, no more look	;AC000;
+;	$EXITIF E				;Reached end, no more look
 	JNE $$IF21
 						;				;     ;
-;	$ORELSE 				;Look for 'PATH=' in environment;AN000;
+;	$ORELSE 				;Look for 'PATH=' in environment
 	JMP SHORT $$SR21
 $$IF21:
-	   mov	   di,offset Path_String	;  "  "    "  " 		;AC000;
-	   mov	   cx,Len_Path_String		;  "  "    "  " 		;AC000;
-	   repe    cmpsb			;  "  "    "  " 		;AC000;
-;	$LEAVE	E				;Found if EQ			;AC000;
+	   mov	   di,offset Path_String	;  "  "    "  "
+	   mov	   cx,Len_Path_String		;  "  "    "  "
+	   repe    cmpsb			;  "  "    "  "
+;	$LEAVE	E				;Found if EQ
 	JE $$EN21
-;	$ENDLOOP				;Found PATH in environment	;AC000;
+;	$ENDLOOP				;Found PATH in environment
 	JMP SHORT $$DO21
 $$EN21:
-	   call    Build_Path_And_Exec		;				;AN000;
+	   call    Build_Path_And_Exec		;
 ;	$ENDSRCH				;				;     ;
 $$SR21:
 	pop	ds				;				;     ;
@@ -519,66 +519,66 @@ EXEC_Routine endp
 ;
 ;
 
-Procedure Build_Path_And_Exec			;				;AN000;
+Procedure Build_Path_And_Exec			;
 
-;	$DO					;				;AC000;
+;	$DO					;
 $$DO27:
 	   cmp	   byte ptr ds:[si],0		;All path entries done? 	;     ;
-;	   $IF	   NE				;				;AC000;
+;	   $IF	   NE				;
 	   JE $$IF28
 	      mov     di,offset EXEC_Path	;Point at where to put path	;     ;
 	      mov     byte ptr es:[di],0	;End path just in case		;     ;
-;	      $DO				;				;AC000;
+;	      $DO				;
 $$DO29:
 		 cmp	 byte ptr ds:[si],0	;End of Path?			;     ;
-;	      $LEAVE  E 			;				;AC000;
+;	      $LEAVE  E 			;
 	      JE $$EN29
 		 cmp	 byte ptr ds:[si],';'	;End of entry?		       ;     ;
-;		 $if	 e			;yes				;an000; dms;
+;		 $if	 e			;yes
 		 JNE $$IF31
-			 inc	si		;point to next character	;an000; dms;
-			 jmp	EXIT_BPE_LOOP	;exit loop			;an000; dms;
-;		 $endif 			;				;an000; dms;
+			 inc	si		;point to next character
+			 jmp	EXIT_BPE_LOOP	;exit loop
+;		 $endif 			;
 $$IF31:
 		 movsb				;Put char in path string	;     ;
-;	      $ENDDO				;				;AN000;
+;	      $ENDDO				;
 	      JMP SHORT $$DO29
 $$EN29:
 
-EXIT_BPE_LOOP:					;				;an000; dms;
+EXIT_BPE_LOOP:					;
 						;Path filled in,get backslash	;     ;
 	      cmp     byte ptr ds:[si-1],0	;Any path there?		;     ;
-;	      $IF     NE			;				;AC000;
+;	      $IF     NE			;
 	      JE $$IF34
 						;Nope				;     ;
 		 cmp	 byte ptr ds:[si-1],"\" ;Need a backslash?	     ;	   ;
-;		 $IF	 NE			;				;AC000;
+;		 $IF	 NE			;
 		 JE $$IF35
 		    mov     byte ptr es:[di],"\" ;Yes, put one in	     ;	   ;
 		    inc     di			;Line it up for next stuff	;     ;
 		    inc     si			;				;     ;
-;		 $ENDIF 			;				;AN000;
+;		 $ENDIF 			;
 $$IF35:
 		 push	 si			;Save place in path
-		 push	 ds			;Save segment for environment	;AN000;
-		 push	 es			;Xchange ds/es			;an000; dms;
-		 pop	 ds			;				;an000; dms;
+		 push	 ds			;Save segment for environment
+		 push	 es			;Xchange ds/es
+		 pop	 ds			;
 		 mov	 si,offset FS_String_Buffer ;Fill in filename		    ;	  ;
 		 mov	 cx, Len_FS_String_Buffer ;				  ;	;
 		 rep	 movsb			;				;     ;
 		 call	 Exec_Program		;				;     ;
-		 cmp	 ExitStatus,No_Error	;E if EXEC okay 		;AN000;
+		 cmp	 ExitStatus,No_Error	;E if EXEC okay
 		 pop	 ds			;Get Env segment back		;     ;
 		 pop	 si			;Get place in path back
-;	      $ENDIF				;E if all paths done		;AN000;
+;	      $ENDIF				;E if all paths done
 $$IF34:
-;	   $ENDIF				;E if all paths done		;AN000;
+;	   $ENDIF				;E if all paths done
 $$IF28:
-;	$ENDDO	E				;Exit if E			;AN000;
+;	$ENDDO	E				;Exit if E
 	JNE $$DO27
-	ret					;				;AN000;
+	ret					;
 
-Build_Path_And_EXEC Endp			;				;AN000;
+Build_Path_And_EXEC Endp			;
 
 
 
@@ -591,9 +591,9 @@ Build_Path_And_EXEC Endp			;				;AN000;
 ;
 ;
 
-Procedure Exec_Cur_Directory			;				;AC000;
+Procedure Exec_Cur_Directory			;
 
-	Set_Data_Segment			;				;AN000;
+	Set_Data_Segment			;
 	mov	si,offset FS_String_Buffer	;Setup path for current dir	;     ;
 	mov	di,offset EXEC_Path		;				;     ;
 	mov	cx,Len_FS_String_Buffer 	;				;     ;
@@ -601,7 +601,7 @@ Procedure Exec_Cur_Directory			;				;AC000;
 	call	EXEC_Program			;				;     ;
 	ret					;				;     ;
 
-EXEC_Cur_Directory endp 			;				;AN000;
+EXEC_Cur_Directory endp 			;
 
 ;=========================================================================
 ; Set_FCB1_Drive	: This routine sets the 1st. byte of the FCB1,
@@ -615,16 +615,16 @@ Procedure Set_FCB1_Drive			;an000;dms;set drive ID
 
 	mov	si,PSP_Segment			;an000;dms;get segment of PSP
 	mov	ds,si				;an000;dms;put it in ds
-	assume	ds:PSP				;an000;dms;
+	assume	ds:PSP
 	mov	si,FCB1 			;an000;dms;ptr to FCB1
 	mov	byte ptr ds:[si],00h		;an000;dms;set drive ID to
 						;      default drive
 	pop	si				;an000;dms;restore si
 	pop	ds				;an000;dms;restore ds
 	Set_Data_Segment			;an000;dms;set up segmentation
-	ret					;an000;dms;
+	ret
 
-Set_FCB1_Drive	endp				;an000;dms;
+Set_FCB1_Drive	endp
 
 ENDIF		;FSExec 			;an018; dms;end /FS: conditional
 						;	    assembly

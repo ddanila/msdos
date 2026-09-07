@@ -44,36 +44,6 @@
 /*
 /*     [/F[:size]] undocumented
 /*
-/*   SOURCE HISTORY:
-/*
-/*	New for DOS 3.3 and OS/2
-/*
-/*	Modification History:
-/*
-/*	 ;AN000; Code added in DOS 4.0
-/*		6-05-87   RW
-/*		 ;AN000;1  No BACKUP of SYSTEM files
-/*		 ;AN000;2  Support for APPEND /X deactivation
-/*		 ;AN000;3  Support for Extended Attributes
-/*		 ;AN000;4  Support for PARSE service routines
-/*		 ;AN000;5  Support for code page file tags
-/*		 ;AN000;6  Support for MESSAGE retriever
-/*		 ;AN000;7  Allow logfile to go on BACKUP target drive
-/*		 ;AN000;8  Eliminate double prompting on single diskette drive systems
-/*		 ;AN000;9  Put error message in logfile on share error
-/*		 ;AN000;10 Make diskette formatting the default (DCR 177)
-/*		 ;AN000;d178 DCR 178  Find FORMAT.COM before beginning
-/*		 ;AN001; DCR 434 - Allow /F:size to specify format size
-/*		 ;AN002; Don't use "C" routines to find PATH in environment
-/*		 ;AN003; Make BACKUP handle UNC format returned from XLAT
-/*		 ;AN004; Add CR, LF to end of command line (p3646)
-/*		 ;AN005; Make sure no bogus BACKUP and CONTROL files are left in case of error exit
-/*		 ;AN006; Make sure we don't try to BACKUP logfile
-/*		 ;AN007; Make sure ABORT responses to critical errors are aborted
-/*		 ;AN008; Make PARSE errors messages display the offending parameter
-/*		 ;AN009; Fix parser
-/*		 ;AN010; Don't find FORMAT.COM on target drive
-/*		 ;AN011; Make BACKUP handle disk full properly on fixed disk
 /*****************************************************************
 
 				/* "C" supplied include files */

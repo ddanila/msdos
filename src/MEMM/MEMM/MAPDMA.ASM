@@ -11,25 +11,8 @@ page	58,132
 ;
 ;   Module:   MapDMA
 ;
-;   Version:  0.04
-;
-;   Date:     June 18,1986
-;
-;   Author:
-;
 ;******************************************************************************
 ;
-;   Change log:
-;
-;     DATE    REVISION			DESCRIPTION
-;   --------  --------	-------------------------------------------------------
-;   06/18/86  Original
-;   07/02/86  0.03	Added check for ECX = 0
-;   07/02/86  0.03	MapLinear added to set_selector
-;   07/06/86  0.04	Changed _pft386 to ptr to _pft386 array
-;   07/06/86  0.04	Changed assume to DGROUP
-;
-;******************************************************************************
 ;
 ;   Functional Description:
 ;

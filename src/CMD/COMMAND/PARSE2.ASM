@@ -1,6 +1,4 @@
  page 80,132
-;	SCCSID = @(#)parse.asm	1.1 85/05/14
-;	SCCSID = @(#)parse.asm	1.1 85/05/14
 .sall
 .xlist
 .xcref
@@ -51,7 +49,7 @@ DATARES 	SEGMENT PUBLIC BYTE
 	EXTRN	FORFLAG:BYTE
 DATARES     ENDS
 
-TRANSPACE	SEGMENT PUBLIC BYTE	;AC000;
+TRANSPACE	SEGMENT PUBLIC BYTE
 	EXTRN	combuf:byte
 	EXTRN	cpyflag:byte
 	EXTRN	expand_star:byte
@@ -59,7 +57,7 @@ TRANSPACE	SEGMENT PUBLIC BYTE	;AC000;
 	EXTRN	STARTEL:word
 TRANSPACE   ENDS
 
-TRANCODE	SEGMENT PUBLIC BYTE	;AC000;
+TRANCODE	SEGMENT PUBLIC BYTE
 	PUBLIC	argv_calc		; convert array index into address
 	PUBLIC	parseline
 
@@ -124,7 +122,7 @@ break <Parseline:  Munch on the command line>
 ; DATA:
 ;---------------
 
-TRANSPACE	SEGMENT PUBLIC BYTE	;AC000;
+TRANSPACE	SEGMENT PUBLIC BYTE
 	EXTRN	arg:byte
 	EXTRN	argbufptr:word
 	EXTRN	comptr:word
@@ -341,7 +339,7 @@ break <Arg_Switch>
 ; DATA:
 ;---------------
 
-TRANSPACE	SEGMENT PUBLIC BYTE		;AC000;
+TRANSPACE	SEGMENT PUBLIC BYTE
 ;JWASM     extrn   switch_list:byte  ; dead: switch_count is unused, and $-OFFSET<extern> is uncomputable
 ;JWASM     switch_count    EQU     $-switch_list
 transpace   ends

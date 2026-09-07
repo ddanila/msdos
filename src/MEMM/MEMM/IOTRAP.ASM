@@ -11,23 +11,8 @@
 ;
 ;   Module:   IOTRAP.ASM - Dispatches I/O trap handlers
 ;
-;   Version:  0.04
-;
-;   Date:     July 1, 1986
-;
-;   Author:
-;
 ;******************************************************************************
 ;
-;   Change log:
-;
-;     DATE    REVISION			DESCRIPTION
-;   --------  --------	-------------------------------------------------------
-;   07/01/86  0.03	From ELIMTRAP.ASM
-;   07/03/86  0.03	Added handlers for 84,85,60, & 64
-;   07/06/86  0.04	Changed assume to DGROUP
-;
-;******************************************************************************
 ;
 ;   Functional Description:
 ;

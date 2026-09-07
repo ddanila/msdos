@@ -22,16 +22,16 @@
 
 	.ALPHA		; arrange segments alphabetically
 
-	INCLUDE SEL-PAN.INC		;AN024;
-	EXTRN	WR_CIS:WORD		;AN024;
+	INCLUDE SEL-PAN.INC
+	EXTRN	WR_CIS:WORD
 					;
-	PUBLIC	WR_SCBVEC		;AN024;
-	PUBLIC	NUM_SCB 		;AN024;
+	PUBLIC	WR_SCBVEC
+	PUBLIC	NUM_SCB
 					;
-PANEL	EQU	0			;AN024;
-SCROLL	EQU	1			;AN024;
+PANEL	EQU	0
+SCROLL	EQU	1
 					;
-CODE	SEGMENT PARA PUBLIC 'CODE'      ;AN024
+CODE	SEGMENT PARA PUBLIC 'CODE'
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; Scroll Control Block Vector
@@ -65,8 +65,8 @@ WR_SCBVEC      DW   0,OFFSET WR_SCB1	     ;AN024;SCB 1  segment,offset
 	       DW   0,OFFSET WR_SCB26	     ;AN024;SCB 26 segment,offset
 	       DW   0,OFFSET WR_SCB27	     ;AN024;SCB 27 segment,offset
 	       DW   0,OFFSET WR_SCB28	     ;AN024;SCB 28 segment,offset
-NUM_SCB        EQU ($-WR_SCBVEC)/4	     ;AN024;
-L_WR_SCBVEC    EQU  NUM_SCB		     ;AN024;
+NUM_SCB        EQU ($-WR_SCBVEC)/4
+L_WR_SCBVEC    EQU  NUM_SCB
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; Scroll Data Definition
@@ -76,22 +76,22 @@ L_WR_SCBVEC    EQU  NUM_SCB		     ;AN024;
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 WR_INDEX1      DW   15		;AN000;element order number
-	       DW   14		;AN000;
-	       DW   13		;AN000;
-	       DW   12		;AN000;
-	       DW   11		;AN000;
-	       DW   10		;AN000;
-	       DW   9		;AN000;
-	       DW   8		;AN000;
-	       DW   7		;AN000;
-	       DW   6		;AN000;
-	       DW   5		;AN000;
-	       DW   4		;AN000;
-	       DW   3		;AN000;
-	       DW   2		;AN000;
-	       DW   1		;AN000;
+	       DW   14
+	       DW   13
+	       DW   12
+	       DW   11
+	       DW   10
+	       DW   9
+	       DW   8
+	       DW   7
+	       DW   6
+	       DW   5
+	       DW   4
+	       DW   3
+	       DW   2
+	       DW   1
 				;
-LEFT_COL_SCROLL  EQU  11	;AN000;
+LEFT_COL_SCROLL  EQU  11
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; DOSLEVEL SUPPORT
@@ -205,7 +205,7 @@ WR_SCB1        DW   SCB_WRAP		     ;AN000;option word one
 	       DW   0			     ;AN000;dbcs table segment
 	       DW   0			     ;AN068;SEH offset of font descriptor block
 	       DW   0			     ;AN068;SEH segment of font descriptor block
-	       DB   236 DUP(0)		     ;AN024;
+	       DB   236 DUP(0)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; SELECT COUNTRY CODE AND KEYBOARD
@@ -319,7 +319,7 @@ WR_SCB2        DW    SCB_WRAP		     ;AN000;option word one
 	       DW   0			     ;AN000;dbcs table segment
 	       DW   0			     ;AN068;SEH offset of font descriptor block
 	       DW   0			     ;AN068;SEH segment of font descriptor block
-	       DB   236 DUP(0)		     ;AN024;
+	       DB   236 DUP(0)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; defined country codes 1
@@ -433,7 +433,7 @@ WR_SCB3        DW   SCB_FRBF+SCB_FRAL	     ;AN000;option word one
 	       DW   0			     ;AN000;dbcs table segment
 	       DW   0			     ;AN068;SEH offset of font descriptor block
 	       DW   0			     ;AN068;SEH segment of font descriptor block
-	       DB   236 DUP(0)		     ;AN024;
+	       DB   236 DUP(0)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; defined country codes 2
@@ -547,7 +547,7 @@ WR_SCB4        DW   SCB_FRBF+SCB_FRAL	     ;AN000;option word one
 	       DW   0			     ;AN000;dbcs table segment
 	       DW   0			     ;AN068;SEH offset of font descriptor block
 	       DW   0			     ;AN068;SEH segment of font descriptor block
-	       DB   236 DUP(0)		     ;AN024;
+	       DB   236 DUP(0)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; defined keyboard codes 1
@@ -661,7 +661,7 @@ WR_SCB5        DW   SCB_FRBF+SCB_FRAL	     ;AN000;option word one
 	       DW   0			     ;AN000;dbcs table segment
 	       DW   0			     ;AN068;SEH offset of font descriptor block
 	       DW   0			     ;AN068;SEH segment of font descriptor block
-	       DB   236 DUP(0)		     ;AN024;
+	       DB   236 DUP(0)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; defined keyboard codes 2
@@ -775,7 +775,7 @@ WR_SCB6        DW   SCB_FRBF+SCB_FRAL	     ;AN000;option word one
 	       DW   0			     ;AN000;dbcs table segment
 	       DW   0			     ;AN068;SEH offset of font descriptor block
 	       DW   0			     ;AN068;SEH segment of font descriptor block
-	       DB   236 DUP(0)		     ;AN024;
+	       DB   236 DUP(0)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; defined FRENCH keyboard
@@ -889,7 +889,7 @@ WR_SCB7        DW   SCB_WRAP		     ;AN000;option word one
 	       DW   0			     ;AN000;dbcs table segment
 	       DW   0			     ;AN068;SEH offset of font descriptor block
 	       DW   0			     ;AN068;SEH segment of font descriptor block
-	       DB   236 DUP(0)		     ;AN024;
+	       DB   236 DUP(0)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; defined italian keyboard
@@ -1003,7 +1003,7 @@ WR_SCB8        DW   SCB_WRAP		     ;AN000;option word one
 	       DW   0			     ;AN000;dbcs table segment
 	       DW   0			     ;AN068;SEH offset of font descriptor block
 	       DW   0			     ;AN068;SEH segment of font descriptor block
-	       DB   236 DUP(0)		     ;AN024;
+	       DB   236 DUP(0)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; defined UK keyboard
@@ -1117,7 +1117,7 @@ WR_SCB9        DW   SCB_WRAP		     ;AN000;option word one
 	       DW   0			     ;AN000;dbcs table segment
 	       DW   0			     ;AN068;SEH offset of font descriptor block
 	       DW   0			     ;AN068;SEH segment of font descriptor block
-	       DB   236 DUP(0)		     ;AN024;
+	       DB   236 DUP(0)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; select drive b: or c:
@@ -1231,7 +1231,7 @@ WR_SCB10       DW   SCB_WRAP		     ;AN000;option word one
 	       DW   0			     ;AN000;dbcs table segment
 	       DW   0			     ;AN068;SEH offset of font descriptor block
 	       DW   0			     ;AN068;SEH segment of font descriptor block
-	       DB   236 DUP(0)		     ;AN024;
+	       DB   236 DUP(0)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; select printer type
@@ -1345,7 +1345,7 @@ WR_SCB11       DW   0			     ;AN000;option word one
 	       DW   0			     ;AN000;dbcs table segment
 	       DW   0			     ;AN068;SEH offset of font descriptor block
 	       DW   0			     ;AN068;SEH segment of font descriptor block
-	       DB   236 DUP(0)		     ;AN024;
+	       DB   236 DUP(0)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; PARALLEL PRINTER PORT
@@ -1459,7 +1459,7 @@ WR_SCB12       DW   SCB_WRAP		     ;AN000;option word one
 	       DW   0			     ;AN000;dbcs table segment
 	       DW   0			     ;AN068;SEH offset of font descriptor block
 	       DW   0			     ;AN068;SEH segment of font descriptor block
-	       DB   236 DUP(0)		     ;AN024;
+	       DB   236 DUP(0)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; serial port
@@ -1573,7 +1573,7 @@ WR_SCB13       DW   SCB_WRAP		     ;AN000;option word one
 	       DW   0			     ;AN000;dbcs table segment
 	       DW   0			     ;AN068;SEH offset of font descriptor block
 	       DW   0			     ;AN068;SEH segment of font descriptor block
-	       DB   236 DUP(0)		     ;AN024;
+	       DB   236 DUP(0)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; parallel redirection
@@ -1687,7 +1687,7 @@ WR_SCB14       DW   SCB_WRAP		     ;AN000;option word one
 	       DW   0			     ;AN000;dbcs table segment
 	       DW   0			     ;AN068;SEH offset of font descriptor block
 	       DW   0			     ;AN068;SEH segment of font descriptor block
-	       DB   236 DUP(0)		     ;AN024;
+	       DB   236 DUP(0)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; review selections
@@ -1801,7 +1801,7 @@ WR_SCB15       DW   SCB_WRAP		     ;AN000;option word one
 	       DW   0			     ;AN000;dbcs table segment
 	       DW   0			     ;AN068;SEH offset of font descriptor block
 	       DW   0			     ;AN068;SEH segment of font descriptor block
-	       DB   236 DUP(0)		     ;AN024;
+	       DB   236 DUP(0)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; review selections #2
@@ -1915,7 +1915,7 @@ WR_SCB16       DW   SCB_WRAP+SCB_DCHECK+SCB_DACTIVE;AN000;option word one
 	       DW   0			     ;AN000;dbcs table segment
 	       DW   0			     ;AN068;SEH offset of font descriptor block
 	       DW   0			     ;AN068;SEH segment of font descriptor block
-	       DB   236 DUP(0)		     ;AN024;
+	       DB   236 DUP(0)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; review selections 3
@@ -2029,7 +2029,7 @@ WR_SCB17       DW   SCB_WRAP+SCB_DCHECK+SCB_DACTIVE;AN000;option word one
 	       DW   0			     ;AN000;dbcs table segment
 	       DW   0			     ;AN068;SEH offset of font descriptor block
 	       DW   0			     ;AN068;SEH segment of font descriptor block
-	       DB   236 DUP(0)		     ;AN024;
+	       DB   236 DUP(0)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; paritition fixed disk
@@ -2143,7 +2143,7 @@ WR_SCB18       DW   SCB_WRAP		     ;AN000;option word one
 	       DW   0			     ;AN000;dbcs table segment
 	       DW   0			     ;AN068;SEH offset of font descriptor block
 	       DW   0			     ;AN068;SEH segment of font descriptor block
-	       DB   236 DUP(0)		     ;AN024;
+	       DB   236 DUP(0)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; paritition fixed disk 2
@@ -2257,7 +2257,7 @@ WR_SCB19       DW   SCB_WRAP		     ;AN000;option word one
 	       DW   0			     ;AN000;dbcs table segment
 	       DW   0			     ;AN068;SEH offset of font descriptor block
 	       DW   0			     ;AN068;SEH segment of font descriptor block
-	       DB   236 DUP(0)		     ;AN024;
+	       DB   236 DUP(0)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; FORMAT FIXED DISK DRIVE
@@ -2371,7 +2371,7 @@ WR_SCB20       DW   SCB_WRAP		     ;AN000;option word one
 	       DW   0			     ;AN000;dbcs table segment
 	       DW   0			     ;AN068;SEH offset of font descriptor block
 	       DW   0			     ;AN068;SEH segment of font descriptor block
-	       DB   236 DUP(0)		     ;AN024;
+	       DB   236 DUP(0)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; HELP SCROLL INFORMATION
@@ -2485,7 +2485,7 @@ WR_SCB21       DW   scb_uc+SCB_LL	     ;AN000;option word one
 	       DW   0			     ;AN000;dbcs table segment
 	       DW   0			     ;AN068;SEH offset of font descriptor block
 	       DW   0			     ;AN068;SEH segment of font descriptor block
-	       DB   236 DUP(0)		     ;AN024;
+	       DB   236 DUP(0)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; HELP TITLE SCROLL INFORMATION
@@ -2599,7 +2599,7 @@ WR_SCB22       DW   scb_uc+SCB_LL	     ;AN000;option word one
 	       DW   0			     ;AN000;dbcs table segment
 	       DW   0			     ;AN068;SEH offset of font descriptor block
 	       DW   0			     ;AN068;SEH segment of font descriptor block
-	       DB   236 DUP(0)		     ;AN024;
+	       DB   236 DUP(0)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; SCR_ACC_CTY
@@ -2713,7 +2713,7 @@ WR_SCB23       DW   SCB_FRBF+SCB_FRAL	     ;AN000;option word one
 	       DW   0			     ;AN000;dbcs table segment
 	       DW   0			     ;AN068;SEH offset of font descriptor block
 	       DW   0			     ;AN068;SEH segment of font descriptor block
-	       DB   236 DUP(0)		     ;AN024;
+	       DB   236 DUP(0)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; SCR_ACC_KYB
@@ -2827,7 +2827,7 @@ WR_SCB24       DW   SCB_FRBF+SCB_FRAL	     ;AN000;option word one
 	       DW   0			     ;AN000;dbcs table segment
 	       DW   0			     ;AN068;SEH offset of font descriptor block
 	       DW   0			     ;AN068;SEH segment of font descriptor block
-	       DB   236 DUP(0)		     ;AN024;
+	       DB   236 DUP(0)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; SCR_ACC_PRT
@@ -2941,10 +2941,10 @@ WR_SCB25       DW   SCB_FRBF+SCB_FRAL	     ;AN000;option word one
 	       DW   0			     ;AN000;dbcs table segment
 	       DW   0			     ;AN068;SEH offset of font descriptor block
 	       DW   0			     ;AN068;SEH segment of font descriptor block
-	       DB   236 DUP(0)		     ;AN024;
+	       DB   236 DUP(0)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
-; DOS LOCATION SUPPORT	   ;AN000;JW
+; DOS LOCATION SUPPORT
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 WR_SCB26       DW   SCB_WRAP		     ;AN000;option word one
@@ -3055,10 +3055,10 @@ WR_SCB26       DW   SCB_WRAP		     ;AN000;option word one
 	       DW   0			     ;AN000;dbcs table segment
 	       DW   0			     ;AN068;SEH offset of font descriptor block
 	       DW   0			     ;AN068;SEH segment of font descriptor block
-	       DB   236 DUP(0)		     ;AN024;
+	       DB   236 DUP(0)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
-; select drive a: or c:  ;AN111;JW
+; select drive a: or c:
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 WR_SCB27       DW   SCB_WRAP		     ;AN000;option word one
@@ -3169,7 +3169,7 @@ WR_SCB27       DW   SCB_WRAP		     ;AN000;option word one
 	       DW   0			     ;AN000;dbcs table segment
 	       DW   0			     ;AN068;SEH offset of font descriptor block
 	       DW   0			     ;AN068;SEH segment of font descriptor block
-	       DB   236 DUP(0)		     ;AN024;
+	       DB   236 DUP(0)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; chose shell
@@ -3283,74 +3283,74 @@ WR_SCB28       DW   SCB_WRAP		     ;AN000;option word one
 	       DW   0			     ;AN000;dbcs table segment
 	       DW   0			     ;AN068;SEH offset of font descriptor block
 	       DW   0			     ;AN068;SEH segment of font descriptor block
-	       DB   236 DUP(0)		     ;AN024;
+	       DB   236 DUP(0)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; Keystroke Strings and length calculations
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 WR_REHLPKEYS	DB   0,F1,0,F9,ESCAPE	     ;AN000;return/erase keystroke string
-WR_REHLPKEYSLEN EQU  ($-WR_REHLPKEYS)	     ;AN000;
+WR_REHLPKEYSLEN EQU  ($-WR_REHLPKEYS)
 
 WR_UAKEYS      DB   0,UPARROW		     ;AN000;up arrow keystroke string
-WR_UAKEYSLEN   EQU  ($-WR_UAKEYS)	     ;AN000;
+WR_UAKEYSLEN   EQU  ($-WR_UAKEYS)
 
 WR_DAKEYS      DB   0,DNARROW		     ;AN000;down arrow keystroke string
-WR_DAKEYSLEN   EQU  ($-WR_DAKEYS)	     ;AN000;
+WR_DAKEYSLEN   EQU  ($-WR_DAKEYS)
 
 
 WR_PUKEYS      DB   0,PGUP		     ;AN000;define page up key buffer
-WR_PUKEYSLEN   EQU  ($-WR_PUKEYS)	     ;AN000;
+WR_PUKEYSLEN   EQU  ($-WR_PUKEYS)
 
 WR_PDKEYS      DB   0,PGDN		     ;AN000;define page down key buffer
-WR_PDKEYSLEN   EQU  ($-WR_PDKEYS)	     ;AN000;
+WR_PDKEYSLEN   EQU  ($-WR_PDKEYS)
 
 WR_UIIND       DB   24			     ;AN000;define up indicator buffer
-WR_UIINDLEN    EQU  ($-WR_UIIND)	     ;AN000;
+WR_UIINDLEN    EQU  ($-WR_UIIND)
 
 WR_DIIND       DB   25			     ;AN000;define down indicator buffer
-WR_DIINDLEN    EQU  ($-WR_DIIND)	     ;AN000;
+WR_DIINDLEN    EQU  ($-WR_DIIND)
 
 WR_PIIND       DB   '-'                      ;AN000;selection pointer indicator buff
-WR_PIINDLEN    EQU  ($-WR_PIIND)	     ;AN000;
+WR_PIINDLEN    EQU  ($-WR_PIIND)
 
 WR_AIIND       DB   '<'                      ;AN000;active string indicator buffer
-WR_AIINDLEN    EQU  ($-WR_AIIND)	     ;AN000;
+WR_AIINDLEN    EQU  ($-WR_AIIND)
 
 WR_CIIND       DB   '>'                      ;AN000;check mark string indicator buff
-WR_CIINDLEN    EQU  ($-WR_CIIND)	     ;AN000;
+WR_CIINDLEN    EQU  ($-WR_CIIND)
 
 ;
 ; Selection array structure
 ;
-WR_SELECT_NUM  DW   SCB_ACTIVEON	     ;AN000;
-	       DW   SCB_SKIPON		     ;AN000;
-	       DW   SCB_ACTIVEON	     ;AN000;
-	       DW   SCB_SKIPON		     ;AN000;
-	       DW   SCB_ACTIVEON	     ;AN000;
-	       DW   SCB_SKIPON		     ;AN000;
-	       DW   SCB_ACTIVEON	     ;AN000;
-	       DW   SCB_SKIPON		     ;AN000;
-	       DW   SCB_ACTIVEON	     ;AN000;
-	       DW   SCB_SKIPON		     ;AN000;
-	       DW   SCB_ACTIVEON	     ;AN000;
+WR_SELECT_NUM  DW   SCB_ACTIVEON
+	       DW   SCB_SKIPON
+	       DW   SCB_ACTIVEON
+	       DW   SCB_SKIPON
+	       DW   SCB_ACTIVEON
+	       DW   SCB_SKIPON
+	       DW   SCB_ACTIVEON
+	       DW   SCB_SKIPON
+	       DW   SCB_ACTIVEON
+	       DW   SCB_SKIPON
+	       DW   SCB_ACTIVEON
 
-WR_SELECT      DW   SCB_ACTIVEON	     ;AN000;
-	       DW   SCB_ACTIVEON	     ;AN000;
-	       DW   SCB_ACTIVEON	     ;AN000;
-	       DW   SCB_ACTIVEON	     ;AN000;
-	       DW   SCB_ACTIVEON	     ;AN000;
-	       DW   SCB_ACTIVEON	     ;AN000;
-	       DW   SCB_ACTIVEON	     ;AN000;
-	       DW   SCB_ACTIVEON	     ;AN000;
-	       DW   SCB_ACTIVEON	     ;AN000;
-	       DW   SCB_ACTIVEON	     ;AN000;
-	       DW   SCB_ACTIVEON	     ;AN000;
-	       DW   SCB_ACTIVEON	     ;AN000;
-WR_SELECT_MOD  DW   10 DUP (0)		     ;AN000;
+WR_SELECT      DW   SCB_ACTIVEON
+	       DW   SCB_ACTIVEON
+	       DW   SCB_ACTIVEON
+	       DW   SCB_ACTIVEON
+	       DW   SCB_ACTIVEON
+	       DW   SCB_ACTIVEON
+	       DW   SCB_ACTIVEON
+	       DW   SCB_ACTIVEON
+	       DW   SCB_ACTIVEON
+	       DW   SCB_ACTIVEON
+	       DW   SCB_ACTIVEON
+	       DW   SCB_ACTIVEON
+WR_SELECT_MOD  DW   10 DUP (0)
 
-	INCLUDE 	PANEL.INF	     ;AN000;
+	INCLUDE 	PANEL.INF
 
-CODE	ENDS				     ;AN000;
-	END				     ;AN000;
+CODE	ENDS
+	END
 

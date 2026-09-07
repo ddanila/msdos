@@ -7,20 +7,6 @@
  *
  *    MODULE:	EMM.H - EMM includes for "C" code
  *
- *    VERSION:	0.04
- *
- *    DATE:	June 14,1986
- *
- *******************************************************************************
- *	CHANGE LOG
- *  Date     Version	   Description
- * --------  --------	-------------------------------------------------------
- * 06/14/86  Original
- * 06/14/86  0.00	Changed stack frame structure to match new emmdisp.asm
- *			and allow byte regs access (SBP).
- * 06/28/86  0.02	Name change from CEMM386 to CEMM (SBP).
- * 07/06/86  0.04	Changed save area structure (SBP).
- *
  ******************************************************************************/
 
 #define OK			0

@@ -11,18 +11,8 @@
 ;
 ;   Module:	SHIPHI - Ship a segment up hi into extended memory
 ;
-;   Version:	0.01
-;
-;   Date:	Sep 1, 1988
-;
-;   Author:	ISP
-;
 ;******************************************************************************
 ;
-;	Change Log:
-;
-;	DATE	 REVISION	Description
-;	-------- --------	--------------------------------------------
 ;******************************************************************************
 ;   Functional Description:
 ;

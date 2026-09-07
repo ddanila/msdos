@@ -1,5 +1,4 @@
 %OUT BIOSTRUC.INC...
-;	SCCSID = @(#)BIOSTRUC.INC 1.0 86/09/30
 ; ROM BIOS CALL PACKET STRUCTURES
 
 ;*******************************

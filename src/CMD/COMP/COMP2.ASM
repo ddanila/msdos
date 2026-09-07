@@ -147,30 +147,6 @@
 ;	     "Version 4.0  (C) Copyright 1988 Microsoft"
 ;	     "Licensed Material - Property of Microsoft"
 ;
-; Modification History:
-;
-;   Version   Author	       date	 comment
-;   -------   ------	       ----	 -------
-;   V0.0      Dave L.			 Original author
-;
-;   V3.3      Russ W.
-;
-;   V4.0      Edwin M. K.		 ;AN000; Extended attribute support,
-;	      Bill L.	     7/10/87	 parser, message retriever support
-;
-;   V4.0      Bill L.	     9/17/87	 ;AN001; - DCR 201 enhancements to the
-;					 extended attribute support
-;
-;   V4.0      Bill L.			 ;AN002; - PTM 708
-;					 ;AN003; - PTM 728
-;					 ;AN004; - PTM 1610
-;					 ;AN005; - PTM 274
-;					 ;AN006; - PTM 2205 (DBCS support)
-;					 ;AN007; - PTM 3056 (y/n -> STDERR)
-;					 ;AN008; -	    optimizations
-;					 ;AN009; - PTM 4076 network hang
-;
-;****************** END OF SPECIFICATIONS *****************************
 	page
 
 	if1
@@ -181,55 +157,55 @@
 ; Macro definitions
 ;***********************************
 
-fill_name1 macro pfcb			;AN000;
-	push	dx			;AN000;
-	push	di			;AN000;
-	push	si			;AN000;
-	mov	dx,offset name1 	;AN000;
-	mov	si,offset path1 	;AN000;
-	mov	di,offset pfcb		;AN000;
-	call	fill_n			;AN000;
-	pop	si			;AN000;
-	pop	di			;AN000;
-	pop	dx			;AN000;
-	endm				;AN000;
+fill_name1 macro pfcb
+	push	dx
+	push	di
+	push	si
+	mov	dx,offset name1
+	mov	si,offset path1
+	mov	di,offset pfcb
+	call	fill_n
+	pop	si
+	pop	di
+	pop	dx
+	endm
 
-fill_name2 macro			;AN000;
-	push	dx			;AN000;
-	push	di			;AN000;
-	push	si			;AN000;
-	mov	dx,offset name2 	;AN000;
-	mov	si,offset path2 	;AN000;
-	mov	di,offset outfcb	;AN000;
-	call	fill_n			;AN000;
-	pop	si			;AN000;
-	pop	di			;AN000;
-	pop	dx			;AN000;
-	endm				;AN000;
+fill_name2 macro
+	push	dx
+	push	di
+	push	si
+	mov	dx,offset name2
+	mov	si,offset path2
+	mov	di,offset outfcb
+	call	fill_n
+	pop	si
+	pop	di
+	pop	dx
+	endm
 
-print_msg macro msg,handle		;AC003;
-	push	ax			;AN000;
+print_msg macro msg,handle
+	push	ax
 	mov	dx,offset msg		;AN000; ;dx: ptr to msg descriptor
 	ifnb	<handle>		;AN003; ;check if new handle given
 	    push    di			;AN003; ;put new handle in msg structure
-	    mov     di,dx		;AN003;
-	    mov     [di].msg_handle,handle ;AN003;
-	    pop     di			;AN003;
-	endif				;AN003;
-	call	sendmsg 		;AC000;
-	pop	ax			;AN000;
-	endm				;AN000;
+	    mov     di,dx
+	    mov     [di].msg_handle,handle
+	    pop     di
+	endif
+	call	sendmsg
+	pop	ax
+	endm
 
-doscall macro	func,subfunc		;AN000;
+doscall macro	func,subfunc
 	ifnb	<func>			;AN000; ;are there any parms at all ?
 	    ifnb    <subfunc>		;AN000; ;is there a sub-function ?
 		mov	ax,(func shl 8)+subfunc ;AN000; ;yes, ah=func, al=subfunc
 	    else			;AN000; ;no sub-function
-		mov	ah,func 	;AN000;
-	    endif			;AN000;
-	endif				;AN000;
-	int	21h			;AN000;
-	endm				;AN000;
+		mov	ah,func
+	    endif
+	endif
+	int	21h
+	endm
 
 ;***********************************
 ; Include equates
@@ -242,85 +218,85 @@ doscall macro	func,subfunc		;AN000;
 ;***********************************
 
 ea	struc				;AN001; ;extended attr. structure
-ea_type db	EAISBINARY		;AN001;
-ea_flags dw	EASYSTEM		;AN001;
-ea_rc	db	?			;AN001;
-ea_namelen db	2			;AN001;
-ea_vallen dw	2			;AN001;
-ea_name db	"CP"			;AN001;
-ea_value dw	?			;AN001;
-ea	ends				;AN001;
+ea_type db	EAISBINARY
+ea_flags dw	EASYSTEM
+ea_rc	db	?
+ea_namelen db	2
+ea_vallen dw	2
+ea_name db	"CP"
+ea_value dw	?
+ea	ends
 
 qea	struc				;AN001; ;query extended attr. name
-qea_type db	EAISBINARY		;AN001;
-qea_flags dw	EASYSTEM		;AN001;
-qea_namelen db	2			;AN001;
-qea_name db	"CP"			;AN001;
-qea	ends				;AN001;
+qea_type db	EAISBINARY
+qea_flags dw	EASYSTEM
+qea_namelen db	2
+qea_name db	"CP"
+qea	ends
 
 ;***********************************
 ; Code Segment
 ;***********************************
 
-cseg	segment para public 'CODE'	;AC000;
+cseg	segment para public 'CODE'
 	assume	cs:cseg,ds:cseg,es:cseg,ss:cseg ;as set by DOS loader
 
-	extrn	parser:near		;AN000;
-	extrn	sysloadmsg:near 	;AN000;
-	extrn	sysdispmsg:near 	;AN000;
+	extrn	parser:near
+	extrn	sysloadmsg:near
+	extrn	sysdispmsg:near
 	extrn	memory_size:word
 	extrn	fcb:byte
-	extrn	parms:word		;AN000;
+	extrn	parms:word
 	extrn	parm_area:byte
-	extrn	parm_count:word 	;AN000;
-	extrn	current_parm:word	;AN000;
-	extrn	ordinal:word		;AN000;
-	extrn	msgnum_mem:word 	;AN000;
-	extrn	msgnum_para:word	;AN000;
-	extrn	msgnum_tenmsg:word	;AN000;
-	extrn	msgnum_baddrv:word	;AN000;
-	extrn	msgnum_bad:word 	;AN000;
-	extrn	msgnum_adr:word 	;AN000;
-	extrn	msgnum_bdr:word 	;AN000;
-	extrn	msgnum_eor:word 	;AN000;
-	extrn	msgnum_done:word	;AN000;
-	extrn	msgnum_fnf:word 	;AN000;
-	extrn	msgnum_bad_path:word	;AN000;
-	extrn	msgnum_share:word	;AN000;
-	extrn	msgnum_too_many:word	;AN000;
-	extrn	msgnum_prinam:word	;AN000;
-	extrn	msgnum_secnam:word	;AN000;
-	extrn	msgnum_badsiz:word	;AN000;
-	extrn	msgnum_nother:word	;AN000;
-	extrn	msgnum_and_msg:word	;AN000;
-	extrn	msgnum_crlf:word	;AN000;
-	extrn	msgnum_accessdenied:word ;AN000;
-	extrn	msgnum_cp_mismatch:word ;AN000;
-	extrn	msgnum_ok:word		;AN000;
-	extrn	msgnum_exterr:word	;AN000;
-	extrn	msgnum_pparse:word	 ;AN000;
-	extrn	sublist_6:word		;AN000;
-	extrn	sublist_7:word		;AN000;
-	extrn	sublist_8:word		;AN000;
-	extrn	sublist_11:word 	;AN000;
-	extrn	sublist_12:word 	;AN000;
-	extrn	sublist_13:word 	;AN000;
-	extrn	sublist_19a:word	;AN000;
-	extrn	sublist_19b:word	;AN000;
-	extrn	sublist_21:word 	;AN000;
-	extrn	sublist_exterr:word	;AN000;
-	extrn	sublist_24:word 	;AN000;
+	extrn	parm_count:word
+	extrn	current_parm:word
+	extrn	ordinal:word
+	extrn	msgnum_mem:word
+	extrn	msgnum_para:word
+	extrn	msgnum_tenmsg:word
+	extrn	msgnum_baddrv:word
+	extrn	msgnum_bad:word
+	extrn	msgnum_adr:word
+	extrn	msgnum_bdr:word
+	extrn	msgnum_eor:word
+	extrn	msgnum_done:word
+	extrn	msgnum_fnf:word
+	extrn	msgnum_bad_path:word
+	extrn	msgnum_share:word
+	extrn	msgnum_too_many:word
+	extrn	msgnum_prinam:word
+	extrn	msgnum_secnam:word
+	extrn	msgnum_badsiz:word
+	extrn	msgnum_nother:word
+	extrn	msgnum_and_msg:word
+	extrn	msgnum_crlf:word
+	extrn	msgnum_accessdenied:word
+	extrn	msgnum_cp_mismatch:word
+	extrn	msgnum_ok:word
+	extrn	msgnum_exterr:word
+	extrn	msgnum_pparse:word
+	extrn	sublist_6:word
+	extrn	sublist_7:word
+	extrn	sublist_8:word
+	extrn	sublist_11:word
+	extrn	sublist_12:word
+	extrn	sublist_13:word
+	extrn	sublist_19a:word
+	extrn	sublist_19b:word
+	extrn	sublist_21:word
+	extrn	sublist_exterr:word
+	extrn	sublist_24:word
 
 ;***********************************
 ; Data area in code segment
 ;***********************************
 
-	public	path1			;AN000;
-	public	path2			;AN000;
-	public	name1			;AN000;
-	public	name2			;AN000;
-	public	cur_name		;AN000;
-	public	exitfl			;AN000;
+	public	path1
+	public	path2
+	public	name1
+	public	name2
+	public	cur_name
+	public	exitfl
 
 	even				;AN000; ;align stack on word boundary
 
@@ -372,24 +348,24 @@ tbl	db	"0123456789ABCDEF"
 openpath db	15 dup (0)		;An fcb will be parsed into this path.
 cpsw_orig db	00h			;AN000; ;save original cpsw value
 exitfl	db	EXOK			;AN000; ;errorlevel return code
-handle	dw	00h			;AN000;
+handle	dw	00h
 
-dbcs_off dw	0			;AN006;
-dbcs_seg dw	0			;AN006;
-dbcs_len dw	0			;AN006;
-string_off dw	0			;AN006;
-string_seg dw	0			;AN006;
-dstring db	128 dup(0)		;AN006;
+dbcs_off dw	0
+dbcs_seg dw	0
+dbcs_len dw	0
+string_off dw	0
+string_seg dw	0
+dstring db	128 dup(0)
 
-parm_list label word			;AN001;
-	dd	-1			;AN001;
-	dw	1			;AN001;
-	db	6			;AN001;
-	dw	2			;AN001;
+parm_list label word
+	dd	-1
+	dw	1
+	db	6
+	dw	2
 
 querylist label byte			;AN001; ;query general list
 	dw	1			;AN001; ;# of entries
-querylist_qea qea <EAISBINARY,EASYSTEM,2,"CP"> ;AN001;
+querylist_qea qea <EAISBINARY,EASYSTEM,2,"CP">
 
 qlist	label	byte			;AN001; ;general get/set list
 	dw	1			;AN001; ;count of attr entries
@@ -410,8 +386,8 @@ COMP_HELP_STR DB "Compares the contents of two files or sets of files.",0Dh,0Ah
 ;	 establish addressability to the system messages, and for it to verify
 ;	 the DOS version
 ;-----------------------------------------------------------------------------
-init	proc	near			;AC000;
-	public	init			;AN000;
+init	proc	near
+	public	init
 
   ; Check for /? help (COM file: CS=DS=PSP at entry)
   MOV  SI, 081h
@@ -456,18 +432,18 @@ $$EN1:
 	doscall RET_FN			;AN000; ;return to DOS with ret code
 	int	20h			;AN000; ;if above not work,
 					;AN000; ;take stick and kill it
-init	endp				;AN000;
+init	endp
 
 
 ;------------------------------------------------------------------------------
 ; MAIN - Does the compare for two sets of files
 ;------------------------------------------------------------------------------
 ;
-main	proc	near			;AN000;
-	public	main			;AN000;
+main	proc	near
+	public	main
 
 	mov	clear,0 		;clear it
-;	$do				;AN000;
+;	$do
 $$DO4:
 	    cmp     byte ptr path1,0	;was first parm given?
 ;	$leave	ne			;AN000; ;Yes, LEAVE INPUT loop
@@ -486,7 +462,7 @@ rpt:
 	    JNE $$IF6
 		print_msg msgnum_baddrv,STDERR ;AN000; ;"Invalid drive spec."
 		mov	byte ptr path1,00 ;AN000; ;BLANK FIRST CHAR. SO TO loop AGAIN
-;	    $endif			;AN000;
+;	    $endif
 $$IF6:
 ;	$enddo				;AC000; ;REPEAT UNTIL FIRST PARM OK
 	JMP SHORT $$DO4
@@ -500,7 +476,7 @@ $$EN4:
 	    mov     clear,0
 ;	$endif
 $$IF9:
-;	$do				;AN000;
+;	$do
 $$DO11:
 	    cmp     byte ptr path2,0	;was second parm given?
 ;	$leave	ne			;AN000; ;Yes, LEAVE INPUT loop
@@ -518,7 +494,7 @@ $$DO11:
 	    JNE $$IF13
 		print_msg msgnum_baddrv,STDERR ;AN000; ;"Invalid drive spec."
 		mov	byte ptr path2, 00 ;AN000; ;BLANK FIRST CHAR. SO TO loop AGAIN
-;	    $endif			;AN000;
+;	    $endif
 $$IF13:
 ;	$enddo				;AC000; ;SECOND PARM?
 	JMP SHORT $$DO11
@@ -532,7 +508,7 @@ $$EN11:
 ;	$if	e			;AC000; ;Yes
 	JNE $$IF16
 	    mov     fcb,al		;yes, set to actual drive
-;	$endif				;AC000;
+;	$endif
 $$IF16:
 	cmp	byte ptr fcb2,0 	;target on default?
 ;	$if	e			;AC000; ;Yes
@@ -543,14 +519,14 @@ $$IF18:
 	mov	si,offset path1
 	mov	di,offset fcb
 	call	findpath		;locate primary's specified dir
-;	$if	ne			;AC000;
+;	$if	ne
 	JE $$IF20
 	    fill_name1 fcb		;AN000; ;get full path name
 	    mov     sublist_12.sub_value,offset name1 ;AN000; ;SET UP %1 IN sublist OF "Invalid path - %0:
 	    mov     dx,offset msgnum_bad_path ;AC000; ;dx = ptr TO MSG DesCRIPTOR TO dispLAY
 					;AN000; ;VALUE IN di,si,dx PAssED TO BADFIL CODE
 	    jmp     badfil		;dir not found - tell user
-;	$endif				;AC000;
+;	$endif
 $$IF20:
 	mov	dx,offset infcb
 	doscall SETDTA			;AC000; ;diR FOUND, SET DTA TO SOURCE fcb
@@ -564,7 +540,7 @@ $$IF20:
 	    mov     dx,offset msgnum_fnf ;AC000; ;dx = ptr TO MSG DesCRIPTOR TO dispLAY
 					;AN000; ;VALUE IN di,si,dx PAssED TO BADFIL CODE
 	    jmp     badfil
-;	$endif				;AC000;
+;	$endif
 $$IF22:
 f1ok:					;OPEN, PRIME PRIMARY FILE
 	and	swt,09Fh		;clear file open flags
@@ -576,17 +552,17 @@ f1ok:					;OPEN, PRIME PRIMARY FILE
 ;	$if	nz			;AC000; ;IF fcb OPEN FAILED, THEN SHARING ERROR
 	JZ $$IF24
 	    jmp     shrerr
-;	$endif				;AC000;
+;	$endif
 $$IF24:
 	mov	si,offset infcb 	;Take this fcb...
 	mov	di,offset OpenPath	; and in this area...
 	call	MakePathFromfcb 	; make an ASCIIZ path.
 	mov	dx,offset OpenPath
 	doscall HANDLEOPEN,READONLYACCESS ;AC000; TRY TO OPEN IT WITH READONLY ACCEss
-;	$if	c			;AC000;
+;	$if	c
 	JNC $$IF26
 	    jmp     accessdenied1	;ERROR OPENING FILE. AssUME ACCEss DENIED.
-;	$endif				;AC000;
+;	$endif
 $$IF26:
 	mov	bx,ax			;Put the handle in bx...
 	doscall HANDLECLOSE		;AC000; AND CLOSE IT
@@ -595,7 +571,7 @@ $$IF26:
 	JE $$IF28
 	    mov     dx,offset oldp1
 	    doscall CHDIR		;AN000; change directory
-;	$endif				;AC000;
+;	$endif
 $$IF28:
 ;p1ok:
 	mov	word ptr infcb+14,1	;set record size
@@ -630,27 +606,27 @@ $$IF30:
 		doscall CHDIR		;AC000; ;yes, set the secondary dir to proper node
 
 		cmp	al,al		;force eq
-;	    $endif			;AC000;
+;	    $endif
 $$IF32:
-;	$endif				;AC000;
+;	$endif
 $$EN30:
 	pushf				;save status of secondary dir search
 	mov	cx,11
 	mov	di,offset outfcb+1	;target filename field
 	mov	si,offset fcb2+1	;current target filename
 	mov	bx,offset infcb+1	;current source filename
-;	$do				;AC000;
+;	$do
 $$DO35:
 	    lodsb			;get target name char
 	    cmp     al,"?"		;is it ambiguous?
 ;	    $if     E			;AC000; ;Yes
 	    JNE $$IF36
 		mov	al,[bx] 	;yes, copy char from source
-;	    $endif			;AC000;
+;	    $endif
 $$IF36:
 	    stosb			;build target name
 	    inc     bx			;next source char
-;	$enddo	loop			;AC000;
+;	$enddo	loop
 	LOOP $$DO35
 	fill_name2			;AN000; ;get full path name
 	mov	sublist_19b.sub_value,offset name2 ;AN000; ;SET UP %2 IN sublist FOR "%1 AND %2" MSG
@@ -660,13 +636,13 @@ $$IF36:
 ;	$if	ne			;AC000; ;diD NOT GET IT
 	JE $$IF39
 	    fill_name2			;AN000; ;get full path name
-	    mov     sublist_12.sub_value,offset name2 ;AN000; ;SET UP %1 IN sublist FOR "%1 - INVALID PATH" ;AN000;
+	    mov     sublist_12.sub_value,offset name2 ;AN000; ;SET UP %1 IN sublist FOR "%1 - INVALID PATH"
 	    print_msg msgnum_bad_path,STDERR ;AN000; ;"Invalid path - %0"
 	    mov     dx,offset oldp2	;Get back to current dir on sec drive
-	    doscall CHDIR		;AC000;
+	    doscall CHDIR
 	    jmp     quit5
 
-;	$endif				;AC000;
+;	$endif
 $$IF39:
 	mov	dx,offset outfcb
 	doscall SETDTA			;AC000; diR FOUND, SET DTA TO TARGET fcb
@@ -680,10 +656,10 @@ $$IF39:
 	    mov     sublist_11.sub_value,offset name2 ;AN000; ;SET UP %1 IN sublist OF MSG
 	    print_msg msgnum_fnf,STDERR ;AN000; ;"File not found - %0"
 	    mov     dx,offset oldp2	;Get back to current dir on sec drive
-	    doscall CHDIR		;AC000;
+	    doscall CHDIR
 	    jmp     quit3		;and get the next source file
 
-;	$endif				;AC000;
+;	$endif
 $$IF41:
 	mov	dx,offset outfcb
 	doscall FCBOPEN 		;AC000; OPEN TARGET FILE
@@ -706,7 +682,7 @@ accessdenied2:				;Oops, there was an error. AssUME it was Access Denied
 	fill_name2			;AN000; ;get full path name
 	mov	sublist_21.sub_value,offset name2 ;AN000; ;SET UP %1 IN sublist OF "Access Denied - %0"
 	mov	dx,offset oldp2 	;Get back to current dir on sec drive
-	doscall CHDIR			;AC000;
+	doscall CHDIR
 	print_msg msgnum_accessdenied,STDERR ;AN000; ;"Access Denied - %0"
 	jmp	quit3			;and get the next source file
 
@@ -716,7 +692,7 @@ ShrViolation:
 	fill_name2			;AN000; ;get full path name
 	mov	sublist_13.sub_value,offset name2 ;AN000; ;SET UP %1 IN sublist OF "Sharing violation - %0"
 	mov	dx,offset oldp2 	;Get back to current dir on sec drive
-	doscall CHDIR			;AC000;
+	doscall CHDIR
 	print_msg msgnum_share,STDERR	;AN000; ;"Sharing violation - %0"
 	jmp	quit3			;and get the next source file
 filopn:
@@ -738,7 +714,7 @@ sizok:
 ;;(deleted for AN009)	     call    comp_codepage	     ;AN000; ;VERIFY BOTH FILes HAVE THE SAME CODEPAGE
 ;;(deleted for AN009)	     $if     c			     ;AN000; ;ERROR WITH CODEPAGE
 ;;(deleted for AN009)		 jmp	 quit3		     ;AN000; ;go on to other files if any
-;;(deleted for AN009)	     $endif			     ;AN000;
+;;(deleted for AN009)	     $endif
 	mov	dx,offset infcb
 	mov	word ptr curfcb,dx	;get fcb's in proper order
 	mov	dx,offset outfcb
@@ -757,13 +733,13 @@ process:				;**** PREPARE TO COMPARE DATA
 ;	$if	z			;AC000; ;NO
 	JNZ $$IF43
 	    print_msg msgnum_eor,STDOUT ;AN000; ;"Eof mark not found"
-;	$endif				;AC000;
+;	$endif
 $$IF43:
 	test	byte ptr swt,4		;any compare errors?
-;	$if	Z			;AC000;
+;	$if	Z
 	JNZ $$IF45
 	    print_msg msgnum_ok,STDOUT	;AN000; ;"FILes COMPARE OK"
-;	$endif				;AC000;
+;	$endif
 $$IF45:
 	jmp	quit3			;had compare errors - no "ok" msg
 
@@ -804,7 +780,7 @@ cmp1:					;***** FOUND UNEQUAL BYTes
 ;	$if	ne			;AC000; ;NO
 	JE $$IF47
 	    xchg    ah,al		;no, reverse the bad bytes
-;	$endif				;AC000;
+;	$endif
 $$IF47:
 	mov	byte1,al		;AN000; ;SAVE FIRST FILE BAD byte
 	mov	byte2,ah		;AN000; ;SAVE SECOND FILE BAD byte
@@ -847,8 +823,8 @@ quit3:					;terminate
 ;	$if	ne			;AN000; NO
 	JE $$IF49
 	    mov     dx,offset path1	;no,
-	    doscall CHDIR		;AC000;
-;	$endif				;AC000;
+	    doscall CHDIR
+;	$endif
 $$IF49:
 	mov	dx,offset infcb
 	doscall SETDTA			;AC000; ;DTA = SOURCE fcb
@@ -878,12 +854,12 @@ badfil: 				;assume si = path, di = fcb , dx = MSG DesCRIPTOR
 	pop	dx
 ;	DISPLAY MSG THAT WAS POINTED TO BY DX
 	push	ax
-	push	di			;AN003;
-	mov	di,dx			;AN003;
-	mov	[di].msg_handle,STDERR	;AN003;
-	pop	di			;AN003;
+	push	di
+	mov	di,dx
+	mov	[di].msg_handle,STDERR
+	pop	di
 	call	sendmsg 		;AC000; ;dispLAY IT
-	pop	ax			;AN000;
+	pop	ax
 quit4:					;no more primary files
 ;;;;;;	 cmp byte ptr path1,0 ;current dir on pri drive?
 ;;;;;;	 je quit5	 ;yes
@@ -920,21 +896,21 @@ $$EN51:
 	    xor     ax,ax		;AN008; ;AN000; ;CHAR TO USE TO CLEAR BUFFER
 	    mov     di,offset path1	;AN000; ;CLEAR OLD PATH, FILE NAMes TO START AGAIN
 	    mov     cx,129		;AN000; ;LENGTH OF BUFFER
-;	    $do 			;AN000;
+;	    $do
 $$DO56:
-		stosb			;AN000;
-;	    $enddo  loop		;AN000;
+		stosb
+;	    $enddo  loop
 	    LOOP $$DO56
 	    mov     di,offset path2	;AN000; ;CLEAR OLD PATH, FILE NAMes TO START AGAIN
 	    mov     cx,129		;AN000; ;LENGTH OF BUFFER
-;	    $do 			;AN000;
+;	    $do
 $$DO58:
-		stosb			;AN000;
-;	    $enddo  loop		;AN000;
+		stosb
+;	    $enddo  loop
 	    LOOP $$DO58
 	    mov     clear,1		;set clear
 	    jmp     rpt 		;AC000; ;REPEAT COMP
-;	$endif				;AC000;
+;	$endif
 $$IF55:
 	ret				;AN000; ;QUIT
 
@@ -948,7 +924,7 @@ CBExit:
 	JZ $$IF61
 	    mov     dx,offset oldp2
 	    doscall CHDIR		;AC000; ;no, restore it now
-;	$endif				;AC000;
+;	$endif
 $$IF61:
 
 	test	swt2,1			;oldp1 set?
@@ -956,7 +932,7 @@ $$IF61:
 	JZ $$IF63
 	    mov     dx,offset oldp1
 	    doscall CHDIR		;AC000; ;no, restore it now
-;	$endif				;AC000;
+;	$endif
 $$IF63:
 
 ;;(deleted for AN009)	     call    restore_cp 	     ;AN000; ;restore the codepage
@@ -964,7 +940,7 @@ $$IF63:
 	doscall RET_FN			;AN000; ;return to DOS with ret code
 
 	int	20h			;AC000; ;if exit didn't work, kill it
-main	endp				;AN000;
+main	endp
 
 ;------------------------------------------------------------------------------
 ;  -----------------------------SUBROUTINES----------------------------------
@@ -979,13 +955,13 @@ main	endp				;AN000;
 ;   OUTPUT - saves address of last "\" at end of buffer that SI points to.
 ;	     (this is tricky)
 ;------------------------------------------------------------------------------
-findfs	proc	near			;AN000;
+findfs	proc	near
 	mov	string_off,si		;AN006;  save addr of string for Check_DBCS_slash
-	mov	string_seg,cs		;AN006;
-	push	dx			;AN000;
-	push	si			;AN000;
+	mov	string_seg,cs
+	push	dx
+	push	si
 	xor	dx,dx			;AN008; ;AN000; ;CLEAR dx IN THE CASE THAT NO "\" IS FOUND
-;	$do				;AN000;
+;	$do
 $$DO65:
 	    lodsb			;AN000; ;GET A CHARACTER
 	    cmp     al,0		;AN000; ;AT END OF STRING YET ?
@@ -994,22 +970,22 @@ $$DO65:
 	    push    si			;AN006; Check the character in AL == '\'
 	    dec     si			;AN006;  and the character in front of
 	    call    Check_DBCS_slash	;AN006;  the '\' is not DBCS.
-	    pop     si			;AN006;
+	    pop     si
 
 ;	    $if     z			;AN000; ;Yes, SAVE ADDR OF IT IN dx
 	    JNZ $$IF67
-		mov	dx,si		;AN000;
-		dec	dx		;AN000;
-;	    $endif			;AN000;
+		mov	dx,si
+		dec	dx
+;	    $endif
 $$IF67:
-;	$enddo				;AN000;
+;	$enddo
 	JMP SHORT $$DO65
 $$EN65:
-	pop	si			;AN000;
+	pop	si
 	mov	[si+128],dx		;AN000; ;SAVE ADDR OF LAST "\" IN THE LAST TWO BYTes OF PATH
-	pop	dx			;AN000;
-	ret				;AN000;
-findfs	endp				;AN000;
+	pop	dx
+	ret
+findfs	endp
 
 
 ;------------------------------------------------------------------------------
@@ -1026,9 +1002,9 @@ getnam	proc	near
 	mov	di,dx			;AN000; ;FILL IN offset OF INPUT BUFFER IN MSG DesC.
 	mov	[di].msg_input, offset input_buf ;AN000; ;ptr TO INPUT BUFFER
 	mov	[di].msg_handle, STDERR
-	push	ax			;AN000;
+	push	ax
 	call	sendmsg 		;AC000; ;dispLAY MEssAGE, GET BUFFERED INPUT
-	pop	ax			;AN000;
+	pop	ax
 	xor	ch,ch			;AN000; ;CLEAR HIGH byte OF cx
 	mov	cl,input_len		;AN000; ;CL = LENGTH OF INPUT BUFFER
 					;get offset into input buffer (to skip length word)
@@ -1036,7 +1012,7 @@ getnam	proc	near
 	mov	ordinal,ZERO_PARM_CT	;AN000; ;TELL PARSER THAT THIS IS FIRST PARAMETER (ONLY ONE)
 	call	parser			;PUT NEW STRING AT WHERE di POINTS TO
 	ret				;then go back
-getnam	endp				;AC000;
+getnam	endp
 
 
 ;------------------------------------------------------------------------------
@@ -1059,24 +1035,24 @@ findpath proc	near
 	sub	di,67			;where to put current dir for the drive
 	mov	al,dl			;AN005; ;get drive number
 	add	al,64			;AN005; ;convert to ascii letter
-	stosb				;AN005;
-	mov	al,':'			;AN005;
-	stosb				;AN005;
+	stosb
+	mov	al,':'
+	stosb
 	mov	al,pathchar		;get path separator
 	stosb				;and put in beginning of path
 	mov	si,di
 	doscall CURDIR			;AC000; ;GET DRIVE'S CURRENT diR
 	cmp	di,offset oldp1+3	;See if pri cur dir is set up
-;	$if	e			;AC000;
+;	$if	e
 	JNE $$IF70
 	    or	    swt2,1
-;	$endif				;AC000;
+;	$endif
 $$IF70:
 	cmp	di,offset oldp2+3	;See if sec cur dir is set up
-;	$if	e			;AC000;
+;	$if	e
 	JNE $$IF72
 	    or	    swt2,2
-;	$endif				;AC000;
+;	$endif
 $$IF72:
 	pop	si			;path string
 	pop	di			;fcb
@@ -1107,7 +1083,7 @@ fp4:
 fp5:
 	cmp	ax,1234h		;no, pass back error - path has first part of name,
 	ret				;remainder is in fcb
-findpath endp				;AN000;
+findpath endp
 
 
 ;------------------------------------------------------------------------------
@@ -1122,24 +1098,24 @@ findpath endp				;AN000;
 backoff proc	near
 	push	si
 	mov	bx,[si+128]		;address of last \ in path
-	cmp	byte ptr [si+1],":"	;AN002;
-;	$if	e			;AN002;
+	cmp	byte ptr [si+1],":"
+;	$if	e
 	JNE $$IF74
 	    add     si,2		;char following d: in path name
-;	$endif				;AN002;
+;	$endif
 $$IF74:
 	cmp	si,bx			;is it the only \ and is it at beg of line?
 	mov	si,bx
 ;	$if	e			;AC000; ;Yes
 	JNE $$IF76
 	    inc     bx			;yes, going to root - leave \ alone
-;	$endif				;AC000;
+;	$endif
 $$IF76:
 	inc	si			;char following \
 	cmp	byte ptr [si],0 	;are there any?
 	jne	bo4			;yes
 	call	setq			;no, use ????????.??? in root
-	jmp	short bo3		;AC008;
+	jmp	short bo3
 bo4:
 	push	di
 					;AC000; ;ds:si=POINTER TO COMMAND LINE TO PARSE
@@ -1160,10 +1136,10 @@ $$IF78:
 	    pop     ax			;strip return to findpath
 	    call    setq		;fill fcb with ?'s
 	    cmp     ax,1234h		;AN000; ;SET ERROR retURN
-;	$endif				;AC000;
+;	$endif
 $$EN78:
 	ret
-backoff endp				;AN000;
+backoff endp
 
 
 ;------------------------------------------------------------------------------
@@ -1178,14 +1154,14 @@ setq	proc	near
 	mov	al,"?"
 	mov	cx,11
 	inc	di			;point to filename
-;	$do				;AC000;
+;	$do
 $$DO81:
 	    stosb
-;	$enddo	loop			;AC000;
+;	$enddo	loop
 	LOOP $$DO81
 	pop	di
 	ret
-setq	endp				;AC000;
+setq	endp
 
 
 ;------------------------------------------------------------------------------
@@ -1209,11 +1185,11 @@ get	proc	near
 	or	al,al			;get eof?
 ;	$if	nz			;AC000; ;Yes, AT EOF
 	JZ $$IF83
-	    call    fileend		;AC000;
-;	$endif				;AC000;
+	    call    fileend
+;	$endif
 $$IF83:
 	ret				;No, keep on going
-get	endp				;AC000;
+get	endp
 
 
 ;------------------------------------------------------------------------------
@@ -1232,11 +1208,11 @@ fileend proc	near
 ;	$if	e			;AC000; ;Yes
 	JNE $$IF85
 	    or	    byte ptr swt,8	;yes, say we found the eof
-;	$endif				;AC000;
+;	$endif
 $$IF85:
 	doscall FCBCLOSE		;AC000; ;Close the file filling large buffer
 	ret
-fileend endp				;AN000;
+fileend endp
 
 
 ;------------------------------------------------------------------------------
@@ -1254,7 +1230,7 @@ getf2	proc	near
 	mov	cx,4096 		;ask for 8 sectors
 	doscall FCBRNDBLKREAD		;AC000; ;GET THE DATA
 	ret
-getf2	endp				;AN000;
+getf2	endp
 
 
 ;------------------------------------------------------------------------------
@@ -1267,11 +1243,11 @@ getf2	endp				;AN000;
 ;   OUTPUT -
 ;------------------------------------------------------------------------------
 fill_n	proc	near
-	push	ax			;AN000;
-	push	cx			;AN000;
+	push	ax
+	push	cx
 	mov	string_off,dx		;AN006; pass whole string to Check_DBCS_slash
-	mov	string_seg,cs		;AN006;
-;get drive letter & colon		;AN000;
+	mov	string_seg,cs
+;get drive letter & colon
 	xchg	dx,si			;AN000; ;make dx=fcb ptr, si=buffer ptr
 	mov	al,[di] 		;AN000; ;drive byte from fcb
 	inc	di			;AN000; ;point to filename
@@ -1279,10 +1255,10 @@ fill_n	proc	near
 	mov	[si],al 		;AN000; ;save letter in string
 	inc	si			;AN000; ;increment ptr
 	mov	byte ptr [si],":"	;AN000; ;add colon to drive letter
-	inc	si			;AN000;
-	xchg	dx,si			;AN000;
-;get full path				;AN000;
-	xchg	dx,di			;AN000;
+	inc	si
+	xchg	dx,si
+;get full path
+	xchg	dx,di
 	cmp	byte ptr [si],0 	;AN000; ;is there a path?
 ;	$if	ne			;AN000; ;Yes
 	JE $$IF87
@@ -1292,81 +1268,81 @@ fill_n	proc	near
 		add	si,2		;AN000; ;yes, skip drive id in path
 ;	    $endif
 $$IF88:
-;	    $do 			;AC000;
+;	    $do
 $$DO90:
 		lodsb			;AN000; ;get a path char
 		or	al,al		;AN000; ;end of path?
 ;	    $leave  Z			;AN000; ;Yes
 	    JZ $$EN90
 		stosb			;AN000; ;copy character
-;	    $enddo			;AC000;
+;	    $enddo
 	    JMP SHORT $$DO90
 $$EN90:
 	    push    si			;AN006; Check the character in AL == '\'
 	    mov     si,di		;AN006;  and the character in front of
 	    dec     si			;AN006;  the '\' is not DBCS.
-	    call    Check_DBCS_slash	;AN006;
-	    pop     si			;AN006;
+	    call    Check_DBCS_slash
+	    pop     si
 
 ;	    $if     NE			;AC000; ;NO
 	    JE $$IF93
 		mov	al,"\"		;AC000; ;no, display separator ahead of filename
-		stosb			;AN000;
-;	    $endif			;AC000;
+		stosb
+;	    $endif
 $$IF93:
-;	$endif				;AC000;
+;	$endif
 $$IF87:
-;get filename				;AN000;
+;get filename
 	xchg	dx,si			;AC000; ;dx=path1 or path2, si=ptr buffer, di=ptr fcb
-	mov	cx,8			;AN000;
-;	$do				;AC000;
+	mov	cx,8
+;	$do
 $$DO96:
 	    lodsb			;AC000; ;display filename
 	    cmp     al," "		;AC000; ;Is it end of filename
 ;	$leave	e			;AC000; ;Yes, GET EXTENsiON
 	JE $$EN96
-	    stosb			;AN000;
+	    stosb
 ;	$enddo	loop			;AC000; ;GET MORE CHARS, IF ANY
 	LOOP $$DO96
 $$EN96:
-	and	cx,cx			;AC008;
+	and	cx,cx
 ;	$if	ne
 	JE $$IF99
 	    dec     cx			;AC000; ;# of spaces left to skip in filename
 ;	    $do 			;AC000; ;step thru spaces to get to file extension
 $$DO100:
-		inc	si		;AN000;
+		inc	si
 ;	    $enddo  loop		;AC000; ;until cx=0
 	    LOOP $$DO100
 ;	$endif
 $$IF99:
-;get filename extension 		;AN000;
+;get filename extension
 	cmp	byte ptr [si]," "	;AC000; ;is there an extension?
 ;	$if	ne			;AC000; ;Yes, DO PERIOD
 	JE $$IF103
-	    mov     al,"."		;AN000;
-	    stosb			;AN000;
-	    mov     cx,3		;AN000;
-;	    $do 			;AC000;
+	    mov     al,"."
+	    stosb
+	    mov     cx,3
+;	    $do
 $$DO104:
 		lodsb			;AC000; ;display extension
 		cmp	al," "		;AC000; ;is it end of extension?
 ;	    $leave  e			;AC000; ;Yes
 	    JE $$EN104
-		stosb			;AN000;
-;	    $enddo  loop		;AC000;
+		stosb
+;	    $enddo  loop
 	    LOOP $$DO104
 $$EN104:
 ;	$endif				;AC000; ;EXTENsiON?
 $$IF103:
-	mov	al,0			;AN000;
+	mov	al,0
 	stosb				;AC000; ;end of string marker
-	xchg	dx,si			;AN000;
-	xchg	dx,di			;AN000;
-	pop	cx			;AN000;
-	pop	ax			;AN000;
+	xchg	dx,si
+	xchg	dx,di
+	pop	cx
+	pop	ax
 	ret
-fill_n	endp				;AN000;
+fill_n	endp
 
 
 ;------------------------------------------------------------------------------
@@ -1386,7 +1362,7 @@ MakePathFromFcb proc near
 	inc	si
 	mov	cx,8			;Copy [1..8] bytes
 					; GET FILENAME
-;	$do				;AC000;
+;	$do
 $$DO108:
 	    movsb			;Move the char from the fcb
 	    cmp     byte ptr [si]," "	;Is the next char a blank ?
@@ -1401,7 +1377,7 @@ $$EN108:
 	mov	cx,3			;Copy [0..3] bytes...
 	pop	si			; from the fcb's
 	add	si,9			; extension area
-;	$do				;AC000;
+;	$do
 $$DO111:
 	    cmp     byte ptr [si]," "	;Is the next char a blank?
 ;	$leave	e			;AC000; ;Yes, THEN WE ARE DONE
@@ -1429,12 +1405,12 @@ RestoreDir proc near
 	JE $$IF114
 	    push    ax			;restore old current directory
 	    mov     dx,offset oldp2
-	    doscall CHDIR		;AC000;
+	    doscall CHDIR
 	    pop     ax
-;	$endif				;AC000;
+;	$endif
 $$IF114:
 	ret
-RestoreDir endp 			;AN000;
+RestoreDir endp
 
 
 ;------------------------------------------------------------------------------
@@ -1446,11 +1422,11 @@ RestoreDir endp 			;AN000;
 ;   INPUT  -
 ;   OUTPUT - CPSW_ORIG byte will have the CPSW bit set on if cpsw = on
 ;------------------------------------------------------------------------------
-init_cp proc	near			;AN000;
-	public	init_cp 		;AN000;
+init_cp proc	near
+	public	init_cp
 
 	doscall CPSW_CHECK,GET_CPSW_STATE ;AN000; ;IS CODEPAGE SUPPORT LOADED
-	and	dl,dl			;AC008; ;AN000;
+	and	dl,dl
 ;	$if	ne			;AN000; ;IF CPSW IS LOADED
 	JE $$IF116
 	    or	    cpsw_orig,CPSW	;AN000; ;SET FLAG TO INdiCATE CPSW=ON
@@ -1459,7 +1435,7 @@ init_cp proc	near			;AN000;
 ;	$endif				;AN000; ;CPSW LOADED?
 $$IF116:
 	ret				;AN000; ;retURN TO callER
-init_cp endp				;AN000;
+init_cp endp
 
 
 ;------------------------------------------------------------------------------
@@ -1468,8 +1444,8 @@ init_cp endp				;AN000;
 ;   INPUT  -
 ;   OUTPUT -
 ;------------------------------------------------------------------------------
-restore_cp proc near			;AN000;
-	public	restore_cp		;AN000;
+restore_cp proc near
+	public	restore_cp
 
 	test	cpsw_orig,CPSW		;AN000; ;WAS CPSW ON WHEN WE STARTED?
 ;	$if	nz			;AN000; ;IF CPSW WAS ON
@@ -1479,7 +1455,7 @@ restore_cp proc near			;AN000;
 ;	$endif				;AN000; ;CPSW WAS ON?
 $$IF118:
 	ret				;AN000; ;retURN TO callER
-restore_cp endp 			;AN000;
+restore_cp endp
 
 
 ;------------------------------------------------------------------------------
@@ -1489,8 +1465,8 @@ restore_cp endp 			;AN000;
 ;	     PATH2 has the asciiz of the second path\filename
 ;   OUTPUT -
 ;------------------------------------------------------------------------------
-comp_codepage proc near 		;AN000;
-	public	comp_codepage		;AN000;
+comp_codepage proc near
+	public	comp_codepage
 
 	test	cpsw_orig,CPSW		;AN000; ;WAS CPSW=ON WHEN WE STARTED?
 ;	$if	nz			;AN000; ;IF CPSW IS LOADED
@@ -1546,7 +1522,7 @@ $$EN121:
 	    JNC $$IF133
 		print_msg msgnum_cp_mismatch,STDERR ;AN000; ;"CODE PAGE MISMATCH"
 		stc			;AN000; ;PAss INdiCATOR OF NON-MATCH CP
-;	    $endif			;AN000;
+;	    $endif
 $$IF133:
 ;	$else				;AN000; ;siNCE CODE PAGE NOT ACTIVE
 	JMP SHORT $$EN120
@@ -1555,7 +1531,7 @@ $$IF120:
 ;	$endif				;AN000; ;CODEPAGE LOADED?
 $$EN120:
 	ret				;AN000; ;retURN TO callER
-comp_codepage endp			;AN000;
+comp_codepage endp
 
 
 ;------------------------------------------------------------------------------
@@ -1565,8 +1541,8 @@ comp_codepage endp			;AN000;
 ;	    CUR_NAME = ptr to inputed filename to open (display this if error)
 ;  OUTPUT -
 ;------------------------------------------------------------------------------
-getcp	proc	near			;AN000;
-	public	getcp			;AN000;
+getcp	proc	near
+	public	getcp
 
 ;	SET   UP INPUTS TO EXTENDED OPEN:
 ;	REQUesT FUNCTIONS: READ,COMPATABILITY,NO INHERIT,INT 24H ret ERR,
@@ -1578,7 +1554,7 @@ getcp	proc	near			;AN000;
 	mov	dx,FUNC_CNTRL		;AN000; ;SET FUNCTION CONTROL FOR EXTENDED OPEN
 	mov	di,offset parm_list	;AN000; ;PAss offset TO PARM_LIST
 	mov	si,cur_name		;AN000; ;ptr to name of file to open
-	doscall EXT_OPEN,EXT_OPEN_RD	;AN000;
+	doscall EXT_OPEN,EXT_OPEN_RD
 	mov	handle,ax		;AN000; ;SAVE HANDLE
 ;	$if	c			;AN000; ;IF ERROR
 	JNC $$IF137
@@ -1592,19 +1568,19 @@ $$IF137:
 	    mov     di,offset qlist	;AC001; ;es:di=QLIST
 	    mov     cx,13		;AN001; ;size of QLIST returned
 	    mov     si,offset querylist ;AN001; ;get code page attr. only
-	    doscall EXT_ATTR_LIST,GET_EXT_ATTR_LIST ;AN000;
+	    doscall EXT_ATTR_LIST,GET_EXT_ATTR_LIST
 					;AN000; ;CY SET IF ERROR
 ;	    $if     c			;AN000; ;IF ERROR
 	    JNC $$IF139
 		call	exterr		;AN000; ;GET EXTENDED ERROR, SHOW MSG
-;	    $endif			;AN000;
+;	    $endif
 $$IF139:
 	    mov     bx,handle		;AN000; ;PAss HANDLE TO CLOSE FILE
 	    doscall HANDLECLOSE 	;AN000; ;CLOSE THIS EXTENDED OPEN OF THE FILE
-;	$endif				;AN000;
+;	$endif
 $$EN137:
 	ret				;AN000; ;retURN TO callER
-getcp	endp				;AN000;
+getcp	endp
 
 
 ;------------------------------------------------------------------------------
@@ -1613,8 +1589,8 @@ getcp	endp				;AN000;
 ;   INPUT  -
 ;   OUTPUT -
 ;------------------------------------------------------------------------------
-exterr	proc	near			;AN000;
-	public	exterr			;AN000;
+exterr	proc	near
+	public	exterr
 
 	xor	bx,bx			;AC008; ;AN000; ;bx = MINOR VERsiON # OF DOS
 	doscall EXTERROR		;AN000; ;GET EXTENDED ERROR
@@ -1626,8 +1602,8 @@ exterr	proc	near			;AN000;
 	print_msg msgnum_exterr,STDERR	;AN000; ;dispLAY EXTENDED ERROR MEssAGE
 
 	mov	exitfl,EXVER		;AN000; ;INdiCATE AN ERROR
-	ret				;AN000;
-exterr	endp				;AN000;
+	ret
+exterr	endp
 
 
 ;------------------------------------------------------------------------------
@@ -1638,16 +1614,16 @@ exterr	endp				;AN000;
 ;------------------------------------------------------------------------------
 bufferDB db	6 dup(0)
 
-get_dbcs_vector proc near		;AN006;
-	push	es			;AN006;
-	push	di			;AN006;
-	push	ax			;AN006;
-	push	bx			;AN006;
-	push	cx			;AN006;
-	push	dx			;AN006;
+get_dbcs_vector proc near
+	push	es
+	push	di
+	push	ax
+	push	bx
+	push	cx
+	push	dx
 ;
 	mov	ax,cs			;AN006; ;segment of return buffer
-	mov	es,ax			;AN006;
+	mov	es,ax
 	mov	di,offset bufferDB	;AN006; ;offset of return buffer
 	mov	ah,65h			;AN006; ;get extended country info
 	mov	al,07h			;AN006; ;get DBCS environment table
@@ -1665,20 +1641,20 @@ get_dbcs_vector proc near		;AN006;
 	mov	cs:dbcs_seg,bx		;AN006; ;save it
 ;
 	mov	di,ax			;AN006; ;Point to DBCS table to get length
-	mov	es,bx			;AN006;
-	mov	ax,word ptr es:[di]	;AN006;
-	mov	cs:dbcs_len,ax		;AN006;
+	mov	es,bx
+	mov	ax,word ptr es:[di]
+	mov	cs:dbcs_len,ax
 	add	cs:dbcs_off,2		;AN006; ;change offset to point to table
 ;
-	pop	dx			;AN006;
-	pop	cx			;AN006;
-	pop	bx			;AN006;
-	pop	ax			;AN006;
-	pop	di			;AN006;
-	pop	es			;AN006;
+	pop	dx
+	pop	cx
+	pop	bx
+	pop	ax
+	pop	di
+	pop	es
 ;
-	ret				;AN006;
-get_dbcs_vector endp			;AN006;
+	ret
+get_dbcs_vector endp
 
 
 ;------------------------------------------------------------------------------
@@ -1691,18 +1667,18 @@ get_dbcs_vector endp			;AN006;
 ;   OUTPUT - set ZERO flag if [SI-1] != DBCS character AND [SI] == '\',
 ;	     else resets ZERO flag.
 ;------------------------------------------------------------------------------
-Check_DBCS_slash proc near		;AN006;
-	push	es			;AN006;
-	push	di			;AN006;
-	push	si			;AN006;
-	push	ax			;AN006;
-	push	bx			;AN006;
-	push	cx			;AN006;
+Check_DBCS_slash proc near
+	push	es
+	push	di
+	push	si
+	push	ax
+	push	bx
+	push	cx
 ;
 	cmp	byte ptr [si],'\'	;AN006; ;Is character a slash ?
 	jne	reset_zero		;AN006; ;no, quit.
 ;
-	cld				;AN006;
+	cld
 	mov	cx,128			;AN006; ;clear darray to zeroes
 	mov	di,offset dstring	;AN006; ;dstring will correspond to the string pointed to by
 	mov	al,00			;AN006; ;string_seg:string_off and for each character in the string
@@ -1718,40 +1694,40 @@ Check_DBCS_slash proc near		;AN006;
 	mov	si,string_off		;AN006; ;si points to beginning of string.
 ;
 	mov	bx,cs:dbcs_seg		;AN006; ;ES:SI -> DOS dbcs table (segment)
-	mov	es,bx			;AN006;
+	mov	es,bx
 ;
 	mov	bx,offset dstring	;AN006; ;bx points to dstring
-DB_loop:				;AN006;
+DB_loop:
 	mov	di,cs:dbcs_off		;AN006; ;ES:SI -> DOS dbcs table (offset)
 	lodsb				;AN006; ;get character into al
 ;
 ; Two consecutive 00 bytes signifies end of table
 ;
 
-is_loop:				;AN006;
+is_loop:
 	cmp	word ptr es:[di],00h	;AN006; ;Check for two consecutive 00 bytes
 	jne	is_next1		;AN006; ;no, continue
 	jmp	short DB_inc		;AC008; ;AN006; ;yes, found them, quit
 ;
 ; Check if byte is within range values of DOS dbcs table
 ;
-is_next1:				;AN006;
+is_next1:
 	cmp	al,byte ptr es:[di]	;AN006; ;is byte >= first byte in range?
 	jae	is_next2		;AN006; ;yes, continue
 	jmp	short is_again		;AC008; ;AN006; ;no, loop again
-is_next2:				;AN006;
+is_next2:
 	cmp	al,byte ptr es:[di+1]	;AN006; ;is byte <= last byte in range?
 	jbe	is_found		;AN006; ;yes, found a lead byte of db char
-is_again:				;AN006;
+is_again:
 	add	di,2			;AN006; ;no, increment ptr to next range
-	jmp	is_loop 		;AN006;
-is_found:				;AN006;
+	jmp	is_loop
+is_found:
 	mov	byte ptr ds:[bx],'D'	;AN006; ;byte is lead byte of db char, set [BX] = 'D'
 	inc	bx			;AN006; ;skip over second part of double byte char.
 	inc	si			;AN006; ; "     "    "     "   "    "	  "     "
-DB_inc: 				;AN006;
-	inc	bx			;AN006;
-	dec	cx			;AN006;
+DB_inc:
+	inc	bx
+	dec	cx
 	and	cx,cx			;AC008; ;AN006; ;are we done check characters for DBCS
 	jne	DB_loop 		;AN006; ;no, check next character
 ;
@@ -1763,22 +1739,21 @@ DB_inc: 				;AN006;
 	add	si,cx			;AN006; ;si now point to char preceeding slash
 	cmp	byte ptr [si],'D'	;AN006; ;Is it DBCS ?
 	je	reset_zero		;AN006; ;yes
-set_zero:				;AN006;
+set_zero:
 	cmp	al,al			;AN006; ;set ZERO flag
-	jmp	short is_bye		;AC008; ;AN006;
-reset_zero:				;AN006;
-	mov	bx,01h			;AN006;
+	jmp	short is_bye
+reset_zero:
+	mov	bx,01h
 	cmp	bx,0ffh 		;AN006; ;reset ZERO flag
-is_bye: 				;AN006;
-	pop	cx			;AN006;
-	pop	bx			;AN006;
-	pop	ax			;AN006;
-	pop	si			;AN006;
-	pop	di			;AN006;
-	pop	es			;AN006;
-;					;AN006;
-	ret				;AN006;
-Check_DBCS_slash endp			;AN006;
+is_bye:
+	pop	cx
+	pop	bx
+	pop	ax
+	pop	si
+	pop	di
+	pop	es
+	ret
+Check_DBCS_slash endp
 
 
 ;------------------------------------------------------------------------------
@@ -1787,13 +1762,13 @@ Check_DBCS_slash endp			;AN006;
 ;   INPUT  - DX = ptr to msg descriptor for this message
 ;   OUTPUT - DX, AX altered, others ok.
 ;------------------------------------------------------------------------------
-sendmsg proc	near			;AN000;
-	public	sendmsg 		;AN000;
+sendmsg proc	near
+	public	sendmsg
 
 	push	bx			;AN000; ;SAVE callER'S REGS
-	push	cx			;AN000;
-	push	si			;AN000;
-	push	di			;AN000;
+	push	cx
+	push	si
+	push	di
 	mov	di,dx			;AN000; ;PUT ptr TO MSG DesC. IN di
 	mov	dx,[di].msg_input	;AN000; ;GET ptr TO INPUT BUFFER AND PUT IN dx
 	push	dx			;AN000; ;SAVE IT ON THE STACK FOR LATER
@@ -1820,19 +1795,19 @@ sendmsg proc	near			;AN000;
 $$IF142:
 
 	pop	di			;AN000; ;ResTORE callER'S REGISTERS
-	pop	si			;AN000;
-	pop	cx			;AN000;
-	pop	bx			;AN000;
+	pop	si
+	pop	cx
+	pop	bx
 
-	ret				;AN000;
-sendmsg endp				;AN000;
+	ret
+sendmsg endp
 
 
 
 ;------FIND BOUNDARY--------------
 	if	($-cseg) mod 16 	;AN000; ;IF NOT ALREADY ON 16 byte BOUNDARY
 	    org     ($-cseg)+16-(($-cseg) mod 16) ;AN000; ;ADJUST TO 16 byte BOUNDARY
-	endif				;AN000;
+	endif
 ;---------------------------------
 
 buf	label	byte
@@ -1850,8 +1825,8 @@ buf	label	byte
 ;   INPUT  -
 ;   OUTPUT -
 ;------------------------------------------------------------------------------
-setfill proc	near			;AN000;
-	public	setfill 		;AN000;
+setfill proc	near
+	public	setfill
 	push	ax			;AN000; ;save registers
 	mov	ax,cs			;AN000; ;get the code segment
 	mov	sublist_6.sub_value_seg,ax ;AN000; ;save seg_id in sublist
@@ -1865,8 +1840,8 @@ setfill proc	near			;AN000;
 	mov	sublist_24.sub_value_seg,ax ;AN000; ;FILL IN CODE SEGMENT
 	mov	sublist_exterr.sub_value_seg,ax ;AN000; ;FILL IN CODE SEGMENT
 	pop	ax			;AN000; ; GET OLD VALUE IN ax BACK
-	ret				;AN000;
-setfill endp				;AN000;
+	ret
+setfill endp
 
 
 ;------------------------------------------------------------------------------
@@ -1876,8 +1851,8 @@ setfill endp				;AN000;
 ;   INPUT  -
 ;   OUTPUT -
 ;------------------------------------------------------------------------------
-more_init proc	near			;AC000;
-	public	more_init		;AN000;
+more_init proc	near
+	public	more_init
 
 	cld
 	or	ah,al
@@ -1886,7 +1861,7 @@ more_init proc	near			;AC000;
 	JNE $$IF144
 	    print_msg msgnum_baddrv,STDERR ;AN000; ;"INVALID DRIVE SPEC."
 	    int     20h 		;and quit
-;	$endif				;AC000;
+;	$endif
 $$IF144:
 	mov	ax, offset buf+4096	;end of pgm
 	add	ax,16
@@ -1939,16 +1914,16 @@ cmem:
 	JNE $$IF146
 	    print_msg msgnum_baddrv,STDERR ;AN000; ;"Invalid drive spec."
 	    int     20h 		;and quit
-;	$else				;AC000;
+;	$else
 	JMP SHORT $$EN146
 $$IF146:
 	    mov     dx,offset CBExit
 	    doscall SETVECTOR,23H	;AC000; ;change control break vector, #23h
-;	$endif				;AC000;
+;	$endif
 $$EN146:
 
 	ret				;AN000; ;return to main
-more_init endp				;AN000;
+more_init endp
 
 cseg	ends
 	end

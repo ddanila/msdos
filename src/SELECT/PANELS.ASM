@@ -15,22 +15,22 @@
 
 	.ALPHA		; arrange segments alphabetically
 
-	INCLUDE SEL-PAN.INC		;AN024;
-	INCLUDE PAN-LIST.INC		;AN024;
+	INCLUDE SEL-PAN.INC
+	INCLUDE PAN-LIST.INC
 					;
-	PUBLIC	PCB_VECTOR		;AN024;
-	PUBLIC	NUM_PCB 		;AN024;
+	PUBLIC	PCB_VECTOR
+	PUBLIC	NUM_PCB
 					;
-PANEL	EQU	1			;AN024;
-SCROLL	EQU	0			;AN024;
+PANEL	EQU	1
+SCROLL	EQU	0
 					;
-CODE	SEGMENT PARA PUBLIC 'CODE'      ;AN024;
+CODE	SEGMENT PARA PUBLIC 'CODE'
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; Panel Control Block Vector
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB_VECTOR	LABEL WORD		;AC024;
+PCB_VECTOR	LABEL WORD
 	DW	0,OFFSET PCB1		;AC024;PCB1  segment, offset
 	DW	0,OFFSET PCB2		;AC024;PCB2  segment, offset
 	DW	0,OFFSET PCB3		;AC024;PCB3  segment, offset
@@ -134,13 +134,13 @@ PCB_VECTOR	LABEL WORD		;AC024;
 	DW	0,OFFSET PCB101		;AC024;PCB101 segment, offset
 	DW	0,OFFSET PCB102		;AC024;PCB102 segment, offset
 	DW	0,OFFSET PCB103		;AC024;PCB102 segment, offset
-NUM_PCB        EQU	($-PCB_VECTOR)/4;AN024;
+NUM_PCB        EQU	($-PCB_VECTOR)/4
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; PAN_WELCOME	EQU	1		; Welcome Screen
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB1	LABEL	WORD		;AN000;
+PCB1	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -174,9 +174,9 @@ PCB1	LABEL	WORD		;AN000;
 	DW	2		;AN000;Number of child panel entries
 	DW	OFFSET CHILD2	;AN000;Off address of child panel table
 	DW	0		;AN000;Seg address of child panel table
-	DW	10 DUP(0)	;AN000;
+	DW	10 DUP(0)
 
-CHILD2	LABEL	WORD		;AN000;
+CHILD2	LABEL	WORD
 	DW	CHILD_ENTER	;AN000;child PCB element number
 	DW	25		;AN000;row override
 	DW	1		;AN000;column override
@@ -205,7 +205,7 @@ CHILD2	LABEL	WORD		;AN000;
 ; PAN_INTRO	EQU	2		; Introduction Screen
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB2	LABEL	WORD		;AN000;
+PCB2	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -245,7 +245,7 @@ PCB2	LABEL	WORD		;AN000;
 ; PAN_CONFIRM	EQU	3		; Confirmation Screen
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB3	LABEL	WORD		;AN000;
+PCB3	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -281,7 +281,7 @@ PCB3	LABEL	WORD		;AN000;
 	DW	0		;AN000;Seg address of child panel table
 	DW	10  DUP(0)	;AN000;GHG new adds
 
-CHILD4	LABEL	WORD		;AN000;
+CHILD4	LABEL	WORD
 	DW	CHILD_F3EXIT	;AN000;child PCB element number
 	DW	25		;AN000;row override
 	DW	1		;AN000;column override
@@ -302,7 +302,7 @@ CHILD4	LABEL	WORD		;AN000;
 ; PAN_WORKSPACE EQU	4		; User memory needs screen
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB4	LABEL	WORD		;AN000;
+PCB4	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -342,7 +342,7 @@ PCB4	LABEL	WORD		;AN000;
 ; PAN_CTY_KYB	  EQU	   5	  ;
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB5	LABEL	WORD		;AN000;
+PCB5	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -382,7 +382,7 @@ PCB5	LABEL	WORD		;AN000;
 ; PAN_COUNTRY	  EQU	   6	  ;
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB6	LABEL	WORD		;AN000;
+PCB6	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -422,7 +422,7 @@ PCB6	LABEL	WORD		;AN000;
 ; PAN_KEYBOARD	  EQU	   7	  ;
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB7	LABEL	WORD		;AN000;
+PCB7	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -462,7 +462,7 @@ PCB7	LABEL	WORD		;AN000;
 ; PAN_KYBD_ALT	  EQU	   8	  ;
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB8	LABEL	WORD		;AN000;
+PCB8	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -502,7 +502,7 @@ PCB8	LABEL	WORD		;AN000;
 ; PAN_DEST_DRIVE  EQU	  9	  ;
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB9	LABEL	WORD		;AN000;
+PCB9	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -542,7 +542,7 @@ PCB9	LABEL	WORD		;AN000;
 ; PAN_DOS_LOC	  EQU	  10	  ;
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB10	LABEL	WORD		;AN000;
+PCB10	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -582,7 +582,7 @@ PCB10	LABEL	WORD		;AN000;
 ; PAN_PRINTER	  EQU	  11	  ;
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB11	LABEL	WORD		;AN000;
+PCB11	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -622,7 +622,7 @@ PCB11	LABEL	WORD		;AN000;
 ; PAN_PRT_TYPE	  EQU	  12	  ;
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB12	LABEL	WORD		;AN000;
+PCB12	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -662,7 +662,7 @@ PCB12	LABEL	WORD		;AN000;
 ; PAN_PARALLEL	  EQU	  13	  ;
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB13	LABEL	WORD		;AN000;
+PCB13	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -702,7 +702,7 @@ PCB13	LABEL	WORD		;AN000;
 ; PAN_SERIAL	  EQU	  14	  ;
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB14	LABEL	WORD		;AN000;
+PCB14	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -742,7 +742,7 @@ PCB14	LABEL	WORD		;AN000;
 ; PAN_REVIEW	  EQU	  15	  ;
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB15	LABEL	WORD		;AN000;
+PCB15	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -782,7 +782,7 @@ PCB15	LABEL	WORD		;AN000;
 ; PAN_FUNC_DISK   EQU	  16	  ;
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB16	LABEL	WORD		;AN000;
+PCB16	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -822,7 +822,7 @@ PCB16	LABEL	WORD		;AN000;
 ; err_prt_no_hdwr EQU	  17	  ;
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB17	LABEL	WORD		;AN000;
+PCB17	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -862,7 +862,7 @@ PCB17	LABEL	WORD		;AN000;
 ; PAN_DOS_PARAM   EQU	  18	  ;
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB18	LABEL	WORD		;AN000;
+PCB18	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -902,7 +902,7 @@ PCB18	LABEL	WORD		;AN000;
 ; PAN_SHELL	  EQU	  19	  ;
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB19	LABEL	WORD		;AN000;
+PCB19	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -942,7 +942,7 @@ PCB19	LABEL	WORD		;AN000;
 ; ERR_EXIT
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB20	LABEL	WORD		;AN000;
+PCB20	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -982,7 +982,7 @@ PCB20	LABEL	WORD		;AN000;
 ; PAN_FASTOPEN	  EQU	  21	  ;
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB21	LABEL	WORD		;AN000;
+PCB21	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -1022,7 +1022,7 @@ PCB21	LABEL	WORD		;AN000;
 ; PAN_SHARE	  EQU	  22	  ;
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB22	LABEL	WORD		;AN000;
+PCB22	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -1062,7 +1062,7 @@ PCB22	LABEL	WORD		;AN000;
 ; PAN_GRAPHICS	  EQU	  23	  ;
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB23	LABEL	WORD		;AN000;
+PCB23	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -1102,7 +1102,7 @@ PCB23	LABEL	WORD		;AN000;
 ; PAN_EXP_MEMORY  EQU	  24	  ;
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB24	LABEL	WORD		;AN000;
+PCB24	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -1142,7 +1142,7 @@ PCB24	LABEL	WORD		;AN000;
 ; PAN_VDISK	  EQU	  25	  ;
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB25	LABEL	WORD		;AN000;
+PCB25	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -1182,7 +1182,7 @@ PCB25	LABEL	WORD		;AN000;
 ; PAN_CONFIG_PARS EQU	  26	  ;
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB26	LABEL	WORD		;AN000;
+PCB26	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -1222,7 +1222,7 @@ PCB26	LABEL	WORD		;AN000;
 ; PAN_FIXED_FIRST EQU	  27	  ;
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB27	LABEL	WORD		;AN000;
+PCB27	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -1262,7 +1262,7 @@ PCB27	LABEL	WORD		;AN000;
 ; PAN_FIXED_BOTH  EQU	  28	  ;
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB28	LABEL	WORD		;AN000;
+PCB28	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -1302,7 +1302,7 @@ PCB28	LABEL	WORD		;AN000;
 ; PAN_REBOOT	  EQU	  29	  ;
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB29	LABEL	WORD		;AN000;
+PCB29	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -1342,7 +1342,7 @@ PCB29	LABEL	WORD		;AN000;
 ; PAN_date_time   EQU	  30	  ;
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB30	LABEL	WORD		;AN000;
+PCB30	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -1378,7 +1378,7 @@ PCB30	LABEL	WORD		;AN000;
 	DW	0		;AN000;Seg address of child panel table
 	DW	10  DUP(0)	;AN000;GHG new adds
 
-CHILD31 LABEL	WORD		;AN000;
+CHILD31 LABEL	WORD
 	DW	CHILD_ENTER	;AN000;child PCB element number
 	DW	25		;AN000;row override
 	DW	1		;AN000;column override
@@ -1400,7 +1400,7 @@ CHILD31 LABEL	WORD		;AN000;
 ; PAN_FORMAT	  EQU	  31	  ;
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB31	LABEL	WORD		;AN000;
+PCB31	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -1440,7 +1440,7 @@ PCB31	LABEL	WORD		;AN000;
 ; PAN_INST_PROMPT EQU	  32	  ;
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB32	LABEL	WORD		;AN000;
+PCB32	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -1481,7 +1481,7 @@ PCB32	LABEL	WORD		;AN000;
 ; err_keyb    EQU      33      ;
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB33	LABEL	WORD		;AN000;
+PCB33	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -1522,7 +1522,7 @@ PCB33	LABEL	WORD		;AN000;
 ; PAN_COMPLETE_1  EQU	  34	  ;
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB34	LABEL	WORD		;AN000;
+PCB34	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -1563,7 +1563,7 @@ PCB34	LABEL	WORD		;AN000;
 ; SUB_COMP_KYS_1C   EQU     35	    ;
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB35	LABEL	WORD		;AN000;
+PCB35	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -1604,7 +1604,7 @@ PCB35	LABEL	WORD		;AN000;
 ; contextual help
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB36	LABEL	WORD		;AN000;
+PCB36	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -1641,7 +1641,7 @@ PCB36	LABEL	WORD		;AN000;
 	DW	10  DUP(0)	;AN000;GHG new adds
 				;
 
-CHILD37 LABEL	WORD		;AN000;
+CHILD37 LABEL	WORD
 	DW	CHILD_QUIT	;AN000;child PCB element number
 	DW	PANEL36_L-1	;AN000;row override
 	DW	2		;AN000;column override
@@ -1670,7 +1670,7 @@ CHILD37 LABEL	WORD		;AN000;
 ; HORIZONTAL BAR
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB37	LABEL	WORD		;AN000;
+PCB37	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -1711,7 +1711,7 @@ PCB37	LABEL	WORD		;AN000;
 ; SUB_CONT_OPTION	EQU 38
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB38	LABEL	WORD		;AN000;
+PCB38	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -1752,7 +1752,7 @@ PCB38	LABEL	WORD		;AN000;
 ; SUB_PRINTER_1
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB39	LABEL	WORD		;AN000;
+PCB39	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -1793,7 +1793,7 @@ PCB39	LABEL	WORD		;AN000;
 ; CHILD F3=Exit
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB40	LABEL	WORD		;AN000;
+PCB40	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -1833,7 +1833,7 @@ PCB40	LABEL	WORD		;AN000;
 ; SUB_FIXED_1
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB41	LABEL	WORD		;AN000;
+PCB41	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -1870,10 +1870,10 @@ PCB41	LABEL	WORD		;AN000;
 	DW	10  DUP(0)	;AN000;GHG new adds
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
-; SUB_LOG_DRIVE EQU 42	;AN000;JW
+; SUB_LOG_DRIVE EQU 42
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB42	LABEL	WORD		;AN000;
+PCB42	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -1913,7 +1913,7 @@ PCB42	LABEL	WORD		;AN000;
 ; SUB_REBOOT_KEYS
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB43	LABEL	WORD		;AN000;
+PCB43	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -1953,7 +1953,7 @@ PCB43	LABEL	WORD		;AN000;
 ; SUB_INSTALL_1
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB44	LABEL	WORD		;AN000;
+PCB44	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -1993,7 +1993,7 @@ PCB44	LABEL	WORD		;AN000;
 ; SUB_INSTALL_2
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB45	LABEL	WORD		;AN000;
+PCB45	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -2033,7 +2033,7 @@ PCB45	LABEL	WORD		;AN000;
 ; SUB_COMP_VER
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB46	LABEL	WORD		;AN000;
+PCB46	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -2073,7 +2073,7 @@ PCB46	LABEL	WORD		;AN000;
 ; SUB_KEYS_1
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB47	LABEL	WORD		;AN000;
+PCB47	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -2113,7 +2113,7 @@ PCB47	LABEL	WORD		;AN000;
 ; SUB_KEYS_2
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB48	LABEL	WORD		;AN000;
+PCB48	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -2153,7 +2153,7 @@ PCB48	LABEL	WORD		;AN000;
 ; CHILD F1=HELP
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB49	LABEL	WORD		;AN000;
+PCB49	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -2193,7 +2193,7 @@ PCB49	LABEL	WORD		;AN000;
 ; CHILD F9=keys
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB50	LABEL	WORD		;AN000;
+PCB50	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -2233,7 +2233,7 @@ PCB50	LABEL	WORD		;AN000;
 ; CHILD esc
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB51	LABEL	WORD		;AN000;
+PCB51	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -2273,7 +2273,7 @@ PCB51	LABEL	WORD		;AN000;
 ; CHILD ENTER
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB52	LABEL	WORD		;AN000;
+PCB52	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -2313,7 +2313,7 @@ PCB52	LABEL	WORD		;AN000;
 ; SUB_COMP_REP
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB53	LABEL	WORD		;AN000;
+PCB53	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -2353,7 +2353,7 @@ PCB53	LABEL	WORD		;AN000;
 ; ERROR PANEL 1
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB54	LABEL	WORD		;AN000;
+PCB54	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -2393,7 +2393,7 @@ PCB54	LABEL	WORD		;AN000;
 ; ERROR PANEL 2
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB55	LABEL	WORD		;AN000;
+PCB55	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -2433,7 +2433,7 @@ PCB55	LABEL	WORD		;AN000;
 ; ERROR PANEL 3
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB56	LABEL	WORD		;AN000;
+PCB56	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -2473,7 +2473,7 @@ PCB56	LABEL	WORD		;AN000;
 ; ERROR PANEL 4
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB57	LABEL	WORD		;AN000;
+PCB57	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -2513,7 +2513,7 @@ PCB57	LABEL	WORD		;AN000;
 ; SUB_INS_START_B
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB58	LABEL	WORD		;AN000;
+PCB58	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -2553,7 +2553,7 @@ PCB58	LABEL	WORD		;AN000;
 ; SUB_REM_SEL_A
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB59	LABEL	WORD		;AN000;
+PCB59	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -2593,7 +2593,7 @@ PCB59	LABEL	WORD		;AN000;
 ; SUB_REM_START_B
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB60	LABEL	WORD		;AN000;
+PCB60	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -2633,7 +2633,7 @@ PCB60	LABEL	WORD		;AN000;
 ; SUB_REM_DOS_A
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB61	LABEL	WORD		;AN000;
+PCB61	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -2673,7 +2673,7 @@ PCB61	LABEL	WORD		;AN000;
 ; ERR_BAD_PATH
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB62	LABEL	WORD		;AN000;
+PCB62	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -2713,7 +2713,7 @@ PCB62	LABEL	WORD		;AN000;
 ; ERR_BAD_PRT_FILE
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB63	LABEL	WORD		;AN000;
+PCB63	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -2753,7 +2753,7 @@ PCB63	LABEL	WORD		;AN000;
 ; ERR_BAD_PRT_PROFILE
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB64	LABEL	WORD		;AN000;
+PCB64	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -2793,7 +2793,7 @@ PCB64	LABEL	WORD		;AN000;
 ; FORMAT_DISK
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB65	LABEL	WORD		;AN000;
+PCB65	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -2833,7 +2833,7 @@ PCB65	LABEL	WORD		;AN000;
 ; FORMAT_DISKETTE
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB66	LABEL	WORD		;AN000;
+PCB66	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -2873,7 +2873,7 @@ PCB66	LABEL	WORD		;AN000;
 ; ERR_border
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB67	LABEL	WORD		;AN000;
+PCB67	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -2909,7 +2909,7 @@ PCB67	LABEL	WORD		;AN000;
 	DW	0		;AN000;Seg address of child panel table
 	DW	10  DUP(0)	;AN000;GHG new adds
 
-CHILD68 LABEL	WORD		;AN000;
+CHILD68 LABEL	WORD
 	DW	CHILD_F3EXIT	;AN000;child PCB element number
 	DW	PANEL67_L-1	;AN000;row override
 	DW	2		;AN000;column override
@@ -2930,7 +2930,7 @@ CHILD68 LABEL	WORD		;AN000;
 ; ERR_DOS_DISK
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB68	LABEL	WORD		;AN000;
+PCB68	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -2970,7 +2970,7 @@ PCB68	LABEL	WORD		;AN000;
 ; ERR_INSTALL
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB69	LABEL	WORD		;AN000;
+PCB69	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -3010,7 +3010,7 @@ PCB69	LABEL	WORD		;AN000;
 ; PAN_DISKCOPY
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB70	LABEL	WORD		;AN000;
+PCB70	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -3050,7 +3050,7 @@ PCB70	LABEL	WORD		;AN000;
 ; PAN_DSKCPY_SRC
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB71	LABEL	WORD		;AN000;
+PCB71	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -3090,7 +3090,7 @@ PCB71	LABEL	WORD		;AN000;
 ; PAN_DSKCPY_TAR
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB72	LABEL	WORD		;AN000;
+PCB72	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -3130,7 +3130,7 @@ PCB72	LABEL	WORD		;AN000;
 ; PAN_DSKCPY_CPY
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB73	LABEL	WORD		;AN000;
+PCB73	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -3170,7 +3170,7 @@ PCB73	LABEL	WORD		;AN000;
 ; PAN_PARTIAL
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB74	LABEL	WORD		;AN000;
+PCB74	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -3210,7 +3210,7 @@ PCB74	LABEL	WORD		;AN000;
 ; FORMAT_DISKETTE  (SINGLE DRIVE - SHELL)
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB75	LABEL	WORD		;AN000;
+PCB75	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -3250,7 +3250,7 @@ PCB75	LABEL	WORD		;AN000;
 ; FORMAT_DISKETTE   (SINGLE DRIVE - STARTUP)
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB76	LABEL	WORD		;AN000;
+PCB76	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -3290,7 +3290,7 @@ PCB76	LABEL	WORD		;AN000;
 ; SUB_REM_SHELL_360
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB77	LABEL	WORD		;AN000;
+PCB77	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -3330,7 +3330,7 @@ PCB77	LABEL	WORD		;AN000;
 ; SUB_REM_SELECT_360
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB78	LABEL	WORD		;AN000;
+PCB78	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -3370,7 +3370,7 @@ PCB78	LABEL	WORD		;AN000;
 ; SUB_REM_UTIL1_360
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB79	LABEL	WORD		;AN000;
+PCB79	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -3410,7 +3410,7 @@ PCB79	LABEL	WORD		;AN000;
 ; SUB_COPYING
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB80	LABEL	WORD		;AN000;
+PCB80	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -3450,7 +3450,7 @@ PCB80	LABEL	WORD		;AN000;
 ; SUB_INS_WORK1_360
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB81	LABEL	WORD		;AN000;
+PCB81	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -3490,7 +3490,7 @@ PCB81	LABEL	WORD		;AN000;
 ; SUB_INS_WORK2_360
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB82	LABEL	WORD		;AN000;
+PCB82	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -3530,7 +3530,7 @@ PCB82	LABEL	WORD		;AN000;
 ; SUB_INS_SHELL_360
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB83	LABEL	WORD		;AN000;
+PCB83	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -3570,7 +3570,7 @@ PCB83	LABEL	WORD		;AN000;
 ; SUB_INS_START_360
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB84	LABEL	WORD		;AN000;
+PCB84	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -3610,7 +3610,7 @@ PCB84	LABEL	WORD		;AN000;
 ; SUB_INS_INSTALL_360
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB85	LABEL	WORD		;AN000;
+PCB85	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -3650,7 +3650,7 @@ PCB85	LABEL	WORD		;AN000;
 ; SUB_INS_WORK1_S360   EQU 86	  ;AN000;DT 1 drive 360 installation
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB86	LABEL	WORD		;AN000;
+PCB86	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -3687,10 +3687,10 @@ PCB86	LABEL	WORD		;AN000;
 	DW	10  DUP(0)	;AN000;GHG new adds
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
-; SUB_INS_WORK2_S360   EQU 87	  ;AN000;DT
+; SUB_INS_WORK2_S360   EQU 87
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB87	LABEL	WORD		;AN000;
+PCB87	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -3730,7 +3730,7 @@ PCB87	LABEL	WORD		;AN000;
 ; SUB_INS_SHELL_S360   EQU 88	  ;AN000;DT	    "
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB88	LABEL	WORD		;AN000;
+PCB88	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -3770,7 +3770,7 @@ PCB88	LABEL	WORD		;AN000;
 ; SUB_INS_STARTT_S360	EQU 89	   ;AN000;DT	     "
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB89	LABEL	WORD		;AN000;
+PCB89	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -3810,7 +3810,7 @@ PCB89	LABEL	WORD		;AN000;
 ; PAN_START360
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB90	LABEL	WORD		;AN000;
+PCB90	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -3850,7 +3850,7 @@ PCB90	LABEL	WORD		;AN000;
 ; PAN_COMPLETE3
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB91	LABEL	WORD		;AN000;
+PCB91	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -3890,7 +3890,7 @@ PCB91	LABEL	WORD		;AN000;
 ; SUB_INSTALL_COPY
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB92	LABEL	WORD		;AN000;
+PCB92	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -3930,7 +3930,7 @@ PCB92	LABEL	WORD		;AN000;
 ; SUB_SHELL_HD
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB93	LABEL	WORD		;AN000;
+PCB93	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -3967,10 +3967,10 @@ PCB93	LABEL	WORD		;AN000;
 	DW	10  DUP(0)	;AN000;GHG new adds
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
-; PAN_EXP_MEMORY2 EQU	  94	  ;AN000;JW
+; PAN_EXP_MEMORY2 EQU	  94
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB94	LABEL	WORD		;AN000;
+PCB94	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -4010,7 +4010,7 @@ PCB94	LABEL	WORD		;AN000;
 ; PAN_START720
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB95	LABEL	WORD		;AN000;
+PCB95	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -4050,7 +4050,7 @@ PCB95	LABEL	WORD		;AN000;
 ; PAN_START1440
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB96	LABEL	WORD		;AN000;
+PCB96	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -4090,7 +4090,7 @@ PCB96	LABEL	WORD		;AN000;
 ; ERR_INS_INSTALL
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB97	LABEL	WORD		;AN000;
+PCB97	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -4130,7 +4130,7 @@ PCB97	LABEL	WORD		;AN000;
 ; PAN_CHOOSE_SHELL  EQU	  98	  ;
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB98	LABEL	WORD		;AN000;
+PCB98	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -4170,7 +4170,7 @@ PCB98	LABEL	WORD		;AN000;
 ; SUB_INS_WORKING_A equ 99
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB99	LABEL	WORD		;AN000;
+PCB99	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -4210,7 +4210,7 @@ PCB99	LABEL	WORD		;AN000;
 ; SUB_INS_MSSHELL_A equ 100
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB100	LABEL	WORD		;AN000;
+PCB100	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -4250,7 +4250,7 @@ PCB100	LABEL	WORD		;AN000;
 ; SUB_INS_SHELL_DISKS equ 101
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB101	LABEL	WORD		;AN000;
+PCB101	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -4290,7 +4290,7 @@ PCB101	LABEL	WORD		;AN000;
 ; SUB_INS_OP_WORK = 102
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB102	LABEL	WORD		;AN000;
+PCB102	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -4330,7 +4330,7 @@ PCB102	LABEL	WORD		;AN000;
 ; SUB_INS_WORK3_A equ 103
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB103	LABEL	WORD		;AN000;
+PCB103	LABEL	WORD
 	DW	PCB_EXP 	;AN000;option word
 	DB	0		;AN000;GHG new adds
 	DB	0		;AN000;GHG new adds
@@ -4367,8 +4367,8 @@ PCB103	LABEL	WORD		;AN000;
 	DW	10  DUP(0)	;AN000;GHG new adds
 
 
-	INCLUDE PANEL.INF	;AN000;
+	INCLUDE PANEL.INF
 
-CODE	ENDS			;AN000;
-	END			;AN000;
+CODE	ENDS
+	END
 

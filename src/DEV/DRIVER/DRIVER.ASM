@@ -1,6 +1,4 @@
 	PAGE 64,132 ;
-;	SCCSID = @(#)driver.asm 4.13 85/10/15
-;	SCCSID = @(#)driver.asm 4.13 85/10/15
 ;
 ; External block device driver
 ; Hooks into existing routines in IBMBIO block driver via Int 2F mpx # 8.
@@ -11,25 +9,9 @@
 ;  this caused the FormFactor to be set in the Head
 ; Revised the # of sectors/cluster for F0h to 1
 ;==============================================================================
-;REVISION HISTORY:
-;AN000 - New for DOS Version 4.00 - J.K.
-;AC000 - Changed for DOS Version 4.00 - J.K.
-;AN00x - PTM number for DOS Version 4.00 - J.K.
-;==============================================================================
-;AN001 - d55 Unable the fixed disk accessibility of DRIVER.SYS.     7/7/87 J.K.
-;AN002 - p196 Driver.sys does not signal init. failure		    8/17/87 J.K.
-;AN003 - p267 "No driver letter..." message                         8/19/87 J.K.
-;AN004 - p268 "Too many parameter..." message                       8/20/87 J.K.
-;AN005 - p300 "Bad 1.44MB BPB information..."                       8/20/87 J.K.
-;AN006 - p490 Driver should reject identical parms		    8/28/87 J.K.
-;AN007 - p921 Parser.ASM problem				    9/18/87 J.K.
-;AN008 - d493 New init request structure			    2/25/88 J.K.
-;==============================================================================
-
 code segment byte public
 assume cs:code,ds:code,es:code
 
-;AN000;
 .xlist
 include SYSMSG.INC			;equates and macros
 .list
@@ -146,16 +128,16 @@ RecBPB1 DW	512			; default is that of 3.5" disk
 	DW	9
 	DW	2
 	DW	0
-	dw	0			;AN000;
-	dw	0			;AN000;
-	dw	0			;AN000;
-	db	6 dup (0)		;AC000;
+	dw	0
+	dw	0
+	dw	0
+	db	6 dup (0)
 TRACK1	DB	-1			;Last track accessed on this drive
 TIM_LO1 DW	-1			;Keep these two contiguous (?)
 TIM_HI1 DW	-1
 VOLID1	DB	"NO NAME    ",0         ;Volume ID for this disk
-VOLSER	dd	0			;AN000;
-FILE_ID db	"FAT12   ",0            ;AN000;
+VOLSER	dd	0
+FILE_ID db	"FAT12   ",0
 
 DOS_Drive_Letter	db	?	; Logical drive associated with this unit
 
@@ -198,15 +180,15 @@ QusSW	equ	0	; Support quoted string format
 assume ds:nothing				;AN007;!!!Parse.ASM sometimes assumes DS
 						;      to access its own variable!!!
 	include PARSE.ASM			;together with PSDATA.INC
-assume ds:code					;AN007;
+assume ds:code
 ;.list
 ;Control block definitions for PARSER.
 ;---------------------------------------------------
 Parms	label	byte
-	dw	Parmsx		;AN000;
+	dw	Parmsx
 	db	0		;AN000;No extras
 
-Parmsx	label	byte		;AN000;
+Parmsx	label	byte
 	db	0,0		;AN000;No positionals
 	db	5		;AN000;5 switch control definitions
 	dw	D_Control	;AN000;/D
@@ -216,93 +198,93 @@ Parmsx	label	byte		;AN000;
 	dw	F_Control	;AN000;/F
 	db	0		;AN000;no keywords
 
-D_Control	label	word	;AN000;
+D_Control	label	word
 	dw	8000h		;AN000;numeric value
 	dw	0		;AN000;no functions
 	dw	Result_Val	;AN000;result buffer
 	dw	D_Val		;AN000;value defintions
 	db	1		;AN000;# of switch in the following list
-Switch_D	label	byte	;AN000;
-	db	'/D',0          ;AN000;
+Switch_D	label	byte
+	db	'/D',0
 
-D_Val	label	byte		;AN000;
+D_Val	label	byte
 	db	1		;AN000;# of value defintions
 	db	1		;AN000;# of ranges
 	db	1		;AN000;Tag value when match
-;	 dd	 0,255		 ;AN000;
+;	 dd	 0,255
 	dd	0,127		;AN001;Do not allow a Fixed disk.
 
-Result_Val	label	byte	;AN000;
-	db	?		;AN000;
-Item_Tag	label	byte	;AN000;
-	db	?		;AN000;
-Synonym_ptr	label	word	;AN000;
+Result_Val	label	byte
+	db	?
+Item_Tag	label	byte
+	db	?
+Synonym_ptr	label	word
 	dw	?		;AN000;es:offset -> found Synonym
-RV_Byte 	label	byte	;AN000;
-RV_Word 	label	word	;AN000;
-RV_Dword	label	dword	;AN000;
+RV_Byte 	label	byte
+RV_Word 	label	word
+RV_Dword	label	dword
 	dd	?		;AN000;value if number, or seg:off to string
 
-T_Control	label	word	;AN000;
+T_Control	label	word
 	dw	8000h		;AN000;numeric value
 	dw	0		;AN000;no functions
 	dw	Result_Val	;AN000;result buffer
 	dw	T_Val		;AN000;value defintions
 	db	1		;AN000;# of switch in the following list
-Switch_T	label	byte	;AN000;
-	db	'/T',0          ;AN000;
+Switch_T	label	byte
+	db	'/T',0
 
-T_Val	label	byte		;AN000;
+T_Val	label	byte
 	db	1		;AN000;# of value defintions
 	db	1		;AN000;# of ranges
 	db	1		;AN000;Tag value when match
-	dd	1,999		;AN000;
+	dd	1,999
 
-HS_Control	label	word	;AN000;
+HS_Control	label	word
 	dw	8000h		;AN000;numeric value
 	dw	0		;AN000;no function flag
 	dw	Result_Val	;AN000;Result_buffer
 	dw	HS_VAL		;AN000;value definition
 	db	2		;AN000;# of switch in following list
-Switch_H	label	byte	;AN000;
-	db	'/H',0          ;AN000;
-Switch_S	label	byte	;AN000;
-	db	'/S',0          ;AN000;
+Switch_H	label	byte
+	db	'/H',0
+Switch_S	label	byte
+	db	'/S',0
 
-HS_Val	 label	 byte		;AN000;
+HS_Val	 label	 byte
 	db	1		;AN000;# of value defintions
 	db	1		;AN000;# of ranges
 	db	1		;AN000;Tag value when match
-	dd	1,99		;AN000;
+	dd	1,99
 
-CN_Control	 label	 word	;AN000;
+CN_Control	 label	 word
 	dw	0		;AN000;no match flags
 	dw	0		;AN000;no function flag
 	dw	Result_Val	;AN000;no values returned
 	dw	NoVal		;AN000;no value definition
 ;	 db	 2		 ;AN000;# of switch in following list
-	db	1		;AN001;
-Switch_C	label	byte	;AN000;
-	db	'/C',0          ;AN000;
-;Switch_N	 label	 byte	 ;AN000;
-;	 db	 '/N',0          ;AN000;
+	db	1
+Switch_C	label	byte
+	db	'/C',0
+;Switch_N	 label	 byte
+;	 db	 '/N',0
 
-Noval	db	0		;AN000;
+Noval	db	0
 
-F_Control	label	word	;AN000;
+F_Control	label	word
 	dw	8000h		;AN000;numeric value
 	dw	0		;AN000;no function flag
 	dw	Result_Val	;AN000;Result_buffer
 	dw	F_VAL		;AN000;value definition
 	db	1		;AN000;# of switch in following list
-Switch_F	label	byte	;AN000;
-	db	'/F',0          ;AN000;
+Switch_F	label	byte
+	db	'/F',0
 
-F_Val		label	byte	;AN000;
+F_Val		label	byte
 	db	2		;AN000;# of value definitions (Order dependent)
 	db	0		;AN000;no ranges
 	db	5		;AN000;# of numeric choices
-F_Choices	label	byte	;AN000;
+F_Choices	label	byte
 	db	1		;AN000;1st choice (item tag)
 	dd	0		;AN000;0
 	db	2		;AN000;2nd choice
@@ -373,7 +355,7 @@ Switches    dw	0
 Drive_Let_Sublist	label	dword
 	db     11	;AN000;length of this table
 	db	0	;AN000;reserved
-	dw	D_Letter;AN000;
+	dw	D_Letter
 D_Seg	dw	?	;AN000;Segment value. Should be CS
 	db	1	;AN000;DRIVER.SYS has only %1
 	db	00000000b ;AN000;left align(in fact, Don't care), a character.
@@ -453,7 +435,7 @@ DSK$INIT:
 
 	cld
 	push	cs			;AN000; Initialize Segment of Sub list.
-	pop	[D_Seg] 		;AN000;
+	pop	[D_Seg]
 	call	SYSLOADMSG		;AN000; linitialize message handler
 	jnc	GoodVer 		;AN000; Error. Do not install driver.
 	mov	cx, 0			;AN000; No substitution
@@ -499,7 +481,7 @@ GoodVer:
 	mov	cs:[DOS_Drive_Letter],al
 	add	al,"A"
 ;	 mov	 cs:[letter],al 	 ; set up for printing final message
-	mov	cs:[D_Letter], al	;AN000;
+	mov	cs:[D_Letter], al
 	call	SetDrvParms		; Set up BDS according to switches
 	jc	err$exitj2
 	mov	ah,8			; Int 2f multiplex number
@@ -521,7 +503,7 @@ GoodVer:
 	push	dx
 	push	cs
 	pop	ds
-	mov	si, offset Drive_Let_SubList  ;AC000;
+	mov	si, offset Drive_Let_SubList
 	mov	ax, LOADOK_MSG_NUM	;load ok message
 	mov	cx, 1			;AN000; 1 substitution
 	mov	dh, -1			;AN000; utility message
@@ -542,13 +524,13 @@ Skip_Over_Name:
 	call	scanblanks
 loop_name:
 	lodsb
-	cmp	al,CR				;AN003;
-	je	End_SkipName			;AN003;
-	cmp	al,LF				;AN003;
-	je	End_SkipName			;AN003;
+	cmp	al,CR
+	je	End_SkipName
+	cmp	al,LF
+	je	End_SkipName
 	cmp	al,'/'
 	jnz	loop_name
-End_SkipName:					;AN003;
+End_SkipName:
 	dec	si			    ; go back one character
 	RET
 
@@ -661,38 +643,38 @@ ParseLine	proc	near
 	assume	ds:nothing		;AN000;make sure
 	push	di			;AN000;save BDS pointer
 	mov	di, offset PARMS	;AN000;now, es:di -> parse control definition
-SysP_While:				;AN000;
+SysP_While:
 	xor	cx, cx			;AN004; I don't have positionals.
-	xor	dx, dx			;AN000;
-	call	SYSPARSE		;AN000;
+	xor	dx, dx
+	call	SYSPARSE
 	cmp	ax, $P_RC_EOL		;AN000;end of line?
-	je	SysP_End		;AN000;
+	je	SysP_End
 	cmp	ax, $P_NO_ERROR 	;AN000;no error?
-	jne	SysP_Fail		;AN000;
-	call	Get_Result		;AN000;
-	jmp	SysP_While		;AN000;
-SysP_End:				;AN000;
+	jne	SysP_Fail
+	call	Get_Result
+	jmp	SysP_While
+SysP_End:
 	test	Switches, FLAGDRIVE	;AN000;drive number specified?
 	jnz	SysP_Ok 		;AN000;Drive number is a requirement
-	push	ds			;AN000;
+	push	ds
 	mov	ax, NODRIVE_MSG_NUM	;AN000;no drive specification
 	mov	cx, 0			;AN000;no substitutions
 	mov	dh, -1			;AN000;utility message
-	call	Show_Message		;AN000;
-	pop	ds			;AN000;
-	jmp short SysP_Err		;AN003;
-SysP_Fail:				;AN000;
+	call	Show_Message
+	pop	ds
+	jmp short SysP_Err
+SysP_Fail:
 	mov	dh, 2			;AN000; parse error
-	mov	cx, 0			;AN000;
+	mov	cx, 0
 	call	Show_Message		;AN000; Show parse error
-SysP_Err:				;AN003;
-	stc				;AN000;
-	jmp short PL_Ret		;AN000;
-SysP_Ok:				;AN000;
-	clc				;AN000;
-PL_Ret: 				;AN000;
+SysP_Err:
+	stc
+	jmp short PL_Ret
+SysP_Ok:
+	clc
+PL_Ret:
 	pop	di			;AN000;restore BDS pointer
-	ret				;AN000;
+	ret
 ParseLine	endp
 
 ;
@@ -737,73 +719,73 @@ Get_Result	proc	near
 ;
 
 
-	mov	ax, Synonym_Ptr 	;AN000;
+	mov	ax, Synonym_Ptr
 	push	ax			;AN006; save Synonym_ptr
-	cmp	ax, offset Switch_D	;AN000;
-	jne	Stch_T			;AN000;
-	or	Switches, FLAGDRIVE	;AN000;
-	mov	al, RV_Byte		;AN000;
-	mov	Drivenumb, al		;AN000;
-	jmp	GR_Ret			;AN000;
-Stch_T: 				;AN000;
-	cmp	ax, offset Switch_T	;AN000;
-	jne	Stch_H			;AN000;
-	or	Switches, FLAGCYLN	;AN000;
-	mov	ax, RV_Word		;AN000;
-	mov	Cyln, ax		;AN000;
-	jmp	GR_Ret			;AN000;
-Stch_H: 				;AN000;
-	cmp	ax, offset Switch_H	;AN000;
-	jne	Stch_S			;AN000;
-	or	Switches, FLAGHEADS	;AN000;
-	mov	ax, RV_Word		;AN000;
-	mov	Heads, ax		;AN000;
-	jmp	GR_Ret			;AN000;
-Stch_S: 				;AN000;
-	cmp	ax, offset Switch_S	;AN000;
-	jne	Stch_C			;AN000;
-	or	Switches, FLAGSECLIM	;AN000;
-	mov	ax, RV_Word		;AN000;
-	mov	Slim, ax		;AN000;
-	jmp	GR_Ret			;AN000;
-Stch_C: 				;AN000;
-	cmp	ax, offset Switch_C	;AN000;
-;	 jne	 Stch_N 		 ;AN000;
-	jne	Stch_F			;AN001;
-	or	Switches, fCHANGELINE	;AN000;
-	jmp	GR_Ret			;AN000;
-;Stch_N:				 ;AN000;
-;	 cmp	 ax, offset Switch_N	 ;AN000;
-;	 jne	 Stch_F 		 ;AN000;
-;	 or	 Switches, fNON_REMOVABLE  ;AN000;
-;	 jmp	 GR_Ret 		 ;AN000;
-Stch_F: 				;AN000;
-	cmp	ax, offset Switch_F	;AN000;
+	cmp	ax, offset Switch_D
+	jne	Stch_T
+	or	Switches, FLAGDRIVE
+	mov	al, RV_Byte
+	mov	Drivenumb, al
+	jmp	GR_Ret
+Stch_T:
+	cmp	ax, offset Switch_T
+	jne	Stch_H
+	or	Switches, FLAGCYLN
+	mov	ax, RV_Word
+	mov	Cyln, ax
+	jmp	GR_Ret
+Stch_H:
+	cmp	ax, offset Switch_H
+	jne	Stch_S
+	or	Switches, FLAGHEADS
+	mov	ax, RV_Word
+	mov	Heads, ax
+	jmp	GR_Ret
+Stch_S:
+	cmp	ax, offset Switch_S
+	jne	Stch_C
+	or	Switches, FLAGSECLIM
+	mov	ax, RV_Word
+	mov	Slim, ax
+	jmp	GR_Ret
+Stch_C:
+	cmp	ax, offset Switch_C
+;	 jne	 Stch_N
+	jne	Stch_F
+	or	Switches, fCHANGELINE
+	jmp	GR_Ret
+;Stch_N:
+;	 cmp	 ax, offset Switch_N
+;	 jne	 Stch_F
+;	 or	 Switches, fNON_REMOVABLE
+;	 jmp	 GR_Ret
+Stch_F:
+	cmp	ax, offset Switch_F
 	jne	GR_Not_Found_Ret	;AN000;error in SYSPARSE
-	or	Switches, FLAGFF	;AN000;
-	push	si			;AN004;
-	mov	si, offset F_Choices	;AN000;
-	xor	ax, ax			;AN000;
-	mov	al, Item_Tag		;AN000;
-	dec	al			;AN000;
-	mov	cl, 5			;AN000;
-	mul	cl			;AN000;
-	add	si, ax			;AN000;
+	or	Switches, FLAGFF
+	push	si
+	mov	si, offset F_Choices
+	xor	ax, ax
+	mov	al, Item_Tag
+	dec	al
+	mov	cl, 5
+	mul	cl
+	add	si, ax
 	mov	al, byte ptr es:[si+1]	;AN000;get the result of choices
 	mov	ffactor, al		;AN000;set form factor
-	pop	si			;AN004;
-GR_Ret: 				;AN000;
+	pop	si
+GR_Ret:
 	pop	ax			;AN006; Restore Synonym ptr
 	push	di			;AN006; Save di
-	push	ax			;AN006;
-	pop	di			;AN006;
+	push	ax
+	pop	di
 	mov	byte ptr es:[di], ' '   ;AN006;We don't have this switch any more.
-	pop	di			;AN006;
-	jmp	short Gr_Done_Ret	;AN006;
+	pop	di
+	jmp	short Gr_Done_Ret
 GR_Not_Found_Ret:
 	pop	ax			;AN006;adjust stack
 GR_Done_Ret:
-	ret				;AN000;
+	ret
 Get_Result	endp
 
 
@@ -1162,21 +1144,21 @@ Got_Correct_Mediad:
 	mov	word ptr [di].RDrvLim,ax
 ;J.K. For ffOther type of media, we should set Sec/FAT, and # of Root directory
 ;J.K. accordingly.
-	cmp	byte ptr [di].FormFactor, ffOther  ;AN005;
-	jne	Set_All_Ok			;AN005;
-	xor	dx, dx				;AN005;
+	cmp	byte ptr [di].FormFactor, ffOther
+	jne	Set_All_Ok
+	xor	dx, dx
 	dec	ax				;AN005; DrvLim - 1.
 	mov	bx, 3				;AN005; Assume 12 bit fat.
 	mul	bx				;AN005;  = 1.5 byte
-	mov	bx, 2				;AN005;
-	div	bx				;AN005;
-	xor	dx, dx				;AN005;
-	mov	bx, 512 			;AN005;
-	div	bx				;AN005;
-	inc	ax				;AN005;
-	mov	[di].RCSecFat, ax		;AN005;
+	mov	bx, 2
+	div	bx
+	xor	dx, dx
+	mov	bx, 512
+	div	bx
+	inc	ax
+	mov	[di].RCSecFat, ax
 	mov	[di].RCDir, 0E0h		;AN005; directory entry # = 224
-Set_All_Ok:					;AN005;
+Set_All_Ok:
 	clc
 Set_All_Done:
 	RET
@@ -1217,12 +1199,12 @@ Show_Message	proc	near
 ;    CX = 0 or n depending on the substitution number
 ;    DH = -1 FOR UTILITY MSG CLASS, 2 FOR PARSE ERROR
 ;Out) Message displayed using DOS function 9 with no keyboard input.
-	push	cs		;AN000;
-	pop	ds		;AN000;
-	mov	bx, -1		;AN000;
+	push	cs
+	pop	ds
+	mov	bx, -1
 	mov	dl, 0		;AN000;no input
-	call	SYSDISPMSG	;AN000;
-	ret			;AN000;
+	call	SYSDISPMSG
+	ret
 Show_Message	endp
 
 ;
@@ -1324,7 +1306,6 @@ flagseclim  equ     0010H
 flagheads   equ     0020H
 flagff	    equ     0040H
 
-;AN000;
 ;Equates for message number
 NODRIVE_MSG_NUM   equ	2
 LOADOK_MSG_NUM	  equ	3

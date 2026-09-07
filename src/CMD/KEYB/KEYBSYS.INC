@@ -15,12 +15,6 @@
 ;;	 Include file containing structure definitions and equates
 ;;	 for the KEYBOARD.SYS file.
 ;;
-;; Change History:
-;; ---------------
-;;
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-				       ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; File header - contains pointers to keyboard tables for each language
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -44,8 +38,8 @@ KEYBSYS_HEADER	ENDS		       ;;
 ;******************CNS*******************
 KEYBSYS_ID_PTRS STRUC
 
-KP_ID_CODE	DW   0		       ;AN000;
-KP_LANG_PTR	DD   0		       ;AN000;
+KP_ID_CODE	DW   0
+KP_LANG_PTR	DD   0
 
 KEYBSYS_ID_PTRS ENDS
 				       ;;

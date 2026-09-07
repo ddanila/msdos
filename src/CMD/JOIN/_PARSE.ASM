@@ -19,105 +19,105 @@ title	C	to PARSER interface
 
 ;	extrn	sysparse:far
 
-	public	_parse								;AN000;
+	public	_parse
 
 ;-------------------------------------------------------------------
 
 ; set for JOIN
 ; -------------
 
-FarSW	equ	0			; make sysparse be a NEAR proc		;AN000;
-TimeSW	equ	0			; Check time format			;AN000;
-FileSW	equ	1			; Check file specification		;AN000;
-CAPSW	equ	1			; Perform CAPS if specified		;AN000;
-CmpxSW	equ	0			; Check complex list			;AN000;
-NumSW	equ	0			; Check numeric value			;AN000;
-KeySW	equ	0			; Support keywords			;AN000;
-SwSW	equ	1			; Support switches			;AN000;
-Val1SW	equ	0			; Support value definition 1		;AN000;
-Val2SW	equ	0			; Support value definition 2		;AN000;
-Val3SW	equ	0			; Support value definition 3		;AN000;
-DrvSW	equ	1			; Support drive only format		;AN000;
-QusSW	equ	0			; Support quoted string format		;AN000;
+FarSW	equ	0			; make sysparse be a NEAR proc
+TimeSW	equ	0			; Check time format
+FileSW	equ	1			; Check file specification
+CAPSW	equ	1			; Perform CAPS if specified
+CmpxSW	equ	0			; Check complex list
+NumSW	equ	0			; Check numeric value
+KeySW	equ	0			; Support keywords
+SwSW	equ	1			; Support switches
+Val1SW	equ	0			; Support value definition 1
+Val2SW	equ	0			; Support value definition 2
+Val3SW	equ	0			; Support value definition 3
+DrvSW	equ	1			; Support drive only format
+QusSW	equ	0			; Support quoted string format
 ;-------------------------------------------------------------------
 
 DGROUP	GROUP	_DATA
 PGROUP	GROUP	_TEXT
 
-_DATA	segment byte public 'DATA'	;AN000;
+_DATA	segment byte public 'DATA'
 BASESW	=	1			;SPECIFY, PSDATA POINTED TO BY "DS"
 INCSW	=	0			;PSDATA.INC IS ALREADY INCLUDED
 	INCLUDE PSDATA.INC		;PARSER'S WORK SPACE
-_DATA	ends				;AN000;
+_DATA	ends
 
-_TEXT	segment byte public 'CODE'	;AN000;
+_TEXT	segment byte public 'CODE'
 
-	ASSUME	CS: PGROUP		;AN000;
-	ASSUME	DS: DGROUP		;AN000;
+	ASSUME	CS: PGROUP
+	ASSUME	DS: DGROUP
 
 ;-------------------------------------------------------------------
-include parse.asm			; include the parser			;AN000;
+include parse.asm			; include the parser
 ;-------------------------------------------------------------------
 
-_parse	proc	near								;AN000;
+_parse	proc	near
 
-	push	bp			; save user's base pointer              ;AN000;
-	mov	bp,sp			; set bp to current sp			;AN000;
-	push	di			; save some registers			;AN000;
-	push	si								;AN000;
+	push	bp			; save user's base pointer
+	mov	bp,sp			; set bp to current sp
+	push	di			; save some registers
+	push	si
 
 ;	copy C inregs into proper registers
 
-	mov	di,[bp+4]		; fix di (arg 0)			;AN000;
+	mov	di,[bp+4]		; fix di (arg 0)
 	push	ds
 	pop	es
 
 ;-------------------------------------------------------------------
 
-	mov	ax,[di+0ah]		; load di				;AN000;
-	push	ax			; the di value from inregs is now on stack;AN000;
+	mov	ax,[di+0ah]		; load di
+	push	ax			; the di value from inregs is now on stack
 
-	mov	ax,[di+00]		; get inregs.x.ax			;AN000;
-	mov	bx,[di+02]		; get inregs.x.bx			;AN000;
-	mov	cx,[di+04]		; get inregs.x.cx			;AN000;
-	mov	dx,[di+06]		; get inregs.x.dx			;AN000;
-	mov	si,[di+08]		; get inregs.x.si			;AN000;
-	pop	di			; get inregs.x.di from stack		;AN000;
+	mov	ax,[di+00]		; get inregs.x.ax
+	mov	bx,[di+02]		; get inregs.x.bx
+	mov	cx,[di+04]		; get inregs.x.cx
+	mov	dx,[di+06]		; get inregs.x.dx
+	mov	si,[di+08]		; get inregs.x.si
+	pop	di			; get inregs.x.di from stack
 
-	push	bp			; save base pointer			;AN000;
-
-;-------------------------------------------------------------------
-	call	sysparse		; call the parser			;AN000;
-;-------------------------------------------------------------------
-
-	pop	bp			; restore base pointer			;AN000;
-	push	di			; the di value from call is now on stack;AN000;
-	mov	di,[bp+6]		; fix di (arg 1)			;AN000;
-
-	mov	[di+00],ax		; load outregs.x.ax			;AN000;
-	mov	[di+02],bx		; load outregs.x.bx			;AN000;
-	mov	[di+04],cx		; load outregs.x.cx			;AN000;
-	mov	[di+06],dx		; load outregs.x.dx			;AN000;
-	mov	[di+08],si		; load outregs.x.si			;AN000;
-
-	lahf				; get flags into ax			;AN000;
-	mov	al,ah			; move into low byte			;AN000;
-	mov	[di+0ch],ax		; load outregs.x.cflag			;AN000;
-
-	pop	ax			; get di from stack			;AN000;
-	mov	[di+0ah],ax		; load outregs.x.di			;AN000;
+	push	bp			; save base pointer
 
 ;-------------------------------------------------------------------
+	call	sysparse		; call the parser
+;-------------------------------------------------------------------
 
-	pop	si			; restore registers			;AN000;
-	pop	di								;AN000;
-	mov	sp,bp			; restore sp				;AN000;
-	pop	bp			; restore user's bp                     ;AN000;
-	ret									;AN000;
+	pop	bp			; restore base pointer
+	push	di			; the di value from call is now on stack
+	mov	di,[bp+6]		; fix di (arg 1)
 
-_parse	endp									;AN000;
+	mov	[di+00],ax		; load outregs.x.ax
+	mov	[di+02],bx		; load outregs.x.bx
+	mov	[di+04],cx		; load outregs.x.cx
+	mov	[di+06],dx		; load outregs.x.dx
+	mov	[di+08],si		; load outregs.x.si
 
-_TEXT	ends				; end code segment			;AN000;
-	end									;AN000;
+	lahf				; get flags into ax
+	mov	al,ah			; move into low byte
+	mov	[di+0ch],ax		; load outregs.x.cflag
+
+	pop	ax			; get di from stack
+	mov	[di+0ah],ax		; load outregs.x.di
+
+;-------------------------------------------------------------------
+
+	pop	si			; restore registers
+	pop	di
+	mov	sp,bp			; restore sp
+	pop	bp			; restore user's bp
+	ret
+
+_parse	endp
+
+_TEXT	ends				; end code segment
+	end
 
 

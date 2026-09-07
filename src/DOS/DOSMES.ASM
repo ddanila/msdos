@@ -1,14 +1,8 @@
-;	SCCSID = @(#)dosmes.asm 1.7 85/10/23
-;	SCCSID = @(#)dosmes.asm 1.7 85/10/23
 ;
 ; Message file for Internationalized messages.	There is
 ; only one message here available for translation.
 ;
 ;
-;    Revision history
-;	  A000	  version 4.00  Jan. 1988
-;
-
 IFNDEF	KANJI
 KANJI	EQU	FALSE
 ENDIF
@@ -358,12 +352,12 @@ TABLE	ENDS
 
 Procedure   OEMFunctionKey,NEAR
 	ASSUME	DS:NOTHING,ES:NOTHING,SS:DOSGROUP
- IF  DBCS				;AN000;
+ IF  DBCS
 extrn	intCNE0:near			;AN000; 2/17/KK
 	CALL	intCNE0 		;AN000; 2/17/KK
- ELSE					;AN000;
+ ELSE
 	invoke	$std_con_input_no_echo	; Get the second byte of the sequence
- ENDIF					;AN000;
+ ENDIF
 	IF (NOT Rainbow) AND 0FFFFh
 	MOV	CL,ESCTABLEN		; length of table for scan
 	PUSH	DI			; save DI (cannot change it!)

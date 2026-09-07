@@ -1,6 +1,4 @@
  page 80,132
-;	SCCSID = @(#)tspc.asm	4.1 85/09/22
-;	SCCSID = @(#)tspc.asm	4.1 85/09/22
 TITLE	COMMAND Transient Uninitialized DATA
 
 	INCLUDE comsw.asm
@@ -9,7 +7,7 @@ TITLE	COMMAND Transient Uninitialized DATA
 	INCLUDE DOSSYM.INC
 	INCLUDE comequ.asm
 	INCLUDE comseg.asm
-	INCLUDE EA.inc			;AN030;
+	INCLUDE EA.inc
 .list
 .cref
 
@@ -17,7 +15,7 @@ TITLE	COMMAND Transient Uninitialized DATA
 TRANSPACE	SEGMENT PUBLIC BYTE
 
 	PUBLIC	ALLSWITCH
-	PUBLIC	append_exec		;AN041;
+	PUBLIC	append_exec
 	PUBLIC	arg
 	PUBLIC	argbufptr
 	PUBLIC	ARGC
@@ -45,17 +43,17 @@ TRANSPACE	SEGMENT PUBLIC BYTE
 	PUBLIC	comspec_flag
 	PUBLIC	COMSW
 	PUBLIC	CONCAT
-	PUBLIC	concat_xa		;AN000;
+	PUBLIC	concat_xa
 	PUBLIC	copy_Num
 	PUBLIC	CPDATE
 	PUBLIC	CPTIME
 	PUBLIC	cpyflag
 	PUBLIC	CURDRV
-	PUBLIC	DATE_DAY		;AN000;
-	PUBLIC	DATE_MONTH		;AN000;
-	PUBLIC	DATE_OUTPUT		;AN000;
-	PUBLIC	DATE_TYPE		;AN000;
-	PUBLIC	DATE_YEAR		;AN000;
+	PUBLIC	DATE_DAY
+	PUBLIC	DATE_MONTH
+	PUBLIC	DATE_OUTPUT
+	PUBLIC	DATE_TYPE
+	PUBLIC	DATE_YEAR
 	PUBLIC	DEST
 	PUBLIC	DESTBUF
 	PUBLIC	DestClosed
@@ -73,25 +71,25 @@ TRANSPACE	SEGMENT PUBLIC BYTE
 	PUBLIC	DESTVARS
 	PUBLIC	DIRBUF
 	PUBLIC	DIRCHAR
-	PUBLIC	dirflag 		;AN015;
+	PUBLIC	dirflag
 	PUBLIC	Dir_Num
-	PUBLIC	display_ioctl		;AN000;
-	PUBLIC	display_mode		;AN000;
-	PUBLIC	display_width		;AN000;
-	PUBLIC	DRIVE_NUMBER		;AN000;
-	PUBLIC	DRIVE_OUTPUT		;AN000;
-	PUBLIC	DRIVE_TYPE		;AN000;
-	PUBLIC	DRIVE_VALUE		;AN000;
+	PUBLIC	display_ioctl
+	PUBLIC	display_mode
+	PUBLIC	display_width
+	PUBLIC	DRIVE_NUMBER
+	PUBLIC	DRIVE_OUTPUT
+	PUBLIC	DRIVE_TYPE
+	PUBLIC	DRIVE_VALUE
 	PUBLIC	ELCNT
 	PUBLIC	ELPOS
 	PUBLIC	EXECPATH
 	PUBLIC	EXEC_ADDR
 	PUBLIC	EXEFCB
 	PUBLIC	expand_star
-	PUBLIC	ext_entered		;AN005;
-	PUBLIC	ext_open_off		;AN000;
-	PUBLIC	ext_open_parms		;AN000;
-	PUBLIC	ext_open_seg		;AN000;
+	PUBLIC	ext_entered
+	PUBLIC	ext_open_off
+	PUBLIC	ext_open_parms
+	PUBLIC	ext_open_seg
 	PUBLIC	FBUF
 	PUBLIC	FILECNT
 	PUBLIC	file_size_high
@@ -112,13 +110,13 @@ TRANSPACE	SEGMENT PUBLIC BYTE
 	PUBLIC	last_arg
 	PUBLIC	LINCNT
 	PUBLIC	LINLEN
-	PUBLIC	linperpag		;AN000;
+	PUBLIC	linperpag
 	PUBLIC	major_ver_num
 	PUBLIC	MELCOPY
 	PUBLIC	MELSTART
 	PUBLIC	minor_ver_num
-	PUBLIC	msg_flag		;AN022;
-	PUBLIC	msg_numb		;AN022;
+	PUBLIC	msg_flag
+	PUBLIC	msg_numb
 	PUBLIC	NOWRITE
 	PUBLIC	OVERWRITECANCEL
 	PUBLIC	NXTADD
@@ -126,19 +124,19 @@ TRANSPACE	SEGMENT PUBLIC BYTE
 	PUBLIC	one_char_val
 	PUBLIC	PARM1
 	PUBLIC	PARM2
-	PUBLIC	parse_last		;AN018;
-	PUBLIC	PARSE1_ADDR		;AN000;
-	PUBLIC	PARSE1_CODE		;AN000;
-	PUBLIC	PARSE1_OUTPUT		;AN000;
-	PUBLIC	PARSE1_SYN		;AN000;
-	PUBLIC	PARSE1_TYPE		;AN000;
+	PUBLIC	parse_last
+	PUBLIC	PARSE1_ADDR
+	PUBLIC	PARSE1_CODE
+	PUBLIC	PARSE1_OUTPUT
+	PUBLIC	PARSE1_SYN
+	PUBLIC	PARSE1_TYPE
 	PUBLIC	PATHCNT
 	PUBLIC	pathinfo
 	PUBLIC	PATHPOS
 	PUBLIC	PATHSW
 	PUBLIC	PLUS
 	PUBLIC	plus_comma
-	PUBLIC	print_err_flag		;AN000;
+	PUBLIC	print_err_flag
 	PUBLIC	psep_char
 	PUBLIC	RCH_ADDR
 	PUBLIC	RDEOF
@@ -163,22 +161,22 @@ TRANSPACE	SEGMENT PUBLIC BYTE
 	PUBLIC	SRCTAIL
 	PUBLIC	SRCVARS
 	PUBLIC	srcxname
-	PUBLIC	src_xa_seg		;AN000;
-	PUBLIC	src_xa_size		;AN000;
+	PUBLIC	src_xa_seg
+	PUBLIC	src_xa_size
 	PUBLIC	STACK
 	PUBLIC	STARTEL
 	PUBLIC	string_ptr_2
-;AD061; PUBLIC	string_ptr_2_sb 	;AN000;
-	PUBLIC	subst_buffer		;AN061;
+;AD061; PUBLIC	string_ptr_2_sb
+	PUBLIC	subst_buffer
 	PUBLIC	SWITCHAR
 	PUBLIC	system_cpage
 	PUBLIC	TERMREAD
-	PUBLIC	TIME_FRACTION		;AN000;
-	PUBLIC	TIME_HOUR		;AN000;
-	PUBLIC	TIME_MINUTES		;AN000;
-	PUBLIC	TIME_OUTPUT		;AN000;
-	PUBLIC	TIME_SECONDS		;AN000;
-	PUBLIC	TIME_TYPE		;AN000;
+	PUBLIC	TIME_FRACTION
+	PUBLIC	TIME_HOUR
+	PUBLIC	TIME_MINUTES
+	PUBLIC	TIME_OUTPUT
+	PUBLIC	TIME_SECONDS
+	PUBLIC	TIME_TYPE
 	PUBLIC	TPA
 	PUBLIC	tpbuf
 	PUBLIC	TRANSPACEBASEEND
@@ -187,13 +185,13 @@ TRANSPACE	SEGMENT PUBLIC BYTE
 	PUBLIC	UCOMBUF
 	PUBLIC	USERDIR1
 	PUBLIC	vol_drv
-	PUBLIC	vol_ioctl_buf		;AC030;
-	PUBLIC	vol_serial		;AC030;
-	PUBLIC	vol_label		;AC030;
+	PUBLIC	vol_ioctl_buf
+	PUBLIC	vol_serial
+	PUBLIC	vol_label
 	PUBLIC	WRITTEN
-	PUBLIC	xa_cp_length		;AN030;
-	PUBLIC	xa_cp_out		;AN030;
-	PUBLIC	xa_list_attr		;AN030;
+	PUBLIC	xa_cp_length
+	PUBLIC	xa_cp_out
+	PUBLIC	xa_list_attr
 	PUBLIC	zflag
 
 	IF  IBM
@@ -302,8 +300,8 @@ xa_cp_length	DW	$-XA_cp_out		;AN030; length of buffer
 
 
 arg_buf 	db	128 dup (?)
-file_size_low	dw	?			;AC000;
-file_size_high	dw	?			;AC000;
+file_size_low	dw	?
+file_size_high	dw	?
 string_ptr_2	dw	?
 ;AD061;string_ptr_2_sb dw      ?
 copy_Num	dw	?
@@ -366,7 +364,7 @@ ELPOS		DB	?
 SKPDEL		DB	?
 SOURCE		DB	11 DUP(?)
 
-ext_entered	db	0			;AN005;
+ext_entered	db	0
 
 display_ioctl	db	0			;AN000; info level
 		db	0			;AN000; reserved
@@ -392,7 +390,7 @@ msg_flag	db	?			;AN022; flag set if non-utility message issued
 msg_numb	dw	0			;AN022; set with extended error message issued
 append_exec	db	0			;AN041; set if internal append executed
 print_err_flag	dw	0			;AN000; flag set if error during sysdispmsg
-subst_buffer	db	parm_block_size*2 dup (0);AN061;
+subst_buffer	db	parm_block_size*2 dup (0)
 
 ;;;;	IF	KANJI		3/3/KK
 KPARSE		DB	?
@@ -445,7 +443,7 @@ BatBufEnd	DW	?
 ; Common output blocks for PARSE number, complex, or string values.
 ;
 
-PARSE1_OUTPUT	LABEL	BYTE			;AN000;
+PARSE1_OUTPUT	LABEL	BYTE
 PARSE1_TYPE	DB	0			;AN000;  type
 PARSE1_CODE	DB	0			;AN000;  return value
 PARSE1_SYN	DW	0			;AN000;  es offset of synonym
@@ -456,7 +454,7 @@ PARSE1_ADDR	DD	0			;AN000;  numeric value / address
 ;  Common output block for PARSE date strings.
 ;
 
-DATE_OUTPUT	LABEL	BYTE			;AN000;
+DATE_OUTPUT	LABEL	BYTE
 DATE_TYPE	DB	0			;AN000;  type
 		DB	0			;AN000;  return value
 		DW	0			;AN000;  es offset of synonym
@@ -468,7 +466,7 @@ DATE_DAY	DB	0			;AN000;  day
 ;  Common output block for PARSE time strings.
 ;
 
-TIME_OUTPUT	LABEL	BYTE			;AN000;
+TIME_OUTPUT	LABEL	BYTE
 TIME_TYPE	DB	0			;AN000;  type
 		DB	0			;AN000;  return value
 		DW	0			;AN000;  es offset of synonym
@@ -481,7 +479,7 @@ TIME_FRACTION	DB	0			;AN000;  hundredths
 ;  Common output block for PARSE drive specifier (one based drive number).
 ;
 
-DRIVE_OUTPUT	LABEL	BYTE			;AN000;
+DRIVE_OUTPUT	LABEL	BYTE
 DRIVE_TYPE	DB	0			;AN000;  type
 DRIVE_VALUE	DB	0			;AN000;  return value
 		DW	0			;AN000;  es offset of synonym

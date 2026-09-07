@@ -39,12 +39,6 @@
 ;; Linkage Information:  Refer to file KEYB.ASM
 ;; --------------------
 ;;
-;; Change History:
-;; ---------------
-;;
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                                       ;;
         INCLUDE KEYBEQU.INC            ;;
         INCLUDE KEYBSHAR.INC           ;;
         INCLUDE KEYBMAC.INC            ;;

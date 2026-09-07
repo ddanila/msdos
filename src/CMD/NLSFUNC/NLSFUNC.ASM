@@ -215,63 +215,6 @@ page
 ;**********************************INTRO****************************************
 subttl	Revision History
 page
-;****************************** Revision History *************************** ;
-;
-; =A  7/29/86  RG   PTM P64
-;     Prevent overwrite of DOS monocase routine entry point during
-;     transfer of SetCountryInfo.
-;     For Get Ext Cty Info, put DOS monocase routine entry point into
-;     user buffer.
-;
-; =B  7/29/86  RG	 PTM P67
-;     Correct jump condition in ERROR_ROUTINE of NLSRES_CODE.
-;     This prevents exit without COUNTRY.SYS file close.
-;
-; =C  7/30/86  RG	 PTM P85
-;     Preserve ES register in NLSFUNC for IBMDOS.
-;
-; =D  7/31/86  RG	 PTM P86
-;     Corrects information put into user buffer for Get Extended
-;     Country Information.
-;
-; =E  7/31/85  RG	 DCR 18
-;     CHCP support.
-;
-; =F  8/4/86   RG
-;     Get Country Info - Revised info from Get Extended Country Info
-;
-; =G  8/5/86   RG
-;     Correct carry set for good exit.
-;
-; =H  8/5/86   RG
-;     Start extended info at length instead of signature.
-;
-; =FC 8/14/86  FChen
-;     Insert code for control buff management and actual length retunred
-;
-; =I  8/20/86  RG
-;     Improve path parameter parsing.
-;
-; =J  8/22/86  RG
-;     Change error codes
-;
-; =K  8/28/86  RG
-;     65 call-get ext cty info	put final csize (# bytes returned)
-;     in cx on iret ;
-;
-; =L  11/7/86  RG
-;     Set error to INVALID DATA (13) on no cp/cty match.
-;
-; =M  05/20/87 CNS
-;     Additional re-design for structured code using STRUC
-;     PARSER implementation
-;     Message Retriever implementation
-;     DBCS Support for Environmental Vector recognition (Walk Devices& IOCTL call)
-;     Enable the Interrupt when NLSFUNC is loaded PTM ???
-;
-;AN001; P2685 NLSFUNC should not visit the same device repeatedly. 01/15/88 J.K.
-;AN002; P3934 Bad write on sacred DOS area - segmentation incorrect  03/22/88 CNS
-;*******************************************************************************
 subttl macros
 page
 PUSHALL       macro  reg1,reg2,reg3			;used to save all
@@ -303,23 +246,23 @@ NLS_DATA	SEGMENT byte PUBLIC 'DATA'
 
 ;Copyright 1988 Microsoft
 ;***************************** MSG DATA ************************************
-UTILITY 	db	"NLSFUNC",0           ;AC000;
+UTILITY 	db	"NLSFUNC",0
 ;***************************** MSG DATA ************************************
 
 .xlist
-include copyrigh.inc			;AN000;
+include copyrigh.inc
 include struc.inc
 include DOESMAC.INC
 include MULT.INC
-include sf.inc				;AN001;
+include sf.inc
 include DOSCNTRY.INC
 include DEVSYM.INC
-include SYSMSG.INC			;AN000;
-include FUNCDBCS.INC			;AN000;
+include SYSMSG.INC
+include FUNCDBCS.INC
 include MSG2NLS.INC
-include FUNCPARM.INC			;AN000;
+include FUNCPARM.INC
 
-MSG_UTILNAME <NLSFUNC>			;AN000;
+MSG_UTILNAME <NLSFUNC>
 
 .list
 MULT_NLSFUNC	equ	14h
@@ -335,12 +278,12 @@ INVALID_DATA	 equ	13		     ;=L
 ;FILE_NOT_FOUND  equ	2		     ;=J(=L no longer explicitly used)
 ;TAB		  equ	 9
 ;CR		  equ	 13
-PAD_CHAR	 equ	' '                  ;AN000;
+PAD_CHAR	 equ	' '
 BAD_INVOKE	 equ	65		     ;=E
 UPCASE_A	 equ	'A'
 BUFFSIZE	 equ	512 ;	      ;AC000;REDUCTION OF ORIGINAL (128 BYTES) TO STORE
 LOCATE_INFOTYPE  equ	18	      ;THE DEVICE LIST & THE OLD COUNTRY INFO
-CTL_BUFF	 equ	256 ;	      ;AC000;
+CTL_BUFF	 equ	256 ;
 ID_TAG		 equ	8
 DATA_BUFF_LENG	 equ	(BUFFSIZE - CTL_BUFF)
 MAXBUFF_FIT	 equ	(BUFFSIZE - (CTL_BUFF + ID_TAG))
@@ -354,13 +297,11 @@ PERIOD		 equ	'.'
 ;**************** NEW VARIABLE	****************
 subttl NLSFUNC data
 page
-IN_DEX		  equ	 bp			       ;AN000;
-FILESPEC_PTR	  equ	 byte ptr ds:[in_dex]	       ;AN000;
+IN_DEX		  equ	 bp
+FILESPEC_PTR	  equ	 byte ptr ds:[in_dex]
 FILEVAL 	 equ	0100h	;convert data block after checking for the
-				;AN000;
 				;drive only to look for the filespec
 CL_NUM		 equ	81h	;command line at the PSP
-				;AN000;
 ;**************** NEW VARIABLE	****************
 ;interrupts
 SET_INT 	 equ	25h
@@ -411,8 +352,8 @@ PATHSEG 	DW     0
 SW_SPEC 	dW     0
 LENGTH_HOLD	db     0
 ;***CNS
-CUR_PTR        DW	0		   ;AN003;; keeps track of parameter position	   ;AN000
-OLD_PTR        DW	0		   ;AN003;; keeps track of parameter position	   ;AN000
+CUR_PTR        DW	0		   ;AN003;; keeps track of parameter position
+OLD_PTR        DW	0		   ;AN003;; keeps track of parameter position
 ;***CNS
 ;********************************************************************************
 NLS_BUFFER	db	BUFFSIZE dup (?)  ;NLS BUFFER to transfer data
@@ -486,7 +427,6 @@ SEL_FUNC:
 		pushall bp,si,di	;save all DOS registers
 ; *************************** CNS **********************************************
 		sti			;;AN000;the interrupt for external devices
-					;AN000;
 ; *************************** CNS **********************************************
 		mov	FUNC_CODE,al	;save function #
 		cmp	al,0
@@ -1129,18 +1069,18 @@ WALK_DEVICES	PROC  NEAR
 
 		mov	si,offset NLS_BUFFER ;Prepare to hold device name
 		push	es			;AN001; Clear out NLS_BUFFER to 0
-		push	ds			;AN001;
-		pop	es			;AN001;
+		push	ds
+		pop	es
 		mov	di, si			;AN001; ES:DI-> NLS_BUFFER
 		xor	ax, ax			;AN001; AX=0
-		mov	cx, BUFFSIZE		;AN001;
+		mov	cx, BUFFSIZE
 		shr	cx, 1			;AN001; /2 to make a # of words
-		rep	stosw			;AN001;
+		rep	stosw
 		pop	es			;AN001; Restore es
 						;Get ptr to hdr of 1st device.
-		push	si			;AN001;
+		push	si
 		CallInstall GetDevLst,Multdos,44,<DS>,<DS>
-		pop	si			;AN001;
+		pop	si
 		mov	es,bx		    ;bx:ax -> hdr.
 		mov	di,ax
 char_test:
@@ -1244,19 +1184,16 @@ DB_EVECS:
 
 
 	 .REPEAT				      ;;AN000;DBCS transmission
-						     ;AN000;
 	       mov     al,es:[bx]		     ;;AN000;get the the contents
-;***CNS 						;AN000;
+;***CNS
 	       mov     ds:[di],al			;;AN002;of where the DBCS Points
-;***CNS 						;AN000;
+;***CNS
 	       inc     di			     ;;AN000;data packet for ioctl
-						     ;AN000;
 	       inc     bx			     ;AN000;;call--- get the start
 						     ;stop values to load
-						     ;AN000;
-		dec	cx			     ;AN000;
+		dec	cx
 
-	  .UNTIL <CX EQ 0 >			     ;AN000;
+	  .UNTIL <CX EQ 0 >
 						      ;invocation of 1 codepage
 						     ;standard codepage selection
 
@@ -1264,12 +1201,9 @@ DB_EVECS:
 NO_LOAD:
 
 		 pop	 es			       ;AN000;;accordingly & restore
-						       ;AN000;
 		 pop	 cx			       ;AN000;;values
-						       ;AN000;
-		 pop	 bx			       ;AN000;
-						       ;AN000;
-		 pop	 di			       ;AN000;
+		 pop	 bx
+		 pop	 di
 						       ;AN000;;invoke codepage
 ;************************ CNS*** End of DBCS
 
@@ -1330,48 +1264,48 @@ WALK_DEVICES	endp
 ;     Other registers saved.
 
 Chk_Revisit	proc	near
-	push	ax				;AN001;
-	push	bx				;AN001;
-	push	es				;AN001;
-	push	di				;AN001;
+	push	ax
+	push	bx
+	push	es
+	push	di
 	mov	ax, 1220h			;AN001; Get the spot of SFT
-	int	2fh				;AN001;
+	int	2fh
 	jc	Chk_Rvst_Ret			;AN001; This won't happen
-	xor	bx, bx				;AN001;
-	mov	bl, byte ptr es:[di]		;AN001;
+	xor	bx, bx
+	mov	bl, byte ptr es:[di]
 	mov	ax, 1216h			;AN001; Get the SFT pointer
 	int	2fh				;AN001; es:di-> SFT table
 	jc	Chk_Rvst_Ret			;AN001; This won't happen
 	mov	ax, word ptr es:[di].SF_DEVPTR	;AN001; offset of device
 	mov	bx, word ptr es:[di].SF_DEVPTR+2;AN001; Segment of device
-	mov	di, offset NLS_BUFFER		;AN001;
+	mov	di, offset NLS_BUFFER
 	add	di, BUFFSIZE-2			;AN001; ds:di-> last word of the buffer
-Chk_Rvst_While: 				;AN001;
+Chk_Rvst_While:
 	cmp	word ptr ds:[di], 0		;AN001; di-> segment value
-	jne	Chk_Rvst_Cont			;AN001;
+	jne	Chk_Rvst_Cont
 	cmp	word ptr ds:[di-2], 0		;AN001; offset
-	jne	Chk_Rvst_Cont			;AN001;
+	jne	Chk_Rvst_Cont
 	jmp	Chk_Rvst_New			;AN001; Encountered a blank entry in the buffer
-Chk_Rvst_Cont:					;AN001;
-	cmp	word ptr ds:[di], bx		;AN001;
-	jne	Chk_Rvst_Next			;AN001;
-	cmp	word ptr ds:[di-2], ax		;AN001;
-	jne	Chk_Rvst_Next			;AN001;
+Chk_Rvst_Cont:
+	cmp	word ptr ds:[di], bx
+	jne	Chk_Rvst_Next
+	cmp	word ptr ds:[di-2], ax
+	jne	Chk_Rvst_Next
 	stc					;AN001; found a match
-	jmp	Chk_Rvst_Ret			;AN001;
-Chk_Rvst_Next:					;AN001;
+	jmp	Chk_Rvst_Ret
+Chk_Rvst_Next:
 	sub	di, 4				;AN001; move the pointer to the next entry
-	jmp	Chk_Rvst_While			;AN001;
-Chk_Rvst_New:					;AN001;
+	jmp	Chk_Rvst_While
+Chk_Rvst_New:
 	mov	word ptr ds:[di],bx		;AN001; Keep the current open device segment
 	mov	word ptr ds:[di-2], ax		;AN001; and offset
 	clc					;AN001; New device
-Chk_Rvst_Ret:					;AN001;
-	pop	di				;AN001;
-	pop	es				;AN001;
-	pop	bx				;AN001;
-	pop	ax				;AN001;
-	ret					;AN001;
+Chk_Rvst_Ret:
+	pop	di
+	pop	es
+	pop	bx
+	pop	ax
+	ret
 Chk_Revisit	endp
 
 subttl end nlsfunc resident code
@@ -1508,22 +1442,17 @@ PROCESS_PATH	PROC	NEAR
 
 
 		push	es		;;AC000;e original es (nothing)
-					;AC000;
 		push	ds		;AC000;he original ds (Nls_data)
-					;AC002;
 		push	ds		;save for both es & ds to point at data
 
 		push	es		;AC000;hat's in my es the PSP value
-					;AN000;
 		push	ds		;AN000;he segment id that points to my
 					;es now points to data
-		pop	es		;AC000;
+		pop	es
 					;input parameter control block (NLS_DATA)
-					;AN000;
 
 		pop	ds		;AN000; points to the segment for
 					;the command line string
-					;AN000;
 
 		ASSUME	DS:NOTHING,ES:NLS_DATA
 
@@ -1552,7 +1481,6 @@ RE_START:
 
 		mov	si,CL_NUM	;AN000; points to the offset command
 					;line input string at value 81h
-					;AN000;
 
 		rep	movsb			;transfer command line to NLS_BUFFER
 
@@ -1567,7 +1495,6 @@ RE_START:
 
 		mov	di,OFFSET NLS_PARMS    ;AN000; into ES of the PARMS INPUT
 					;BLOCK
-					;AN000;
 		pop	ds		       ; ds also point at NLS_DATA
 
 
@@ -1580,7 +1507,7 @@ RE_START:
 	  PUSH AX				 ;AN003;Save environment
 	  MOV AX,CUR_PTR			 ;AN003;Set advancing ptr to end of argument
 	  MOV OLD_PTR,AX			 ;AN003;after saving the beginning the string
-	  MOV CUR_PTR,SI			 ;AN003;
+	  MOV CUR_PTR,SI
 	  POP AX				 ;AN003;Restore the environment
 
 ;***CNS
@@ -1589,29 +1516,24 @@ RE_START:
 
 		xor	cx,cx		;AN000;l value should be atleast 1
 		xor	dx,dx		;AN000;ut dx for input into the PARSER
-					;AN000;
 
-	 .WHILE <PAR_RETC eq 0> 	;AN000;
+	 .WHILE <PAR_RETC eq 0>
 		call	SYSPARSE	;AN000;empt to parse
 ;***CNS
 
 	  PUSH AX				 ;AN003;Save environment
 	  MOV AX,CUR_PTR			 ;AN003;Set advancing ptr to end of argument
 	  MOV OLD_PTR,AX			 ;AN003;after saving the beginning the string
-	  MOV CUR_PTR,SI			 ;AN003;
+	  MOV CUR_PTR,SI
 	  POP AX				 ;AN003;Restore the environment
 
 ;***CNS
-					;AN000;
 	       .IF <Res_type eq 5>	;AN000;ound
-						;AN000;
 		    mov USER_PATH,1		;AN000;;path specified
-						;AC000;
-	       .ENDIF				;AN000;
+	       .ENDIF
 
 		mov	PAR_RETC,AX		;AN000;;keep parsing until eoln
-						;AN000;
-	 .ENDWHILE				;AN000;
+	 .ENDWHILE
 
 
 	       .IF <PAR_RETC gt 0>		     ;AN000;;parse error
@@ -1641,31 +1563,29 @@ RE_START:
 
 
 		   mov	   cx,1 		       ;AN003;;
-		   mov	   bx,STDERR		       ;AN003;
-		   mov	   dl,no_input		       ;AN003;
-		   mov	   dh,PARSE_ERR_CLASS	       ;AN003;
-		   mov	   ds,PATHSEG		       ;AN003;
-		   mov	   si,OFFSET PARMLIST3	      ;AN003;
-		   call    SYSDISPMSG		      ;AN003;
+		   mov	   bx,STDERR
+		   mov	   dl,no_input
+		   mov	   dh,PARSE_ERR_CLASS
+		   mov	   ds,PATHSEG
+		   mov	   si,OFFSET PARMLIST3
+		   call    SYSDISPMSG
 		   mov	   PARSE_ERR,1		      ;AN003;;PARSE ERROR OCCURED
 ;***CNS
 ;		.ELSE
 
 ;		   xor	   cx,cx		     ;AN000;;
-;		   mov	   bx,STDERR		       ;AN000;
-;		   mov	   dl,no_input		       ;AN000;
-;		   mov	   dh,PARSE_ERR_CLASS	       ;AN000;
-;		   mov	   ds,PATHSEG		       ;AN000;
-;		   mov	   si,0 		       ;AN000;
-;		   call    SYSDISPMSG		      ;AN000;
+;		   mov	   bx,STDERR
+;		   mov	   dl,no_input
+;		   mov	   dh,PARSE_ERR_CLASS
+;		   mov	   ds,PATHSEG
+;		   mov	   si,0
+;		   call    SYSDISPMSG
 ;		   mov	   PARSE_ERR,1		      ;AN000;;PARSE ERROR OCCURED
 ;***CNS
  ;	       .ENDIF
 ;***CNS
 	       .ELSEIF <CX eq 1>		      ;AN000;ordinal check
-						      ;AN000;
 		      mov  GOOD_PAR,1		      ;AN000;you are at the end of the line
-						      ;AN000;
 		   .ELSE
 		      mov NO_PARMS,1		      ;AN000;there is no argument go install
 	       .ENDIF				      ;AN000;NLSFUNC
@@ -1673,7 +1593,6 @@ RE_START:
        .IF <PARSE_ERR eq 0> NEAR		      ;AN000;if not true you encountered a parse error
 	 .IF <GOOD_PAR eq 1> NEAR		      ;AN000;there is a parameter line available
 						      ;to parse
-						      ;AN000;
 						      ;Check the flags to see what
 						      ;was returned in the return block
 
@@ -1686,18 +1605,16 @@ RE_START:
 		xor in_dex,in_dex			  ;AN000;clear ctr
 		mov bx,Res_POFF 			  ;AN000;get file spec ptr to text
 		push	ds				  ;AN000;prepare for entry
-		mov ds,Res_PSEG 			  ;AN000;
+		mov ds,Res_PSEG
 		mov in_dex,bx			 ;AN000;string seg value if filename
-	  .ENDIF	      ;user path	     ;AN000;
+	  .ENDIF	      ;user path
 
 
 	  .WHILE <Filespec_PTR ne NULL> 		 ;load chars until no more
-						     ;AN000;
-						     ;AN000;
-		mov	al,FILESPEC_PTR 		;AN000;
+		mov	al,FILESPEC_PTR
 		mov	byte ptr es:[di],al	     ;move value into pathspec and
 		inc	in_dex			     ;increment to next char position
-		inc	di			     ;AN000;
+		inc	di
 	  .ENDWHILE
 
 ;************************** CNS **********************************************
@@ -1705,15 +1622,14 @@ RE_START:
 ;open on the path_spec if pathspec exist close path and continue if
 ;carry set stuff error code with 02 and exit.....
 ;*****************************************************************************
-;		push	es				;AN000;
+;		push	es
 		pop	ds				;into find first
-		mov	si,di				;AN000;
-		xor	cx,cx				;AN000;
+		mov	si,di
+		xor	cx,cx
 ;
 		ASSUME	DS:NLS_DATA
 ;
 		mov	byte ptr ds:[si],NULL	       ;add asciiz value
-						       ;AN000;
 		lea	dx,PATH_SPEC		       ;check full pathname
 		mov	ah,4eh
 		int	21h
@@ -1722,14 +1638,14 @@ RE_START:
 		clc				       ;ok-clear carry/exit
 		mov GOOD_PATH,1
 	    .ELSE
-		   mov	   ax,FNF		       ;AN000;
-		   mov	   cx,1 		     ; ;AN000;
-		   mov	   bx,STDERR		       ;AN000;
-		   mov	   dl,no_input		       ;AN000;
-		   mov	   dh,UTILITY_MSG_CLASS 	   ;AN000;
-		   mov	   ds,PATHSEG			   ;AN000;
-		   mov	   si,OFFSET PARMLIST1		   ;AN000;
-		call	SYSDISPMSG		       ;AN000;
+		   mov	   ax,FNF
+		   mov	   cx,1 		     ;
+		   mov	   bx,STDERR
+		   mov	   dl,no_input
+		   mov	   dh,UTILITY_MSG_CLASS
+		   mov	   ds,PATHSEG
+		   mov	   si,OFFSET PARMLIST1
+		call	SYSDISPMSG
 		mov	ERROR_CODE,02		       ;
 		stc
 	    .ENDIF
@@ -1745,9 +1661,7 @@ RE_START:
 
 
 		pop	ds		;AN000;;restore original ds (NLS_DATA)
-						       ;AN000;
 		pop	es		;AN000;;restore original es (nothing)
-						       ;AN000;
 					;AN000;;after munging around with the PARSER
 
 		ASSUME	DS:NLS_DATA,ES:NOTHING
@@ -1774,7 +1688,7 @@ INSTALL_NLS	PROC	NEAR
 ;		jz	DO_INSTALL		  ;hooked in the chain
 ; *********************** CNS *************************************************
 
-	   .IF <Z>				  ;AN000
+	   .IF <Z>
 
 						  ;Install NLSFUNC
 		mov	al,2fh			  ;Get interrupt
@@ -1802,16 +1716,16 @@ INSTALL_NLS	PROC	NEAR
 ;		  pop	  es			  ;AN004;restore existing values
 ;		  pop	  ax			  ;
 
-	   .ELSE				   ;AN000;
+	   .ELSE
 ;TBR Message retriever				  ;otherwise
 		   mov	   ax,ALLINS		     ;
 		   mov	   cx,1 		     ;
-		   mov	   bx,STDERR		       ;AN000;
-		   mov	   dl,no_input		       ;AN000;
-		   mov	   dh,UTILITY_MSG_CLASS 	 ;AN000;
+		   mov	   bx,STDERR
+		   mov	   dl,no_input
+		   mov	   dh,UTILITY_MSG_CLASS
 		   mov	   ds,PATHSEG
 		   mov	   si,OFFSET PARMLIST2
-		   call    SYSDISPMSG		      ;AN000;
+		   call    SYSDISPMSG
 		   mov	   ERROR_CODE,80	      ;UTILITY ERROR CODE
 		   stc
 
@@ -1821,9 +1735,9 @@ INSTALL_NLS	PROC	NEAR
 
 INSTALL_NLS	ENDP
 
-msg_services <LOADmsg>				      ;AN000;
-msg_services <DISPLAYmsg,CHARmsg>		      ;AN000;
-msg_services <nlsfunc.cl1,nlsfunc.cl2,nlsfunc.cla>    ;AN000;
+msg_services <LOADmsg>
+msg_services <DISPLAYmsg,CHARmsg>
+msg_services <nlsfunc.cl1,nlsfunc.cl2,nlsfunc.cla>
 
 ;******************************** END OF NLS_INIT_CODE **************************
 NLS_INIT_CODE	 ENDS

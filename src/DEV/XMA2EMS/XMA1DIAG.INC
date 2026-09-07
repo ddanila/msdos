@@ -589,7 +589,7 @@ MEMARRAY	PROC
 		MOV	DX,(640)/4		;STARTING BLK IN SMAS ARRAY
 	;DETERMINE HOW MUCH MEMORY TO TEST
 		MOV	CX,CS:TOTAL_SYS_PAGES	;GET NUMBER OF 16K PAGES
-		SUB	CX,640/16		;SUBTRACT OFF 1ST 640K MEMORY	;an000; dms;
+		SUB	CX,640/16		;SUBTRACT OFF 1ST 640K MEMORY
 ;BEGIN TEST
 MA1:
 		MOV	CS:PAGE_UNDER_TEST,DX	;INDICATE WHICH 64K BLOCK
@@ -598,7 +598,7 @@ MA1:
 		PUSH	CX
 		PUSH	DX			;SAVE ALL REGISTERS
 ;
-		MOV	CX,4			;test 16k at one time		;an000; dms;
+		MOV	CX,4			;test 16k at one time
 						;4 x 4K = 16K
 		CALL	SETXLAT 		;SET UP XLAT TABLE
 		CALL	STGTST			;TEST 64K OF STORAGE
@@ -685,13 +685,13 @@ LOMEMTST	PROC
 		CALL	VIRT2REAL
 
 ;INDICATE 0 KB OK AT START OF TEST
-		MOV	DX,03ffcH			;code for initial 0 kb	;an000; dms;
+		MOV	DX,03ffcH			;code for initial 0 kb
 		CALL	KB_OK
 
 ;DETERMINE HOW MUCH MEMORY TO TEST
 		MOV	AX,CS:START_BACMEM_SEG		;get starting fill segment
 		XCHG	AH,AL
-		MOV	CL,2				;			;an000; dms;
+		MOV	CL,2				;
 		SHR	AX,CL				;convert to 16k block number
 		MOV	CS:TESTABLE_SEGMENTS,AX 	;save...this is number of 64k blocks
 							;that can be tested without
@@ -712,7 +712,7 @@ LM1:
 		PUSH	CX
 		PUSH	DX				;save these registers
 
-		MOV	CX,4				;test 16k at one time	;an000; dms;
+		MOV	CX,4				;test 16k at one time
 							;4  * 4k = 16k
 		CALL	SETXLAT 			;set translate table
 		CMP	CS:TESTABLE_SEGMENTS,0		;if this segment under test is used for
@@ -732,7 +732,7 @@ LM3:
 		PUSHF					;save flags for addition
 		CALL	KB_OK
 							;indicate kb ok
-		ADD	DX,4				;next 16k block 	;an000; dms;
+		ADD	DX,4				;next 16k block
 		DEC	CS:TESTABLE_SEGMENTS		;dec testable pages
 		POPF					;recover flags
 		LOOP	LM1				;repeat for next 64k block
@@ -826,14 +826,14 @@ PT1:
 		PUSH	CX
 		PUSH	DX			;SAVE ALL REGISTERS
 ;
-		MOV	CX,4			;4 -4K BLOCKS IN 16K		;an000; dms;
+		MOV	CX,4			;4 -4K BLOCKS IN 16K
 		CALL	SETXLAT 		;SET TRANSLATE TABLE
 		POP	DX
 		POP	CX
 		POP	BX
 		POP	AX			;RECOVER ALL
 		INC	BH			;POINT TO NEXT TASK ID
-		ADD	DX,4			;NEXT 64K IN XMA MEMORY 	;an000; dms;
+		ADD	DX,4			;NEXT 64K IN XMA MEMORY
 		LOOP	PT1			;REPEAT FOR ALL TASK ID's
 ;FILL MEMORY WITH A UNIQUE PATTERN FOR EACH TASK ID
 		MOV	CX,6			;6 TASK ID's
@@ -846,7 +846,7 @@ PT2:
 		MOV	BX,CS:PAGE_FRAME_STA
 		MOV	ES,BX			;SEGMENT TO 1ST 64K 0F ID
 		SUB	DI,DI			;POINT TO 1ST LOCATION
-		mov	cx,4000h		;WRITE ALL 16K LOCATIONS	;an000; dms;
+		mov	cx,4000h		;WRITE ALL 16K LOCATIONS
 PT2X:
 		STOSB
 		LOOP	PT2X
@@ -1336,7 +1336,7 @@ STG2:
 ;
 		CLD				;FILL FORWARD
 		SUB	DI,DI			;POINT TO FIRST LOCATION
-		MOV	CX,2000H		;8K WORDS			;an000; dms;
+		MOV	CX,2000H		;8K WORDS
 		MOV	AX,55AAH		;INITIAL PATTERN TO WRITE
 		REP	STOSW			;FILL ENTIRE SEGMENT
 ;
@@ -1486,7 +1486,7 @@ PAGE
 ;
 STG_CNT 	PROC
 ;
-		MOV	CX,2000H		;8K WORDS			;an000; dms;
+		MOV	CX,2000H		;8K WORDS
 		SUB	DI,DI			;FIRST LOCATION
 		MOV	SI,DI			;FIRST LOCATION
 SC1:
@@ -1549,7 +1549,7 @@ KB_OK		PROC
 	;CONVERT DX TO KILO BYTES
 		SHL	DX,1
 		SHL	DX,1		;MULTIPLY BY 4
-		ADD	DX,16		;ADJUST BY 16				;an000; dms;
+		ADD	DX,16		;ADJUST BY 16
 ;
 		MOV	AX,DX		;GET NUMBER INTO AX
 		MOV	BX,10		;READY FOR DECIMAL CONVERT

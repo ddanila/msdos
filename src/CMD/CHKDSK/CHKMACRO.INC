@@ -16,60 +16,60 @@ ENDM
 
 ;-----------------------------------------------------------------------------
 
-Message macro	Message_Name			;				;AN000;
+Message macro	Message_Name			;
 						;
-	mov	dx,offset dg:Message_Name	;				;AN000;
-	call	Display_Interface		;				;AN000;
+	mov	dx,offset dg:Message_Name	;
+	call	Display_Interface		;
 						;
-	endm					;				;AN000;
+	endm					;
 
 ;-----------------------------------------------------------------------------
 
-Parse_Message macro				;				;AN000;
+Parse_Message macro				;
 
 						;
 	push	ds
 	mov	dx,dg
 	mov	ds,dx
-	mov	word ptr Parse_Error_Msg,ax	;				;AN000;
-	mov	dx,offset dg:Parse_Error_Msg	;				;AN000;
-	call	Display_Interface		;				;AN000;
+	mov	word ptr Parse_Error_Msg,ax	;
+	mov	dx,offset dg:Parse_Error_Msg	;
+	call	Display_Interface		;
 	pop	ds				;
-	endm					;				;AN000;
+	endm					;
 
 ;-----------------------------------------------------------------------------
 
-Extended_Message macro				;				;AN000;
+Extended_Message macro				;
 						;
 
 	push	ds
 	mov	dx,dg
 	mov	ds,dx
-	mov	word ptr Extended_Error_Msg,ax	  ;				  ;AN000;
-	mov	dx,offset dg:Extended_Error_Msg    ;				   ;AN000;
-	call	Display_Interface		;				;AN000;
+	mov	word ptr Extended_Error_Msg,ax	  ;
+	mov	dx,offset dg:Extended_Error_Msg    ;
+	call	Display_Interface		;
 	pop	ds
-	endm					;				;AN000;
+	endm					;
 ;
 ;*****************************************************************************
 ; General Macro's
 ;*****************************************************************************
 ;
 
-Procedure	macro	Proc_Name,Seg_Name	;				;AN000;
+Procedure	macro	Proc_Name,Seg_Name	;
 						;
-Public	Proc_Name				;				;AN000;
-Proc_Name    proc				;				;AN000;
+Public	Proc_Name				;
+Proc_Name    proc				;
 
-	endm					;				;AN000;
+	endm					;
 ;-----------------------------------------------------------------------------
 
-DOS_Call	macro	Function		;				;AN000;
+DOS_Call	macro	Function		;
 						;
-	mov	ah,Function			;				;AN000;
-	int	21h				;				;AN000;
+	mov	ah,Function			;
+	int	21h				;
 						;
-	endm					;				;AN000;
+	endm					;
 
 ;-----------------------------------------------------------------------------
 

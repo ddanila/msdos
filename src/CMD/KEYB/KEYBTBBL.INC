@@ -17,12 +17,6 @@
 ;;	 Data Area is allocated in the KEYBI2F file and will be
 ;;	 resident following initial installation.
 ;;
-;; Change History:
-;; ---------------
-;;
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-					       ;;
 	EXTRN	 TABLE_BUILD   :NEAR	       ;;
 	EXTRN	 FIND_CP_TABLE :NEAR	       ;;
 					       ;;

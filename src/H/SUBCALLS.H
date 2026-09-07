@@ -1,4 +1,3 @@
-/*SCCSID = @(#)subcalls.hwc	10.1 87/05/02*/
 struct CursorData {
 	unsigned cur_start;
 	unsigned cur_end;

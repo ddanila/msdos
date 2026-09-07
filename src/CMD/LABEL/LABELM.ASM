@@ -57,11 +57,6 @@
 ;*	    These modules should be linked in this order. The load module is *
 ;*	    a COM file.  It should be converted via EXE2BIN to a .COM file.  *
 ;*									     *
-;*  REVISION HISTORY:							     *
-;*									     *
-;*    Prolog edited					  04/88  S. Maes     *
-;*									     *
-;*****************************************************************************
 IF1
 	%OUT	COMPONENT=LABEL MODULE=LABELM.SAL
 	%OUT	INCLUDING SYSMSG.INC

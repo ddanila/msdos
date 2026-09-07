@@ -1,10 +1,10 @@
 
 
-PAGE	55,132							;AN000;
-NAME	SELECT							;AN000;
-TITLE	SELECT - DOS - SELECT.EXE				;AN000;
-SUBTTL	SELECT4.asm						;AN000;
-.ALPHA								;AN000;
+PAGE	55,132
+NAME	SELECT
+TITLE	SELECT - DOS - SELECT.EXE
+SUBTTL	SELECT4.asm
+.ALPHA
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ;	SELECT4.ASM : Copyright 1988 Microsoft
@@ -33,45 +33,42 @@ SUBTTL	SELECT4.asm						;AN000;
 ;	- EXPANDED MEMORY parameters screen
 ;
 ;
-;	CHANGE HISTORY:
-;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-DATA	SEGMENT BYTE PUBLIC 'DATA'                              ;AN000;
-DATA	       ENDS						;AN000;
+DATA	SEGMENT BYTE PUBLIC 'DATA'
+DATA	       ENDS
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-.XLIST								;AN000;
-	INCLUDE    PANEL.MAC					;AN000;
-	INCLUDE    SELECT.INC					;AN000;
-	INCLUDE    PAN-LIST.INC 				;AN000;
-	INCLUDE    CASTRUC.INC					;AN000;
-	INCLUDE    STRUC.INC					;AN000;
-	INCLUDE    MACROS.INC					;AN000;
-	INCLUDE    EXT.INC					;AN000;
-	INCLUDE    VARSTRUC.INC 				;AN000;
-	INCLUDE    ROUT_EXT.INC 				;AN000;
-.LIST								;AN000;
+.XLIST
+	INCLUDE    PANEL.MAC
+	INCLUDE    SELECT.INC
+	INCLUDE    PAN-LIST.INC
+	INCLUDE    CASTRUC.INC
+	INCLUDE    STRUC.INC
+	INCLUDE    MACROS.INC
+	INCLUDE    EXT.INC
+	INCLUDE    VARSTRUC.INC
+	INCLUDE    ROUT_EXT.INC
+.LIST
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 								;
 SELECT	SEGMENT PARA PUBLIC 'SELECT'                            ;AN000;segment for far routine
-	ASSUME	CS:SELECT,DS:DATA				;AN000;
+	ASSUME	CS:SELECT,DS:DATA
 								;
-	INCLUDE CASEXTRN.INC					;AN000;
+	INCLUDE CASEXTRN.INC
 								;
-HLP_OVER	EQU	00010000B				;AN000;
+HLP_OVER	EQU	00010000B
 ICB_OUT 	EQU  0000000100000000B				;AN000;display default and accept input
 								;
-	PUBLIC	DOS_PARAMETERS_SCREEN				;AN000;
-	EXTRN	EXIT_SELECT:NEAR				;AN000;
-	EXTRN	PROCESS_ESC_F3:NEAR				;AN000;
-	EXTRN	FIRST_DISK_SCREEN:NEAR				;AN000;
-	EXTRN	VDISK_SCREEN:NEAR				;AN000;
-	EXTRN	EXIT_DOS:NEAR					;AN000;
+	PUBLIC	DOS_PARAMETERS_SCREEN
+	EXTRN	EXIT_SELECT:NEAR
+	EXTRN	PROCESS_ESC_F3:NEAR
+	EXTRN	FIRST_DISK_SCREEN:NEAR
+	EXTRN	VDISK_SCREEN:NEAR
+	EXTRN	EXIT_DOS:NEAR
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ;  ------------------------------------Ŀ
@@ -95,15 +92,15 @@ ICB_OUT 	EQU  0000000100000000B				;AN000;display default and accept input
 ;  PROMPT parameter values are not checked for validity.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 DOS_PARAMETERS_SCREEN:						;AN000; if user accepts choices
-	.IF < F_REVIEW eq E_REVIEW_ACCEPT >			;AN000;
-	.THEN							;AN000;
+	.IF < F_REVIEW eq E_REVIEW_ACCEPT >
+	.THEN
 	   GOTO 		FIRST_DISK_SCREEN		;AN000;    goto FIRST_DISK_SCREEN
-	.ENDIF							;AN000;
+	.ENDIF
 								;
 	.IF < I_DEST_DRIVE ne E_DEST_DRIVE_C >			;AC000; if install to drive B: or A: JW
-	.THEN							;AN000;
+	.THEN
 	   GOTO 		SHELL_SCREEN			;AN000;    goto next screen
-	.ENDIF							;AN000;
+	.ENDIF
 								;
 	COPY_STRING		S_STR120_1, M_STR120_1, S_PATH	;AN000; copy PATH to temp location
 	COPY_STRING		S_STR40, M_STR40, S_APPEND_P	;AN000; copy APPEND parameters to temp location JW
@@ -121,59 +118,59 @@ DOS_PARAMETERS_SCREEN:						;AN000; if user accepts choices
 								;
 	INIT_VAR		N_COUNTER, 1			;AN000; set counter = 1
 								;
-GET_PARAMETERS: 						;AN000;
+GET_PARAMETERS:
 								;
 	.REPEAT 						;AN000; repeat code block
 								;
-	   .SELECT						;AN000;
+	   .SELECT
 								;
-	   .WHEN < N_COUNTER eq 1 >				;AN000;
+	   .WHEN < N_COUNTER eq 1 >
 	      GET_STRING	STR_DOS_PATH,S_STR120_1,M_PATH,FK_TAB ;AN000; get user parameters for PATH
 	      COPY_STRING	S_STR120_1,M_STR120_1,S_USER_STRING   ;AN000; save parameter in temp location
 								;
-	   .WHEN < N_COUNTER eq 2 >				;AN000; 					    JW
+	   .WHEN < N_COUNTER eq 2 >
 	      GET_STRING	STR_DOS_APPEND_P,S_STR40,M_APPEND_P,FK_TAB  ;AN000; get user parameters for APPEND  JW
 	      COPY_STRING	S_STR40,M_STR40,S_USER_STRING	;AN000; save parameter in temp location 	    JW
 								;
-	   .WHEN < N_COUNTER eq 3 >				;AN000;
+	   .WHEN < N_COUNTER eq 3 >
 	      GET_STRING	STR_DOS_APPEND,S_STR120_2,M_APPEND,FK_TAB   ;AN000; get user path for APPEND
 	      COPY_STRING	S_STR120_2,M_STR120_2,S_USER_STRING	    ;AN000; save parameter in temp location
 								;
-	   .OTHERWISE						;AN000;
+	   .OTHERWISE
 	      GET_STRING	STR_DOS_PROMPT,S_STR120_3,M_PROMPT,FK_TAB   ;AN000; get user parameters for PROMPT
 	      COPY_STRING	S_STR120_3,M_STR120_3,S_USER_STRING	    ;AN000; save parameter in temp location
 								;
-	   .ENDSELECT						;AN000;
+	   .ENDSELECT
 								;
 	   INC_VAR		N_COUNTER			;AN000;   inc counter
 								;
 	   .IF < N_COUNTER a 4 >				;AN000;   if counter > 3
-	   .THEN						;AN000;
+	   .THEN
 	      INIT_VAR		N_COUNTER, 1			;AN000;      set counter = 1
-	   .ENDIF						;AN000;
+	   .ENDIF
 								;
 	.UNTIL < N_USER_FUNC eq E_ENTER > or near		;AN000; break loop if ENTER entered
 	.UNTIL < N_USER_FUNC eq E_ESCAPE > or near		;AN000; or ESCAPE entered
 	.UNTIL < N_USER_FUNC eq E_F3 > near			;AN000; or F3 entered
 								;
-	PROCESS_ESC						;AN000;
-	PROCESS_F3						;AN000;
+	PROCESS_ESC
+	PROCESS_F3
 								;
 	CHECK_DOS_PATH		S_STR120_1			;AN000; check PATH path
-	.IF c							;AN000;
-	.THEN							;AN000;
-	   HANDLE_ERROR 	ERR_BAD_PATH, E_RETURN		;AN000;
-	   INIT_VAR		N_COUNTER, 1			;AN000;
-	   GOTO 		GET_PARAMETERS			;AN000;
-	.ENDIF							;AN000;
+	.IF c
+	.THEN
+	   HANDLE_ERROR 	ERR_BAD_PATH, E_RETURN
+	   INIT_VAR		N_COUNTER, 1
+	   GOTO 		GET_PARAMETERS
+	.ENDIF
 								;
 	CHECK_DOS_PATH		S_STR120_2			;AN000; check APPEND path
-	.IF c							;AN000;
-	.THEN							;AN000;
-	   HANDLE_ERROR 	ERR_BAD_PATH, E_RETURN		;AN000;
-	   INIT_VAR		N_COUNTER,2			;AN000;
-	   GOTO 		GET_PARAMETERS			;AN000;
-	.ENDIF							;AN000;
+	.IF c
+	.THEN
+	   HANDLE_ERROR 	ERR_BAD_PATH, E_RETURN
+	   INIT_VAR		N_COUNTER,2
+	   GOTO 		GET_PARAMETERS
+	.ENDIF
 								;
 	COPY_STRING		S_PATH, M_PATH, S_STR120_1	;AN000;    save PATH parameter
 	COPY_STRING		S_APPEND_P, M_APPEND_P, S_STR40 ;AN000;    save APPEND parameter JW
@@ -196,11 +193,11 @@ GET_PARAMETERS: 						;AN000;
 ;  Valid keys are ENTER, ESC, F1, F3 and ASCII characters.
 ;  Note.User entered parameter values are not checked for validity.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-SHELL_SCREEN:							;AN000;
+SHELL_SCREEN:
 	.IF < F_SHELL eq E_SHELL_NO >				;AN000; if SHELL support is not required
-	.THEN							;AN000;
+	.THEN
 	   GOTO 		FASTOPEN_SCREEN 		;AN000;    goto the next screen (KSAM)
-	.ENDIF							;AN000;
+	.ENDIF
 								;
 	INIT_PQUEUE		PAN_SHELL			;AN000; initialize queue
 	PREPARE_PANEL		PAN_HBAR			;AN000; prepare horizontal bar
@@ -211,13 +208,13 @@ SHELL_SCREEN:							;AN000;
 	GET_STRING		STR_SHELL,S_SHELL,M_SHELL,FK_TEXT     ;AN000; get SHELL parameters
 								;
 	.IF < N_USER_FUNC eq E_ENTER >				;AN000; if user entered ENTER key
-	.THEN							;AN000;
+	.THEN
 	   COPY_STRING		S_SHELL, M_SHELL, S_USER_STRING ;AN000;    save new SHELL parameters
 	   PUSH_HEADING 	SHELL_SCREEN			;AN000;    save screen address on SELECT STACK
 	   GOTO 		FASTOPEN_SCREEN 		;AN000;    goto the next screen (KSAM)
-	.ELSE							;AN000;
+	.ELSE
 	   GOTO 		PROCESS_ESC_F3			;AN000; user entered ESC or F3, take action
-	.ENDIF							;AN000;
+	.ENDIF
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ;  ------------------------------------Ŀ
@@ -233,12 +230,12 @@ SHELL_SCREEN:							;AN000;
 ;  Valid keys are ENTER, ESC, F1, F3 and ASCII characters.
 ;  Note.User entered parameter values are not checked for validity.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-FASTOPEN_SCREEN:						;AN000;
+FASTOPEN_SCREEN:
 	.IF < F_FASTOPEN eq E_FASTOPEN_NO > or			;AN000; if FASTOPEN support not required
-	.IF < I_DEST_DRIVE ne E_DEST_DRIVE_C >			;AC000;JW
-	.THEN							;AN000;
+	.IF < I_DEST_DRIVE ne E_DEST_DRIVE_C >
+	.THEN
 	   GOTO 		SHARE_SCREEN			;AN000;    goto next screen (SHARE)
-	.ENDIF							;AN000;
+	.ENDIF
 								;
 	INIT_PQUEUE		PAN_FASTOPEN			;AN000; initialize queue
 	PREPARE_PANEL		PAN_HBAR			;AN000; prepare horizontal bar
@@ -249,13 +246,13 @@ FASTOPEN_SCREEN:						;AN000;
 	GET_STRING		STR_FASTOPEN,S_FASTOPEN,M_FASTOPEN,FK_TEXT ;AN000; get new parameters for FASTOPEN
 								;
 	.IF < N_USER_FUNC eq E_ENTER >				;AN000; if user entered ENTER key
-	.THEN							;AN000;
+	.THEN
 	   COPY_STRING		S_FASTOPEN,M_FASTOPEN,S_USER_STRING   ;AN000;save new parameters for FASTOPEN
 	   PUSH_HEADING 	FASTOPEN_SCREEN 		;AN000;    save screen address on SELECT STACK
 	   GOTO 		SHARE_SCREEN			;AN000;    goto the next screen (SHARE)
-	.ELSE							;AN000;
+	.ELSE
 	   GOTO 		PROCESS_ESC_F3			;AN000; user entered ESC or F3, take action
-	.ENDIF							;AN000;
+	.ENDIF
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ;  ------------------------------------Ŀ
@@ -271,13 +268,13 @@ FASTOPEN_SCREEN:						;AN000;
 ;  Valid keys are ENTER, ESC, F1, F3 and ASCII characters.
 ;  Note.User entered parameter values are not checked for validity.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-SHARE_SCREEN:							;AN000;
+SHARE_SCREEN:
 	.IF < F_SHARE eq E_SHARE_NO > or			;AN000; if SHARE support not required
-	.IF < I_DEST_DRIVE ne E_DEST_DRIVE_C >			;AC000;JW
-	.THEN							;AN000;
-;;	   INIT_VAR		F_SHARE, E_SHARE_NO		;AN021;
+	.IF < I_DEST_DRIVE ne E_DEST_DRIVE_C >
+	.THEN
+;;	   INIT_VAR		F_SHARE, E_SHARE_NO
 	   GOTO 		GRAPHICS_SCREEN 		;AN000;    goto the next screen (GRAPHICS)
-	.ENDIF							;AN000;
+	.ENDIF
 								;
 	INIT_PQUEUE		PAN_SHARE			;AN000; initialize queue
 	PREPARE_PANEL		PAN_HBAR			;AN000; prepare horizontal bar
@@ -288,13 +285,13 @@ SHARE_SCREEN:							;AN000;
 	GET_STRING		STR_SHARE,S_SHARE,M_SHARE,FK_TEXT     ;AN000; get new parameters for SHARE
 								;
 	.IF < N_USER_FUNC eq E_ENTER >				;AN000; if user entered ENTER key
-	.THEN							;AN000;
+	.THEN
 	   COPY_STRING		S_SHARE, M_SHARE, S_USER_STRING ;AN000;    save new parameters for SHARE
 	   PUSH_HEADING 	SHARE_SCREEN			;AN000;    save screen address on SELECT STACK
 	   GOTO 		GRAPHICS_SCREEN 		;AN000;    goto the next screen (GRAPHICS)
-	.ELSE							;AN000;
+	.ELSE
 	   GOTO 		PROCESS_ESC_F3			;AN000; user entered ESC or F3, take action
-	.ENDIF							;AN000;
+	.ENDIF
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ;  ------------------------------------Ŀ
@@ -310,17 +307,17 @@ SHARE_SCREEN:							;AN000;
 ;  Valid keys are ENTER, ESC, F1, F3 and ASCII characters.
 ;  Note.User entered parameter values are not checked for validity.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-GRAPHICS_SCREEN:						;AN000;
+GRAPHICS_SCREEN:
 	.IF < F_GRAPHICS eq E_GRAPHICS_NO >			;AN000; if GRAPHICS support not required
-	.THEN							;AN000;
+	.THEN
 	   GOTO 		EXP_MEMORY_SCREEN		;AN000;    goto the next screen (EXPANDED_MEM)
-	.ENDIF							;AN000;
+	.ENDIF
 								;
-	GET_PRINTER_PARAMS	0, 1, N_RETCODE 		;AN000;
-	.IF < N_RETCODE eq 1 >					;AN000;
-	.THEN							;AN000;
-	   COPY_STRING		S_GRAPHICS,M_GRAPHICS,S_GRAPH_PARM    ;AN000;
-	.ENDIF							;AN000;
+	GET_PRINTER_PARAMS	0, 1, N_RETCODE
+	.IF < N_RETCODE eq 1 >
+	.THEN
+	   COPY_STRING		S_GRAPHICS,M_GRAPHICS,S_GRAPH_PARM
+	.ENDIF
 								;
 	INIT_PQUEUE		PAN_GRAPHICS			;AN000; initialize queue
 	PREPARE_PANEL		PAN_HBAR			;AN000; prepare horizontal bar
@@ -331,13 +328,13 @@ GRAPHICS_SCREEN:						;AN000;
 	GET_STRING		STR_GRAPHICS,S_GRAPHICS,M_GRAPHICS,FK_TEXT ;AN000; get new parameters for GRAPHICS
 								;
 	.IF < N_USER_FUNC eq E_ENTER >				;AN000; if user entered ENTER key
-	.THEN							;AN000;
+	.THEN
 	   COPY_STRING		S_GRAPHICS, M_GRAPHICS, S_USER_STRING ;AN000;save new parameters for GRAPHICS
 	   PUSH_HEADING 	GRAPHICS_SCREEN 		;AN000;    save screen address on SELECT STACK
 	   GOTO 		EXP_MEMORY_SCREEN		;AN000;    goto next screen (EXPANDED_MEMORY)
-	.ELSE							;AN000;
+	.ELSE
 	   GOTO 		PROCESS_ESC_F3			;AN000; user entered ESC or F3, take action
-	.ENDIF							;AN000;
+	.ENDIF
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ;  ------------------------------------Ŀ
@@ -361,78 +358,78 @@ GRAPHICS_SCREEN:						;AN000;
 ;  Valid keys are ENTER, ESC, F1, F3 and ASCII characters.
 ;  Note.User entered parameter values are not checked for validity.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-EXP_MEMORY_SCREEN:						;AN000;
+EXP_MEMORY_SCREEN:
 	.IF < F_XMA eq E_XMA_NO > or				;AN000; if XMA support not required
 	.IF < F_XMA eq E_XMA_NA > or				;AN000; or if XMA not available
 	.IF < I_DEST_DRIVE ne E_DEST_DRIVE_C >			;AC000; or if install to drive B: or A:       JW
-	.THEN							;AN000;
+	.THEN
 	   GOTO 		VDISK_SCREEN			;AN000;    goto the next screen (VDISK)
-	.ENDIF							;AN000;
+	.ENDIF
 								;
 	COPY_STRING		S_STR120_1, M_STR120_1, S_XMAEM ;AN000; copy XMAEM to temp location
 	COPY_STRING		S_STR120_2,M_STR120_2,S_XMA2EMS ;AN000; copy XMA2EMS to temp location
 								;
-	.IF < N_MOD80 eq E_IS_MOD80 >				;AN000; 				      JW
-	.THEN							;AN000; 				      JW
+	.IF < N_MOD80 eq E_IS_MOD80 >
+	.THEN
 	   INIT_PQUEUE		PAN_EXP_MEMORY			;AN000; initialize queue
-	.ELSE							;AN000; 				      JW
+	.ELSE
 	   INIT_PQUEUE		PAN_EXP_MEMORY2 		;AN000; initialize queue		      JW
-	.ENDIF							;AN000; 				      JW
+	.ENDIF
 								;
 	PREPARE_PANEL		PAN_HBAR			;AN000; prepare horizontal bar
 	PREPARE_CHILDREN					;AN000; prepare child panels
 								;
-	.IF < N_MOD80 eq E_IS_MOD80 >				;AN000; 				      JW
-	.THEN							;AN000; 				      JW
+	.IF < N_MOD80 eq E_IS_MOD80 >
+	.THEN
 	   INIT_STRING		STR_XMAEM,S_STR120_1,M_XMAEM	;AN000; display parameter for XMAEM
-	.ENDIF							;AN000; 				      JW
+	.ENDIF
 								;
 	INIT_STRING		STR_XMA2EMS,S_STR120_2,M_XMA2EMS      ;AN000; display XMA2EMS parameters
 	DISPLAY_PANEL						;AN000; display EXPANDED_MEMORY panel
 								;
 								;
-	.IF < N_MOD80 eq E_IS_MOD80 > near			;AN000; 				      JW
-	.THEN							;AN000; 				      JW
+	.IF < N_MOD80 eq E_IS_MOD80 > near
+	.THEN
 	   INIT_VAR		   N_COUNTER,1			;AN000; set counter = 1
 								;
 	   .REPEAT						;AN000; repeat block of code
 								;
-	      .SELECT						;AN000;
+	      .SELECT
 								;
-	      .WHEN < N_COUNTER eq 1 > near			;AN000;
+	      .WHEN < N_COUNTER eq 1 > near
 		 GET_STRING	   STR_XMAEM,S_STR120_1,M_XMAEM,FK_TAB;AN000; get new parameter for XMAEM
 		 COPY_STRING	   S_STR120_1,M_STR120_1,S_USER_STRING;AN000; save parameter in temp location
 								;
-	      .OTHERWISE					;AN000;
+	      .OTHERWISE
 		 GET_STRING	   STR_XMA2EMS,S_STR120_2,M_XMA2EMS,FK_TAB  ;AN000;get new parameter for XMA2EMS
 		 COPY_STRING	   S_STR120_2,M_STR120_2,S_USER_STRING	    ;AN000; save parameter in temp location
 								;
-	      .ENDSELECT					;AN000;
+	      .ENDSELECT
 								;
-	      INC_VAR		   N_COUNTER			;AN000;
+	      INC_VAR		   N_COUNTER
 								;
-	      .IF < N_COUNTER a 2 >				;AN000;
-	      .THEN						;AN000;
-		 INIT_VAR	   N_COUNTER,1			;AN000;
-	      .ENDIF						;AN000;
+	      .IF < N_COUNTER a 2 >
+	      .THEN
+		 INIT_VAR	   N_COUNTER,1
+	      .ENDIF
 								;
 	   .UNTIL < N_USER_FUNC eq E_ENTER > or near		;AN000; break loop if ENTER entered
 	   .UNTIL < N_USER_FUNC eq E_ESCAPE > or near		;AN000; or ESCAPE entered
 	   .UNTIL < N_USER_FUNC eq E_F3 > near			;AN000; or F3 entered
-	.ELSE							;AN000; 				      JW
+	.ELSE
 	   GET_STRING	     STR_XMA2EMS,S_STR120_2,M_XMA2EMS,FK_TEXT ;AN000;get new parameter for XMA2EMS    JW
 	   COPY_STRING	     S_STR120_2,M_STR120_2,S_USER_STRING      ;AN000; save parameter in temp location JW
-	.ENDIF							;AN000; 				      JW
+	.ENDIF
 								;
 	.IF < N_USER_FUNC eq E_ENTER >				;AN000; if user entered ENTER key
-	.THEN							;AN000;
+	.THEN
 	   COPY_STRING		S_XMAEM,   M_XMAEM,  S_STR120_1 ;AN000;    save new XMAEM parameter
 	   COPY_STRING		S_XMA2EMS, M_XMA2EMS,S_STR120_2 ;AN000;    save new XMA2EMS parameter
 	   PUSH_HEADING 	EXP_MEMORY_SCREEN		;AN000;    save screen address on SELECT STACK
 	   GOTO 		VDISK_SCREEN			;AN000;    goto next screen (VDISK)
-	.ELSE							;AN000;
+	.ELSE
 	   GOTO 		PROCESS_ESC_F3			;AN000; user entered ESC or F3, take action
-	.ENDIF							;AN000;
+	.ENDIF
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-SELECT	ENDS							;AN000;
-	END							;AN000;
+SELECT	ENDS
+	END

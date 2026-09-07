@@ -1,6 +1,4 @@
  page 80,132
-;	SCCSID = @(#)tmisc2.asm 4.3 85/06/25
-;	SCCSID = @(#)tmisc2.asm 4.3 85/06/25
 TITLE	Part7 COMMAND Transient Routines
 
 ;	More misc routines
@@ -17,28 +15,28 @@ TITLE	Part7 COMMAND Transient Routines
 .cref
 
 
-CODERES 	SEGMENT PUBLIC BYTE	;AC000;
+CODERES 	SEGMENT PUBLIC BYTE
 CodeRes 	ENDS
 
-DATARES 	SEGMENT PUBLIC BYTE	;AC000;
+DATARES 	SEGMENT PUBLIC BYTE
 	EXTRN	IFFlag:BYTE
 	EXTRN	PIPEFLAG:BYTE
 DATARES 	ENDS
 
-TRANDATA	SEGMENT PUBLIC BYTE	;AC000;
+TRANDATA	SEGMENT PUBLIC BYTE
 	EXTRN	AccDen_PTR:WORD
-	EXTRN	Extend_buf_ptr:word	;AN000;
+	EXTRN	Extend_buf_ptr:word
 	EXTRN	FULDIR_PTR:WORD
-	EXTRN	msg_disp_class:byte	;AN000;
+	EXTRN	msg_disp_class:byte
 	EXTRN	RE_OUTSTR:BYTE
 	EXTRN	RE_OUT_APP:BYTE
 TRANDATA	ENDS
 
-TRANSPACE	SEGMENT PUBLIC BYTE	;AC000;
+TRANSPACE	SEGMENT PUBLIC BYTE
 	EXTRN	DESTINFO:BYTE
 	EXTRN	DESTISDIR:BYTE
-	EXTRN	KPARSE:BYTE		;AC000;
-	EXTRN	ONE_CHAR_VAL:BYTE	;AN011;
+	EXTRN	KPARSE:BYTE
+	EXTRN	ONE_CHAR_VAL:BYTE
 	EXTRN	PATHCNT:WORD
 	EXTRN	PATHPOS:WORD
 	EXTRN	PATHSW:WORD
@@ -67,7 +65,7 @@ ASSUME	CS:TRANGROUP,DS:NOTHING,ES:NOTHING,SS:NOTHING
 	ENDIF
 
 	PUBLIC	IOSET
-	PUBLIC	MOVE_TO_SRCBUF		;AN000;
+	PUBLIC	MOVE_TO_SRCBUF
 	PUBLIC	PGETARG
 	PUBLIC	SETPATH
 	PUBLIC	TESTDOREIN
@@ -283,7 +281,7 @@ ASSUME	DS:RESGROUP
 
 	CMP	BYTE PTR CS:[RE_OUTSTR],0
 	JNZ	REOUTEXISTS			;AN017; need long jump
-	JMP	NOREOUT 			;AN017;
+	JMP	NOREOUT
 
 REOUTEXISTS:
 	CMP	BYTE PTR CS:[RE_OUT_APP],0
@@ -305,49 +303,49 @@ REOUTEXISTS:
 
 	MOV	BX,AX
 	MOV	AX,IOCTL SHL 8			;AN035; Get attributes of handle
-	INT	int_command			;AN035;
+	INT	int_command
 	TEST	DL,devid_ISDEV			;AN035; Is it a device?
 	JNZ	SET_REOUT			;AN035; Yes, don't read from it
 
 	MOV	AX,(LSEEK SHL 8) OR 2
 	MOV	CX,-1				;AC011; MOVE TO EOF -1
-	MOV	DX,CX				;AC011;
+	MOV	DX,CX
 	INT	int_command
 	PUSH	CS				;AN011; Get transient seg to DS
-	POP	DS				;AN011;
-	assume	DS:Trangroup			;AN011;
+	POP	DS
+	assume	DS:Trangroup
 	MOV	AX,(READ SHL 8) 		;AN011; Read one byte from the
 	MOV	CX,1				;AN011;   file into one_char_val
-	MOV	DX,OFFSET Trangroup:ONE_CHAR_VAL;AN011;
-	INT	int_command			;AN011;
+	MOV	DX,OFFSET Trangroup:ONE_CHAR_VAL
+	INT	int_command
 	JC	OpenWriteError			;AN011; If error, exit
 	cmp	ax,cx				;AN017; Did we read 1 byte?
 	jnz	reout_0_length			;AN017; No - file must be 0 length
 
 	cmp	one_char_val,01ah		;AN011; Was char an eof mark?
 	mov	DS,[SHELL_DATA_SELECTOR]			;AN011; Get resident segment back
-	assume	DS:Resgroup			;AN011;
+	assume	DS:Resgroup
 	JNZ	SET_REOUT			;AN011; No, just continue
 	MOV	AX,(LSEEK SHL 8) OR 1		;AN011; EOF mark found
 	MOV	CX,-1				;AN011; LSEEK back one byte
-	MOV	DX,CX				;AN011;
-	INT	int_command			;AN011;
+	MOV	DX,CX
+	INT	int_command
 	JMP	SHORT SET_REOUT
 
 reout_0_length: 				;AN017; We have a 0 length file
 	mov	DS,[SHELL_DATA_SELECTOR]			;AN017; Get resident segment back
-	assume	DS:Resgroup			;AN017;
+	assume	DS:Resgroup
 	MOV	AX,(LSEEK SHL 8)		;AN017; Move to beginning of file
 	XOR	CX,CX				;AN017; Offset is 0
-	MOV	DX,CX				;AN017;
-	INT	int_command			;AN017;
+	MOV	DX,CX
+	INT	int_command
 	JMP	SHORT SET_REOUT 		;AN017; now finish setting up redirection
 
 OpenWriteError:
 	CMP	AX,error_access_denied
 	STC					; preserve error
 	JNZ	REOUTCRT			;AN017; need long jump
-	JMP	REDIRERR			;AN017;
+	JMP	REDIRERR
 
 REOUTCRT:
 	PUSH	DS
@@ -360,10 +358,10 @@ REOUTCRT:
 	INT	int_command
 	POP	BX
 	POP	DS
-	JNC	NOREDIRERR			;AC011;
-	JMP	REDIRERR			;AC011;
+	JNC	NOREDIRERR
+	JMP	REDIRERR
 
-NOREDIRERR:					;AN011;
+NOREDIRERR:
 	MOV	BX,AX
 
 SET_REOUT:
@@ -467,20 +465,20 @@ Triage_Init endp
 ; *
 ; ****************************************************************
 
-assume	es:trangroup,ds:nothing 		;AN000;
+assume	es:trangroup,ds:nothing
 
-MOVE_TO_SRCBUF	PROC	NEAR			;AN000;
+MOVE_TO_SRCBUF	PROC	NEAR
 
 	push	si				;AN000;  save si,di
-	push	di				;AN000;
-	push	cx				;AN000;
+	push	di
+	push	cx
 	mov	di,offset TRANGROUP:srcbuf	;AN000;  set ES:DI to srcbuf
 	xor	cx,cx				;AN000; clear cx for counint
 	mov	ax,cx				;AN000; clear ax
 	push	di				;AN000; save start of srcbuf
 	lodsb					;AN000; get a character from DS:SI
 
-mts_get_chars:					;AN000;
+mts_get_chars:
 	cmp	al,0				;AN000; was it a null char?
 	jz	mts_end_string			;AN000; yes - exit
 	stosb					;AN000; no - store it in srcbuf
@@ -490,21 +488,21 @@ mts_get_chars:					;AN000;
 
 mts_end_string: 				;AN000; we've reached the end of line
 	mov	al,end_of_line_in		;AN000; store 0dH in srcbuf
-	stosb					;AN000;
+	stosb
 	pop	di				;AN000; restore start of srcbuf
 
 	push	cs				;AN000; set DS to local segment
-	pop	ds				;AN000;
-assume	ds:trangroup				;AN000;
+	pop	ds
+assume	ds:trangroup
 	mov	[pathcnt],cx			;AN000; set patchcnt to length count
 	mov	[pathpos],di			;AN000; set pathpos to start of srcbuf
 	pop	cx				;AN000; restore cx,di,si
-	pop	di				;AN000;
-	pop	si				;AN000;
+	pop	di
+	pop	si
 
 	RET					;AN000; exit
 
-MOVE_TO_SRCBUF	ENDP				;AN000;
+MOVE_TO_SRCBUF	ENDP
 
 TRANCODE    ENDS
 	    END

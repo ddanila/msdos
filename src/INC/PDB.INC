@@ -1,4 +1,3 @@
-;	SCCSID = @(#)pdb.asm	1.1 85/04/10
 BREAK <Process data block>
 
 ;

@@ -1,4 +1,3 @@
-;	SCCSID = @(#)misc.asm	1.1 85/04/10
 TITLE MISC - Miscellanious routines for MS-DOS
 NAME  MISC
 ;
@@ -56,7 +55,7 @@ SAVEXIT 	EQU	10
 	i_need	FETCHI_TAG,WORD 		 ; for TAG CHECK
 	i_need	BUF_HASH_COUNT,WORD		 ;AN000; number of Hash Entries
 	i_need	HIGH_SECTOR,WORD		 ;AN000; high word of sector #
-	i_need	DOS34_FLAG,WORD 		 ;AN000;
+	i_need	DOS34_FLAG,WORD
 if debug
 	I_need	BugLev,WORD
 	I_need	BugTyp,WORD
@@ -93,7 +92,7 @@ entry	$SLEAZEFUNCDL
 	MOV	AL,DL
 	invoke	GETTHISDRV		; Get CDS structure
 SET_AL_RET:
-;	MOV	AL,error_invalid_drive	; Assume error				;AC000;
+;	MOV	AL,error_invalid_drive	; Assume error
 	JC	BADSLDRIVE
 	invoke	DISK_INFO
 	JC	SET_AL_RET		; User FAILed to I 24
@@ -222,9 +221,9 @@ ASSUME	DS:NOTHING,ES:NOTHING
  entry $DISK_RESET2
 	context DS
 	EnterCrit   critDisk
-	OR	[DOS34_FLAG],FROM_DISK_RESET					;AN000;
+	OR	[DOS34_FLAG],FROM_DISK_RESET
 	invoke	FLUSHBUF
-	AND	[DOS34_FLAG],NO_FROM_DISK_RESET 				;AN000;
+	AND	[DOS34_FLAG],NO_FROM_DISK_RESET
 ;
 ; We will "ignore" any errors on the flush, and go ahead and invalidate.  This
 ; call doesn't return any errors and it is supposed to FORCE a known state, so
@@ -267,10 +266,10 @@ ASSUME	DS:NOTHING,ES:NOTHING
 	ADD	DI,2			; Skip over dpb_drive and dpb_UNIT
 	LODSW
 	STOSW				; dpb_sector_size
-	CMP	BYTE PTR [SI.BPFTCNT-2],0     ; FAT file system drive		;AN000;
-	JNZ	yesfat			      ; yes				;AN000;
+	CMP	BYTE PTR [SI.BPFTCNT-2],0     ; FAT file system drive
+	JNZ	yesfat			      ; yes
 	MOV	BYTE PTR ES:[DI.dpb_FAT_count-4],0
-	JMP	setend			      ; NO				;AN000;
+	JMP	setend			      ; NO
 yesfat:
 	MOV	DX,AX
 	LODSB
@@ -291,8 +290,8 @@ SAVLOG:
 	MOVSW				; dpb_first_FAT Start of FAT (# of reserved sectors)
 	LODSB
 	STOSB				; dpb_FAT_count Number of FATs
-;	OR	AL,AL			; NONFAT ?				;AN000;
-;	JZ	setend			; yes, don't do anything                ;AN000;
+;	OR	AL,AL			; NONFAT ?
+;	JZ	setend			; yes, don't do anything
 	MOV	BH,AL
 	LODSW
 	STOSW				; dpb_root_entries Number of directory entries
@@ -319,12 +318,12 @@ SAVLOG:
 	ADD	AX,CX			; Add number of directory sectors
 	MOV	ES:[BP.dpb_first_sector],AX
 
-	MOV	CL,BL		       ;F.C. >32mb				;AN000;
-	CMP	WORD PTR ES:[BP.DSKSIZ],0	;F.C. >32mb			;AN000;
-	JNZ	normal_dpb	       ;F.C. >32mb				;AN000;
-	XOR	CH,CH		       ;F.C. >32mb				;AN000;
-	MOV	BX,WORD PTR [SI+BPB_BigTotalSectors-BPB_SectorsPerTrack]	;AN000;
-	MOV	DX,WORD PTR [SI+BPB_BigTotalSectors-BPB_SectorsPerTrack+2]	;AN000;
+	MOV	CL,BL		       ;F.C. >32mb
+	CMP	WORD PTR ES:[BP.DSKSIZ],0	;F.C. >32mb
+	JNZ	normal_dpb	       ;F.C. >32mb
+	XOR	CH,CH		       ;F.C. >32mb
+	MOV	BX,WORD PTR [SI+BPB_BigTotalSectors-BPB_SectorsPerTrack]
+	MOV	DX,WORD PTR [SI+BPB_BigTotalSectors-BPB_SectorsPerTrack+2]
 	SUB	BX,AX		       ;AN000;;F.C. >32mb
 	SBB	DX,0		       ;AN000;;F.C. >32mb
 	OR	CX,CX		       ;AN000;;F.C. >32mb
@@ -334,7 +333,7 @@ rott:				       ;AN000;;F.C. >32mb
 	RCR	DX,1		       ;AN000;;F.C. >32mb
 	RCR	BX,1		       ;AN000;;F.C. >32mb
 	LOOP	rott		       ;AN000;;F.C. >32mb
-norot:				       ;AN000;
+norot:
 	MOV	AX,BX		       ;AN000;;F.C. >32mb
 	JMP	setend		       ;AN000;;F.C. >32mb
 normal_dpb:
@@ -552,8 +551,8 @@ BREAK <$GSetMediaID -- get set media ID>
 ;	carry clear, DS:DX is filled
 ;	carry set, error
 
-	procedure   $GSetMediaID,NEAR ;AN000;
-ASSUME	DS:NOTHING,ES:NOTHING	      ;AN000;
+	procedure   $GSetMediaID,NEAR
+ASSUME	DS:NOTHING,ES:NOTHING
 
 	MOV	CX,0866H	      ;AN000;MS.; assume get  for IOCTL
 	CMP	AL,0		      ;AN001;MS.; get ?
@@ -561,13 +560,13 @@ ASSUME	DS:NOTHING,ES:NOTHING	      ;AN000;
 	CMP	AL,1		      ;AN000;MS.; set ?
 	JNZ	errorfunc	      ;AN000;MS.; no
 	MOV	CX,0846H	      ;AN001;MS.;
-doioctl:			      ;AN000;
+doioctl:
 	MOV	AL,0DH		      ;AN000;MS.; generic IOCTL
 	invoke	$IOCTL		      ;AN000;MS.; let IOCTL take care of it
 	return			      ;AN000;MS.;
-errorfunc:			      ;AN000;
+errorfunc:
 	error	error_invalid_function;AN000;MS.	; invalid function
-EndProc $GSetMediaID		      ;AN000;
+EndProc $GSetMediaID
 
 CODE	ENDS
 END

@@ -1,12 +1,5 @@
 %OUT MS96TPI.INC...
 ;==============================================================================
-;REVISION HISTORY:
-;AN000 - New for DOS Version 4.00 - J.K.
-;AC000 - Changed for DOS Version 4.00 - J.K.
-;AN00x - PTM number for DOS Version 4.00 - J.K.
-;==============================================================================
-;AN001 - p2781 Changeline error behavior incompatibile with DOS 3.3 1/06/88 J.K.
-;==============================================================================
 ;
 ;		DISK OPEN/CLOSE ROUTINES ARR 2.41
 ;
@@ -185,8 +178,8 @@ CHECK_VID:
 	cmp	cs:[Ext_Boot_Sig],Ext_Boot_Signature
 	jz	Do_Ext_Check_Id
 ;SB34MS96TPI001*********************************************************
-	call	HasChange			;AN000;
-	jz	CheckRet			;AN000;
+	call	HasChange
+	jz	CheckRet
 
 	xor	si,si				;AN000; assume I don't know.
 	cmp	byte ptr cs:[SECPERCLUSINSECTOR]+3,0 ;AN000; Don't read vol id from
@@ -200,7 +193,7 @@ CHECK_VID:
 
 VID_NO_Changed:
 	CALL	RESETCHANGED
-	clc					;AN000;
+	clc
 CHECKFATRET:
 	RET
 CHANGED_DRV:
@@ -209,8 +202,8 @@ CHANGED_DRV:
    ;
    ; extended ID check
    ;
-Do_Ext_Check_ID:				;AN000;
-	push	ax				;AN000;
+Do_Ext_Check_ID:
+	push	ax
 ;SB34MS96TPI002**************************************************************
 ;SB	The code to check extended ID is basically a check to see if the
 ;Sb	volume serial number is still the same.  The volume serial number
@@ -236,14 +229,14 @@ Do_Ext_Check_ID:				;AN000;
 	xor	si,si			; don't know
 
 ;SB34MS96TPI002**************************************************************
-	pop	ax				;AN000;
-;	 jmp	 CheckFatRet			 ;AN000;
+	pop	ax
+;	 jmp	 CheckFatRet
 	jmp	VID_NO_Changed			;AN001;Reset the flag
 Ext_Changed:					;AN000; Serial number is different!
-	pop	ax				;AN000;
+	pop	ax
 	mov	si, -1				;AN000; disk changed!
 	clc					;AN000; clear carry. Only SI is meaningful here.
-	jmp	Changed_Drv			;AN000;
+	jmp	Changed_Drv
 
 ;
 ; AT I/O TIME, WE DETECTED THE ERROR.  NOW WE NEED TO DETERMINE WHETHER THE

@@ -1,4 +1,3 @@
-/*      SCCSID = @(#)utilmid.h	10.5 87/05/22 */
 
 #define MSG_REC_FILE_NOT_FOUND          2         /* file not found */
 

@@ -1,4 +1,3 @@
-;	SCCSID = @(#)getset.asm 1.2 85/07/23
 TITLE  GETSET - GETting and SETting MS-DOS system calls
 NAME   GETSET
 ;
@@ -21,14 +20,6 @@ NAME   GETSET
 ;   Get_Global_CdPg		       DOS 4.0
 ;   $ECS_CALL			       DOS 4.0
 ;
-;   Revision history:
-;
-;	Created: ARR 30 March 1983
-;
-;	A000   version 4.0   Jan. 1988
-;	A006   D503-- fake version for IBMCACHE
-;	A008   P4070- faske version for MS WINDOWS
-
 .xlist
 ;
 ; get the appropriate segment definitions
@@ -68,13 +59,13 @@ include doscntry.inc
 	i_need	FILE_UCASE_TAB,BYTE
 	i_need	InterCon,BYTE
 	i_need	CURRENTPDB,WORD
-	i_need	DBCS_TAB,BYTE			   ;AN000;
-	i_need	Special_version,WORD		   ;AN006;
-	i_need	Fake_Count,BYTE 		   ;AN008;
-	i_need	NLS_YES,BYTE			   ;AN000;
-	i_need	NLS_yes2,BYTE			   ;AN000;
-	i_need	NLS_NO,BYTE			   ;AN000;
-	i_need	NLS_no2,BYTE			   ;AN000;
+	i_need	DBCS_TAB,BYTE
+	i_need	Special_version,WORD
+	i_need	Fake_Count,BYTE
+	i_need	NLS_YES,BYTE
+	i_need	NLS_yes2,BYTE
+	i_need	NLS_NO,BYTE
+	i_need	NLS_no2,BYTE
 
 
 BREAK <$Get_Version -- Return DOS version number>
@@ -99,16 +90,16 @@ ASSUME	DS:NOTHING,ES:NOTHING
 ASSUME	DS:NOTHING
 	MOV	[SI.user_BX],BX
 	MOV	[SI.user_CX],CX
-	CMP	CS:[Fake_Count],0FFH		   ;AN008;
-	JZ	reg				   ;AN008;
-	CMP	CS:[Fake_Count],0		   ;AN008;
-	JZ	usual				   ;AN008;
-	DEC	CS:[Fake_Count] 		   ;AN008;
-reg:						   ;AN008;
-	CMP	CS:[Special_version],0		   ;AN006;
-	JZ	usual				   ;AN006;
-	MOV	AX,CS:[Special_version] 	   ;AN006;
-usual:						   ;AN006;
+	CMP	CS:[Fake_Count],0FFH
+	JZ	reg
+	CMP	CS:[Fake_Count],0
+	JZ	usual
+	DEC	CS:[Fake_Count]
+reg:
+	CMP	CS:[Special_version],0
+	JZ	usual
+	MOV	AX,CS:[Special_version]
+usual:
 	MOV	[SI.user_AX],AX 	; Really only sets AH
 	return
 EndProc $GET_VERSION
@@ -318,14 +309,14 @@ ASSUME	DS:NOTHING,ES:NOTHING
 	CMP	AL,CAP_ONE_CHAR 	;AN000;MS. < 20H ?
 	JAE	capcap			;AN000;MS.
 	JMP	notcap			;AN000;MS. yes
-capcap: 				;AN000;
+capcap:
 	TEST	AL,UPPER_TABLE		;AN000;MS. which upper case table
 	JNZ	fileupper		;AN000;MS. file upper case
 	MOV	BX,OFFSET DOSGROUP:UCASE_TAB+2 ;AN000;MS. get normal upper case
 	JMP	SHORT capit			   ;AN000;MS.
-fileupper:					   ;AN000;
+fileupper:
 	MOV	BX,OFFSET DOSGROUP:FILE_UCASE_TAB+2;AN000;MS. get file upper case
-capit:					;AN000;
+capit:
 	CMP	AL,CAP_ONE_CHAR 	;AN000;;MS.cap one char ?
 	JNZ	chkyes			;AN000;;MS. no
 	MOV	AL,DL			;AN000;;MS. set up AL
@@ -333,18 +324,17 @@ capit:					;AN000;
 	invoke	get_user_stack		;AN000;;MS. get user stack
 	MOV	byte ptr [SI.user_DX],AL;AN000;;MS. user's DL=AL
 	JMP	SHORT nono		;AN000;;MS. done
-chkyes: 				;AN000;
+chkyes:
 	CMP	AL,CHECK_YES_NO 	;AN000;;MS. check YES or NO ?
 	JNZ	capstring		;AN000;;MS. no
 	XOR	AX,AX			;AN000;;MS. presume NO
-IF  DBCS				;AN000;
+IF  DBCS
 	PUSH	AX			;AN000;;MS.
 	MOV	AL,DL			;AN000;;MS.
 	invoke	TESTKANJ		;AN000;;MS. DBCS ?
 	POP	AX			;AN000;;MS.
 	JNZ	dbcs_char		;AN000;;MS. yes, return error
-ENDIF					;AN000;
-					;AN000;
+ENDIF
 	CMP	DL,NLS_YES		;AN000;;MS. is 'Y' ?
 	JZ	yesyes			;AN000;;MS. yes
 	CMP	DL,NLS_yes2		;AN000;;MS. is 'y' ?
@@ -353,19 +343,19 @@ ENDIF					;AN000;
 	JZ	nono			;AN000;;MS. no
 	CMP	DL,NLS_no2		;AN000;;MS. is 'n' ?
 	JZ	nono			;AN000;;MS. no
-dbcs_char:				;AN000;
+dbcs_char:
 	INC	AX			;AN000;;MS. not YES or NO
 yesyes: 				;AN000'
 	INC	AX			;AN000;;MS. return 1
-nono:					;AN000;
+nono:
 	transfer SYS_RET_OK		;AN000;;MS. done
-capstring:				;AN000;
+capstring:
 	MOV	SI,DX			;AN000;;MS. si=dx
 	CMP	AL,CAP_STRING		;AN000;;MS. cap string ?
 	JNZ	capascii		;AN000;;MS. no
 	CMP	CX,0			;AN000;;MS. check count 0
 	JZ	nono			;AN000;;MS. yes finished
-concap: 				;AN000;
+concap:
 	LODSB				;AN000;;MS. get char
  IF  DBCS				;AN000;;MS.
 	invoke	TESTKANJ		;AN000;;MS. DBCS ?
@@ -374,18 +364,18 @@ concap: 				;AN000;
 	DEC	CX			;AN000;;MS. bad input, one DBCS char at end
 	JZ	nono			;AN000;;MS. yes
 	JMP	SHORT next99		;AN000;;MS.
-notdbcs:				;AN000;
- ENDIF					;AN000;
+notdbcs:
+ ENDIF
 
 	invoke	GETLET3 		;AN000;;MS. upper case it
 	MOV	byte ptr [SI-1],AL	;AN000;;MS. store back
-next99: 				;AN000;
+next99:
 	LOOP	concap			;AN000;;MS. continue
 	JMP	nono			;AN000;;MS. done
-capascii:				;AN000;
+capascii:
 	CMP	AL,CAP_ASCIIZ		;AN000;;MS. cap ASCIIZ string ?
 	JNZ	capinval		;AN000;;MS. no
-concap2:				;AN000;
+concap2:
 	LODSB				;AN000;;MS. get char
 	CMP	AL,0			;AN000;;MS. end of string ?
 	JZ	nono			;AN000;;MS. yes
@@ -396,8 +386,8 @@ concap2:				;AN000;
 	JZ	nono			;AN000;;MS. yes
 	INC	SI			;AN000;;MS. skip 2 chars
 	JMP	concap2 		;AN000;;MS.
-notdbcs2:				;AN000;
- ENDIF					;AN000;
+notdbcs2:
+ ENDIF
 	invoke	GETLET3 		;AN000;;MS. upper case it
 	MOV	byte ptr [SI-1],AL	;AN000;;MS. store back
 	JMP	concap2 		;AN000;;MS. continue
@@ -844,69 +834,67 @@ ASSUME	DS:NOTHING, ES:NOTHING
 ;  NOTE: THIS CALL DOES GUARANTEE THAT REGISTER OTHER THAN
 ;	 SS:SP WILL BE PRESERVED!
 
- IF  DBCS									;AN000;
-										;AN000;
-	or	al, al			; AL = 0 (get table)?			;AN000;
-	je	get_lbt 							;AN000;
-	cmp	al, SetInterimMode	; AL = 1 (set / reset interim flag)?	;AN000;
-	je	set_interim							;AN000;
-	cmp	al, GetInterimMode	; AL = 2 (get interim flag)?		;AN000;
-	je	get_interim							;AN000;
-	error	error_invalid_function						;AN000;
-										;AN000;
-get_lbt:				; get lead byte table			;AN000;
-	push	ax								;AN000;
-	push	bx								;AN000;
-	push	ds								;AN000;
-	context DS								;AN000;
-	MOV	BX,offset DOSGROUP:COUNTRY_CDPG.ccSetDBCS			;AN000;
-	MOV	AX,[BX+1]		; set EV address to DS:SI		;AN000;
-	MOV	BX,[BX+3]							;AN000;
-	ADD	AX,2			; Skip Lemgth				;AN000;
-	invoke	get_user_stack							;AN000;
- assume ds:nothing								;AN000;
-	MOV	[SI.user_SI], AX						;AN000;
-	MOV	[SI.user_DS], BX						;AN000;
-	pop	ds								;AN000;
-	pop	bx								;AN000;
-	pop	ax								;AN000;
-	transfer SYS_RET_OK							;AN000;
+ IF  DBCS
+	or	al, al			; AL = 0 (get table)?
+	je	get_lbt
+	cmp	al, SetInterimMode	; AL = 1 (set / reset interim flag)?
+	je	set_interim
+	cmp	al, GetInterimMode	; AL = 2 (get interim flag)?
+	je	get_interim
+	error	error_invalid_function
+get_lbt:				; get lead byte table
+	push	ax
+	push	bx
+	push	ds
+	context DS
+	MOV	BX,offset DOSGROUP:COUNTRY_CDPG.ccSetDBCS
+	MOV	AX,[BX+1]		; set EV address to DS:SI
+	MOV	BX,[BX+3]
+	ADD	AX,2			; Skip Lemgth
+	invoke	get_user_stack
+ assume ds:nothing
+	MOV	[SI.user_SI], AX
+	MOV	[SI.user_DS], BX
+	pop	ds
+	pop	bx
+	pop	ax
+	transfer SYS_RET_OK
 
-set_interim:				; Set interim console flag		;AN000;
-	push	dx								;AN000;
-	and	dl,01			; isolate bit 1 			;AN000;
-	mov	[InterCon], dl							;AN000;
-	push	ds								;AN000;
-	mov	ds, [CurrentPDB]						;AN000;
-	mov	byte ptr ds:[PDB_InterCon], dl	; update value in pdb		;AN000;
-	pop	ds								;AN000;
-	pop	dx								;AN000;
-	transfer SYS_RET_OK							;AN000;
+set_interim:				; Set interim console flag
+	push	dx
+	and	dl,01			; isolate bit 1
+	mov	[InterCon], dl
+	push	ds
+	mov	ds, [CurrentPDB]
+	mov	byte ptr ds:[PDB_InterCon], dl	; update value in pdb
+	pop	ds
+	pop	dx
+	transfer SYS_RET_OK
 
-get_interim:									;AN000;
-	push	dx								;AN000;
-	push	ds								;AN000;
-	mov	dl,[InterCon]							;AN000;
-	invoke	get_user_stack		; get interim console flag		;AN000;
- assume ds:nothing								;AN000;
-	mov	[SI.user_DX],DX 						;AN000;
-	pop	ds								;AN000;
-	pop	dx								;AN000;
-	transfer SYS_RET_OK							;AN000;
- ELSE										;AN000;
-	or	al, al			; AL = 0 (get table)?  ;AN000;
-	jnz	okok					       ;AN000;
-get_lbt:						       ;AN000;
-	invoke	get_user_stack				       ;AN000;
- assume ds:nothing					       ;AN000;
-	MOV	[SI.user_SI], Offset Dosgroup:DBCS_TAB+2       ;AN000;
-	MOV	[SI.user_DS], CS			       ;AN000;
-okok:							       ;AN000;
-	transfer SYS_RET_OK		;		       ;AN000;
+get_interim:
+	push	dx
+	push	ds
+	mov	dl,[InterCon]
+	invoke	get_user_stack		; get interim console flag
+ assume ds:nothing
+	mov	[SI.user_DX],DX
+	pop	ds
+	pop	dx
+	transfer SYS_RET_OK
+ ELSE
+	or	al, al			; AL = 0 (get table)?
+	jnz	okok
+get_lbt:
+	invoke	get_user_stack
+ assume ds:nothing
+	MOV	[SI.user_SI], Offset Dosgroup:DBCS_TAB+2
+	MOV	[SI.user_DS], CS
+okok:
+	transfer SYS_RET_OK		;
 
- ENDIF							       ;AN000;
+ ENDIF
 
-$ECS_call endp						       ;AN000;
+$ECS_call endp
 
 CODE	ENDS
     END

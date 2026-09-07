@@ -51,11 +51,6 @@ PAGE	60,132				;
 ;	 LINK DEBUG+DEBCOM1+DEBCOM2+DEBCOM3+DEBASM+DEBUASM+DEBERR+DEBCONST+
 ;	      DEBDATA+DEBMES
 ;
-; REVISION HISTORY:
-;
-;	AN000	VERSION DOS 4.0 - MESSAGE RETRIEVER IMPLEMENTED.  DMS:6/17/87
-;
-;
 ; COPYRIGHT: "MS DOS DEBUG Utility"
 ;	     "Version 4.00 (C) Copyright 1988 Microsoft"
 ;	     "Licensed Material - Property of Microsoft  "
@@ -94,14 +89,14 @@ TRUE	EQU	(NOT FALSE) AND 0FFFFh	;JWASM: 16-bit mask (vs sysmsg.inc TRUE EQU 0FFF
 disp_message macro tbl			;an000;display message macro
 
 	push	si			;an000;save affected reg
-	push	di			;an000;
-	push	ax			;an000;
-	push	bx			;an000;
-	push	cx			;an000;
-	push	dx			;an000;
+	push	di
+	push	ax
+	push	bx
+	push	cx
+	push	dx
 
 	push	tbl			;an000;exchange tbl with si
-	pop	si			;an000;
+	pop	si
 
 	mov	ax,[si] 		;an000;move message number to ax
 	mov	bx,[si+3]		;an000;display handle
@@ -114,11 +109,11 @@ disp_message macro tbl			;an000;display message macro
 	call	sysdispmsg		;an000;display the message
 
 	pop	dx			;an000;restore affected reg
-	pop	cx			;an000;
-	pop	bx			;an000;
-	pop	ax			;an000;
-	pop	di			;an000;
-	pop	si			;an000;
+	pop	cx
+	pop	bx
+	pop	ax
+	pop	di
+	pop	si
 
 
 endm					;an000;end macro disp_message
@@ -146,7 +141,7 @@ DG	GROUP	CODE,CONST,CSTACK,DATA
 
 
 code	segment public byte		;an000;code segment
-	assume	cs:dg,ds:dg,ss:dg,es:dg ;an000;
+	assume	cs:dg,ds:dg,ss:dg,es:dg
 
 	public	printf			;an000;share printf
 ;;	public	disp_fatal		;an000;fatal error display
@@ -179,8 +174,8 @@ msg_services <LOADmsg>			;an000;load the messages
 msg_services <DISPLAYmsg,CHARmsg,NUMmsg>;an000;get and display messages
 msg_services <INPUTmsg> 		;an000;input from keyboard
 msg_services <DEBUG.CLA,DEBUG.CLB>	;an000;message types
-msg_services <DEBUG.CLC,DEBUG.CLD>	;an000;
-msg_services <DEBUG.CL1,DEBUG.CL2>	;an000;
+msg_services <DEBUG.CLC,DEBUG.CLD>
+msg_services <DEBUG.CL1,DEBUG.CL2>
 
 .list
 
@@ -200,7 +195,7 @@ printf	proc	near			;an000;printf procedure
 	disp_message dx 		;an000;display a message
 ;;	$if	c			;an000;if an error occurred
 ;;		call disp_fatal 	;an000;display the fatal error
-;;	$endif				;an000;
+;;	$endif
 
 	ret				;an000;return to caller
 
@@ -243,7 +238,7 @@ PRE_LOAD_MESSAGE	proc	near		;an000;pre-load messages
 		pushf				;an000;save flags
 		call	SYSDISPMSG		;an000;let him say why
 		popf				;an000;restore flags
-;	$endif					;an000;
+;	$endif
 $$IF1:
 
 	ret					;an000;return to caller
@@ -961,7 +956,7 @@ db_comp_sb5 label dword 		;an000;comp argument parameter 5
 db_comp_sb6 label dword 		;an000;comp argument parameter 6
 	db	Sublist_Length		;an000;sublist size
 	db	reserved		;an000;reserved
-	dd	dg:comp_arg6		;an000;
+	dd	dg:comp_arg6
 	db	06			;an000;parameter 6
 	db	right_align+bin_hex_word
 					;an000;left align/word/hexadecimal
@@ -1032,7 +1027,7 @@ xm_han_sub	label	dword		;an000;sublist for handles
 	db	Reserved		;an000;reserved field
 	dd	dg:XM_HANDLE_RET	;an000;parameter 1
 	db	01			;an000;parameter 1
-	db	right_align+Bin_Hex_Word;an000;
+	db	right_align+Bin_Hex_Word
 	db	04			;an000;maximum width
 	db	04			;an000;minimum width
 	db	30h			;an000;pad with zeros
@@ -1042,7 +1037,7 @@ xm_map_sub	label	dword		;an000;sublist for mappings
 	db	Reserved		;an000;reserved field
 	dd	dg:XM_LOG		;an000;parameter 1
 	db	01			;an000;parameter 1
-	db	right_align+Bin_Hex_Byte;an000;
+	db	right_align+Bin_Hex_Byte
 	db	02			;an000;maximum width
 	db	02			;an000;minimum width
 	db	30h			;an000;pad with zeros
@@ -1051,7 +1046,7 @@ xm_map_sub	label	dword		;an000;sublist for mappings
 	db	Reserved		;an000;reserved field
 	dd	dg:XM_PHY		;an000;parameter 2
 	db	02			;an000;parameter 2
-	db	right_align+Bin_Hex_Byte;an000;
+	db	right_align+Bin_Hex_Byte
 	db	02			;an000;maximum width
 	db	02			;an000;minimum width
 	db	30h			;an000;pad with zeros
@@ -1061,7 +1056,7 @@ xm_sta_sub	label	word		;an000;sublist for status
 	db	Reserved		;an000;reserved field
 	dd	dg:XM_HANDLE_RET	;an000;parameter 1
 	db	01			;an000;parameter 1
-	db	right_align+Bin_Hex_Word;an000;
+	db	right_align+Bin_Hex_Word
 	db	04			;an000;maximum width
 	db	04			;an000;minimum width
 	db	30h			;an000;pad with zeros
@@ -1070,7 +1065,7 @@ xm_sta_sub	label	word		;an000;sublist for status
 	db	Reserved		;an000;reserved field
 	dd	dg:XM_PAGE_CNT		;an000;parameter 2
 	db	02			;an000;parameter 2
-	db	right_align+Bin_Hex_Word;an000;
+	db	right_align+Bin_Hex_Word
 	db	04			;an000;maximum width
 	db	04			;an000;minimum width
 	db	30h			;an000;pad with zeros
@@ -1080,7 +1075,7 @@ xm_page_seg_sub label	word		;an000;sublist for frame seg status
 	db	Reserved		;an000;reserved field
 	dd	dg:XM_PHY		;an000;parameter 1
 	db	01			;an000;parameter 1
-	db	right_align+Bin_Hex_Byte;an000;
+	db	right_align+Bin_Hex_Byte
 	db	02			;an000;maximum width
 	db	02			;an000;minimum width
 	db	30h			;an000;pad with zeros
@@ -1089,7 +1084,7 @@ xm_page_seg_sub label	word		;an000;sublist for frame seg status
 	db	Reserved		;an000;reserved field
 	dd	dg:XM_FRAME		;an000;parameter 2
 	db	02			;an000;parameter 2
-	db	right_align+Bin_Hex_Word;an000;
+	db	right_align+Bin_Hex_Word
 	db	04			;an000;maximum width
 	db	04			;an000;minimum width
 	db	30h			;an000;pad with zeros
@@ -1099,7 +1094,7 @@ xm_deall_sub	label	word		;an000;sublist for handle deallocation
 	db	Reserved		;an000;reserved field
 	dd	dg:XM_DEALL_HAN 	;an000;parameter 1
 	db	01			;an000;parameter 1
-	db	right_align+Bin_Hex_Byte;an000;
+	db	right_align+Bin_Hex_Byte
 	db	04			;an000;maximum width
 	db	04			;an000;minimum width
 	db	30h			;an000;pad with zeros
@@ -1109,7 +1104,7 @@ xm_unall_sub	label	word		;an000;sublist unallocated page report
 	db	Reserved		;an000;reserved field
 	dd	dg:XM_ALLOC_PG		;an000;parameter 1
 	db	01			;an000;parameter 1
-	db	right_align+Bin_Hex_Word;an000;
+	db	right_align+Bin_Hex_Word
 	db	04			;an000;maximum width
 	db	04			;an000;minimum width
 	db	20h			;an000;pad with blanks
@@ -1118,7 +1113,7 @@ xm_unall_sub	label	word		;an000;sublist unallocated page report
 	db	Reserved		;an000;reserved field
 	dd	dg:XM_TOTAL_PG		;an000;parameter 1
 	db	02			;an000;parameter 1
-	db	right_align+Bin_Hex_Word;an000;
+	db	right_align+Bin_Hex_Word
 	db	04			;an000;maximum width
 	db	04			;an000;minimum width
 	db	20h			;an000;pad with zeros
@@ -1129,7 +1124,7 @@ xm_han_alloc_sub label	 word		 ;an000;sublist unallocated page report
 	db	Reserved		;an000;reserved field
 	dd	dg:XM_HAN_ALLOC 	;an000;parameter 1
 	db	01			;an000;parameter 1
-	db	right_align+Bin_Hex_Word;an000;
+	db	right_align+Bin_Hex_Word
 	db	04			;an000;maximum width
 	db	04			;an000;minimum width
 	db	20h			;an000;pad with blanks
@@ -1138,7 +1133,7 @@ xm_han_alloc_sub label	 word		 ;an000;sublist unallocated page report
 	db	Reserved		;an000;reserved field
 	dd	dg:XM_HAN_TOTAL 	;an000;parameter 1
 	db	02			;an000;parameter 1
-	db	right_align+Bin_Hex_Word;an000;
+	db	right_align+Bin_Hex_Word
 	db	04			;an000;maximum width
 	db	04			;an000;minimum width
 	db	20h			;an000;pad with zeros

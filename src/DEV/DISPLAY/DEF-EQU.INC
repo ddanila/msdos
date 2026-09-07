@@ -4,11 +4,6 @@
 ;       EQU's, STRUC's, and OTHER
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;Modification history *********************************************************
-;AN001; D358  New device driver INIT function package             12/07/87 J.K.
-;AN002; D493  Undo D358                                           02/24/88 J.K.
-;AN003; D4934 Change ANSI 2F function number to 1Ah               05/20/88 F.G.
-;******************************************************************************
 IF1                                     ;
         %OUT .               ®DEF-EQU .INC¯
 ENDIF                                   ;
@@ -202,45 +197,45 @@ INT_1F_LOW EQU  (4*1FH)                 ; INTERRUPT 1FH EXTENDED CHARACTER SUPPO
 INT_1F_HI EQU    (4*1FH)+2              ;
 INT_10_LOW EQU  (4*10H)                 ; INTERRUPT 10H fix FOR PALACE
 INT_10_HI EQU    (4*10H)+2              ;
-GET_MODE      EQU    0FH                ; WGR                                  ;AN000;
-ON            EQU    1                  ; WGR                                  ;AN000;
-OFF           EQU    0                  ; WGR                                  ;AN000;
-RECALC_ON     EQU    0010H              ; WGR                                  ;AN000;
-VIDEO_CTRL    EQU    487H               ; WGR                                  ;AN000;
-ANSI_BUF_SIZE EQU    14                 ; WGR                                  ;AN000;
-DEFAULT_LEN   EQU    25                 ; WGR                                  ;AN000;
-NUMBER        EQU    1                  ; WGR                                  ;AN000;
-STRING        EQU    3                  ; WGR                                  ;AN000;
-COMPLEX       EQU    4                  ; WGR                                  ;AN000;
-RC_EOL        EQU    -1                 ; WGR                                  ;AN000;
-RC_NO_ERROR   EQU    0                  ; WGR                                  ;AN000;
-FUNC_CALL     EQU    1BH                ; WGR                                  ;AN000;
-VGA_FOUND     EQU    00000001B          ; WGR                                  ;AN000;
-EGA_FOUND     EQU    00000001B          ; WGR                                  ;AN000;
-LCD_FOUND     EQU    00000010B          ; WGR                                  ;AN000;
-CGA_FOUND     EQU    00000100B          ; WGR                                  ;AN000;
-MONO_FOUND    EQU    00001000B          ; WGR                                  ;AN000;
-ALT_SELECT    EQU    12H                ; WGR                                  ;AN000;
-EGA_INFO_CALL EQU    10H                ; WGR                                  ;AN000;
-GET_SYS_ID    EQU    0C0H               ; WGR                                  ;AN000;
-GET_STATUS    EQU    43H                ; WGR                                  ;AN000;
-LCD_MODEL     EQU    0F9H               ; WGR                                  ;AN000;
-COLOR_ADDRESS EQU    0B800H             ; WGR                                  ;AN000;
-MONO_ADDRESS  EQU    0B000H             ; WGR                                  ;AN000;
-ERROR_1       EQU    2                  ; WGR                                  ;AN000;
-ERROR_2       EQU    12                 ; WGR                                  ;AN000;
-ERROR_3       EQU    8                  ; WGR                                  ;AN000;
+GET_MODE      EQU    0FH                ; WGR
+ON            EQU    1                  ; WGR
+OFF           EQU    0                  ; WGR
+RECALC_ON     EQU    0010H              ; WGR
+VIDEO_CTRL    EQU    487H               ; WGR
+ANSI_BUF_SIZE EQU    14                 ; WGR
+DEFAULT_LEN   EQU    25                 ; WGR
+NUMBER        EQU    1                  ; WGR
+STRING        EQU    3                  ; WGR
+COMPLEX       EQU    4                  ; WGR
+RC_EOL        EQU    -1                 ; WGR
+RC_NO_ERROR   EQU    0                  ; WGR
+FUNC_CALL     EQU    1BH                ; WGR
+VGA_FOUND     EQU    00000001B          ; WGR
+EGA_FOUND     EQU    00000001B          ; WGR
+LCD_FOUND     EQU    00000010B          ; WGR
+CGA_FOUND     EQU    00000100B          ; WGR
+MONO_FOUND    EQU    00001000B          ; WGR
+ALT_SELECT    EQU    12H                ; WGR
+EGA_INFO_CALL EQU    10H                ; WGR
+GET_SYS_ID    EQU    0C0H               ; WGR
+GET_STATUS    EQU    43H                ; WGR
+LCD_MODEL     EQU    0F9H               ; WGR
+COLOR_ADDRESS EQU    0B800H             ; WGR
+MONO_ADDRESS  EQU    0B000H             ; WGR
+ERROR_1       EQU    2                  ; WGR
+ERROR_2       EQU    12                 ; WGR
+ERROR_3       EQU    8                  ; WGR
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; *** INT 2Fh used
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-ANSI_2F       EQU    1Ah                ; WGR Muliflex number for ANSI         ;AC003;
+ANSI_2F       EQU    1Ah                ; WGR Muliflex number for ANSI
 ;Catagory code
 IOCTL_2F      EQU     1h                ;
 DA_INFO_2F    EQU     2h                ;J.K. Information passing to ANSI.
 ;Subfunction code for IOCTL_2F
-GET_SUBFUNC   EQU    7FH                ; WGR Same structure as GET_IOCTL(ANSI);AN000;
+GET_SUBFUNC   EQU    7FH                ; WGR Same structure as GET_IOCTL(ANSI)
 
 ;Info Struture for DA_INFO_2F. (DS:DX point to this packet)
 ;J.K. Note: For DOS 4.00, DA_INFO_PACKET is used to signal ANSI.SYS that
@@ -267,24 +262,24 @@ DA_INFO_PACKET   ends
 ;    (for functionality call)
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-INFO_BLOCK      STRUC                   ; info block for functionality call    ;AN000;
-STATIC_ADDRESS  DD   ?                  ; address of static functionality table;AN000;
-                DB   33 DUP(?)          ; don't care                           ;AN000;
-ACTIVE_DISPLAY  DB   ?                  ; active display code                  ;AN000;
-ALT_DISPLAY     DB   ?                  ; alternate display code               ;AN000;
-                DB   3  DUP(?)          ; don't care                           ;AN000;
-CURRENT_SCANS   DB   ?                  ; current number of scan lines         ;AN000;
-                DB   2  DUP(?)          ; don't care                           ;AN000;
-MISC_INFO       DB   ?                  ; miscellaneous state information      ;AN000;
-                DB   18 DUP(?)          ; don't care                           ;AN000;
+INFO_BLOCK      STRUC                   ; info block for functionality call
+STATIC_ADDRESS  DD   ?                  ; address of static functionality table
+                DB   33 DUP(?)          ; don't care
+ACTIVE_DISPLAY  DB   ?                  ; active display code
+ALT_DISPLAY     DB   ?                  ; alternate display code
+                DB   3  DUP(?)          ; don't care
+CURRENT_SCANS   DB   ?                  ; current number of scan lines
+                DB   2  DUP(?)          ; don't care
+MISC_INFO       DB   ?                  ; miscellaneous state information
+                DB   18 DUP(?)          ; don't care
 INFO_BLOCK      ENDS                    ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; Structure of System ID call return block
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-SYS_ID          STRUC                   ; format of return system config data  ;AN000;
-                DW   ?                  ; don't care                           ;AN000;
-MODEL_BYTE      DB   ?                  ; model byte                           ;AN000;
-SYS_ID          ENDS                    ;                                      ;AN000;
+SYS_ID          STRUC                   ; format of return system config data
+                DW   ?                  ; don't care
+MODEL_BYTE      DB   ?                  ; model byte
+SYS_ID          ENDS                    ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

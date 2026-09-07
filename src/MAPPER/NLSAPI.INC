@@ -1,4 +1,3 @@
-;      SCCSID = @(#)nlsapi.inc	1.1 86/06/03
 SETCOUNTRYINFO      equ     1       ; select country info
 SETUCASE            equ     2       ; select uppercase tbl
 SETLCASE            equ     3       ; select lowercase tbl

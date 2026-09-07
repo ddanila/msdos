@@ -1,5 +1,3 @@
-;	SCCSID = @(#)exec.asm	1.3 85/08/13
-;	SCCSID = @(#)exec.asm	1.3 85/08/13
 ;    AN000 version 4.0 jan. 1988
 ;    A007  PTM 3957 - fake vesrion for IBMCACHE.COM
 ;    A008  PTM 4070 - fake version for MS WINDOWS
@@ -75,10 +73,6 @@ PAGE
 ;	       = error_bad_environment
 ;	       = error_not_enough_memory
 ;	       = error_file_not_found
-;
-;   Revision history:
-;
-;	 A000	version 4.00  Jan. 1988
 ;
 include EA.INC
 include version.inc
@@ -208,7 +202,7 @@ exec_check_2:
 ;	CMP	BYTE PTR [Temp_Var2],EAIFS_DRIVER    ;AN000;;FT.
 ;	JNZ	exerr				     ;AN000;;FT.
 ;
-;oldexf:					      ;AN000;
+;oldexf:
 ;File Type Checking
 
 	MOV	exec_fh,AX
@@ -747,8 +741,8 @@ exec_set_PDB:
 	CALL	exec_alloc
 	TEST	BYTE PTR exec_func,exec_func_overlay
 	JZ	exec_build_header
-	CALL	Scan_Execname		;MS.;AN007;
-	CALL	Scan_Special_Entries	;MS.;AN007;
+	CALL	Scan_Execname		;MS.
+	CALL	Scan_Special_Entries	;MS.
 	Leave
 	transfer    SYS_RET_OK		; overlay load -> done
 
@@ -780,19 +774,18 @@ NO_OWNER:
 	PUSH	CX			;AN007;;MS. save for fake version
 	PUSH	SI			;AN007;;MS. save for fake version
 
-movename:				;AN000;
+movename:
 	LODSB				;AN000;;MS. get char
 	CMP	AL,'.'                  ;AN000;;MS. is '.' ,may be name.exe
 	JZ	mem_done		;AN000;;MS. no, move to header
-					;AN000;
 	STOSB				;AN000;;MS. move char
 	LOOP	movename		;AN000;;MS. continue
-mem_done:				;AN000;
+mem_done:
 	XOR	AL,AL			;AN000;;MS. make ASCIIZ
 	CMP	DI,SIZE ARENA		;AN000;MS. if not all filled
 	JAE	fill8			;AN000;MS.
 	STOSB				;AN000;MS.
-fill8:					;AN000;
+fill8:
 	POP    SI			;AN007;MS. ds:si -> file name
 	POP    CX			;AN007;MS.
 
@@ -989,9 +982,9 @@ EndProc ChangeOwner
 Procedure    Scan_Execname,near 	;AN000;MS.
 
 	LDS	SI,execName		;AN000;MS. DS:SI points to name
-save_begin:				;AN000;
+save_begin:
 	MOV	CX,SI			;AN000;MS. CX= starting addr
-scan0:					;AN000;
+scan0:
 	LODSB				;AN000;MS. get char
 	CMP	AL,':'                  ;AN000;;MS. is ':' , may be A:name
 	JZ	save_begin		;AN000;;MS. yes, save si

@@ -1,6 +1,4 @@
  page 80,132
-;	SCCSID = @(#)tpipe.asm	1.1 85/05/14
-;	SCCSID = @(#)tpipe.asm	1.1 85/05/14
 TITLE	PART8 COMMAND Transient routines.
 
 
@@ -38,7 +36,7 @@ PIPE_COMPARE MACRO value
 ENDM
 
 
-DATARES 	SEGMENT PUBLIC BYTE	;AC000;
+DATARES 	SEGMENT PUBLIC BYTE
 	EXTRN	ECHOFLAG:BYTE
 	EXTRN	InitFlag:byte
 	EXTRN	INPIPEPTR:WORD
@@ -58,46 +56,46 @@ DATARES 	SEGMENT PUBLIC BYTE	;AC000;
 	EXTRN	SINGLECOM:WORD
 DATARES ENDS
 
-TRANDATA	SEGMENT PUBLIC BYTE	;AC000;
+TRANDATA	SEGMENT PUBLIC BYTE
 	IFDEF COMMAND_HIGH_RESIDENT
 	EXTRN RE_OUT_APP:BYTE
 	ENDIF
 	EXTRN	BADDAT_PTR:WORD
 	EXTRN	BADTIM_PTR:WORD
-	EXTRN	curdat_mo_day:word	;AN000;
+	EXTRN	curdat_mo_day:word
 	EXTRN	CURDAT_PTR:WORD
-	EXTRN	curdat_yr:word		;AN000;
-	EXTRN	curtim_hr_min:word	;AN000;
+	EXTRN	curdat_yr:word
+	EXTRN	curtim_hr_min:word
 	EXTRN	CURTIM_PTR:WORD
-	EXTRN	curtim_sec_hn:word	;AN000;
+	EXTRN	curtim_sec_hn:word
 	EXTRN	eurdat_ptr:word
 	EXTRN	japdat_ptr:word
-	EXTRN	newdat_format:word	;AN000;
+	EXTRN	newdat_format:word
 	EXTRN	NEWDAT_PTR:WORD
 	EXTRN	NEWTIM_PTR:WORD
-	EXTRN	parse_date:byte 	;AN000;
-	EXTRN	parse_time:byte 	;AN000;
+	EXTRN	parse_date:byte
+	EXTRN	parse_time:byte
 	EXTRN	PIPEEMES_PTR:WORD
-	EXTRN	promtim_hr_min:word	;AN000;
-	EXTRN	promtim_ptr:word	;AN000;
-	EXTRN	promtim_sec_hn:word	;AN000;
-	EXTRN	STRING_BUF_PTR:WORD	;AC000;
+	EXTRN	promtim_hr_min:word
+	EXTRN	promtim_ptr:word
+	EXTRN	promtim_sec_hn:word
+	EXTRN	STRING_BUF_PTR:WORD
 	EXTRN	SYNTMES_PTR:WORD
 	EXTRN	usadat_ptr:word
 
 TRANDATA	ENDS
 
-TRANSPACE	SEGMENT PUBLIC BYTE	;AC000;
+TRANSPACE	SEGMENT PUBLIC BYTE
 	EXTRN	COMBUF:BYTE
-	EXTRN	date_day:byte		;AN000;
-	EXTRN	date_month:byte 	;AN000;
-	EXTRN	date_year:word		;AN000;
+	EXTRN	date_day:byte
+	EXTRN	date_month:byte
+	EXTRN	date_year:word
 	EXTRN	INTERNATVARS:BYTE
 	EXTRN	RESSEG:WORD
-	EXTRN	time_fraction:byte	;AN000;
-	EXTRN	time_hour:byte		;AN000;
-	EXTRN	time_minutes:byte	;AN000;
-	EXTRN	time_seconds:byte	;AN000;
+	EXTRN	time_fraction:byte
+	EXTRN	time_hour:byte
+	EXTRN	time_minutes:byte
+	EXTRN	time_seconds:byte
 TRANSPACE	ENDS
 
 TRANCODE	SEGMENT PUBLIC BYTE
@@ -110,7 +108,7 @@ ASSUME	CS:TRANGROUP,DS:NOTHING,ES:NOTHING,SS:NOTHING
 	EXTRN	TESTDOREIN:NEAR
 	EXTRN	TESTDOREOUT:NEAR
 	EXTRN	TESTKANJ:NEAR		;AN000;3/3/KK
-	EXTRN	TSYSGETMSG:NEAR 	;AN000;
+	EXTRN	TSYSGETMSG:NEAR
 
 	PUBLIC	CTIME
 	PUBLIC	DATE
@@ -467,7 +465,7 @@ DATE_NORM:
 	MOV	SI,81H				; Accepting argument for date inline
 	mov	di,offset trangroup:parse_date	;AN000; Get adderss of PARSE_DATE
 	xor	cx,cx				;AN000; clear counter for positionals
-	xor	dx,dx				;AN000;
+	xor	dx,dx
 	invoke	cmd_parse			;AC000; call parser
 	cmp	ax,end_of_line			;AC000; are we at end of line?
 	JZ	PRMTDAT 			;AC000; yes - go ask for date
@@ -487,7 +485,7 @@ PRMTDAT:
 ;AD061; mov	CurDat_yr,0			;AC000; reset year, month and day
 ;AD061; mov	CurDat_mo_day,0 		;AC000;     pointers in control block
 
-GET_NEW_DATE:					;AN000;
+GET_NEW_DATE:
 	call	getdat				;AC000; prompt user for date
 	cmp	ax,end_of_line			;AC000; are we at end of line?
 	jz	date_end			;AC000; yes - exit
@@ -498,13 +496,13 @@ COMDAT:
 	mov	dh,date_month			;AC000;    cx and dx for set
 	mov	dl,date_day			;AC000;    date function call.
 	push	cx				;AC000; save date
-	push	dx				;AC000;
+	push	dx
 	mov	cx,1				;AC000; set 1 positional entered
-	xor	dx,dx				;AN029;
+	xor	dx,dx
 	invoke	cmd_parse			;AN029; call parser
 	cmp	al,end_of_line			;AN029; Are we at end of line?
 	pop	dx				;AC000; retrieve date
-	pop	cx				;AC000;
+	pop	cx
 	jnz	daterr				;AC000; extra stuff on line - try again
 	MOV	AH,SET_DATE			;yes - set date
 	INT	int_command
@@ -571,7 +569,7 @@ TIME_NORM:
 	MOV	SI,81H				; Accepting argument for time inline
 	mov	di,offset trangroup:parse_time	;AN000; Get adderss of PARSE_time
 	xor	cx,cx				;AN000; clear counter for positionals
-	xor	dx,dx				;AN000;
+	xor	dx,dx
 	invoke	cmd_parse			;AC000; call parser
 	cmp	ax,end_of_line			;AC000; are we at end of line?
 	JZ	PRMTTIM 			;AC000; yes - prompt for time
@@ -594,9 +592,9 @@ PRMTTIM:
 ;AD061; mov	CurTim_sec_hn,0 		;AC000;     pointers in control block
 
 GET_NEW_TIME:
-	call	gettim				;AC000;
+	call	gettim
 	cmp	ax,end_of_line			;AC000; are we at end of line?
-	jz	time_end			;AC000;
+	jz	time_end
 	cmp	ax,result_no_error		;AN000; did we have an error?
 	jne	timerr				;AN000; yes - go issue message
 
@@ -604,15 +602,15 @@ COMTIM:
 	mov	ch,time_hour			;AC000; get parts of time in
 	mov	cl,time_minutes 		;AC000;    cx and dx for set
 	mov	dh,time_seconds 		;AC000;    time function call
-	mov	dl,time_fraction		;AC000;
+	mov	dl,time_fraction
 	push	cx				;AC000; save time
-	push	dx				;AC000;
+	push	dx
 	mov	cx,1				;AC000; set 1 positional parm entered
-	xor	dx,dx				;AN029;
+	xor	dx,dx
 	invoke	cmd_parse			;AN029; call parser
 	cmp	al,end_of_line			;AN029; Are we at end of line?
 	pop	dx				;AC000; retieve time
-	pop	cx				;AC000;
+	pop	cx
 	jnz	timerr				;AC000; extra stuff on line - try again
 
 SAVTIM:
@@ -700,7 +698,7 @@ PRINT_TIME:
 ; ****************************************************************
 
 
-GETDAT	proc	near				;AC000;
+GETDAT	proc	near
 
 	mov	ax,(International SHL 8)	; Determine what format the date
 	mov	dx,5ch				;  should be entered in and
@@ -733,12 +731,12 @@ printformat:
 	MOV	SI,OFFSET TRANGROUP:COMBUF+2
 	mov	di,offset trangroup:parse_date	;AN000; Get adderss of PARSE_DATE
 	xor	cx,cx				;AN000; clear counter for positionals
-	xor	dx,dx				;AN000;
+	xor	dx,dx
 	invoke	cmd_parse			;AC000; call parser
 
 	ret
 
-GETDAT	endp					;AC000;
+GETDAT	endp
 
 
 ; ****************************************************************
@@ -759,7 +757,7 @@ GETDAT	endp					;AC000;
 ; ****************************************************************
 
 
-GETTIM	proc	near				;AC000;
+GETTIM	proc	near
 
 	XOR	CX,CX				; Initialize hours and minutes to zero
 	MOV	DX,OFFSET TRANGROUP:NEWTIM_ptr
@@ -775,12 +773,12 @@ GETTIM	proc	near				;AC000;
 	MOV	SI,OFFSET TRANGROUP:COMBUF+2
 	mov	di,offset trangroup:parse_time	;AN000; Get adderss of PARSE_TIME
 	xor	cx,cx				;AN000; clear counter for positionals
-	xor	dx,dx				;AN000;
+	xor	dx,dx
 	invoke	cmd_parse			;AC000; call parser
 
 	ret
 
-GETTIM	endp					;AC000;
+GETTIM	endp
 
 TRANCODE    ENDS
 	    END

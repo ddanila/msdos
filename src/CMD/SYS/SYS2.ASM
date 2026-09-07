@@ -169,8 +169,6 @@ BUF			LABEL BYTE	; beginning of area for file reads
 ;Output:	All local variables initalized
 ;		DS:BX = pointer to DPB
 ;
-;Change History: Created	7/01/87 	FG
-;
 ;******************* END OF SPECIFICATIONS *************************************
 ;******************+ START OF PSEUDOCODE +**************************************
 ;
@@ -199,7 +197,7 @@ BUF			LABEL BYTE	; beginning of area for file reads
 
    Find_DPB PROC NEAR
 
-   MOV	AH,GET_DPB			;Get the DPB			       ;AN004;
+   MOV	AH,GET_DPB			;Get the DPB
    INT	21H
 
    mov	ax,(disk_reset shl 8)		; reset the disk to protect all INT 26's
@@ -210,106 +208,106 @@ BUF			LABEL BYTE	; beginning of area for file reads
 
    ASSUME ds:nothing,ES:DGROUP
 
-   MOV	WORD PTR [THIS_DPB+2],DS	;				       ;AN004;
-   push es				;				       ;AN004;
-   pop	ds				;				       ;AN004;
+   MOV	WORD PTR [THIS_DPB+2],DS	;
+   push es				;
+   pop	ds				;
 
    ASSUME DS:DGROUP
 
-   mov	WORD PTR [THIS_DPB],bx		;				       ;AN004;
-   lds	bx,[THIS_DPB]			;				       ;AN004;
+   mov	WORD PTR [THIS_DPB],bx		;
+   lds	bx,[THIS_DPB]			;
 
    ASSUME ds:nothing
 
-   mov	ax,[bx.dpb_sector_size] 	;				       ;AN004;
-   mov	[SSIZE],ax			;Sector size in bytes		       ;AN004;
+   mov	ax,[bx.dpb_sector_size] 	;
+   mov	[SSIZE],ax			;Sector size in bytes
 
-   xor	ax,ax				;				       ;AN004;
-   mov	al,[bx.dpb_cluster_mask]	;				       ;AN004;
-   inc	al				;				       ;AN004;
-   mov	[CSIZE],ax			;Sectros per cluster		       ;AN004;
+   xor	ax,ax				;
+   mov	al,[bx.dpb_cluster_mask]	;
+   inc	al				;
+   mov	[CSIZE],ax			;Sectros per cluster
 
-   mov	ax,[BX.dpb_first_FAT]		;First sector of FAT		       ;AN004;
-   mov	[first_FAT],ax			;				       ;AN004;
+   mov	ax,[BX.dpb_first_FAT]		;First sector of FAT
+   mov	[first_FAT],ax			;
 
-   mov	al,[BX.dpb_FAT_count]		;Number of FATs 		       ;AN004;
-   mov	[num_of_FATS],al		;				       ;AN004;
+   mov	al,[BX.dpb_FAT_count]		;Number of FATs
+   mov	[num_of_FATS],al		;
 
-   mov	ax,[bx.dpb_max_cluster] 	;				       ;AN004;
-   mov	[MCLUS],ax			;Bound for FAT searching	       ;AN004;
+   mov	ax,[bx.dpb_max_cluster] 	;
+   mov	[MCLUS],ax			;Bound for FAT searching
 
-   cmp	ax,4096-10			;Big or little FAT?		       ;AN004;
-;  $if	ae				;				       ;AN004;
+   cmp	ax,4096-10			;Big or little FAT?
+;  $if	ae				;
    JNAE $$IF1
-       inc  [BIGFAT]			;				       ;AN004;
-       mov  [EOFVAL],0FFF8h		;				       ;AN004;
-       mov  [BADVAL],0FFF7h		;				       ;AN004;
-;  $endif				;				       ;AN004;
+       inc  [BIGFAT]			;
+       mov  [EOFVAL],0FFF8h		;
+       mov  [BADVAL],0FFF7h		;
+;  $endif				;
 $$IF1:
-   dec	ax				;				       ;AN004;
-   mov	[DSIZE],ax			;Total data clusters on disk	       ;AN004;
+   dec	ax				;
+   mov	[DSIZE],ax			;Total data clusters on disk
 
 					;--------------------------------------
 					; calculate # of dir sectors and
 					;    initalize last_dir_sector
 					;--------------------------------------
-   mov	ax,[bx.dpb_root_entries]	; max # of entries in the root	       ;AN004;
-   mov	cx,size dir_entry		; size of each entry		       ;AN004;
-   mul	cx				; size of root directory in bytes      ;AN004;
-					; in AX:DX			       ;AN004;
-   mov	cx,[SSIZE]			; # of bytes per sector 	       ;AN004;
-   div	cx				; = # of root directory sectors        ;AN004;
-   cmp	dx,0				; any remainder ?		       ;AN004;
-;  $if	nz				;				       ;AN004;
+   mov	ax,[bx.dpb_root_entries]	; max # of entries in the root
+   mov	cx,size dir_entry		; size of each entry
+   mul	cx				; size of root directory in bytes
+					; in AX:DX
+   mov	cx,[SSIZE]			; # of bytes per sector
+   div	cx				; = # of root directory sectors
+   cmp	dx,0				; any remainder ?
+;  $if	nz				;
    JZ $$IF3
-       inc  ax				;				       ;AN004;
-;  $endif				;				       ;AN004;
+       inc  ax				;
+;  $endif				;
 $$IF3:
-   mov	[first_dir_sector],ax		; save for last directory sector calc. ;AN004;
+   mov	[first_dir_sector],ax		; save for last directory sector calc.
 
-   mov	ax,[bx.dpb_FAT_size]		;Sectors for one fat		       ;AN004;
-   cmp	DOS_VER,0			; running on current version?	       ;AN019;
+   mov	ax,[bx.dpb_FAT_size]		;Sectors for one fat
+   cmp	DOS_VER,0			; running on current version?
 
-;  $if	ne				; BANG! - we'er running on DOS 3.3     ;AN019;
+;  $if	ne				; BANG! - we'er running on DOS 3.3
    JE $$IF5
 					;	  dpb_FAT_size is only a BYTE
 					;	  so ajust it to a word
-       xor  ah,ah							       ;AN019;
-       dec  bx				; BACK UP the index into the DPB       ;AN019;
-       mov  WORD PTR [THIS_DPB],bx	;   save it for later (dpb_next_free)  ;AN021;
+       xor  ah,ah
+       dec  bx				; BACK UP the index into the DPB
+       mov  WORD PTR [THIS_DPB],bx	;   save it for later (dpb_next_free)
 					; Now  everything else lines up !
 ;  $endif
 $$IF5:
 
-   mov	[FSIZE],ax			;				       ;AN004;
+   mov	[FSIZE],ax			;
 
-   mov	ax,[SSIZE]			;				       ;AN004;
-   mov	cx,SIZE dir_entry		;				       ;AN004;
-   div	cx				;				       ;AN004;
-   dec	ax				; first entry number is zero	       ;AN004;
-   mov	[entries_per_sector],al 	;				       ;AN004;
-   cmp	[BIGFAT],0			; is it a big fat ?		       ;AN004;
+   mov	ax,[SSIZE]			;
+   mov	cx,SIZE dir_entry		;
+   div	cx				;
+   dec	ax				; first entry number is zero
+   mov	[entries_per_sector],al 	;
+   cmp	[BIGFAT],0			; is it a big fat ?
 
-;  $if	e				; if not			       ;AN004;
+;  $if	e				; if not
    JNE $$IF7
-       mov  ax,[FSIZE]			;				       ;AN004;
-       mov  [FAT_sectors],ax		; bring it down to the actual size     ;AN004;
-;  $endif				;				       ;AN004;
+       mov  ax,[FSIZE]			;
+       mov  [FAT_sectors],ax		; bring it down to the actual size
+;  $endif				;
 $$IF7:
 					;--------------------------------------
 					; initalize first_dir_sector
 					;	and current_dir_sector
 					;--------------------------------------
-   mov	ax,[bx.dpb_dir_sector]		; first dir sector		       ;AN004;
-   mov	[current_dir_sector],ax 	; save it for later		       ;AN004;
-   xchg [first_dir_sector],ax		; save it and recover # of dir sectors ;AN004;
+   mov	ax,[bx.dpb_dir_sector]		; first dir sector
+   mov	[current_dir_sector],ax 	; save it for later
+   xchg [first_dir_sector],ax		; save it and recover # of dir sectors
 
-   add	ax,[first_dir_sector]		; # of last directory sector	       ;AN004;
-   mov	[l_sector_offset],ax		;				       ;AN004;
-   dec	ax				;				       ;AN004;
-   mov	[last_dir_sector],ax		; save it for later		       ;AN004;
+   add	ax,[first_dir_sector]		; # of last directory sector
+   mov	[l_sector_offset],ax		;
+   dec	ax				;
+   mov	[last_dir_sector],ax		; save it for later
 
-   ret					;				       ;AN004;
+   ret					;
 
    Find_DPB ENDP
 
@@ -383,63 +381,63 @@ $$IF7:
    ASSUME DS:DGROUP			;  must ensure this is true xxxxxxxxxxxxxxxxx
 
 					; source = source entry (#1 or #2) DS:SI
-   lea	di,ENTRY_BUF			; dest	 = entry_buffer 	       ;AN004;
-   mov	[source_ptr],si 		; save source pointer		       ;AN004;
-   mov	ax,size dir_entry		;				       ;AN004;
-   mov	cx,ax				;				       ;AN004;
-   rep	movsb				; copy directory entry into entry buffer;AN004;
-   lea	si,DIR_SECTOR			; start at beginning of directory      ;AN004;
-   mov	di,si				; save start for end calculation       ;AN004;
-   shl	ax,1				; set pointer for current entry to #3  ;AN004;
-   add	ax,si				;				       ;AN004;
-   mov	si,ax				;				       ;AN004;
-   add	di,[SSIZE]			; calculate end of directory	       ;AN004;
-   call Find_Empty_Entry		; find hole in directory	       ;AN004;
-;  $if	nc				; if no error and		       ;AN004;
+   lea	di,ENTRY_BUF			; dest	 = entry_buffer
+   mov	[source_ptr],si 		; save source pointer
+   mov	ax,size dir_entry		;
+   mov	cx,ax				;
+   rep	movsb				; copy directory entry into entry buffer
+   lea	si,DIR_SECTOR			; start at beginning of directory
+   mov	di,si				; save start for end calculation
+   shl	ax,1				; set pointer for current entry to #3
+   add	ax,si				;
+   mov	si,ax				;
+   add	di,[SSIZE]			; calculate end of directory
+   call Find_Empty_Entry		; find hole in directory
+;  $if	nc				; if no error and
    JC $$IF9
-       mov  di,si			; dest	 = hole pointer 	       ;AN004;
-       lea  si,ENTRY_BUF		; source = entry_buffer 	       ;AN004;
-       mov  cx,size dir_entry		;				       ;AN004;
-       rep  movsb			; copy buffer to DTA		       ;AN004;
-       mov  ax,[first_dir_sector]	;				       ;AN004;
-       cmp  ax,[current_dir_sector]	;				       ;AN004;
-;      $if  ne				; if first_dir_sector != current_dir_sector;AN004;
+       mov  di,si			; dest	 = hole pointer
+       lea  si,ENTRY_BUF		; source = entry_buffer
+       mov  cx,size dir_entry		;
+       rep  movsb			; copy buffer to DTA
+       mov  ax,[first_dir_sector]	;
+       cmp  ax,[current_dir_sector]	;
+;      $if  ne				; if first_dir_sector != current_dir_sector
        JE $$IF10
-	   mov	ah,-1			; set up for write		       ;AN004;
-	   call Direct_Access		; write it out			       ;AN004;
-;	   $if	nc			; if no error			       ;AN004;
+	   mov	ah,-1			; set up for write
+	   call Direct_Access		; write it out
+;	   $if	nc			; if no error
 	   JC $$IF11
-	       mov  ax,[first_dir_sector] ; set up for first_dir_sector        ;AN004;
-	       mov  [current_dir_sector],ax ; update current_dir_sector        ;AN004;
-	       mov  [packet],ax 	;				       ;AN004;
-	       xor  ah,ah		; set up for read		       ;AN004;
-	       call Direct_Access	; read it in			       ;AN004;
-;	   $endif			;				       ;AN004;
+	       mov  ax,[first_dir_sector] ; set up for first_dir_sector
+	       mov  [current_dir_sector],ax ; update current_dir_sector
+	       mov  [packet],ax 	;
+	       xor  ah,ah		; set up for read
+	       call Direct_Access	; read it in
+;	   $endif			;
 $$IF11:
-;      $endif				;				       ;AN004;
+;      $endif				;
 $$IF10:
-;      $if  nc				; if no error			       ;AN004;
+;      $if  nc				; if no error
        JC $$IF14
-	   mov	si,[source_ptr] 	; recover source pointer	       ;AN004;
-	   mov	BYTE PTR [si],deleted	; delete entry being processed	       ;AN004;
-	   mov	BYTE PTR [si.dir_first],0 ; null out cluster #		       ;AN004;
-	   cmp	si,offset DIR_SECTOR	;  are we at the first entry ?	       ;AN010;
-;	   $if	e,and			; if so -			       ;AN010;
+	   mov	si,[source_ptr] 	; recover source pointer
+	   mov	BYTE PTR [si],deleted	; delete entry being processed
+	   mov	BYTE PTR [si.dir_first],0 ; null out cluster #
+	   cmp	si,offset DIR_SECTOR	;  are we at the first entry ?
+;	   $if	e,and			; if so -
 	   JNE $$IF15
-	   cmp	BYTE PTR [si + size DIR_ENTRY],0 ; is second one a null entry? ;AN010;
-;	   $if	e			; if so -			       ;AN010;
+	   cmp	BYTE PTR [si + size DIR_ENTRY],0 ; is second one a null entry?
+;	   $if	e			; if so -
 	   JNE $$IF15
-	       mov  BYTE PTR [si + size DIR_ENTRY],deleted ; make it deleted   ;AN010;
-;	   $endif			;				       ;AN010;
+	       mov  BYTE PTR [si + size DIR_ENTRY],deleted ; make it deleted
+;	   $endif			;
 $$IF15:
-	   mov	ah,-1			; set up for write		       ;AN004;
-	   call Direct_Access		; write it out			       ;AN004;
-;      $endif				;				       ;AN004;
+	   mov	ah,-1			; set up for write
+	   call Direct_Access		; write it out
+;      $endif				;
 $$IF14:
-;  $endif				;				       ;AN004;
+;  $endif				;
 $$IF9:
 
-   ret					;				       ;AN004;
+   ret					;
 
    Move_DIR_Entry ENDP
 
@@ -516,64 +514,63 @@ $$IF9:
 
    Find_Empty_Entry PROC NEAR
 
-;  $search				; for sectors available 	       ;AN004;
+;  $search				; for sectors available
 $$DO19:
-					;				       ;AN004;
-;      $search				; for hole - this leaves pointer set at;AN004;
+;      $search				; for hole - this leaves pointer set at
 $$DO20:
-					; the hole			       ;AN004;
-	   cmp	BYTE PTR [si],empty	; empty   ?			       ;AN004;
-;      $leave e 			;				       ;AN004;
+					; the hole
+	   cmp	BYTE PTR [si],empty	; empty   ?
+;      $leave e 			;
        JE $$EN20
-	   cmp	BYTE PTR [si],deleted	; deleted ?			       ;AN004;
-;      $leave e 			;				       ;AN004;
+	   cmp	BYTE PTR [si],deleted	; deleted ?
+;      $leave e 			;
        JE $$EN20
-	   add	ax,size dir_entry	; advace to next entry		       ;AN004;
-	   mov	si,ax			;				       ;AN004;
-	   cmp	ax,di			; past end of sector ?		       ;AN004;
-;      $exitif ae			; at end			       ;AN004;
+	   add	ax,size dir_entry	; advace to next entry
+	   mov	si,ax			;
+	   cmp	ax,di			; past end of sector ?
+;      $exitif ae			; at end
        JNAE $$IF20
-	   stc				; set carry			       ;AN004;
-;      $orelse				;				       ;AN004;
+	   stc				; set carry
+;      $orelse				;
        JMP SHORT $$SR20
 $$IF20:
-;      $endloop 			;				       ;AN004;
+;      $endloop 			;
        JMP SHORT $$DO20
 $$EN20:
-	   clc				; clear carry			       ;AN004;
-;      $endsrch 			;				       ;AN004;
+	   clc				; clear carry
+;      $endsrch 			;
 $$SR20:
-;  $exitif nc				; hole is found 		       ;AN004;
+;  $exitif nc				; hole is found
    JC $$IF19
-;  $orelse				;				       ;AN004;
+;  $orelse				;
    JMP SHORT $$SR19
 $$IF19:
-       inc  [current_dir_sector]	; advance to next sector	       ;AN004;
-       mov  ax,[current_dir_sector]	;				       ;AN004;
-       cmp  ax,[last_dir_sector]	; past last_dir_sector ?	       ;AN004;
-;  $leave a				; if at end (current <= last)	       ;AN004;
+       inc  [current_dir_sector]	; advance to next sector
+       mov  ax,[current_dir_sector]	;
+       cmp  ax,[last_dir_sector]	; past last_dir_sector ?
+;  $leave a				; if at end (current <= last)
    JA $$EN19
-       lea  si,DIR_SECTOR		; start at start of next sector        ;AN004;
-       mov  [packet],ax 		;				       ;AN004;
-       xor  ah,ah			; set for read			       ;AN004;
-       call Direct_Access		; read in next sector		       ;AN004;
-;      $if  c				; if error			       ;AN004;
+       lea  si,DIR_SECTOR		; start at start of next sector
+       mov  [packet],ax 		;
+       xor  ah,ah			; set for read
+       call Direct_Access		; read in next sector
+;      $if  c				; if error
        JNC $$IF30
-	   dec	[current_dir_sector]	; restore curren_dir_sector	       ;AN004;
-;      $endif				;				       ;AN004;
+	   dec	[current_dir_sector]	; restore curren_dir_sector
+;      $endif				;
 $$IF30:
-;  $leave c				; error 			       ;AN004;
+;  $leave c				; error
    JC $$EN19
-       mov  ax,si			; reset pointer to start	       ;AN004;
-;  $endloop a				; past last_dir_sector		       ;AN004;
+       mov  ax,si			; reset pointer to start
+;  $endloop a				; past last_dir_sector
    JNA $$DO19
 $$EN19:
-       mov  ax,(util shl 8) + no_room	; set message# and class	       ;AN004;
-       stc				; ensure carry still set	       ;AN004;
-;  $endsrch				;				       ;AN004;
+       mov  ax,(util shl 8) + no_room	; set message# and class
+       stc				; ensure carry still set
+;  $endsrch				;
 $$SR19:
 
-   ret					;				       ;AN004;
+   ret					;
 
    Find_Empty_Entry ENDP
 
@@ -628,17 +625,17 @@ $$SR19:
 
    Direct_Access PROC NEAR
 
-   push si				; save registers		       ;AN004;
-   push bp				; save registers		       ;AN004;
-   cmp	DOS_VER,0			;				       ;AN019;
+   push si				; save registers
+   push bp				; save registers
+   cmp	DOS_VER,0			;
 
-;  $if	e				;				       ;AN019;
+;  $if	e				;
    JNE $$IF35
 
-       mov  cx,-1			; set up for INT		       ;AN004;
-       mov  bx,offset packet		;				       ;AN004;
+       mov  cx,-1			; set up for INT
+       mov  bx,offset packet		;
 
-;  $else				;				       ;AN019;
+;  $else				;
    JMP SHORT $$EN35
 $$IF35:
 					; If running on DOS 3.3 the INT 25
@@ -647,32 +644,32 @@ $$IF35:
 					;	bx = buffer for read data
 					;	cx = # of sectors
 					;	dx = start sector
-       mov  cx,word ptr [packet_sectors] ;				       ;AN019;
-       mov  dx,[packet] 		; get starting dir sector	       ;AN019;
-       mov  bx,PACKET_BUFFER[0] 	;				       ;AN019;
+       mov  cx,word ptr [packet_sectors] ;
+       mov  dx,[packet] 		; get starting dir sector
+       mov  bx,PACKET_BUFFER[0] 	;
 
-;  $endif				;				       ;AN019;
+;  $endif				;
 $$EN35:
 
-   mov	al,TargDrvNum			; set up drive number		       ;AN004;
-   dec	al				;				       ;AN004;
-   cmp	ah,0				;				       ;AN004;
-;  $if	e				; if read			       ;AN004;
+   mov	al,TargDrvNum			; set up drive number
+   dec	al				;
+   cmp	ah,0				;
+;  $if	e				; if read
    JNE $$IF38
-       INT  25h 			; INT 25			       ;AN004;
-;  $else				; else				       ;AN004;
+       INT  25h 			; INT 25
+;  $else				; else
    JMP SHORT $$EN38
 $$IF38:
-       xor  ah,ah			; zero ah			       ;AN004;
-       INT  26h 			; INT 26			       ;AN004;
-;  $endif				; endif 			       ;AN004;
+       xor  ah,ah			; zero ah
+       INT  26h 			; INT 26
+;  $endif				; endif
 $$EN38:
-;; ?					; save return flag		       ;AN004;
-   pop	ax				; clear stack			       ;AN004;
-   pop	bp				;				       ;AN004;
-   pop	si				;				       ;AN004;
+;; ?					; save return flag
+   pop	ax				; clear stack
+   pop	bp				;
+   pop	si				;
 
-   ret					;				       ;AN004;
+   ret					;
 
    Direct_Access ENDP
 
@@ -738,78 +735,78 @@ $$EN38:
 
    Free_Cluster PROC NEAR
 
-   mov	ax,IBMLOADSIZE			; calculate # of clusters reqd	       ;AN004;
-   xor	cx,cx				;				       ;AN004;
-   mov	di,cx				;				       ;AN004;
-   dec	di				;				       ;AN004;
-   mov	cx,[CSIZE]			;   by IBMLOAD (consecutive clusters   ;AN004;
-   div	cl				;   for IBMBIO) 		       ;AN004;
-   cmp	ah,0				;				       ;AN004;
-;  $if	ne				;				       ;AN004;
+   mov	ax,IBMLOADSIZE			; calculate # of clusters reqd
+   xor	cx,cx				;
+   mov	di,cx				;
+   dec	di				;
+   mov	cx,[CSIZE]			;   by IBMLOAD (consecutive clusters
+   div	cl				;   for IBMBIO)
+   cmp	ah,0				;
+;  $if	ne				;
    JE $$IF41
-       inc  al				;				       ;AN004;
-       xor  ah,ah			;				       ;AN004;
-;  $endif				;				       ;AN004;
+       inc  al				;
+       xor  ah,ah			;
+;  $endif				;
 $$IF41:
-   inc	ax				; will be decrimenter immediately upon ;AN004;
+   inc	ax				; will be decrimenter immediately upon
 					;   entering complex do below
-   mov	[cluster_count],ax		; save for later		       ;AN004;
-   mov	ax,[FAT_sectors]		;only read needed sectors	       ;AN004;
-   mov	[packet_sectors],ax		;				       ;AN004;
-   mov	cl,[num_of_FATS]		;Number of FATs 		       ;AN004;
-   mov	ax,[first_FAT]			;First sector of FAT		       ;AN004;
-   mov	[packet],ax			;				       ;AN004;
-   mov	[packet_buffer],OFFSET BUF	; point to FAT buffer		       ;AN004;
-   call Load_FAT			;				       ;AN004;
-;  $if	nc				; no error so far.......	       ;AN004;
+   mov	[cluster_count],ax		; save for later
+   mov	ax,[FAT_sectors]		;only read needed sectors
+   mov	[packet_sectors],ax		;
+   mov	cl,[num_of_FATS]		;Number of FATs
+   mov	ax,[first_FAT]			;First sector of FAT
+   mov	[packet],ax			;
+   mov	[packet_buffer],OFFSET BUF	; point to FAT buffer
+   call Load_FAT			;
+;  $if	nc				; no error so far.......
    JC $$IF43
-;      $do  complex			;				       ;AN004;
+;      $do  complex			;
        JMP SHORT $$SD44
 $$DO44:
-	   mov	[cluster_count],cx	;				       ;AN004;
-	   call Is_It_Empty		;				       ;AN004;
-;      $leave c 			;				       ;AN014;
+	   mov	[cluster_count],cx	;
+	   call Is_It_Empty		;
+;      $leave c 			;
        JC $$EN44
-	   cmp	al,not_found		; ( -1 ?)			       ;AN004;
-;	   $if	e			; if not found			       ;AN004;
+	   cmp	al,not_found		; ( -1 ?)
+;	   $if	e			; if not found
 	   JNE $$IF46
-	       call Search_FAT		; scan FAT to see if cluster chained   ;AN004;
-;	   $else			;				       ;AN004;
+	       call Search_FAT		; scan FAT to see if cluster chained
+;	   $else			;
 	   JMP SHORT $$EN46
 $$IF46:
-	       clc			;				       ;AN004;
-;	   $endif			;				       ;AN004;
+	       clc			;
+;	   $endif			;
 $$EN46:
-;      $leave c 			;				       ;AN004;
+;      $leave c 			;
        JC $$EN44
-	   cmp	al,not_found		; if still not found		       ;AN004;
-;	   $if	e			;				       ;AN004;
+	   cmp	al,not_found		; if still not found
+;	   $if	e			;
 	   JNE $$IF50
-	       call Search_DIR		; scan DIR to see who starts with #2   ;AN004;
-;	   $else			;				       ;AC013;
+	       call Search_DIR		; scan DIR to see who starts with #2
+;	   $else			;
 	   JMP SHORT $$EN50
 $$IF50:
-	       clc			; ensure carry is still clear	       ;AC013;
-;	   $endif			;				       ;AN004;
+	       clc			; ensure carry is still clear
+;	   $endif			;
 $$EN50:
-;      $leave c 			;				       ;AN004;
+;      $leave c 			;
        JC $$EN44
-	   inc	[current_cluster]	;				       ;AN004;
-;      $strtdo				;				       ;AN004;
+	   inc	[current_cluster]	;
+;      $strtdo				;
 $$SD44:
-	   mov	cx,[cluster_count]	;				       ;AN004;
-;      $enddo LOOP			;				       ;AN004;
+	   mov	cx,[cluster_count]	;
+;      $enddo LOOP			;
        LOOP $$DO44
 $$EN44:
-;  $endif				;				       ;AN004;
+;  $endif				;
 $$IF43:
-;  $if	c				;				       ;AN004;
+;  $if	c				;
    JNC $$IF57
-       mov  ax,(util shl 8) + no_room	; error message - no room to sys       ;AN014;
-;  $endif				;				       ;AN004;
+       mov  ax,(util shl 8) + no_room	; error message - no room to sys
+;  $endif				;
 $$IF57:
 
-   ret					;				       ;AN004;
+   ret					;
 
    Free_Cluster ENDP
 
@@ -817,50 +814,50 @@ $$IF57:
 
    Load_FAT PROC NEAR
 
-   lea	bx,[packet]			;				       ;AN004;
+   lea	bx,[packet]			;
 
-;  $search				;				       ;AN004;
+;  $search				;
 $$DO59:
-       xchg cx,di			;				       ;AN004;
-       push cx				;				       ;AN004;
-       push di				;				       ;AN004;
-       push dx				;				       ;AN004;
-       push bx				;				       ;AN004;
-       xor  ah,ah			;				       ;AN004;
-       mov  al,TargDrvNum		; set up drive number		       ;AN004;
-       dec  al				;				       ;AN004;
-       cmp  DOS_VER,0			; if DOS 3.3			       ;AN019;
+       xchg cx,di			;
+       push cx				;
+       push di				;
+       push dx				;
+       push bx				;
+       xor  ah,ah			;
+       mov  al,TargDrvNum		; set up drive number
+       dec  al				;
+       cmp  DOS_VER,0			; if DOS 3.3
 
-;      $if  ne				; load registers for old style INT 25  ;AN019;
+;      $if  ne				; load registers for old style INT 25
        JE $$IF60
-	   mov	bx,[packet_buffer]	;				       ;AN019;
-	   mov	cx,[packet_sectors]	;				       ;AN019;
-	   mov	dx,[packet]		;				       ;AN019;
-;      $endif				;				       ;AN019;
+	   mov	bx,[packet_buffer]	;
+	   mov	cx,[packet_sectors]	;
+	   mov	dx,[packet]		;
+;      $endif				;
 $$IF60:
 
-       push bp				;				       ;AN019;
-       int  25h 			;Read in the FAT		       ;AN004;
-       pop  ax				;Flags				       ;AN004;
-       pop  bp				;				       ;AN019;
-;  $exitif nc				; error - set up for next fat	       ;AN004;
+       push bp				;
+       int  25h 			;Read in the FAT
+       pop  ax				;Flags
+       pop  bp				;
+;  $exitif nc				; error - set up for next fat
    JC $$IF59
-       add  sp,8			;Clean up stack 		       ;AN004;
-       mov  ax,1			;				       ;AN004;
-;	mov [packet],ax ; reset to first FAT				       ;AN004;
-;  $orelse				;				       ;AN004;
+       add  sp,8			;Clean up stack
+       mov  ax,1			;
+;	mov [packet],ax ; reset to first FAT
+;  $orelse				;
    JMP SHORT $$SR59
 $$IF59:
-       pop  bx				;				       ;AN004;
-       pop  dx				;				       ;AN004;
-       pop  cx				;				       ;AN004;
-       pop  di				;				       ;AN004;
-       add  [packet],dx 		; point to start of next FAT	       ;AN004;
-       inc  [FAT_2]			;				       ;AN004;
-;  $endloop LOOP			;Try next FAT			       ;AN004;
+       pop  bx				;
+       pop  dx				;
+       pop  cx				;
+       pop  di				;
+       add  [packet],dx 		; point to start of next FAT
+       inc  [FAT_2]			;
+;  $endloop LOOP			;Try next FAT
    LOOP $$DO59
-       mov  ax,(util shl 8) + no_room	; set message# and class	       ;AN004;
-;  $endsrch				;				       ;AN004;
+       mov  ax,(util shl 8) + no_room	; set message# and class
+;  $endsrch				;
 $$SR59:
 
    ret
@@ -928,52 +925,52 @@ $$SR59:
 
    Is_It_Empty PROC NEAR
 
-   mov	si,[current_cluster]		; set up for call to Unpack	       ;AN004;
-   call Unpack				; to find the value		       ;AN004;
-;  $if	nc				; if no error			       ;AN004;
+   mov	si,[current_cluster]		; set up for call to Unpack
+   call Unpack				; to find the value
+;  $if	nc				; if no error
    JC $$IF66
-;      $if  nz				; cluster is not empty		       ;AN004;
+;      $if  nz				; cluster is not empty
        JZ $$IF67
-	   mov	ax,di			;				       ;AN004;
-	   cmp	al,bad_sector		;				       ;AN004;
-;	   $if	e			;				       ;AN004;
+	   mov	ax,di			;
+	   cmp	al,bad_sector		;
+;	   $if	e			;
 	   JNE $$IF68
-	       stc			;				       ;AN004;
-;	   $else			;				       ;AN004;
+	       stc			;
+;	   $else			;
 	   JMP SHORT $$EN68
 $$IF68:
-	       cmp  [bio_owns_it],0	; is it owned by IBMBIO ?	       ;AN004;
-;	       $if  ne			; if it is			       ;AN004;
+	       cmp  [bio_owns_it],0	; is it owned by IBMBIO ?
+;	       $if  ne			; if it is
 	       JE $$IF70
-		   dec	ax		;				       ;AN004;
-		   cmp	ax,[current_cluster] ;				       ;AN004;
-;		   $if	ne		;				       ;AC011;
+		   dec	ax		;
+		   cmp	ax,[current_cluster] ;
+;		   $if	ne		;
 		   JE $$IF71
-		       dec  [bio_owns_it] ; its not the owner form here on     ;AC011;
-;		   $endif		;				       ;AC011;
+		       dec  [bio_owns_it] ; its not the owner form here on
+;		   $endif		;
 $$IF71:
-		   xor	ax,ax		;				       ;AN004;
-		   clc			; its IBMBIO's anyway                  ;AC011;
-;	       $else			;				       ;AN004;
+		   xor	ax,ax		;
+		   clc			; its IBMBIO's anyway
+;	       $else			;
 	       JMP SHORT $$EN70
 $$IF70:
-		   mov	[next_cluster],di ;				       ;AN004;
-		   xor	ax,ax		; reset fail flag		       ;AN004;
-		   dec	ax		;  - its not empty		       ;AN014;
-;	       $endif			;				       ;AN004;
+		   mov	[next_cluster],di ;
+		   xor	ax,ax		; reset fail flag
+		   dec	ax		;  - its not empty
+;	       $endif			;
 $$EN70:
-;	   $endif			;				       ;AN004;
+;	   $endif			;
 $$EN68:
-;      $else				; its empty !			       ;AN005;
+;      $else				; its empty !
        JMP SHORT $$EN67
 $$IF67:
-	   xor	ax,ax			; its empty - and no error	       ;AN014;
-;      $endif				;				       ;AN014;
+	   xor	ax,ax			; its empty - and no error
+;      $endif				;
 $$EN67:
-;  $endif				;				       ;AN004;
+;  $endif				;
 $$IF66:
 
-   ret					;				       ;AN004;
+   ret					;
 
    Is_It_Empty ENDP
 
@@ -1060,109 +1057,109 @@ $$IF66:
 
    Search_FAT PROC NEAR
 
-   mov	si,[current_cluster]		; set cluster # to [cluster_number]    ;AN004;
-;  $search				; till at end of FAT		       ;AN004;
+   mov	si,[current_cluster]		; set cluster # to [cluster_number]
+;  $search				; till at end of FAT
 $$DO79:
-       call Unpack			;				       ;AN004;
-;  $leave c				; quit on an error		       ;AN004;
+       call Unpack			;
+;  $leave c				; quit on an error
    JC $$EN79
-       cmp  di,[current_cluster]	; is it [current_cluster] ?	       ;AN004;
-;  $exitif e				; it is 			       ;AN004;
+       cmp  di,[current_cluster]	; is it [current_cluster] ?
+;  $exitif e				; it is
    JNE $$IF79
-       mov  [last_cluster],si		; save number for later 	       ;AN004;
-       xor  ax,ax			;				       ;AN004;
-       clc				; clear error flag (found)	       ;AN004;
-;  $orelse				;				       ;AN004;
+       mov  [last_cluster],si		; save number for later
+       xor  ax,ax			;
+       clc				; clear error flag (found)
+;  $orelse				;
    JMP SHORT $$SR79
 $$IF79:
-       inc  si				; advance to next cluster	       ;AN004;
-       xor  ax,ax			;				       ;AN004;
-       dec  ax				;				       ;AN004;
-       cmp  si,[MCLUS]			; at the end ?			       ;AN004;
-;  $endloop e				; if past last cluster		       ;AN004;
+       inc  si				; advance to next cluster
+       xor  ax,ax			;
+       dec  ax				;
+       cmp  si,[MCLUS]			; at the end ?
+;  $endloop e				; if past last cluster
    JNE $$DO79
 $$EN79:
-       stc				;				       ;AN014;
-;  $endsrch				;				       ;AN004;
+       stc				;
+;  $endsrch				;
 $$SR79:
-;  $if	nc				; if cluster found		       ;AN004;
+;  $if	nc				; if cluster found
    JC $$IF85
-       call Find_Empty_Cluster		; to move data to		       ;AN004;
-;  $endif				;				       ;AN004;
+       call Find_Empty_Cluster		; to move data to
+;  $endif				;
 $$IF85:
-;  $if	nc,and				; empty cluster available and	       ;AN004;
+;  $if	nc,and				; empty cluster available and
    JC $$IF87
-   call Xfer_Data			; to move data to new cluster	       ;AN004;
-;  $if	nc,and				; no errors			       ;AN004;
+   call Xfer_Data			; to move data to new cluster
+;  $if	nc,and				; no errors
    JC $$IF87
-   mov	si,[last_cluster]		; set target [last_cluster]	       ;AN004;
-   mov	dx,[empty_cluster]		; set value to [empty_cluster]	       ;AN004;
-   call Pack				; to update FAT 		       ;AN004;
-;  $if	nc,and				; no errors			       ;AN004;
+   mov	si,[last_cluster]		; set target [last_cluster]
+   mov	dx,[empty_cluster]		; set value to [empty_cluster]
+   call Pack				; to update FAT
+;  $if	nc,and				; no errors
    JC $$IF87
-   mov	si,[empty_cluster]		; set target [empty_cluster]	       ;AN004;
-   mov	dx,[next_cluster]		; set value to [next_cluster]	       ;AN004;
-   call Pack				; to update FAT 		       ;AN004;
-;  $if	nc,and				; no errors			       ;AN004;
+   mov	si,[empty_cluster]		; set target [empty_cluster]
+   mov	dx,[next_cluster]		; set value to [next_cluster]
+   call Pack				; to update FAT
+;  $if	nc,and				; no errors
    JC $$IF87
-   mov	si,[current_cluster]		; set target [current_cluster]	       ;AN004;
-   xor	dx,dx				; set cluster value to empty	       ;AN004;
-   call Pack				; to update FAT 		       ;AN004;
-;  $if	nc				; no errors			       ;AN004;
+   mov	si,[current_cluster]		; set target [current_cluster]
+   xor	dx,dx				; set cluster value to empty
+   call Pack				; to update FAT
+;  $if	nc				; no errors
    JC $$IF87
-       xor  ah,ah			;				       ;AN004;
-       dec  ah				;				       ;AN004;
-       call Direct_Access		; write it out - ignore errors	       ;AN004;
-       mov  ax,[FSIZE]			;				       ;AN004;
-       cmp  [FAT_2],0			;				       ;AN004;
-;      $if  e				;				       ;AN004;
+       xor  ah,ah			;
+       dec  ah				;
+       call Direct_Access		; write it out - ignore errors
+       mov  ax,[FSIZE]			;
+       cmp  [FAT_2],0			;
+;      $if  e				;
        JNE $$IF88
-	   add	[packet],ax		;				       ;AN004;
-	   inc	[FAT_2] 		; packet points to FAT #2	       ;AC006;
-;      $else				;				       ;AN004;
+	   add	[packet],ax		;
+	   inc	[FAT_2] 		; packet points to FAT #2
+;      $else				;
        JMP SHORT $$EN88
 $$IF88:
-	   sub	[packet],ax		;				       ;AN004;
-	   mov	[FAT_2],0		; reset - packet points to FAT #1      ;AN004;
-;      $endif				;				       ;AN004;
+	   sub	[packet],ax		;
+	   mov	[FAT_2],0		; reset - packet points to FAT #1
+;      $endif				;
 $$EN88:
-       xor  ah,ah			;				       ;AN004;
-       dec  ah				;				       ;AN004;
-       call Direct_Access		; write it out - ignore errors	       ;AN004;
-       mov  [FAT_changed],0		; FAT now cleared		       ;AN004;
-       push es				; update DPB first cluster	       ;AN004;
-       mov  bx,ds			;				       ;AN004;
-       mov  es,bx			;				       ;AN004;
-       lds  bx,[THIS_DPB]		;				       ;AN004;
+       xor  ah,ah			;
+       dec  ah				;
+       call Direct_Access		; write it out - ignore errors
+       mov  [FAT_changed],0		; FAT now cleared
+       push es				; update DPB first cluster
+       mov  bx,ds			;
+       mov  es,bx			;
+       lds  bx,[THIS_DPB]		;
 
        ASSUME ds:nothing,ES:DGROUP
 
-       mov  [bx.dpb_next_free],2	;				       ;AN004;
-       mov  ax,es			;				       ;AN004;
-       mov  ds,ax			;				       ;AN004;
-       pop  es				;				       ;AN004;
-       xor  ax,ax			; signal success (ax = 0 , cf = 0)     ;AN004;
+       mov  [bx.dpb_next_free],2	;
+       mov  ax,es			;
+       mov  ds,ax			;
+       pop  es				;
+       xor  ax,ax			; signal success (ax = 0 , cf = 0)
 
        ASSUME DS:DGROUP, es:nothing
 
-;  $endif				;				       ;AN004;
+;  $endif				;
 $$IF87:
-;  $if	c				;				       ;AN004;
+;  $if	c				;
    JNC $$IF92
-       cmp  ax,-1			;				       ;AN004;
-;      $if  e				;				       ;AN004;
+       cmp  ax,-1			;
+;      $if  e				;
        JNE $$IF93
-	   clc				; not a critical error - keep trying   ;AN004;
-;      $else				;				       ;AN004;
+	   clc				; not a critical error - keep trying
+;      $else				;
        JMP SHORT $$EN93
 $$IF93:
-	   stc				; major problem - critical error       ;AN004;
-;      $endif				;				       ;AN004;
+	   stc				; major problem - critical error
+;      $endif				;
 $$EN93:
-;  $endif				;				       ;AN004;
+;  $endif				;
 $$IF92:
 
-   ret					;				       ;AN000;
+   ret					;
 
    Search_FAT ENDP
 
@@ -1211,29 +1208,29 @@ $$IF92:
 
    Find_Empty_Cluster PROC NEAR
 
-   mov	si,[current_cluster]		;				       ;AN004;
-   mov	ax,[cluster_count]		;				       ;AN004;
-   add	si,ax				; look past required space	       ;AN004;
-;  $search				; till at end of FAT		       ;AN004;
+   mov	si,[current_cluster]		;
+   mov	ax,[cluster_count]		;
+   add	si,ax				; look past required space
+;  $search				; till at end of FAT
 $$DO97:
-       call Unpack			; to convert # to value 	       ;AN004;
-;  $exitif z				; cluster is empty		       ;AN004;
+       call Unpack			; to convert # to value
+;  $exitif z				; cluster is empty
    JNZ $$IF97
-       mov  [empty_cluster],si		; save it for later		       ;AN004;
-       clc				; clear error flag		       ;AN004;
-;  $orelse				;				       ;AN004;
+       mov  [empty_cluster],si		; save it for later
+       clc				; clear error flag
+;  $orelse				;
    JMP SHORT $$SR97
 $$IF97:
-       inc  si				; advance to next cluster	       ;AN004;
-       cmp  si,[MCLUS]			; past the end ?		       ;AN004;
-;  $endloop e				; if past last cluster		       ;AN004;
+       inc  si				; advance to next cluster
+       cmp  si,[MCLUS]			; past the end ?
+;  $endloop e				; if past last cluster
    JNE $$DO97
-       stc				; set error flag		       ;AN004;
-       mov  ax,(util shl 8) + no_room	; error message - no room to sys       ;AN014;
-;  $endsrch				;				       ;AN004;
+       stc				; set error flag
+       mov  ax,(util shl 8) + no_room	; error message - no room to sys
+;  $endsrch				;
 $$SR97:
 
-   ret					;				       ;AN004;
+   ret					;
 
    Find_Empty_Cluster ENDP
 
@@ -1289,43 +1286,43 @@ $$SR97:
 
    Xfer_Data PROC NEAR
 
-   push [packet]			; save active FAT starting sector      ;AN004;
-   push [packet+2]			;				       ;AN004;
-   push [packet_sectors]		;				       ;AN004;
-   mov	ax,[CSIZE]			;				       ;AN004;
-   mov	[packet_sectors],ax		;				       ;AN004;
-   mov	ax,[current_cluster]		; set source to [current_cluster]      ;AN004;
-   call cluster_2_sector		; convert Cluster to sector #	       ;AN004;
-   mov	[packet],ax			; low sector word		       ;AN004;
-   mov	[packet+2],dx			; high sector word		       ;AN004;
-   xor	ah,ah				; set up for read		       ;AN004;
-   call Direct_Access			; to read data			       ;AN004;
-;  $if	nc				; no errors			       ;AN004;
+   push [packet]			; save active FAT starting sector
+   push [packet+2]			;
+   push [packet_sectors]		;
+   mov	ax,[CSIZE]			;
+   mov	[packet_sectors],ax		;
+   mov	ax,[current_cluster]		; set source to [current_cluster]
+   call cluster_2_sector		; convert Cluster to sector #
+   mov	[packet],ax			; low sector word
+   mov	[packet+2],dx			; high sector word
+   xor	ah,ah				; set up for read
+   call Direct_Access			; to read data
+;  $if	nc				; no errors
    JC $$IF102
-       mov  ax,[empty_cluster]		; set destination to [empty_cluster]   ;AN004;
-       cmp  [DIR_cluster],0		; have we just loaded a directory?     ;AN007;
-;      $if  ne				; if so -			       ;AN007;
+       mov  ax,[empty_cluster]		; set destination to [empty_cluster]
+       cmp  [DIR_cluster],0		; have we just loaded a directory?
+;      $if  ne				; if so -
        JE $$IF103
-	   mov	[DIR_cluster],ax	; save the new cluster		       ;AN007;
-	   lea	bx,BUF			;				       ;AN007;
-	   mov	[bx.dir_first],ax	; update the '.' entry start cluster   ;AN007;
-;      $endif				;				       ;AN007;
+	   mov	[DIR_cluster],ax	; save the new cluster
+	   lea	bx,BUF			;
+	   mov	[bx.dir_first],ax	; update the '.' entry start cluster
+;      $endif				;
 $$IF103:
-       call cluster_2_sector		; conver to logical sector	       ;AN004;
-       mov  [packet],ax 		; low word			       ;AN004;
-       mov  [packet+2],dx		; high word			       ;AN004;
-       xor  ah,ah			; set up for write		       ;AN004;
-       dec  ah				;				       ;AN004;
-       call Direct_Access		; to write data 		       ;AN004;
-;  $endif				;				       ;AN004;
+       call cluster_2_sector		; conver to logical sector
+       mov  [packet],ax 		; low word
+       mov  [packet+2],dx		; high word
+       xor  ah,ah			; set up for write
+       dec  ah				;
+       call Direct_Access		; to write data
+;  $endif				;
 $$IF102:
-   pop	[packet_sectors]		;				       ;AN004;
-   pop	[packet+2]			; restore starting sector	       ;AN004;
-   pop	[packet]			;				       ;AN004;
-   xor	ah,ah				; set up for read		       ;AN004;
-   call Direct_Access			; to restore the FAT copy	       ;AN004;
+   pop	[packet_sectors]		;
+   pop	[packet+2]			; restore starting sector
+   pop	[packet]			;
+   xor	ah,ah				; set up for read
+   call Direct_Access			; to restore the FAT copy
 
-   ret					;				       ;AN004;
+   ret					;
 
    Xfer_Data ENDP
 
@@ -1364,13 +1361,13 @@ $$IF102:
 
    cluster_2_sector PROC NEAR
 
-   dec	ax				;    of [current_cluster]	       ;AN004;
-   dec	ax				;				       ;AN004;
-   mov	cx,[CSIZE]			;				       ;AN004;
-   mul	cx				;				       ;AN004;
-   add	ax,[l_sector_offset]		;				       ;AN004;
+   dec	ax				;    of [current_cluster]
+   dec	ax				;
+   mov	cx,[CSIZE]			;
+   mul	cx				;
+   add	ax,[l_sector_offset]		;
 
-   ret					;				       ;AN004;
+   ret					;
 
    cluster_2_sector ENDP
 
@@ -1460,33 +1457,33 @@ $$IF102:
 
    Search_DIR PROC NEAR
 
-   mov	ax,[first_dir_sector]		; set up for first_dir_sector of root  ;AN004;
-   mov	[packet],ax			;				       ;AN004;
-   mov	[packet+2],0			; zero out high word		       ;AN004;
-   mov	[packet_sectors],1		; only process 1 sector at a time      ;AN004;
-   mov	[packet_buffer],OFFSET DIR_SECTOR ;				       ;AN004;
-   xor	ah,ah				; set up for read		       ;AN004;
-   call Direct_Access			; to read first root sector	       ;AN004;
-;  $if	nc,long 			; no error			       ;AN004;
+   mov	ax,[first_dir_sector]		; set up for first_dir_sector of root
+   mov	[packet],ax			;
+   mov	[packet+2],0			; zero out high word
+   mov	[packet_sectors],1		; only process 1 sector at a time
+   mov	[packet_buffer],OFFSET DIR_SECTOR ;
+   xor	ah,ah				; set up for read
+   call Direct_Access			; to read first root sector
+;  $if	nc,long 			; no error
    JNC $$XL1
    JMP $$IF106
 $$XL1:
-       xor  ax,ax			;				       ;AN004;
-       mov  [present_cluster],ax	; set [present_cluster] = 0 (root)     ;AN004;
-       mov  [entry_number],al		; set [entry_number] = 0 (first)       ;AN004;
-       mov  ax,[first_dir_sector]	;				       ;AN013;
-       mov  [sector_offset],ax		; set [sector_offset] = [first_dir_sec];AC015;
-       lea  bx,DIR_BUF			; set [FRAME_ptr] = DIR_BUF	       ;AN004;
-       mov  [FRAME_ptr],bx		;				       ;AN004;
-;      $do				;  until cluster free (NC)	       ;AN004;
+       xor  ax,ax			;
+       mov  [present_cluster],ax	; set [present_cluster] = 0 (root)
+       mov  [entry_number],al		; set [entry_number] = 0 (first)
+       mov  ax,[first_dir_sector]	;
+       mov  [sector_offset],ax		; set [sector_offset] = [first_dir_sec]
+       lea  bx,DIR_BUF			; set [FRAME_ptr] = DIR_BUF
+       mov  [FRAME_ptr],bx		;
+;      $do				;  until cluster free (NC)
 $$DO107:
-	   call Search_Loop		;				       ;AN004;
-;      $leave nc,long			; cluster found and moved	       ;AN004;
+	   call Search_Loop		;
+;      $leave nc,long			; cluster found and moved
        JC $$XL2
        JMP $$EN107
 $$XL2:
-	   cmp	ax,0ffffh		;				       ;AN004;
-;	   $if	e			; SubDir			       ;AN004;
+	   cmp	ax,0ffffh		;
+;	   $if	e			; SubDir
 	   JNE $$IF109
 
 					; Search DIR returned with BX pointing
@@ -1494,98 +1491,98 @@ $$XL2:
 					;  current_cluster to this SubDIRs first
 					;  cluster
 
-	       mov  ax,[bx.dir_first]	; get starting cluster for where we    ;AN007;
+	       mov  ax,[bx.dir_first]	; get starting cluster for where we
 					;  want to go
-	       mov  bx,[present_cluster] ; get [present_cluster] for frame     ;AN004;
+	       mov  bx,[present_cluster] ; get [present_cluster] for frame
 					;  (where we were)
-	       mov  [present_cluster],ax ;  [present_cluster] for next pass    ;AN007;
-	       xchg ax,bx		; recover old [present_cluster]        ;AN007;
-	       mov  bx,[FRAME_ptr]	; get FRAME pointer		       ;AN004;
-	       mov  [bx.p_cluster],ax	; save [present_cluster] in frame      ;AN004;
-	       mov  ax,[sector_offset]	; save [sector_offset]in frame	       ;AC015;
-	       mov  [bx.s_offset],ax	;				       ;AC015;
-	       mov  al,[entry_number]	; save [entry_number] in frame	       ;AN004;
-	       mov  [bx.e_number],al	;				       ;AN004;
-	       xor  ax,ax		; reset -			       ;AN007;
-	       mov  [sector_offset],ax	;	  [sector_offset]	       ;AC015;
-	       mov  [entry_number],al	;	  [entry_number]	       ;AN007;
-	       add  bx,SIZE FRAME	; incriment FRAME pointer	       ;AN004;
-	       lea  ax,DIR_SECTOR	;				       ;AN004;
-	       cmp  ax,bx		;				       ;AN004;
-;	       $if  a			;				       ;AC007;
+	       mov  [present_cluster],ax ;  [present_cluster] for next pass
+	       xchg ax,bx		; recover old [present_cluster]
+	       mov  bx,[FRAME_ptr]	; get FRAME pointer
+	       mov  [bx.p_cluster],ax	; save [present_cluster] in frame
+	       mov  ax,[sector_offset]	; save [sector_offset]in frame
+	       mov  [bx.s_offset],ax	;
+	       mov  al,[entry_number]	; save [entry_number] in frame
+	       mov  [bx.e_number],al	;
+	       xor  ax,ax		; reset -
+	       mov  [sector_offset],ax	;	  [sector_offset]
+	       mov  [entry_number],al	;	  [entry_number]
+	       add  bx,SIZE FRAME	; incriment FRAME pointer
+	       lea  ax,DIR_SECTOR	;
+	       cmp  ax,bx		;
+;	       $if  a			;
 	       JNA $$IF110
-		   mov	[FRAME_ptr],bx	;				       ;AN004;
-		   clc			; no error			       ;AN004;
-;	       $else			;				       ;AN004;
+		   mov	[FRAME_ptr],bx	;
+		   clc			; no error
+;	       $else			;
 	       JMP SHORT $$EN110
 $$IF110:
-		   stc			; set error flag (CF)		       ;AN004;
-;	       $endif			;				       ;AN004;
+		   stc			; set error flag (CF)
+;	       $endif			;
 $$EN110:
-;	   $else long			;				       ;AN004;
+;	   $else long			;
 	   JMP $$EN109
 $$IF109:
-	       cmp  ax,0		;				       ;AN004;
-;	       $if  e,and,long		; end of DIR (CF + 00) and	       ;AN004;
+	       cmp  ax,0		;
+;	       $if  e,and,long		; end of DIR (CF + 00) and
 	       JE $$XL3
 	       JMP $$IF114
 $$XL3:
-next_level_down:			;				       ;AN004;
-	       mov  bx,[FRAME_ptr]	; recover FRAME_ptr - but remember **  ;AC007;
+next_level_down:			;
+	       mov  bx,[FRAME_ptr]	; recover FRAME_ptr - but remember **
 					;  it points to the next available
 					;  frame - not the last one - so
-	       sub  bx,SIZE FRAME	; move back!			       ;AN007;
-	       lea  ax,DIR_BUF		;				       ;AN004;
-	       cmp  ax,bx		;				       ;AN004;
-;	       $if  be			; as long as there are still FRAMEs    ;AC007;
+	       sub  bx,SIZE FRAME	; move back!
+	       lea  ax,DIR_BUF		;
+	       cmp  ax,bx		;
+;	       $if  be			; as long as there are still FRAMEs
 	       JNBE $$IF114
-		   mov	ax,[bx.p_cluster] ; get [present_cluster] from frame   ;AN004;
-		   mov	[present_cluster],ax ;				       ;AN004;
-		   mov	ax,[bx.s_offset] ; recover [sector_offset] from frame  ;AC015;
-		   mov	[sector_offset],ax ;				       ;AC015;
-		   mov	al,[bx.e_number] ; recover [entry_number] from frame   ;AN004;
-		   mov	[entry_number],al ;				       ;AN004;
-		   mov	[FRAME_ptr],bx	;				       ;AN004;
+		   mov	ax,[bx.p_cluster] ; get [present_cluster] from frame
+		   mov	[present_cluster],ax ;
+		   mov	ax,[bx.s_offset] ; recover [sector_offset] from frame
+		   mov	[sector_offset],ax ;
+		   mov	al,[bx.e_number] ; recover [entry_number] from frame
+		   mov	[entry_number],al ;
+		   mov	[FRAME_ptr],bx	;
 
 					; Now set up at exactly same point
 					;  as when SubDIR was entered -
 					;  advance to next entry
 
-		   inc	al		;				       ;AN004;
-		   cmp	al,[entries_per_sector] ;			       ;AN004;
-;		   $if	b		;				       ;AN004;
+		   inc	al		;
+		   cmp	al,[entries_per_sector] ;
+;		   $if	b		;
 		   JNB $$IF115
-		       inc  [entry_number] ;				       ;AN004;
-		       clc		; no error			       ;AN004;
-;		   $else		; we've left the sector                ;AN004;
+		       inc  [entry_number] ;
+		       clc		; no error
+;		   $else		; we've left the sector
 		   JMP SHORT $$EN115
 $$IF115:
 if not ibmcopyright
 			xor	al, al
 			mov [entry_number], al	; shall we start at, say, ENTRY ZERO?  Hmmmmm?
 endif
-		       mov  ax,[present_cluster] ;			       ;AN004;
-		       cmp  ax,0	; in the root ? 		       ;AN004;
-;		       $if  ne		; no				       ;AN004;
+		       mov  ax,[present_cluster] ;
+		       cmp  ax,0	; in the root ?
+;		       $if  ne		; no
 		       JE $$IF117
-			   mov	si,ax	;				       ;AN004;
-			   mov	[cluster_high],1 ; force Upack to load FAT     ;AN004;
-			   mov	ax,[FAT_sectors] ; get the size right	       ;AN004;
-			   mov	[packet_sectors],ax ;			       ;AN004;
-			   mov	[packet_buffer],OFFSET BUF ;		       ;AN004;
-			   call Unpack	; to get next cluster # 	       ;AN004;
-			   mov	[packet_buffer],OFFSET DIR_SECTOR ;	       ;AN004;
-			   mov	[packet_sectors],1 ; set size back	       ;AN004;
-			   mov	[cluster_high],1 ; ensure that FAT will be     ;AN004;
+			   mov	si,ax	;
+			   mov	[cluster_high],1 ; force Upack to load FAT
+			   mov	ax,[FAT_sectors] ; get the size right
+			   mov	[packet_sectors],ax ;
+			   mov	[packet_buffer],OFFSET BUF ;
+			   call Unpack	; to get next cluster #
+			   mov	[packet_buffer],OFFSET DIR_SECTOR ;
+			   mov	[packet_sectors],1 ; set size back
+			   mov	[cluster_high],1 ; ensure that FAT will be
 					;	      re-loaded
 
-			   mov	ax,di	; check if at end		       ;AN007;
-			   cmp	al,end_cluster ;  at the end?		       ;AN007;
-;			   $if	nz	; not at end of line		       ;AN004;
+			   mov	ax,di	; check if at end
+			   cmp	al,end_cluster ;  at the end?
+;			   $if	nz	; not at end of line
 			   JZ $$IF118
-			       mov  [present_cluster],di ; save it	       ;AN004;
-			       clc	;				       ;AN004;
-;			   $else	; we are at the end of a Sub DIR chain ;AN004;
+			       mov  [present_cluster],di ; save it
+			       clc	;
+;			   $else	; we are at the end of a Sub DIR chain
 			   JMP SHORT $$EN118
 $$IF118:
 
@@ -1596,54 +1593,54 @@ $$IF118:
 ; SEPT 21 - best solution is to check BEFORE putting the entry in the frame
 ;			       (not when taking it off !!! )
 
-			       jmp  next_level_down ;			       ;AN004;
+			       jmp  next_level_down ;
 
-;			   $endif	;				       ;AN004;
+;			   $endif	;
 $$EN118:
-;		       $else		;  yes - in the root		       ;AN004;
+;		       $else		;  yes - in the root
 		       JMP SHORT $$EN117
 $$IF117:
-			   mov	ax,[sector_offset] ;			       ;AC015;
-			   inc	ax	;				       ;AN004;
-			   cmp	ax,[l_sector_offset] ;			       ;AC015;
-;			   $if	b	;				       ;AN004;
+			   mov	ax,[sector_offset] ;
+			   inc	ax	;
+			   cmp	ax,[l_sector_offset] ;
+;			   $if	b	;
 			   JNB $$IF122
-			       inc  [sector_offset] ;			       ;AN004;
+			       inc  [sector_offset] ;
 if not ibmcopyright
 				clc	; no error, continue with loop
 endif
-;			   $else	; end of the line		       ;AN004;
+;			   $else	; end of the line
 			   JMP SHORT $$EN122
 $$IF122:
-			       stc	; we failed to find it		       ;AN004;
-;			   $endif	;				       ;AN004;
+			       stc	; we failed to find it
+;			   $endif	;
 $$EN122:
-;		       $endif		;				       ;AN004;
+;		       $endif		;
 $$EN117:
-;		   $endif		;				       ;AN004;
+;		   $endif		;
 $$EN115:
-;	       $else			;				       ;AN004;
+;	       $else			;
 	       JMP SHORT $$EN114
 $$IF114:
-		   stc			; set error flag (CF)		       ;AN004;
-;	       $endif			;				       ;AN004;
+		   stc			; set error flag (CF)
+;	       $endif			;
 $$EN114:
-;	   $endif			;				       ;AN004;
+;	   $endif			;
 $$EN109:
-;	   $if	c			; error 			       ;AN004;
+;	   $if	c			; error
 	   JNC $$IF130
-	       mov  ax,(util shl 8) + no_room ; error message - no room to sys ;AN004;
-;	   $endif			;				       ;AN004;
+	       mov  ax,(util shl 8) + no_room ; error message - no room to sys
+;	   $endif			;
 $$IF130:
-;      $leave c 			; if error			       ;AN004;
+;      $leave c 			; if error
        JC $$EN107
-;      $enddo long			;				       ;AN004;
+;      $enddo long			;
        JMP $$DO107
 $$EN107:
-;  $endif				;				       ;AN004;
+;  $endif				;
 $$IF106:
 
-   ret					;				       ;AN004;
+   ret					;
 
    Search_DIR ENDP
 
@@ -1735,210 +1732,208 @@ $$IF106:
 
    Search_Loop PROC NEAR
 
-   mov	ax,[present_cluster]		; initailize for search 	       ;AN004;
-   cmp	ax,0				;				       ;AN004;
-;  $if	ne				;				       ;AN004;
+   mov	ax,[present_cluster]		; initailize for search
+   cmp	ax,0				;
+;  $if	ne				;
    JE $$IF135
-       call cluster_2_sector		; convert it to a sector	       ;AN004;
-       add  ax,[sector_offset]		;				       ;AC015;
-;      $if  c				;				       ;AN004;
+       call cluster_2_sector		; convert it to a sector
+       add  ax,[sector_offset]		;
+;      $if  c				;
        JNC $$IF136
-	   inc	dx			;				       ;AN004;
-;      $endif				;				       ;AN004;
+	   inc	dx			;
+;      $endif				;
 $$IF136:
-;  $else				;				       ;AN004;
+;  $else				;
    JMP SHORT $$EN135
 $$IF135:
-       mov  ax,[sector_offset]		;[sector_offset] = current root sector ;AC015;
-       xor  dx,dx			;				       ;AN004;
-;  $endif				;				       ;AN004;
+       mov  ax,[sector_offset]		;[sector_offset] = current root sector
+       xor  dx,dx			;
+;  $endif				;
 $$EN135:
-   mov	[packet],ax			;				       ;AN004;
-   mov	[packet+2],dx			;				       ;AN004;
-   xor	ah,ah				;				       ;AN004;
-   call Direct_Access			; to read the DIR		       ;AN004;
-   mov	al,SIZE dir_entry		;				       ;AN004;
-   mov	cl,[entry_number]		;				       ;AN004;
-   mul	cl				;				       ;AN004;
-   lea	bx,DIR_SECTOR			;				       ;AN004;
-   add	bx,ax				; BX now points to the DIR entry       ;AN004;
-;  $search				; till at end of directory	       ;AN004;
+   mov	[packet],ax			;
+   mov	[packet+2],dx			;
+   xor	ah,ah				;
+   call Direct_Access			; to read the DIR
+   mov	al,SIZE dir_entry		;
+   mov	cl,[entry_number]		;
+   mul	cl				;
+   lea	bx,DIR_SECTOR			;
+   add	bx,ax				; BX now points to the DIR entry
+;  $search				; till at end of directory
 $$DO140:
 					;     - all clusters checked
-;      $search				; till at end of sectors	       ;AN004;
+;      $search				; till at end of sectors
 $$DO141:
 					;     - in given cluster
-;	   $search			; till at end of sector 	       ;AN004;
+;	   $search			; till at end of sector
 $$DO142:
 					;     - all entries checked
-	       cmp  BYTE PTR [bx],deleted ; make sure the entry is valid !!!   ;AN019;
-;	       $if  e			; if it is not -		       ;AN019;
+	       cmp  BYTE PTR [bx],deleted ; make sure the entry is valid !!!
+;	       $if  e			; if it is not -
 	       JNE $$IF143
 		   xor	ax,ax		;				       ;AN019:
-		   mov	[bx.dir_first],ax ; zap the starting cluster	       ;AN019;
-		   mov	[bx.dir_attr],al ;  zap the attribute		       ;AN019;
-;	       $endif			;				       ;AN019;
+		   mov	[bx.dir_first],ax ; zap the starting cluster
+		   mov	[bx.dir_attr],al ;  zap the attribute
+;	       $endif			;
 $$IF143:
-	       mov  ax,[bx.dir_first]	;				       ;AN004;
-	       cmp  ax,[current_cluster] ;				       ;AN004;
-;	   $exitif e,and,long		; starting cluster = [current_cluster] ;AN004;
+	       mov  ax,[bx.dir_first]	;
+	       cmp  ax,[current_cluster] ;
+;	   $exitif e,and,long		; starting cluster = [current_cluster]
 	   JE $$XL4
 	   JMP $$IF142
 $$XL4:
-	       cmp  BYTE PTR [bx],deleted ; make sure the entry is valid !!!   ;AN007;
-;	   $exitif ne,and,long		; and entry is not deleted	       ;AN007;
+	       cmp  BYTE PTR [bx],deleted ; make sure the entry is valid !!!
+;	   $exitif ne,and,long		; and entry is not deleted
 	   JNE $$XL5
 	   JMP $$IF142
 $$XL5:
-	       cmp  BYTE PTR [bx],dot	;				       ;AN007;
-;	   $exitif ne,long		; and entry is not a . or .. name      ;AN007;
+	       cmp  BYTE PTR [bx],dot	;
+;	   $exitif ne,long		; and entry is not a . or .. name
 	   JNE $$XL6
 	   JMP $$IF142
 $$XL6:
-	       test [bx.dir_attr],attr_directory ; is it a subdir ?	       ;AN007;
-;	       $if  nz			;if entry is a subdirectory	       ;AN007;
+	       test [bx.dir_attr],attr_directory ; is it a subdir ?
+;	       $if  nz			;if entry is a subdirectory
 	       JZ $$IF146
-		   inc	[DIR_cluster]	; signal special processing	       ;AN007;
+		   inc	[DIR_cluster]	; signal special processing
 					;   Xfere_Data will use this later -
 					;    0 = not a sub DIR
 					;    1 = do Sub DIR processing and
 					;	 update [DIR_cluster] to the
 					;	 same value as [empty_cluster]
-;	       $endif			;				       ;AN007;
+;	       $endif			;
 $$IF146:
-	       mov  ax,[packet] 	; save pointer to this DIR	       ;AN007;
-	       mov  [dir_sector_low],ax ;				       ;AN007;
-	       mov  ax,[packet+2]	;				       ;AN007;
-	       mov  [dir_sector_hi],ax	;				       ;AN007;
-	       mov  [source_ptr],bx	; save pointer			       ;AN004;
-	       mov  [cluster_high],1	; force Upack to load FAT	       ;AN004;
-	       mov  ax,[FAT_sectors]	; get the size right		       ;AN004;
-	       mov  [packet_sectors],ax ;				       ;AN004;
-	       mov  [packet],1		;				       ;AN004;
-	       mov  [packet+2],0	;				       ;AN004;
-	       mov  [packet_buffer],OFFSET BUF ;			       ;AN004;
-	       call Find_Empty_Cluster	;				       ;AN004;
-;	       $if  nc,and		; no errors so far		       ;AN004;
+	       mov  ax,[packet] 	; save pointer to this DIR
+	       mov  [dir_sector_low],ax ;
+	       mov  ax,[packet+2]	;
+	       mov  [dir_sector_hi],ax	;
+	       mov  [source_ptr],bx	; save pointer
+	       mov  [cluster_high],1	; force Upack to load FAT
+	       mov  ax,[FAT_sectors]	; get the size right
+	       mov  [packet_sectors],ax ;
+	       mov  [packet],1		;
+	       mov  [packet+2],0	;
+	       mov  [packet_buffer],OFFSET BUF ;
+	       call Find_Empty_Cluster	;
+;	       $if  nc,and		; no errors so far
 	       JC $$IF148
-	       mov  si,[empty_cluster]	;				       ;AN004;
-	       mov  dx,[next_cluster]	;				       ;AN004;
-	       call PACK		;				       ;AN004;
-;	       $if  nc,and		; no errors so far		       ;AN004;
+	       mov  si,[empty_cluster]	;
+	       mov  dx,[next_cluster]	;
+	       call PACK		;
+;	       $if  nc,and		; no errors so far
 	       JC $$IF148
-	       mov  si,[current_cluster] ;				       ;AN004;
-	       xor  dx,dx		; make it empty 		       ;AN004;
-	       call PACK		;				       ;AN004;
-;	       $if  nc			; no errors so far		       ;AN004;
+	       mov  si,[current_cluster] ;
+	       xor  dx,dx		; make it empty
+	       call PACK		;
+;	       $if  nc			; no errors so far
 	       JC $$IF148
-		   cmp	[bigfat],0	;				       ;AN004;
-;		   $if	ne		;				       ;AN004;
+		   cmp	[bigfat],0	;
+;		   $if	ne		;
 		   JE $$IF149
-		       mov  [cluster_high],1 ; ensure that FAT will be updated ;AN004;
-		       call Unpack	;				       ;AN004;
-;		   $else		; must manualy write out 12 bit FATS   ;AN004;
+		       mov  [cluster_high],1 ; ensure that FAT will be updated
+		       call Unpack	;
+;		   $else		; must manualy write out 12 bit FATS
 		   JMP SHORT $$EN149
 $$IF149:
-		       xor  ah,ah	;				       ;AN004;
-		       dec  ah		;				       ;AN004;
-		       mov  [packet],1	; start with the first FAT	       ;AN004;
-		       call Direct_Access ; write it out - ignore errors       ;AN004;
-		       mov  ax,[FSIZE]	;				       ;AN004;
-		       add  [packet],ax ; advance to second FAT 	       ;AN004;
-		       xor  ah,ah	;				       ;AN004;
-		       dec  ah		;				       ;AN004;
-		       call Direct_Access ; write it out - ignore errors       ;AN004;
-;		   $endif		;				       ;AN004;
+		       xor  ah,ah	;
+		       dec  ah		;
+		       mov  [packet],1	; start with the first FAT
+		       call Direct_Access ; write it out - ignore errors
+		       mov  ax,[FSIZE]	;
+		       add  [packet],ax ; advance to second FAT
+		       xor  ah,ah	;
+		       dec  ah		;
+		       call Direct_Access ; write it out - ignore errors
+;		   $endif		;
 $$EN149:
-;	       $endif			;				       ;AN004;
+;	       $endif			;
 $$IF148:
-;	       $if  nc,and		; no error and			       ;AN004;
+;	       $if  nc,and		; no error and
 	       JC $$IF153
-	       call Xfer_Data		;				       ;AN004;
-;	       $if  nc			; no error			       ;AN004;
+	       call Xfer_Data		;
+;	       $if  nc			; no error
 	       JC $$IF153
-		   mov	ax,[empty_cluster] ; update dir_first_clust	       ;AN004;
-		   mov	bx,[source_ptr] ; recover pointer		       ;AN004;
-		   mov	[bx.dir_first],ax ;				       ;AN004;
-		   mov	[packet_sectors],1 ; set size back		       ;AN004;
-		   mov	[packet_buffer],OFFSET DIR_SECTOR ;		       ;AN004;
-		   mov	ax,[dir_sector_low] ; reset DIR sector		       ;AN007;
-		   mov	[packet],ax	;				       ;AN007;
-		   mov	ax,[dir_sector_hi] ;				       ;AN007;
-		   mov	[packet+2],ax	;				       ;AN007;
-		   xor	ah,ah		; set up for write		       ;AN004;
-		   dec	ah		;				       ;AN004;
-		   call Direct_Access	; to write out the directory	       ;AN004;
-;		   $if	nc,and		;				       ;AN004;
+		   mov	ax,[empty_cluster] ; update dir_first_clust
+		   mov	bx,[source_ptr] ; recover pointer
+		   mov	[bx.dir_first],ax ;
+		   mov	[packet_sectors],1 ; set size back
+		   mov	[packet_buffer],OFFSET DIR_SECTOR ;
+		   mov	ax,[dir_sector_low] ; reset DIR sector
+		   mov	[packet],ax	;
+		   mov	ax,[dir_sector_hi] ;
+		   mov	[packet+2],ax	;
+		   xor	ah,ah		; set up for write
+		   dec	ah		;
+		   call Direct_Access	; to write out the directory
+;		   $if	nc,and		;
 		   JC $$IF154
-		   cmp	[DIR_cluster],0 ; is a DIR being processed ?	       ;AN007;
-;		   $if	ne		;				       ;AN007;
+		   cmp	[DIR_cluster],0 ; is a DIR being processed ?
+;		   $if	ne		;
 		   JE $$IF154
-		       call Sub_DIR_Loop ; update any children		       ;AN007;
-;		   $endif		;				       ;AN007;
+		       call Sub_DIR_Loop ; update any children
+;		   $endif		;
 $$IF154:
-;		   $if	nc		; if no errors			       ;AN007;
+;		   $if	nc		; if no errors
 		   JC $$IF156
-		       mov  ax,[FAT_sectors] ;only read needed sectors	       ;AN004;
-		       mov  [packet_sectors],ax ;			       ;AN004;
-		       mov  [packet],1	;				       ;AN004;
-		       mov  [packet_buffer],OFFSET BUF ; point to FAT buffer   ;AN004;
-		       mov  [cluster_high],clusters_loaded ;		       ;AN004;
-		       mov  [cluster_low],0 ;				       ;AN004;
-		       xor  cx,cx	;				       ;AN004;
-		       mov  di,cx	;				       ;AN004;
-		       dec  di		;				       ;AN004;
-		       mov  cl,[num_of_FATS] ;				       ;AN004;
-					;				       ;AN004;
-		       call Load_FAT	; restore FAT			       ;AN004;
-					;				       ;AN004;
-		       push es		; update DPB first cluster	       ;AN004;
-		       mov  bx,ds	;				       ;AN004;
-		       mov  es,bx	;				       ;AN004;
-		       lds  bx,[THIS_DPB] ;				       ;AN004;
+		       mov  ax,[FAT_sectors] ;only read needed sectors
+		       mov  [packet_sectors],ax ;
+		       mov  [packet],1	;
+		       mov  [packet_buffer],OFFSET BUF ; point to FAT buffer
+		       mov  [cluster_high],clusters_loaded ;
+		       mov  [cluster_low],0 ;
+		       xor  cx,cx	;
+		       mov  di,cx	;
+		       dec  di		;
+		       mov  cl,[num_of_FATS] ;
+		       call Load_FAT	; restore FAT
+		       push es		; update DPB first cluster
+		       mov  bx,ds	;
+		       mov  es,bx	;
+		       lds  bx,[THIS_DPB] ;
 
 		       ASSUME ds:nothing,ES:DGROUP
 
-		       mov  [bx.dpb_next_free],2 ;			       ;AN004;
-		       mov  ax,es	;				       ;AN004;
-		       mov  ds,ax	;				       ;AN004;
-		       pop  es		;				       ;AN004;
+		       mov  [bx.dpb_next_free],2 ;
+		       mov  ax,es	;
+		       mov  ds,ax	;
+		       pop  es		;
 
 		       ASSUME DS:DGROUP, es:nothing
 
-;		   $endif		;				       ;AN004;
+;		   $endif		;
 $$IF156:
-;	       $endif			;				       ;AN004;
+;	       $endif			;
 $$IF153:
-;	   $orelse			;				       ;AN004;
+;	   $orelse			;
 	   JMP SHORT $$SR142
 $$IF142:
-	       xor  ax,ax		; get ready in case -----	       ;AN007;
-	       cmp  BYTE PTR [bx],0	; at the end of the dir?	       ;AN007;
-;	   $leave e			;   then no point in continuing        ;AN007;
+	       xor  ax,ax		; get ready in case -----
+	       cmp  BYTE PTR [bx],0	; at the end of the dir?
+;	   $leave e			;   then no point in continuing
 	   JE $$EN142
-	       dec  ax			; get ready in case we fail	       ;AN004;
-	       test [bx.dir_attr],attr_directory ; is it a subdir ?	       ;AN004;
-;	   $leave nz, and		;if entry is a subdirectory (ah = ffh) ;AN004;
+	       dec  ax			; get ready in case we fail
+	       test [bx.dir_attr],attr_directory ; is it a subdir ?
+;	   $leave nz, and		;if entry is a subdirectory (ah = ffh)
 	   JZ $$LL161
-	       cmp  byte ptr [bx],dot	; but not a DOT 		       ;AN007;
-;	   $leave ne			;				       ;AN007;
+	       cmp  byte ptr [bx],dot	; but not a DOT
+;	   $leave ne			;
 	   JNE $$EN142
 $$LL161:
-	       xor  ax,ax		; zero ax			       ;AN004;
-	       add  bx,SIZE dir_entry	; advace to next entry		       ;AN004;
-	       inc  [entry_number]	;				       ;AN004;
-	       cmp  bx,OFFSET BUF	; are we out of sector ?	       ;AN004;
-;	   $endloop ae,long		;if past end of sector		       ;AN004;
+	       xor  ax,ax		; zero ax
+	       add  bx,SIZE dir_entry	; advace to next entry
+	       inc  [entry_number]	;
+	       cmp  bx,OFFSET BUF	; are we out of sector ?
+;	   $endloop ae,long		;if past end of sector
 	   JAE $$XL7
 	   JMP $$DO142
 $$XL7:
 $$EN142:
-	       stc			; set fail flag (CF)		       ;AN004;
-;	   $endsrch			;				       ;AN004;
+	       stc			; set fail flag (CF)
+;	   $endsrch			;
 $$SR142:
-;      $exitif nc			;[current_cluster] found (NC)	       ;AN004;
+;      $exitif nc			;[current_cluster] found (NC)
        JC $$IF141
-;      $orelse				;				       ;AN004;
+;      $orelse				;
        JMP SHORT $$SR141
 $$IF141:
 
@@ -1949,59 +1944,59 @@ $$IF141:
 					;  so - leave if anything other than
 					;	AX = 0 (out of stuff)
 
-;      $leave c,and			; if not out of stuff		       ;AN004;
+;      $leave c,and			; if not out of stuff
        JNC $$LL166
-	   cmp	ax,0			;				       ;AN009;
-	   stc				; restore carry flag!		       ;AN007;
-;      $leave nz			;	------ leave !		       ;AN009;
+	   cmp	ax,0			;
+	   stc				; restore carry flag!
+;      $leave nz			;	------ leave !
        JNZ $$EN141
 $$LL166:
-	   mov	ax,[sector_offset]	;				       ;AC015;
-	   inc	ax			;				       ;AN004;
-	   cmp	[present_cluster],0	; are we in the root?		       ;AN007;
-;	   $if	e			; if so -			       ;AN004;
+	   mov	ax,[sector_offset]	;
+	   inc	ax			;
+	   cmp	[present_cluster],0	; are we in the root?
+;	   $if	e			; if so -
 	   JNE $$IF167
-	       cmp  ax,[l_sector_offset] ;   use root sectors		       ;AC013;
-;	   $else			;  else -			       ;AN004;
+	       cmp  ax,[l_sector_offset] ;   use root sectors
+;	   $else			;  else -
 	   JMP SHORT $$EN167
 $$IF167:
-	       cmp  ax,[CSIZE]		;      use sectors per cluster	       ;AN004;
-;	   $endif			;				       ;AN004;
+	       cmp  ax,[CSIZE]		;      use sectors per cluster
+;	   $endif			;
 $$EN167:
-;	   $if	b			; sectors left to read		       ;AN004;
+;	   $if	b			; sectors left to read
 	   JNB $$IF170
-	       add  [packet],1		; advance to the next sector	       ;AN004;
-;	       $if  c			;				       ;AN004;
+	       add  [packet],1		; advance to the next sector
+;	       $if  c			;
 	       JNC $$IF171
-		   inc	[packet+2]	; adjust high word if needed	       ;AN004;
-;	       $endif			;				       ;AN004;
+		   inc	[packet+2]	; adjust high word if needed
+;	       $endif			;
 $$IF171:
-	       xor  ah,ah		; set up to read		       ;AN004;
-	       mov  [entry_number],ah	;				       ;AN004;
-	       inc  [sector_offset]	;				       ;AN004;
-	       call Direct_Access	; to read sector		       ;AN004;
-	       lea  bx,DIR_SECTOR	; set index to start of sector	       ;AN004;
-;	   $else			;				       ;AN004;
+	       xor  ah,ah		; set up to read
+	       mov  [entry_number],ah	;
+	       inc  [sector_offset]	;
+	       call Direct_Access	; to read sector
+	       lea  bx,DIR_SECTOR	; set index to start of sector
+;	   $else			;
 	   JMP SHORT $$EN170
 $$IF170:
-	       xor  ax,ax		; zero ax (end of sectors)	       ;AN004;
-	       stc			; set error flag (CF)		       ;AN004;
-;	   $endif			;				       ;AN004;
+	       xor  ax,ax		; zero ax (end of sectors)
+	       stc			; set error flag (CF)
+;	   $endif			;
 $$EN170:
-;      $endloop c,long			; if error			       ;AN004;
+;      $endloop c,long			; if error
        JC $$XL8
        JMP $$DO141
 $$XL8:
 $$EN141:
-;      $endsrch 			;				       ;AN004;
+;      $endsrch 			;
 $$SR141:
-;  $leave nc				; if [current_cluster] found (NC)      ;AN004;
+;  $leave nc				; if [current_cluster] found (NC)
    JNC $$EN140
-;  $leave c,and 			;if SubDir found (CF + FF)	       ;AN004;
+;  $leave c,and 			;if SubDir found (CF + FF)
    JNC $$LL178
-       cmp  ax,0			;				       ;AN004;
-       stc				; set carry			       ;AN007;
-;  $leave nz				; if Error (CF + messageor FFFFh)      ;AN004;
+       cmp  ax,0			;
+       stc				; set carry
+;  $leave nz				; if Error (CF + messageor FFFFh)
    JNZ $$EN140
 $$LL178:
 
@@ -2013,48 +2008,48 @@ $$LL178:
 					;  inner SEARCH is out of sectors
 					;   - so advance to the next cluster
 					;--------------------------------------
-       mov  si,[present_cluster]	; get [present_cluster] #	       ;AN004;
-       cmp  si,0			; end of the root ?		       ;AN004;
-;      $if  nz				;				       ;AN004;
+       mov  si,[present_cluster]	; get [present_cluster] #
+       cmp  si,0			; end of the root ?
+;      $if  nz				;
        JZ $$IF179
-	   mov	[cluster_high],1	; force Upack to load FAT	       ;AN004;
-	   mov	ax,FAT_sectors		; get the size right		       ;AN004;
-	   mov	[packet_sectors],ax	;				       ;AN004;
-	   mov	[packet_buffer],OFFSET BUF ;				       ;AN004;
-	   call Unpack			; to get next cluster # 	       ;AN004;
-	   mov	[packet_sectors],1	; set size back 		       ;AN004;
-	   mov	[cluster_high],1	; ensure that FAT will be re-loaded    ;AN004;
-	   mov	[packet_buffer],OFFSET DIR_SECTOR ;			       ;AN004;
-	   mov	ax,di			;				       ;AN007;
-	   cmp	al,end_cluster		;				       ;AN007;
-;      $endif				;				       ;AN004;
+	   mov	[cluster_high],1	; force Upack to load FAT
+	   mov	ax,FAT_sectors		; get the size right
+	   mov	[packet_sectors],ax	;
+	   mov	[packet_buffer],OFFSET BUF ;
+	   call Unpack			; to get next cluster #
+	   mov	[packet_sectors],1	; set size back
+	   mov	[cluster_high],1	; ensure that FAT will be re-loaded
+	   mov	[packet_buffer],OFFSET DIR_SECTOR ;
+	   mov	ax,di			;
+	   cmp	al,end_cluster		;
+;      $endif				;
 $$IF179:
-;  $exitif z				; no more clusters		       ;AN004;
+;  $exitif z				; no more clusters
    JNZ $$IF140
-       xor  ax,ax			; zero ax (end of clusters)	       ;AN004;
-       stc				; set error flag (CF)		       ;AN004;
-;  $orelse				;				       ;AN004;
+       xor  ax,ax			; zero ax (end of clusters)
+       stc				; set error flag (CF)
+;  $orelse				;
    JMP SHORT $$SR140
 $$IF140:
-       mov  [present_cluster],di	;				       ;AN004;
-       mov  ax,di			; set up for cluster_2_sector	       ;AN004;
-       call cluster_2_sector		; convert cluster # to logical sector #;AN004;
-       mov  [packet],ax 		;				       ;AN004;
-       mov  [packet+2],dx		;				       ;AN004;
-       xor  ax,ax			;				       ;AN004;
-       mov  [sector_offset],ax		; reset [sector_offset] 	       ;AC015;
-       mov  [entry_number],ah		; reset [entry_number]		       ;AN004;
-       call Direct_Access		; to read sector		       ;AN004;
-       lea  bx,DIR_SECTOR		; set pointer			       ;AN004;
-;  $endloop c,long			; end loop if read fails	       ;AN004;
+       mov  [present_cluster],di	;
+       mov  ax,di			; set up for cluster_2_sector
+       call cluster_2_sector		; convert cluster # to logical sector #
+       mov  [packet],ax 		;
+       mov  [packet+2],dx		;
+       xor  ax,ax			;
+       mov  [sector_offset],ax		; reset [sector_offset]
+       mov  [entry_number],ah		; reset [entry_number]
+       call Direct_Access		; to read sector
+       lea  bx,DIR_SECTOR		; set pointer
+;  $endloop c,long			; end loop if read fails
    JC $$XL9
    JMP $$DO140
 $$XL9:
 $$EN140:
-;  $endsrch				;				       ;AN004;
+;  $endsrch				;
 $$SR140:
 
-   ret					;				       ;AN004;
+   ret					;
 
    Search_Loop ENDP
 
@@ -2163,148 +2158,148 @@ $$SR140:
 
    Sub_DIR_Loop PROC NEAR
 
-   mov	ax,[DIR_cluster]		; get DIR_cluster		       ;AN007;
-   call cluster_2_sector		; to convert to a logical sector       ;AN007;
-   mov	[packet],ax			; update packet 		       ;AN007;
-   mov	[packet+2],dx			;				       ;AN007;
-   xor	ax,ax				; set for read			       ;AN007;
-   call Direct_Access			; to read the first sector of the DIR  ;AN007;
-;  $if	nc,long 			; if no error			       ;AN007;
+   mov	ax,[DIR_cluster]		; get DIR_cluster
+   call cluster_2_sector		; to convert to a logical sector
+   mov	[packet],ax			; update packet
+   mov	[packet+2],dx			;
+   xor	ax,ax				; set for read
+   call Direct_Access			; to read the first sector of the DIR
+;  $if	nc,long 			; if no error
    JNC $$XL10
    JMP $$IF185
 $$XL10:
-       mov  [sector_count],1		; reset sector count		       ;AN007;
-       lea  bx,DIR_SECTOR		; reset entry pointer		       ;AN007;
-;      $search				; till at end of directory	       ;AN007;
+       mov  [sector_count],1		; reset sector count
+       lea  bx,DIR_SECTOR		; reset entry pointer
+;      $search				; till at end of directory
 $$DO186:
-					;      - all clusters checked	       ;AN007;
-;	   $search			; till at end of sectors	       ;AN007;
+					;      - all clusters checked
+;	   $search			; till at end of sectors
 $$DO187:
-					;      - in given cluster	       ;AN007;
-;	       $search			; till at end of sector 	       ;AN007;
+					;      - in given cluster
+;	       $search			; till at end of sector
 $$DO188:
-					;      - all entries checked	       ;AN007;
-		   mov	[dir_offset],bx ; reset entry pointer		       ;AN007;
-		   cmp	BYTE PTR [bx],0 ; null entry (00)?		       ;AN007;
-;	       $leave z 		; if null entry 		       ;AN007;
+					;      - all entries checked
+		   mov	[dir_offset],bx ; reset entry pointer
+		   cmp	BYTE PTR [bx],0 ; null entry (00)?
+;	       $leave z 		; if null entry
 	       JZ $$EN188
-		   cmp	BYTE PTR [bx],deleted ; deleted entry (E5)?	       ;AN007;
-;		   $if	ne,and		; if entry is not deleted and	       ;AN007;
+		   cmp	BYTE PTR [bx],deleted ; deleted entry (E5)?
+;		   $if	ne,and		; if entry is not deleted and
 		   JE $$IF190
-		   test [bx.dir_attr],attr_directory ; is it a subdir ?        ;AN007;
-;		   $if	nz,and		; if this entry is a subdir and        ;AN007;
+		   test [bx.dir_attr],attr_directory ; is it a subdir ?
+;		   $if	nz,and		; if this entry is a subdir and
 		   JZ $$IF190
-		   cmp	BYTE PTR [bx],dot ; dot entry (2E)?		       ;AN007;
-;		   $if	ne,and		; this is a true entry and	       ;AN007;
+		   cmp	BYTE PTR [bx],dot ; dot entry (2E)?
+;		   $if	ne,and		; this is a true entry and
 		   JE $$IF190
-		   mov	ax,[packet]	; save current sector		       ;AN007;
-		   mov	[dir_sector_low],ax ;				       ;AN007;
-		   mov	ax,[packet+2]	;				       ;AN007;
-		   mov	[dir_sector_hi],ax ;				       ;AN007;
-		   mov	ax,[bx.dir_first] ; get start cluster		       ;AN007;
-		   call cluster_2_sector ; convert to sector		       ;AN007;
-		   mov	[packet],ax	; update packet 		       ;AN007;
-		   mov	[packet+2],dx	;				       ;AN007;
-		   xor	ax,ax		; set for read			       ;AN007;
-		   call Direct_Access	; to read it in 		       ;AN007;
-;		   $if	nc,and		; no errors and 		       ;AN007;
+		   mov	ax,[packet]	; save current sector
+		   mov	[dir_sector_low],ax ;
+		   mov	ax,[packet+2]	;
+		   mov	[dir_sector_hi],ax ;
+		   mov	ax,[bx.dir_first] ; get start cluster
+		   call cluster_2_sector ; convert to sector
+		   mov	[packet],ax	; update packet
+		   mov	[packet+2],dx	;
+		   xor	ax,ax		; set for read
+		   call Direct_Access	; to read it in
+;		   $if	nc,and		; no errors and
 		   JC $$IF190
-		   mov	ax,[empty_cluster] ; update pointer to parent	       ;AN007;
-		   lea	bx,DIR_SECTOR	;				       ;AN007;
-		   mov	[bx + dir_first + size dir_entry],ax ;			 ;AN007;
-		   xor	ax,ax		; set for write 		       ;AN007;
-		   dec	ax		;				       ;AN007;
-		   call Direct_Access	; to write it back		       ;AN007;
-;		   $if	nc,and		; if no errors and		       ;AN007;
+		   mov	ax,[empty_cluster] ; update pointer to parent
+		   lea	bx,DIR_SECTOR	;
+		   mov	[bx + dir_first + size dir_entry],ax ;
+		   xor	ax,ax		; set for write
+		   dec	ax		;
+		   call Direct_Access	; to write it back
+;		   $if	nc,and		; if no errors and
 		   JC $$IF190
-		   mov	ax,[dir_sector_low] ;				       ;AN007;
-		   mov	[packet],ax	; recover current sector	       ;AN007;
-		   mov	ax,[dir_sector_hi] ;				       ;AN007;
-		   mov	[packet+2],ax	;				       ;AN007;
-;		   $if	nc		; if no errors			       ;AN007;
+		   mov	ax,[dir_sector_low] ;
+		   mov	[packet],ax	; recover current sector
+		   mov	ax,[dir_sector_hi] ;
+		   mov	[packet+2],ax	;
+;		   $if	nc		; if no errors
 		   JC $$IF190
-		       call Direct_Access ; to continue where we left off      ;AN007;
-;		   $endif		;				       ;AN007;
+		       call Direct_Access ; to continue where we left off
+;		   $endif		;
 $$IF190:
-;	       $exitif c		; quit if error (CF)		       ;AN007;
+;	       $exitif c		; quit if error (CF)
 	       JNC $$IF188
-;	       $orelse			;				       ;AN007;
+;	       $orelse			;
 	       JMP SHORT $$SR188
 $$IF188:
-		   mov	bx,[dir_offset] ; recover current entry 	       ;AN007;
-		   add	bx,SIZE dir_entry ; advance to next entry	       ;AN007;
-		   cmp	bx,OFFSET BUF	;				       ;AN007;
-;	       $endloop a		; if past end of sector 	       ;AN007;
+		   mov	bx,[dir_offset] ; recover current entry
+		   add	bx,SIZE dir_entry ; advance to next entry
+		   cmp	bx,OFFSET BUF	;
+;	       $endloop a		; if past end of sector
 	       JNA $$DO188
 $$EN188:
-		   clc			; clear error flag		       ;AN007;
-;	       $endsrch 		;				       ;AN007;
+		   clc			; clear error flag
+;	       $endsrch 		;
 $$SR188:
-;	   $leave c			; if error - quit		       ;AN007;
+;	   $leave c			; if error - quit
 	   JC $$EN187
-	       xor  ax,ax		;				       ;AN007;
-	       mov  ax,[CSIZE]		; incriment sector count	       ;AN007;
-	       inc  [sector_count]	;				       ;AN007;
-	       cmp  [sector_count],al	;				       ;AN007;
-;	   $exitif a			; past end of cluster		       ;AN007;
+	       xor  ax,ax		;
+	       mov  ax,[CSIZE]		; incriment sector count
+	       inc  [sector_count]	;
+	       cmp  [sector_count],al	;
+;	   $exitif a			; past end of cluster
 	   JNA $$IF187
-	       clc			; clear error flag		       ;AN007;
-	       mov  [sector_count],1	; reset sector count		       ;AN007;
-;	   $orelse			;				       ;AN007;
+	       clc			; clear error flag
+	       mov  [sector_count],1	; reset sector count
+;	   $orelse			;
 	   JMP SHORT $$SR187
 $$IF187:
-	       xor  ax,ax		; set for read			       ;AN007;
-	       add  WORD PTR [packet],1 ; advance to next sector (packet)      ;AN007;
-	       adc  [packet+2],ax	; look after carry		       ;AN007;
-	       call Direct_Access	; to read in next sector	       ;AN007;
-	       lea  bx,DIR_SECTOR	; reset entry pointer		       ;AN007;
-;	   $endloop c,long		; if error - quit		       ;AN007;
+	       xor  ax,ax		; set for read
+	       add  WORD PTR [packet],1 ; advance to next sector (packet)
+	       adc  [packet+2],ax	; look after carry
+	       call Direct_Access	; to read in next sector
+	       lea  bx,DIR_SECTOR	; reset entry pointer
+;	   $endloop c,long		; if error - quit
 	   JC $$XL11
 	   JMP $$DO187
 $$XL11:
 $$EN187:
-;	   $endsrch			;				       ;AN007;
+;	   $endsrch			;
 $$SR187:
-;      $leave c 			; if error - quit		       ;AN007;
+;      $leave c 			; if error - quit
        JC $$EN186
-	   mov	si,[DIR_cluster]	; get DIR_cluster		       ;AN007;
-	   push [packet_sectors]	; save current packet stuff	       ;AN007;
-	   push [packet_buffer] 	;				       ;AN007;
-	   mov	ax,[FAT_sectors]	; update packet to FAT		       ;AN007;
-	   mov	[packet_sectors],ax	;				       ;AN007;
-	   mov	[packet_buffer],OFFSET BUF ;				       ;AN007;
-	   mov	[cluster_high],1	; force FAT to be reloaded - if needed ;AN007;
-	   call UNPACK			; to find next Sub DIR cluster	       ;AN007;
-	   pop	[packet_buffer] 	; recover packet to DIR 	       ;AN007;
-	   pop	[packet_sectors]	;				       ;AN007;
-	   mov	ax,di			;				       ;AN007;
-	   cmp	al,end_cluster		;				       ;AN007;
-;      $exitif e			; at end of chain		       ;AN007;
+	   mov	si,[DIR_cluster]	; get DIR_cluster
+	   push [packet_sectors]	; save current packet stuff
+	   push [packet_buffer] 	;
+	   mov	ax,[FAT_sectors]	; update packet to FAT
+	   mov	[packet_sectors],ax	;
+	   mov	[packet_buffer],OFFSET BUF ;
+	   mov	[cluster_high],1	; force FAT to be reloaded - if needed
+	   call UNPACK			; to find next Sub DIR cluster
+	   pop	[packet_buffer] 	; recover packet to DIR
+	   pop	[packet_sectors]	;
+	   mov	ax,di			;
+	   cmp	al,end_cluster		;
+;      $exitif e			; at end of chain
        JNE $$IF186
-	   clc				; clear error flag		       ;AN007;
-;      $orelse				;				       ;AN007;
+	   clc				; clear error flag
+;      $orelse				;
        JMP SHORT $$SR186
 $$IF186:
-	   mov	[DIR_cluster],ax	;				       ;AN007;
-	   call cluster_2_sector	; to convert to sector		       ;AN007;
-	   mov	[packet],ax		; update packet 		       ;AN007;
-	   mov	[packet+2],dx		;				       ;AN007;
-	   xor	ax,ax			; set for read			       ;AN007;
-	   call Direct_Access		; to read first sector of next cluster ;AN007;
-;      $leave c 			; if error			       ;AN007;
+	   mov	[DIR_cluster],ax	;
+	   call cluster_2_sector	; to convert to sector
+	   mov	[packet],ax		; update packet
+	   mov	[packet+2],dx		;
+	   xor	ax,ax			; set for read
+	   call Direct_Access		; to read first sector of next cluster
+;      $leave c 			; if error
        JC $$EN186
-	   lea	bx,DIR_SECTOR		; reset entry pointer		       ;AN007;
-	   mov	[sector_count],1	; reset sector count		       ;AN007;
-;      $endloop long			;				       ;AN007;
+	   lea	bx,DIR_SECTOR		; reset entry pointer
+	   mov	[sector_count],1	; reset sector count
+;      $endloop long			;
        JMP $$DO186
 $$EN186:
-;      $endsrch 			;				       ;AN007;
+;      $endsrch 			;
 $$SR186:
-;  $endif				;				       ;AN007;
+;  $endif				;
 $$IF185:
-   mov	[DIR_cluster],0 		; reset Sub_DIR_cluster to 0	       ;AN007;
+   mov	[DIR_cluster],0 		; reset Sub_DIR_cluster to 0
 
-   ret					;				       ;AN007;
+   ret					;
 
    Sub_DIR_Loop ENDP
 
@@ -2356,44 +2351,44 @@ $$IF185:
 
    Unpack PROC NEAR
 
-   lea	bx,BUF				;				       ;AN004;
-   mov	di,si				;				       ;AN004;
-   cmp	[BIGFAT],0			;				       ;AN004;
-;  $if	nz				; if 16 bit FAT 		       ;AN004;
+   lea	bx,BUF				;
+   mov	di,si				;
+   cmp	[BIGFAT],0			;
+;  $if	nz				; if 16 bit FAT
    JZ $$IF208
-       push si				;				       ;AN004;
-       call Check_FAT			; make sure right part of FAT loaded   ;AN004;
-;      $if  nc				;				       ;AN004;
+       push si				;
+       call Check_FAT			; make sure right part of FAT loaded
+;      $if  nc				;
        JC $$IF209
-	   mov	di,si			; Check_FAT ajusts si		       ;AN004;
-	   shl	di,1			; Mult by 2			       ;AN004;
-	   mov	di,WORD PTR [di+bx]	;				       ;AN004;
-	   or	di,di			; Set zero			       ;AN004;
-	   clc				;				       ;AN004;
-;      $endif				;				       ;AN004;
+	   mov	di,si			; Check_FAT ajusts si
+	   shl	di,1			; Mult by 2
+	   mov	di,WORD PTR [di+bx]	;
+	   or	di,di			; Set zero
+	   clc				;
+;      $endif				;
 $$IF209:
-       pop  si				;				       ;AN004;
-;  $else				; is 12 bit fat 		       ;AN004;
+       pop  si				;
+;  $else				; is 12 bit fat
    JMP SHORT $$EN208
 $$IF208:
-       shr  di,1			;				       ;AN004;
-       add  di,si			; Mult by 1.5			       ;AN004;
-       mov  di,WORD PTR [di+bx] 	;				       ;AN004;
-       test si,1			;				       ;AN004;
-;      $if  nz				; not allign on cluster 	       ;AN004;
+       shr  di,1			;
+       add  di,si			; Mult by 1.5
+       mov  di,WORD PTR [di+bx] 	;
+       test si,1			;
+;      $if  nz				; not allign on cluster
        JZ $$IF212
-	   shr	di,1			;				       ;AN004;
-	   shr	di,1			;				       ;AN004;
-	   shr	di,1			;				       ;AN004;
-	   shr	di,1			;				       ;AN004;
-;      $endif				;				       ;AN004;
+	   shr	di,1			;
+	   shr	di,1			;
+	   shr	di,1			;
+	   shr	di,1			;
+;      $endif				;
 $$IF212:
-       and  di,0FFFh			;				       ;AN004;
-;  $endif				;				       ;AN004;
+       and  di,0FFFh			;
+;  $endif				;
 $$EN208:
 
 
-   ret					;				       ;AN004;
+   ret					;
 
    Unpack ENDP
 
@@ -2448,46 +2443,46 @@ $$EN208:
 
    Pack PROC NEAR
 
-   lea	bx,BUF				;				       ;AN004;
-   push si				;				       ;AN004;
-   mov	di,si				;				       ;AN004;
-   cmp	[BIGFAT],0			;				       ;AN004;
-;  $if	nz				; 16 bit FAT			       ;AN004;
+   lea	bx,BUF				;
+   push si				;
+   mov	di,si				;
+   cmp	[BIGFAT],0			;
+;  $if	nz				; 16 bit FAT
    JZ $$IF215
-       call Check_FAT			; make sure the part of the FAT we want;AN004;
-					;   is loaded & ajust offset to match  ;AN004;
-       shl  si,1			; convert cluster # to offset	       ;AN004;
-       add  si,bx			; add offset of FAT		       ;AN004;
-       mov  [si],dx			; store value			       ;AN004;
-       mov  [FAT_changed],1		; the fat has been changed	       ;AN004;
-;  $else				; its 12 bit FAT		       ;AN004;
+       call Check_FAT			; make sure the part of the FAT we want
+					;   is loaded & ajust offset to match
+       shl  si,1			; convert cluster # to offset
+       add  si,bx			; add offset of FAT
+       mov  [si],dx			; store value
+       mov  [FAT_changed],1		; the fat has been changed
+;  $else				; its 12 bit FAT
    JMP SHORT $$EN215
 $$IF215:
-       shr  si,1			;				       ;AN004;
-       add  si,bx			;				       ;AN004;
-       add  si,di			;				       ;AN004;
-       shr  di,1			;				       ;AN004;
-       mov  di,[si]			;				       ;AN004;
-;      $if  c				; no alligned			       ;AN004;
+       shr  si,1			;
+       add  si,bx			;
+       add  si,di			;
+       shr  di,1			;
+       mov  di,[si]			;
+;      $if  c				; no alligned
        JNC $$IF217
-	   shl	dx,1			;				       ;AN004;
-	   shl	dx,1			;				       ;AN004;
-	   shl	dx,1			;				       ;AN004;
-	   shl	dx,1			;				       ;AN004;
-	   and	di,0Fh			;				       ;AN004;
-;      $else				;				       ;AN004;
+	   shl	dx,1			;
+	   shl	dx,1			;
+	   shl	dx,1			;
+	   shl	dx,1			;
+	   and	di,0Fh			;
+;      $else				;
        JMP SHORT $$EN217
 $$IF217:
-	   and	di,0F000h		;				       ;AN004;
-;      $endif				;				       ;AN004;
+	   and	di,0F000h		;
+;      $endif				;
 $$EN217:
-       or   di,dx			;				       ;AN004;
-       mov  [si],di			;				       ;AN004;
-;  $endif				;				       ;AN004;
+       or   di,dx			;
+       mov  [si],di			;
+;  $endif				;
 $$EN215:
-   pop	si				;				       ;AN004;
+   pop	si				;
 
-   ret					;				       ;AN004;
+   ret					;
 
    Pack ENDP
 
@@ -2536,13 +2531,13 @@ $$EN215:
    Check_FAT PROC  NEAR
 
    push bx
-   cmp	si,[cluster_low]		;				       ;AN004;
-;  $if	ae,and				;				       ;AN004;
+   cmp	si,[cluster_low]		;
+;  $if	ae,and				;
    JNAE $$IF221
-   cmp	si,[cluster_high]		;				       ;AN004;
-;  $if	be				;				       ;AN004;
+   cmp	si,[cluster_high]		;
+;  $if	be				;
    JNBE $$IF221
-       sub  si,[cluster_low]		;				       ;AN004;
+       sub  si,[cluster_low]		;
 ;  $else				; the cluster is outside the range
    JMP SHORT $$EN221
 $$IF221:
@@ -2553,66 +2548,66 @@ $$IF221:
 					;	     cluster entry = 2 bytes
 					;	then # of entries/sector = 256
 
-       cmp  [FAT_changed],0		;				       ;AN004;
-;      $if  ne				;				       ;AN004;
+       cmp  [FAT_changed],0		;
+;      $if  ne				;
        JE $$IF223
-	   xor	ah,ah			;				       ;AN004;
-	   dec	ah			;				       ;AN004;
-	   call Direct_Access		; write it out - ignore errors	       ;AN004;
-	   mov	ax,[FSIZE]		;				       ;AN004;
-	   cmp	[FAT_2],0		;				       ;AN004;
-;	   $if	e			;				       ;AN004;
+	   xor	ah,ah			;
+	   dec	ah			;
+	   call Direct_Access		; write it out - ignore errors
+	   mov	ax,[FSIZE]		;
+	   cmp	[FAT_2],0		;
+;	   $if	e			;
 	   JNE $$IF224
-	       add  [packet],ax 	;				       ;AN004;
-;	   $else			;				       ;AN004;
+	       add  [packet],ax 	;
+;	   $else			;
 	   JMP SHORT $$EN224
 $$IF224:
-	       sub  [packet],ax 	;				       ;AN004;
-	       mov  [FAT_2],0		; packet points to FAT #2	       ;AN004;
-;	   $endif			;				       ;AN004;
+	       sub  [packet],ax 	;
+	       mov  [FAT_2],0		; packet points to FAT #2
+;	   $endif			;
 $$EN224:
-	   xor	ah,ah			;				       ;AN004;
-	   dec	ah			;				       ;AN004;
-	   call Direct_Access		; write it out - ignore errors	       ;AN004;
-	   mov	[FAT_changed],0 	; FAT now cleared		       ;AN004;
-;      $endif				;				       ;AN004;
+	   xor	ah,ah			;
+	   dec	ah			;
+	   call Direct_Access		; write it out - ignore errors
+	   mov	[FAT_changed],0 	; FAT now cleared
+;      $endif				;
 $$IF223:
-       mov  ax,si			;				       ;AN004;
-       xor  cx,cx			;				       ;AN004;
-       mov  cl,al			; this is a cheap and		       ;AN004;
-       mov  al,ah			;  dirty divide by 256		       ;AN004;
-       xor  ah,ah			;   ax = result 		       ;AN004;
-       push ax				; save starting sector		       ;AN006;
-       mov  si,cx			;   cx = remainder		       ;AN004;
-       inc  ax				; leave room for boot sector	       ;AN004;
-       mov  [packet],ax 		;				       ;AN004;
-       mov  [packet+2],0		;				       ;AN004;
-       push dx				;				       ;AN004;
-       call Direct_Access		;				       ;AN004;
-;      $if  c				;				       ;AN004;
+       mov  ax,si			;
+       xor  cx,cx			;
+       mov  cl,al			; this is a cheap and
+       mov  al,ah			;  dirty divide by 256
+       xor  ah,ah			;   ax = result
+       push ax				; save starting sector
+       mov  si,cx			;   cx = remainder
+       inc  ax				; leave room for boot sector
+       mov  [packet],ax 		;
+       mov  [packet+2],0		;
+       push dx				;
+       call Direct_Access		;
+;      $if  c				;
        JNC $$IF228
-	   mov	ax,[FSIZE]		;				       ;AN004;
-	   add	[packet],ax		;				       ;AN004;
-	   mov	[FAT_2],1		; packet points to FAT #2	       ;AN004;
-	   call Direct_Access		;				       ;AN004;
-;      $endif				;				       ;AN004;
+	   mov	ax,[FSIZE]		;
+	   add	[packet],ax		;
+	   mov	[FAT_2],1		; packet points to FAT #2
+	   call Direct_Access		;
+;      $endif				;
 $$IF228:
-       pop  dx				;				       ;AN004;
-       pop  ax				; recover starting sector	       ;AN006;
-;      $if  nc				;				       ;AN004;
+       pop  dx				;
+       pop  ax				; recover starting sector
+;      $if  nc				;
        JC $$IF230
-	   xchg al,ah			; convert sector back to cluster       ;AN004;
-	   mov	[cluster_low],ax	; new bottom of FAT		       ;AN004;
-	   mov	[cluster_high],ax	;				       ;AN004;
-	   add	[cluster_high],clusters_loaded ; new top of FAT 	       ;AN004;
-;      $endif				;				       ;AN004;
+	   xchg al,ah			; convert sector back to cluster
+	   mov	[cluster_low],ax	; new bottom of FAT
+	   mov	[cluster_high],ax	;
+	   add	[cluster_high],clusters_loaded ; new top of FAT
+;      $endif				;
 $$IF230:
-;  $endif				;				       ;AN004;
+;  $endif				;
 $$EN221:
    pop	bx
 
 
-   ret					;				       ;AN004;
+   ret					;
 
    Check_FAT ENDP
 

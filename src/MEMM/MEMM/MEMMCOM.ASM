@@ -11,23 +11,8 @@
 ;
 ;   Module:   MEMMCOM - main module for MEMM.COM
 ;
-;   Version:  0.02
-;
-;   Date:     June 4, 1986
-;
-;   Author:
-;
 ;******************************************************************************
 ;
-;   Change log:
-;
-;     DATE    REVISION			DESCRIPTION
-;   --------  --------	-------------------------------------------------------
-;   06/04/86  Original
-;   06/21/86  0.02	Added CLD to Inst_Chk
-;   06/28/86  0.02	Name change from MEMM386.COM to MEMM.COM
-;
-;******************************************************************************
 ;
 ;   Functional Description:
 ;	MEMM.COM which allows the user to poll or set the operating mode

@@ -75,7 +75,7 @@ DC_ENTRY	EQU ($-DISPLAY_CONFIG)		;
 	DW	OFFSET EGA_MODES		;
 	DW	OFFSET EGA14_FONT_SIZE		;
 	DB	"EGA 14M "                      ; EGA (5151)
-	DB	00000011b			; WGR load 8x8 for > 25.       ;AN000;
+	DB	00000011b			; WGR load 8x8 for > 25.
 	DW	OFFSET EGAM_MODES		;
 	DW	OFFSET EGA14_FONT_SIZE		;
 	DB	"LCD     "                      ; CONVERTIBLE

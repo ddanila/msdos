@@ -24,14 +24,6 @@
 ;	 LINK DEBUG+DEBCOM1+DEBCOM2+DEBCOM3+DEBASM+DEBUASM+DEBERR+
 ;	      DEBCONST+DEBDATA+DEBMES
 ;
-; REVISION HISTORY:
-;
-;	AN000	VERSION 4.00 - REVISIONS MADE RELATE TO THE FOLLOWING:
-;
-;				- IMPLEMENT DBCS HANDLING	DMS:6/17/87
-;				- IMPLEMENT MESSAGE RETRIEVER	DMS:6/17/87
-;				- > 32 MB SUPPORT		DMS:6/17/87
-;
 ; COPYRIGHT: "MS DOS DEBUG UTILITY"
 ;	     "VERSION 4.00 (C) COPYRIGHT 1988 Microsoft"
 ;	     "LICENSED MATERIAL - PROPERTY OF Microsoft  "
@@ -83,19 +75,19 @@ DATA	   SEGMENT PUBLIC BYTE
 
 	   public lbtbl 			;an000;lead byte table pointer
 
-	public xm_page				;an000;
-	public xm_log				;an000;
-	public xm_phy				;an000;
-	public xm_handle			;an000;
-	public xm_handle_ret			;an000;
-	public xm_page_cnt			;an000;
-	public xm_handle_pages_buf		;an000;
-	public xm_frame 			;an000;
-	public xm_deall_han			;an000;
-	public xm_alloc_pg			;an000;
-	public xm_total_pg			;an000;
-	public xm_han_total			;an000;
-	public xm_han_alloc			;an000;
+	public xm_page
+	public xm_log
+	public xm_phy
+	public xm_handle
+	public xm_handle_ret
+	public xm_page_cnt
+	public xm_handle_pages_buf
+	public xm_frame
+	public xm_deall_han
+	public xm_alloc_pg
+	public xm_total_pg
+	public xm_han_total
+	public xm_han_alloc
 
 ;=========================================================================
 ; REL_READ_WRITE_TAB : This table provides the new generic IOCTL primitive

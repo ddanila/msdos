@@ -1,4 +1,3 @@
-;	SCCSID = @(#)vector.asm	1.1 85/04/10
 BREAK <interrupt definitions>
 
 Asmvar	AltVect

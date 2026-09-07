@@ -8,12 +8,12 @@ INCLUDE STRUC.INC
 
 set_submessage_ptr   MACRO submessage,message ;PUT pointer to "subMESSAGE" into submessage pointer field of "message".
 
-MOV   AX,submessage			     ;AX=message number 		;AN001;
-MOV   DH,utility_msg_class		     ;DH=message class=utility class	;AN001;
-CALL  SYSGETMSG 			     ;DS:SI=>message piece				  ;AN001;
-MOV   BP,OFFSET sublist_&message	     ;address the sublist control block ;AN001;
-MOV   [BP].sublist_off,SI		     ;the sublist now points to the desired message piece ;AN001;
-ENDM												  ;AN001;
+MOV   AX,submessage			     ;AX=message number
+MOV   DH,utility_msg_class		     ;DH=message class=utility class
+CALL  SYSGETMSG 			     ;DS:SI=>message piece
+MOV   BP,OFFSET sublist_&message	     ;address the sublist control block
+MOV   [BP].sublist_off,SI		     ;the sublist now points to the desired message piece
+ENDM
 
 ;บ											  บ
 ;ศออออออออออออออออออออออออออออออออ  M A C R O S  อออออออออออออออออออออออออออออออออออออออออผ
@@ -71,10 +71,10 @@ EXTRN	 cp_cb:WORD	   ;AN000;codepage_parms <>, see invoke
 	       EXTRN PRINTF:NEAR     ;SENDS MESSAGES TO STDOUT OR STDERR
 
 EXTRN	 SYSGETMSG:NEAR    ;AN001;message services routine to get the address of a message.  Used to get address of a submessage.
-EXTRN	 Utility_Msg_Class:ABS	  ;AN001;
-EXTRN	 sublist_cpmsg8:BYTE	;AN001;
-EXTRN	 sublist_cpmsg10:BYTE	 ;AN001;
-EXTRN	 sublist_cpmsg17:BYTE	 ;AN001;
+EXTRN	 Utility_Msg_Class:ABS
+EXTRN	 sublist_cpmsg8:BYTE
+EXTRN	 sublist_cpmsg10:BYTE
+EXTRN	 sublist_cpmsg17:BYTE
 
 ;บ											  บ
 ;ศอออออออออออออออออออออออออออออออ  E X T R N S	ออออออออออออออออออออออออออออออออออออออออออผ
@@ -107,10 +107,10 @@ INCLUDE  common.stc	   ;AN001;includes the following structures
 ;sublist_def  STRUC	    ;used by initialize_sublists
 ;
 ;	      db  ?  ;Sublist Length, fixed
-;	      db  ?  ;Reserved, not used yet		       ;AN000;
+;	      db  ?  ;Reserved, not used yet
 ;sublist_off  dw  ?  ;offset
 ;sublist_seg  dw  ?  ;segment part of pointer to piece of message
-;	      db  ?  ;ID, special end of message format ;AN000;
+;	      db  ?  ;ID, special end of message format
 ;	      db  ?  ;flags
 ;	      db  ?
 ;	      db  ?
@@ -299,8 +299,8 @@ SET_DEV_TYPE PROC NEAR
  MOV   DI,OFFSET DEV_TYPES     ;SET INDEX TO FIRST ENTRY OF DEVICE TYPES
 ;$SEARCH		       ;LOOK THRU TABLE FOR MATCHING ENTRY
 $$DO7:
-    PUSH  DS		       ;AN002;
-    POP   ES		       ;need ES and DS the same for the CMPSB	 ;AN002;
+    PUSH  DS
+    POP   ES		       ;need ES and DS the same for the CMPSB
     PUSH  CX		       ;SAVE COUNTER OF DEVICE NAMES
     PUSH  SI		       ;SAVE POINTER TO TABLE OF POINTERS TO DEVICE NAMES
     PUSH  DI		       ;SAVE POINTER TO TABLE OF DEVICE TYPES
@@ -535,7 +535,7 @@ DES_START_ERROR PROC NEAR
 ;$IF   E
  JNE $$IF33
 ;AC001;    MOV	 CPMSGLST17FUN,OFFSET CPMSG17_PREP ;MOVE "PREPARE" INTO MESSAGE
-    set_submessage_ptr CPMSGxx_PREP,cpmsg17 ;MOVE "PREPARE" INTO MESSAGE ;AN002;
+    set_submessage_ptr CPMSGxx_PREP,cpmsg17 ;MOVE "PREPARE" INTO MESSAGE
     MOV   DX,OFFSET CPMSG17	;PASS OFFSET TO MSG PARM LIST
 			       ;"DEVICE ERROR DURING PREPARE"
 
@@ -655,7 +655,7 @@ $$IF48:
 ;      $IF   E
        JNE $$IF50
 ;AC001;   MOV	CPMSGLST17FUN,OFFSET CPMSG17_WRIT ;"write of font file to device",EOM
-	  set_submessage_ptr  CPMSG17_WRIT,cpmsg17  ;"write of font file to device",EOM;AN001;
+	  set_submessage_ptr  CPMSG17_WRIT,cpmsg17  ;"write of font file to device",EOM
 	  MOV	DX,OFFSET CPMSG17     ;"DEVICE ERROR DURING %S"
 ;      $ELSE		       ;SINCE NOT ERR A NEITHER, MUST BE
        JMP SHORT $$EN50
@@ -714,12 +714,12 @@ $$IF59:
 ;      $IF   E
        JNE $$IF62
 ;AC001;   MOV	CPMSGLST10FUN,OFFSET CPMSG10_REFRESH   ;SET MSG TO SAY "REFRESH"
-	  set_submessage_ptr  CPMSGxx_REFRESH,cpmsg10	;SET MSG TO SAY "REFRESH";AN001;
+	  set_submessage_ptr  CPMSGxx_REFRESH,cpmsg10	;SET MSG TO SAY "REFRESH"
 ;      $ELSE
        JMP SHORT $$EN62
 $$IF62:
 ;AC001;   MOV	CPMSGLST10FUN,OFFSET CPMSG10_DES ;SET MSG TO SAY "PREPARE"
-	  set_submessage_ptr  CPMSGxx_prep,cpmsg10 ;SET MSG TO SAY "PREPARE";AN001;
+	  set_submessage_ptr  CPMSGxx_prep,cpmsg10 ;SET MSG TO SAY "PREPARE"
 ;      $ENDIF
 $$EN62:
        MOV   DX,OFFSET CPMSG10	   ;PASS OFFSET TO MSG PARM LIST
@@ -776,7 +776,7 @@ $$IF68:
 $$IF70:
 
 ;AC001;   MOV	CPMSGLST17FUN,OFFSET CPMSG17_ACT
-	  set_submessage_ptr  CPMSGxx_select,cpmsg17			   ;AN001;
+	  set_submessage_ptr  CPMSGxx_select,cpmsg17
 	  MOV	DX,OFFSET CPMSG17     ;"DEVICE ERROR DURING SELECT"
 ;      $ENDIF		       ;KEYB SUPPORT THIS CODEPAGE?
 $$EN70:
@@ -867,7 +867,7 @@ $$IF78:
 ;   $IF   E
     JNE $$IF80
 ;AC001;MOV   CPMSGLST17FUN,OFFSET CPMSG17_REFRESH   ;MOVE "Refresh" INTO MESSAGE
-       set_submessage_ptr  CPMSGxx_REFRESH,cpmsg17   ;MOVE "Refresh" INTO MESSAGE ;AN001;
+       set_submessage_ptr  CPMSGxx_REFRESH,cpmsg17   ;MOVE "Refresh" INTO MESSAGE
        MOV   DX,OFFSET CPMSG17	   ;PASS OFFSET TO MSG PARM LIST
 				  ;"Device error during REFRESH"
 
@@ -978,9 +978,9 @@ $$IF93:
 ;   $IF   NCXZ		       ;IF ANY HARDWARE CODEPAGES ARE PRESENT
     JCXZ $$IF95
 ;AC001;MOV   CPMSGLST8HD,OFFSET CPMSG8_HW ;GET OFFSET OF "HARDWARE" TO MSG PARM LIST
-       PUSH CX		      ;protect from SYSGETMSG ;AC001;
-       PUSH SI		      ;protect from SYSGETMSG ;AC001;
-       set_submessage_ptr  CPMSG8_HW,cpmsg8 ;GET OFFSET OF "HARDWARE" TO MSG PARM LIST;AC001;
+       PUSH CX		      ;protect from SYSGETMSG
+       PUSH SI		      ;protect from SYSGETMSG
+       set_submessage_ptr  CPMSG8_HW,cpmsg8 ;GET OFFSET OF "HARDWARE" TO MSG PARM LIST
        POP  SI
        POP  CX
        CALL  DISPLAY_CPID
@@ -992,9 +992,9 @@ $$IF95:
 ;   $IF   NCXZ		       ;IF ANY prepare CODEPAGES ARE PRESENT
     JCXZ $$IF97
 ;AC001;MOV   CPMSGLST8HD,OFFSET CPMSG8_PR ;GET OFFSET OF "PREPARED" TO MSG PARM LIST
-       PUSH  CX 	      ;protect from SYSGETMSG ;AC001;
-       PUSH  SI 	      ;protect from SYSGETMSG ;AC001;
-       set_submessage_ptr  CPMSG8_PR,cpmsg8 ;GET OFFSET OF "PREPARED" TO MSG PARM LIST ;AC001;
+       PUSH  CX 	      ;protect from SYSGETMSG
+       PUSH  SI 	      ;protect from SYSGETMSG
+       set_submessage_ptr  CPMSG8_PR,cpmsg8 ;GET OFFSET OF "PREPARED" TO MSG PARM LIST
        POP   SI
        POP   CX
        CALL  DISPLAY_CPID
@@ -1017,7 +1017,7 @@ $$EN93:
 ;$IF   E		       ;IF no previous errors THEN
  JNE $$IF102
 ;AC001;    MOV	 CPMSGLST10FUN,OFFSET CPMSG10_QUERY ;SET MSG TO SAY "QUERY"
-    set_submessage_ptr	cpmSGxx_QUERY,cpmsg10	    ;SET MSG TO SAY "QUERY" ;AN001;
+    set_submessage_ptr	cpmSGxx_QUERY,cpmsg10	    ;SET MSG TO SAY "QUERY"
     MOV   DX,OFFSET CPMSG10	;PASS OFFSET TO MSG PARM LIST
     CALL  printf		;"MODE QUERRY CODEPAGE FUNCTION COMPLETED"
 ;$ENDIF
@@ -1040,7 +1040,7 @@ QUERY_ERROR PROC NEAR
 			       ;CH=LOCUS
  CMP	AX,QS_ERR7+MAPERR      ;CODE PAGE NOT SELECTD?
 
- .IF <AX EQ <QS_ERR7+MAPERR>> THEN  ;CODE PAGE NOT SELECTD?	;AC665;
+ .IF <AX EQ <QS_ERR7+MAPERR>> THEN  ;CODE PAGE NOT SELECTD?
     MOV   DX,OFFSET CPMSG16	;PASS OFFSET TO MSG PARM LIST
 			       ;"NO CODEPAGE HAS BEEN SELECTED"
     CALL  SEND_MSG	       ;DISPLAY INDICATED ERROR MESSAGE
@@ -1048,12 +1048,12 @@ QUERY_ERROR PROC NEAR
     MOV   NOERROR,TRUE	       ;FORGET THE ABOVE WAS FLAGGED AS "ERROR"
     CALL  QUERY_LISTER	       ;LIST PREPPED CODEPAGES ANYWAY
 
- .ELSEIF <AX EQ DS_ERR16> OR   ;016H UNKNOWN COMMAND, i.e. device driver not loaded ;AN665;
+ .ELSEIF <AX EQ DS_ERR16> OR   ;016H UNKNOWN COMMAND, i.e. device driver not loaded
  .IF <AX EQ DS_ERR1> THEN      ;;AN665;16=unknown command, 1=Invalid function number
     MOV   DX,OFFSET CPMSG15    ;AN665;PASS OFFSET TO MSG PARM LIST, "Codepage operation not supported on this device"
     CALL  SEND_MSG		;DISPLAY INDICATED ERROR MESSAGE
 
- .ELSE			       ;NOT ERR7 or 16, MUST BE DEVICE ERROR ;AC665;
+ .ELSE			       ;NOT ERR7 or 16, MUST BE DEVICE ERROR
 ;AC002;    MOV	 CPMSGLST17FUN,OFFSET CPMSG17_QUERY
     set_submessage_ptr	CPMSGxx_QUERY,cpmsg17
     MOV   DX,OFFSET CPMSG17	;"DEVICE ERROR DURING QUERY"
@@ -1187,7 +1187,7 @@ HOOK_IN_MY_INT24 PROC NEAR
  RET
 HOOK_IN_MY_INT24 ENDP
 ; = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-;ฺฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤ					   ;AN000;
+;ฺฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤ
 ;ณ
 ;ณ
 ;ณ  SETUP_PACKET_FOR_DBCS
@@ -1238,10 +1238,10 @@ HOOK_IN_MY_INT24 ENDP
 ;ณ
 ;ณ		 The first byte of the table (DBCS_table.table_len) is zero if
 ;ณ		 DBCS support is not necessary.
-;ณ															   ;AN000;
-;ณ		 ES=DS. 												   ;AN000;
-;ณ															   ;AN000;
-;ภฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤ					   ;AN000;
+;ณ
+;ณ		 ES=DS.
+;ณ
+;ภฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤ
 
 setup_packet_for_DBCS	PROC  NEAR
 

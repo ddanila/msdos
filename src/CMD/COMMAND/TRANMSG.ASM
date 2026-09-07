@@ -549,7 +549,7 @@ String_Buf_Ptr	dw	1066				;AN000;message number
 		db	128				;AN000;maximum width
 		db	0				;AN000;minimum width
 		db	blank				;AN000;pad character
-		db	0				;AN000;
+		db	0
 
 ;  tab character
 ;

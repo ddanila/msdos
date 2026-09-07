@@ -8,31 +8,8 @@
 ;
 ;   Module:   ELIM.INC - include for LIM I/O traps (DMA ports)
 ;
-;   Version:  0.03
-;
-;   Date:     April 9, 1986
-;
-;   Author:
-;
 ;******************************************************************************
 ;
-;   Change log:
-;
-;     DATE    REVISION			DESCRIPTION
-;   --------  --------	-------------------------------------------------------
-;   04/09/86  Original
-;   06/28/86  0.02	Name change from MEMM386 to MEMM
-;   07/01/86  0.03	DMA trapping related equates added
-;
-;     DATE    AUTHOR			DESCRIPTION
-;   -------   --------	-------------------------------------------------------
-;   06/21/88  ISP	Removed the Intel Above Board Port Definitions
-;   07/27/88  JHB       Added Channel 4 ports, ports for Mode Regs and changed 
-;                       DMARegRec and DMARegBuf structure definitions - lifted
-;                       from vdmad.inc in Win386/2.03.
-;                       - Jaywant H Bharadwaj
-;
-;******************************************************************************
 ifndef INC_LIST
 .xlist
 endif

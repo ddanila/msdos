@@ -1,7 +1,5 @@
 page   84,132
 ;
-;	SCCSID = @(#)format.asm 1.26 85/10/20
-;	SCCSID = @(#)format.asm 1.26 85/10/20
 ;***************************************************************
 ;
 ;	86-DOS FORMAT DISK UTILITY
@@ -312,7 +310,7 @@ validSavedDeviceParameters db 0
 savedDeviceParameters a_DeviceParameters <>
 deviceParameters a_DeviceParameters <>
 
-Disk_Access	A_DiskAccess_Control <> 					;an000; dms;
+Disk_Access	A_DiskAccess_Control <>
 
 formatPacket a_FormatPacket <>
 RWPacket     a_TrackReadWritePacket <>
@@ -441,7 +439,7 @@ Comspec_ID	db	"COMSPEC=",00		;an011; dms;Comspec target
 
 Environ_Segment dw	?			;an011; dms;hold segment of
 						;	    environ. vector
-;======== Disk Table ========== 		;an012; dms;
+;======== Disk Table ==========
 ;Used if NumberOfFATs in BPB
 ;is 0.
 
@@ -454,22 +452,22 @@ DiskTable	dw	0,	32680,	0803h,	512,	0
 public		Org_AX				;an000; dms;make it known
 Org_AX		dw	?			;an000; dms;AX on entry
 
-Cluster_Boundary_Adj_Factor	dw	?	;an000; dms;
-Cluster_Boundary_SPT_Count	dw	?	;an000; dms;
-Cluster_Boundary_Flag		db	False	;an000; dms;
-Cluster_Boundary_Buffer_Seg	dw	?	;an000; dms;
+Cluster_Boundary_Adj_Factor	dw	?
+Cluster_Boundary_SPT_Count	dw	?
+Cluster_Boundary_Flag		db	False
+Cluster_Boundary_Buffer_Seg	dw	?
 
-Relative_Sector_Low		dw	?	;an000; dms;
-Relative_Sector_High		dw	?	;an000; dms;
+Relative_Sector_Low		dw	?
+Relative_Sector_High		dw	?
 
-FAT_Flag			db	?	;an000; dms;
-Tracks_To_Format		dw	?	;an015; dms;
-Track_Count			dw	?	;an015; dms;
-Format_End			db	FALSE	;an015; dms;
+FAT_Flag			db	?
+Tracks_To_Format		dw	?
+Track_Count			dw	?
+Format_End			db	FALSE
 
 public Msg_Allocation_Unit_Val
 
-Msg_Allocation_Unit_Val 	dd	?	;an019; dms;
+Msg_Allocation_Unit_Val 	dd	?
 
 
 data	ends
@@ -515,41 +513,41 @@ PSP_Environ	equ	2ch			;an011; dms;location of
 Fbig	equ	0ffh				;an000; dms;flag for big FAT
 
 START:
-	xor	bx,bx				;				;AN000;
-	push	bx				;				;AN000;
-	Set_Data_Segment			;				;AC000;
+	xor	bx,bx				;
+	push	bx				;
+	Set_Data_Segment			;
 	mov	Org_AX,ax			;an000; dms;save ax on entry
-	jmp	Main_Init			;				;AC000;
+	jmp	Main_Init			;
 
 
-Main_Routine:					;				;AN000;
+Main_Routine:					;
 ; Set memory requirements
-	mov	bx,PSP_Segment			;Shrink to free space for FAT	;AC000;
-	mov	es,bx				;				;AC000;
-	mov	bx,End_Of_Memory		;				;AC000;
-	sub	bx,PSP_Segment			;				;AC000;
-	DOS_Call Setblock			;				;AC000;
+	mov	bx,PSP_Segment			;Shrink to free space for FAT
+	mov	es,bx				;
+	mov	bx,End_Of_Memory		;
+	sub	bx,PSP_Segment			;
+	DOS_Call Setblock			;
 
-	call	Get_Disk_Access 						;an014; dms;
+	call	Get_Disk_Access
 	cmp	Disk_Access.DAC_Access_Flag,0ffh				;an014; dms;is access already allowed?
 ;	$if	ne								;an014; dms;no, don't change status
 	JE $$IF1
 		lea	dx,Disk_Access						;an014; dms;point to parm block
 		mov	Disk_Access.DAC_Access_Flag,01h 			;an014; dms;signal disk access
 		call	Set_Disk_Access_On_Off					;an014;dms;allow disk access
-;	$endif									;an014; dms;
+;	$endif
 $$IF1:
 
 	CALL	Phase1Initialisation
 	jnc	FatAllocated
 
-	Message msgFormatFailure		;				;AC000;
+	Message msgFormatFailure		;
 	jmp	Fexit
 
 MEMERR:
 	mov	ax, seg data
 	mov	ds, ax
-	Message msgOutOfMemory			;				;AC000;
+	Message msgOutOfMemory			;
 						;call	 PrintString
 	JMP	FEXIT
 
@@ -614,9 +612,9 @@ FRMTPROB:
 	test	SwitchMap,Switch_Select 					;an017; dms;SELECT option?
 ;	$if	z								;an017; dms;no - display message
 	JNZ $$IF3
-		Message msgFormatFailure		;			;AC000;
-		mov	ExitStatus, ExitFatal					;an017; dms;
-;	$endif									;an017; dms;
+		Message msgFormatFailure		;
+		mov	ExitStatus, ExitFatal
+;	$endif
 $$IF3:
 	CALL	MORE				;See if more disks to format
 	JMP	SHORT SYSLOOP
@@ -633,10 +631,10 @@ GETTRK:
 	JNZ	TRKFND				;No - check error conditions
 	JMP	DRTFAT				;Yes
 TRKFND:
-	mov	bx,word ptr Relative_Sector_Low ;get the low word of the sector ;an000; dms;
+	mov	bx,word ptr Relative_Sector_Low ;get the low word of the sector
 	CMP	BX,STARTSECTOR			;Are any sectors in the system area bad?
 	JAE	CLRTEST 			; MZ 2.26 unsigned compare
-	Message msgDiskUnusable 		;				;AC000;
+	Message msgDiskUnusable 		;
 	JMP	FRMTPROB			;Bad disk -- try again
 CLRTEST:
 	MOV	SECTORS,AX			;Save the number of sectors on the track
@@ -658,11 +656,11 @@ CLRTEST:
 	ADD	AX,STARTSECTOR
 	MOV	SYSTRKS,AX			;Space FAT,Dir,and system files require
 CMPTRKS:
-	mov	bx,word ptr Relative_Sector_Low ;get the low word of the sector ;an000; dms;
+	mov	bx,word ptr Relative_Sector_Low ;get the low word of the sector
 	CMP	BX,SYSTRKS
 	JA	BAD100				; MZ 2.26 unsigned compare
 	mov	ExitStatus, ExitFatal
-	Message msgNotSystemDisk		;				;AC000;
+	Message msgNotSystemDisk		;
 	AND	SWITCHMAP,NOT SWITCH_S		;Turn off system transfer switch
 	MOV	WORD PTR SYSSIZ+2,0		;No system to transfer
 	MOV	WORD PTR SYSSIZ,0		;No system to transfer
@@ -676,7 +674,7 @@ BAD100:
 	JMP SHORT $$EN5
 $$IF5:
 		call	Get_Bad_Sector_Floppy					;an000; dms;mark entire track bad
-;	$endif									;an000; dms;
+;	$endif
 $$EN5:
 
 	JMP	GETTRK
@@ -740,7 +738,7 @@ BadClus 	proc		near		;an000; mark bad clusters
 			SHL	AX,cl		;an005; get only 12 bits - fff0
 			mov	cl,4		;an005; set shift count
 			SHL	DX,cl		;an005; get 12 bits	 - ff70
-;		$endif				;an005;
+;		$endif
 $$IF9:
 ;	$else					;an005; 16-bit fats here
 	JMP SHORT $$EN8
@@ -800,7 +798,7 @@ CLEARED:
 LOUSE:
 
 	call	Reset_Ctrl_Break		;ac010; dms;restore CTRL-Break
-	Message msgDiskUnusable 		;				;AC000;
+	Message msgDiskUnusable 		;
 	JMP	FRMTPROB
 
 LOUSEP:
@@ -825,7 +823,7 @@ FATWRT:
 	call	AccessDisk			; note what is current logical drive
 	CALL	WRITEDOS			;Write the BIOS & DOS
 	JNC	SYSOK
-	Message msgNotSystemDisk		;				;AC000;
+	Message msgNotSystemDisk		;
 	MOV	WORD PTR SYSSIZ+2,0		;No system transfered
 	MOV	WORD PTR SYSSIZ,0		;No system transfered
 	JMP	SHORT STATUS
@@ -833,11 +831,11 @@ FATWRT:
 SYSOK:
 
 
-	test	SwitchMap,(Switch_Select or SWITCH_AUTOTEST) ;Don't display if EXEC'd by     ;AN000;
-;	$IF	Z				; Select			;AN000;
+	test	SwitchMap,(Switch_Select or SWITCH_AUTOTEST) ;Don't display if EXEC'd by
+;	$IF	Z				; Select
 	JNZ $$IF13
-	   Message msgSystemTransfered		;				;AC000;
-;	$ENDIF					;AN000;
+	   Message msgSystemTransfered		;
+;	$ENDIF
 $$IF13:
 STATUS:
 
@@ -865,11 +863,11 @@ REPORTC:
 	   CALL    VOLID
 ;	$ENDIF
 $$IF15:
-	test	SwitchMap,(Switch_Select or SWITCH_AUTOTEST) ;Need to shut down the report? ;AN000;
-;	$IF	Z				;If exec'd by Select, we do     ;AN000;
+	test	SwitchMap,(Switch_Select or SWITCH_AUTOTEST) ;Need to shut down the report?
+;	$IF	Z				;If exec'd by Select, we do
 	JNZ $$IF17
 	   CALL    REPORT			;Print report
-;	$ENDIF					;				;AN000;
+;	$ENDIF					;
 $$IF17:
 	CALL	MORE				;See if more disks to format
 	JMP	SYSLOOP 			;If we returned from MORE then continue
@@ -937,15 +935,15 @@ AddToSystemSize endp
 
 MORE:
 
-	mov	Formatted_Tracks_Low,0		;Reinit the track counter	;AN000;
-	mov	Formatted_Tracks_High,0 	; in case of another format	;AN000;
-	test	SwitchMap,(Switch_Select or SWITCH_AUTOTEST) ;Don't display if EXEC'd  by ;AN000;
-	jnz	ExitProgram			; Select			;AN000;
+	mov	Formatted_Tracks_Low,0		;Reinit the track counter
+	mov	Formatted_Tracks_High,0 	; in case of another format
+	test	SwitchMap,(Switch_Select or SWITCH_AUTOTEST) ;Don't display if EXEC'd  by
+	jnz	ExitProgram			; Select
 
 	CMP	deviceParameters.DP_DeviceType, DEV_HARDDISK
 	je	ExitProgram
-	test	SwitchMap,(SWITCH_Select or SWITCH_AUTOTEST) ;If exec'd from select, then;AN000;
-	jnz	ExitProgram			; don't give user choice        ;AN000;
+	test	SwitchMap,(SWITCH_Select or SWITCH_AUTOTEST) ;If exec'd from select, then
+	jnz	ExitProgram			; don't give user choice
 	CALL	FormatAnother?			;Get yes or no response
 	JC	ExitProgram
 	CALL	CRLF
@@ -953,7 +951,7 @@ MORE:
 
 
 FEXIT:
-	Set_Data_Segment			;Make sure have addressability	;AN000;
+	Set_Data_Segment			;Make sure have addressability
 	mov	ExitStatus,ExitFatal
 
 ExitProgram:
@@ -965,9 +963,9 @@ ExitProgram:
 DoNotRestoreDeviceParameters:
 
 	call	Format_Access_Wrap_Up		;determine access status	;an000; dms;determine access status
-	mov	al,ExitStatus			;Get Errorlevel 		;AN000;
-	DOS_Call Exit				;Exit program			;AN000;
-	int	20h				;If other exit fails		;AN000;
+	mov	al,ExitStatus			;Get Errorlevel
+	DOS_Call Exit				;Exit program
+	int	20h				;If other exit fails
 
 ; Prompt the user for a system diskette in the default drive
 SYSPRM:
@@ -991,7 +989,7 @@ SYSPRM:
 	MOV	BX,1
 	CALL	IsRemovable
 	JNC	DoPrompt
-	Message msgNoSystemFiles		;				;AC000;
+	Message msgNoSystemFiles		;
 fexitJ:
 	JMP	FEXIT
 
@@ -999,7 +997,7 @@ DoPrompt:
 	mov	al, systemDriveLetter
 	sub	al, 'A'
 	call	AccessDisk
-	Message msgInsertDOSDisk		;				;AC000;
+	Message msgInsertDOSDisk		;
 	Message ContinueMsg
 						;lea	 dx, ptr_msgInsertDosDisk
 						;CALL	 std_printf		 ;Print first line
@@ -1011,7 +1009,7 @@ DoPrompt:
 TARGPRM:
 	mov	al, drive
 	call	AccessDisk
-	Message MsgInsertDisk			;				;AC000;
+	Message MsgInsertDisk			;
 	Message ContinueMsg			;
 						;lea	 DX, ptr_msgInsertDisk
 						;CALL	 std_printf		 ;Print first line
@@ -1077,7 +1075,7 @@ DSKPRM:
 
 	CMP	deviceParameters.DP_DeviceType, DEV_HARDDISK
 	jne	goprnit
-	Message msgHardDiskWarning		;				;AC000;
+	Message msgHardDiskWarning		;
 						;lea	 dx, ptr_msgHardDiskWarning
 						;call	 std_printf
 	CALL	Yes?
@@ -1093,7 +1091,7 @@ OkToFormatHardDisk:
 GOPRNIT:
 	mov	al, drive
 	call	AccessDisk
-	Message msgInsertDisk			;				;AC000;
+	Message msgInsertDisk			;
 	Message ContinueMsg			;
 						;lea	 dx,ptr_msgInsertDisk
 						;CALL	 std_printf
@@ -1111,14 +1109,14 @@ PrmptRet:
 ControlC_Handler:
 	mov	ax, seg data
 	mov	ds, ax
-	Message msgInterrupt			;				;AC000;
+	Message msgInterrupt			;
 	mov	ExitStatus, ExitCtrlC
 	jmp	ExitProgram
 
 
 crlf:
 						;lea	 dx, msgCRLF
-	mov	dx,offset msgCRLF		;CR,LF added to message 	;AC000;
+	mov	dx,offset msgCRLF		;CR,LF added to message
 PrintString:
 						;mov	 printStringPointer, dx
 						;lea	 dx, PrintStringPointer
@@ -1126,7 +1124,7 @@ PrintString:
 std_printf:
 						;push	 dx
 						;call	 printf
-	call	Display_Interface		;				;AC000;
+	call	Display_Interface		;
 	return
 
 ;-------------------------------------------------------------------------------
@@ -1137,21 +1135,21 @@ std_printf:
 ; Carry set if problems
 
 READDOS:
-	push	ax				;save regs			;an025; dms;
-	push	bx				;				;an025; dms;
-	push	es				;				;an025; dms;
+	push	ax				;save regs
+	push	bx				;
+	push	es				;
 
-	mov	ah,Get_In_Vars			;Find out boot drive		;an025; dms;
-	int	21h				;				;an025; dms;
-	mov	al,byte ptr es:[bx].SysI_Boot_Drive ;get 1 based drive ID	;an025; dms;
-	add	al,40h				;Make it ASCII			;an025; dms;
-	mov	[BiosFile],al			;Stuff it in file specs.	;an025; dms;
-	mov	[DosFile],al			;				;an025; dms;
-	mov	[CommandFile],al		;				;an025; dms;
+	mov	ah,Get_In_Vars			;Find out boot drive
+	int	21h				;
+	mov	al,byte ptr es:[bx].SysI_Boot_Drive ;get 1 based drive ID
+	add	al,40h				;Make it ASCII
+	mov	[BiosFile],al			;Stuff it in file specs.
+	mov	[DosFile],al			;
+	mov	[CommandFile],al		;
 
-	pop	es				;restore regs			;an025; dms;
-	pop	bx				;				;an025; dms;
-	pop	ax				;				;an025; dms;
+	pop	es				;restore regs
+	pop	bx				;
+	pop	ax				;
 
 	call	Get_BIOS			; dcl 8/23/86
 	JNC	RDFILS
@@ -1536,7 +1534,7 @@ MAKEFIL:
 CheckMany:
 	CMP	AX,error_too_many_open_files
 	retnz
-	Extended_Message			;				;AC006;
+	Extended_Message			;
 	JMP	FEXIT
 
 ;*********************************************
@@ -1951,7 +1949,7 @@ Phase1Initialisation proc near
 	mov	deviceParameters.DP_SpecialFunctions, 0
 	call	GetDeviceParameters
 	jnc	GotDeviceParameters
-	Message msgFormatNotSupported		;				;AC000;
+	Message msgFormatNotSupported		;
 						;lea	 dx, ptr_msgFormatNotSupported
 						;call	 std_printf
 	jmp	fexit
@@ -1988,7 +1986,7 @@ IF ShipDisk
 	JZ $$IF19
 		mov	DeviceParameters.DP_BPB.BPB_SectorsPerCluster,01h	;an000; dms;set BPB accordingly
 		call	Calc_Small_Fat						;an000; dms;calc FAT size
-;	$endif									;an000; dms;
+;	$endif
 $$IF19:
 
 ENDIF
@@ -2106,20 +2104,20 @@ SetfBigFat proc near
 ;
 ; fBigFat = ( ( (Total Sectors - Start Sector) / Sectors Per Cluster) >= 4086 )
 ;
-	cmp	deviceParameters.DP_BPB.BPB_BigTotalSectors+2,0 ; > 32mb part?	;AN000;
-;	$IF	NE				;Yes, big FAT	;AC000;
+	cmp	deviceParameters.DP_BPB.BPB_BigTotalSectors+2,0 ; > 32mb part?
+;	$IF	NE				;Yes, big FAT
 	JE $$IF21
-	   mov	   fBigFat, (TRUE) AND 0FFh		;Set flag	;AN000;
-;	$ELSE					;Nope, < 32,b	 ;AC000;
+	   mov	   fBigFat, (TRUE) AND 0FFh		;Set flag
+;	$ELSE					;Nope, < 32,b
 	JMP SHORT $$EN21
 $$IF21:
-	   mov	   ax,deviceParameters.DP_BPB.BPB_BigTotalSectors ;Assume this used ;AN000;
-	   cmp	   ax,0 			;Was this field used?		 ;AN000;
-;	   $IF	   E				;Nope, use the other sector field;AN000;
+	   mov	   ax,deviceParameters.DP_BPB.BPB_BigTotalSectors ;Assume this used
+	   cmp	   ax,0 			;Was this field used?
+;	   $IF	   E				;Nope, use the other sector field
 	   JNE $$IF23
-	      mov     ax, deviceParameters.DP_BPB.BPB_TotalSectors ;		      ;AC000;
+	      mov     ax, deviceParameters.DP_BPB.BPB_TotalSectors ;
 						;** Fix for PTM PCDOS P51
-;	   $ENDIF				;				;AN000;
+;	   $ENDIF				;
 $$IF23:
 	   sub	   ax,startSector		;Get sectors in data area
 	   xor	   dx,dx
@@ -2296,7 +2294,7 @@ foofoo	=	INSTALL_FAKE_BPB or TRACKLAYOUT_IS_GOOD
 
 	call	Cluster_Buffer_Allocate 					;an000; dms;get room for retry buffer
 
-	call	Prompt_User_For_Disk						;an016; dms;
+	call	Prompt_User_For_Disk
 
 	test	SwitchMap,Switch_Q
 	jz	No_Old_Fat
@@ -2363,38 +2361,38 @@ RecoverySnapshotDone:
 	cmp	FormatPacket.FP_SpecialFunctions,0
 	je	NTSupported
 	cmp	FormatPacket.FP_SpecialFunctions,2
-;	$IF	E				;				;AC000;
+;	$IF	E				;
 	JNE $$IF28
-	   Message msgInvalidParameter		;				;AC000;
-	   mov	   Fatal_Error,Yes		;Indicate quittin'type err!     ;AN000;
+	   Message msgInvalidParameter		;
+	   mov	   Fatal_Error,Yes		;Indicate quittin'type err!
 ;	$ELSE					;				;     ;
 	JMP SHORT $$EN28
 $$IF28:
 	   cmp	   FormatPacket.FP_SpecialFunctions,3 ; 			   ;	 ;
-;	   $IF	   E				;				;AC000;
+;	   $IF	   E				;
 	   JNE $$IF30
-		   mov	   ax,Error_Not_Ready	;flag not ready 		;an000;dms;
-		   call    CheckError		; set error level		;an017; dms;
-		   jmp	   FrmtProb		; exit program			;an017; dms;
+		   mov	   ax,Error_Not_Ready	;flag not ready
+		   call    CheckError		; set error level
+		   jmp	   FrmtProb		; exit program
 ;	   $ELSE				; DCL No ROM support is okay	;     ;
 	   JMP SHORT $$EN30
 $$IF30:
 						; except for /N: & /T:		;     ;
 	      test    SwitchMap, SWITCH_N or SWITCH_T ; DCL 5/12/86		      ;     ;
-;	      $IF     NZ			;				;AC000;
+;	      $IF     NZ			;
 	      JZ $$IF32
 		 test	 SizeMap,Size_2880	; /F:2.88 uses the old-ROM DPT fallback
 		 jnz	 $$IF32
-		 Message msgParametersNotSupported ;				   ;AC000;
-		 mov	 Fatal_Error,Yes	;Indicate quittin'type err!     ;AN000;
-;	      $ENDIF				;				;AN000;
+		 Message msgParametersNotSupported ;
+		 mov	 Fatal_Error,Yes	;Indicate quittin'type err!
+;	      $ENDIF				;
 $$IF32:
-;	   $ENDIF				;				;AN000;
+;	   $ENDIF				;
 $$EN30:
-;	$ENDIF					;				;AN000;
+;	$ENDIF					;
 $$EN28:
-	cmp	Fatal_Error,Yes 		;				;AN000;
-	jne	StdBPB				;				;AN000;
+	cmp	Fatal_Error,Yes 		;
+	jne	StdBPB				;
 	jmp	Fexit
 ;
 ; We have the support to carry out the FORMAT
@@ -2433,7 +2431,7 @@ FormatLoop:
 	JMP SHORT $$EN36
 $$IF36:
 		call	CheckError						;an015; dms;determine type of error
-;		$if	nc							;an015; dms;
+;		$if	nc
 		JC $$IF38
 			call	LastChanceToSaveIt				;an015; dms;acceptable error?
 ;			$if	c						;an015; dms;yes
@@ -2444,17 +2442,17 @@ $$IF36:
 			JMP SHORT $$EN39
 $$IF39:
 				call	SetStartSector				;an015; dms;start from scratch
-				call	SetFBigFat				;an015; dms;
-				push	ax					;an015; dms;
-				call	Phase2Initialisation			;an015; dms;
-				clc						;an015; dms;
-				pop	ax					;an015; dms;
+				call	SetFBigFat
+				push	ax
+				call	Phase2Initialisation
+				clc
+				pop	ax
 				jmp	DiskFormat				;an015; dms;try again
-;			$endif							;an015; dms;
+;			$endif
 $$EN39:
-;		$endif								;an015; dms;
+;		$endif
 $$IF38:
-;	$endif									;an015; dms;
+;	$endif
 $$EN36:
 	return
 
@@ -2517,21 +2515,21 @@ ContinueFormat:
 				call	CurrentLogicalSector			;an015; dms;yes - get position
 				mov	ax,DeviceParameters.DP_BPB.BPB_SectorsPerTrack	;an015; dms; set track size
 				clc						;an015; dms;signal O.K. to continue
-;			$endif							;an015; dms;
+;			$endif
 $$IF46:
-;		$else								;an015; dms;
+;		$else
 		JMP SHORT $$EN45
 $$IF45:
 			jmp	NoMoreTracks					;an015; dms;end of format
-;		$endif								;an015; dms;
+;		$endif
 $$EN45:
-;	$else									;an015; dms;
+;	$else
 	JMP SHORT $$EN44
 $$IF44:
 		jmp	NoMoreTracks						;an015; dms;end of format
-;	$endif									;an015; dms;
+;	$endif
 $$EN44:
-	return									;an015; dms;
+	return
 
 ReportBadTrack:
 	call	CurrentLogicalSector
@@ -2540,11 +2538,11 @@ ReportBadTrack:
 	return
 
 NoMoreTracks:
-	test	SwitchMap,(Switch_Select or SWITCH_AUTOTEST) ;Don't display done msg;AN000;
-;	$IF	Z				; if EXEC'd by SELECT           ;AN000;
+	test	SwitchMap,(Switch_Select or SWITCH_AUTOTEST) ;Don't display done msg
+;	$IF	Z				; if EXEC'd by SELECT
 	JNZ $$IF52
-	   Message msgFormatComplete		;				;AC000;
-;	$ENDIF					;				;AN000;
+	   Message msgFormatComplete		;
+;	$ENDIF					;
 $$IF52:
 	mov	ax, 0
 	clc
@@ -2572,7 +2570,7 @@ data	ends
 ;		FP_Head 	- Head of track being formatted
 ;=========================================================================
 
-Procedure Calc_Current_Head_Cyl 						;an000; dms;
+Procedure Calc_Current_Head_Cyl
 
 	push	cx								;an000; dms;save cx
 	mov	cx,FormatPacket.FP_Cylinder					;an000; dms;get current cylinder
@@ -2580,37 +2578,37 @@ Procedure Calc_Current_Head_Cyl 						;an000; dms;
 	mov	cx,FormatPacket.FP_Head 					;an000; dms;get current head
 	mov	CurrentHead,cx							;an000; dms;put into variable
 	pop	cx								;an000; dms;restore cx
-	ret									;an000; dms;
+	ret
 
-Calc_Current_Head_Cyl	endp							;an000; dms;
+Calc_Current_Head_Cyl	endp
 
 
 DisplayCurrentTrack proc near
 
-	push	dx				;				;AN000;
-	push	cx				;				;AN000;
-	push	ax				;an015; dms;
+	push	dx				;
+	push	cx				;
+	push	ax
 
 	mov	ax,Tracks_To_Format		;an015; dms;get track count
 
-	add	Formatted_Tracks_Low,ax 	;Indicate formatted a track	;AN000;
-	adc	Formatted_Tracks_High,0 	;				;AN000;
-	mov	ax,Formatted_Tracks_Low 	;				;AN000;
-	mov	bx,Formatted_Tracks_High	;				;AN000;
-	mov	cx,100				;Make integer calc for div	;AN000;
-	call	Multiply_32_Bits		; BX:AX = (Cyl * Head *100)	;AN000;
-	mov	dx,bx				;Set up divide			;AN000;
-	div	TracksPerDisk			;% = (Cyl * Head *100)/ # tracks;AN000;
-	cmp	ax,PercentComplete		;Only print message when change ;AN000;
-;	$IF	NE				;To avoid excess cursor splat	;AN000;
+	add	Formatted_Tracks_Low,ax 	;Indicate formatted a track
+	adc	Formatted_Tracks_High,0 	;
+	mov	ax,Formatted_Tracks_Low 	;
+	mov	bx,Formatted_Tracks_High	;
+	mov	cx,100				;Make integer calc for div
+	call	Multiply_32_Bits		; BX:AX = (Cyl * Head *100)
+	mov	dx,bx				;Set up divide
+	div	TracksPerDisk			;% = (Cyl * Head *100)/ # tracks
+	cmp	ax,PercentComplete		;Only print message when change
+;	$IF	NE				;To avoid excess cursor splat
 	JE $$IF54
-	   mov	   PercentComplete,ax		;Save it if changed		;AN000;
-	   Message msgCurrentTrack		;				;AC000;
+	   mov	   PercentComplete,ax		;Save it if changed
+	   Message msgCurrentTrack		;
 ;	$ENDIF					;
 $$IF54:
-	pop	ax				;an015; dms;
-	pop	cx				;Restore register		;AN000;
-	pop	dx				;				;AN000;
+	pop	ax
+	pop	cx				;Restore register
+	pop	dx				;
 	return
 
 DisplayCurrentTrack endp
@@ -2658,14 +2656,14 @@ WriteProtectError:
 	test	SwitchMap,Switch_SELECT 					;an017; dms;SELECT option?
 ;	$if	z								;an017; dms;no - display messages
 	JNZ $$IF56
-		Message  msgCRLF			;			;AC006;
-		Message  msgCRLF			;			;AC006;
-		Extended_Message			;			;AC006;
+		Message  msgCRLF			;
+		Message  msgCRLF			;
+		Extended_Message			;
 ;	$else									;an017; dms;yes - set error level
 	JMP SHORT $$EN56
 $$IF56:
 		mov	ExitStatus,ExitWriteProtect				;an017; dms;signal write protect error
-;	$endif									;an017; dms;
+;	$endif
 $$EN56:
 
 	stc									;an017; dms;signal fatal error
@@ -2675,21 +2673,21 @@ NotReadyError:
 	test	SwitchMap,Switch_SELECT 					;an017; dms; SELECT option?
 ;	$if	z								;an017; dms; no - display messages
 	JNZ $$IF59
-		Message  msgCRLF			;			;AC006;
-		Message  msgCRLF			;			;AC006;
-		Extended_Message			;			;AC006;
+		Message  msgCRLF			;
+		Message  msgCRLF			;
+		Extended_Message			;
 ;	$else									;an017; dms;yes - set error level
 	JMP SHORT $$EN59
 $$IF59:
 		mov	ExitStatus,ExitDriveNotReady				;an017; dms;signal drive not ready
-;	$endif									;an017; dms;
+;	$endif
 $$EN59:
 	stc
 	ret
 
 
 BadTrackZero:
-	Message msgDiskUnusable 		;				;AC000;
+	Message msgDiskUnusable 		;
 	stc
 	ret
 
@@ -2707,21 +2705,21 @@ WriteFileSystem proc near
 	call	WriteBootSector
 	retc
 
-	Set_Data_Segment			;Set DS,ES = DATA		;AN000;
+	Set_Data_Segment			;Set DS,ES = DATA
 ; Write out each of the FATs
 	push	ds				;ac005; dms;save ds
 	xor	cx, cx
-	mov	cl, es:deviceParameters.DP_BPB.BPB_numberOfFATs ;		;AC000;
-	mov	dx, es:deviceParameters.DP_BPB.BPB_ReservedSectors ;		;AC000;
-	mov	al, es:drive			;				;AC000;
-	mov	bx,word ptr es:FatSpace+2	;Get segment of memory Fat	;AC000;
-	mov	ds,bx				;				;AN000;
-	mov	bx,word ptr es:FatSpace 	;				;AN000;
+	mov	cl, es:deviceParameters.DP_BPB.BPB_numberOfFATs ;
+	mov	dx, es:deviceParameters.DP_BPB.BPB_ReservedSectors ;
+	mov	al, es:drive			;
+	mov	bx,word ptr es:FatSpace+2	;Get segment of memory Fat
+	mov	ds,bx				;
+	mov	bx,word ptr es:FatSpace 	;
 
 	mov	si,bx				;ac005; dms;set up for add. calc
 	call	SEG_ADJ 			;ac005; dms;get adjusted seg:off
 	mov	bx,si				;ac005; dms;get new off
-	assume	ds:nothing,es:data		;				;AN000;
+	assume	ds:nothing,es:data		;
 
 ;	$do					;ac005; dms;while FATS > 0
 $$DO62:
@@ -2741,22 +2739,22 @@ $$DO62:
 		JNC $$IF64
 			Message msgFATwriteError;ac005; dms;say why failed
 			jmp	FEXIT		;ac005; dms;exit format
-;		$endif				;ac005; dms;
+;		$endif
 $$IF64:
-		add	dx, es:deviceParameters.DP_BPB.BPB_SectorsPerFAT ;		;AC000;
+		add	dx, es:deviceParameters.DP_BPB.BPB_SectorsPerFAT ;
 		dec	cx			;ac005; dms;decrease FAT count
-;	$enddo					;ac005; dms;
+;	$enddo
 	JMP SHORT $$DO62
 $$EN62:
 
 	pop	ds				;ac005; dms;restore ds
-	assume	ds:data 			;ac005; dms;
+	assume	ds:data
 
 
 ; Clear the directory
 
 ; Now write the initialised directory sectors out to disk
-	mov	ax, es:deviceParameters.DP_BPB.BPB_SectorsPerFAT ;		;AC000;
+	mov	ax, es:deviceParameters.DP_BPB.BPB_SectorsPerFAT ;
 	xor	dx,dx
 	push	bx								;an000; dms;save bx
 	xor	bx,bx								;an000; dms;clear bx
@@ -2764,32 +2762,32 @@ $$EN62:
 	mul	bx								;an000; dms;get total FAT sectors
 	pop	bx								;an000; dms;restore bx
 
-	mov	dx, es:deviceParameters.DP_BPB.BPB_ReservedSectors ;		;AC000;
+	mov	dx, es:deviceParameters.DP_BPB.BPB_ReservedSectors ;
 	add	dx, ax
-	mov	cx, es:sectorsInRootDirectory	;				  ;AC000;
+	mov	cx, es:sectorsInRootDirectory	;
 WriteDIRloop:
 	push	cx
 	push	dx
-	mov	al, es:drive			;				;AC000;
+	mov	al, es:drive			;
 	mov	cx, 1
-	lds	bx, es:directorySector		;				;AC000;
+	lds	bx, es:directorySector		;
 
-	assume	ds:nothing,es:data		;				;AN000;
+	assume	ds:nothing,es:data		;
 
 ;Assume dir is alway contined in first 32mb of partition
 
-	mov	es:Read_Write_Relative.Start_Sector_High,0 ;			;AC000;
-	Call	Write_Disk			;				;AN000;
-	jnc	Dir_OK				;				;AC000;
-	Message msgDirectoryWriteError		;				;AC000;
-	jmp	FExit				;				;AN000;
-Dir_OK: 					;				;AN000;
+	mov	es:Read_Write_Relative.Start_Sector_High,0 ;
+	Call	Write_Disk			;
+	jnc	Dir_OK				;
+	Message msgDirectoryWriteError		;
+	jmp	FExit				;
+Dir_OK: 					;
 	pop	dx
 	add	dx, 1
 	pop	cx
 	loop	WriteDIRLoop
 
-	Set_Data_Segment			;Set DS to DATA segment 	;AN000;
+	Set_Data_Segment			;Set DS to DATA segment
 ; Ok, we can tell the device driver that we are finished formatting
 	mov	savedDeviceParameters.DP_TrackTableEntries, 0
 	mov	savedDeviceParameters.DP_SpecialFunctions, TRACKLAYOUT_IS_GOOD
@@ -2820,7 +2818,7 @@ WriteFileSystem endp
 
 procedure	write_fat
 
-	mov	cx, es:deviceParameters.DP_BPB.BPB_SectorsPerFAT ;		;AC000;
+	mov	cx, es:deviceParameters.DP_BPB.BPB_SectorsPerFAT ;
 
 ;	$do					;an000;while sectors left
 $$DO67:
@@ -2885,7 +2883,7 @@ procedure	seg_adj
 ;	$if	c				;an000;overflow?
 	JNC $$IF73
 		adc	bx,0			;an000;pick it up
-;	$endif					;an000;
+;	$endif
 $$IF73:
 	mov	bx,ds				;an000;get seg
 	add	bx,ax				;an000;adjust for paras
@@ -2924,8 +2922,8 @@ Done	endp
 CurrentLogicalSector proc near
 
 	push	ax								;an000; dms;save regs
-	push	bx								;an000; dms;
-	push	dx								;an000; dms;
+	push	bx
+	push	dx
 
 	mov	ax, tracksPerDisk
 	sub	ax, tracksLeft
@@ -2935,8 +2933,8 @@ CurrentLogicalSector proc near
 	mov	word ptr Relative_Sector_Low,ax 				;an000; dms;save low word of sector #
 
 	pop	dx								;an000; dms;restore regs
-	pop	bx								;an000; dms;
-	pop	ax								;an000; dms;
+	pop	bx
+	pop	ax
 
 	return
 
@@ -3000,56 +2998,56 @@ PrintErrorAbort endp
 ;*****************************************************************************
 
 Public Multiply_32_Bits
-Multiply_32_Bits proc				;				;AN000;
+Multiply_32_Bits proc				;
 
-	push	di				;				;AN000;
-	push	si				;				;AN000;
+	push	di				;
+	push	si				;
 	xor	di,di				;Init result to zero
 	xor	si,si				;
-	cmp	cx,0				;Multiply by 0? 		;AN000;
-;	$IF	NE				;Keep going if not		;AN000;
+	cmp	cx,0				;Multiply by 0?
+;	$IF	NE				;Keep going if not
 	JE $$IF75
-;	   $DO					;This works by adding the result;AN000;
+;	   $DO					;This works by adding the result
 $$DO76:
-	      test    cx,1			;Need to add in sum of this bit?;AN000;
-;	      $IF     NZ			;Yes				;AN000;
+	      test    cx,1			;Need to add in sum of this bit?
+;	      $IF     NZ			;Yes
 	      JZ $$IF77
-		 add	 si,ax			;Add in the total so far for	;AN000;
-		 adc	 di,bx			; this bit multiplier (CY oflow);AN000;
-;	      $ELSE				;Don't split multiplier         ;AN000;
+		 add	 si,ax			;Add in the total so far for
+		 adc	 di,bx			; this bit multiplier (CY oflow)
+;	      $ELSE				;Don't split multiplier
 	      JMP SHORT $$EN77
 $$IF77:
-		 clc				;Force non exit 		;AN000;
-;	      $ENDIF				;				;AN000;
+		 clc				;Force non exit
+;	      $ENDIF				;
 $$EN77:
-;	   $LEAVE  C				;Leave on overflow		;AN000;
+;	   $LEAVE  C				;Leave on overflow
 	   JC $$EN76
-	      shr     cx,1			;See if need to multiply value	;AN000;
-	      cmp     cx,0			;by 2				;AN000;
-;	   $LEAVE  E				;Done if cx shifted down to zero;AN000;
+	      shr     cx,1			;See if need to multiply value
+	      cmp     cx,0			;by 2
+;	   $LEAVE  E				;Done if cx shifted down to zero
 	   JE $$EN76
-	      add     ax,ax			;Each time cx is shifted, add	;AN000;
-	      adc     bx,bx			;value to itself (Multiply * 2) ;AN000;
-;	   $ENDDO  C				;CY set on overflow		;AN000;
+	      add     ax,ax			;Each time cx is shifted, add
+	      adc     bx,bx			;value to itself (Multiply * 2)
+;	   $ENDDO  C				;CY set on overflow
 	   JNC $$DO76
 $$EN76:
-;	   $IF	   NC				;If no overflow, add in DI:SI	;AN000;
+;	   $IF	   NC				;If no overflow, add in DI:SI
 	   JC $$IF83
-	      mov     ax,si			; which contains the original	;AN000;
-	      mov     bx,di			; value if odd, 0 if even. This ;AN000;
-	      clc				;Set no overflow flag		;AN000;
-;	   $ENDIF				;				;AN000;
+	      mov     ax,si			; which contains the original
+	      mov     bx,di			; value if odd, 0 if even. This
+	      clc				;Set no overflow flag
+;	   $ENDIF				;
 $$IF83:
 ;	$ELSE					;
 	JMP SHORT $$EN75
 $$IF75:
 	   xor	   ax,ax			;
 	   xor	   bx,bx			;
-;	$ENDIF					;Multiply by 0			;AN000;
+;	$ENDIF					;Multiply by 0
 $$EN75:
-	pop	si				;				;AN000;
-	pop	di				;				;AN000;
-	ret					;				;AN000;
+	pop	si				;
+	pop	di				;
+	ret					;
 
 Multiply_32_Bits endp
 
@@ -3064,11 +3062,11 @@ Multiply_32_Bits endp
 ;		  CX	- remainder
 ;=========================================================================
 
-Procedure Divide_32_Bits							;an000; dms;
+Procedure Divide_32_Bits
 
 	push	ax								;an000; dms;save regs
-	push	bx								;an000; dms;
-	push	dx								;an000; dms;
+	push	bx
+	push	dx
 
 	xor	dx,dx								;an000; dms;clear dx
 	mov	ax,si								;an000; dms;get high word
@@ -3081,12 +3079,12 @@ Procedure Divide_32_Bits							;an000; dms;
 	mov	cx,dx								;an000; dms;pick up remainder
 
 	pop	dx								;an000; dms;restore regs
-	pop	bx								;an000; dms;
-	pop	ax								;an000; dms;
+	pop	bx
+	pop	ax
 
-	ret									;an000; dms;
+	ret
 
-Divide_32_Bits	endp								;an000; dms;
+Divide_32_Bits	endp
 
 
 ;=========================================================================
@@ -3342,11 +3340,11 @@ Fat_Init	proc	near
 	push	ax
 	push	bx
 	push	cx
-	mov	di, word ptr FatSpace+2 	;Get segment of Fat space	;AC000;
-	mov	es,di				;				;AN000;
-	mov	di, word ptr FatSpace		;				;AN000;
+	mov	di, word ptr FatSpace+2 	;Get segment of Fat space
+	mov	es,di				;
+	mov	di, word ptr FatSpace		;
 	mov	bx,Paras_Per_Fat		;an000;get number of paras
-	mov	ax,fat_init_value		;an000;
+	mov	ax,fat_init_value
 	push	dx				;an000;save bx
 	mov	dx,es				;an000;grab es into dx
 ;	$do
@@ -3360,19 +3358,19 @@ $$DO87:
 		inc	dx			;an000;next paragraph
 		mov	es,dx			;an000;put next para in es
 		dec	bx			;an000;loop iteration counter
-;	$enddo					;an000;
+;	$enddo
 	JMP SHORT $$DO87
 $$EN87:
-	pop	dx				;an000;
-	pop	cx				;an000;
-	pop	bx				;an000;
-	pop	ax				;an000;
-	pop	di				;an000;
-	pop	es				;an000;
+	pop	dx
+	pop	cx
+	pop	bx
+	pop	ax
+	pop	di
+	pop	es
 
-	ret					;an000;
+	ret
 
-Fat_Init	endp				;an000;
+Fat_Init	endp
 
 
 ;=========================================================================
@@ -3382,7 +3380,7 @@ Fat_Init	endp				;an000;
 ;			  FAT, DIR, and SYSTEM.
 ;=========================================================================
 
-Ctrl_Break_Write:				;ac010; dms;
+Ctrl_Break_Write:
 
 	iret					;ac010; dms;return to caller
 
@@ -3396,7 +3394,7 @@ Ctrl_Break_Write:				;ac010; dms;
 ;	Outputs : CTRL_BREAK_VECTOR - holds address of INT 23h routine
 ;=========================================================================
 
-Ctrl_Break_Save 	proc	near		;ac010; dms;
+Ctrl_Break_Save 	proc	near
 
 	push	es				;ac010; dms;save es
 	push	bx				;ac010; dms;save bx
@@ -3404,7 +3402,7 @@ Ctrl_Break_Save 	proc	near		;ac010; dms;
 
 	mov	ax,3523h			;ac010; dms;get CTRL-BREAK
 						;	    interrupt vector
-	int	21h				;ac010; dms;
+	int	21h
 
 	mov	word ptr Ctrl_Break_Vector,bx	;ac010; dms;get vector offset
 	mov	word ptr Ctrl_Break_Vector+2,es ;ac010; dms;get vector segment
@@ -3413,10 +3411,10 @@ Ctrl_Break_Save 	proc	near		;ac010; dms;
 	pop	bx				;ac010; dms;restore bx
 	pop	es				;ac010; dms;restore es
 
-	ret					;ac010; dms;
+	ret
 
 
-Ctrl_Break_Save 	endp			;ac010; dms;
+Ctrl_Break_Save 	endp
 
 
 ;=========================================================================
@@ -3428,7 +3426,7 @@ Ctrl_Break_Save 	endp			;ac010; dms;
 ;	Outputs : CTRL_BREAK_VECTOR - holds address of INT 23h routine
 ;=========================================================================
 
-Set_Ctrl_Break		proc	near		;ac010; dms;
+Set_Ctrl_Break		proc	near
 
 	push	ds				;ac010; dms;save ds
 	push	ax				;ac010; dms;save ax
@@ -3441,17 +3439,17 @@ Set_Ctrl_Break		proc	near		;ac010; dms;
 	mov	dx,offset Ctrl_Break_Write	;ac010; dms;get interrupt vec.
 	mov	ax,2523h			;ac010; dms;set CTRL-BREAK
 						;	    interrupt vector
-	int	21h				;ac010; dms;
+	int	21h
 
 	pop	dx				;ac010; dms;restore dx
 	pop	bx				;ac010; dms;restore bx
 	pop	ax				;ac010; dms;restore ax
 	pop	ds				;ac010; dms;restore ds
 
-	ret					;ac010; dms;
+	ret
 
 
-Set_Ctrl_Break		endp			;ac010; dms;
+Set_Ctrl_Break		endp
 
 
 ;=========================================================================
@@ -3463,7 +3461,7 @@ Set_Ctrl_Break		endp			;ac010; dms;
 ;	Outputs : none
 ;=========================================================================
 
-Reset_Ctrl_Break	proc	near		;ac010; dms;
+Reset_Ctrl_Break	proc	near
 
 	push	ds				;ac010; dms;save ds
 	push	ax				;ac010; dms;save ax
@@ -3476,17 +3474,17 @@ Reset_Ctrl_Break	proc	near		;ac010; dms;
 	mov	dx,bx				;ac010; dms;get off.
 	mov	ax,2523h			;ac010; dms;set CTRL-BREAK
 						;	    interrupt vector
-	int	21h				;ac010; dms;
+	int	21h
 
 	pop	dx				;ac010; dms;restore dx
 	pop	bx				;ac010; dms;restore bx
 	pop	ax				;ac010; dms;restore ax
 	pop	ds				;ac010; dms;restore ds
 
-	ret					;ac010; dms;
+	ret
 
 
-Reset_Ctrl_Break	endp			;ac010; dms;
+Reset_Ctrl_Break	endp
 
 ;=========================================================================
 ; Get_Command_Path		: This routine finds the path where
@@ -3501,7 +3499,7 @@ Reset_Ctrl_Break	endp			;ac010; dms;
 ;	Outputs : CommandFile		 - Holds path to COMMAND.COM
 ;=========================================================================
 
-Procedure	Get_Command_Path		;an011; dms;
+Procedure	Get_Command_Path
 
 	push	ds				;an011; dms;save ds
 	push	es				;an011; dms;save es
@@ -3512,7 +3510,7 @@ Procedure	Get_Command_Path		;an011; dms;
 	mov	ax,es:Environ_Segment		;an011; dms; get seg. of
 						;	     environ. vector
 	mov	ds,ax				;an011; dms; put it in DS
-	assume	ds:nothing			;an011; dms;
+	assume	ds:nothing
 	xor	si,si				;an011; dms; clear si
 	mov	bx,si				;an011; dms; save si
 	mov	di,offset Comspec_ID		;an011; dms; point to target
@@ -3531,7 +3529,7 @@ $$DO90:
 ;		$if	z			;an011; dms; yes
 		JNZ $$IF92
 			push	di		;an011; dms; save di
-			mov	di,offset es:CommandFile   ;an011; dms
+			mov	di,offset es:CommandFile
 			lodsb			;an011; dms; priming read
 			mov	dl,al		;an011; dms; prepare for capitalization
 			call	Cap_Char	;an011; dms; capitalize character in DL
@@ -3548,11 +3546,11 @@ $$DO94:
 ;				$enddo
 				JMP SHORT $$DO94
 $$EN94:
-;			$endif			;an011; dms;
+;			$endif
 $$IF93:
 			pop	di		;an011; dms; restore di
 			mov	cx,0ffffh	;an011; dms; flag target found
-;		$endif				;an011; dms;
+;		$endif
 $$IF92:
 
 		cmp	cx,0ffffh		;an011; dms; target found?
@@ -3565,16 +3563,16 @@ $$IF92:
 		mov	bx,si			;an011; dms; save si
 
 		dec	cx			;an011; dms; decrease counter
-;	$enddo					;an011; dms;
+;	$enddo
 	JMP SHORT $$DO90
 $$EN90:
 
 	pop	es				;an011; dms; restore es
 	pop	ds				;an011; dms; restore ds
 
-	ret					;an011; dms;
+	ret
 
-Get_Command_Path	endp			;an011; dms;
+Get_Command_Path	endp
 
 
 ;
@@ -3586,11 +3584,11 @@ Get_Command_Path	endp			;an011; dms;
 ;
 ;
 
-Procedure Get_PSP_Parms 			;				;AC000;
+Procedure Get_PSP_Parms 			;
 
 	Set_Data_Segment
-	mov	ax,PSP_Segment			;Get segment of PSP		;AN000;
-	mov	ds,ax				;  "  "    "  " 		;AN000;
+	mov	ax,PSP_Segment			;Get segment of PSP
+	mov	ds,ax				;  "  "    "  "
 						;     ;
 	assume	ds:nothing
 						;Setup segment of Environment string, get from PSP			    ;	  ;
@@ -3601,7 +3599,7 @@ Procedure Get_PSP_Parms 			;				;AC000;
 	ret					;				;     ;
 
 
-Get_PSP_Parms endp				;				;AN000;
+Get_PSP_Parms endp				;
 
 
 ;=========================================================================
@@ -3617,14 +3615,14 @@ Get_PSP_Parms endp				;				;AN000;
 ;				      on target drive.
 ;=========================================================================
 
-Procedure	Command_Root			;an011; dms;
+Procedure	Command_Root
 
 	push	ds				;an011; dms; save ds
 	push	es				;an011; dms; save es
 	push	di				;an011; dms; save di
 	push	si				;an011; dms; save si
 	push	cx				;an011; dms; save cx
-	Set_Data_Segment			;an011;
+	Set_Data_Segment
 
 	mov	di,offset CommandFile+3 	;an011; dms; point to path
 						;	     past drive spec
@@ -3639,9 +3637,9 @@ Procedure	Command_Root			;an011; dms;
 	pop	es				;an011; dms; restore es
 	pop	ds				;an011; dms; restore ds
 
-	ret					;an011; dms;
+	ret
 
-Command_Root	endp				;an011; dms;
+Command_Root	endp
 
 
 ;=========================================================================
@@ -3675,18 +3673,18 @@ Procedure Set_BPB_Info								;an012; dms;calc new BPB
 ;		$if	e							;an012; dms;yes
 		JNE $$IF102
 			call	Calc_Big_FAT					;an012; dms;calc big FAT info
-;		$else								;an012; dms;
+;		$else
 		JMP SHORT $$EN102
 $$IF102:
 			call	Calc_Small_FAT					;an012; dms;calc small FAT info
-;		$endif								;an012; dms;
+;		$endif
 $$EN102:
-;	$endif									;an012; dms;
+;	$endif
 $$IF101:
 
-	ret									;an012; dms;
+	ret
 
-Set_BPB_Info	endp								;an012; dms;
+Set_BPB_Info	endp
 
 
 
@@ -3701,19 +3699,19 @@ Set_BPB_Info	endp								;an012; dms;
 ;	Outputs : DS:SI     - Points to applicable disk data
 ;=========================================================================
 
-Procedure Scan_Disk_Table							;an012; dms;
+Procedure Scan_Disk_Table
 
 	cmp	DeviceParameters.DP_BPB.BPB_TotalSectors,00h			;an012; dms;small disk?
 ;	$if	ne								;an012; dms;yes
 	JE $$IF106
 		mov	dx,00h							;an012; dms;set high to 0
 		mov	ax,word ptr DeviceParameters.DP_BPB.BPB_TotalSectors	;an012; dms;get sector count
-;	$else									;an012; dms;
+;	$else
 	JMP SHORT $$EN106
 $$IF106:
 		mov	dx,word ptr DeviceParameters.DP_BPB.BPB_BigTotalSectors[+2]	;an012; dms;get high count
 		mov	ax,word ptr DeviceParameters.DP_BPB.BPB_BigTotalSectors[+0]	;an012; dms;get low count
-;	$endif									;an012; dms;
+;	$endif
 $$EN106:
 
 	mov	si,offset DiskTable						;an012; dms;point to disk data
@@ -3732,9 +3730,9 @@ Scan_Next:
 
 Scan_Disk_Table_Exit:
 
-	ret									;an012; dms;
+	ret
 
-Scan_Disk_Table endp								;an012; dms;
+Scan_Disk_Table endp
 
 
 
@@ -3747,42 +3745,42 @@ Scan_Disk_Table endp								;an012; dms;
 ;	Outputs : DeviceParameters.DP_BPB.BPB_SectorsPerFat
 ;=========================================================================
 
-Procedure Calc_Big_FAT								;an012; dms;
+Procedure Calc_Big_FAT
 
 	cmp	DeviceParameters.DP_BPB.BPB_TotalSectors,00h			;an012; dms;small disk?
 ;	$if	ne								;an012; dms;yes
 	JE $$IF109
 		mov	dx,00h							;an012; dms;set high to 0
 		mov	ax,word ptr DeviceParameters.DP_BPB.BPB_TotalSectors	;an012; dms;get sector count
-;	$else									;an012; dms;
+;	$else
 	JMP SHORT $$EN109
 $$IF109:
 		mov	dx,word ptr DeviceParameters.DP_BPB.BPB_BigTotalSectors[+2]	;an012; dms;get high count
 		mov	ax,word ptr DeviceParameters.DP_BPB.BPB_BigTotalSectors[+0]	;an012; dms;get low count
-;	$endif									;an012; dms;
+;	$endif
 $$EN109:
 
 	mov	cl,04h								;an012; dms;16 DIR entries per sector
 	push	dx								;an012; dms;save total sectors (high)
 	mov	dx,DeviceParameters.DP_BPB.BPB_RootEntries			;an012; dms;get root entry count
 	shr	dx,cl								;an012; dms;divide by 16
-	sub	ax,dx								;an012; dms;
+	sub	ax,dx
 	pop	dx								;an012; dms;restore dx
-	sbb	dx,0								;an012; dms;
+	sbb	dx,0
 	sub	ax,1								;an012; dms;AX = T - R - D
-	sbb	dx,0								;an012; dms;
-	mov	bl,02h								;an012; dms;
+	sbb	dx,0
+	mov	bl,02h
 	mov	bh,DeviceParameters.DP_BPB.BPB_SectorsPerCluster		;an012; dms;get sectors per cluster
 	add	ax,bx								;an012; dms;AX = T-R-D+256*SPC+2
-	adc	dx,0								;an012; dms;
+	adc	dx,0
 	sub	ax,1								;an012; dms;AX = T-R-D+256*SPC+1
-	sbb	dx,0								;an012; dms;
+	sbb	dx,0
 	div	bx								;an012; dms; sec/FAT = CEIL((TOTAL-DIR-RES)/
 										;			    (256*SECPERCLUS+2)
 	mov	word ptr DeviceParameters.DP_BPB.BPB_SectorsPerFAT,ax		;an012; dms;Sectors/cluster
-	ret									;an012; dms;
+	ret
 
-Calc_Big_FAT	endp								;an012; dms;
+Calc_Big_FAT	endp
 
 
 ;=========================================================================
@@ -3794,39 +3792,39 @@ Calc_Big_FAT	endp								;an012; dms;
 ;	Outputs : DeviceParameters.DP_BPB.BPB_SectorsPerFat
 ;=========================================================================
 
-Procedure Calc_Small_FAT							;an012; dms;
+Procedure Calc_Small_FAT
 
 	cmp	DeviceParameters.DP_BPB.BPB_TotalSectors,00h			;an012; dms;small disk?
 ;	$if	ne								;an012; dms;yes
 	JE $$IF112
 		mov	dx,00h							;an012; dms;set high to 0
 		mov	ax,word ptr DeviceParameters.DP_BPB.BPB_TotalSectors	;an012; dms;get sector count
-;	$else									;an012; dms;
+;	$else
 	JMP SHORT $$EN112
 $$IF112:
 		mov	dx,word ptr DeviceParameters.DP_BPB.BPB_BigTotalSectors[+2]	;an012; dms;get high count
 		mov	ax,word ptr DeviceParameters.DP_BPB.BPB_BigTotalSectors[+0]	;an012; dms;get low count
-;	$endif									;an012; dms;
+;	$endif
 $$EN112:
 
 	xor	bx,bx								;an012; dms;clear bx
 	mov	bl,DeviceParameters.DP_BPB.BPB_SectorsPerCluster		;an012; dms;get sectors/cluster
-	div	bx								;an012; dms;
+	div	bx
 ; now multiply by 3/2
-	mov	bx,3								;an012; dms;
+	mov	bx,3
 	mul	bx								;an012; dms;div by log 2 of sectors/cluster
-	mov	bx,2								;an012; dms;
-	div	bx								;an012; dms;
-	xor	dx,dx								;an012; dms;
+	mov	bx,2
+	div	bx
+	xor	dx,dx
 ; now divide by 512
-	mov	bx,512								;an012; dms;
-	div	bx								;an012; dms;
-	inc	ax								;an012; dms;
+	mov	bx,512
+	div	bx
+	inc	ax
 ; dx:ax contains number of FAT sectors necessary
 	mov	DeviceParameters.DP_BPB.BPB_SectorsPerFAT,ax			;an012; dms;save sectors/FAT
-	ret									;an012; dms;
+	ret
 
-Calc_Small_FAT	endp								;an012; dms;
+Calc_Small_FAT	endp
 
 ;=========================================================================
 ; Get_Bad_Sector_Hard	: Determine the bad sector.
@@ -3849,7 +3847,7 @@ Calc_Small_FAT	endp								;an012; dms;
 ;	Outputs : Marked cluster as bad
 ;=========================================================================
 
-Procedure Get_Bad_Sector_Hard							;an000; dms;
+Procedure Get_Bad_Sector_Hard
 
 	push	cx								;an000; dms;save cx
 	mov	cx,0001h							;an000; dms;set counter to start at 1
@@ -3868,24 +3866,24 @@ $$DO115:
 			call	Calc_Cluster_Boundary				;an000; dms;see if on boundary
 			mov	ax,Cluster_Boundary_Buffer_Seg
 			mov	word ptr RWPacket.TRWP_TransferAddress[0],0	;an000; dms;point to transfer area
-			mov	word ptr RWPacket.TRWP_TransferAddress[2],ax	;an000; dms;
+			mov	word ptr RWPacket.TRWP_TransferAddress[2],ax
 ;		$else								;an000; dms;default to internal buffer
 		JMP SHORT $$EN117
 $$IF117:
 			mov	word ptr RWPacket.TRWP_TransferAddress[0],offset RW_TRF_Area  ;an000; dms;point to transfer area
-			mov	word ptr RWPacket.TRWP_TransferAddress[2],DS	;an000; dms;
-;		$endif								;an000; dms;
+			mov	word ptr RWPacket.TRWP_TransferAddress[2],DS
+;		$endif
 $$EN117:
 
 		call	Verify_Structure_Set_Up 				;an019; dms; set up verify vars
 
-		mov	ax,(IOCTL shl 8) or GENERIC_IOCTL			;an000; dms;
+		mov	ax,(IOCTL shl 8) or GENERIC_IOCTL
 		xor	bx,bx							;an000; dms;clear bx
 		mov	bl,drive						;an000; dms;get drive
 		inc	bl							;an000; dms;adjust it
 		mov	cx,(IOC_DC shl 8) or READ_TRACK 			;an000; dms;read track
 		lea	dx,RWPacket						;an000; dms;point to parms
-		int	21h							;an000; dms;
+		int	21h
 
 		pop	cx							;an000; dms;restore cx
 
@@ -3895,7 +3893,7 @@ $$EN117:
 		JNC $$IF120
 			call	Calc_Cluster_Position				;an000; dms;determine which cluster
 			call	BadClus 					;an000; dms;mark the cluster as bad
-;		$endif								;an000; dms;
+;		$endif
 $$IF120:
 
 		pop	cx							;an000; dms;restore cx
@@ -3909,15 +3907,15 @@ $$IF120:
 		mov	Relative_Sector_High,dx 				;an000; dms;save high word
 
 
-;	$enddo									;an000; dms;
+;	$enddo
 	JMP SHORT $$DO115
 $$EN115:
 
 	pop	cx								;an000; dms;restore cx
 
-	ret									;an000; dms;
+	ret
 
-Get_Bad_Sector_Hard	endp							;an000; dms;
+Get_Bad_Sector_Hard	endp
 
 
 ;=========================================================================
@@ -3951,7 +3949,7 @@ Procedure	Verify_Structure_Set_Up 					;an019; dms;set up verify structure
 
 	ret
 
-Verify_Structure_Set_Up endp							;an019; dms;
+Verify_Structure_Set_Up endp
 
 
 ;=========================================================================
@@ -3963,10 +3961,10 @@ Verify_Structure_Set_Up endp							;an019; dms;
 ;	Outputs : FAT marked with bad sectors
 ;=========================================================================
 
-Procedure Get_Bad_Sector_Floppy 						;an000; dms;
+Procedure Get_Bad_Sector_Floppy
 
 	push	bx								;an000; dms;save regs
-	push	cx								;an000; dms;
+	push	cx
 
 	mov	cx,DeviceParameters.DP_BPB.BPB_SectorsPerTrack			;an000; dms;get sectors/track
 ;	$do									;an000; dms;while sectors left
@@ -3979,19 +3977,19 @@ $$DO123:
 		call	Calc_Cluster_Position					;an000; dms;get cluster position
 		call	BadClus 						;an000; dms;mark it as bad
 		pop	cx							;an000; dms;restore regs
-		pop	bx							;an000; dms;
+		pop	bx
 		dec	cx							;an000; dms;decrease loop counter
 		inc	Relative_Sector_Low					;an000; dms;next sector
-;	$enddo									;an000; dms;
+;	$enddo
 	JMP SHORT $$DO123
 $$EN123:
 
 	pop	cx								;an000; dms;restore regs
-	pop	bx								;an000; dms;
+	pop	bx
 
-	ret									;an000; dms;
+	ret
 
-Get_Bad_Sector_Floppy	endp							;an000; dms;
+Get_Bad_Sector_Floppy	endp
 
 
 ;=========================================================================
@@ -4003,11 +4001,11 @@ Get_Bad_Sector_Floppy	endp							;an000; dms;
 ;
 ;	Outputs : DX:AX - Cluster position
 ;=========================================================================
-Procedure Calc_Cluster_Position 						;an000; dms;
+Procedure Calc_Cluster_Position
 
 	push	cx								;an000; dms;save regs
-	push	di								;an000; dms;
-	push	si								;an000; dms;
+	push	di
+	push	si
 
 	xor	dx,dx								;an000; dms;clear high word
 	mov	dx,word ptr Relative_Sector_High				;an000; dms;get the high sector word
@@ -4027,12 +4025,12 @@ Procedure Calc_Cluster_Position 						;an000; dms;
 	adc	dx,0								;an000; dms;pick up carry
 
 	pop	si								;an000; dms;restore regs
-	pop	di								;an000; dms;
-	pop	cx								;an000; dms;
+	pop	di
+	pop	cx
 
 	ret									;an000 ;dms;
 
-Calc_Cluster_Position	endp							;an000; dms;
+Calc_Cluster_Position	endp
 
 
 ;=========================================================================
@@ -4044,15 +4042,15 @@ Calc_Cluster_Position	endp							;an000; dms;
 ;	Outputs : DL - Capitalized character
 ;=========================================================================
 
-Procedure Cap_Char								;an011; dms;
+Procedure Cap_Char
 
 	push	ax								;an011; dms;save ax
 	mov	ax,6520h							;an011; dms;capitalize character
-	int	21h								;an011; dms;
+	int	21h
 	pop	ax								;an011; dms;restore ax
-	ret									;an011; dms;
+	ret
 
-Cap_Char	endp								;an011; dms;
+Cap_Char	endp
 
 ;=========================================================================
 ; Set_Disk_Access_On_Off: This routine will either turn access on or off
@@ -4063,12 +4061,12 @@ Cap_Char	endp								;an011; dms;
 ;
 ;=========================================================================
 
-Procedure Set_Disk_Access_On_Off						;an014; dms;
+Procedure Set_Disk_Access_On_Off
 
 	push	ax								;an014; dms;save regs
-	push	bx								;an014; dms;
-	push	cx								;an014; dms;
-	push	dx								;an014; dms;
+	push	bx
+	push	cx
+	push	dx
 
 	xor	bx,bx								;an014; dms;clear bx
 	mov	bl,Drive							;an014; dms;get driver number
@@ -4081,18 +4079,18 @@ Procedure Set_Disk_Access_On_Off						;an014; dms;
 		mov	bl,Drive						;an014; dms;get drive letter
 		inc	bl							;an014; dms;make it 1 based
 		mov	cx,(RAWIO shl 8) or Set_Access_Flag			;an014; dms;allow access to disk
-		int	21h							;an014; dms;
-;	$endif									;an014; dms;
+		int	21h
+;	$endif
 $$IF126:
 
 	pop	dx								;an014; dms;restore regs
-	pop	cx								;an014; dms;
-	pop	bx								;an014; dms;
-	pop	ax								;an014; dms;
+	pop	cx
+	pop	bx
+	pop	ax
 
-	ret									;an014; dms;
+	ret
 
-Set_Disk_Access_On_Off	endp							;an014; dms;
+Set_Disk_Access_On_Off	endp
 
 
 ;=========================================================================
@@ -4105,12 +4103,12 @@ Set_Disk_Access_On_Off	endp							;an014; dms;
 ;
 ;=========================================================================
 
-Procedure Get_Disk_Access							;an014; dms;
+Procedure Get_Disk_Access
 
 	push	ax								;an014; dms;save regs
-	push	bx								;an014; dms;
-	push	cx								;an014; dms;
-	push	dx								;an014; dms;
+	push	bx
+	push	cx
+	push	dx
 
 	xor	bx,bx								;an014; dms;clear bx
 	mov	bl,Drive							;an014; dms;get driver number
@@ -4124,24 +4122,24 @@ Procedure Get_Disk_Access							;an014; dms;
 		inc	bl							;an014; dms;make it 1 based
 		mov	cx,(RAWIO shl 8) or Get_Access_Flag			;an014; dms;determine disk access
 		lea	dx,Disk_Access						;an014; dms;point to parm list
-		int	21h							;an014; dms;
+		int	21h
 		cmp	Disk_Access.DAC_Access_Flag,01h 			;an014; dms;access is currently allowed?
 ;		$if	e							;an014; dms;yes
 		JNE $$IF129
 			mov	Disk_Access.DAC_Access_Flag,0ffh		;an014; dms;signal access is currently allowed
-;		$endif								;an014; dms;
+;		$endif
 $$IF129:
-;	$endif									;an014; dms;
+;	$endif
 $$IF128:
 
 	pop	dx								;an014; dms;restore regs
-	pop	cx								;an014; dms;
-	pop	bx								;an014; dms;
-	pop	ax								;an014; dms;
+	pop	cx
+	pop	bx
+	pop	ax
 
-	ret									;an014; dms;
+	ret
 
-Get_Disk_Access 	endp							;an014; dms;
+Get_Disk_Access 	endp
 
 ;=========================================================================
 ; Calc_Cluster_Boundary : This routine will determine where, within a
@@ -4157,14 +4155,14 @@ Get_Disk_Access 	endp							;an014; dms;
 ;						  a track.
 ;=========================================================================
 
-Procedure Calc_Cluster_Boundary 						;an000; dms;
+Procedure Calc_Cluster_Boundary
 
 	push	ax								;an000; dms;save regs
-	push	bx								;an000; dms;
-	push	cx								;an000; dms;
-	push	dx								;an000; dms;
-	push	si								;an000; dms;
-	push	di								;an000; dms;
+	push	bx
+	push	cx
+	push	dx
+	push	si
+	push	di
 
 	xor	dx,dx								;an000; dms;clear high word
 	mov	dx,word ptr Relative_Sector_High				;an000; dms;get the high sector word
@@ -4181,7 +4179,7 @@ Procedure Calc_Cluster_Boundary 						;an000; dms;
 	or	cx,cx								;an000; dms;see if remainder exists
 ;	$if	nz								;an000; dms;remainder exists
 	JZ $$IF132
-		xor	bx,bx							;an021; dms;
+		xor	bx,bx
 		mov	bl,DeviceParameters.DP_BPB.BPB_SectorsPerCluster	;an021; dms;get sectors/cluster
 		sub	bx,cx							;an021; dms;get number of sectors to read
 		mov	Cluster_Boundary_Adj_Factor,bx				;ac021; dms;remainder = sector count
@@ -4191,7 +4189,7 @@ $$IF132:
 		xor	bx,bx							;an000; dms;clear bx
 		mov	bl,DeviceParameters.DP_BPB.BPB_SectorsPerCluster	;an000; dms;get sectors/cluster
 		mov	Cluster_Boundary_Adj_Factor,bx				;an000; dms;get sectors/cluster
-;	$endif									;an000; dms;
+;	$endif
 $$EN132:
 
 	mov	ax,Cluster_Boundary_SPT_Count					;an000; dms;get current sector count
@@ -4202,8 +4200,8 @@ $$EN132:
 	JNA $$IF135
 		mov	ax,DeviceParameters.DP_BPB.BPB_SectorsPerTrack		;an000; dms;only use difference
 		sub	ax,Cluster_Boundary_SPT_Count				;an000; dms;get next sector count
-		mov	Cluster_Boundary_Adj_Factor,ax				;an000; dms;
-;	$endif									;an000; dms;
+		mov	Cluster_Boundary_Adj_Factor,ax
+;	$endif
 $$IF135:
 
 	mov	ax,Cluster_Boundary_SPT_Count					;an000; dms;get sector count
@@ -4212,15 +4210,15 @@ $$IF135:
 	mov	Cluster_Boundary_SPT_Count,ax					;an000; dms;save it
 
 	pop	di								;an000; dms;restore regs
-	pop	si								;an000; dms;
+	pop	si
 	pop	dx								;an000; dms;restore regs
-	pop	cx								;an000; dms;
-	pop	bx								;an000; dms;
-	pop	ax								;an000; dms;
+	pop	cx
+	pop	bx
+	pop	ax
 
-	ret									;an000; dms;
+	ret
 
-Calc_Cluster_Boundary	endp							;an000; dms;
+Calc_Cluster_Boundary	endp
 
 ;=========================================================================
 ; Cluster_Buffer_Allocate	: This routine will allocate a buffer
@@ -4237,16 +4235,16 @@ Calc_Cluster_Boundary	endp							;an000; dms;
 ;		  Cluster_Boundary_Buffer_Seg	- Pointer to buffer
 ;=========================================================================
 
-Procedure Cluster_Buffer_Allocate						;an000; dms;
+Procedure Cluster_Buffer_Allocate
 
 	push	ax								;an000; dms;save regs
-	push	bx								;an000; dms;
-	push	cx								;an000; dms;
-	push	dx								;an000; dms;
+	push	bx
+	push	cx
+	push	dx
 
 	mov	ax,(Alloc shl 8)						;an000; dms;allocate memory
 	mov	bx,0ffffh							;an000; dms;get available memory
-	int	21h								;an000; dms;
+	int	21h
 
 	mov	ax,DeviceParameters.DP_BPB.BPB_BytesPerSector			;an000; dms;get bytes/sector
 	xor	dx,dx								;an000; dms;clear high word
@@ -4261,25 +4259,25 @@ Procedure Cluster_Buffer_Allocate						;an000; dms;
 ;	$if	a								;an000; dms;yes
 	JNA $$IF137
 		mov	bx,ax							;an000; dms;allocate needed memory
-		mov	ax,(Alloc shl 8)					;an000; dms;
-		int	21h							;an000; dms;
+		mov	ax,(Alloc shl 8)
+		int	21h
 		mov	Cluster_Boundary_Buffer_Seg,ax				;an000; dms;save pointer to buffer
 		mov	Cluster_Boundary_Flag,(True) AND 0FFh				;an000; dms;signal space available
 ;	$else									;an000; dms;not enough room
 	JMP SHORT $$EN137
 $$IF137:
 		mov	Cluster_Boundary_Flag,False				;an000; dms;signal not enough space
-;	$endif									;an000; dms;
+;	$endif
 $$EN137:
 
 	pop	dx								;an000; dms;restore regs
-	pop	cx								;an000; dms;
-	pop	bx								;an000; dms;
-	pop	ax								;an000; dms;
+	pop	cx
+	pop	bx
+	pop	ax
 
-	ret									;an000; dms;
+	ret
 
-Cluster_Buffer_Allocate endp							;an000; dms;
+Cluster_Buffer_Allocate endp
 
 
 ;=========================================================================
@@ -4289,21 +4287,21 @@ Cluster_Buffer_Allocate endp							;an000; dms;
 ;
 ;=========================================================================
 
-Procedure Set_CDS_Off								;an000; dms;
+Procedure Set_CDS_Off
 
 	push	ax								;an000; dms;save regs
-	push	dx								;an000; dms;
+	push	dx
 
 	mov	ax,5f08h							;an000; dms;reset CDS
 	mov	dl,Drive							;an000; dms;drive to reset
-	int	21h								;an000; dms;
+	int	21h
 
 	pop	dx								;an000; dms;restore regs
-	pop	ax								;an000; dms;
+	pop	ax
 
-	ret									;an000; dms;
+	ret
 
-Set_CDS_Off	endp								;an000; dms;
+Set_CDS_Off	endp
 
 
 ;=========================================================================
@@ -4314,7 +4312,7 @@ Set_CDS_Off	endp								;an000; dms;
 ;
 ;=========================================================================
 
-Procedure Format_Access_Wrap_Up 						;an000; dms;
+Procedure Format_Access_Wrap_Up
 
 	cmp	Disk_Access.DAC_Access_Flag,0ffh				;an015; dms;access prev. allowed?
 ;	$if	ne								;an015; dms;no
@@ -4331,9 +4329,9 @@ $$IF141:
 		       lea     dx,Disk_Access					;an015; dms;point to parm block
 		       mov     Disk_Access.DAC_Access_Flag,01h			;an015; dms;signal disk access
 		       call    Set_Disk_Access_On_Off				;an015; dms;allow disk access
-;	       $endif								;an015; dms;
+;	       $endif
 $$EN141:
-;	$endif									;an015; dms;
+;	$endif
 $$IF140:
 
 	cmp	FAT_Flag,No							;an012; dms;non-FAT format?
@@ -4343,14 +4341,14 @@ $$IF140:
 ;		$if	ne							;an012; dms;no
 		JE $$IF146
 			call	Set_CDS_Off					;an012; dms;disallow FAT access
-;		$endif								;an012; dms;
+;		$endif
 $$IF146:
-;	$endif									;an012; dms;
+;	$endif
 $$IF145:
 
-	ret									;an000; dms;
+	ret
 
-Format_Access_Wrap_Up	endp							;an000; dms;
+Format_Access_Wrap_Up	endp
 
 ;=========================================================================
 ; BadClus_Address_Adjust	- This routine adjusts the segment and
@@ -4365,12 +4363,12 @@ Format_Access_Wrap_Up	endp							;an000; dms;
 ;		  ax	- new offset value
 ;=========================================================================
 
-Procedure BadClus_Address_Adjust						;an000; dms;
+Procedure BadClus_Address_Adjust
 
 	push	bx								;an000; save regs
-	push	dx								;an000;
-	push	di								;an000;
-	push	si								;an000;
+	push	dx
+	push	di
+	push	si
 
 	mov	dx,cx								;an000; save segment value
 	mov	si,bx								;an000; get high word for divide
@@ -4384,13 +4382,13 @@ Procedure BadClus_Address_Adjust						;an000; dms;
 	mov	cx,dx								;an000; pass back new segment
 
 	pop	si								;an000; restore regs
-	pop	di								;an000;
-	pop	dx								;an000;
-	pop	bx								;an000;
+	pop	di
+	pop	dx
+	pop	bx
 
-	ret									;an000; dms;
+	ret
 
-BadClus_Address_Adjust	endp							;an000; dms;
+BadClus_Address_Adjust	endp
 
 
 
@@ -4410,7 +4408,7 @@ BadClus_Address_Adjust	endp							;an000; dms;
 ;		  NC			- tracks left to format
 ;=========================================================================
 
-Procedure NextTrack								;an015; dms;
+Procedure NextTrack
 
 
 	cmp	TracksLeft,00							;an015; dms;end of format?
@@ -4437,21 +4435,21 @@ $$DO151:
 			JNE $$IF154
 				mov	FormatPacket.FP_Head,00 		;an015; dms;reinit. head
 				inc	FormatPacket.FP_Cylinder		;an015; dms;next cylinder
-;			$endif							;an015; dms;
+;			$endif
 $$IF154:
 
 			dec	cx						;an015; dms;decrease counter
-;		$enddo								;an015; dms;
+;		$enddo
 		JMP SHORT $$DO151
 $$EN151:
 
 		clc								;an015; dms;clear CY
-;	$endif									;an015; dms;
+;	$endif
 $$EN149:
 
-	ret									;an015; dms;
+	ret
 
-NextTrack	endp								;an015; dms;
+NextTrack	endp
 
 ;=========================================================================
 ; Determine_Format_Type : This routine determines the type of format
@@ -4465,21 +4463,21 @@ NextTrack	endp								;an015; dms;
 ;					  or multi track format
 ;=========================================================================
 
-Procedure Determine_Format_Type 						;an015; dms;
+Procedure Determine_Format_Type
 
 	cmp	DeviceParameters.DP_DeviceType,Dev_HardDisk			;an015; dms;harddisk?
 ;	$if	e								;an015; dms;yes
 	JNE $$IF158
 		mov	FormatPacket.FP_SpecialFunctions,Multi_Track_Format	;an015; dms;set for multi track format
-;	$else									;an015; dms;
+;	$else
 	JMP SHORT $$EN158
 $$IF158:
 		mov	FormatPacket.FP_SpecialFunctions,Single_Track_Format	;an015; dms;set for single track format
-;	$endif									;an015; dms;
+;	$endif
 $$EN158:
-	ret									;an015; dms;
+	ret
 
-Determine_Format_Type	endp							;an015; dms;
+Determine_Format_Type	endp
 
 
 ;=========================================================================
@@ -4495,7 +4493,7 @@ Determine_Format_Type	endp							;an015; dms;
 ;		  AX			- extended error on CY
 ;=========================================================================
 
-Procedure FormatTrack								;an015; dms;
+Procedure FormatTrack
 
 	mov	ax,(IOCTL shl 8) or Generic_IOCTL				;an015; dms;Generic IOCTL
 	mov	bl,drive							;an015; dms;get drive number
@@ -4512,20 +4510,20 @@ FormatTrackSelected:
 	mov	dx,Tracks_To_Format						;an015; dms;get track count
 	mov	FormatPacket.FP_TrackCount,dx					;an015; dms;put count in parms list
 	lea	dx,FormatPacket 						;an015; dms;ptr to parms
-	int	21h								;an015; dms;
+	int	21h
 
 ;	$if	c								;an015; dms;error?
 	JNC $$IF161
 		mov	ah,59h							;an015; dms;get extended error
 		xor	bx,bx							;an015; dms;clear bx
-		int	21h							;an015; dms;
+		int	21h
 		stc								;an015; dms;flag an error
-;	$endif									;an015; dms;
+;	$endif
 $$IF161:
 
-	ret									;an015; dms;
+	ret
 
-FormatTrack	endp								;an015; dms;
+FormatTrack	endp
 
 
 ;=========================================================================
@@ -4543,7 +4541,7 @@ FormatTrack	endp								;an015; dms;
 ;						  call
 ;=========================================================================
 
-Procedure Determine_Track_Count 						;an015; dms;
+Procedure Determine_Track_Count
 
 	cmp	DeviceParameters.DP_DeviceType,Dev_HardDisk			;an015; dms;harddisk?
 ;	$if	e								;an015; dms;yes
@@ -4553,12 +4551,12 @@ Procedure Determine_Track_Count 						;an015; dms;
 	JMP SHORT $$EN163
 $$IF163:
 		mov	Tracks_To_Format,0001h					;an015; dms;default to 1 track
-;	$endif									;an015; dms;
+;	$endif
 $$EN163:
 
-	ret									;an015; dms;
+	ret
 
-Determine_Track_Count	endp							;an015;dms;
+Determine_Track_Count	endp
 
 
 ;=========================================================================
@@ -4581,7 +4579,7 @@ Determine_Track_Count	endp							;an015;dms;
 ;
 ;=========================================================================
 
-Procedure Calc_Track_Count							;an015; dms;
+Procedure Calc_Track_Count
 
 	push	ax								;an015; dms;save regs
 	mov	ax,Track_Count							;an015; dms;max bytes to format
@@ -4589,15 +4587,15 @@ Procedure Calc_Track_Count							;an015; dms;
 ;	$if	a								;an015; dms;yes
 	JNA $$IF166
 		mov	ax,TracksLeft						;an015; dms;format remaining tracks
-;	$endif									;an015; dms;
+;	$endif
 $$IF166:
 	mov	Tracks_To_Format,ax						;an015; dms;save track count
 
-	pop	ax								;an015; dms;
+	pop	ax
 
-	ret									;an015; dms;
+	ret
 
-Calc_Track_Count	endp							;an015; dms;
+Calc_Track_Count	endp
 
 ;=========================================================================
 ; Calc_Max_Tracks_To_Format	: This routine determines the maximum
@@ -4613,8 +4611,8 @@ Calc_Track_Count	endp							;an015; dms;
 Procedure Calc_Max_Tracks_To_Format
 
 	push	ax								;an015; dms;save regs
-	push	bx								;an015; dms;
-	push	dx								;an015; dms;
+	push	bx
+	push	dx
 
 	mov	ax,DeviceParameters.DP_BPB.BPB_SectorsPerTrack			;an015; dms;get sectors per track
 	mov	bx,DeviceParameters.DP_BPB.BPB_BytesPerSector			;an015; dms;get byte count
@@ -4625,9 +4623,9 @@ Procedure Calc_Max_Tracks_To_Format
 	div	bx								;an015; dms;get track count
 	mov	Track_Count,ax
 
-	pop	dx								;an015; dms;
-	pop	bx								;an015; dms;
-	pop	ax								;an015; dms;
+	pop	dx
+	pop	bx
+	pop	ax
 
 	ret
 
@@ -4664,15 +4662,15 @@ $$DO168:
 			call	DisplayCurrentTrack				;an022; dms;adjust percent counter
 			call	Adj_Track_Count
 			call	NextTrack					;an015; dms;calc next track
-;		$endif								;an015; dms;
+;		$endif
 $$IF170:
-;	$enddo									;an015; dms;
+;	$enddo
 	JMP SHORT $$DO168
 $$EN168:
 
-	ret									;an015; dms;
+	ret
 
-Format_Track_Retry	endp							;an015; dms;
+Format_Track_Retry	endp
 
 ;=========================================================================
 ; Format_Loop			: This routine provides the main template
@@ -4688,7 +4686,7 @@ Format_Track_Retry	endp							;an015; dms;
 ;		  AX - Possible error condition code
 ;=========================================================================
 
-Procedure Format_Loop								;an015; dms;
+Procedure Format_Loop
 
 	clc									;an015; dms;initialize to NC
 ;	$do									;an015; dms;while NC
@@ -4707,13 +4705,13 @@ $$DO173:
 			JNE $$IF176
 				popf						;an015; dms;restore flags
 				call	Format_Track_Retry			;an015; dms;find failing track
-;			$else							;an015; dms;
+;			$else
 			JMP SHORT $$EN176
 $$IF176:
 				popf						;an015; dms;restore flags
-;			$endif							;an015; dms;
+;			$endif
 $$EN176:
-;		$endif								;an015; dms;
+;		$endif
 $$IF175:
 
 ;		$if	c							;an015; dms;format error?
@@ -4724,11 +4722,11 @@ $$IF175:
 ;			$if	nc						;an015; dms;if non-fatal
 			JC $$IF181
 				call	DisplayCurrentTrack			;an015; dms;display % formatted
-;			$endif							;an015; dms;
+;			$endif
 $$IF181:
 			pop	ax						;an015; dms;restore regs
-			popf							;an015; dms;
-;		$endif								;an015; dms;
+			popf
+;		$endif
 $$IF180:
 
 ;		$leave	c							;an015; dms;exit on CY
@@ -4737,12 +4735,12 @@ $$IF180:
 		call	DisplayCurrentTrack					;an015; dms;tell how much formatted
 		call	Adj_Track_Count 					;an015; dms;decrease track counter
 		call	NextTrack						;an015; dms;adjust head and cylinder
-;	$enddo									;an015; dms;
+;	$enddo
 	JMP SHORT $$DO173
 $$EN173:
-	ret									;an015; dms;
+	ret
 
-Format_Loop	endp								;an015; dms;
+Format_Loop	endp
 
 ;=========================================================================
 ; Adj_Track_Count	: This routine adjusts the track count by the
@@ -4755,16 +4753,16 @@ Format_Loop	endp								;an015; dms;
 ;	Outputs : TracksLeft	- # of tracks remaining to be formatted
 ;=========================================================================
 
-Procedure Adj_Track_Count							;an015; dms;
+Procedure Adj_Track_Count
 
 	push	ax								;an015; dms; save regs
 	mov	ax,TracksLeft							;an015; dms; get tracks remaining
 	sub	ax,Tracks_To_Format						;an015; dms; subtract amount formatted
 	mov	TracksLeft,ax							;an015; dms; save new tracks remaining value
 	pop	ax								;an015; dms; restore regs
-	ret									;an015; dms;
+	ret
 
-Adj_Track_Count endp								;an015; dms;
+Adj_Track_Count endp
 
 ;=========================================================================
 ; Prompt_User_For_Disk		: This routine prompts the user for the
@@ -4780,14 +4778,14 @@ Adj_Track_Count endp								;an015; dms;
 ;	Outputs : Message printed as appropriate.
 ;=========================================================================
 
-Procedure Prompt_User_For_Disk							;an016;dms;
+Procedure Prompt_User_For_Disk
 
 	push	ax								;an016;dms;save ax
-	test	switchmap, (SWITCH_Backup or SWITCH_Select or SWITCH_AUTOTEST) ;Suppress prompt?	       ;AC000;
-;	$IF	Z				;					      ;AC000;
+	test	switchmap, (SWITCH_Backup or SWITCH_Select or SWITCH_AUTOTEST) ;Suppress prompt?
+;	$IF	Z				;
 	JNZ $$IF186
 	   call    DSKPRM			; prompt user for disk
-;	$ENDIF					;					      ;AC000;
+;	$ENDIF					;
 $$IF186:
 
 	test	switchmap, (Switch_Select)					;an016;dms;/SELECT requested?
@@ -4797,13 +4795,13 @@ $$IF186:
 		call	AccessDisk						;an016;dms;access the disk
 		mov	ax,Select_Disk_Message					;an016;dms;display disk prompt
 		int	2fh							;an016;dms;  through INT 2fh services
-;	$endif									;an016;dms;
+;	$endif
 $$IF188:
 	pop	ax								;an016;dms;restore ax
 
-	ret									;an016;dms;
+	ret
 
-Prompt_User_For_Disk	endp							;an016;dms;
+Prompt_User_For_Disk	endp
 
 
 code	ends

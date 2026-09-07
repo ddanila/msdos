@@ -1,4 +1,3 @@
-;	SCCSID = @(#)finfo.asm	1.1 85/04/11
 TITLE	FILE_INFO - Internal Get/Set File Info routines
 NAME	FILE_INFO
 ; Low level routines for returning file information and setting file
@@ -6,14 +5,6 @@ NAME	FILE_INFO
 ;
 ;   GET_FILE_INFO
 ;   SET_FILE_ATTRIBUTE
-;
-;   Modification history:
-;
-;	Created: ARR 30 March 1983
-;
-
-;
-; get the appropriate segment definitions
 ;
 .xlist
 include dosseg.asm
@@ -77,20 +68,20 @@ PAGE
 
 	Invoke	TestNet
 	JNC	Local_Info
-;	invoke	OWN_SHARE2		       ;IFS. IFS owns share ?		;AN000;
-;	JZ	ifsshare		       ;IFS. yes			;AN000;
-;	PUSH	WORD PTR [DMAADD+2]	       ;IFS. save DMAADD		;AN000;
-;	PUSH	WORD PTR [DMAADD]	       ;IFS.				;AN000;
-;	invoke	IFS_SEARCH_FIRST	       ;IFS. do search first		;AN000;
-;	JC	nofiles 		       ;IFS. file not existing		;AN000;
-delete_next_file:			       ;IFS.				;AN000;
-;	invoke	IFS_REN_DEL_CHECK	       ;IFS. do REN_DEL_CHECK		;AN000;
-;	JNC	share_okok		       ;IFS. share ok			;AN000;
-;	MOV	AX,error_sharing_violation     ;IFS. share violation		;AN000;
-;	JMP	SHORT nofiles		       ;IFS.				;AN000;
+;	invoke	OWN_SHARE2		       ;IFS. IFS owns share ?
+;	JZ	ifsshare		       ;IFS. yes
+;	PUSH	WORD PTR [DMAADD+2]	       ;IFS. save DMAADD
+;	PUSH	WORD PTR [DMAADD]	       ;IFS.
+;	invoke	IFS_SEARCH_FIRST	       ;IFS. do search first
+;	JC	nofiles 		       ;IFS. file not existing
+delete_next_file:			       ;IFS.
+;	invoke	IFS_REN_DEL_CHECK	       ;IFS. do REN_DEL_CHECK
+;	JNC	share_okok		       ;IFS. share ok
+;	MOV	AX,error_sharing_violation     ;IFS. share violation
+;	JMP	SHORT nofiles		       ;IFS.
 share_okok:
-;	POP	WORD PTR [DMAADD]	       ;IFS. retor DMAADD		;AN000;
-;	POP	WORD PTR [DMAADD+2]	       ;IFS.				;AN000;
+;	POP	WORD PTR [DMAADD]	       ;IFS. retor DMAADD
+;	POP	WORD PTR [DMAADD+2]	       ;IFS.
 ifsshare:
 IF (NOT Installed) AND 0FFFFh
 	transfer NET_GET_FILE_INFO
@@ -100,8 +91,8 @@ ELSE
 	return
 ENDIF
 nofiles:
-;	POP	WORD PTR [DMAADD]	       ;IFS. retor DMAADD		;AN000;
-;	POP	WORD PTR [DMAADD+2]	       ;IFS.				;AN000;
+;	POP	WORD PTR [DMAADD]	       ;IFS. retor DMAADD
+;	POP	WORD PTR [DMAADD+2]	       ;IFS.
 ;	ret				       ;IFS. return
 
 LOCAL_INFO:
@@ -219,7 +210,7 @@ LOCAL_SET:
 	EnterCrit   critDisk
 	PUSH	AX			; Save new attributes
 	MOV	[NoSetDir],1		; if we find a dir, don't change to it
-	invoke	GetPath 		; get path through fastopen if there	 ;AC000;
+	invoke	GetPath 		; get path through fastopen if there
 	JNC	set_check_device
 	POP	BX			; Clean stack (don't zap AX)
 	JMP	NO_PATH
@@ -243,9 +234,9 @@ set_do:
 	AND	BYTE PTR ES:[BX].dir_attr,NOT attr_changeable
 	OR	BYTE PTR ES:[BX].dir_attr,AL
 
-	TEST	ES:[DI.buf_flags],buf_dirty  ;LB. if already dirty		;AN000;
-	JNZ	yesdirty		  ;LB.	  don't increment dirty count   ;AN000;
-	invoke	INC_DIRTY_COUNT 	  ;LB.					;AN000;
+	TEST	ES:[DI.buf_flags],buf_dirty  ;LB. if already dirty
+	JNZ	yesdirty		  ;LB.	  don't increment dirty count
+	invoke	INC_DIRTY_COUNT 	  ;LB.
 	OR	ES:[DI.buf_flags],buf_dirty
 yesdirty:
 	MOV	AL,[THISDRV]
@@ -273,11 +264,11 @@ EndProc SET_FILE_ATTRIBUTE
 	procedure   GET_FAST_PATH,NEAR
 	ASSUME	DS:NOTHING,ES:NOTHING
 
-	OR	[FastOpenFlg],FastOpen_Set ;FO. trigger fastopen		;AN000;
+	OR	[FastOpenFlg],FastOpen_Set ;FO. trigger fastopen
 	invoke	GetPath
-	PUSHF			       ;FO.					;AN000;
-	AND    [FastOpenFlg],Fast_yes  ;FO. clear all fastopen flags		;AN000;
-	POPF			       ;FO.					;AN000;
+	PUSHF			       ;FO.
+	AND    [FastOpenFlg],Fast_yes  ;FO. clear all fastopen flags
+	POPF			       ;FO.
 	return
 
 EndProc GET_FAST_PATH

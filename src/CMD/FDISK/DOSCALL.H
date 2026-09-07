@@ -1,4 +1,3 @@
-/*static char *SCCSID = "@(#)doscall.h	6.25 86/06/03";*/
 /***	doscall.h
  *
  *	Shirleyd

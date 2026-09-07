@@ -86,44 +86,42 @@
 ;	 For LINK instructions, refer to the PROLOG of the main module,
 ;	 fastopen.asm.
 
-; REVISION HISTORY: A000 Version 4.00: add PARSER, System Message Handler,
-;
 ; COPYRIGHT: "MS DOS FASTOPEN Utility"
 ;	     "Version 4.00 (C)Copyright 1988 Microsoft "
 ;	     "Licensed Material - Property of Microsoft "
 ;
 ;****************** END OF SPECIFICATIONS *****************************
-	IF1				;					;AN000;
+	IF1				;
 	    %OUT    COMPONENT=fastopen, MODULE=fastsm.asm...
-	ENDIF				;					;AN000;
+	ENDIF				;
 ; =  =	=  =  =  =  =  =  =  =	=  =
 
-HEADER	MACRO	TEXT			;;					;AN000;
+HEADER	MACRO	TEXT			;;
 .XLIST					;;
 	SUBTTL	TEXT
 .LIST					;;
-	PAGE				;;					;AN000;
-	ENDM				;;					;AN000;
+	PAGE				;;
+	ENDM				;;
 ; =  =	=  =  =  =  =  =  =  =	=  =
-	INCLUDE SYSMSG.INC		;PERMIT SYSTEM MESSAGE HANDLER DEFINITION ;AN000;
-	MSG_UTILNAME <fastopen> 	;IDENTIFY THE COMPONENT 		;AN000;
+	INCLUDE SYSMSG.INC		;PERMIT SYSTEM MESSAGE HANDLER DEFINITION
+	MSG_UTILNAME <fastopen> 	;IDENTIFY THE COMPONENT
 ; =  =	=  =  =  =  =  =  =  =	=  =
-	HEADER	<DEFINITION OF MESSAGES> ;					;AN000;
+	HEADER	<DEFINITION OF MESSAGES> ;
 CSEG_INIT    SEGMENT PARA PUBLIC 'CODE' ;
 GINIT        GROUP CSEG_INIT
 	   ASSUME CS:CSEG_INIT		;ESTABLISHED BY CALLER
 	   ASSUME DS:CSEG_INIT		;ESTABLISHED BY CALLER
 	   ASSUME ES:CSEG_INIT		;ESTABLISHED BY CALLER
 
-	   PUBLIC COPYRIGHT	   ;						;AN000;
-COPYRIGHT  DB	 "MS DOS FASTOPEN Utility " ;                 ;AN000;
-	   INCLUDE COPYRIGH.INC    ;						;AN000;
-	   HEADER <MESSAGE DATA AREAS> ;					;AN000;
-	   MSG_SERVICES <MSGDATA>  ;WORKAREAS FOR SYSTEM MESSAGE HANDLER	;AN000;
+	   PUBLIC COPYRIGHT	   ;
+COPYRIGHT  DB	 "MS DOS FASTOPEN Utility " ;
+	   INCLUDE COPYRIGH.INC    ;
+	   HEADER <MESSAGE DATA AREAS> ;
+	   MSG_SERVICES <MSGDATA>  ;WORKAREAS FOR SYSTEM MESSAGE HANDLER
 ; =  =	=  =  =  =  =  =  =  =	=  =
-	   HEADER <SYSTEM MESSAGE HANDLER> ;					;AN000;
-	   PUBLIC SYSLOADMSG	   ;						;AN000;
-	   PUBLIC SYSDISPMSG	   ;						;AN000;
+	   HEADER <SYSTEM MESSAGE HANDLER> ;
+	   PUBLIC SYSLOADMSG	   ;
+	   PUBLIC SYSDISPMSG	   ;
 
 
 	MSG_SERVICES <FASTOPEN.CLA,FASTOPEN.CL1,FASTOPEN.CL2> ;
@@ -137,10 +135,10 @@ COPYRIGHT  DB	 "MS DOS FASTOPEN Utility " ;                 ;AN000;
 
 .xlist
 .xcref
-	MSG_SERVICES <LOADmsg,GETmsg,DISPLAYmsg,INPUTmsg,CHARmsg,NUMmsg> ;AN000;
+	MSG_SERVICES <LOADmsg,GETmsg,DISPLAYmsg,INPUTmsg,CHARmsg,NUMmsg>
 	include msgdcl.inc
 .cref
 .list
 ; = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 CSEG_INIT	ENDS			;
-	   END			   ;						;AN000;
+	   END			   ;

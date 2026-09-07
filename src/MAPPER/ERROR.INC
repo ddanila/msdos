@@ -1,6 +1,5 @@
 ;break <CP/DOS error codes>
 
-;       SCCSID = @(#)error.inc  6.2 86/02/27
 ;
 ; CP/DOS calls all return error codes through AX.  If an error occurred then
 ; the carry bit will be set and the error code is in AX.  If no error occurred

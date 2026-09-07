@@ -11,29 +11,8 @@ page	58,132
 ;
 ;   Module:   InitTab
 ;
-;   Version:  0.05
-;
-;   Date:     June 4,1986
-;
-;   Author:
-;
 ;******************************************************************************
 ;
-;   Change log:
-;
-;     DATE    REVISION			DESCRIPTION
-;   --------  --------	-------------------------------------------------------
-;   06/04/86  Original
-;   06/21/86  0.02	Added cld
-;   06/28/86  0.02	Name changed from MEMM386 to MEMM
-;   07/05/86  0.04	Added NOHIMEM ifdef and added code to
-;			move _TEXT segment to high mem
-;   07/06/86  0.04	changed assume to DGROUP
-;   07/06/86  0.04	added ring0 stack move
-;   07/10/86  0.05	removed CODE_GSEL reset
-;   07/10/86  0.05	PageT_Seg and PageD_Seg
-;
-;******************************************************************************
 ;
 ;   Functional Description:
 ;

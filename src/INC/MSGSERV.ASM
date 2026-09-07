@@ -45,8 +45,6 @@ ENDIF
 ;	 for RESIDENT COMMAND.COM and TRANSIENT COMMAND.COM to reduce resident
 ;	 storage and multiple EQUates.
 ;
-; REVISION HISTORY: Created MAY 1987
-;
 ;     Label: DOS - - Message Retriever
 ;	     (c) Copyright 1988 Microsoft
 ;
@@ -429,104 +427,103 @@ READ_DISK_PROC ENDP					     ;;AN003;;
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 							     ;;
-IF	FARmsg						     ;AN001;
-	SETSTDINON PROC FAR				     ;AN001;
-ELSE							     ;AN001;
-	SETSTDINON PROC NEAR				     ;AN001;
-ENDIF							     ;AN001;
+IF	FARmsg
+	SETSTDINON PROC FAR
+ELSE
+	SETSTDINON PROC NEAR
+ENDIF
 	PUSH	AX					     ;AN002; Save changed regs
-	PUSH	BX					     ;AN002;
-	PUSH	DX					     ;AN002;
+	PUSH	BX
+	PUSH	DX
 	MOV	AX,DOS_IOCTL_GET_INFO			     ;AN001; Get info using IOCTL
-	MOV	BX,STDIN				     ;AN001;
-	XOR	DX,DX					     ;AN001;
-	INT	21H					     ;AN001;
+	MOV	BX,STDIN
+	XOR	DX,DX
+	INT	21H
 
 	OR	DH,$M_CRIT_ERR_MASK			     ;AN001; Turn on bit
 	MOV	AX,DOS_IOCTL_SET_INFO			     ;AN001; Set info using IOCTL
-	INT	21H					     ;AN001;
+	INT	21H
 	POP	DX					     ;AN002; Restore Regs
-	POP	BX					     ;AN002;
-	POP	AX					     ;AN002;
+	POP	BX
+	POP	AX
 
-	RET						     ;AN001;
-							     ;AN001;
-	SETSTDINON ENDP 				     ;AN001;
+	RET
+	SETSTDINON ENDP
 
-IF	FARmsg						     ;AN001;
-	SETSTDINOFF PROC FAR				     ;AN001;
-ELSE							     ;AN001;
-	SETSTDINOFF PROC NEAR				     ;AN001;
-ENDIF							     ;AN001;
+IF	FARmsg
+	SETSTDINOFF PROC FAR
+ELSE
+	SETSTDINOFF PROC NEAR
+ENDIF
 
 	PUSH	AX					     ;AN002; Save changed regs
-	PUSH	BX					     ;AN002;
-	PUSH	DX					     ;AN002;
+	PUSH	BX
+	PUSH	DX
 	MOV	AX,DOS_IOCTL_GET_INFO			     ;AN001; Get info using IOCTL
-	MOV	BX,STDIN				     ;AN001;
-	XOR	DX,DX					     ;AN001;
-	INT	21H					     ;AN001;
+	MOV	BX,STDIN
+	XOR	DX,DX
+	INT	21H
 
 	AND	DH,NOT $M_CRIT_ERR_MASK 		     ;AN001; Turn off bit
 	MOV	AX,DOS_IOCTL_SET_INFO			     ;AN001; Set info using IOCTL
-	INT	21H					     ;AN001;
+	INT	21H
 	POP	DX					     ;AN002; Restore Regs
-	POP	BX					     ;AN002;
-	POP	AX					     ;AN002;
+	POP	BX
+	POP	AX
 
-	RET						     ;AN001;
+	RET
 
-	SETSTDINOFF ENDP				     ;AN001;
+	SETSTDINOFF ENDP
 
-IF	FARmsg						     ;AN001;
-	SETSTDOUTON PROC FAR				     ;AN001;
-ELSE							     ;AN001;
-	SETSTDOUTON PROC NEAR				     ;AN001;
-ENDIF							     ;AN001;
+IF	FARmsg
+	SETSTDOUTON PROC FAR
+ELSE
+	SETSTDOUTON PROC NEAR
+ENDIF
 
 	PUSH	AX					     ;AN002; Save changed regs
-	PUSH	BX					     ;AN002;
-	PUSH	DX					     ;AN002;
+	PUSH	BX
+	PUSH	DX
 	MOV	AX,DOS_IOCTL_GET_INFO			     ;AN001; Get info using IOCTL
-	MOV	BX,STDOUT				     ;AN001;
-	XOR	DX,DX					     ;AN001;
-	INT	21H					     ;AN001;
+	MOV	BX,STDOUT
+	XOR	DX,DX
+	INT	21H
 
 	OR	DH,$M_CRIT_ERR_MASK			     ;AN001; Turn on bit
 	MOV	AX,DOS_IOCTL_SET_INFO			     ;AN001; Set info using IOCTL
-	INT	21H					     ;AN001;
+	INT	21H
 	POP	DX					     ;AN002; Restore Regs
-	POP	BX					     ;AN002;
-	POP	AX					     ;AN002;
+	POP	BX
+	POP	AX
 
-	RET						     ;AN001;
+	RET
 
-	SETSTDOUTON ENDP				     ;AN001;
+	SETSTDOUTON ENDP
 
-IF	FARmsg						     ;AN001;
-	SETSTDOUTOFF PROC FAR				     ;AN001;
-ELSE							     ;AN001;
+IF	FARmsg
+	SETSTDOUTOFF PROC FAR
+ELSE
 	SETSTDOUTOFF PROC NEAR
-ENDIF							     ;AN001;
+ENDIF
 
 	PUSH	AX					     ;AN002; Save changed regs
-	PUSH	BX					     ;AN002;
-	PUSH	DX					     ;AN002;
+	PUSH	BX
+	PUSH	DX
 	MOV	AX,DOS_IOCTL_GET_INFO			     ;AN001; Get info using IOCTL
-	MOV	BX,STDOUT				     ;AN001;
-	XOR	DX,DX					     ;AN001;
-	INT	21H					     ;AN001;
+	MOV	BX,STDOUT
+	XOR	DX,DX
+	INT	21H
 
 	AND	DH,NOT $M_CRIT_ERR_MASK 		     ;AN001; Turn off bit
 	MOV	AX,DOS_IOCTL_SET_INFO			     ;AN001; Set info using IOCTL
-	INT	21H					     ;AN001;
+	INT	21H
 	POP	DX					     ;AN002; Restore Regs
-	POP	BX					     ;AN002;
-	POP	AX					     ;AN002;
+	POP	BX
+	POP	AX
 
-	RET						     ;AN001;
+	RET
 
-	SETSTDOUTOFF ENDP				     ;AN001;
+	SETSTDOUTOFF ENDP
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
       ENDIF						     ;;AN000;; END of include for SETSTDIO
 ; 
@@ -554,14 +551,14 @@ IF	FARmsg						     ;;AN000;;
 ELSE							     ;;AN000;;
 	SYSLOADMSG PROC NEAR				     ;;AN000;;
 ENDIF							     ;;AN000;;
-	PUSH	AX					     ;;AN000;
-	PUSH	BX					     ;;AN000;
-	PUSH	DX					     ;;AN000;
-	PUSH	ES					     ;;AN000;
-	PUSH	DI					     ;;AN000;
+	PUSH	AX					     ;
+	PUSH	BX					     ;
+	PUSH	DX					     ;
+	PUSH	ES					     ;
+	PUSH	DI					     ;
 	XOR	CX,CX					     ;;AN000;  Reset to zero
-	MOV	ES,CX					     ;;AN000;
-	XOR	DI,DI					     ;;AN000;
+	MOV	ES,CX					     ;
+	XOR	DI,DI					     ;
 	MOV	AX,DOS_GET_EXT_PARSE_ADD		     ;;AN000;; 2FH Interface
 	MOV	DL,DOS_GET_EXTENDED			     ;;AN000;; Where are the Extended errors in COMMAND.COM
 	INT	2FH					     ;;AN000;; Private interface
@@ -720,20 +717,20 @@ $M_GET_DBCS_VEC ENDP					     ;;
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 							     ;;
-$M_CHECKSTDIN PROC NEAR 				     ;AN001;
+$M_CHECKSTDIN PROC NEAR
 
 	  MOV	  AX,DOS_IOCTL_GET_INFO 		     ;AN001; Get info using IOCTL
-	  MOV	  BX,STDIN				     ;AN001;
-	  XOR	  DX,DX 				     ;AN001;
-	  INT	  21H					     ;AN001;
+	  MOV	  BX,STDIN
+	  XOR	  DX,DX
+	  INT	  21H
 
 	  OR	  DH,$M_CRIT_ERR_MASK			     ;AN001; Turn on bit
 	  MOV	  AX,DOS_IOCTL_SET_INFO 		     ;AN001; Set info using IOCTL
-	  INT	  21H					     ;AN001;
+	  INT	  21H
 
-	  RET						     ;AN001;
+	  RET
 
-$M_CHECKSTDIN ENDP					     ;AN001;
+$M_CHECKSTDIN ENDP
 							     ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	ENDIF						     ;AN001; END of include for EOF Check
@@ -755,20 +752,20 @@ $M_CHECKSTDIN ENDP					     ;AN001;
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 							     ;;
-$M_CHECKSTDOUT PROC NEAR				     ;AN001;
+$M_CHECKSTDOUT PROC NEAR
 
 	  MOV	  AX,DOS_IOCTL_GET_INFO 		     ;AN001; Get info using IOCTL
-	  MOV	  BX,STDOUT				     ;AN001;
-	  XOR	  DX,DX 				     ;AN001;
-	  INT	  21H					     ;AN001;
+	  MOV	  BX,STDOUT
+	  XOR	  DX,DX
+	  INT	  21H
 
 	  OR	  DH,$M_CRIT_ERR_MASK			     ;AN001; Turn on bit
 	  MOV	  AX,DOS_IOCTL_SET_INFO 		     ;AN001; Set info using IOCTL
-	  INT	  21H					     ;AN001;
+	  INT	  21H
 
-	  RET						     ;AN001;
+	  RET
 
-$M_CHECKSTDOUT ENDP					     ;AN001;
+$M_CHECKSTDOUT ENDP
 							     ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	ENDIF						     ;AN001;  END of include for Disk Full Check
@@ -980,7 +977,7 @@ $MDO36:
 	    JNE $MIF37
 	      IF      FARmsg				     ;;AN000;;
 	MSG_FORMAT_REF <LES	DI,DWORD PTR $M_RT.$M_CLASS_ADDRS[SI]>,0 ;;AN000;;  Get address of class
-		MOV	BX,ES				     ;;AN000;
+		MOV	BX,ES				     ;
 	      ELSE					     ;;AN000;;
 	        IF      COMR
 	MSG_FORMAT_REF <LES	DI,DWORD PTR $M_RT.$M_CLASS_ADDRS[SI]>,0 ;; Resident COMMAND far class
@@ -991,7 +988,7 @@ $MDO36:
 $M_COMR_CLASS_READY:
 	        ELSE
 	MSG_FORMAT_REF <MOV	DI,WORD PTR $M_RT.$M_CLASS_ADDRS[SI]>,0 ;;AN000;; Get address of class
-		  MOV	BX,DI				     ;;AN000;
+		  MOV	BX,DI				     ;
 	        ENDIF
 	      ENDIF					     ;;AN000;;
 ;	    $ELSE					     ;;AN000;; No,
@@ -1001,7 +998,7 @@ $MIF37:
 ;	      $IF     NE				     ;;AN000;;	 Yes,
 	      JE $MIF39
 	MSG_FORMAT_REF <LES	DI,DWORD PTR $M_RT.$M_PARSE_COMMAND[SI]>,0 ;;AN000;;   Get address of class
-		MOV	BX,ES				     ;;AN000;
+		MOV	BX,ES				     ;
 ;	      $ELSE					     ;;AN000;;	 No, extended errors were specified
 	      JMP SHORT $MEN39
 $MIF39:
@@ -1012,12 +1009,12 @@ $MIF39:
 ;		$IF	BE				     ;;AN000;;	    Yes,
 		JNBE $MIF41
 	MSG_FORMAT_REF <LES	  DI,DWORD PTR $M_RT.$M_CRIT_ADDRS[SI]>,0 ;;AN000;; Get address of class
-		  MOV	  BX,ES 			     ;;AN000;
+		  MOV	  BX,ES 			     ;
 ;		$ELSE					     ;;AN000;;
 		JMP SHORT $MEN41
 $MIF41:
 	MSG_FORMAT_REF <LES	  DI,DWORD PTR $M_RT.$M_EXT_ERR_ADDRS[SI]>,0 ;;AN000;; Get address of class
-		  MOV	  BX,ES 			     ;;AN000;
+		  MOV	  BX,ES 			     ;
 ;		$ENDIF					     ;;AN000;;
 $MEN41:
 ;	      $ENDIF					     ;;AN000;;
@@ -1234,7 +1231,7 @@ ENDIF
 $MEN78:
 ;	    $EXITIF E					     ;;AN000;;
 	    JNE $MIF76
-;	    $ORELSE					     ;;AN000;
+;	    $ORELSE					     ;
 	    JMP SHORT $MSR76
 $MIF76:
 	      DEC     CX				     ;;AN000;;	  No, well do we have more to check?
@@ -1427,7 +1424,7 @@ $MEN93:
 	  POP	  BX					     ;;AN000;;
 IF	  INPUTmsg					     ;;AN000;;
 	  ADD	  SP,2					     ;;AN000;;
-ELSE							     ;AN000;
+ELSE
 	  POP	  AX					     ;;AN000;;
 ENDIF							     ;;AN000;;
 ;	$ELSE						     ;;AN000;;	Yes,
@@ -1483,7 +1480,6 @@ $MIF107:
 	  CALL	  $M_DISPLAY_H_STRING			     ;;AN000;; Yes, display string to handle
 ;	$ENDIF						     ;;AN000;;
 $MEN107:
-							     ;AN001;
 ;	$IF	C					     ;;AN000;;	Was there an error?
 	JNC $MIF110
 	  MOV	  AH,DOS_GET_EXT_ERROR			     ;;AN000;;	Yes,
@@ -1504,9 +1500,9 @@ $MIF110:
 	      CALL    $M_GET_EXT_ERR_39 		     ;AN001;	   Set Extended error
 	      ADD     SP,6				     ;AN001;	   Clean up stack
 	      STC					     ;AN001;	   Flag that there was an error
-;	    $ENDIF					     ;AN001;
+;	    $ENDIF
 $MIF113:
-;	  $ENDIF					     ;AN001;
+;	  $ENDIF
 $MIF112:
 ;	$ENDIF						     ;;AN000;;
 $MEN110:
@@ -1655,15 +1651,14 @@ $M_DISPLAY_H_STRING ENDP				     ;;AN000;;
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 							     ;;
-$M_GET_EXT_ERR_39 PROC NEAR				     ;AN001;
+$M_GET_EXT_ERR_39 PROC NEAR
 							     ;;
 	MOV	AX,EXT_ERR_39				     ;AN001; Set AX=39
 	MOV	BX,(ERROR_CLASS_39 SHR 8) + ACTION_39	     ;AN001; Set BH=1 BL=4
 	MOV	CH,LOCUS_39				     ;AN001; Set CH=1
-							     ;AN001;
-	RET						     ;AN001;
+	RET
 							     ;;
-$M_GET_EXT_ERR_39 ENDP					     ;AN001;
+$M_GET_EXT_ERR_39 ENDP
 							     ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ENDIF
@@ -2219,10 +2214,10 @@ $MDO219:
 	    JNE $MIF220
 	      IF      FARmsg				     ;;AN000;;
 	MSG_FORMAT_REF <LES	DI,DWORD PTR $M_RT.$M_CLASS_ADDRS[SI]>,0 ;;AN000;;  Get address of class
-		MOV	BX,ES				     ;;AN000;
+		MOV	BX,ES				     ;
 	      ELSE					     ;;AN000;;
 	MSG_FORMAT_REF <MOV	DI,WORD PTR $M_RT.$M_CLASS_ADDRS[SI]>,0 ;;AN000;;	 Get address of class
-		MOV	BX,DI				     ;;AN000;
+		MOV	BX,DI				     ;
 	      ENDIF					     ;;AN000;;
 ;	    $ELSE					     ;;AN000;; No,
 	    JMP SHORT $MEN220
@@ -2231,7 +2226,7 @@ $MIF220:
 ;	      $IF     NE				     ;;AN000;;	 Yes,
 	      JE $MIF222
 	MSG_FORMAT_REF <LES	DI,DWORD PTR $M_RT.$M_PARSE_COMMAND[SI]>,0 ;;AN000;;   Get address of class
-		MOV	BX,ES				     ;;AN000;
+		MOV	BX,ES				     ;
 ;	      $ELSE					     ;;AN000;;	 No, extended errors were specified
 	      JMP SHORT $MEN222
 $MIF222:
@@ -2242,12 +2237,12 @@ $MIF222:
 ;		$IF	BE				     ;;AN000;;	    Yes,
 		JNBE $MIF224
 	MSG_FORMAT_REF <LES	  DI,DWORD PTR $M_RT.$M_CRIT_ADDRS[SI]>,0 ;;AN000;; Get address of class
-		  MOV	  BX,ES 			     ;;AN000;
+		  MOV	  BX,ES 			     ;
 ;		$ELSE					     ;;AN000;;
 		JMP SHORT $MEN224
 $MIF224:
 	MSG_FORMAT_REF <LES	  DI,DWORD PTR $M_RT.$M_EXT_ERR_ADDRS[SI]>,0 ;;AN000;; Get address of class
-		  MOV	  BX,ES 			     ;;AN000;
+		  MOV	  BX,ES 			     ;
 ;		$ENDIF					     ;;AN000;;
 $MEN224:
 ;	      $ENDIF					     ;;AN000;;
@@ -2452,7 +2447,7 @@ ENDIF
 $MEN261:
 ;	    $EXITIF E					     ;;AN000;;
 	    JNE $MIF259
-;	    $ORELSE					     ;;AN000;
+;	    $ORELSE					     ;
 	    JMP SHORT $MSR259
 $MIF259:
 	      DEC     CX				     ;;AN000;;	  No, well do we have more to check?

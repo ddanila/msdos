@@ -1,6 +1,4 @@
  page 80,132
-;	SCCSID = @(#)tbatch2.asm	4.2 85/07/22
-;	SCCSID = @(#)tbatch2.asm	4.2 85/07/22
 TITLE	Batch processing routines part II
 
 	INCLUDE comsw.asm
@@ -14,7 +12,7 @@ TITLE	Batch processing routines part II
 .cref
 
 
-DATARES 	SEGMENT PUBLIC BYTE	;AC000;
+DATARES 	SEGMENT PUBLIC BYTE
 	EXTRN	BATCH:WORD
 	EXTRN	Batch_Abort:byte
 	EXTRN	call_batch_flag:byte
@@ -27,14 +25,14 @@ DATARES 	SEGMENT PUBLIC BYTE	;AC000;
 	EXTRN	SINGLECOM:WORD
 DATARES ENDS
 
-TRANDATA	SEGMENT PUBLIC BYTE	;AC000;
+TRANDATA	SEGMENT PUBLIC BYTE
 	EXTRN	BADLAB_PTR:WORD
 	EXTRN	BatBufLen:WORD
 	EXTRN	IFTAB:BYTE
 	EXTRN	SYNTMES_PTR:WORD
 TRANDATA	ENDS
 
-TRANSPACE	SEGMENT PUBLIC BYTE	;AC000;
+TRANSPACE	SEGMENT PUBLIC BYTE
 	EXTRN	arg:byte		; the arg structure!
 	EXTRN	BatBuf:BYTE
 	EXTRN	BatBufEnd:WORD
@@ -101,17 +99,17 @@ ASSUME	DS:RESGROUP
 	invoke	get_ext_error_number		;AN022; get the error
 	push	ds				;AN022; save local segment
 	mov	ds,[SHELL_DATA_SELECTOR]			;AN022; get resident segment
-assume	ds:resgroup				;AN022;
+assume	ds:resgroup
 	mov	dx,ax				;AN022; put error in DX
 	invoke	output_batch_name		;AN022; set up to print the error
-	pop	ds				;AN022;
-assume	ds:trangroup				;AN022;
+	pop	ds
+assume	ds:trangroup
 	invoke	std_eprintf			;AN022; print out the error
 	mov	byte ptr combuf+2,end_of_line_in;AN022; terminate the batch line for parsing
 	mov	byte ptr combuf+3,end_of_line_out ;AN022; terminate the batch line for output
 	jmp	bateof				;AN022; terminate the batch file
 
-bat_read_ok:					;AN022;
+bat_read_ok:
 	MOV	CX,AX
 	JCXZ	BATEOFDS
 	MOV	BatBufEnd,CX
@@ -204,14 +202,14 @@ IF_NORM:
 ;
 	push	ds				;AN004; save local DS
 	mov	ds,[SHELL_DATA_SELECTOR]			;AN004; get resident segment
-	assume	ds:resgroup			;AN004;
+	assume	ds:resgroup
 	cmp	[PIPEFILES],0			;AN004; Only turn off if present.
 	jz	IFNoPipe			;AN004; no pipe - continue
 	invoke	PipeDel 			;AN004; turn off piping
 
-IFNoPipe:					;AN004;
+IFNoPipe:
 	pop	ds				;AN004; get local DS back
-	assume	ds:trangroup			;AN004;
+	assume	ds:trangroup
 	MOV	[IFNOTFLAG],0
 	mov	[if_not_count], 0
 	MOV	SI,81H
@@ -232,7 +230,7 @@ IFINDCOM:
 	JMP	SHORT FIRSTCOMP
 
 IFCOMP:
-	JNZ	IF_DIF				;AC000;
+	JNZ	IF_DIF
 
 FIRSTCOMP:
 	LODSB
@@ -246,7 +244,7 @@ FIRSTCOMP:
 IFLP:
 	LOOP	IFCOMP
 
-IF_DIF: 					;AC000;
+IF_DIF:
 	LAHF
 	ADD	DI,CX				; Bump to next position without affecting flags
 	MOV	BX,[DI] 			; Get handler address

@@ -8,21 +8,6 @@
 ;
 ;	Module: CEM_MSG.INC - messages for ON/OFF/AUTO utility
 ;
-;	Version: 0.02
-;
-;	Date:	June 7,1986
-;
-;	Author:
-;
-;******************************************************************************
-;
-;	Change Log:
-;
-;	DATE	 REVISION	Description
-;	-------- --------	--------------------------------------------
-;	06/07/86 Original
-;	06/28/86 0.02		Name change from MEMM386 to MEMM
-;
 ;******************************************************************************
 ;
 not_there	db	"EMM386 driver not installed.",CR,LF,BEL,"$"

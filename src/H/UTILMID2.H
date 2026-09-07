@@ -1,4 +1,3 @@
-/*      SCCSID = @(#)utilmid2.h	5.18 87/05/05 */
 
 #define MSG_REST_FILE_FROM              1634      /* restore file from % 1 %2 */
 #define MSG_INS_BACKUP_DISK             1635      /* insert backup %1 in drive %2 */

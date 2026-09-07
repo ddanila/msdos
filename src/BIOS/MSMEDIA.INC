@@ -175,7 +175,7 @@ GET$BPB PROC	NEAR
 	TEST	WORD PTR [DI].FLAGS,FNON_REMOVABLE
 	JNZ	ALREADY_GOTBPB		; NO NEED TO BUILD FOR FIXED DISKS
 ;J.K. Let's set the default value for VOLID,Vol_Serial,FileSys_ID in BDS table
-	call	Clear_IDs		;AN000;
+	call	Clear_IDs
 	BIOS_LOW_MEM MOV,<[Set_ID_Flag]>,1,DS ;AN000; Indicate to set system id in BDS
 	CALL	GETBP			;BUILD A BPB IF NECESSARY.
 	JC	ERR$EXITJ2		;AN000; If error, Set_ID_flag is set to 0 already.
@@ -220,46 +220,46 @@ SET_PATCH ENDP
 ;	   depending on the flag FATSIZE in BDS.
 ;All registers saved.
 	public	Clear_IDs
-Clear_IDs	proc near		;AN000;
-	push	ds			;AN000;
-	push	di			;AN000;
-	push	es			;AN000;
-	push	si			;AN000;
-	push	cx			;AN000;
+Clear_IDs	proc near
+	push	ds
+	push	di
+	push	es
+	push	si
+	push	cx
 
-	push	ds			;AN000;
+	push	ds
 	pop	es			;AN000; es -> bds
-	BIOS_PUSH_DATA_SEG			;AN000;
+	BIOS_PUSH_DATA_SEG
 	pop	ds			;AN000; ds = cs
 
 	mov	cx, 0			;AN000; no serial number
-	mov	word ptr es:[di.VOL_SERIAL],cx	 ;AN000;
-	mov	word ptr es:[di.VOL_SERIAL]+2,cx ;AN000;
+	mov	word ptr es:[di.VOL_SERIAL],cx
+	mov	word ptr es:[di.VOL_SERIAL]+2,cx
 
 	mov	cx, BOOT_VOLUME_LABEL_SIZE	 ;AN000; =11
-	mov	si, offset VOL_NO_NAME		 ;AN000;
+	mov	si, offset VOL_NO_NAME
 	push	di				 ;AN000; save BDS pointer
 	add	di, VOLID			 ;AN000; points to VOLID field
-	rep	movsb				 ;AN000;
+	rep	movsb
 	pop	di				 ;AN000; restore BDS pointer
-	test	es:[di.FATSIZ], FBIG		 ;AN000;
+	test	es:[di.FATSIZ], FBIG
 	jnz	CI_BigFat			 ;AN000; small fat
-	mov	si, offset FAT_12_ID		 ;AN000;
-	jmp	CI_Filesys			 ;AN000;
-CI_BigFat:					 ;AN000;
+	mov	si, offset FAT_12_ID
+	jmp	CI_Filesys
+CI_BigFat:
 	mov	si, offset FAT_16_ID		 ;AN000; big fat
-CI_Filesys:					 ;AN000;
+CI_Filesys:
 	mov	cx, BOOT_SYSTEM_ID_SIZE 	 ;AN000; =8
 	add	di, FILESYS_ID			 ;AN000; points to FILESYS_ID field
-	rep	movsb				 ;AN000;
+	rep	movsb
 
-	pop	cx				 ;AN000;
-	pop	si				 ;AN000;
-	pop	es				 ;AN000;
-	pop	di				 ;AN000;
-	pop	ds				 ;AN000;
-	ret					 ;AN000;
-Clear_IDs	endp				 ;AN000;
+	pop	cx
+	pop	si
+	pop	es
+	pop	di
+	pop	ds
+	ret
+Clear_IDs	endp
 
 
 ;   GETBP - RETURN BPB FROM THE DRIVE SPECIFIED BY THE BDS.
@@ -395,7 +395,7 @@ GETRET_EXIT:
 
 GETBP_ERR_RET:
 ;J.K. Before doing anything else, set Set_ID_Flag to 0.
-	BIOS_LOW_MEM MOV,<Set_ID_Flag>,0,DS ;AN000;
+	BIOS_LOW_MEM MOV,<Set_ID_Flag>,0,DS
 	BIOS_CALL_HIGH MAPERROR,BIOS_HIGH_MAPERROR,BIOS_HIGH_NEAR_ENTRY
 	JMP	SHORT GETRET
 ;
@@ -403,7 +403,7 @@ GETBP_ERR_RET:
 ; TYPE OF BPB FOR THIS MEDIUM.
 ;
 GOT_UNKNOWN_MEDIUM:
-	BIOS_LOW_MEM MOV,<Set_ID_Flag>,0,DS ;AN000;
+	BIOS_LOW_MEM MOV,<Set_ID_Flag>,0,DS
 	MOV	AL,ERROR_UNKNOWN_MEDIA
 	STC
 	JMP	SHORT GETRET
@@ -543,23 +543,23 @@ MOVBPB	PROC	NEAR
 	MOV	DL,BYTE PTR [DI].HLIM	    ;NUMBER OF HEADS
 	RESTOREREG <DI,DS>
 	BIOS_LOW_MEM CMP,<[Set_ID_Flag]>,1,DS ;AC008 called by GET$BPB?
-	jne	MovBPB_Ret		     ;AC008
-	call	Mov_Media_IDs		     ;AC008
+	jne	MovBPB_Ret
+	call	Mov_Media_IDs
 	jc	MovBPB_Conv		     ;AC008 Conventional boot record?
 	BIOS_LOW_MEM MOV,<[Set_ID_Flag]>,2,DS ;AC008 signals that Volume ID is set.
-MovBPB_Conv:				     ;AC008
-	BIOS_LOW_MEM CMP,<fHave96>,1,DS ;AC008
-	jne	MovBPB_Ret		     ;AC008
+MovBPB_Conv:
+	BIOS_LOW_MEM CMP,<fHave96>,1,DS
+	jne	MovBPB_Ret
 	BIOS_CALL_LOW ResetChanged,BIOS_LOW_RESET_CHANGED		     ;AC008 Reset Flags in BDS to NOT fCHANGED.
-MovBPB_Ret:				     ;AC008
-	clc				     ;AC008
-	ret				     ;AC008
-MOVBPB	ENDP				     ;AC008
+MovBPB_Ret:
+	clc
+	ret
+MOVBPB	ENDP
 
 
 ;
 	public	Mov_Media_IDs
-Mov_Media_IDs	Proc	near		    ;AN000;
+Mov_Media_IDs	Proc	near
 ;copy the boot_serial number, Volume id, and Filesystem id from the
 ;***Extended Boot record*** in cs:DiskSector to the BDS table pointed
 ;by DS:DI.
@@ -571,45 +571,45 @@ Mov_Media_IDs	Proc	near		    ;AN000;
 ;     All registers saved except the flag.
 
 	BIOS_LOW_MEM CMP,<[Ext_Boot_Sig]>,EXT_BOOT_SIGNATURE,DS ;AN000; = 41
-	jne	MMI_Not_Ext		    ;AN000;
-	push	cx			    ;AN000;
-	BIOS_LOW_READ MOV,cx,<[Boot_Serial_L]>,DS ;AN000;
-	mov	word ptr ds:[di.VOL_SERIAL],cx	 ;AN000;
-	BIOS_LOW_READ MOV,cx,<[Boot_Serial_H]>,DS ;AN000;
-	mov	word ptr ds:[di.VOL_SERIAL+2],cx ;AN000;
+	jne	MMI_Not_Ext
+	push	cx
+	BIOS_LOW_READ MOV,cx,<[Boot_Serial_L]>,DS
+	mov	word ptr ds:[di.VOL_SERIAL],cx
+	BIOS_LOW_READ MOV,cx,<[Boot_Serial_H]>,DS
+	mov	word ptr ds:[di.VOL_SERIAL+2],cx
 	push	ds			    ;AN000; Save regs.
-	push	di			    ;AN000;
-	push	es			    ;AN000;
-	push	si			    ;AN000;
+	push	di
+	push	es
+	push	si
 
 	push	ds			    ;AN000; ds-> cs, es-> bds
-	pop	es			    ;AN000;
-	BIOS_PUSH_DATA_SEG			    ;AN000;
-	pop	ds			    ;AN000;
+	pop	es
+	BIOS_PUSH_DATA_SEG
+	pop	ds
 
-	mov	cx, BOOT_VOLUME_LABEL_SIZE  ;AN000;
-	mov	si, offset Boot_Volume_Label;AN000;
+	mov	cx, BOOT_VOLUME_LABEL_SIZE
+	mov	si, offset Boot_Volume_Label
 	push	di
-	add	di, VOLID		    ;AN000;
-	rep	movsb			    ;AN000;
+	add	di, VOLID
+	rep	movsb
 	pop	di
 	mov	cx, BOOT_SYSTEM_ID_SIZE     ;AN000;  =8
-	mov	si, offset Boot_System_ID   ;AN000;
-	add	di, FILESYS_ID		    ;AN000;
-	rep	movsb			    ;AN000;
+	mov	si, offset Boot_System_ID
+	add	di, FILESYS_ID
+	rep	movsb
 
-	pop	si			    ;AN000;
-	pop	es			    ;AN000;
-	pop	di			    ;AN000;
-	pop	ds			    ;AN000;
-	pop	cx			    ;AN000;
-	clc				    ;AN000;
-MMI_Ret:				    ;AN000;
-	ret				    ;AN000;
-MMI_Not_Ext:				    ;AN000;
-	stc				    ;AN000;
-	ret				    ;AN000;
-Mov_Media_IDs	endp			    ;AN000;
+	pop	si
+	pop	es
+	pop	di
+	pop	ds
+	pop	cx
+	clc
+MMI_Ret:
+	ret
+MMI_Not_Ext:
+	stc
+	ret
+Mov_Media_IDs	endp
 
 
 ; READ IN THE FAT SECTOR AND GET THE MEDIA BYTE FROM IT.

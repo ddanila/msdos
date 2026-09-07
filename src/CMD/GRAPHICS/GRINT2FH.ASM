@@ -1,146 +1,111 @@
-	PAGE	,132								;AN000;
-	TITLE	DOS - GRAPHICS Command  -	Interrupt 2FH Driver		;AN000;
-										;AN000;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;					;AN000;
+	PAGE	,132
+	TITLE	DOS - GRAPHICS Command  -	Interrupt 2FH Driver
 ;; DOS - GRAPHICS Command
 ;; (C) Copyright 1988 Microsoft
-;;										;AN000;
-;; File Name:  GRINT2FH.ASM							;AN000;
-;; ----------									;AN000;
-;;										;AN000;
-;; Description: 								;AN000;
-;; ------------ 								;AN000;
-;;	 This file contains the Interrupt 2FH driver.				;AN000;
-;;										;AN000;
-;; Documentation Reference:							;AN000;
-;; ------------------------							;AN000;
-;;	 OASIS High Level Design						;AN000;
-;;	 OASIS GRAPHICS I1 Overview						;AN000;
-;;										;AN000;
-;; Procedures Contained in This File:						;AN000;
-;; ----------------------------------						;AN000;
-;;	 INT_2FH_DRIVER - Interrupt 2FH driver					;AN000;
-;;										;AN000;
-;; Include Files Required:							;AN000;
-;; -----------------------							;AN000;
-;;	 GRLOAD.EXT - Externals for profile load				;AN000;
-;;	 GRCTRL.EXT - Externals for print screen control			;AN000;
-;;	 GRPRINT.EXT - Externals for print modules				;AN000;
-;;	 GRCPSD.EXT - Externals for COPY_SHARED_DATA module			;AN000;
-;;										;AN000;
-;; External Procedure References:						;AN000;
-;; ------------------------------						;AN000;
-;;	 Calls next Int 2FH handler in the chain.				;AN000;
-;;										;AN000;
-;; Linkage Instructions:							;AN000;
-;; -------------------- 							;AN000;
-;;	 Refer to GRAPHICS.ASM							;AN000;
-;;										;AN000;
-;; Change History:								;AN000;
-;; ---------------								;AN000;
-;;										;AN000;
-;;										;AN000;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;					;AN000;
-				       ;;					;AN000;
-				       ;;					;AN000;
-CODE	SEGMENT PUBLIC 'CODE'          ;;                                       ;AN000;
-	ASSUME	CS:CODE,DS:CODE        ;;					;AN000;
-				       ;;					;AN000;
-	PUBLIC	OLD_INT_2FH	       ;;					;AN000;
-	PUBLIC	INT_2FH_DRIVER	       ;;					;AN000;
-	PUBLIC	PRT_SCR_2FH_NUMBER     ;;					;AN000;
-	PUBLIC	RESIDENT_CODE_SEG      ;;					;AN000;
-	PUBLIC	SHARED_DATA_AREA_PTR   ;;					;AN000;
-				       ;;					;AN000;
-				       ;;					;AN000;
-.XLIST										;AN000;
-INCLUDE STRUC.INC								;AN000;
-INCLUDE GRINST.EXT								;AN000;
-INCLUDE GRCTRL.EXT								;AN000;
-INCLUDE GRCPSD.EXT								;AN000;
-.LIST										;AN000;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;					;AN000;
-;;										;AN000;
-;; Module: INT_2FH_DRIVER							;AN000;
-;;										;AN000;
-;; Description: 								;AN000;
-;;     Respond to GRAPHICS Int 2FH calls.					;AN000;
-;;     The following calls are handled: 					;AN000;
-;;										;AN000;
-;;	AL = 0 ù Install Check							;AN000;
-;;										;AN000;
-;; Invoked By:									;AN000;
-;;     INT 2FH instruction.							;AN000;
-;;										;AN000;
-;; Modules Called:								;AN000;
-;;     Lower level INT 2FH handlers.						;AN000;
-;;										;AN000;
-;; Input Registers:								;AN000;
-;;     Install Check - AH=15H  AL=0						;AN000;
-;;										;AN000;
-;;										;AN000;
-;; Output Registers:								;AN000;
-;;     Install Check:  IF GRAPHICS installed					;AN000;
-;;			  AH=FFH  AL=FFH					;AN000;
-;;			  ES : DI points to Shared Data Area			;AN000;
-;;		       ELSE							;AN000;
-;;			  AH=15H  AL=0						;AN000;
-;;										;AN000;
-;; Logic:									;AN000;
-;;     IF AH=15H THEN								;AN000;
-;;	  IF AL=0 THEN								;AN000;
-;;	     AH,AL := -1							;AN000;
-;;	     ES : DI := SHARED_DATA_AREA_PTR					;AN000;
-;;	  ENDIF 								;AN000;
-;;	  IRET									;AN000;
-;;     ELSE									;AN000;
-;;	  IF OLD_INT_2FH is a valid pointer THEN				;AN000;
-;;	      Jump to Old Int 2FH						;AN000;
-;;	  ELSE									;AN000;
-;;	      IRET								;AN000;
-;;	  ENDIF 								;AN000;
-;;     ENDIF									;AN000;
-;;										;AN000;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;					;AN000;
-										;AN000;
-INT_2FH_DRIVER	PROC  NEAR							;AN000;
-	JMP	INT_2FH 							;AN000;
-PRT_SCR_2FH_NUMBER EQU		15H	; 2FH Multiplex interrupt number	;AN000;
-					;  assigned to Print Screen.		;AN000;
-OLD_INT_2FH	DD    ? 		; Pointer to next 2FH interrupt handler ;AN000;
-RESIDENT_CODE_SEG	DW   ?	; Segment for installed stuff			;AN000;
-SHARED_DATA_AREA_PTR	DW   ?	; Offset of the start of the			;AN000;
-				;  Shared Data Area				;AN000;
-										;AN000;
-INT_2FH:									;AN000;
-;-------------------------------------------------------------------------------;AN000;
-; Verify if the 2FH Interrupt call is for our interrupt handler:		;AN000;
-;-------------------------------------------------------------------------------;AN000;
-       .IF <AH EQ PRT_SCR_2FH_NUMBER> AND;If 2FH call is for us 		;AN000;
-       .IF <ZERO AL>			;  and request is "Get install state"   ;AN000;
-       .THEN				; then, 				;AN000;
-;-------------------------------------------------------------------------------;AN000;
-; Yes: return results								;AN000;
-;-------------------------------------------------------------------------------;AN000;
-	MOV	DI,CS:SHARED_DATA_AREA_PTR ;  ES:DI :=	Pointer to shared	;AN000;
-	PUSH	CS:RESIDENT_CODE_SEG	   ;		 data area		;AN000;
-	POP	ES			;					;AN000;
-	MOV	AH,0FFH 		; AL and AH := "We are installed"       ;AN000;
-	MOV	AL,AH			;					;AN000;
-	IRET				; Return to interrupted process 	;AN000;
-;-------------------------------------------------------------------------------;AN000;
-; No, pass control to next 2FH interrupt handler:				;AN000;
-;-------------------------------------------------------------------------------;AN000;
-       .ELSE				; else, this call is not for us:	;AN000;
-	 .IF <<WORD PTR CS:OLD_INT_2FH> NE 0> AND ;if there is another		;AN000;
-	 .IF <<WORD PTR CS:OLD_INT_2FH+2> NE 0> ;  2FH driver			;AN000;
-	 .THEN				;	below us then,			;AN000;
-	    JMP CS:OLD_INT_2FH		;	  pass control to it		;AN000;
-	 .ELSE				;	else, there is nobody to pass	;AN000;
-	    IRET			;	  control to, just return.	;AN000;
-	 .ENDIF 			;     END If there is a driver below us.;AN000;
-      .ENDIF				;  END If this call is for us.		;AN000;
-INT_2FH_DRIVER	ENDP								;AN000;
-										;AN000;
-CODE   ENDS									;AN000;
-       END									;AN000;
+;; File Name:  GRINT2FH.ASM
+;; ----------
+;; Description:
+;; ------------
+;;	 This file contains the Interrupt 2FH driver.
+;; Documentation Reference:
+;; ------------------------
+;;	 OASIS High Level Design
+;;	 OASIS GRAPHICS I1 Overview
+;; Procedures Contained in This File:
+;; ----------------------------------
+;;	 INT_2FH_DRIVER - Interrupt 2FH driver
+;; Include Files Required:
+;; -----------------------
+;;	 GRLOAD.EXT - Externals for profile load
+;;	 GRCTRL.EXT - Externals for print screen control
+;;	 GRPRINT.EXT - Externals for print modules
+;;	 GRCPSD.EXT - Externals for COPY_SHARED_DATA module
+;; External Procedure References:
+;; ------------------------------
+;;	 Calls next Int 2FH handler in the chain.
+;; Linkage Instructions:
+;; --------------------
+;;	 Refer to GRAPHICS.ASM
+CODE	SEGMENT PUBLIC 'CODE'          ;;
+	ASSUME	CS:CODE,DS:CODE        ;;
+	PUBLIC	OLD_INT_2FH	       ;;
+	PUBLIC	INT_2FH_DRIVER	       ;;
+	PUBLIC	PRT_SCR_2FH_NUMBER     ;;
+	PUBLIC	RESIDENT_CODE_SEG      ;;
+	PUBLIC	SHARED_DATA_AREA_PTR   ;;
+.XLIST
+INCLUDE STRUC.INC
+INCLUDE GRINST.EXT
+INCLUDE GRCTRL.EXT
+INCLUDE GRCPSD.EXT
+.LIST
+;; Module: INT_2FH_DRIVER
+;; Description:
+;;     Respond to GRAPHICS Int 2FH calls.
+;;     The following calls are handled:
+;;	AL = 0 ù Install Check
+;; Invoked By:
+;;     INT 2FH instruction.
+;; Modules Called:
+;;     Lower level INT 2FH handlers.
+;; Input Registers:
+;;     Install Check - AH=15H  AL=0
+;; Output Registers:
+;;     Install Check:  IF GRAPHICS installed
+;;			  AH=FFH  AL=FFH
+;;			  ES : DI points to Shared Data Area
+;;		       ELSE
+;;			  AH=15H  AL=0
+;; Logic:
+;;     IF AH=15H THEN
+;;	  IF AL=0 THEN
+;;	     AH,AL := -1
+;;	     ES : DI := SHARED_DATA_AREA_PTR
+;;	  ENDIF
+;;	  IRET
+;;     ELSE
+;;	  IF OLD_INT_2FH is a valid pointer THEN
+;;	      Jump to Old Int 2FH
+;;	  ELSE
+;;	      IRET
+;;	  ENDIF
+;;     ENDIF
+INT_2FH_DRIVER	PROC  NEAR
+	JMP	INT_2FH
+PRT_SCR_2FH_NUMBER EQU		15H	; 2FH Multiplex interrupt number
+					;  assigned to Print Screen.
+OLD_INT_2FH	DD    ? 		; Pointer to next 2FH interrupt handler
+RESIDENT_CODE_SEG	DW   ?	; Segment for installed stuff
+SHARED_DATA_AREA_PTR	DW   ?	; Offset of the start of the
+				;  Shared Data Area
+INT_2FH:
+;-------------------------------------------------------------------------------
+; Verify if the 2FH Interrupt call is for our interrupt handler:
+;-------------------------------------------------------------------------------
+       .IF <AH EQ PRT_SCR_2FH_NUMBER> AND;If 2FH call is for us
+       .IF <ZERO AL>			;  and request is "Get install state"
+       .THEN				; then,
+;-------------------------------------------------------------------------------
+; Yes: return results
+;-------------------------------------------------------------------------------
+	MOV	DI,CS:SHARED_DATA_AREA_PTR ;  ES:DI :=	Pointer to shared
+	PUSH	CS:RESIDENT_CODE_SEG	   ;		 data area
+	POP	ES			;
+	MOV	AH,0FFH 		; AL and AH := "We are installed"
+	MOV	AL,AH			;
+	IRET				; Return to interrupted process
+;-------------------------------------------------------------------------------
+; No, pass control to next 2FH interrupt handler:
+;-------------------------------------------------------------------------------
+       .ELSE				; else, this call is not for us:
+	 .IF <<WORD PTR CS:OLD_INT_2FH> NE 0> AND ;if there is another
+	 .IF <<WORD PTR CS:OLD_INT_2FH+2> NE 0> ;  2FH driver
+	 .THEN				;	below us then,
+	    JMP CS:OLD_INT_2FH		;	  pass control to it
+	 .ELSE				;	else, there is nobody to pass
+	    IRET			;	  control to, just return.
+	 .ENDIF 			;     END If there is a driver below us.
+      .ENDIF				;  END If this call is for us.
+INT_2FH_DRIVER	ENDP
+CODE   ENDS
+       END

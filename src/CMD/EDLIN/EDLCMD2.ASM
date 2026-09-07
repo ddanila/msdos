@@ -27,17 +27,6 @@ TITLE Edlcmd2 - PART2 procedures called from EDLIN
 ;	 LINK EDLIN+EDLCMD1+EDLCMD2+EDLMES+EDLPARSE
 ;
 ;
-; REVISION HISTORY:
-;
-;	AN000	VERSION DOS 4.00 - REVISIONS MADE RELATE TO THE FOLLOWING:
-;
-;				    - IMPLEMENT SYSPARSE
-;				    - IMPLEMENT MESSAGE RETRIEVER
-;				    - IMPLEMENT DBCS ENABLING
-;				    - ENHANCED VIDEO SUPPORT
-;				    - EXTENDED OPENS
-;				    - SCROLLING ERROR
-;
 ; COPYRIGHT: "MS DOS EDLIN UTILITY"
 ;	     "VERSION 4.00 (C) COPYRIGHT 1988 Microsoft"
 ;
@@ -65,7 +54,7 @@ CONST	SEGMENT PUBLIC WORD
 	extrn	bak:byte,$$$file:byte,delflg:byte,loadmod:byte,txt1:byte
 	extrn	txt2:byte,memful_ptr:word,YES_BYTE:BYTE
 
-	extrn	Del_Bak_Ptr:byte		;an000;dms;
+	extrn	Del_Bak_Ptr:byte
 	extrn	cont_ptr:byte			;an000;dms:6/10/87
 
 CONST	ENDS
@@ -83,8 +72,8 @@ DATA	SEGMENT PUBLIC WORD
 	extrn	lc_adj:byte			;an000;dms:6/10/87
 	extrn	continue:byte			;an000;dms:6/10/87
 	extrn	pg_count:byte			;an000;dms:6/10/87
-	extrn	Disp_Len:byte			;an000;dms;
-	extrn	Disp_Width:byte 		;an000;dms;
+	extrn	Disp_Len:byte
+	extrn	Disp_Width:byte
 	extrn	lc_flag:byte			;an000;dms:6/10/87
 
 	if	kanji
@@ -702,31 +691,31 @@ DELBAK:
 	MOV	AH,UNLINK
 	MOV	DX,OFFSET DG:TEMP_PATH
 	INT	21H
-;	$if	c					;error ?		;an000; dms;
+;	$if	c					;error ?
 	JNC $$IF1
-		cmp	ax,Access_Denied		;file read only?	;an000; dms;
-;		$if	e				;yes			;an000; dms;
+		cmp	ax,Access_Denied		;file read only?
+;		$if	e				;yes
 		JNE $$IF2
-			mov	bx,[Wrt_Handle] 	;close .$$$ file	;an000; dms;
-			mov	ah,Close		;close function 	;an000; dms;
-			int	21h			;close it		;an000; dms;
+			mov	bx,[Wrt_Handle] 	;close .$$$ file
+			mov	ah,Close		;close function
+			int	21h			;close it
 
-			mov	di,[Ext_Ptr]		;point to extension	;an000; dms;
-			mov	si,offset dg:$$$File	;point to .$$$ extension;an000; dms;
-			movsw				;get .$$$ extension	;an000; dms;
-			movsw				;			;an000; dms;
-			movsb				;			;an000; dms;
-			mov	dx,offset dg:Temp_Path	;point to .$$$ file	;an000; dms;
-			mov	ah,Unlink		;delete it		;an000; dms;
-			int	21h			;			;an000; dms;
+			mov	di,[Ext_Ptr]		;point to extension
+			mov	si,offset dg:$$$File	;point to .$$$ extension
+			movsw				;get .$$$ extension
+			movsw				;
+			movsb				;
+			mov	dx,offset dg:Temp_Path	;point to .$$$ file
+			mov	ah,Unlink		;delete it
+			int	21h			;
 
-			mov	di,[Ext_Ptr]		;point to extension	;an000; dms;
-			mov	si,offset dg:BAK	;point to .BAK extension;an000; dms;
-			movsw				;get .BAK extension	;an000; dms;
-			movsw				;			;an000; dms;
-			movsb				;			;an000; dms;
-			mov	dx,offset dg:Del_Bak_Ptr;point to error message ;an000; dms;
-			jmp	Xerror			;display message & exit ;an000; dms;
+			mov	di,[Ext_Ptr]		;point to extension
+			mov	si,offset dg:BAK	;point to .BAK extension
+			movsw				;get .BAK extension
+			movsw				;
+			movsb				;
+			mov	dx,offset dg:Del_Bak_Ptr;point to error message
+			jmp	Xerror			;display message & exit
 ;		$endif
 $$IF2:
 ;	$endif
@@ -836,7 +825,7 @@ kill_bl_cont:
 		       JNZ $$IF7
 			    lodsb	;an000;skip byte containing 81h
 			    jmp kill_bl_cont
-;		       $endif		;an000;
+;		       $endif
 $$IF7:
 ;		  $endif		;an000;fall through no delim
 $$IF6:
@@ -908,13 +897,13 @@ ENDIF
 		call	std_printf		;an000; dms;   and return
 		pop	dx			;an000; dms;   to caller
 		jmp	Quit1			;an000; dms; reprompt
-;	$endif			;an000; dms;
+;	$endif
 $$IF11:
 	push	dx		;an000; dms; must be N
 	mov	dx,offset dg:crlf_ptr	;an000; dms; spit out CRLF
 	call	std_printf		;an000; dms;   and return
 	pop	dx			;an000; dms;   to caller
-	return				;an000; dms;
+	return
 
 ;=========================================================================
 ; End of Y/N validation check for qmes_ptr
@@ -1006,10 +995,10 @@ Query_Exit:
 EDLIN_DISP_COUNT	proc	near		;an000;lines printed
 
 	push	dx				;an000;save affected regs
-	push	di				;an000;
-	push	ax				;an000;
-	push	bx				;an000;
-	push	cx				;an000;
+	push	di
+	push	ax
+	push	bx
+	push	cx
 
 	mov	bx,offset dg:arg_buf		;an000;arg_buf holds line
 						;      printed
@@ -1024,16 +1013,16 @@ EDLIN_DISP_COUNT	proc	near		;an000;lines printed
 	JZ $$IF13
 		add al,1			;an000;increment AL 1
 						;      to round upward
-;	$endif					;an000;
+;	$endif
 $$IF13:
 
 	mov	lc_adj,al			;an000;number of lines printed
 						;      on console
 	pop	cx				;an000;restore affected regs
-	pop	bx				;an000;
-	pop	ax				;an000;
-	pop	di				;an000;
-	pop	dx				;an000;
+	pop	bx
+	pop	ax
+	pop	di
+	pop	dx
 
 	ret					;an000;return to caller
 
@@ -1065,7 +1054,7 @@ EDLIN_PG_COUNT		proc	near		;an000;track remaining lines
 
 	mov	al,pg_count			;an000;set up for page adj.
 	cmp	al,lc_adj			;an000;see if we are at end
-;	$if	be				;an000
+;	$if	be
 	JNBE $$IF15
 		mov	pg_count,0		;an000;set pg_count to 0
 ;	$else
@@ -1073,7 +1062,7 @@ EDLIN_PG_COUNT		proc	near		;an000;track remaining lines
 $$IF15:
 		sub	al,lc_adj		;an000;adjust number of lines
 		mov	pg_count,al		;an000;save remaining line ct.
-;	$endif					;an000;
+;	$endif
 $$EN15:
 
 	dec	dx				;an000;decrease total number
@@ -1090,20 +1079,20 @@ $$EN15:
 		   JNZ $$IF20
 			  mov	al,dg:disp_len	;an000;begin init of screen
 ;			  dec	al		;an000;    length
-			  mov	pg_count,al	;an000;
+			  mov	pg_count,al
 ;		   $else			;an000;do not continue
 		   JMP SHORT $$EN20
 $$IF20:
 			  mov	lc_flag,false	;an000;signal no more to print
-;		   $endif			;an000;
+;		   $endif
 $$EN20:
-;	    $endif				;an000;
+;	    $endif
 $$IF19:
 ;	$else					;an000;total lines printed
 	JMP SHORT $$EN18
 $$IF18:
 	    mov    lc_flag,false		;an000;signal no more to print
-;	$endif					;an000;
+;	$endif
 $$EN18:
 
 	pop	ax				;an000;restore affected regs
@@ -1128,7 +1117,7 @@ EDLIN_PG_COUNT		endp			;an000;end procedure
 EDLIN_PG_PROMPT 	proc	near		;an000;ask user to continue?
 
 	push	dx				;an000;save affected regs.
-	push	ax				;an000;
+	push	ax
 
 EPP_Reprompt:
 
@@ -1159,7 +1148,7 @@ EPP_False_Exit:
 EPP_Exit:
 
 	pop	ax				;an000;restore affected regs.
-	pop	dx				;an000;
+	pop	dx
 
 	ret					;an000;return to caller
 
@@ -1179,8 +1168,8 @@ EDLIN_PG_PROMPT 	endp			;an000;end procedure
 val_yn	proc	near		;an000;validate Y/N response
 
 	push	dx		;an000;save affected registers
-	push	cx		;an000;
-	push	bx		;an000;
+	push	cx
+	push	bx
 
 	mov	dl,al		;an000;character to be checked for Y/N
 	mov	ah,GetExtCntry	;an000;get extended country information
@@ -1189,8 +1178,8 @@ val_yn	proc	near		;an000;validate Y/N response
 	int	21h		;an000;invoke function
 
 	pop	bx		;an000;restore affected registers
-	pop	cx		;an000;
-	pop	dx		;an000;
+	pop	cx
+	pop	dx
 
 	ret			;an000;return to caller
 

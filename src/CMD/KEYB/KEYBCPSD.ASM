@@ -36,12 +36,6 @@
 ;; Linkage Information:  Refer to file KEYB.ASM
 ;; --------------------
 ;;
-;; Change History:
-;; ---------------
-;; PTMP3955 ;AN004;KEYB component to free environment and close handles 0 - 4
-;; 3/24/88
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-				       ;;
 	PUBLIC	SD_DEST_PTR	       ;;
 	PUBLIC	COPY_SD_AREA	       ;;
 	PUBLIC	SHARED_DATA	       ;;
@@ -85,9 +79,9 @@ COPY_SD_AREA	PROC   NEAR		       ;;
 		  push	  es			  ;AN004;;
 		  xor	  ax,ax 		  ;AN004;clear out ax
 		  mov	  ax,cs:[2ch]		  ;AN004;check offset for address containin environ.
-		  cmp	  ax,0			  ;AN004;
-		  je	  NO_FREEDOM		  ;AN004;
-		  mov	  es,ax 		  ;AN004;
+		  cmp	  ax,0
+		  je	  NO_FREEDOM
+		  mov	  es,ax
 		  mov	  ax,4900H		  ;AN004;make the free allocate mem func
 		  int	  21h			  ;AN004;;
 
@@ -96,8 +90,8 @@ NO_FREEDOM:
 		  pop	  es			  ;AN004;restore existing values
 		  pop	  ax			  ;AN004;;
 
-		  push	  ax			  ;AN004;
-		  push	  bx			  ;AN004;
+		  push	  ax
+		  push	  bx
 
 						  ;AN004;     ;Terminate and stay resident
 	     mov     bx,4			  ;AN004;     ;1st close file handles
@@ -107,8 +101,8 @@ NO_FREEDOM:
 	     dec  bx				  ;AN004;     ;
 	.UNTIL <BX eq 0>			  ;AN004;     ;
 
-		 pop	 bx			  ;AN004;
-		 pop	 ax			  ;AN004;
+		 pop	 bx
+		 pop	 ax
 						  ;AN004;	 new part of memory
 	MOV	BYTE PTR ES:SD.TABLE_OK,1	  ;; Activate processing flag
 	INT	21H				  ;; Exit

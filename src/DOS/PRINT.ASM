@@ -1,4 +1,3 @@
-;	SCCSID = @(#)print.asm	1.1 85/04/10
 ;
 ; PFMT - formatted output.  Calling sequence:
 ;   PUSH    BP

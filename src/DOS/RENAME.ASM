@@ -1,17 +1,8 @@
-;	SCCSID = @(#)rename.asm 1.1 85/04/10
 TITLE	DOS_RENAME - Internal RENAME call for MS-DOS
 NAME	DOS_RENAME
 ; Low level routine for renaming files
 ;
 ;   DOS_RENAME
-;
-;   Modification history:
-;
-;	Created: ARR 30 March 1983
-;
-
-;
-; get the appropriate segment definitions
 ;
 .xlist
 include dosseg.asm
@@ -93,44 +84,44 @@ Installed = TRUE
 
 	Invoke	TestNet
 	JNC	LOCAL_RENAME
-;	invoke	OWN_SHARE2		       ;IFS.  IFS owns share ?		;AN000;
-;	JZ	ifsshare		       ;IFS.  yes			;AN000;
-;	PUSH	WORD PTR [DMAADD+2]	       ;IFS.  save DMAADD		;AN000;
-;	PUSH	WORD PTR [DMAADD]	       ;IFS.				;AN000;
+;	invoke	OWN_SHARE2		       ;IFS.  IFS owns share ?
+;	JZ	ifsshare		       ;IFS.  yes
+;	PUSH	WORD PTR [DMAADD+2]	       ;IFS.  save DMAADD
+;	PUSH	WORD PTR [DMAADD]	       ;IFS.
 ;
-;	invoke	IFS_SEARCH_FIRST	       ;IFS.  search source name	;AN000;
-;	JC	nofiles 		       ;IFS.  not found 		;AN000;
+;	invoke	IFS_SEARCH_FIRST	       ;IFS.  search source name
+;	JC	nofiles 		       ;IFS.  not found
 rename_next_file:
-;	invoke	IFS_REN_DEL_CHECK	       ;IFS.  do share check		;AN000;
-;	JNC	share_okok		       ;IFS.  share ok			;AN000;
-;	MOV	AX,error_sharing_violation     ;IFS.  share error		;AN000;
-;	JMP	SHORT nofiles		       ;IFS.				;AN000;
+;	invoke	IFS_REN_DEL_CHECK	       ;IFS.  do share check
+;	JNC	share_okok		       ;IFS.  share ok
+;	MOV	AX,error_sharing_violation     ;IFS.  share error
+;	JMP	SHORT nofiles		       ;IFS.
 share_okok:
-;	PUSH	CS			       ;IFS.				;AN000;
-;	POP	ES			       ;IFS.				;AN000;
-;	MOV	SI,[REN_WFP]		       ;IFS. ds:si -> destination name	;AN000;
-;	MOV	BX,SI			       ;IFS.				;AN000;
-fndnxt: 				       ;IFS.				;AN000;
-;	LODSB				       ;IFS.				;AN000;
-;	CMP	AL,0			       ;IFS.				;AN000;
-;	JNZ	fndnxt			       ;IFS.				;AN000;
-;	MOV	DI,SI			       ;IFS. es:di -> end of destinatio ;AN000;
-;	ADD	BX,2			       ;IFS.				;AN000;
-;	invoke	SkipBack		       ;IFS.				;AN000;
-;	INC	DI			       ;IFS. es:di -> last component of ;AN000;
-;	MOV	SI,DI			       ;IFS.	      dstination	;AN000;
-;	MOV	BX,[SAVE_BX]		       ;IFS. ds:bx -> last component of ;AN000;
-;	CALL	NEW_RENAME		       ;IFS.	      source		;AN000;
-;	MOV	AX,(multNET SHL 8) OR 17       ;IFS.  replace ? chars with	;AN000;
-;	INT	2FH			       ;IFS.  source and issue RENAME	;AN000;
-;	JC	nofiles 		       ;IFS.  error			;AN000;
-;	invoke	DOS_SEARCH_NEXT 	       ;IFS.  serch next source 	;AN000;
-;	JNC	rename_next_file	       ;IFS.  rename next		;AN000;
-;	CLC				       ;IFS.  no more files		;AN000;
+;	PUSH	CS			       ;IFS.
+;	POP	ES			       ;IFS.
+;	MOV	SI,[REN_WFP]		       ;IFS. ds:si -> destination name
+;	MOV	BX,SI			       ;IFS.
+fndnxt: 				       ;IFS.
+;	LODSB				       ;IFS.
+;	CMP	AL,0			       ;IFS.
+;	JNZ	fndnxt			       ;IFS.
+;	MOV	DI,SI			       ;IFS. es:di -> end of destinatio
+;	ADD	BX,2			       ;IFS.
+;	invoke	SkipBack		       ;IFS.
+;	INC	DI			       ;IFS. es:di -> last component of
+;	MOV	SI,DI			       ;IFS.	      dstination
+;	MOV	BX,[SAVE_BX]		       ;IFS. ds:bx -> last component of
+;	CALL	NEW_RENAME		       ;IFS.	      source
+;	MOV	AX,(multNET SHL 8) OR 17       ;IFS.  replace ? chars with
+;	INT	2FH			       ;IFS.  source and issue RENAME
+;	JC	nofiles 		       ;IFS.  error
+;	invoke	DOS_SEARCH_NEXT 	       ;IFS.  serch next source
+;	JNC	rename_next_file	       ;IFS.  rename next
+;	CLC				       ;IFS.  no more files
 nofiles:
-;	POP	WORD PTR [DMAADD]	       ;IFS. restore DMAADD		;AN000;
-;	POP	WORD PTR [DMAADD+2]	       ;IFS.				;AN000;
-;	ret				       ;IFS. return			;AN000;
+;	POP	WORD PTR [DMAADD]	       ;IFS. restore DMAADD
+;	POP	WORD PTR [DMAADD+2]	       ;IFS.
+;	ret				       ;IFS. return
 ifsshare:
 
 IF (NOT Installed) AND 0FFFFh
@@ -178,16 +169,16 @@ RENAME_POP:
 Check_dev:
 	MOV	AX,error_access_denied	; Assume error
 
-	PUSH	DS			      ;PTM.				;AN000;
-	LDS	SI,[DMAADD]		      ;PTM.  chek if source a dir	;AN000;
-	ADD	SI,find_buf_attr	      ;PTM.				;AN000;
-	TEST	[SI.dir_attr],attr_directory  ;PTM.				;AN000;
-	JZ	notdir			      ;PTM.				;AN000;
-	MOV	SI,[REN_WFP]		      ;PTM.  if yes, make sure path	;AN000;
-	invoke	Check_Pathlen2		      ;PTM.   length < 67		;AN000;
+	PUSH	DS			      ;PTM.
+	LDS	SI,[DMAADD]		      ;PTM.  chek if source a dir
+	ADD	SI,find_buf_attr	      ;PTM.
+	TEST	[SI.dir_attr],attr_directory  ;PTM.
+	JZ	notdir			      ;PTM.
+	MOV	SI,[REN_WFP]		      ;PTM.  if yes, make sure path
+	invoke	Check_Pathlen2		      ;PTM.   length < 67
 notdir:
-	POP	DS			      ;PTM.				;AN000;
-	JA	GOTERR			      ;PTM.				;AN000;
+	POP	DS			      ;PTM.
+	JA	GOTERR			      ;PTM.
 
 	CMP	[Found_dev],0
 	JNZ	GOTERR
@@ -223,7 +214,7 @@ REN_OK1:				;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;   spec with metas is in [NAME1] and the explicit source name is at RENAMEDMA
 ;   in the directory entry part.
 	JC	NODEST
-;;	JZ	BAD_ACC 		; Dest string is a directory		;AC000;
+;;	JZ	BAD_ACC 		; Dest string is a directory
 	OR	AH,AH			; Device?
 	JNS	SAVEDEST		; No, continue
 BAD_ACC:
@@ -271,7 +262,7 @@ BUILDDEST:
 	MOV	DI,OFFSET DOSGROUP:NAME1    ; Real dest name goes here
 	MOV	SI,OFFSET DOSGROUP:NAME2    ; Raw dest
 	MOV	CX,11
-	CALL	NEW_RENAME		    ;IFS. replace ? chars		;AN000;
+	CALL	NEW_RENAME		    ;IFS. replace ? chars
 
 	MOV	[ATTRIB],attr_all	; Stop duplicates with any attributes
 	MOV	[CREATING],0FFH
@@ -316,9 +307,9 @@ GOT_DEST:
 	LES	DI,[CURBUF]
 	Assert	ISBUF,<ES,DI>,"Got_Dest"
 
-	TEST	ES:[DI.buf_flags],buf_dirty  ;LB. if already dirty		;AN000;
-	JNZ	yesdirty		  ;LB.	  don't increment dirty count   ;AN000;
-	invoke	INC_DIRTY_COUNT 	  ;LB.					;AN000;
+	TEST	ES:[DI.buf_flags],buf_dirty  ;LB. if already dirty
+	JNZ	yesdirty		  ;LB.	  don't increment dirty count
+	invoke	INC_DIRTY_COUNT 	  ;LB.
 	OR	ES:[DI.buf_flags],buf_dirty
 yesdirty:
 	MOV	DI,BX
@@ -345,9 +336,9 @@ SIMPLE_RENAME:
 DIRTY_IT:
 	MOV	DI,WORD PTR [CURBUF]
 
-	TEST	ES:[DI.buf_flags],buf_dirty  ;LB. if already dirty		;AN000;
-	JNZ	yesdirty2		  ;LB.	  don't increment dirty count   ;AN000;
-	invoke	INC_DIRTY_COUNT 	  ;LB.					;AN000;
+	TEST	ES:[DI.buf_flags],buf_dirty  ;LB. if already dirty
+	JNZ	yesdirty2		  ;LB.	  don't increment dirty count
+	invoke	INC_DIRTY_COUNT 	  ;LB.
 	OR	ES:[DI.buf_flags],buf_dirty
 yesdirty2:
 	Assert	ISBUF,<ES,DI>,"Dirty_it"

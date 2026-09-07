@@ -11,25 +11,8 @@ page	58,132
 ;
 ;   Module:   i386.asm - Support Routines for protected mode system
 ;
-;   Version:  0.04
-;
-;   Date:     January 31, 1986
-;
-;   Author:
-;
 ;******************************************************************************
 ;
-;   Change log:
-;
-;     DATE    REVISION			DESCRIPTION
-;   --------  --------	-------------------------------------------------------
-;   01/31/86  Original
-;   05/12/86  A Cleanup and segment reorganization
-;   06/21/86  0.02	Added clds just in case
-;   06/28/86  0.02	Name changed from MEMM386 to MEMM
-;   07/06/86  0.04	changed assume to DGROUP
-;
-;******************************************************************************
 ;
 ;	DESCRIPTION
 ;

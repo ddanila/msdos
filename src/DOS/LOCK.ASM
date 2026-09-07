@@ -1,4 +1,3 @@
-;	SCCSID = @(#)lock.asm	1.1 85/04/10
 TITLE	LOCK ROUTINES - Routines for file locking
 NAME	LOCK
 
@@ -6,9 +5,6 @@ NAME	LOCK
 ;   LOCK_CHECK
 ;   LOCK_VIOLATION
 ;   $LockOper
-;
-;   Revision history:
-;     A000   version 4.00   Jan. 1988
 ;
 include dosseg.asm
 
@@ -19,7 +15,7 @@ CODE	SEGMENT BYTE PUBLIC  'CODE'
 .xcref
 INCLUDE DOSSYM.INC
 INCLUDE DEVSYM.INC
-include lock.inc		     ;AN000;
+include lock.inc
 .cref
 .list
 
@@ -78,10 +74,10 @@ BREAK <$LockOper - Lock Calls>
 
 	procedure   $LockOper,NEAR
 ASSUME	DS:NOTHING,ES:NOTHING
-;	MOV	BP,AX			;MS. BP=AX				;AN000;
-;	AND	BP,7FH			;MS. clear bit 7			;AN000;
-;	CMP	BP,Lock_add		;MS. supported function ?		;AN000;
-;	JA	lock_bad_func		;MS. no,				;AN000;
+;	MOV	BP,AX			;MS. BP=AX
+;	AND	BP,7FH			;MS. clear bit 7
+;	CMP	BP,Lock_add		;MS. supported function ?
+;	JA	lock_bad_func		;MS. no,
 
 	CMP	AL,1			;AN000;;MS. no,
 	JA	lock_bad_func		;AN000;;MS. no,
@@ -104,7 +100,6 @@ lock_do:
 ;	invoke	Align_Buffer		;AN000;;MS. align ds:dx and set DMAADD
 ;	POP	BX			;AN000;;MS. restore handle
 ;	POP	AX			;AN000;;MS. save ax
-					;AN000;
 ;	CMP	BP,Unlock_all		;AN000;;MS. old function 0 or 1 ?
 ;	JA	chk_lock_mul		;AN000;;MS. no, new function
 ;	TEST	AL,80H			;AN000;;MS. 80H bit on ?
@@ -114,7 +109,6 @@ lock_do:
 ;	JMP	SHORT chk_lock_mul	;AN000;;MS.
 old_33:
 	MOV	BX,AX			;AN000;;MS. save AX
-					;AN000;
 ;;	MOV	DX,[Temp_Var]		;AN000;;MS. retore DX  (P5013) 6/5/88
 
 	MOV	BP, OFFSET DOSGROUP:Lock_Buffer ;AN000;;MS. get DOS LOCK buffer
@@ -130,7 +124,7 @@ old_33:
 	TEST	AL,Unlock_all			;AN000;;MS. function 1
 	JNZ	DOS_Unlock			;AN000;;MS. yes
 	JMP	DOS_Lock			;AN000;;MS. function 0
-;;chk_lock_mul: 				;AN000;
+;;chk_lock_mul:
 ;	POP	SI				;AN000;;MS. pop low length
 ;	TEST	ES:[DI.sf_flags],sf_isnet	;AN000;;MS. net handle?
 ;	JZ	LOCAL_DOS_LOCK			;AN000;;MS. no
@@ -140,7 +134,7 @@ old_33:
 ;	CallInstall NET_XLock,multNet,10	;AN000;;MS. issue Net Extended Lock
 ;	MOV	[Temp_Var],CX			;AN000;;MS. cx= retuened from IFS
 ;	JMP	ValChk				;AN000;;MS. check return
-;LOCAL_DOS_LOCK:				;AN000;
+;LOCAL_DOS_LOCK:
 ;	CMP	BP,Lock_mul_range		;AN000;;MS. lock mul range?
 ;	JNZ	unmul				;AN000;;MS. lock mul range?
 ;	JMP	LOCAL_LOCK			;AN000;;MS. yes
@@ -154,13 +148,13 @@ old_33:
 ;	JC	lockerror			;AN000;;MS. error
 ;	invoke	$READ				;AN000;;MS. do read
 ;	JC	lockerror			;AN000;;MS. error
-;lockend:					;AN000;
+;lockend:
 ;	transfer SYS_RET_OK			;AN000;;MS. return
-;chk_write_unlock:				;AN000;
+;chk_write_unlock:
 ;	CMP	BP,Write_unlock 		;AN000;;MS. write unlock ?
 ;	JNZ	Lock_addf			;AN000;;MS. no
 ;	CALL	Set_Lock_Buffer 		;AN000;;MS. set DOS lock buffer
-;WriteUnlock:					;AN000;
+;WriteUnlock:
 ;	PUSH	AX				;AN000;;MS. save AX for unlock
 ;	invoke	$WRITE				;AN000;;MS. do write
 ;	MOV	[Temp_Var],AX			;AN000;;MS. save number of bytes writ
@@ -171,7 +165,7 @@ old_33:
 ;	POP	DS				;AN000;;MS. DS:DX points to
 ;	MOV	DX,OFFSET DOSGROUP:Lock_Buffer	;AN000;;MS.  Lock_BUffer
 ;	JMP	LOCAL_UNLOCK			;AN000;;MS. do unlock
-;Lock_addf:					;AN000;
+;Lock_addf:
 ;	MOV	SI,WORD PTR ES:[DI.SF_Size]	 ;AN000;;MS. must be lock add
 ;	MOV	WORD PTR ES:[DI.SF_Position],SI  ;AN000;;MS. set file position to
 ;	MOV	SI,WORD PTR ES:[DI.SF_Size+2]	 ;AN000;;MS. EOF
@@ -234,32 +228,29 @@ BREAK <Set_Lock>
 ;	   carry set Lock is not set
 ;	   DS,DX,CX preserved
 
-;	procedure   Set_Lock,NEAR						;AN000;
-;ASSUME  DS:NOTHING,ES:NOTHING							 ;AN000;
-										;AN000;
-;	PUSH	DS			    ;MS. save regs			;AN000;
-;	PUSH	DX			    ;MS.				;AN000;
-;	PUSH	CX			    ;MS.				;AN000;
-;										;AN000;
-;	PUSH	CS			    ;MS.				;AN000;
-;	POP	DS			    ;MS. DS:DX poits to Lock_Buffer	;AN000;
-;	MOV	DX,BP			    ;MS.				;AN000;
-;	PUSH	BX			    ;MS. save handle			;AN000;
-;	PUSH	AX			    ;MS. save functions 		;AN000;
-;	MOV	CX,1			    ;MS. set one lock			;AN000;
-;if installed									 ;AN000;
-;	Call	JShare + 6 * 4		    ;MS. call share set block		;AN000;
-;else										 ;AN000;
-;	Call	Set_Block		    ;MS.				;AN000;
-;endif										 ;AN000;
-;	POP	AX			    ;MS. restore regs			;AN000;
-;	POP	BX			    ;MS.				;AN000;
-;	POP	CX			    ;MS.				;AN000;
-;	POP	DX			    ;MS.				;AN000;
-;	POP	DS			    ;MS.				;AN000;
-;	return				    ;MS.				;AN000;
-;										;AN000;
-;EndProc Set_Lock								 ;AN000;
+;	procedure   Set_Lock,NEAR
+;ASSUME  DS:NOTHING,ES:NOTHING
+;	PUSH	DS			    ;MS. save regs
+;	PUSH	DX			    ;MS.
+;	PUSH	CX			    ;MS.
+;	PUSH	CS			    ;MS.
+;	POP	DS			    ;MS. DS:DX poits to Lock_Buffer
+;	MOV	DX,BP			    ;MS.
+;	PUSH	BX			    ;MS. save handle
+;	PUSH	AX			    ;MS. save functions
+;	MOV	CX,1			    ;MS. set one lock
+;if installed
+;	Call	JShare + 6 * 4		    ;MS. call share set block
+;else
+;	Call	Set_Block		    ;MS.
+;endif
+;	POP	AX			    ;MS. restore regs
+;	POP	BX			    ;MS.
+;	POP	CX			    ;MS.
+;	POP	DX			    ;MS.
+;	POP	DS			    ;MS.
+;	return				    ;MS.
+;EndProc Set_Lock
 
 BREAK <Set_Lock_Buffer>
 
@@ -276,14 +267,14 @@ BREAK <Set_Lock_Buffer>
 ;	procedure   Set_Lock_Buffer,NEAR
 ;ASSUME  DS:NOTHING,ES:NOTHING
 ;
-;	MOV	BP, OFFSET DOSGROUP:Lock_Buffer   ;MS. move file position	;AN000;
-;	MOV	SI,WORD PTR ES:[DI.sf_position]   ;MS. to DOS lock_buffer	;AN000;
-;	MOV	WORD PTR [BP.Lock_position],SI	  ;MS.				;AN000;
-;	MOV	SI,WORD PTR ES:[DI.sf_position+2] ;MS.				;AN000;
-;	MOV	WORD PTR [BP.Lock_position+2],SI  ;MS.				;AN000;
-;	MOV	WORD PTR [BP.Lock_length],CX	  ;MS. move cx to lock_buffer	;AN000;
-;	MOV	WORD PTR [BP.Lock_length+2],0	  ;MS.				;AN000;
-;	return					  ;MS.				;AN000;
+;	MOV	BP, OFFSET DOSGROUP:Lock_Buffer   ;MS. move file position
+;	MOV	SI,WORD PTR ES:[DI.sf_position]   ;MS. to DOS lock_buffer
+;	MOV	WORD PTR [BP.Lock_position],SI	  ;MS.
+;	MOV	SI,WORD PTR ES:[DI.sf_position+2] ;MS.
+;	MOV	WORD PTR [BP.Lock_position+2],SI  ;MS.
+;	MOV	WORD PTR [BP.Lock_length],CX	  ;MS. move cx to lock_buffer
+;	MOV	WORD PTR [BP.Lock_length+2],0	  ;MS.
+;	return					  ;MS.
 ;
 ;EndProc Set_Lock_Buffer
 
@@ -307,14 +298,14 @@ BREAK <Set_Lock_Buffer>
 
 	MOV	BX,RetryCount		; Number retries
 LockRetry:
-	SaveReg <BX,AX> 		; MS. save regs 			;AN000;
+	SaveReg <BX,AX> 		; MS. save regs
 if installed
 	Context DS
 	call	DWORD PTR SS:[JShare + 8 * 4]
 else
 	Call	chk_block
 endif
-	RestoreReg  <AX,BX>		; MS. restrore regs			;AN000;
+	RestoreReg  <AX,BX>		; MS. restrore regs
 	retnc				; There are no locks
 	Invoke	Idle			; wait a while
 	DEC	BX			; remember a retry

@@ -34,36 +34,6 @@ TITLE   SORT FILTER FOR DOS
 ;*         Main
 ;*
 ;*   SOURCE HISTORY:
-;*         Modification History:
-;*         3-18-83 MZ   (Microsoft)
-;*                      Fix CR-LF at end of buffer
-;*                      Fix small file sorting
-;*                      Fix CR-LF line termination bug
-;*                      Comment the Damn source
-;*
-;*         6-23-86 RW (IBM)
-;*                      Add DOS 3.30 support for multiple languages
-;*                      Inclusion of common DOS VERSION check equate
-;*
-;*  ;AN000; Code added in DOS 4.0
-;*         5-19-87 RW (IBM) (DOS 4.0)
-;*                      Addition of IBM Parser Service Routines
-;*                      Addition of DOS Message Retriever Service Routines
-;*                      Add code page file tag support
-;*
-;*  ;AN001; Code added in DOS 4.0
-;*  ;AN002; DCR 191
-;*         9-18-87 BL (IBM) (DOS 4.0)
-;*                      Added Extended Attribute support for code page checking
-;*                       and file type checking.
-;*  ;AN003; PTM 1805
-;*         10-19-87 BL (IBM) (DOS 4.0)
-;*
-;*  ;AN004; PTM
-;*         01-29-87 BL (IBM) (DOS 4.0)
-;*                      Ran tool INSPECT on .lst file for optimizations
-;**********************************************************
-
         PAGE   ;
 ;-------------------------
 ;---    Macro definitions
@@ -114,28 +84,28 @@ RETCODE_ERROR   equ 1                   ;AN000; DOS return code (errorlevel)
 NO_CODEPAGE     equ 0                   ;AN000; Tag for files with no codepage
 
 GetCPSW         equ  3303h              ;AN000; Int 021h function calls
-GetExtAttr      equ  5702h              ;AN000;
-SetExtAttr      equ  5704h              ;AN000;
+GetExtAttr      equ  5702h
+SetExtAttr      equ  5704h
 ;-----------------------
 ;--     Parser equates
 ;-----------------------
 EOL     EQU    -1                       ;AN000; Indicator for End-Of-Line
 NOERROR EQU     0                       ;AN000; Return Indicator for No Errors
  
-FarSW   equ     0                       ;AN000;
-DateSW  equ     0                       ;AN000;
-TimeSW  equ     0                       ;AN000;
-FileSW  equ     0                       ;AN000;
-CAPSW   equ     0                       ;AN000;
-CmpxSW  equ     0                       ;AN000;
-NumSW   equ     1                       ;AN000;
-KeySW   equ     0                       ;AN000;
-SwSW    equ     1                       ;AN000;
-Val1SW  equ     1                       ;AN000;
-Val2SW  equ     0                       ;AN000;
-Val3SW  equ     0                       ;AN000;
-DrvSW   equ     0                       ;AN000;
-QusSW   equ     0                       ;AN000;
+FarSW   equ     0
+DateSW  equ     0
+TimeSW  equ     0
+FileSW  equ     0
+CAPSW   equ     0
+CmpxSW  equ     0
+NumSW   equ     1
+KeySW   equ     0
+SwSW    equ     1
+Val1SW  equ     1
+Val2SW  equ     0
+Val3SW  equ     0
+DrvSW   equ     0
+QusSW   equ     0
 
 ;-----------------------
 ;--     Message equates
@@ -144,10 +114,10 @@ STDIN   equ     0
 STDOUT  equ     1
 STDERR  equ     2
 
-Msg_NoMem       equ     2               ;AC003;
-Msg_NoDisk      equ     4               ;AC003;
-Msg_sort        equ     5               ;AN003;
-Msg_switch      equ     3               ;AN003;
+Msg_NoMem       equ     2
+Msg_NoDisk      equ     4
+Msg_sort        equ     5
+Msg_switch      equ     3
 
 ;------------------------------
 ; EXTENDED ATTRIBUTE Equates
@@ -165,7 +135,7 @@ INCLUDE sysmsg.inc    ;                 ;AN000; Include message equates and MACR
 .list                 ;
 ;---------------------;
 
-MSG_UTILNAME <SORT>                     ;AN000;
+MSG_UTILNAME <SORT>
 
 SUBTTL  Segments used in load order
 
@@ -211,19 +181,19 @@ CTRY_TABLE_OFF  dw      ?
 CTRY_TABLE_SEG  dw      ?
 ;------------------------------------------
 
-MSG_SERVICES <MSGDATA>                  ;AN000;
+MSG_SERVICES <MSGDATA>
 ASSUME   ds:nothing
 
 ;----------------------------------------
 ;- STRUCTURE TO QUERY EXTENDED ATTRIBUTES
 ;----------------------------------------
 querylist      struc                    ;AN001; ;query general list
-qea_num        dw      1                ;AN001;
-qea_type       db      EAISBINARY       ;AN001;
-qea_flags      dw      EASYSTEM         ;AN001;
-qea_namelen    db      ?                ;AN001;
-qea_name       db      "        "       ;AN001;
-querylist      ends                     ;AN001;
+qea_num        dw      1
+qea_type       db      EAISBINARY
+qea_flags      dw      EASYSTEM
+qea_namelen    db      ?
+qea_name       db      "        "
+querylist      ends
 
 cp_qlist       querylist <1,EAISBINARY,EASYSTEM,2,"CP">   ;AN001; ;query code page attr.
 
@@ -236,12 +206,12 @@ cp_list        label   word             ;AN001; ;code page attr. get/set list
                dw      2                ;AN001; ; ea value length
                db      "CP"             ;AN001; ; ea name
 cp             dw      ?                ;AN001; ; ea value (code page)
-cp_len         equ     ($ - cp_list)    ;AN001;
+cp_len         equ     ($ - cp_list)
 
 ;-------Save area for Code Pages
 src_cp         dw      ?                ;AN000; Save area for current code page
 tgt_cp         dw      ?                ;AN000; Save area for current code page
-endlist label  word                     ;AN000;
+endlist label  word
 
         PAGE   ;
 ;******************************************************************************
@@ -251,7 +221,7 @@ endlist label  word                     ;AN000;
 ;------------------------------
 ;- STRUCTURE TO DEFINE ADDITIONAL COMMAND LINE DELIMITERS
 ;------------------------------
-parms   label   word                    ;AN000;
+parms   label   word
         dw      parmsx                  ;AN000; POINTER TO PARMS STRUCTURE
         db      1                       ;AN000; DELIMITER LIST FOLLOWS
         db      1                       ;AN000; NUMBER OF ADDITIONAL DELIMITERS
@@ -260,7 +230,7 @@ parms   label   word                    ;AN000;
 ;------------------------------
 ;- STRUCTURE TO DEFINE SORT SYNTAX REQUIREMENTS
 ;------------------------------
-parmsx  label   word                    ;AN000;
+parmsx  label   word
         db      0,0                     ;AN000; THERE ARE NO POSITIONAL PARAMETERS
         db      2                       ;AN000; THERE ARE 2 SWITCHES (/R AND /+n)
         dw      sw1                     ;AN000; POINTER TO FIRST SWITCH DEFINITION AREA
@@ -270,7 +240,7 @@ parmsx  label   word                    ;AN000;
 ;------------------------------
 ;- STRUCTURE TO DEFINE THE /R SWITCH
 ;------------------------------
-sw1     label   word                    ;AN000;
+sw1     label   word
         dw      0                       ;AN000; NO MATCH FLAGS
         dw      0                       ;AN000; NO FUNCTION FLAGS
         dw      switchbuff              ;AN000; PLACE RESULT IN switchbufF
@@ -282,9 +252,9 @@ rev_sw  db      "/R",0                  ;AN000; /R INDICATES REVERSE SORT
 ;- STRUCTURE TO DEFINE THE /+n SWITCH
 ;------------------------------
 NUMERIC equ     08000h                  ;AN000; Control flag for numeric value
-NO_COLON equ    0020h                   ;AN000;
+NO_COLON equ    0020h
 
-sw2     label   word                    ;AN000;
+sw2     label   word
         dw      NUMERIC                 ;AN000; MATCH_FLAGS
         dw      NO_COLON                ;AN000; NO FUNCTION FLAGS
         dw      switchbuff              ;AN000; PLACE RESULT IN switchbufF
@@ -295,13 +265,13 @@ col_sw  db      "/+",0                  ;AN000; /+n INDICATES BEGIN SORT IN COLU
 ;------------------------------
 ;- VALUE LIST DEFINITION FOR NO VALUES
 ;------------------------------
-novals  label   word                    ;AN000;
+novals  label   word
         DB      0                       ;AN000;  VALUE LIST
 
 ;------------------------------
 ;- VALUE LIST DEFINITION FOR /+n
 ;------------------------------
-valuelist       label   word            ;AN000;
+valuelist       label   word
                 db      1               ;AN000; ONE VALUE ALLOWED
                 db      1               ;AN000; ONLY ONE RANGE
                 db      1               ;AN000; IDENTIFY THE RANGE
@@ -310,7 +280,7 @@ valuelist       label   word            ;AN000;
 ;------------------------------
 ;- RETURN BUFFER FOR SWITCH INFORMATION
 ;------------------------------
-switchbuff      label   word            ;AN000;
+switchbuff      label   word
 sb_type         db      ?               ;AN000; TYPE RETURNED
 sb_item_tag     db      ?               ;AN000; SPACE FOR ITEM TAG
 sb_synonym      dw      ?               ;AN000; ES:sb_synonym points to synonym
@@ -356,12 +326,12 @@ sb_value_extra  dw      ?               ;AN000; UNUSED SPACE FOR VALUE
 ;-------------------------
 ; Preload messages
 ;-------------------------
-        MSG_SERVICES <SORT.ctl,SORT.cla,SORT.cl1,SORT.cl2>      ;AN000;
+        MSG_SERVICES <SORT.ctl,SORT.cla,SORT.cl1,SORT.cl2>
         MSG_SERVICES <DISPLAYmsg,LOADmsg,CHARmsg,NOCHECKSTDIN>          ;AN002; Make retriever services available
 
         mov     ax,cs                   ;AN003; ;load ES to the right area,
-        mov     es,ax                   ;AN003;
-        mov     ds,ax                   ;AN003;
+        mov     es,ax
+        mov     ds,ax
 
 SORT_HELP_STR   DB "Sorts input and sends output to the screen or a file.",0Dh,0Ah
                 DB 0Dh,0Ah
@@ -703,7 +673,7 @@ BADWRT:
 ;;;;;   mov     dh,-1                   ;AN003; class: extended error
 ;;;;;   call    error_exit              ;AN000; Bye bye
         mov     al,RETCODE_ERROR        ;AN000; return an error code (errorlevel)
-        sys     EXIT                    ;AN000;
+        sys     EXIT
 WRTOK:
         MOV     AL,RETCODE_NOERROR      ;AN000; Errorlevel 0 (No error!)
         sys     EXIT                    ;bye!
@@ -740,10 +710,10 @@ WRTOK:
 ;*
 ;************************************************************
 
-display_msg     proc    near            ;AN000;
+display_msg     proc    near
         push    ds                      ;AN000; save DS value
         push    cs                      ;AN000; get DS addressability
-        pop     ds                      ;AN000;
+        pop     ds
 
         xor     cx,cx                   ;AN004; ;AN000;  No substitution text
 ;;      mov     dh,-1                   ;AN003;  Message class
@@ -754,11 +724,11 @@ display_msg     proc    near            ;AN000;
                                         ; 00H=No input, 01H=Keyboard input,
                                         ; 07H=Direct Console Input Without Echo,
                                         ; 08H=Console Input Without Echo, 0AH=Buffered Keyboard Input
-        call    SYSDISPMSG              ;AN000;
+        call    SYSDISPMSG
 
         pop     ds                      ;AN000;  restore DS
-        ret                             ;AN000;
-display_msg     ENDP                    ;AN000;
+        ret
+display_msg     ENDP
 
         PAGE   ;
 ;************************************************************
@@ -796,7 +766,7 @@ display_msg     ENDP                    ;AN000;
 ;*
 ;************************************************************
 
-parse   proc    near                    ;AN000;
+parse   proc    near
 
         sys     GetCurrentPSP           ;AN000; Get PSP address, returned in BX
 
@@ -810,7 +780,7 @@ parse   proc    near                    ;AN000;
 ;---------------------------------
 ;- Loop for each operand at DS:SI (Initially PSP + 081h)
 ;---------------------------------
-parse_loop:                             ;AN000;
+parse_loop:
         mov     di,offset parms         ;AN000; Address of parse control block
         xor     dx,dx                   ;AN000; Reserved
         call    sysparse                ;AN000; Parse parm at DS:SI
@@ -823,14 +793,14 @@ parse_loop:                             ;AN000;
 ;- If user said /R, then patch code
 ;----------------------------------
         cmp     bx,offset rev_sw        ;AN000; If user specified /R
-        jne     check_column            ;AN000;
+        jne     check_column
         mov     cs:code_patch,072h      ;AN000; Sleazy patch to make reverse order sort
         jmp     parse_loop              ;AN000; Look for another parm
 
 ;---------------------------------------------
 ;- If user said /+n, then save COLUMN index
 ;---------------------------------------------
-check_column:                           ;AN000;
+check_column:
         cmp     bx,offset col_sw        ;AN000; Q: Did user specified /+n ?
         jne     switch_error            ;AC003;  No:  Unrecognized parm
         mov     ax,sb_value             ;AN000;  Yes: Get number entered by user
@@ -840,15 +810,15 @@ check_column:                           ;AN000;
 ;------------------------------------------------------------
 ;- If any other parameter specified, display message and die
 ;------------------------------------------------------------
-switch_error:                           ;AN003;
-        mov     ax,Msg_switch           ;AN003;
-parse_error:                            ;AN000;
+switch_error:
+        mov     ax,Msg_switch
+parse_error:
         mov     dh,2                    ;AN003;  class: parse error
         call    error_exit              ;AN000;  Terminate utility
 
-end_parse:                              ;AN000;
-        ret                             ;AN000;
-parse   endp                            ;AN000;
+end_parse:
+        ret
+parse   endp
 
         PAGE   ;
 ;************************************************************
@@ -868,15 +838,15 @@ parse   endp                            ;AN000;
 ;*      INT 021h - Terminate Function 043h
 ;*
 ;************************************************************
-error_exit      proc    near            ;AN000;
-        call    prt_sort                ;AN003;
+error_exit      proc    near
+        call    prt_sort
         mov     bx,STDERR               ;AN000; output to standard error
-        xor     cx,cx                   ;AN004; ;AN003;
+        xor     cx,cx
         call    display_msg             ;AN000; and write it out
         mov     al,RETCODE_ERROR        ;AN000; return an error code (errorlevel)
-        sys     EXIT                    ;AN000;
+        sys     EXIT
         ret                             ;AN000;  Meaningless RET
-error_exit      endp                    ;AN000;
+error_exit      endp
 
 
 ;************************************************************
@@ -900,7 +870,7 @@ error_exit      endp                    ;AN000;
 ;*
 ;************************************************************
 
-match_codepages proc    near            ;AN000;
+match_codepages proc    near
 
 ;-----------------------------------
 ; Check status of Code page support
@@ -909,8 +879,8 @@ match_codepages proc    near            ;AN000;
         push    ds                      ;AN001; Save DS register
 ;
         mov     ax,cs                   ;AN001; ES, DS -> CS
-        mov     ds,ax                   ;AN001;
-        mov     es,ax                   ;AN001;
+        mov     ds,ax
+        mov     es,ax
 ;
         mov     ax,GetCPSW              ;AN000; Get CPSW state, assume support is OFF
         int     021h                    ;AN000; DL: 0=NotSupported,1=Supported
@@ -924,7 +894,7 @@ match_codepages proc    near            ;AN000;
         mov     di,offset cp_list       ;AC001; Return buffer address
         mov     si,offset cp_qlist      ;AN001; Query the code page attribute
         mov     cx,cp_len               ;AN001; return buffer length
-        int     021h                    ;AN000;
+        int     021h
         jc      done_cpsw               ;AN000; Error condition, let system handle
         mov     ax,cp                   ;AN000; Save target code page
         mov     tgt_cp,ax               ;AN000;  for later reference
@@ -934,7 +904,7 @@ match_codepages proc    near            ;AN000;
         mov     di,offset cp_list       ;AC001; Return buffer address
         mov     si,offset cp_qlist      ;AN001; Query the code page attribute
         mov     cx,cp_len               ;AN001; return buffer length
-        int     021h                    ;AN000;
+        int     021h
         jc      done_cpsw               ;AN000; Error condition, let system handle
         mov     ax,cp                   ;AN000; Save source code page
         mov     src_cp,ax               ;AN000;  for later reference
@@ -951,13 +921,13 @@ match_codepages proc    near            ;AN000;
         mov     ax,SetExtAttr           ;AN000; Set Extended Attributes by Handle
         mov     bx,STDOUT               ;AN000; For Standard output device
         mov     di,offset cp_list       ;AC001; Input buffer address
-        int     021h                    ;AN000;
+        int     021h
 
-done_cpsw:                              ;AN000;
+done_cpsw:
         pop     ds                      ;AN001; Restore DS register
         pop     es                      ;AN000; Restore ES register
-        ret                             ;AN000;
-match_codepages endp                    ;AN000;
+        ret
+match_codepages endp
 
         PAGE   ;
 ;************************************************************
@@ -972,21 +942,21 @@ match_codepages endp                    ;AN000;
 ;*   EXTERNAL REFERENCES:
 ;*         none
 ;************************************************************
-prt_sort proc near                      ;AN003;
-        push    ax                      ;AN003;
-        push    dx                      ;AN003;
+prt_sort proc near
+        push    ax
+        push    dx
 ;
-        mov     dh,-1                   ;AN003;
-        mov     ax,Msg_sort             ;AN003;
-        xor     cx,cx                   ;AN004; ;AN003;
-        mov     bx,STDERR               ;AN003;
-        call    display_msg             ;AN003;
+        mov     dh,-1
+        mov     ax,Msg_sort
+        xor     cx,cx
+        mov     bx,STDERR
+        call    display_msg
 ;
-        pop     dx                      ;AN003;
-        pop     ax                      ;AN003;
+        pop     dx
+        pop     ax
 ;
-        ret                             ;AN003;
-prt_sort endp                           ;AN003;
+        ret
+prt_sort endp
 
 
         PAGE   ;

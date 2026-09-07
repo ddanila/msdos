@@ -12,8 +12,8 @@ FALSE = 0
 ;  These values will eventually be defined by the dialog.
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-.XLIST				;AN000;
-LEFT_COL	EQU	8	;AN000;
+.XLIST
+LEFT_COL	EQU	8
 SCR_CONT       EQU  1		;AN000;contextual helps
 SCR_INDX       EQU  2		;AN000;indexed helps
 SCR_MAIN       EQU  3		;AN000;main menu
@@ -31,9 +31,9 @@ HCB_SAMP       EQU  4		;AN000;sample application help text
 ; Color index record equates
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-WHITE_BLUE	EQU	1	;AN000;
-BLACK_WHITE	EQU	4	;AN000;
-WHITE_RED	EQU	5	;AN000;
+WHITE_BLUE	EQU	1
+BLACK_WHITE	EQU	4
+WHITE_RED	EQU	5
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; Color ID equates
@@ -287,21 +287,21 @@ UPARROW EQU	72	;AN000;up arrow
 DNARROW EQU	80	;AN000;down arrow
 LFARROW EQU	75	;AN000;left arrow
 RTARROW EQU	77	;AN000;right arrow
-PGUP	EQU	73	;AN000;
-PGDN	EQU	81	;AN000;
-ESCAPE	EQU	27	;AN000;
-ENTER	EQU	13	;AN000;
-SPACE	EQU	32	;AN000;
-F1	EQU	59	;AN000;
-F2	EQU	60	;AN000;
-F3	EQU	61	;AN000;
-F4	EQU	62	;AN000;
-F5	EQU	63	;AN000;
-F6	EQU	64	;AN000;
-F7	EQU	65	;AN000;
-F8	EQU	66	;AN000;
-F9	EQU	67	;AN000;
-F10	EQU	68	;AN000;
-.LIST			;AN000;
+PGUP	EQU	73
+PGDN	EQU	81
+ESCAPE	EQU	27
+ENTER	EQU	13
+SPACE	EQU	32
+F1	EQU	59
+F2	EQU	60
+F3	EQU	61
+F4	EQU	62
+F5	EQU	63
+F6	EQU	64
+F7	EQU	65
+F8	EQU	66
+F9	EQU	67
+F10	EQU	68
+.LIST
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 

@@ -49,15 +49,15 @@ DosGetDBCSEv	proc	far
 	jc	Exit
 Copy_Vector:
 	les	di,[bp].DataAreaPtr	     ;AN000; ES:DI-->return buffer
-	mov	cx,[bp].DataAreaLength	     ;AN000;
+	mov	cx,[bp].DataAreaLength
 loopx:
-	mov    al,ds:[si]		     ;AN000;
-	mov    es:[di],al		     ;AN000;
-	inc    si			     ;AN000;
-	inc    di			     ;AN000;
-	loop   loopx			     ;AN000;
+	mov    al,ds:[si]
+	mov    es:[di],al
+	inc    si
+	inc    di
+	loop   loopx
 
-	xor	ax,ax			     ;AN000;
+	xor	ax,ax
 
 Exit:
 	Mexit				    ;AN000;pop registers

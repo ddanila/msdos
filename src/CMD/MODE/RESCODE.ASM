@@ -7,17 +7,15 @@
 .LIST
 ;.SALL
 
-;ษออออออออออออออออออออออออออออออออ  P R O L O G  อออออออออออออออออออออออออออออออออออออออออป				   ;AN000;
-;บ											  บ				   ;AN000;
-															   ;AN000;
+;ษออออออออออออออออออออออออออออออออ  P R O L O G  อออออออออออออออออออออออออออออออออออออออออป
+;บ											  บ
 ;  AC000 - P2852: Infinite retry check at beginning of INT 14 handler was using
 ;		  wrong bit pattern.
 
 ;  AC001 - P5148: retry_flag was addressing the wrong segment
 
-;บ											  บ				   ;AN000;
-;ศออออออออออออออออออออออออออออออออ  P R O L O G  อออออออออออออออออออออออออออออออออออออออออผ				   ;AN000;
-															   ;AN000;
+;บ											  บ
+;ศออออออออออออออออออออออออออออออออ  P R O L O G  อออออออออออออออออออออออออออออออออออออออออผ
 
 ;ษออออออออออออออออออออออออออออออออ  M A C R O S  อออออออออออออออออออออออออออออออออออออออออป
 ;บ											  บ
@@ -68,21 +66,21 @@ ENDM
 
 ADJUSTMENT EQU	(entpt - move_destination)	;# of bytes the resident code is moved
 adjustment_in_paragraphs  EQU  (adjustment / 10H)	;# paragraphs the code moved
-COM_status	EQU	03		  ;BIOS input for com status request	;AN001;
-E		EQU	1		  ;value of "res_com_retry_type" for E retry requested	 ;AN001;
+COM_status	EQU	03		  ;BIOS input for com status request
+E		EQU	1		  ;value of "res_com_retry_type" for E retry requested
 false		EQU	0
-framing_error	EQU	0000100000000000B ;bit returned in AX from com status			 ;AN001;
-holding_empty	EQU	0010000000000000B ;bit returned in AX from com status			 ;AN001;
+framing_error	EQU	0000100000000000B ;bit returned in AX from com status
+holding_empty	EQU	0010000000000000B ;bit returned in AX from com status
 INT14		EQU	014H
 INT17		EQU	017H
-LPT_status	EQU	02		  ;value of AH for printer status checks					   ;AN000;
+LPT_status	EQU	02		  ;value of AH for printer status checks
 not_busy	EQU	80H		  ;just the not busy bit on
-overrun_error	EQU	0000001000000000B ;bit returned in AX from com status			 ;AN001;
-parity_error	EQU	0000010000000000B ;bit returned in AX from com status			 ;AN001;
+overrun_error	EQU	0000001000000000B ;bit returned in AX from com status
+parity_error	EQU	0000010000000000B ;bit returned in AX from com status
 P14_model_byte	EQU	0F9H		  ;P14's have a F9 at F000:FFFE
-R		EQU	3		  ;value of "res_com_retry_type" for R retry requested	 ;AN001;
-shift_empty	EQU	0100000000000000B ;bit returned in AX from com status			 ;AN001;
-time_out	EQU	1000000000000000B ;time out bit returned in AX from com status		 ;AN001;
+R		EQU	3		  ;value of "res_com_retry_type" for R retry requested
+shift_empty	EQU	0100000000000000B ;bit returned in AX from com status
+time_out	EQU	1000000000000000B ;time out bit returned in AX from com status
 TO_SCREEN	EQU	9		  ;REQUEST OUTPUT TO SCREEN
 TRUE		EQU	0FFH
 USER_ABORT	EQU	00H
@@ -184,7 +182,7 @@ PUBLIC	VECTOR17
 ;ศอออออออออออออออออออออออออออออออ  P U B L I C S  ออออออออออออออออออออออออออออออออออออออออผ
 
 	ORG	2CH
-environ_seg    DW    ?			  ;segment address of the environment, used as the block of memory to free so	   ;AN000;
+environ_seg    DW    ?			  ;segment address of the environment, used as the block of memory to free so
 					  ;environment is not part of resident code.
 
 	ORG	60H			  ;first usable byte of PSP. If you change this check the
@@ -241,12 +239,12 @@ MODETO	PROC	NEAR
 
 PUSH  CX
 MOV   CL,DL		   ;CL=DL=0,1,2 or 3
-SHL   CL,1		   ;CL= 0, 2, 4 or 6 for COM 1,2,3 or 4 respectively						   ;AC000;
-XOR   CH,CH		   ;CH=0 ready for ANDing in the mask								   ;AC000;
-OR    CH,00000011B	   ;CH=00000011, mask for any type of retry, to be shifted into proper position 		   ;AC000;
+SHL   CL,1		   ;CL= 0, 2, 4 or 6 for COM 1,2,3 or 4 respectively
+XOR   CH,CH		   ;CH=0 ready for ANDing in the mask
+OR    CH,00000011B	   ;CH=00000011, mask for any type of retry, to be shifted into proper position
 SHL   CH,CL		   ;CH=00000011, 00001100, 00110000 or 11000000 for COM 1,2,3 or 4 respectively
-AND   CH,BYTE PTR CS:res_modeflag	  ;see if any bit is on for this COM port ;AC001;
-MOV   CS:retry_type,CX	   ;AC001; save for check after call to old INT 14		 ;AN001;
+AND   CH,BYTE PTR CS:res_modeflag	  ;see if any bit is on for this COM port
+MOV   CS:retry_type,CX	   ;AC001; save for check after call to old INT 14
 POP   CX
 JNZ   pushax
 
@@ -279,17 +277,17 @@ VEC	EQU	(VECTOR14 +1)  ;OFFSET TO IMMEDIATE FIELD OF PREVIOUSLY SET
 ;				FAR JMP INSTRUCTION, FILLED WITH THE
 ;				ORIGINAL CONTENTS OF THE INTERRUPT VECTOR
 	CALL	DWORD PTR CS:VEC       ;CALL PREVIOUS RS232 HANDLER
-	.IF <CS:request EQ COM_status> THEN		;IF a status request THEN			      ;AN001;
-	   PUSH    CX			  ;need CX for shift count in CL				      ;AN001;
-	   MOV	   CX,CS:retry_type	  ;AC001; get back retry type for this port				     ;AN001;
-	   SHR	   CH,CL		  ;put back in first two bits for retry type check below	      ;AN001;
-	   .IF <CH EQ E> THEN										      ;AN001;
-	      MOV  AX,time_out+framing_error+parity_error+overrun_error     ;indicate the port is on fire     ;AN001;
-	   .ELSEIF <CH EQ R> THEN									      ;AN001;
-	      MOV  AX,shift_empty+holding_empty+clear_to_send+data_set_ready  ;indicate the port is ready     ;AN001;
-	   .ENDIF					;otherwise assume B retry and pass actual status      ;AN001;
-	   POP	   CX			  ;restore reg							      ;AN001;
-	.ELSE				  ;continue as if a send request				      ;AN001;
+	.IF <CS:request EQ COM_status> THEN		;IF a status request THEN
+	   PUSH    CX			  ;need CX for shift count in CL
+	   MOV	   CX,CS:retry_type	  ;AC001; get back retry type for this port
+	   SHR	   CH,CL		  ;put back in first two bits for retry type check below
+	   .IF <CH EQ E> THEN
+	      MOV  AX,time_out+framing_error+parity_error+overrun_error     ;indicate the port is on fire
+	   .ELSEIF <CH EQ R> THEN
+	      MOV  AX,shift_empty+holding_empty+clear_to_send+data_set_ready  ;indicate the port is ready
+	   .ENDIF					;otherwise assume B retry and pass actual status
+	   POP	   CX			  ;restore reg
+	.ELSE				  ;continue as if a send request
 	   PUSH    AX			   ;SAVE REGS
 	   PUSH    DS			   ; REGS
 	   SUB	   AX,AX		   ;POINT TO
@@ -299,7 +297,7 @@ VEC	EQU	(VECTOR14 +1)  ;OFFSET TO IMMEDIATE FIELD OF PREVIOUSLY SET
 	   POP	   AX			   ; REGS
 	   JZ	   TESTER		   ;BRANCH IF NO BREAK
 	   OR	   AH,80H		   ;SIMULATE TIMEOUT ERROR ON BREAK
-	.ENDIF				   ;ENDIF status request					      ;AN001;
+	.ENDIF				   ;ENDIF status request
 FLUSH:
 	INC	SP			;FLUSH THE
 	INC	SP			; STACK
@@ -377,7 +375,7 @@ ASIS:	JMP	PRINTER_IO		;NO REDIRECTION, GO DIRECTLY TO PREVIOUS INT 17H
 	PAGE
 PAR_RETRY:
 RT:
-      MOV   CS:request,AH	       ;save the function requested for check after return from call to INT 17		  ;AN000;
+      MOV   CS:request,AH	       ;save the function requested for check after return from call to INT 17
       PUSH  AX			    ;SAVE ENTRY PARAMETERS FOR LATER USE
       PUSH  DS			    ;SAVE CALLER'S REGS
       PUSH  AX			    ;SAVE REGS
@@ -394,19 +392,19 @@ PVEC  EQU   VECTOR17+1		    ;OFFSET TO IMMEDIATE FIELD OF PREVIOUSLY SET
 ;		    FAR JUMP INSTRUCTION, FILLED WITH THE
 ;		    ORIGINAL CONTENTS OF THE INT 17H VECTOR.
       CALL  DWORD PTR CS:PVEC	    ;CALL PREVIOUS PARALLEL PORT HANDLER
-      CMP   CS:request,LPT_status											   ;AN000;
-      JNE   init_or_write												   ;AN000;
-	 TEST  AH,not_busy	    ;see if the printer was busy (not busy bit off)					   ;AN000;
-	 JNZ   pflush		    ;IF busy dork the status byte							   ;AN000;
-	    PUSH  BX													   ;AN000;
-	    MOV   BX,DX 	       ;BX=zero based printer number							   ;AN000;
-	    CMP   BYTE PTR CS:lpt1_retry_type[BX],busy_status  ;IF status should be changed THEN		     ;AN000;
-	    JZ	  dont_modify					     ;busy setting means user wants actual status	   ;AN000;
-	       MOV   AH,BYTE PTR CS:lpt1_retry_type[BX]  ;change to status set by prior retry setting request for this LPT ;AN000;
-	    dont_modify:												   ;AN000;
-	    POP   BX													   ;AN000;
-      JMP   pflush		    ;return to caller									   ;AN000;
-init_or_write:														   ;AN000;
+      CMP   CS:request,LPT_status
+      JNE   init_or_write
+	 TEST  AH,not_busy	    ;see if the printer was busy (not busy bit off)
+	 JNZ   pflush		    ;IF busy dork the status byte
+	    PUSH  BX
+	    MOV   BX,DX 	       ;BX=zero based printer number
+	    CMP   BYTE PTR CS:lpt1_retry_type[BX],busy_status  ;IF status should be changed THEN
+	    JZ	  dont_modify					     ;busy setting means user wants actual status
+	       MOV   AH,BYTE PTR CS:lpt1_retry_type[BX]  ;change to status set by prior retry setting request for this LPT
+	    dont_modify:
+	    POP   BX
+      JMP   pflush		    ;return to caller
+init_or_write:
       PUSH  AX			    ;SAVE RETURN CODE IN AH
       PUSH  DS			    ;SAVE DATA SEGMENT REG
 ;
@@ -546,9 +544,9 @@ PTSFLAG4 DB	0			;FLAG FORMODE COMMAND:
 ;		3=COM4
 
 
-lpt1_retry_type   DB	0	 ;holder of mask for status return byte 					;AN000;
-lpt2_retry_type   DB	0	 ;can be one of no_retry_flag, error_status,					;AN000;
-lpt3_retry_type   DB	0	 ;busy_status or ready_status, see MODEPRIN				       ;AN000;
+lpt1_retry_type   DB	0	 ;holder of mask for status return byte
+lpt2_retry_type   DB	0	 ;can be one of no_retry_flag, error_status,
+lpt3_retry_type   DB	0	 ;busy_status or ready_status, see MODEPRIN
 
 PUBLIC lpt1_retry_type
 
@@ -598,8 +596,8 @@ MODELOAD PROC	NEAR
 ;		    SINCE CODE HAS NOT YET BEEN MOVED,
 ;		    PATCH PROPER ADDRESSES INTO IT
 
-;     .IF <retry_requested EQ true> AND      ;AN000;
-;     .IF <device_type EQ COMX> THEN	     ;AN000;
+;     .IF <retry_requested EQ true> AND
+;     .IF <device_type EQ COMX> THEN
 ;
 ;	 XOR	 AX,AX
 ;	 MOV	 ES,AX		     ;BACK TO THE VECTOR AT ZERO
@@ -609,11 +607,11 @@ MODELOAD PROC	NEAR
 ;	 MOV	 AX,WORD PTR ES:VECT14H[2] ;MOVE REST OF VECTOR
 ;	 MOV	 VECTOR14+3,AX
 ;
-;     .ENDIF				     ;AN000;
+;     .ENDIF
 ;
-;     .IF <device_type EQ LPTX> AND	     ;AN000;
-;     .IF <retry_requested EQ true> OR	     ;AN000;
-;     .IF <reroute_requested EQ true> THEN   ;AN000;
+;     .IF <device_type EQ LPTX> AND
+;     .IF <retry_requested EQ true> OR
+;     .IF <reroute_requested EQ true> THEN
 ;
 ;	 MOV	 AX,WORD PTR ES:VECT17H ;GET VECTOR OF INT 17H
 ;	 MOV	 VECTOR17+1,AX	     ; INTO CODE TO BE MOVED
@@ -621,7 +619,7 @@ MODELOAD PROC	NEAR
 ;	 MOV	 AX,WORD PTR ES:VECT17H[2] ;MOVE REST OF VECTOR
 ;	 MOV	 VECTOR17+3,AX
 ;
-;     .ENDIF				     ;AN000;
+;     .ENDIF
 
 
       PUSH    ES		  ;SAVE POINTER TO VECTOR ZERO
@@ -728,7 +726,7 @@ submodel_byte	  DB	0FFH		;secondary model byte
 ;ษอออออออออออออออออออออออออออออออ  P U B L I C S  ออออออออออออออออออออออออออออออออออออออออป
 ;บ											  บ
 
-PUBLIC	PARM1,PARM2,PARM3,MODE,FLAG,CTRL_ST,INDEX,LOCAL_NAME,REMOTE_DEV       ;AC000;
+PUBLIC	PARM1,PARM2,PARM3,MODE,FLAG,CTRL_ST,INDEX,LOCAL_NAME,REMOTE_DEV
 PUBLIC	IS_LOCAL
 PUBLIC	LOADED_YET
 PUBLIC	machine_type		;holder for machine type, found in "main"

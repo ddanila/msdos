@@ -55,27 +55,10 @@
 ;;	 FROM FILE  KEYBMSG.ASM:
 ;;	      KEYB_MESSAGES - All messages
 ;;
-;; Change History:
-;;
-;;  Revised for DOS 4.00 -   NickS
-;;			      A000 - WilfR
-;;			      AN002- DCR ???? -KEYBAORD SECURITY LOCK - CNS
-;;
-;;
-;;			      an003  PTM 3906 - KEYB messages do not conform
-;;						to spec. Error message does
-;;			      3/24/88		not pass back the bogus command
-;;						line argument.	      - CNS
-;;
-;;
-;;
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-				       ;;
 	PUBLIC KEYB_COMMAND	       ;;
 				       ;;
 ;*****************CNS********************
-	PUBLIC ID_TAB_OFFSET	       ;AN000;
+	PUBLIC ID_TAB_OFFSET
 ;*****************CNS********************
 	PUBLIC CP_TAB_OFFSET	       ;;
 	PUBLIC STATE_LOGIC_OFFSET      ;;
@@ -90,36 +73,36 @@
 	PUBLIC FILE_BUFFER_SIZE
 	PUBLIC FB		       ;;
 ;*****************CNS********************
-	PUBLIC ID_PTR_SIZE	       ;AN000;
-	PUBLIC LANG_PTR_SIZE	       ;AN000;
-	PUBLIC CP_PTR_SIZE	       ;AN000;
-	PUBLIC NUM_ID		       ;AN000;
-	PUBLIC NUM_LANG 	       ;AN000;
-	PUBLIC NUM_CP		       ;AN000;
+	PUBLIC ID_PTR_SIZE
+	PUBLIC LANG_PTR_SIZE
+	PUBLIC CP_PTR_SIZE
+	PUBLIC NUM_ID
+	PUBLIC NUM_LANG
+	PUBLIC NUM_CP
 	PUBLIC SHARED_AREA_PTR	       ;;
 ;*****************CNS********************
 	PUBLIC SD_SOURCE_PTR	       ;;
 	PUBLIC TEMP_SHARED_DATA        ;;
 				       ;;
-	PUBLIC FOURTH_PARM	       ;AN000;					    ;AN000
-	PUBLIC ONE_PARMID	       ;AN000;					    ;AN000
-	PUBLIC FTH_PARMID	       ;AN000;					    ;AN000
-	PUBLIC ID_FOUND 	       ;AN000;					    ;AN000
-	PUBLIC BAD_ID		       ;AN000;					    ;AN000
-	PUBLIC ALPHA		       ;AN000;					    ;AN000
-	EXTRN  PARSE_PARAMETERS:NEAR   ;AN000;					    ;AN000
+	PUBLIC FOURTH_PARM
+	PUBLIC ONE_PARMID
+	PUBLIC FTH_PARMID
+	PUBLIC ID_FOUND
+	PUBLIC BAD_ID
+	PUBLIC ALPHA
+	EXTRN  PARSE_PARAMETERS:NEAR
 ;***CNS
-	EXTRN  SECURE_FL:BYTE	       ;an002;
-	EXTRN  CUR_PTR:WORD	       ;an003;
-	EXTRN  OLD_PTR:WORD	       ;an003;
-	EXTRN  ERR_PART:WORD		;an003;
+	EXTRN  SECURE_FL:BYTE
+	EXTRN  CUR_PTR:WORD
+	EXTRN  OLD_PTR:WORD
+	EXTRN  ERR_PART:WORD
 ;***CNS
 .xlist
-	INCLUDE STRUC.INC	       ;AN000;;; WGR structured macros			   ;AN000
-	INCLUDE SYSMSG.INC	       ;AN000;;; WGR message retriever			   ;AN000
+	INCLUDE STRUC.INC	       ;AN000;;; WGR structured macros
+	INCLUDE SYSMSG.INC	       ;AN000;;; WGR message retriever
 .list
 				       ;;
-MSG_UTILNAME <KEYB>		       ;AN000;;; WGR identify to message retriever	   ;AN000
+MSG_UTILNAME <KEYB>		       ;AN000;;; WGR identify to message retriever
 				       ;;
 CODE	SEGMENT PUBLIC 'CODE'          ;;
 				       ;;
@@ -310,7 +293,7 @@ MEMORY_OVERFLOW      EQU  3	       ;;
 CONSOLE_ERROR	     EQU  4	       ;;
 CP_NOT_DESIGNATED    EQU  5	       ;;
 KEYB_TABLE_NOT_LOAD  EQU  6	       ;;
-BAD_DOS_VER	     EQU  7	       ;AN000;;; WGR					   ;AN000
+BAD_DOS_VER	     EQU  7	       ;AN000;;; WGR
 				       ;;
 EXIT_RET_CODE	     DB   0	       ;;
 ;******************** CNS ***********  ;AN000;;;
@@ -328,70 +311,70 @@ NO_CODE_PAGE	     EQU  2	       ;;
 VALID_SYNTAX	     EQU  0	       ;;
 INVALID_SYNTAX	     EQU  1	       ;;;;;;;
 					    ;;
-ACT_KEYB	     EQU  2		    ;AC000;;; WGR				   ;AN000
-ACT_ID		     EQU  3		    ;AC000;;; WGR				   ;AN000
-ACT_KEYB_CP	     EQU  4		    ;AC000;;; WGR				   ;AN000
-ACT_CON_CP	     EQU  5		    ;AC000;;; WGR				   ;AN000
-INV_L		     EQU  6		    ;AC000;;; WGR message numbers...		   ;AN000
-INV_I		     EQU  7		    ;AC000;;; WGR				   ;AN000
-INV_CP		     EQU  8		    ;AC000;;; WGR				   ;AN000
-INV_S		     EQU  18		    ;AC000;;; WGR				   ;AN000
-INV_FN		     EQU  9		    ;AC000;;; WGR				   ;AN000
-INV_KEYB_Q	     EQU  10		    ;AC000;;; WGR				   ;AN000
-INV_CON_Q	     EQU  11		    ;AC000;;; WGR				   ;AN000
-NOT_DESIG	     EQU  12		    ;AC000;;; WGR				   ;AN000
-NOT_SUPP	     EQU  13		    ;AC000;;; WGR				   ;AN000
-NOT_VALID	     EQU  14		    ;AC000;;; WGR				   ;AN000
-WARNING_1	     EQU  15		    ;AC000;;; WGR				   ;AN000
-INV_COMBO	     EQU  16		    ;AC000;;; WGR				   ;AN000
-MEMORY_OVERF	     EQU  17		    ;AC000;;; WGR				   ;AN000
-CR_LF		     DB   10,13,'$'         ;; WGR                                  ;AN000
+ACT_KEYB	     EQU  2		    ;AC000;;; WGR
+ACT_ID		     EQU  3		    ;AC000;;; WGR
+ACT_KEYB_CP	     EQU  4		    ;AC000;;; WGR
+ACT_CON_CP	     EQU  5		    ;AC000;;; WGR
+INV_L		     EQU  6		    ;AC000;;; WGR message numbers...
+INV_I		     EQU  7		    ;AC000;;; WGR
+INV_CP		     EQU  8		    ;AC000;;; WGR
+INV_S		     EQU  18		    ;AC000;;; WGR
+INV_FN		     EQU  9		    ;AC000;;; WGR
+INV_KEYB_Q	     EQU  10		    ;AC000;;; WGR
+INV_CON_Q	     EQU  11		    ;AC000;;; WGR
+NOT_DESIG	     EQU  12		    ;AC000;;; WGR
+NOT_SUPP	     EQU  13		    ;AC000;;; WGR
+NOT_VALID	     EQU  14		    ;AC000;;; WGR
+WARNING_1	     EQU  15		    ;AC000;;; WGR
+INV_COMBO	     EQU  16		    ;AC000;;; WGR
+MEMORY_OVERF	     EQU  17		    ;AC000;;; WGR
+CR_LF		     DB   10,13,'$'         ;; WGR
 					    ;;
-FOURTH_PARM    DB	0		    ;AN000;;; WGR switch was specified		   ;AN000
-ONE_PARMID     DB	0		    ;AN000;;; WGR id given as positional	   ;AN000
-FTH_PARMID     DB	0		    ;AN000;;; WGR id given as switch		   ;AN000
-ID_FOUND       DB	0		    ;AN000;;; WGR id was good (in k.d. file)	   ;AN000
-BAD_ID	       DB	0		    ;AN000;;; WGR id was bad (from parse)	   ;AN000
-ALPHA	       DB	0		    ;AN000;;; WGR first parm a language id	   ;AN000
+FOURTH_PARM    DB	0		    ;AN000;;; WGR switch was specified
+ONE_PARMID     DB	0		    ;AN000;;; WGR id given as positional
+FTH_PARMID     DB	0		    ;AN000;;; WGR id given as switch
+ID_FOUND       DB	0		    ;AN000;;; WGR id was good (in k.d. file)
+BAD_ID	       DB	0		    ;AN000;;; WGR id was bad (from parse)
+ALPHA	       DB	0		    ;AN000;;; WGR first parm a language id
 					    ;;
-ID_DISPLAYED   DB	0		    ;AN000;;; WGR Indicating ID already displayed  ;AN000
-					    ;; WGR				    ;AN000
-SUBLIST_NUMBER LABEL BYTE		    ;AN000;;; WGR sublist for numbers		   ;AN000
-	       DB	11		    ;AN000;;; WGR size				   ;AN000
-	       DB	0		    ;AN000;;; WGR				   ;AN000
-PTR_TO_NUMBER  DW	?		    ;AN000;;; WGR offset ptr			   ;AN000
-SEG_OF_NUMBER  DW	?		    ;AN000;;; WGR segment			   ;AN000
-	       DB	1		    ;AN000;;; WGR				   ;AN000
-	       DB	10100001B	    ;AN000;;; WGR flag				   ;AN000
-	       DB	3		    ;AN000;;; WGR max width			   ;AN000
-	       DB	1		    ;AN000;;; WGR min width			   ;AN000
-	       DB	" "                 ;AN000;;; WGR filler                           ;AN000
+ID_DISPLAYED   DB	0		    ;AN000;;; WGR Indicating ID already displayed
+					    ;; WGR
+SUBLIST_NUMBER LABEL BYTE		    ;AN000;;; WGR sublist for numbers
+	       DB	11		    ;AN000;;; WGR size
+	       DB	0		    ;AN000;;; WGR
+PTR_TO_NUMBER  DW	?		    ;AN000;;; WGR offset ptr
+SEG_OF_NUMBER  DW	?		    ;AN000;;; WGR segment
+	       DB	1		    ;AN000;;; WGR
+	       DB	10100001B	    ;AN000;;; WGR flag
+	       DB	3		    ;AN000;;; WGR max width
+	       DB	1		    ;AN000;;; WGR min width
+	       DB	" "                 ;AN000;;; WGR filler
 					    ;AN000;;; WGR
 					    ;AN000;;; WGR
-SUBLIST_ASCIIZ LABEL BYTE		    ;AN000;;; WGR sublist for asciiz		   ;AN000
-	       DB	11		    ;AN000;;; WGR size				   ;AN000
-	       DB	0		    ;AN000;;; WGR				   ;AN000
-PTR_TO_ASCIIZ  DW	?		    ;AN000;;; WGR offset ptr			   ;AN000
-SEG_OF_ASCIIZ  DW	?		    ;AN000;;; WGR segment			   ;AN000
-	       DB	1		    ;AN000;;; WGR				   ;AN000
-	       DB	00010000B	    ;AN000;;; WGR flag				   ;AN000
-	       DB	2		    ;AN000;;; WGR max width			   ;AN000
-	       DB	2		    ;AN000;;; WGR min width			   ;AN000
-	       DB	" "                 ;AN000;;; WGR filler                           ;AN000
-					    ;AN000;;; WGR				   ;AN000
-NUMBER_HOLDER  DW	?		    ;AN000;;; WGR used for message retriever	   ;AN000
+SUBLIST_ASCIIZ LABEL BYTE		    ;AN000;;; WGR sublist for asciiz
+	       DB	11		    ;AN000;;; WGR size
+	       DB	0		    ;AN000;;; WGR
+PTR_TO_ASCIIZ  DW	?		    ;AN000;;; WGR offset ptr
+SEG_OF_ASCIIZ  DW	?		    ;AN000;;; WGR segment
+	       DB	1		    ;AN000;;; WGR
+	       DB	00010000B	    ;AN000;;; WGR flag
+	       DB	2		    ;AN000;;; WGR max width
+	       DB	2		    ;AN000;;; WGR min width
+	       DB	" "                 ;AN000;;; WGR filler
+					    ;AN000;;; WGR
+NUMBER_HOLDER  DW	?		    ;AN000;;; WGR used for message retriever
 ;***CNS
-SUBLIST_COMLIN LABEL BYTE		    ;an003;;; WGR sublist for asciiz		   ;AN000
-	       DB	11		    ;an003;;; WGR size				   ;AN000
-	       DB	0		    ;an003;;; WGR				   ;AN000
-PTR_TO_COMLIN  DW	?		    ;an003;;; WGR offset ptr			   ;AN000
+SUBLIST_COMLIN LABEL BYTE		    ;an003;;; WGR sublist for asciiz
+	       DB	11		    ;an003;;; WGR size
+	       DB	0		    ;an003;;; WGR
+PTR_TO_COMLIN  DW	?		    ;an003;;; WGR offset ptr
 SEG_OF_COMLIN  DW	?
-	       DB	0		    ;an003;;; WGR				   ;AN000
-	       DB	LEFT_ALIGN+CHAR_FIELD_ASCIIZ  ;AN000;;; WGR flag			     ;AN000
+	       DB	0		    ;an003;;; WGR
+	       DB	LEFT_ALIGN+CHAR_FIELD_ASCIIZ  ;AN000;;; WGR flag
 
-	       DB	0		    ;an003;;; WGR max width			   ;AN000
-	       DB	1		    ;an003;;; WGR min width			   ;AN000
-	       DB	" "                 ;an003;;; WGR filler                           ;AN000
+	       DB	0		    ;an003;;; WGR max width
+	       DB	1		    ;an003;;; WGR min width
+	       DB	" "                 ;an003;;; WGR filler
 
 
 STRING_HOLDER  DB	64 DUP(0)
@@ -404,10 +387,10 @@ DESIG_CP_BUFFER      DW   28 DUP(?)	    ;; (Room for 25 code pages)
 DESIG_CP_BUF_LEN     DW   $-DESIG_CP_BUFFER ;;	Length of code page buffer
 NUM_DESIG_CP	     DW   0		    ;;
 CP_TAB_OFFSET	     DD   ?		    ;;
-;******************  CNS  ******************;AN000;
-TOTAL_SIZE	     DW   0		    ;AN000;
-PASS_LANG	     DW   0		    ;AN000;
-ID_TAB_OFFSET	     DD   ?		    ;AN000;
+;******************  CNS  ******************
+TOTAL_SIZE	     DW   0
+PASS_LANG	     DW   0
+ID_TAB_OFFSET	     DD   ?
 ;******************  CNS  ******************;;
 STATE_LOGIC_OFFSET   DD   -1		    ;;
 KEYBSYS_FILE_HANDLE  DW   ?		    ;;;;;;;;;;;
@@ -421,12 +404,12 @@ KB_MASK 	     EQU  02h			     ;;
 						     ;;
 SIGNATURE	     DB   0FFh,'KEYB   '             ;;
 SIGNATURE_LENGTH     DW   8			     ;;
-;******************  CNS  ***************************;AN000;
-NUM_ID		     DW   0			     ;AN000;
-ERR4ID		     DB   0			     ;AN000;
-NUM_LANG	     DW   0			     ;AN000;
-NUM_CP		     DW   0			     ;AN000;
-ID_PTR_SIZE	     DW   SIZE KEYBSYS_ID_PTRS	     ;AN000;
+;******************  CNS  ***************************
+NUM_ID		     DW   0
+ERR4ID		     DB   0
+NUM_LANG	     DW   0
+NUM_CP		     DW   0
+ID_PTR_SIZE	     DW   SIZE KEYBSYS_ID_PTRS
 ;******************  CNS  *****************************
 LANG_PTR_SIZE	     DW   SIZE KEYBSYS_LANG_PTRS     ;;
 CP_PTR_SIZE	     DW   SIZE KEYBSYS_CP_PTRS	     ;;
@@ -437,7 +420,7 @@ CON_INSTALLED	     DW   0			     ;;
 SHARED_AREA_PTR      DD   0			     ;;
 GOOD_MATCH	     DW   0			     ;;
 ;******************  CNS  ***************************;;
-LANGUAGE_ASCII	     DB   '??',0                     ;; WGR                         ;AC000
+LANGUAGE_ASCII	     DB   '??',0                     ;; WGR
 						     ;;
 CMD_PARM_LIST	     PARM_LIST <>		     ;;
 						     ;;
@@ -472,15 +455,15 @@ L_CTRL_TAB	EQU	$-RPL_K8							;;
 						    ;;
 KEYB_COMMAND  PROC NEAR 			    ;;
 						    ;;
-	CALL  SYSLOADMSG			    ;AN000;load messages		 ;AN000
-	JNC   VERSION_OK			    ;AN000;if no carry then version ok	 ;AN000
-	CALL  SYSDISPMSG			    ;AN000;error..display version error  ;AN000
-	MOV   AL,BAD_DOS_VER			    ;AN000;bad DOS version		 ;AN000
-	MOV   EXIT_RET_CODE,AL			    ;AN000;				 ;AN000
-	JMP   KEYB_EXIT_NOT_RESIDENT		    ;AN000;exit..non resident		 ;AN000
-VERSION_OK:					    ;; WGR				 ;AN000
-	MOV   SEG_OF_NUMBER,CS			    ;AN000;initialize.. 		 ;AN000
-	MOV   SEG_OF_ASCIIZ,CS			    ;AN000;  ..sublists 		 ;AN000
+	CALL  SYSLOADMSG			    ;AN000;load messages
+	JNC   VERSION_OK			    ;AN000;if no carry then version ok
+	CALL  SYSDISPMSG			    ;AN000;error..display version error
+	MOV   AL,BAD_DOS_VER			    ;AN000;bad DOS version
+	MOV   EXIT_RET_CODE,AL
+	JMP   KEYB_EXIT_NOT_RESIDENT		    ;AN000;exit..non resident
+VERSION_OK:					    ;; WGR
+	MOV   SEG_OF_NUMBER,CS			    ;AN000;initialize..
+	MOV   SEG_OF_ASCIIZ,CS			    ;AN000;  ..sublists
 	MOV   BP,OFFSET CMD_PARM_LIST		    ;AN000;pointer for parm list
 	MOV   WORD PTR SHARED_AREA_PTR,ES	    ;AN000; ES segment
 						    ;;
@@ -555,80 +538,80 @@ QUERY:				       ;;
 	MOV   DI,WORD PTR SHARED_AREA_PTR+2	     ;; Get offset of
 	MOV   ES,WORD PTR SHARED_AREA_PTR	     ;; 	 shared area
 	MOV   BX,WORD PTR ES:[DI].ACTIVE_LANGUAGE    ;; Get active language
-	CMP   BX,0				     ;; WGR if no language..		 ;AN000
-	JE    I_MESSAGE 			     ;; WGR then id was specified	 ;AN000
+	CMP   BX,0				     ;; WGR if no language..
+	JE    I_MESSAGE 			     ;; WGR then id was specified
 						     ;;
 					   ;;;;;;;;;;;;
 L_MESSAGE:				   ;;
 	MOV   WORD PTR LANGUAGE_ASCII,BX   ;AC000;;;  Display Language
-	LEA   SI,LANGUAGE_ASCII 	   ;AN000;;; WGR sublist points to...			;AN000
-	MOV   PTR_TO_ASCIIZ,SI		   ;AN000;;; WGR language code asciiz string		;AN000
-	MOV   AX,ACT_KEYB		   ;AC000;;; WGR display 'Current keyboard code'        ;AN000
-	MOV   BX,STDOUT 		   ;AN000;;; WGR to standard out			;AN000
-	MOV   CX,1			   ;AN000;;; WGR one replacement			;AN000
-	MOV   DH,UTILITY_MSG_CLASS	   ;AN000;;; WGR utility message			;AN000
-	XOR   DL,DL			   ;AN000;;; WGR no input				;AN000
-	LEA   SI,SUBLIST_ASCIIZ 	   ;AN000;;; WGR ptr to sublist 			;AN000
-	CALL  SYSDISPMSG		   ;AN000;;; WGR					;AN000
+	LEA   SI,LANGUAGE_ASCII 	   ;AN000;;; WGR sublist points to...
+	MOV   PTR_TO_ASCIIZ,SI		   ;AN000;;; WGR language code asciiz string
+	MOV   AX,ACT_KEYB		   ;AC000;;; WGR display 'Current keyboard code'
+	MOV   BX,STDOUT 		   ;AN000;;; WGR to standard out
+	MOV   CX,1			   ;AN000;;; WGR one replacement
+	MOV   DH,UTILITY_MSG_CLASS	   ;AN000;;; WGR utility message
+	XOR   DL,DL			   ;AN000;;; WGR no input
+	LEA   SI,SUBLIST_ASCIIZ 	   ;AN000;;; WGR ptr to sublist
+	CALL  SYSDISPMSG		   ;AN000;;; WGR
 	JMP   KEYB_L_FINISHED		   ;;
 					   ;;;;;;;
 I_MESSAGE:					;;
-	MOV   BX,WORD PTR ES:[DI].INVOKED_KBD_ID;AN000;;; WGR get id code.			;AN000
-	MOV   NUMBER_HOLDER,BX			;AN000;;; WGR transfer number to temp loc.	;AN000
-	LEA   SI,NUMBER_HOLDER			;AN000;;; WGR sublist points to...		;AN000
-	MOV   PTR_TO_NUMBER,SI			;AN000;;; WGR code page word			;AN000
-	MOV   AX,ACT_ID 			;AN000;;; WGR display 'Current ID:  '           ;AN000
-	MOV   BX,STDOUT 			;AN000;;; WGR to standard out			;AN000
-	MOV   CX,1				;AN000;;; WGR one replacement			;AN000
-	MOV   DH,UTILITY_MSG_CLASS		;AN000;;; WGR utility message			;AN000
-	XOR   DL,DL				;AN000;;; WGR no input				;AN000
-	LEA   SI,SUBLIST_NUMBER 		;AN000;;; WGR ptr to sublist			;AN000
-	CALL  SYSDISPMSG			;AN000;;; WGR					;AN000
-	MOV   ID_DISPLAYED,1			;AN000;;; WGR ID was displayed. 		;AN000
-	JMP   KEYB_L_FINISHED			;AN000;;; WGR					;AN000
+	MOV   BX,WORD PTR ES:[DI].INVOKED_KBD_ID;AN000;;; WGR get id code.
+	MOV   NUMBER_HOLDER,BX			;AN000;;; WGR transfer number to temp loc.
+	LEA   SI,NUMBER_HOLDER			;AN000;;; WGR sublist points to...
+	MOV   PTR_TO_NUMBER,SI			;AN000;;; WGR code page word
+	MOV   AX,ACT_ID 			;AN000;;; WGR display 'Current ID:  '
+	MOV   BX,STDOUT 			;AN000;;; WGR to standard out
+	MOV   CX,1				;AN000;;; WGR one replacement
+	MOV   DH,UTILITY_MSG_CLASS		;AN000;;; WGR utility message
+	XOR   DL,DL				;AN000;;; WGR no input
+	LEA   SI,SUBLIST_NUMBER 		;AN000;;; WGR ptr to sublist
+	CALL  SYSDISPMSG			;AN000;;; WGR
+	MOV   ID_DISPLAYED,1			;AN000;;; WGR ID was displayed.
+	JMP   KEYB_L_FINISHED			;AN000;;; WGR
 				       ;;;;;;;;;;;
 QUERY_CONTINUE1:		       ;;
-	MOV   AX,INV_KEYB_Q	       ;AC000;;; WGR						;AN000
-	MOV   BX,STDOUT 	       ;AN000;;; WGR Else					;AN000
-	XOR   CX,CX		       ;AC000;;; WGR	Display message that KEYB		;AN000
-	MOV   DH,UTILITY_MSG_CLASS     ;AN000;;; WGR	  has not been installed		;AN000
-	XOR   DL,DL		       ;AN000;;; WGR						;AN000
-	CALL  SYSDISPMSG	       ;AN000;;; WGR						;AN000
+	MOV   AX,INV_KEYB_Q	       ;AC000;;; WGR
+	MOV   BX,STDOUT 	       ;AN000;;; WGR Else
+	XOR   CX,CX		       ;AC000;;; WGR	Display message that KEYB
+	MOV   DH,UTILITY_MSG_CLASS     ;AN000;;; WGR	  has not been installed
+	XOR   DL,DL		       ;AN000;;; WGR
+	CALL  SYSDISPMSG	       ;AN000;;; WGR
 	JMP   KEYB_CP_FINISHED	       ;AC000;;;
 				       ;;;;;;;;;;;
 KEYB_L_FINISHED:				;;
 	MOV   BX,ES:[DI].INVOKED_CP_TABLE	;; Get invoked code page
 						;;
-	MOV   NUMBER_HOLDER,BX			;AN000;;; WGR transfer number to temp loc.	;AN000
-	LEA   SI,NUMBER_HOLDER			;AN000;;; WGR sublist points to...		;AN000
-	MOV   PTR_TO_NUMBER,SI			;AN000;;; WGR code page word			;AN000
-	MOV   AX,ACT_KEYB_CP			;AC000;;; WGR display '  code page: '           ;AN000
-	MOV   BX,STDOUT 			;AN000;;; WGR to standard out			;AN000
-	MOV   CX,1				;AN000;;; WGR one replacement			;AN000
-	MOV   DH,UTILITY_MSG_CLASS		;AN000;;; WGR utility message			;AN000
-	XOR   DL,DL				;AN000;;; WGR no input				;AN000
-	LEA   SI,SUBLIST_NUMBER 		;AN000;;; WGR ptr to sublist			;AN000
-	CALL  SYSDISPMSG			;AN000;;; WGR					;AN000
-	CMP   ID_DISPLAYED,1			;AN000;;; WGR was id displayed? 		;AN000
-	JE    KEYB_CP_FINISHED			;AN000;;; WGR yes..continue.			;AN000
+	MOV   NUMBER_HOLDER,BX			;AN000;;; WGR transfer number to temp loc.
+	LEA   SI,NUMBER_HOLDER			;AN000;;; WGR sublist points to...
+	MOV   PTR_TO_NUMBER,SI			;AN000;;; WGR code page word
+	MOV   AX,ACT_KEYB_CP			;AC000;;; WGR display '  code page: '
+	MOV   BX,STDOUT 			;AN000;;; WGR to standard out
+	MOV   CX,1				;AN000;;; WGR one replacement
+	MOV   DH,UTILITY_MSG_CLASS		;AN000;;; WGR utility message
+	XOR   DL,DL				;AN000;;; WGR no input
+	LEA   SI,SUBLIST_NUMBER 		;AN000;;; WGR ptr to sublist
+	CALL  SYSDISPMSG			;AN000;;; WGR
+	CMP   ID_DISPLAYED,1			;AN000;;; WGR was id displayed?
+	JE    KEYB_CP_FINISHED			;AN000;;; WGR yes..continue.
 						;;
-	MOV   BX,WORD PTR ES:[DI].INVOKED_KBD_ID;AN000;;; WGR get id code.			;AN000
-	CMP   BX,0				;AN000;;; WGR no id given..			;AN000
-	JE    KEYB_CP_FINISHED			;AN000;;; WGR					;AN000
+	MOV   BX,WORD PTR ES:[DI].INVOKED_KBD_ID;AN000;;; WGR get id code.
+	CMP   BX,0				;AN000;;; WGR no id given..
+	JE    KEYB_CP_FINISHED			;AN000;;; WGR
 						;;
-	MOV   NUMBER_HOLDER,BX			;AN000;;; WGR transfer number to temp loc.	;AN000
-	LEA   SI,NUMBER_HOLDER			;AN000;;; WGR sublist points to...		;AN000
-	MOV   PTR_TO_NUMBER,SI			;AN000;;; WGR code page word			;AN000
-	MOV   AX,ACT_ID 			;AC000;;; WGR display 'Current ID:  '           ;AN000
-	MOV   BX,STDOUT 			;AN000;;; WGR to standard out			;AN000
-	MOV   CX,1				;AN000;;; WGR one replacement			;AN000
-	MOV   DH,UTILITY_MSG_CLASS		;AN000;;; WGR utility message			;AN000
-	XOR   DL,DL				;AN000;;; WGR no input				;AN000
-	LEA   SI,SUBLIST_NUMBER 		;AN000;;; WGR ptr to sublist			;AN000
-	CALL  SYSDISPMSG			;AN000;;; WGR					;AN000
-	MOV   AH,09H				;AC000;;; WGR need a CR_LF here.		;AN000
-	MOV   DX,OFFSET CR_LF			;AC000;;; WGR					;AN000
-	INT   21H				;; WGR					 ;AN000
+	MOV   NUMBER_HOLDER,BX			;AN000;;; WGR transfer number to temp loc.
+	LEA   SI,NUMBER_HOLDER			;AN000;;; WGR sublist points to...
+	MOV   PTR_TO_NUMBER,SI			;AN000;;; WGR code page word
+	MOV   AX,ACT_ID 			;AC000;;; WGR display 'Current ID:  '
+	MOV   BX,STDOUT 			;AN000;;; WGR to standard out
+	MOV   CX,1				;AN000;;; WGR one replacement
+	MOV   DH,UTILITY_MSG_CLASS		;AN000;;; WGR utility message
+	XOR   DL,DL				;AN000;;; WGR no input
+	LEA   SI,SUBLIST_NUMBER 		;AN000;;; WGR ptr to sublist
+	CALL  SYSDISPMSG			;AN000;;; WGR
+	MOV   AH,09H				;AC000;;; WGR need a CR_LF here.
+	MOV   DX,OFFSET CR_LF			;AC000;;; WGR
+	INT   21H				;; WGR
 				       ;;;;;;;;;;;
 KEYB_CP_FINISHED:		       ;;
 	MOV   AX,CON_INSTALLED	       ;;  If CON has been installed THEN
@@ -643,31 +626,31 @@ GET_ACTIVE_CP:			       ;;
 	JMP   ERROR5		       ;;
 				       ;;
 DISPLAY_ACTIVE_CP:		       ;;
-	MOV   NUMBER_HOLDER,BX	       ;AC000;;; WGR transfer number to temp loc.		;AN000
-	LEA   SI,NUMBER_HOLDER	       ;AC000;;; WGR sublist points to...			;AN000
-	MOV   PTR_TO_NUMBER,SI	       ;AC000;;; WGR code page word				;AN000
-	MOV   AX,ACT_CON_CP	       ;AN000;;; WGR display 'Current CON code page: '          ;AN000
-	MOV   BX,STDOUT 	       ;AN000;;; WGR to standard out				;AN000
-	MOV   CX,1		       ;AN000;;; WGR one replacement				;AN000
-	MOV   DH,UTILITY_MSG_CLASS     ;AN000;;; WGR utility message				;AN000
-	XOR   DL,DL		       ;AN000;;; WGR no input					;AN000
-	LEA   SI,SUBLIST_NUMBER        ;AN000;;; WGR ptr to sublist				;AN000
-	CALL  SYSDISPMSG	       ;AN000;;; WGR						;AN000
+	MOV   NUMBER_HOLDER,BX	       ;AC000;;; WGR transfer number to temp loc.
+	LEA   SI,NUMBER_HOLDER	       ;AC000;;; WGR sublist points to...
+	MOV   PTR_TO_NUMBER,SI	       ;AC000;;; WGR code page word
+	MOV   AX,ACT_CON_CP	       ;AN000;;; WGR display 'Current CON code page: '
+	MOV   BX,STDOUT 	       ;AN000;;; WGR to standard out
+	MOV   CX,1		       ;AN000;;; WGR one replacement
+	MOV   DH,UTILITY_MSG_CLASS     ;AN000;;; WGR utility message
+	XOR   DL,DL		       ;AN000;;; WGR no input
+	LEA   SI,SUBLIST_NUMBER        ;AN000;;; WGR ptr to sublist
+	CALL  SYSDISPMSG	       ;AN000;;; WGR
 				       ;;
 	JMP   KEYB_EXIT_NOT_RESIDENT   ;;  Exit from Proc
 				       ;;
 CON_NOT_INSTALLED:		       ;; ELSE
-	MOV   AX,INV_CON_Q	       ;AC000;WGR					     ;AN000
-	MOV   BX,STDOUT 	       ;AN000;;; WGR Else					;AN000
-	XOR   CX,CX		       ;AN000;;; WGR	Display message that CON does		;AN000
-	MOV   DH,UTILITY_MSG_CLASS     ;AN000;;; WGR	  not have active code page		;AN000
-	XOR   DL,DL		       ;AN000;;; WGR						;AN000
-	CALL  SYSDISPMSG	       ;AN000;;; WGR						;AN000
+	MOV   AX,INV_CON_Q	       ;AC000;WGR
+	MOV   BX,STDOUT 	       ;AN000;;; WGR Else
+	XOR   CX,CX		       ;AN000;;; WGR	Display message that CON does
+	MOV   DH,UTILITY_MSG_CLASS     ;AN000;;; WGR	  not have active code page
+	XOR   DL,DL		       ;AN000;;; WGR
+	CALL  SYSDISPMSG	       ;AN000;;; WGR
 	JMP   KEYB_EXIT_NOT_RESIDENT   ;; Exit from Proc
 				       ;;
 NOT_QUERY:			       ;; IF not a query function requested
 	CALL  BUILD_PATH	       ;; Determine location of KEYBOARD.SYS
-				       ;; WGR ...and open file. 			 ;AC000
+				       ;; WGR ...and open file.
 				       ;;
 	JNC   VALID4		       ;; If no error in opening file then
 	JMP   ERROR4		       ;;
@@ -682,7 +665,7 @@ VALID4: 			       ;;
 	je    ID_TYPED		       ;AN000;	 ;; if so go find out if it is
 	jmp   GET_LANG		       ;AN000;	 ;; a 1st or 4th parm, if not must
 				       ;AN000;	 ;; must be a language
-ID_TYPED:			       ;AN000;
+ID_TYPED:
 
 	call  SCAN_ID		       ;AN000;	 ;; scan the table for the ID
 	cmp   ID_FOUND,1	       ;AN000;	 ;; if a legal ID check and see if
@@ -709,7 +692,7 @@ GET_LANG:				  ;; Must be a language/or a 1st parm ID
 	JMP   ERROR4		       ;;
 				       ;;;;
 VALID5: 				 ;;
-	CLD				 ;; WGR all moves/scans forward 		 ;AN000
+	CLD				 ;; WGR all moves/scans forward
 	MOV   CX,SIGNATURE_LENGTH	 ;;
 	MOV   DI,OFFSET SIGNATURE	 ;; Verify matching
 	MOV   SI,OFFSET FB.KH_SIGNATURE  ;;	     signatures
@@ -756,7 +739,7 @@ SEARCH_ID:				;AN000;;; minimum per country
 	jne	FINDID			;AN000;;; Country has more than one ID check
 	jmp	END_IDCHK		;AN000;;; Country & ID has been found or value
 					;; is zero
-FINDID: 				;AN000;
+FINDID:
 
 	push	di			;AN000;;; save the current language entry ptr
 	push	cx			;AN000;;; save the minimum # of ids before
@@ -814,19 +797,19 @@ CHK1N4: 				;AN000; 	  ;;country
 CHK4PARM:				;AN000; 	   ;; check on the first ID
       ; .IF <FOURTH_PARM EQ 1>		;AN000; 	   ;;switch specified
       ;     call IDLANG_CHK		;AN000; 	   ;;check the lang-id combo
-      ; .ELSE				;AN000;
+      ; .ELSE
       ;     xor  cx,cx			;AN000; 	   ;;clear to exit loop
-      ; .ENDIF				;AN000;
+      ; .ENDIF
       ;
 	   cmp FOURTH_PARM,1		;AN000; 	   ;; ID was a switch
 	   jne ABORT_LOOP		;AN000; 	   ;; otherwise get out of routine
 	   call IDLANG_CHK		;AN000; 	   ;; check the ID
 	   jmp ADVANCE_PTR		;AN000; 	   ;; advance to the next position
 
-ABORT_LOOP:				;AN000;
+ABORT_LOOP:
 	   xor	 cx,cx			;AN000; 	   ;; end loop
 
-ADVANCE_PTR:				;AN000;
+ADVANCE_PTR:
 	   pop di			;AN000; 	   ;;restore entry value
 
 	   dec cx			;AN000; 	   ;;# of ids left to check
@@ -837,21 +820,21 @@ ADVANCE_PTR:				;AN000;
 	   add di,LANG_PTR_SIZE 	;AN000; 	   ;;step to the next entry
 						    ;;in the table
 
-NO_ADVANCE:				;AN000;
+NO_ADVANCE:
 
 	   jmp SEARCH_ID		;AN000; 	   ;;for the country
 
 ;.ENDWHILE					     ;;end of ID check for country
 
-END_IDCHK:				;AN000;
+END_IDCHK:
 
 	   cmp	  FOURTH_PARM,1 	;AN000; 	    ;; see if id was found
-	   jne	  VALID6		;AN000;
+	   jne	  VALID6
 	   cmp	  GOOD_MATCH,0		;AN000; 	    ;; none found
 	   jne	  VALID6		;AN000; 	    ;; report error
 	   mov	  [bp].ret_code_4,1	;AN000; 	    ;; incompatible lang code
 	   mov	  al,[bp].ret_code_4	;AN000; 	    ;; id combo
-	   jmp	  err2id		;AN000;
+	   jmp	  err2id
 
 						    ;; otherwise found it
 						    ;; continue to build tbl
@@ -870,7 +853,7 @@ VALID6: 				       ;;
 				       ;;
 CODE_PAGE_SPECIFIED:		       ;;  Then
 ;************************** CNS ***********************************************
-	xor   ah,ah		       ;AN000;
+	xor   ah,ah
 	MOV   Al,FB.KL_NUM_CP	       ;AN000;;;
 ;************************** CNS ***********************************************
 	MOV   NUM_CP,AX 	       ;; Save the number of code pages
@@ -1001,16 +984,16 @@ CODE_PAGE_DESIGNATED:		       ;;
 	CMP   [BP].CODE_PAGE_PARM,BX   ;;     IF Invoked CP <>	Specified CP
 	JE    READY_TO_BUILD_TABLE     ;;	 Issue warning
 ;;***************************************************************************
-	PUSH  BX		       ;AN000;;; WGR						;AN000
-	PUSH  CX		       ;AN000;;; WGR						;AN000
-	MOV   AX,WARNING_1	       ;AN000;;; WGR						;AN000
-	MOV   BX,STDOUT 	       ;AN000;;; WGR						;AN000
-	XOR   CX,CX		       ;AN000;;; WGR						;AN000
-	MOV   DH,UTILITY_MSG_CLASS     ;AN000;;; WGR						;AN000
-	XOR   DL,DL		       ;AN000;;; WGR						;AN000
-	CALL  SYSDISPMSG	       ;AN000;;; WGR						;AN000
-	POP   CX		       ;AN000;;; WGR						;AN000
-	POP   BX		       ;AN000;;; WGR						;AN000
+	PUSH  BX		       ;AN000;;; WGR
+	PUSH  CX		       ;AN000;;; WGR
+	MOV   AX,WARNING_1	       ;AN000;;; WGR
+	MOV   BX,STDOUT 	       ;AN000;;; WGR
+	XOR   CX,CX		       ;AN000;;; WGR
+	MOV   DH,UTILITY_MSG_CLASS     ;AN000;;; WGR
+	XOR   DL,DL		       ;AN000;;; WGR
+	CALL  SYSDISPMSG	       ;AN000;;; WGR
+	POP   CX		       ;AN000;;; WGR
+	POP   BX		       ;AN000;;; WGR
 ;;***************************************************************************
 				       ;;
 READY_TO_BUILD_TABLE:		       ;;
@@ -1110,16 +1093,16 @@ CHECK_FOR_INV_CP:		       ;;
 	JE    TERMINATE 	       ;;   If some were invalid, issue
 				       ;;	warning message
 ;;***************************************************************************
-	PUSH  BX		       ;AN000;;; WGR						;AN000
-	PUSH  CX		       ;AN000;;; WGR						;AN000
-	MOV   AX,NOT_SUPP	       ;AN000;;; WGR						;AN000
-	MOV   BX,STDOUT 	       ;AN000;;; WGR WARNING					;AN000
-	XOR   CX,CX		       ;AN000;;; WGR  MESSAGE					;AN000
-	MOV   DH,UTILITY_MSG_CLASS     ;AN000;;; WGR						;AN000
-	XOR   DL,DL		       ;AN000;;; WGR						;AN000
-	CALL  SYSDISPMSG	       ;AN000;;; WGR						;AN000
-	POP   CX		       ;AN000;;; WGR						;AN000
-	POP   BX		       ;AN000;;; WGR						;AN000
+	PUSH  BX		       ;AN000;;; WGR
+	PUSH  CX		       ;AN000;;; WGR
+	MOV   AX,NOT_SUPP	       ;AN000;;; WGR
+	MOV   BX,STDOUT 	       ;AN000;;; WGR WARNING
+	XOR   CX,CX		       ;AN000;;; WGR  MESSAGE
+	MOV   DH,UTILITY_MSG_CLASS     ;AN000;;; WGR
+	XOR   DL,DL		       ;AN000;;; WGR
+	CALL  SYSDISPMSG	       ;AN000;;; WGR
+	POP   CX		       ;AN000;;; WGR
+	POP   BX		       ;AN000;;; WGR
 ;;***************************************************************************
 				       ;;
 TERMINATE:			       ;;
@@ -1187,26 +1170,26 @@ SKIP_CTRL_COPY: 		       ;;
 	JMP   COPY_SD_AREA	       ;; Jump to proc that copies area in new
 				       ;;	part of memory
 ;***************************** CNS *********************************************
-ERR1ID: 			       ;AN000;
+ERR1ID:
 ;;***************************************************************************
-	MOV   AX,INV_I		       ;AN000;;; WGR invalid ID message 			;AN000
-	MOV   BX,STDOUT 	       ;AN000;;; WGR to standard out				;AN000
-	XOR   CX,CX		       ;AN000;;; WGR no substitutions				;AN000
-	MOV   DH,UTILITY_MSG_CLASS     ;AN000;;; WGR utility message				;AN000
-	XOR   DL,DL		       ;AN000;;; WGR no input					;AN000
-	CALL  SYSDISPMSG	       ;AN000;;; WGR display message				;AN000
+	MOV   AX,INV_I		       ;AN000;;; WGR invalid ID message
+	MOV   BX,STDOUT 	       ;AN000;;; WGR to standard out
+	XOR   CX,CX		       ;AN000;;; WGR no substitutions
+	MOV   DH,UTILITY_MSG_CLASS     ;AN000;;; WGR utility message
+	XOR   DL,DL		       ;AN000;;; WGR no input
+	CALL  SYSDISPMSG	       ;AN000;;; WGR display message
 	MOV   AL,INVALID_PARMS	       ;AN000;;;				   |
 	MOV   EXIT_RET_CODE,AL	       ;AN000;;;				   |
 ;;***************************************************************************
 	JMP   KEYB_EXIT_NOT_RESIDENT   ;;
 ERR2ID:
 ;;***************************************************************************
-	MOV   AX,INV_COMBO	       ;AN000;;; WGR invalid combination message		;AN000
-	MOV   BX,STDOUT 	       ;AN000;;; WGR to standard out				;AN000
-	XOR   CX,CX		       ;AN000;;; WGR no substitutions				;AN000
-	MOV   DH,UTILITY_MSG_CLASS     ;AN000;;; WGR utility message				;AN000
-	XOR   DL,DL		       ;AN000;;; WGR no input					;AN000
-	CALL  SYSDISPMSG	       ;AN000;;; WGR display message				;AN000
+	MOV   AX,INV_COMBO	       ;AN000;;; WGR invalid combination message
+	MOV   BX,STDOUT 	       ;AN000;;; WGR to standard out
+	XOR   CX,CX		       ;AN000;;; WGR no substitutions
+	MOV   DH,UTILITY_MSG_CLASS     ;AN000;;; WGR utility message
+	XOR   DL,DL		       ;AN000;;; WGR no input
+	CALL  SYSDISPMSG	       ;AN000;;; WGR display message
 	MOV   AL,INVALID_PARMS	       ;AN000;;;				   |
 	MOV   EXIT_RET_CODE,AL	       ;AN000;;;				   |
 ;;***************************************************************************
@@ -1214,32 +1197,32 @@ ERR2ID:
 ;***************************** CNS *********************************************
 ERROR1:
 ;;***************************************************************************
-	MOV   AX,INV_L		       ;AN000;;; WGR invalid language code			;AN000
-	MOV   BX,STDOUT 	       ;AN000;;; WGR to standard out				;AN000
-	XOR   CX,CX		       ;AN000;;; WGR no substitutions				;AN000
-	MOV   DH,UTILITY_MSG_CLASS     ;AN000;;; WGR utility message				;AN000
-	XOR   DL,DL		       ;AN000;;; WGR no input					;AN000
-	CALL  SYSDISPMSG	       ;AN000;;; WGR display message				;AN000
+	MOV   AX,INV_L		       ;AN000;;; WGR invalid language code
+	MOV   BX,STDOUT 	       ;AN000;;; WGR to standard out
+	XOR   CX,CX		       ;AN000;;; WGR no substitutions
+	MOV   DH,UTILITY_MSG_CLASS     ;AN000;;; WGR utility message
+	XOR   DL,DL		       ;AN000;;; WGR no input
+	CALL  SYSDISPMSG	       ;AN000;;; WGR display message
 	MOV   AL,INVALID_PARMS	       ;AN000;;;				   |
 	MOV   EXIT_RET_CODE,AL	       ;AN000;;;				   |
 ;;***************************************************************************
 	JMP   KEYB_EXIT_NOT_RESIDENT   ;;
 ERROR2:
 ;;***************************************************************************
-	MOV   AX,INV_CP 	       ;AN000;;; WGR invalid code page message			;AN000
-	MOV   BX,STDOUT 	       ;AN000;;; WGR to standard out				;AN000
-	XOR   CX,CX		       ;AN000;;; WGR no substitutions				;AN000
-	MOV   DH,UTILITY_MSG_CLASS     ;AN000;;; WGR utility message				;AN000
-	XOR   DL,DL		       ;AN000;;; WGR no input					;AN000
-	CALL  SYSDISPMSG	       ;AN000;;; WGR display message				;AN000
+	MOV   AX,INV_CP 	       ;AN000;;; WGR invalid code page message
+	MOV   BX,STDOUT 	       ;AN000;;; WGR to standard out
+	XOR   CX,CX		       ;AN000;;; WGR no substitutions
+	MOV   DH,UTILITY_MSG_CLASS     ;AN000;;; WGR utility message
+	XOR   DL,DL		       ;AN000;;; WGR no input
+	CALL  SYSDISPMSG	       ;AN000;;; WGR display message
 	MOV   AL,INVALID_PARMS	       ;AN000;;;				   |
 	MOV   EXIT_RET_CODE,AL	       ;AN000;;;				   |
 ;;***************************************************************************
 	JMP   KEYB_EXIT_NOT_RESIDENT   ;;
 ERROR3:
 ;;***************************************************************************
-	MOV   AX,INV_S		       ;AN000;;; WGR invalid syntax message			;AN000
-	MOV   BX,STDOUT 	       ;AN000;;; WGR to standard out				;AN000
+	MOV   AX,INV_S		       ;AN000;;; WGR invalid syntax message
+	MOV   BX,STDOUT 	       ;AN000;;; WGR to standard out
 ;***CNS
 
 	LEA   DI,STRING_HOLDER	      ;AN003;Set PTR to look at the STRING
@@ -1260,85 +1243,85 @@ ERROR3:
 	POP   SI		      ;AN003;Restore the PTR to the command line position
 
 	MOV   CX,1		       ;AN003;One replacement
-	MOV   PTR_TO_COMLIN,DI	       ;AN003;;; WGR language code asciiz string	    ;AN000
+	MOV   PTR_TO_COMLIN,DI	       ;AN003;;; WGR language code asciiz string
 
 
-	PUSH  AX		       ;AN003;
-	MOV   AX,DS		       ;AN003;;; WGR language code asciiz string	    ;AN000
-	MOV   SEG_OF_COMLIN,AX	       ;AN003;
-	POP   AX		       ;AN003;
-       ;XOR   CX,CX		       ;AN000;;; WGR no substitutions				;AN000
+	PUSH  AX
+	MOV   AX,DS		       ;AN003;;; WGR language code asciiz string
+	MOV   SEG_OF_COMLIN,AX
+	POP   AX
+       ;XOR   CX,CX		       ;AN000;;; WGR no substitutions
 
-	MOV   AX,ERR_PART	       ;AN003;
-	LEA   SI,SUBLIST_COMLIN        ;AN003;
-;	MOV   DH,UTILITY_MSG_CLASS     ;AN000;;; WGR parse error message			;AN000
-	MOV   DH,PARSE_ERR_CLASS      ;AN000;;; WGR parse error message 		       ;AN000
-	XOR   DL,DL		       ;AN000;;; WGR no input					;AN000
-	CALL  SYSDISPMSG	       ;AN000;;; WGR display message				;AN000
+	MOV   AX,ERR_PART
+	LEA   SI,SUBLIST_COMLIN
+;	MOV   DH,UTILITY_MSG_CLASS     ;AN000;;; WGR parse error message
+	MOV   DH,PARSE_ERR_CLASS      ;AN000;;; WGR parse error message
+	XOR   DL,DL		       ;AN000;;; WGR no input
+	CALL  SYSDISPMSG	       ;AN000;;; WGR display message
 	MOV   AL,INVALID_PARMS	       ;AN000;;;				   |
 	MOV   EXIT_RET_CODE,AL	       ;AN000;;;				   |
 ;;***************************************************************************
 	JMP   KEYB_EXIT_NOT_RESIDENT   ;;
 ERROR4:
 ;;***************************************************************************
-	MOV   AX,INV_FN 	       ;AN000;;; WGR bad or missing file message		;AN000
-	MOV   BX,STDOUT 	       ;AN000;;; WGR to standard out				;AN000
-	XOR   CX,CX		       ;AN000;;; WGR no substitutions				;AN000
-	MOV   DH,UTILITY_MSG_CLASS     ;AN000;;; WGR utility message				;AN000
-	XOR   DL,DL		       ;AN000;;; WGR no input					;AN000
-	CALL  SYSDISPMSG	       ;AN000;;; WGR display message				;AN000
+	MOV   AX,INV_FN 	       ;AN000;;; WGR bad or missing file message
+	MOV   BX,STDOUT 	       ;AN000;;; WGR to standard out
+	XOR   CX,CX		       ;AN000;;; WGR no substitutions
+	MOV   DH,UTILITY_MSG_CLASS     ;AN000;;; WGR utility message
+	XOR   DL,DL		       ;AN000;;; WGR no input
+	CALL  SYSDISPMSG	       ;AN000;;; WGR display message
 	MOV   AL,BAD_KEYB_DEF_FILE     ;AN000;;;				   |
 	MOV   EXIT_RET_CODE,AL	       ;AN000;;;				   |
 ;;***************************************************************************
 	JMP   KEYB_EXIT_NOT_RESIDENT   ;;
 ERROR5:
 ;;***************************************************************************
-	MOV   AX,INV_CON_Q	       ;AC000;;; WGR CON code page not available.		;AN000
-	MOV   BX,STDOUT 	       ;AN000;;; WGR to standard out				;AN000
-	XOR   CX,CX		       ;AN000;;; WGR no substitutions				;AN000
-	MOV   DH,UTILITY_MSG_CLASS     ;AN000;;; WGR utility message				;AN000
-	XOR   DL,DL		       ;AN000;;; WGR no input					;AN000
-	CALL  SYSDISPMSG	       ;AN000;;; WGR display message				;AN000
+	MOV   AX,INV_CON_Q	       ;AC000;;; WGR CON code page not available.
+	MOV   BX,STDOUT 	       ;AN000;;; WGR to standard out
+	XOR   CX,CX		       ;AN000;;; WGR no substitutions
+	MOV   DH,UTILITY_MSG_CLASS     ;AN000;;; WGR utility message
+	XOR   DL,DL		       ;AN000;;; WGR no input
+	CALL  SYSDISPMSG	       ;AN000;;; WGR display message
 	MOV   AL,CONSOLE_ERROR	       ;AN000;;;				   |
 	MOV   EXIT_RET_CODE,AL	       ;AN000;;;				   |
 ;;***************************************************************************
 	JMP   KEYB_EXIT_NOT_RESIDENT   ;;
 ERROR5A:
 ;;***************************************************************************
-	MOV   AX,MEMORY_OVERF	       ;AC000;;; WGR not enough resident memory.		;AN000
-	MOV   BX,STDOUT 	       ;AN000;;; WGR to standard out				;AN000
-	XOR   CX,CX		       ;AN000;;; WGR no substitutions				;AN000
-	MOV   DH,UTILITY_MSG_CLASS     ;AN000;;; WGR utility message				;AN000
-	XOR   DL,DL		       ;AN000;;; WGR no input					;AN000
-	CALL  SYSDISPMSG	       ;AN000;;; WGR display message				;AN000
+	MOV   AX,MEMORY_OVERF	       ;AC000;;; WGR not enough resident memory.
+	MOV   BX,STDOUT 	       ;AN000;;; WGR to standard out
+	XOR   CX,CX		       ;AN000;;; WGR no substitutions
+	MOV   DH,UTILITY_MSG_CLASS     ;AN000;;; WGR utility message
+	XOR   DL,DL		       ;AN000;;; WGR no input
+	CALL  SYSDISPMSG	       ;AN000;;; WGR display message
 	MOV   AL,MEMORY_OVERFLOW       ;AN000;;;				   |
 	MOV   EXIT_RET_CODE,AL	       ;AN000;;;				   |
 ;;***************************************************************************
 	JMP   KEYB_EXIT_NOT_RESIDENT   ;;
 ERROR6:
 ;;***************************************************************************
-	MOV   AX,NOT_DESIG	       ;AC000;;; WGR code page not prepared.			;AN000
-	MOV   BX,STDOUT 	       ;AN000;;; WGR to standard out				;AN000
-	XOR   CX,CX		       ;AN000;;; WGR no substitutions				;AN000
-	MOV   DH,UTILITY_MSG_CLASS     ;AN000;;; WGR utility message				;AN000
-	XOR   DL,DL		       ;AN000;;; WGR no input					;AN000
-	CALL  SYSDISPMSG	       ;AN000;;; WGR display message				;AN000
+	MOV   AX,NOT_DESIG	       ;AC000;;; WGR code page not prepared.
+	MOV   BX,STDOUT 	       ;AN000;;; WGR to standard out
+	XOR   CX,CX		       ;AN000;;; WGR no substitutions
+	MOV   DH,UTILITY_MSG_CLASS     ;AN000;;; WGR utility message
+	XOR   DL,DL		       ;AN000;;; WGR no input
+	CALL  SYSDISPMSG	       ;AN000;;; WGR display message
 	MOV   AL,CP_NOT_DESIGNATED     ;AN000;;;				   |
 	MOV   EXIT_RET_CODE,AL	       ;AN000;;;				   |
 ;;***************************************************************************
 	JMP   KEYB_EXIT_NOT_RESIDENT   ;;
 ERROR6A:
 ;;***************************************************************************
-	MOV   NUMBER_HOLDER,BX	       ;AN000;;; WGR transfer number to temp loc.		;AN000
-	LEA   SI,NUMBER_HOLDER	       ;AN000;;; WGR sublist points to...			;AN000
-	MOV   PTR_TO_NUMBER,SI	       ;AN000;;; WGR code page word				;AN000
-	MOV   AX,NOT_VALID	       ;AN000;;; WGR display 'Code page requested....'          ;AN000
-	MOV   BX,STDOUT 	       ;AN000;;; WGR to standard out				;AN000
-	MOV   CX,1		       ;AN000;;; WGR one replacement				;AN000
-	MOV   DH,UTILITY_MSG_CLASS     ;AN000;;; WGR utility message				;AN000
-	XOR   DL,DL		       ;AN000;;; WGR no input					;AN000
-	LEA   SI,SUBLIST_NUMBER        ;AN000;;; WGR ptr to sublist				;AN000
-	CALL  SYSDISPMSG	       ;AN000;;; WGR						;AN000
+	MOV   NUMBER_HOLDER,BX	       ;AN000;;; WGR transfer number to temp loc.
+	LEA   SI,NUMBER_HOLDER	       ;AN000;;; WGR sublist points to...
+	MOV   PTR_TO_NUMBER,SI	       ;AN000;;; WGR code page word
+	MOV   AX,NOT_VALID	       ;AN000;;; WGR display 'Code page requested....'
+	MOV   BX,STDOUT 	       ;AN000;;; WGR to standard out
+	MOV   CX,1		       ;AN000;;; WGR one replacement
+	MOV   DH,UTILITY_MSG_CLASS     ;AN000;;; WGR utility message
+	XOR   DL,DL		       ;AN000;;; WGR no input
+	LEA   SI,SUBLIST_NUMBER        ;AN000;;; WGR ptr to sublist
+	CALL  SYSDISPMSG	       ;AN000;;; WGR
 	MOV   AL,KEYB_TABLE_NOT_LOAD   ;AN000;;;				   |
 	MOV   EXIT_RET_CODE,AL	       ;AN000;;;				   |
 ;;***************************************************************************
@@ -1731,12 +1714,11 @@ OUTPUT: 			       ;;
 	mov	dx,offset FILE_BUFFER	 ;AN000; ;
 	mov	ah,3fh			;;AN000;read language table from
 	int	21h			;;AN000;keyb defn file
-	jnc	READ_IDVAL		;;AN000;
-	jmp	BAD_TAB 		;;AN000;
+	jnc	READ_IDVAL		;
+	jmp	BAD_TAB 		;
 					;
-  READ_IDVAL:				;;AN000;
-					;;AN000;
-	mov	cx,NUM_ID		;;AN000;
+  READ_IDVAL:				;
+	mov	cx,NUM_ID		;
 	mov	di,offset FILE_BUFFER	;;AN000;;;;;;;;;;
 	add	di,PASS_LANG		 ;AN000;	;
 						 ;
@@ -1816,20 +1798,20 @@ OUTPUT: 			       ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 					 ;;
 KEYBOARD_SYS	DB   '\KEYBOARD.SYS',00  ;AN000;;;
-KEYB_SYS_ACTIVE DB   'KEYBOARD.SYS',00   ;AN000;;; WGR                                     ;AN000
+KEYB_SYS_ACTIVE DB   'KEYBOARD.SYS',00   ;AN000;;; WGR
 KEYB_SYS_LENG	EQU  14 		 ;AN000;;;
-KEYB_SYS_A_LENG EQU  13 		 ;AN000;;; WGR					   ;AN000
+KEYB_SYS_A_LENG EQU  13 		 ;AN000;;; WGR
 					 ;;
 FILE_NAME	DB   128 DUP(0) 	 ;AN000;;;
 					 ;;
-FILE_NOT_FOUND	EQU  2			 ;AN000;;; WGR					   ;AN000
-PATH_NOT_FOUND	EQU  3			 ;AN000;;; WGR					   ;AN000
+FILE_NOT_FOUND	EQU  2			 ;AN000;;; WGR
+PATH_NOT_FOUND	EQU  3			 ;AN000;;; WGR
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;  Program Code
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 				       ;;
 BUILD_PATH    PROC  NEAR	       ;;
-	CLD			       ;AN000;;; WGR					   ;AN000
+	CLD			       ;AN000;;; WGR
 	MOV	DI,OFFSET FILE_NAME    ;; Get the offset of the filename
 	MOV	CX,[BP].PATH_LENGTH    ;; If path is specified then
 	CMP	CX,0		       ;;
@@ -1837,43 +1819,43 @@ BUILD_PATH    PROC  NEAR	       ;;
 	MOV	SI,[BP].PATH_OFFSET    ;;   Get the offset of the path
 				       ;;
 	REP	MOVSB		       ;AC000;;;   Copy each char of the specified
-	MOV	AX,3D00H	       ;AC000;;; WGR Open the KEYBOARD.SYS file 	   ;AN000
-	MOV	DX,OFFSET FILE_NAME    ;AC000;;; WGR					   ;AN000
-	INT	21H		       ;AC000;;; WGR					   ;AN000
+	MOV	AX,3D00H	       ;AC000;;; WGR Open the KEYBOARD.SYS file
+	MOV	DX,OFFSET FILE_NAME    ;AC000;;; WGR
+	INT	21H		       ;AC000;;; WGR
 	RET			       ;;   path into the filename location
 				       ;;
 APPEND_KEYB_SYS:		       ;;;;;
-	MOV	SI,OFFSET KEYB_SYS_ACTIVE ;AC000;;; WGR  copy name for active directory    ;AN000
-	MOV	CX,KEYB_SYS_A_LENG     ;AC000;;;;;; WGR  to file name variable. 	   ;AN000
-	REP	MOVSB		       ;AC000;;; WGR					   ;AN000
-	MOV	AX,3D00H	       ;AC000;;; WGR try to open it.			   ;AN000
-	MOV	DX,OFFSET FILE_NAME    ;AC000;;; WGR					   ;AN000
-	INT	21H		       ;AC000;;; WGR					   ;AN000
-	.IF C			       ;AC000;;; WGR error in opening...was it..	   ;AN000
-	  .IF <AX EQ PATH_NOT_FOUND> OR ;AN000;;; WGR path or.. 			   ;AN000
-	  .IF <AX EQ FILE_NOT_FOUND>   ;AN000;;; WGR file not found?... 		   ;AN000
-	    CALL   COPY_ARGV0	       ;AC000;;; WGR yes....try ARGV(0) directory.	   ;AN000
-	    MOV    AX,3D00H	       ;AC000;;; WGR					   ;AN000
-	    MOV    DX,OFFSET FILE_NAME ;AC000;;; WGR					   ;AN000
-	    INT    21H		       ;AC000;;; WGR					   ;AN000
-	    .IF C		       ;AC000;;; WGR error in opening....was it..	   ;AN000
-	      .IF <AX EQ PATH_NOT_FOUND> OR ;AC000;;; WGR path or..			   ;AN000
-	      .IF <AX EQ FILE_NOT_FOUND> ;AC000;;; WGR file not found?			   ;AN000
-		MOV	SI,OFFSET KEYBOARD_SYS ;AC000;;; WGR try ROOT directory.	   ;AN000
-		MOV	DI,OFFSET FILE_NAME    ;AC000;;; WGR				   ;AN000
-		MOV	CX,KEYB_SYS_LENG       ;AC000;;; WGR				   ;AN000
-		REP	MOVSB		       ;AC000;;; WGR				   ;AN000
-		MOV	AX,3D00H	       ;AC000;;; WGR				   ;AN000
-		MOV	DX,OFFSET FILE_NAME    ;AC000;;; WGR				   ;AN000
-		INT	21H		       ;AC000;;; WGR				   ;AN000
-	      .ELSE			       ;AC000;;; WGR if failed then carry set..    ;AN000
-		STC			      ;AC000;;; WGR some other error..set flag	   ;AN000
-	      .ENDIF			     ;AC000;;; WGR				   ;AN000
-	    .ENDIF			    ;AC000;;; WGR				   ;AN000
-	  .ELSE 			   ;AN000;;; WGR				   ;AN000
-	    STC 			  ;AN000;;; WGR some other error..set flag.	   ;AN000
-	  .ENDIF			 ;AN000;;; WGR					   ;AN000
-	.ENDIF				;AN000;;; WGR					   ;AN000
+	MOV	SI,OFFSET KEYB_SYS_ACTIVE ;AC000;;; WGR  copy name for active directory
+	MOV	CX,KEYB_SYS_A_LENG     ;AC000;;;;;; WGR  to file name variable.
+	REP	MOVSB		       ;AC000;;; WGR
+	MOV	AX,3D00H	       ;AC000;;; WGR try to open it.
+	MOV	DX,OFFSET FILE_NAME    ;AC000;;; WGR
+	INT	21H		       ;AC000;;; WGR
+	.IF C			       ;AC000;;; WGR error in opening...was it..
+	  .IF <AX EQ PATH_NOT_FOUND> OR ;AN000;;; WGR path or..
+	  .IF <AX EQ FILE_NOT_FOUND>   ;AN000;;; WGR file not found?...
+	    CALL   COPY_ARGV0	       ;AC000;;; WGR yes....try ARGV(0) directory.
+	    MOV    AX,3D00H	       ;AC000;;; WGR
+	    MOV    DX,OFFSET FILE_NAME ;AC000;;; WGR
+	    INT    21H		       ;AC000;;; WGR
+	    .IF C		       ;AC000;;; WGR error in opening....was it..
+	      .IF <AX EQ PATH_NOT_FOUND> OR ;AC000;;; WGR path or..
+	      .IF <AX EQ FILE_NOT_FOUND> ;AC000;;; WGR file not found?
+		MOV	SI,OFFSET KEYBOARD_SYS ;AC000;;; WGR try ROOT directory.
+		MOV	DI,OFFSET FILE_NAME    ;AC000;;; WGR
+		MOV	CX,KEYB_SYS_LENG       ;AC000;;; WGR
+		REP	MOVSB		       ;AC000;;; WGR
+		MOV	AX,3D00H	       ;AC000;;; WGR
+		MOV	DX,OFFSET FILE_NAME    ;AC000;;; WGR
+		INT	21H		       ;AC000;;; WGR
+	      .ELSE			       ;AC000;;; WGR if failed then carry set..
+		STC			      ;AC000;;; WGR some other error..set flag
+	      .ENDIF			     ;AC000;;; WGR
+	    .ENDIF			    ;AC000;;; WGR
+	  .ELSE 			   ;AN000;;; WGR
+	    STC 			  ;AN000;;; WGR some other error..set flag.
+	  .ENDIF			 ;AN000;;; WGR
+	.ENDIF				;AN000;;; WGR
 				       ;;
 	RET			       ;AN000;;;
 				       ;;
@@ -1887,44 +1869,44 @@ BUILD_PATH	     ENDP	       ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; WGR
 				       ;; WGR
 				       ;; WGR
-COPY_ARGV0  PROC		       ;; WGR					    ;AN000
-				       ;; WGR					    ;AN000
-  PUSH	 ES			       ;AN000;;; WGR					   ;AN000
-  PUSH	 DI			       ;AN000;;; WGR					   ;AN000
-  PUSH	 SI			       ;AN000;;; WGR					   ;AN000
-  PUSH	 CX			       ;AN000;;; WGR					   ;AN000
-				       ;AN000;;; WGR					   ;AN000
-  MOV	 DI,2CH 		       ;AN000;;; WGR Locate environment string		   ;AN000
-  MOV	 ES,[DI]		       ;AN000;;; WGR					   ;AN000
-  XOR	 SI,SI			       ;AN000;;; WGR					   ;AN000
-  .WHILE <<WORD PTR ES:[SI]> NE 0>     ;AN000;;; WGR find ARGV(0) string.		   ;AN000
-     INC   SI			       ;AN000;;; WGR					   ;AN000
-  .ENDWHILE			       ;AN000;;; WGR					   ;AN000
-  ADD	 SI,4			       ;AN000;;; WGR					   ;AN000
-  LEA	 DI,FILE_NAME		       ;AN000;;; WGR move string to work area		   ;AN000
-  .REPEAT			       ;AN000;;; WGR					   ;AN000
-     MOV    AL,ES:[SI]		       ;AN000;;; WGR					   ;AN000
-     MOV    [DI],AL		       ;AN000;;; WGR					   ;AN000
-     INC    SI			       ;AN000;;; WGR					   ;AN000
-     INC    DI			       ;AN000;;; WGR					   ;AN000
-  .UNTIL <<BYTE PTR ES:[SI]> EQ 0>     ;AN000;;; WGR					   ;AN000
-  .REPEAT			       ;AN000;;; WGR					   ;AN000
-     DEC    DI			       ;AN000;;; WGR					   ;AN000
-  .UNTIL <<BYTE PTR [DI]> EQ '\'> OR   ;AN000;;; WGR                                       ;AN000
-  .UNTIL <<BYTE PTR [DI]> EQ 0>        ;AN000;;; WGR scan back to..			   ;AN000
-  INC	 DI			       ;AN000;;; WGR first character after "\"             ;AN000
-  PUSH	 CS			       ;AN000;;; WGR					   ;AN000
-  POP	 ES			       ;AN000;;; WGR					   ;AN000
-  LEA	 SI,KEYB_SYS_ACTIVE	       ;AN000;;; WGR copy in "KEYBOARD.SYS"                ;AN000
-  MOV	 CX,KEYB_SYS_A_LENG	       ;AN000;;; WGR					   ;AN000
-  REP	 MOVSB			       ;AN000;;; WGR					   ;AN000
-				       ;AN000;;; WGR					   ;AN000
-  POP	    CX			       ;AN000;;; WGR					   ;AN000
-  POP	    SI			       ;AN000;;; WGR					   ;AN000
-  POP	    DI			       ;AN000;;; WGR					   ;AN000
-  POP	    ES			       ;AN000;;; WGR					   ;AN000
-  RET				       ;AN000;;; WGR					   ;AN000
-				       ;AN000;;; WGR					   ;AN000
+COPY_ARGV0  PROC		       ;; WGR
+				       ;; WGR
+  PUSH	 ES			       ;AN000;;; WGR
+  PUSH	 DI			       ;AN000;;; WGR
+  PUSH	 SI			       ;AN000;;; WGR
+  PUSH	 CX			       ;AN000;;; WGR
+				       ;AN000;;; WGR
+  MOV	 DI,2CH 		       ;AN000;;; WGR Locate environment string
+  MOV	 ES,[DI]		       ;AN000;;; WGR
+  XOR	 SI,SI			       ;AN000;;; WGR
+  .WHILE <<WORD PTR ES:[SI]> NE 0>     ;AN000;;; WGR find ARGV(0) string.
+     INC   SI			       ;AN000;;; WGR
+  .ENDWHILE			       ;AN000;;; WGR
+  ADD	 SI,4			       ;AN000;;; WGR
+  LEA	 DI,FILE_NAME		       ;AN000;;; WGR move string to work area
+  .REPEAT			       ;AN000;;; WGR
+     MOV    AL,ES:[SI]		       ;AN000;;; WGR
+     MOV    [DI],AL		       ;AN000;;; WGR
+     INC    SI			       ;AN000;;; WGR
+     INC    DI			       ;AN000;;; WGR
+  .UNTIL <<BYTE PTR ES:[SI]> EQ 0>     ;AN000;;; WGR
+  .REPEAT			       ;AN000;;; WGR
+     DEC    DI			       ;AN000;;; WGR
+  .UNTIL <<BYTE PTR [DI]> EQ '\'> OR   ;AN000;;; WGR
+  .UNTIL <<BYTE PTR [DI]> EQ 0>        ;AN000;;; WGR scan back to..
+  INC	 DI			       ;AN000;;; WGR first character after "\"
+  PUSH	 CS			       ;AN000;;; WGR
+  POP	 ES			       ;AN000;;; WGR
+  LEA	 SI,KEYB_SYS_ACTIVE	       ;AN000;;; WGR copy in "KEYBOARD.SYS"
+  MOV	 CX,KEYB_SYS_A_LENG	       ;AN000;;; WGR
+  REP	 MOVSB			       ;AN000;;; WGR
+				       ;AN000;;; WGR
+  POP	    CX			       ;AN000;;; WGR
+  POP	    SI			       ;AN000;;; WGR
+  POP	    DI			       ;AN000;;; WGR
+  POP	    ES			       ;AN000;;; WGR
+  RET				       ;AN000;;; WGR
+				       ;AN000;;; WGR
 COPY_ARGV0  ENDP		       ;AN000;;;
 				       ;AN000;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -2043,11 +2025,11 @@ FIND_FIRST_RETURN:		       ;;
 FIND_FIRST_CP	     ENDP	       ;;
 				       ;;;;;;;;;;;;;
 .xlist						  ;;
-MSG_SERVICES <MSGDATA>				  ;AN000;;; WGR 			   ;AN000
-MSG_SERVICES <LOADmsg,DISPLAYmsg,CHARmsg,NUMmsg>  ;AN000;;; WGR 			   ;AN000
-MSG_SERVICES <KEYB.CL1> 			  ;AN000;;; WGR 			   ;AN000
-MSG_SERVICES <KEYB.CL2> 			  ;AN000;;; WGR 			   ;AN000
-MSG_SERVICES <KEYB.CLA> 			  ;AN000;;; WGR 			   ;AN000
+MSG_SERVICES <MSGDATA>				  ;AN000;;; WGR
+MSG_SERVICES <LOADmsg,DISPLAYmsg,CHARmsg,NUMmsg>  ;AN000;;; WGR
+MSG_SERVICES <KEYB.CL1> 			  ;AN000;;; WGR
+MSG_SERVICES <KEYB.CL2> 			  ;AN000;;; WGR
+MSG_SERVICES <KEYB.CLA> 			  ;AN000;;; WGR
 .list						  ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Temp Shared Data Area

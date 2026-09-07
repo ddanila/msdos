@@ -10,21 +10,8 @@ page	58,132
 ;
 ;   Module:	EMMP - WIN386 EMM functions
 ;
-;   Version:	0.04
-;
-;   Date:	July 7,1986
-;
 ;******************************************************************************
 ;
-;   Change log:
-;
-;     DATE    REVISION                  DESCRIPTION
-;   --------  --------  -------------------------------------------------------
-;   07/07/86  0.04	Moved here from version 0.04 EMMSUP.ASM
-;   07/08/86  0.04	Added Get/Set Page Map (SBP).
-;   05/13/88            Change to LIM 4.0 functionality (PC)
-;
-;******************************************************************************
 ;
 ;   Functional Description:
 ;	This file contains the EMM functions which require greatest efficiency.

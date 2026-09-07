@@ -4,8 +4,8 @@
 ;	FILE.  THIS RESOLVES ANY REFERENCES TO THE DATA SEGMENT.
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-DATA	SEGMENT BYTE PUBLIC 'DATA'      ;AN000;
-HELPBUFSEG     DW     0 		;AN000;
+DATA	SEGMENT BYTE PUBLIC 'DATA'
+HELPBUFSEG     DW     0
 MEM_ALLOC      DB     0 		;AN000;DT Memory allocated indicator
 HELP_ALLOC     EQU    80H		;AN000;DT Help memory allocated
 BLOCK_ALLOC    EQU    40H		;AN000;DT PANEL memory allocated
@@ -39,37 +39,37 @@ ZSEG	 ENDS				;AN000;ZSEG will alphabetically appear
 ;		BX    = length of allocated buffer
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-	EXTRN	WR_MAXMEMPAR:WORD	;AN000;
-	EXTRN	WR_MAXHELPSZ:WORD	;AN000;
-	EXTRN	WR_DATA2SEG:WORD	;AN000;
-	EXTRN	WR_DATA2OFF:WORD	;AN000;
-	EXTRN	WR_DATA2LEN:WORD	;AN000;
-	EXTRN	WR_LVBSEG:WORD		;AN000;DT
-	EXTRN	WR_LVBOFF:WORD		;AN000;DT
-	EXTRN	WR_LVBLEN:WORD		;AN000;DT
-	EXTRN	WR_LVBMEM:WORD		;AN000;DT
-	EXTRN	HRD_BUFSEG:WORD 	;AN000;
-	EXTRN	HRD_BUFOFF:WORD 	;AN000;
-	EXTRN	HRD_BUFLEN:WORD 	;AN000;
+	EXTRN	WR_MAXMEMPAR:WORD
+	EXTRN	WR_MAXHELPSZ:WORD
+	EXTRN	WR_DATA2SEG:WORD
+	EXTRN	WR_DATA2OFF:WORD
+	EXTRN	WR_DATA2LEN:WORD
+	EXTRN	WR_LVBSEG:WORD
+	EXTRN	WR_LVBOFF:WORD
+	EXTRN	WR_LVBLEN:WORD
+	EXTRN	WR_LVBMEM:WORD
+	EXTRN	HRD_BUFSEG:WORD
+	EXTRN	HRD_BUFOFF:WORD
+	EXTRN	HRD_BUFLEN:WORD
 					;
 SERVICE SEGMENT PARA PUBLIC 'SERVICE'   ;AN000;segment for far routine
-	ASSUME CS:SERVICE,DS:DATA	;AN000;
+	ASSUME CS:SERVICE,DS:DATA
 					;
-	PUBLIC	ALLOCATE_MEMORY_CALL	;AN000;
-	PUBLIC	DEALLOCATE_MEMORY_CALL	;AN000;
-	PUBLIC	ALLOCATE_HELP		;AN000;
-	PUBLIC	DEALLOCATE_HELP 	;AN000;
-	PUBLIC	ALLOCATE_BLOCK		;AN000;
-	PUBLIC	DEALLOCATE_BLOCK	;AN000;
-	PUBLIC	ALLOCATE_LVB		;AN000;
-	PUBLIC	DEALLOCATE_LVB		;AN000;
+	PUBLIC	ALLOCATE_MEMORY_CALL
+	PUBLIC	DEALLOCATE_MEMORY_CALL
+	PUBLIC	ALLOCATE_HELP
+	PUBLIC	DEALLOCATE_HELP
+	PUBLIC	ALLOCATE_BLOCK
+	PUBLIC	DEALLOCATE_BLOCK
+	PUBLIC	ALLOCATE_LVB
+	PUBLIC	DEALLOCATE_LVB
 					;
-SET_BLOCK	equ	4AH		;AN000;
-ALLOCATEB	equ	48H		;AN000;
-FREE_BLOCK	equ	49H		;AN000;
+SET_BLOCK	equ	4AH
+ALLOCATEB	equ	48H
+FREE_BLOCK	equ	49H
 					;
-	INCLUDE STRUC.INC		;AN000;
-	INCLUDE MACROS.INC		;AN000;
+	INCLUDE STRUC.INC
+	INCLUDE MACROS.INC
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; DS and AX will auto pop on ret
 ;
 ; ALLOCATE_MEMORY_CALL
@@ -93,48 +93,48 @@ FREE_BLOCK	equ	49H		;AN000;
 ;	if CY = 1 then an error occurred allocating memory
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-ALLOCATE_MEMORY_CALL  PROC FAR		;AN000;
-	PUSHH  <AX,BX,DX,DS,ES> 	;AN000;
+ALLOCATE_MEMORY_CALL  PROC FAR
+	PUSHH  <AX,BX,DX,DS,ES>
 					;
 	TEST MEM_ALLOC,BLOCK_SET	;AN000;DT SETBLOCK done?
 	JNZ  AM_SBDONE			;AN000;DT if so, skip it
 					;
 	MOV	AH,62H			;AN000; Get the PSP segment
-	INT	21H			;AN000;
+	INT	21H
 	MOV	AX,BX			;AN000;save the PSP segment of SELECT
 	MOV	BX,SEG ZSEG 		;AN000;get last address of code (from ZSEG)
 	MOV	ES,AX			;AN000;set PSP segment in ES
 	SUB	BX,AX			;AN000;calc # of paragraphs in the program
 	MOV	AH,SET_BLOCK		;AN000;setblock function number
 	DOSCALL 			;AN000;free used memory
-	.IF   < C >			;AC000;DT
+	.IF   < C >
 	   GOTO    ALLOC_RET		;AN000;DT If error, exit
-	.ENDIF				;AN000;DT
-	OR	MEM_ALLOC,BLOCK_SET	;AN000;DT
+	.ENDIF
+	OR	MEM_ALLOC,BLOCK_SET
 					;
-AM_SBDONE:				;AN000;
+AM_SBDONE:
 	MOV	AX,SEG DATA 		;AN000;initialize data segment
 	MOV	DS,AX			;AN000; and extra segment
 					;
 	PUSH	CS			;AN000;call far procedure
 	CALL	ALLOCATE_BLOCK_NEAR	;AN000;now allocate Panel block
-	.IF   < C >			;AC000;DT
+	.IF   < C >
 	   GOTO    ALLOC_RET		;AN000;DT If error, exit
-	.ENDIF				;AN000;
+	.ENDIF
 					;
 	PUSH	CS			;AN000;call far procedure
 	CALL	ALLOCATE_LVB_NEAR	;AN000;now allocate LVB block
-	.IF   < C >			;AC000;DT
+	.IF   < C >
 	   GOTO    ALLOC_RET		;AN000;DT If error, exit
-	.ENDIF				;AN000;
+	.ENDIF
 					;
 	PUSH	CS			;AN000;call far procedure
 	CALL	ALLOCATE_HELP_NEAR	;AN000;now allocate help
 					;
-ALLOC_RET:				;AN000;
-	POPP   <ES,DS,DX,BX,AX> 	;AN000;
-	RET				;AN000;
-ALLOCATE_MEMORY_CALL	ENDP		;AN000;
+ALLOC_RET:
+	POPP   <ES,DS,DX,BX,AX>
+	RET
+ALLOCATE_MEMORY_CALL	ENDP
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; DEALLOCATE_MEMORY_CALL
@@ -152,19 +152,19 @@ ALLOCATE_MEMORY_CALL	ENDP		;AN000;
 ;		An error occurred while trying to release this memory
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-DEALLOCATE_MEMORY_CALL	PROC FAR;AN000;
-	PUSHH  <AX,DS,ES>	;AN000;
-	MOV	AX,SEG DATA 	;AN000;
-	MOV	DS,AX		;AN000;
+DEALLOCATE_MEMORY_CALL	PROC FAR
+	PUSHH  <AX,DS,ES>
+	MOV	AX,SEG DATA
+	MOV	DS,AX
 	PUSH	CS		;AN000;call far procedure
 	CALL	DEALLOCATE_BLOCK_NEAR ;AN024;now deallocate Panel block
 	PUSH	CS		;AN000;call far procedure
 	CALL	DEALLOCATE_LVB_NEAR ;AN024; deallocate LVB block
 	PUSH	CS		;AN000;call far procedure
 	CALL	DEALLOCATE_HELP_NEAR ;AN000;now deallocate help
-	POPP   <ES,DS,AX>	;AN000;
-	RET			;AN000;
-DEALLOCATE_MEMORY_CALL	ENDP	;AN000;
+	POPP   <ES,DS,AX>
+	RET
+DEALLOCATE_MEMORY_CALL	ENDP
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; DS and AX will auto pop on ret
 ;
 ; ALLOCATE_HELP
@@ -179,35 +179,35 @@ DEALLOCATE_MEMORY_CALL	ENDP	;AN000;
 ;	if CY = 1 then an error occurred allocating memory
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-ALLOCATE_HELP  PROC FAR 		;AN000;
-ALLOCATE_HELP_NEAR:			;AN000;
-	PUSHH  <AX,BX,DX,DS,ES> 	;AN000;
-	MOV	AX,SEG DATA 		;AN000;
-	MOV	DS,AX			;AN000;
+ALLOCATE_HELP  PROC FAR
+ALLOCATE_HELP_NEAR:
+	PUSHH  <AX,BX,DX,DS,ES>
+	MOV	AX,SEG DATA
+	MOV	DS,AX
 					;
 	TEST MEM_ALLOC,HELP_ALLOC	;AN000;DT Is help allocated
 	JNZ   AH_RET			;AN000;DT if so, skip allocation
 					;now allocate help
 	 MOV	 BX,WR_MAXHELPSZ	;AN000;set BX to max # of paragraphs
-	 SHR	 BX,1			;AN000;
-	 SHR	 BX,1			;AN000;
-	 SHR	 BX,1			;AN000;
-	 SHR	 BX,1			;AN000;
+	 SHR	 BX,1
+	 SHR	 BX,1
+	 SHR	 BX,1
+	 SHR	 BX,1
 	 MOV	 AH,ALLOCATEB		;AN000;set allocate function number
 	 DOSCALL			;AN000;allocate memory
-	.IF   < NC >			;AN000;
+	.IF   < NC >
 	     MOV     HRD_BUFSEG,AX	;AN000;save segment
 	     MOV     HELPBUFSEG,AX	;AN000;save segment
 	     MOV     HRD_BUFOFF,0	;AN000; and offset
 	     MOV     BX,WR_MAXHELPSZ	;AN000;set BX to max # of byte
-	     MOV     HRD_BUFLEN,BX	;AN000;
-	     OR      MEM_ALLOC,HELP_ALLOC ;AN000;DT
-	     CLC			;AN000;
-	.ENDIF				;AN000;
-AH_RET: 				;AN000;
-	POPP   <ES,DS,DX,BX,AX> 	;AN000;
-	RET				;AN000;
-ALLOCATE_HELP	 ENDP			;AN000;
+	     MOV     HRD_BUFLEN,BX
+	     OR      MEM_ALLOC,HELP_ALLOC
+	     CLC
+	.ENDIF
+AH_RET:
+	POPP   <ES,DS,DX,BX,AX>
+	RET
+ALLOCATE_HELP	 ENDP
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; DEALLOCATE_HELP
@@ -224,22 +224,22 @@ ALLOCATE_HELP	 ENDP			;AN000;
 ;		An error occurred while trying to release this memory
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-DEALLOCATE_HELP  PROC FAR	;AN000;
-DEALLOCATE_HELP_NEAR:		;AN000;
-	PUSHH  <AX,BX,DS,ES>	;AN000;
-	MOV	AX,SEG DATA 	;AN000;
-	MOV	DS,AX		;AN000;
+DEALLOCATE_HELP  PROC FAR
+DEALLOCATE_HELP_NEAR:
+	PUSHH  <AX,BX,DS,ES>
+	MOV	AX,SEG DATA
+	MOV	DS,AX
 	TEST MEM_ALLOC,HELP_ALLOC ;AN000;DT Is help allocated
 	JZ   DH_RET		;AN000;DT if not, skip deallocation
 	MOV	AX,HELPBUFSEG	;AN000;free help segment
-	MOV	ES,AX		;AN000;
-	MOV	AH,FREE_BLOCK	;AN000;
-	DOSCALL 		;AN000;
-	AND	MEM_ALLOC,255-HELP_ALLOC ;AN000;DT
-DH_RET: 			;AN000;
-	POPP   <ES,DS,BX,AX>	;AN000;
-	RET			;AN000;
-DEALLOCATE_HELP  ENDP		;AN000;
+	MOV	ES,AX
+	MOV	AH,FREE_BLOCK
+	DOSCALL
+	AND	MEM_ALLOC,255-HELP_ALLOC
+DH_RET:
+	POPP   <ES,DS,BX,AX>
+	RET
+DEALLOCATE_HELP  ENDP
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; DS and AX will auto pop on ret
 ;
@@ -258,9 +258,9 @@ DEALLOCATE_HELP  ENDP		;AN000;
 ;	if CY = 1 then an error occurred allocating memory
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-ALLOCATE_BLOCK	PROC FAR		;AN000;
-ALLOCATE_BLOCK_NEAR:			;AN000;
-	PUSHH  <AX,BX,DX,DS,ES> 	;AN000;
+ALLOCATE_BLOCK	PROC FAR
+ALLOCATE_BLOCK_NEAR:
+	PUSHH  <AX,BX,DX,DS,ES>
 	MOV	AX,SEG DATA 		;AN000;initialize data segment
 	MOV	DS,AX			;AN000; and extra segment
 					;
@@ -270,21 +270,21 @@ ALLOCATE_BLOCK_NEAR:			;AN000;
 	MOV	BX,WR_MAXMEMPAR 	;AN000;set DX to max # of 16 byte parag's
 	MOV	AH,ALLOCATEB		;AN000;set allocate function number
 	DOSCALL 			;AN000;allocate memory
-	.IF   < NC >			;AC000;DT
-	   MOV	   BX,WR_MAXMEMPAR	;AN000;
+	.IF   < NC >
+	   MOV	   BX,WR_MAXMEMPAR
 	   SHL	   BX,1 		;AN000;THIS SHOULD BE REMOVED WHEN
 	   SHL	   BX,1 		;AN000;THE INITIALIZE ROUTINE TREATS
 	   SHL	   BX,1 		;AN000;WR_DATA2LEN AS PARAGRAPHS AND
 	   SHL	   BX,1 		;AN000;NOT BYTES......
 	   MOV	   WR_DATA2SEG,AX	;AN000;save segment
-	   MOV	   WR_DATA2OFF,0	;AN000;
-	   MOV	   WR_DATA2LEN,BX	;AN000;
+	   MOV	   WR_DATA2OFF,0
+	   MOV	   WR_DATA2LEN,BX
 	   OR	   MEM_ALLOC,BLOCK_ALLOC ;AN000;DT PANEL block allocated
-	.ENDIF				;AN000;
-AB_RET: 				;AN000;
-	POPP   <ES,DS,DX,BX,AX> 	;AN000;
-	RET				;AN000;
-ALLOCATE_BLOCK	  ENDP			;AN000;
+	.ENDIF
+AB_RET:
+	POPP   <ES,DS,DX,BX,AX>
+	RET
+ALLOCATE_BLOCK	  ENDP
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; DEALLOCATE_BLOCK
@@ -301,22 +301,22 @@ ALLOCATE_BLOCK	  ENDP			;AN000;
 ;		An error occurred while trying to release this memory
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-DEALLOCATE_BLOCK PROC FAR	;AN000;
-DEALLOCATE_BLOCK_NEAR:		;AN000;
-	PUSHH  <AX,BX,DS,ES>	;AN000;
-	MOV	AX,SEG DATA 	;AN000;
-	MOV	DS,AX		;AN000;
+DEALLOCATE_BLOCK PROC FAR
+DEALLOCATE_BLOCK_NEAR:
+	PUSHH  <AX,BX,DS,ES>
+	MOV	AX,SEG DATA
+	MOV	DS,AX
 	TEST MEM_ALLOC,BLOCK_ALLOC ;AN000;DT Is PANEL block allocated
 	JZ   DB_RET		;AN000;DT if not, skip deallocation
 	MOV	AX,WR_DATA2SEG	;AN000;free up allocated segment
-	MOV	ES,AX		;AN000;
-	MOV	AH,FREE_BLOCK	;AN000;
-	DOSCALL 		;AN000;
-	AND	MEM_ALLOC,255-BLOCK_ALLOC ;AN000;DT
-DB_RET: 			;AN000;
-	POPP   <ES,DS,BX,AX>	;AN000;
-	RET			;AN000;
-DEALLOCATE_BLOCK ENDP		;AN000;
+	MOV	ES,AX
+	MOV	AH,FREE_BLOCK
+	DOSCALL
+	AND	MEM_ALLOC,255-BLOCK_ALLOC
+DB_RET:
+	POPP   <ES,DS,BX,AX>
+	RET
+DEALLOCATE_BLOCK ENDP
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; DS and AX will auto pop on ret
 ;
 ; ALLOCATE_LVB
@@ -331,12 +331,12 @@ DEALLOCATE_BLOCK ENDP		;AN000;
 ;	if CY = 1 then an error occurred allocating memory
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-ALLOCATE_LVB   PROC FAR 		;AN000;
-ALLOCATE_LVB_NEAR:			;AN000;
-	PUSHH  <AX,BX,DX,DS,ES> 	;AN000;
+ALLOCATE_LVB   PROC FAR
+ALLOCATE_LVB_NEAR:
+	PUSHH  <AX,BX,DX,DS,ES>
 					;
-	MOV	AX,SEG DATA 		;AN000;
-	MOV	DS,AX			;AN000;
+	MOV	AX,SEG DATA
+	MOV	DS,AX
 					;;;;;;;
 	TEST MEM_ALLOC,LVB_ALLOC	;AN000;DT Is LVB block allocated
 	JNZ  ALVB_RET			;AN000;DT if so, skip allocation
@@ -344,7 +344,7 @@ ALLOCATE_LVB_NEAR:			;AN000;
 	MOV	BX,WR_LVBMEM		;AN000;set BX to max # of 16 byte parag's
 	MOV	AH,ALLOCATEB		;AN000;set allocate function number
 	DOSCALL 			;AN000;allocate memory
-	.IF   < NC >			;AN000;
+	.IF   < NC >
 	   MOV	   WR_LVBSEG,AX 	;AN000;save segment
 	   MOV	   WR_LVBOFF,0		;AN000;and offset
 	   SHL	   BX,1 		;AN000;THIS SHOULD BE REMOVED WHEN
@@ -353,12 +353,12 @@ ALLOCATE_LVB_NEAR:			;AN000;
 	   SHL	   BX,1 		;AN000;NOT BYTES......
 	   MOV	   WR_LVBLEN,BX 	;AN000;and byte length
 	   OR	   MEM_ALLOC,LVB_ALLOC	;AN000;DT LVB block allocated
-	.ENDIF				;AN000;
+	.ENDIF
 					;
-ALVB_RET:				;AN000;
-	POPP   <ES,DS,DX,BX,AX> 	;AN000;
-	RET				;AN000;
-ALLOCATE_LVB	 ENDP			;AN000;
+ALVB_RET:
+	POPP   <ES,DS,DX,BX,AX>
+	RET
+ALLOCATE_LVB	 ENDP
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; DEALLOCATE_LVB
@@ -373,22 +373,22 @@ ALLOCATE_LVB	 ENDP			;AN000;
 ;		An error occurred while trying to release this memory
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-DEALLOCATE_LVB PROC FAR 	;AN000;
-DEALLOCATE_LVB_NEAR:		;AN000;
-	PUSHH  <AX,BX,DS,ES>	;AN000;
-	MOV	AX,SEG DATA 	;AN000;
-	MOV	DS,AX		;AN000;
+DEALLOCATE_LVB PROC FAR
+DEALLOCATE_LVB_NEAR:
+	PUSHH  <AX,BX,DS,ES>
+	MOV	AX,SEG DATA
+	MOV	DS,AX
 	TEST MEM_ALLOC,LVB_ALLOC ;AN000;DT Is LVB block allocated
 	JZ   DLVB_RET		;AN000;DT if not, skip deallocation
 	MOV	AX,WR_LVBSEG	;AN000;free up LVB allocated segment
-	MOV	ES,AX		;AN000;
-	MOV	AH,FREE_BLOCK	;AN000;
-	DOSCALL 		;AN000;
-	AND	MEM_ALLOC,255-LVB_ALLOC ;AN000;DT
-DLVB_RET:			;AN000;
-	POPP   <ES,DS,BX,AX>	;AN000;
-	RET			;AN000;
-DEALLOCATE_LVB	 ENDP		;AN000;
+	MOV	ES,AX
+	MOV	AH,FREE_BLOCK
+	DOSCALL
+	AND	MEM_ALLOC,255-LVB_ALLOC
+DLVB_RET:
+	POPP   <ES,DS,BX,AX>
+	RET
+DEALLOCATE_LVB	 ENDP
 
-SERVICE ENDS			;AN000;
-	END			;AN000;
+SERVICE ENDS
+	END

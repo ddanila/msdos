@@ -19,7 +19,7 @@ New_File_System equ 06h
 
 FS_String_Max_Length    equ     5
 
-Paragraph_Size  equ     16                      ;                               ;AN005;
+Paragraph_Size  equ     16                      ;
 Len_FS_String_Buffer    equ     13
 
 Net_Check equ   1200h
@@ -74,15 +74,15 @@ Media_ID_File_System db 8  dup(" ")
 Media_ID ends
 
 
-Relative_Sector_Buffer  struc                   ;                               ;AN000;
+Relative_Sector_Buffer  struc                   ;
 
-Start_Sector_Low        dw      ?               ;Low word of RBA sector         ;AN000;
-Start_Sector_High       dw      ?               ;High word of RBA sector        ;AN000;
-Number_Sectors          dw      ?               ;Number of sectors              ;AN000;
-Buffer_Offset           dw      ?               ;Address of data buffer         ;AN000;
-Buffer_Segment          dw      ?               ;                               ;AN000;
+Start_Sector_Low        dw      ?               ;Low word of RBA sector
+Start_Sector_High       dw      ?               ;High word of RBA sector
+Number_Sectors          dw      ?               ;Number of sectors
+Buffer_Offset           dw      ?               ;Address of data buffer
+Buffer_Segment          dw      ?               ;
 
-Relative_Sector_Buffer ends                     ;                               ;AN000;
+Relative_Sector_Buffer ends                     ;
 
 
 ;Per system file data structure
@@ -109,7 +109,7 @@ Single_9_Media equ 0FCh                         ; Single sided 9 sectored
 Dual_15_Media equ 0F9h                          ; Dual sided 15 sectored
 Fixed_Disk equ  0F8h                            ; Fixed Disk
 Invalid_Drive   equ     000Fh                   ; Extended error 15
-Max_Format_Size equ     0FFFFh                  ; Max bytes to Format           ;an015; dms;
-Multi_Track_Format      equ     02h             ; Multi-track format            ;an015; dms;
-Single_Track_Format     equ     00h             ; Single track format           ;an015; dms;
-Select_Disk_Message     equ     0ADC1h          ; an016; dms;
+Max_Format_Size equ     0FFFFh                  ; Max bytes to Format
+Multi_Track_Format      equ     02h             ; Multi-track format
+Single_Track_Format     equ     00h             ; Single track format
+Select_Disk_Message     equ     0ADC1h

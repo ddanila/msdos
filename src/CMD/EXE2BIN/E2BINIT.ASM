@@ -26,9 +26,9 @@ Title	E2BINIT(EXE2BIN)
 ; Keep EXE2BIN.EXE's retail 5.00 mapping; use the actual native DOS version.
 MSG_TRUE_DOS_VERSION EQU 1
 INCLUDE SYSMSG.INC
-MSG_UTILNAME <EXE2BIN>							;AN000;
+MSG_UTILNAME <EXE2BIN>
 
-	subttl	Main Code Area						;AN000;
+	subttl	Main Code Area
 	page
 
 
@@ -40,23 +40,23 @@ MSG_UTILNAME <EXE2BIN>							;AN000;
 
 OLDLINK EQU	0			;1 to enable, 0 to disable
 
-CODE	SEGMENT PARA PUBLIC 'CODE'					;AN000;
-CODE	ENDS								;AN000;
-DATA	SEGMENT PARA PUBLIC 'DATA'					;AN000;
-DATA	ENDS								;AN000;
-STACK	SEGMENT PARA PUBLIC 'STACK'					;AN000;
-STACK	ENDS								;AN000;
-ZLOAD	SEGMENT PARA PUBLIC 'ZLOAD'					;AN000;
-ZLOAD	ENDS								;AN000;
+CODE	SEGMENT PARA PUBLIC 'CODE'
+CODE	ENDS
+DATA	SEGMENT PARA PUBLIC 'DATA'
+DATA	ENDS
+STACK	SEGMENT PARA PUBLIC 'STACK'
+STACK	ENDS
+ZLOAD	SEGMENT PARA PUBLIC 'ZLOAD'
+ZLOAD	ENDS
 
-DATA	SEGMENT PARA PUBLIC 'DATA'					;AN000;
+DATA	SEGMENT PARA PUBLIC 'DATA'
 
-MSG_SERVICES <MSGDATA>							;AN000;
+MSG_SERVICES <MSGDATA>
 
-Command_Line_Buffer db 128 dup(0)					;AN000;
-Command_Line_Length equ $ - Command_Line_Buffer 			;AN000;
+Command_Line_Buffer db 128 dup(0)
+Command_Line_Length equ $ - Command_Line_Buffer
 
-Fatal_Error db	0							;AN000;
+Fatal_Error db	0
 
 Command_Line db NO
 
@@ -68,12 +68,12 @@ rev	db	"2.4"
 file1_ext db	".EXE",00h
 file2_ext db	".BIN",00h
 
-per11	db	0							;AN000;
+per11	db	0
 per2	db	0
-per22	db	0							;AN000;
+per22	db	0
 
-update	equ	0							;AN000;
-noupdate equ	-1							;AN000;
+update	equ	0
+noupdate equ	-1
 
 file1	db	(64+13) dup(?)
 fnptr	dw	offset file1		; Ptr to filename in file1
@@ -108,8 +108,8 @@ INITCS	DW	?
 RELTAB	DW	?
 RUNVARSIZ EQU	$-RUNVAR
 
-DBCS_Vector_Off dw 0							;AN000;
-DBCS_Vector_Seg dw 0							;AN000;
+DBCS_Vector_Off dw 0
+DBCS_Vector_Seg dw 0
 
 parse_ptr DW	?
 
@@ -139,32 +139,32 @@ LOAD	EQU	ZLOAD
 ;
 
 .xlist
-INCLUDE DOSSYM.INC			; also versiona.inc		;AN000;
-INCLUDE SYSCALL.INC							;AN000;
-INCLUDE E2BMACRO.INC							;AN000;
-INCLUDE E2BEQU.INC							;AN000;
-INCLUDE E2BTABLE.INC							;AN000;
-INCLUDE E2BPARSE.INC							;AN000;
+INCLUDE DOSSYM.INC			; also versiona.inc
+INCLUDE SYSCALL.INC
+INCLUDE E2BMACRO.INC
+INCLUDE E2BEQU.INC
+INCLUDE E2BTABLE.INC
+INCLUDE E2BPARSE.INC
 include version.inc
 .list
 
 
 
 CODE	SEGMENT PARA PUBLIC 'CODE'
-	assume	cs:CODE,ds:DATA,es:NOTHING,SS:STACK			;AN000;
+	assume	cs:CODE,ds:DATA,es:NOTHING,SS:STACK
 
-psp_ptr dw	1 dup(?)						;AN000;
+psp_ptr dw	1 dup(?)
 ;
 ;*****************************************************************************
 ; SysDisplayMsg Declarations
 ;*****************************************************************************
 ;
 .xlist
-MSG_SERVICES <LOADmsg>							;AN000;
-MSG_SERVICES <DISPLAYmsg,CHARmsg>					;AN000;
-MSG_SERVICES <EXE2BIN.CLA,EXE2BIN.CLB>					;AN000;
-MSG_SERVICES <EXE2BIN.CL1,EXE2BIN.CL2>					;AN000;
-MSG_SERVICES <EXE2BIN.CTL>						;AN000;
+MSG_SERVICES <LOADmsg>
+MSG_SERVICES <DISPLAYmsg,CHARmsg>
+MSG_SERVICES <EXE2BIN.CLA,EXE2BIN.CLB>
+MSG_SERVICES <EXE2BIN.CL1,EXE2BIN.CL2>
+MSG_SERVICES <EXE2BIN.CTL>
 
 
 .list
@@ -175,8 +175,8 @@ MSG_SERVICES <EXE2BIN.CTL>						;AN000;
 ;*****************************************************************************
 ;
 
-	public	SysDispMsg						;AN000;
-	public	SysLoadMsg						;AN000;
+	public	SysDispMsg
+	public	SysLoadMsg
 
 
 ;*****************************************************************************
@@ -195,16 +195,12 @@ MSG_SERVICES <EXE2BIN.CTL>						;AN000;
 ;
 ;Output: None
 ;
-;Change History: Created	6/22/87 	DM
-;
-;*****************************************************************************
-
 E2B_HELP_STR	DB  "EXE2BIN [drive:][path]input[.EXE] [[drive:][path]output[.BIN]]",0Dh,0Ah,"$"
 
-procedure Main_Init		;				;AN000;
+procedure Main_Init		;
 
-	ASSUME	DS:NOTHING		; THIS IS WHAT dos GIVES YOU	;AN000;
-	ASSUME	ES:NOTHING						;AN000;
+	ASSUME	DS:NOTHING		; THIS IS WHAT dos GIVES YOU
+	ASSUME	ES:NOTHING
 
 	; Check for /? (EXE file: DS=PSP at entry)
 	MOV	SI, 081h
@@ -227,28 +223,28 @@ E2B_CHK_SL:
 	INT	21H
 E2B_NO_HELP:
 
-	PUSH	DS							;AN000;
-	mov	psp_ptr,ds						;AN000;
-	XOR	AX,AX							;AN000;
-	PUSH	AX			;Push return address to DS:0	;AN000;
+	PUSH	DS
+	mov	psp_ptr,ds
+	XOR	AX,AX
+	PUSH	AX			;Push return address to DS:0
 
-	MOV	AX,SEG DATA		;SET UP ADDRESSABILITY TO	;AN000;
-	MOV	DS,AX			; THE DATA SEGMENT		;AN000;
-	ASSUME	DS:DATA 		;TELL ASSEMBLER WHAT I JUST DID ;AN000;
+	MOV	AX,SEG DATA		;SET UP ADDRESSABILITY TO
+	MOV	DS,AX			; THE DATA SEGMENT
+	ASSUME	DS:DATA 		;TELL ASSEMBLER WHAT I JUST DID
 
-	mov	Fatal_Error,No		;Init the error flag		;AN000;
-	call	Init_Input_Output	;Setup messages and parse	;AN000;
-	cmp	Fatal_Error,Yes 	;Error occur?			;AN000;
-;	$IF	NE			;Nope, keep going		;AN000;
+	mov	Fatal_Error,No		;Init the error flag
+	call	Init_Input_Output	;Setup messages and parse
+	cmp	Fatal_Error,Yes 	;Error occur?
+;	$IF	NE			;Nope, keep going
 	JE $$IF1
-	    call    LOCATE		;Go do the real program 	;AN000;
-;	$ENDIF								;AN000;
+	    call    LOCATE		;Go do the real program
+;	$ENDIF
 $$IF1:
-	xor	al,al							;AN000;
-	Dos_call Exit							;AN000;
-	int	20h			;If other exit fails		;AN000;
+	xor	al,al
+	Dos_call Exit
+	int	20h			;If other exit fails
 
-Main_Init endp								;AN000;
+Main_Init endp
 
 ;*****************************************************************************
 ;Routine name: Init_Input_Output
@@ -272,18 +268,18 @@ Main_Init endp								;AN000;
 ;
 ;*****************************************************************************
 
-procedure Init_Input_Output					;AN000;
+procedure Init_Input_Output
 
-	call	Preload_Messages	;Load up message retriever	;AN000;
-	cmp	Fatal_Error,YES 	;Quit?				;AN000;
-;	$IF	NE			;Nope, keep going		;AN000;
+	call	Preload_Messages	;Load up message retriever
+	cmp	Fatal_Error,YES 	;Quit?
+;	$IF	NE			;Nope, keep going
 	JE $$IF3
-	    call    Parse_Command_Line	;Parse in command line input	;AN000;
-;	$ENDIF								;AN000;
+	    call    Parse_Command_Line	;Parse in command line input
+;	$ENDIF
 $$IF3:
-	ret								;AN000;
+	ret
 
-Init_Input_Output endp							;AN000;
+Init_Input_Output endp
 
 ;*****************************************************************************
 ;Routine name: Preload_Messages
@@ -302,17 +298,17 @@ Init_Input_Output endp							;AN000;
 ;
 ;*****************************************************************************
 
-procedure Preload_Messages 					;AN000;
+procedure Preload_Messages
 
-	call	SYSLOADMSG		;Preload the messages		;AN000;
-;	$IF	C			;Error? 			;AN000;
+	call	SYSLOADMSG		;Preload the messages
+;	$IF	C			;Error?
 	JNC $$IF5
-	    call    SYSDISPMSG						;AN000;
-	    mov     fatal_error, YES					;AN000;
-;	$ENDIF								;AN000;
+	    call    SYSDISPMSG
+	    mov     fatal_error, YES
+;	$ENDIF
 $$IF5:
-	ret								;AN000;
-Preload_Messages endp							;AN000;
+	ret
+Preload_Messages endp
 
 
 ;*****************************************************************************
@@ -333,125 +329,125 @@ Preload_Messages endp							;AN000;
 ;*****************************************************************************
 
 
-Procedure Parse_Command_Line						;AN000;
+Procedure Parse_Command_Line
 
-	push	ds							;AN000;
-	mov	ds,psp_ptr						;AN000;
-	ASSUME	DS:NOTHING						;AN000;
-	mov	si,Command_Line_Parms					;AN000;
-	mov	ax,seg command_line_table				;AN000;
-	push	es							;AN000;
-	mov	es,ax							;AN000;
-	ASSUME	ES:NOTHING						;AN000;
-	mov	di,offset Command_Line_Table				;AN000;
-	xor	cx,cx							;AN000;
+	push	ds
+	mov	ds,psp_ptr
+	ASSUME	DS:NOTHING
+	mov	si,Command_Line_Parms
+	mov	ax,seg command_line_table
+	push	es
+	mov	es,ax
+	ASSUME	ES:NOTHING
+	mov	di,offset Command_Line_Table
+	xor	cx,cx
 
-;	$DO								;AN000;
+;	$DO
 $$DO7:
-	    xor     dx,dx						;AN000;
+	    xor     dx,dx
 	    mov     es:parse_ptr,si
-	    call    Sysparse						;AN000;
-	    cmp     ax,No_Error 					;AN000;
+	    call    Sysparse
+	    cmp     ax,No_Error
 
-;	    $IF     E							;AN000;
+;	    $IF     E
 	    JNE $$IF8
 
-		push	ax						;AN000;
-		push	bx						;AN000;
-		push	ds						;AN000;
-		push	es						;AN000;
-		push	si						;AN000;
-		push	di						;AN000;
+		push	ax
+		push	bx
+		push	ds
+		push	es
+		push	si
+		push	di
 
-		cmp	cx,1						;AN000;
+		cmp	cx,1
 
-;		$IF	E						;AN000;
+;		$IF	E
 		JNE $$IF9
 
-		    mov     ax,seg rb_string1_off			;AN000;
-		    mov     ds,ax					;AN000;
-		    ASSUME  DS:NOTHING					;AN000;
-		    mov     si,offset rb_string1_off			;AN000;
-		    mov     ax,ds:[si]					;AN000;
-		    mov     bx,ax					;AN000;
+		    mov     ax,seg rb_string1_off
+		    mov     ds,ax
+		    ASSUME  DS:NOTHING
+		    mov     si,offset rb_string1_off
+		    mov     ax,ds:[si]
+		    mov     bx,ax
 
 
-		    mov     ax,ds:[si+2]				;AN000;
-		    mov     ds,ax					;AN000;
-		    ASSUME  DS:NOTHING					;AN000;
-		    mov     si,bx					;AN000;
+		    mov     ax,ds:[si+2]
+		    mov     ds,ax
+		    ASSUME  DS:NOTHING
+		    mov     si,bx
 
-		    mov     ax,seg file1				;AN000;
-		    mov     es,ax					;AN000;
-		    ASSUME  ES:NOTHING					;AN000;
-		    mov     di,offset file1				;AN000;
-		    call    copyfs					;AN000;
+		    mov     ax,seg file1
+		    mov     es,ax
+		    ASSUME  ES:NOTHING
+		    mov     di,offset file1
+		    call    copyfs
 
-;		$ELSE							;AN000;
+;		$ELSE
 		JMP SHORT $$EN9
 $$IF9:
 
-		    mov     ax,seg rb_string2_off			;AN000;
-		    mov     ds,ax					;AN000;
-		    ASSUME  DS:NOTHING					;AN000;
-		    mov     si,offset rb_string2_off			;AN000;
-		    mov     ax,ds:[si]					;AN000;
-		    mov     bx,ax					;AN000;
+		    mov     ax,seg rb_string2_off
+		    mov     ds,ax
+		    ASSUME  DS:NOTHING
+		    mov     si,offset rb_string2_off
+		    mov     ax,ds:[si]
+		    mov     bx,ax
 
 
-		    mov     ax,ds:[si+2]				;AN000;
-		    mov     ds,ax					;AN000;
-		    ASSUME  DS:NOTHING					;AN000;
-		    mov     si,bx					;AN000;
+		    mov     ax,ds:[si+2]
+		    mov     ds,ax
+		    ASSUME  DS:NOTHING
+		    mov     si,bx
 
-		    mov     ax,seg file2				;AN000;
-		    mov     es,ax					;AN000;
-		    ASSUME  ES:NOTHING					;AN000;
-		    mov     di,offset file2				;AN000;
-		    call    copyfs					;AN000;
+		    mov     ax,seg file2
+		    mov     es,ax
+		    ASSUME  ES:NOTHING
+		    mov     di,offset file2
+		    call    copyfs
 
-;		$ENDIF							;AN000;
+;		$ENDIF
 $$EN9:
 
-		pop	di						;AN000;
-		pop	si						;AN000;
-		pop	es						;AN000;
-		ASSUME	ES:NOTHING					;AN000;
-		pop	ds						;AN000;
-		ASSUME	DS:NOTHING					;AN000;
-		pop	bx						;AN000;
-		pop	ax						;AN000;
+		pop	di
+		pop	si
+		pop	es
+		ASSUME	ES:NOTHING
+		pop	ds
+		ASSUME	DS:NOTHING
+		pop	bx
+		pop	ax
 
-;	    $ENDIF							;AN000;
+;	    $ENDIF
 $$IF8:
 
-	    cmp     ax,No_Error 					;AN000;
+	    cmp     ax,No_Error
 
-;	$ENDDO	NE							;AN000;
+;	$ENDDO	NE
 	JE $$DO7
 
-	cmp	ax,End_of_Parse 	;Check for parse error		;AN000;
-;	$IF	NE							;AN000;
+	cmp	ax,End_of_Parse 	;Check for parse error
+;	$IF	NE
 	JE $$IF14
-		push	ax						;AN001;
-		mov	ax,es:parse_ptr 				;AN001;
-		mov	es:parsoff,ax					;AN001;
-		mov	es:parseg,ds					;AN001;
-		mov	byte ptr ds:[si],0				;AN001;
-		pop	ax						;AN001;
-		parse_message		       ;Must enter file name	;AN000;
-		mov	es:Fatal_Error,YES     ;Indicate death! 	;AN000;
-;	$ENDIF								;AN000;
+		push	ax
+		mov	ax,es:parse_ptr
+		mov	es:parsoff,ax
+		mov	es:parseg,ds
+		mov	byte ptr ds:[si],0
+		pop	ax
+		parse_message		       ;Must enter file name
+		mov	es:Fatal_Error,YES     ;Indicate death!
+;	$ENDIF
 $$IF14:
 
-	pop	es							;AN000;
-	ASSUME	ES:NOTHING						;AN000;
-	pop	ds							;AN000;
-	ASSUME	DS:DATA 						;AN000;
+	pop	es
+	ASSUME	ES:NOTHING
+	pop	ds
+	ASSUME	DS:DATA
 
-	ret								;AN000;
+	ret
 
-Parse_Command_Line endp 						;AN000;
+Parse_Command_Line endp
 
 ;*****************************************************************************
 
@@ -462,16 +458,16 @@ INCLUDE PARSE.ASM
 
 procedure LOCATE
 
-	push	ds							;AN000;
-	ASSUME	ES:NOTHING		; THIS IS THE WAY IT GETS HERE! ;AN000;
-	mov	ax,es			; ES -> PSP			;AN000;
-	mov	ds,ax			; DS -> PSP			;AN000;
-	ASSUME	DS:NOTHING						;AN000;
+	push	ds
+	ASSUME	ES:NOTHING		; THIS IS THE WAY IT GETS HERE!
+	mov	ax,es			; ES -> PSP
+	mov	ds,ax			; DS -> PSP
+	ASSUME	DS:NOTHING
 
 	MOV	SI,offset file1
 	MOV	BX,SEG DATA
 	MOV	ES,BX
-	assume	es:data 						;AN000;
+	assume	es:data
 
 	MOV	BX,WORD PTR DS:[2]	;Get size of memory
 
@@ -491,15 +487,15 @@ procedure LOCATE
 
 
 ;----- Get the first file name
-	push	ds							;AN000;
-	push	es							;AN000;
-	ASSUME	ES:DATA 						;AN000;
-	pop	ds							;AN000;
-	ASSUME	DS:DATA 						;AN000;
+	push	ds
+	push	es
+	ASSUME	ES:DATA
+	pop	ds
+	ASSUME	DS:DATA
 
 sj01:
 	mov	si,offset file1 	;   d = file1;
-	mov	per11,0 		;   assume no extension on file1;AC000;
+	mov	per11,0 		;   assume no extension on file1
 
 ;******************************************************************************
 
@@ -507,21 +503,21 @@ sj0:
 	lodsb				;   while (!IsBlank(c=*p++)) {
 	cmp	al,0
 	JE	SJ2
-	call	dbcs_check		; see if a dbcs character	;AN000;
-	jc	dbcs_1			; dbcs character, go load another char ;AN000;
+	call	dbcs_check		; see if a dbcs character
+	jc	dbcs_1			; dbcs character, go load another char
 	cmp	al,'\'			;	if (c == '\\' || c == ':') {
 	jnz	sj05
-	mov	per11,update						;AC000;
+	mov	per11,update
 	mov	fnptr,si		;	    fnptr = ptr to slash
 sj05:
 	cmp	al,':'			;	if (c == '\\' || c == ':') {
 	jnz	checkper1
-	mov	per11,update						;AC000;
+	mov	per11,update
 	mov	fnptr,si		;	    fnptr = ptr to slash
 checkper1:
 	cmp	al,'.'			;	if (c == '.')
 	jne	sj1
-	mov	per11,noupdate		;   set file1 to have extension ;AN000;
+	mov	per11,noupdate		;   set file1 to have extension
 
 sj1:
 
@@ -543,9 +539,9 @@ File1_Err:
 	jmp	DosError
 ENDIF
 
-dbcs_1: 				;				;AN000;
-	lodsb				; load another character and got to ;AN000;
-	jmp	short sj0		; the start again.		;AN000;
+dbcs_1: 				;
+	lodsb				; load another character and got to
+	jmp	short sj0		; the start again.
 
 ;******************************************************************************
 
@@ -559,7 +555,7 @@ get_second:
 
 sj3:
 	cmp	word ptr [di],00	;   check to see if first character of
-	je	sj32			;   file2 is a null.		;AN000;
+	je	sj32			;   file2 is a null.
 	mov	si,offset file2 	;   set pointer to file2
 
 ;******************************************************************************
@@ -568,22 +564,22 @@ sj31:
 	lodsb				;   If file2 first character is not a
 	mov	f2cspot,si
 	cmp	al,0			;   null, this loop will check to see
-	JZ	maycopy 		;   the file has an extension assigned;AN000;
-	call	dbcs_check		; to it.  If not it will set per2 to  ;AN000;
-	jc	dbcs_2			; go load another byte		      ;AN000;
-	mov	per22,noupdate		;				      ;AN000;
+	JZ	maycopy 		;   the file has an extension assigned
+	call	dbcs_check		; to it.  If not it will set per2 to
+	jc	dbcs_2			; go load another byte
+	mov	per22,noupdate		;
 	cmp	al,'\'			;   0 so that in check_ext, the .BIN
 	jnz	checkper6		;   will be added to the filename.
-	mov	per2,update		;				      ;AC000;
-	mov	per22,update		;				      ;AN000;
+	mov	per2,update		;
+	mov	per22,update		;
 checkper6:
 	cmp	al,':'			;	if (c == '\\' || c == ':') {
 	jnz	checkper4
-	mov	per22,update		;				      ;AN000;
+	mov	per22,update		;
 checkper4:				;   there is an extension already.
 	cmp	al,'.'			;
 	jne	sj33			;
-	mov	per2,noupdate		;				      ;AC000;
+	mov	per2,noupdate		;
 
 sj33:					;
 
@@ -607,40 +603,40 @@ ENDIF
 
 
 dbcs_2:
-	lodsb				;load another character and got to    ;AN000;
-	jmp	short sj31		;the start again.		      ;AN000;
+	lodsb				;load another character and got to
+	jmp	short sj31		;the start again.
 
 ;******************************************************************************
 
-maycopy:				;   Check to see if the 	      ;AN000;
-	cmp	per22,noupdate		;   Last thing copied was either a    ;AN000;
-	je	SJ5			;   driver letter or  "\".	      ;AN000;
-	dec	f2cspot 						      ;AN000;
-	mov	di,f2cspot						      ;AN000;
+maycopy:				;   Check to see if the
+	cmp	per22,noupdate		;   Last thing copied was either a
+	je	SJ5			;   driver letter or  "\".
+	dec	f2cspot
+	mov	di,f2cspot
 
 sj32:
 					;   There is no second filename so
-	mov	si,fnptr						      ;AN000;
-	mov	per2,update		;   set per2 to 0 to get default .BIN ;AN000;
+	mov	si,fnptr
+	mov	per2,update		;   set per2 to 0 to get default .BIN
 					;   extension in check_ext.
 
 ;******************************************************************************
 
-copy1to2:								      ;AN000;
-	lodsb				; This loop is executed when there is ;AN000;
-	cmp	al,0			; no file2 specified on the command   ;AN000;
-	JZ	SJ5			; line.  It will copy the file1 name  ;AN000;
-	call	dbcs_check		; check for dbcs character	      ;AN000;
-	jc	dbcs_3			; got a dbcs character, go copy.      ;AN000;
-	cmp	al,'.'			; extension.  The defult extension    ;AN000;
-	je	sj5			; of .BIN will be added in check_ext. ;AN000;
-	stosb								      ;AN000;
-	jmp	short copy1to2						      ;AN000;
+copy1to2:
+	lodsb				; This loop is executed when there is
+	cmp	al,0			; no file2 specified on the command
+	JZ	SJ5			; line.  It will copy the file1 name
+	call	dbcs_check		; check for dbcs character
+	jc	dbcs_3			; got a dbcs character, go copy.
+	cmp	al,'.'			; extension.  The defult extension
+	je	sj5			; of .BIN will be added in check_ext.
+	stosb
+	jmp	short copy1to2
 dbcs_3:
-	stosb				; Got a dbcs character. Copy	      ;AN000;
-	lodsb				; two characters and then go to       ;AN000;
-	stosb				; next character in filename.	      ;AN000;
-	jmp	short copy1to2						      ;AN000;	     ;AN000;
+	stosb				; Got a dbcs character. Copy
+	lodsb				; two characters and then go to
+	stosb				; next character in filename.
+	jmp	short copy1to2
 
 ;******************************************************************************
 
@@ -663,7 +659,7 @@ DoDirectory:
 	dec	di
 	stosb
 SetSecond:
-	mov	per22,update						;AN000;
+	mov	per22,update
 	inc	di
 	mov	f2cspot,di
 	jmp	maycopy
@@ -671,13 +667,13 @@ SetSecond:
 
 ;----- Check that files have an extension, otherwise set default
 check_ext:
-	cmp	per11,noupdate		;   if (per1 == NULL) { 	;AC000;
+	cmp	per11,noupdate		;   if (per1 == NULL) {
 	jz	file1_ok
 	mov	di,offset file1 	;	d = file1;
 	mov	si,offset file1_ext	;	s = ".EXE";
 	call	strcat			;	strcat (d, s);
 file1_ok:				;	}
-	cmp	per2,noupdate		;   if (per2 != NULL) { 	;AC000;
+	cmp	per2,noupdate		;   if (per2 != NULL) {
 	je	file2_ok
 	mov	di,offset file2 	;	d = file2;
 	mov	si,offset file2_ext	;	s = ".BIN";
@@ -701,15 +697,15 @@ bad_file:
 
 BADEXE:
 	pop	ds
-	ASSUME	DS:nothing						;AN000;
-	MESSAGE msgNoConvert						;AC000;
-	jmp	getout							;AN000;
+	ASSUME	DS:nothing
+	MESSAGE msgNoConvert
+	jmp	getout
 
 ReadError:
 	jmp	DosError
 
 EXELOAD:
-	ASSUME	DS:DATA 						;AN000;
+	ASSUME	DS:DATA
 	MOV	DX,OFFSET RUNVAR	;Read header in here
 	MOV	CX,RUNVARSIZ		;Amount of header info we need
 	push	bx
@@ -778,16 +774,16 @@ WHOLEP:
 
 TOOBIG:
 	pop	ds
-	ASSUME	DS:NOTHING						;AN000;
-	MESSAGE msgOutOfMemory						;AN000;
-	jmp	getout							;AN000;
+	ASSUME	DS:NOTHING
+	MESSAGE msgOutOfMemory
+	jmp	getout
 
 LseekError:
 	jmp	DosError
 
 
 ERRORNZ:
-	ASSUME	DS:DATA 						;AN000;
+	ASSUME	DS:DATA
 	jz	xj
 	JMP	BADEXE			;AC000; For ptm P475;
 xj:	MOV	AX,[INITIP]
@@ -822,18 +818,18 @@ BINFIX:
 	JZ	LOADEXE
 GETSEG:
 	pop	ds
-	ASSUME	DS:NOTHING						;AN000;
-	MESSAGE msgFixUp						;AN000;
+	ASSUME	DS:NOTHING
+	MESSAGE msgFixUp
 	PUSH	DS
 	PUSH	ES
 	POP	DS
-	ASSUME	DS:DATA 						;AN000;
+	ASSUME	DS:DATA
 	MOV	AH,STD_CON_STRING_INPUT
 	MOV	DX,OFFSET INBUF
 	INT	21H			;Get user response
 	MOV	SI,OFFSET INBUF+2
 ;;dcl;; MOV	BYTE PTR [SI-1],0	;Any digits?
-	cmp	BYTE PTR [SI-1],0	;Any digits?			;AC000;
+	cmp	BYTE PTR [SI-1],0	;Any digits?
 	JZ	GETSEG
 DIGLP:
 	LODSB
@@ -867,14 +863,14 @@ LOADEXE:
 	mov	di,[handle1]
 	PUSH	DS
 	MOV	DS,BX
-	ASSUME	DS:NOTHING						;AN000;
+	ASSUME	DS:NOTHING
 	XOR	DX,DX
 	push	bx
 	mov	bx,di
 	INT	21H			;Read in up to 64K
 	pop	bx
 	POP	DS
-	ASSUME	DS:DATA 						;AN000;
+	ASSUME	DS:DATA
 	pop	di
 	Jnc	HAVEXE			;Did we get it all?
 
@@ -884,7 +880,7 @@ LseekError2:
 	jmp	DosError
 
 HAVEXE:
-	ASSUME	DS:DATA 						;AN000;
+	ASSUME	DS:DATA
 	CMP	[RELCNT],0		;Any fixups to do?
 	JZ	STORE
 	MOV	AX,[RELTAB]		;Get position of table
@@ -921,7 +917,7 @@ RDCMP:
 	MOV	AX,[RELSEG]		;Get segment
 	ADD	AX,BX			;Bias segment with actual load segment
 	MOV	ES,AX
-	ASSUME	ES:NOTHING						;AN000;
+	ASSUME	ES:NOTHING
 	ADD	ES:[DI],BP		;Relocate
 	DEC	[RELCNT]		;Count off
 	JNZ	RELOC
@@ -938,14 +934,14 @@ STORE:
 	mov	di,[handle2]
 	PUSH	DS
 	MOV	DS,BX
-	ASSUME	DS:NOTHING						;AN000;
+	ASSUME	DS:NOTHING
 	XOR	DX,DX			;Address 0 in segment
 	push	bx
 	mov	bx,di
 	INT	21H
 	pop	bx
 	POP	DS
-	ASSUME	DS:DATA 						;AN000;
+	ASSUME	DS:DATA
 	pop	di
 	Jc	WRTERR			;Must be zero if more to come
 	cmp	AX,CX
@@ -958,54 +954,54 @@ STORE:
 	pop	bx
 	pop	ds
 	pop	ds
-	ASSUME	DS:NOTHING						;AN000;
+	ASSUME	DS:NOTHING
 
 	RET
 
 ;*******************************************************************************
 
-NOROOM: 				;				     ;AN000;
-	ASSUME	DS:DATA 						;AN000;
-	MOV	AH,CLOSE		; Close the file here		     ;AN000;
-	push	bx			;				     ;AN000;
-	mov	bx,[handle2]		;				     ;AN000;
-	INT	21H			;				     ;AN000;
-	jc	CloseError		; If error let extend messages get it;AN000;
-	pop	bx			;				     ;AN000;
-	mov	ah,UNLINK		; Delete the file because it did     ;AN000;
-	MOV	DX,OFFSET file2 	; not get written correctly.	     ;AN000;
-	INT	21H			;				     ;AN000;
-	jc	CloseError		; If error let extend messages get it;AN000;
-	pop	ds			;				     ;AN000;
-	ASSUME	DS:NOTHING		;				     ;AN000;
-	message msgNoDiskSpace		; Put out insufficient disk space    ;AN000;
-	jmp	getout			; message			     ;AN000;
-	RET				; return to main_init		     ;AN000;
+NOROOM: 				;
+	ASSUME	DS:DATA
+	MOV	AH,CLOSE		; Close the file here
+	push	bx			;
+	mov	bx,[handle2]		;
+	INT	21H			;
+	jc	CloseError		; If error let extend messages get it
+	pop	bx			;
+	mov	ah,UNLINK		; Delete the file because it did
+	MOV	DX,OFFSET file2 	; not get written correctly.
+	INT	21H			;
+	jc	CloseError		; If error let extend messages get it
+	pop	ds			;
+	ASSUME	DS:NOTHING		;
+	message msgNoDiskSpace		; Put out insufficient disk space
+	jmp	getout			; message
+	RET				; return to main_init
 
 ;*******************************************************************************
 
-WRTERR: 								;AN000;
-MKERR:									;AN000;
-CloseError:								;AN000;
+WRTERR:
+MKERR:
+CloseError:
 
-	public	DosError						;AN000;
-DosError:								;AN000;
-	mov	es:FileNameSegment,ds	   ; save for opens, creates,	;AN000;
-	mov	es:FileNameOffset,dx					;AN000;
+	public	DosError
+DosError:
+	mov	es:FileNameSegment,ds	   ; save for opens, creates,
+	mov	es:FileNameOffset,dx
 
-	mov	bx,0			; get the extended error code	;AN000;
-	mov	ah,059h 						;AN000;
-	int	21h							;AN000;
+	mov	bx,0			; get the extended error code
+	mov	ah,059h
+	int	21h
 
-	mov	si,offset ds:Sublist_msg_exterror			;AC001;
-	extend_message							;AN001;
-	pop	ds							;AN001;
+	mov	si,offset ds:Sublist_msg_exterror
+	extend_message
+	pop	ds
 
-getout: 								;AN000;
-	pop	ds							;AN000;
-	ASSUME	DS:NOTHING						;AN000;
+getout:
+	pop	ds
+	ASSUME	DS:NOTHING
 
-	ret								;AN000;
+	ret
 
 
 LOCATE	ENDP
@@ -1044,8 +1040,8 @@ sj11:
 kill_bl endp
 
 IsBlank proc	near
-	cmp	al,00							;AN000;
-	retz								;AN000;
+	cmp	al,00
+	retz
 	cmp	al,13
 	retz
 	cmp	al,' '			; space
@@ -1067,85 +1063,85 @@ IsBlank Endp
 
 procedure copyfs
 
-	push	ax							;AN000;
+	push	ax
 
-;	$do				; while we have filespec	;AN000;
+;	$do				; while we have filespec
 $$DO16:
-	    lodsb			; move byte to al		;AN000;
-	    cmp     al,0		; see if we are at		;AN000;
+	    lodsb			; move byte to al
+	    cmp     al,0		; see if we are at
 					; the end of the
 					; filespec
-;	$leave	e			; exit while loop		;AN000;
+;	$leave	e			; exit while loop
 	JE $$EN16
-	    stosb			; move byte to path_name	;AN000;
-;	$enddo				; end do while			;AN000;
+	    stosb			; move byte to path_name
+;	$enddo				; end do while
 	JMP SHORT $$DO16
 $$EN16:
-	stosb								;AN000;
-	pop	ax							;AN000;
+	stosb
+	pop	ax
 
-	ret								;AN000;
-copyfs	endp								;AN000;
+	ret
+copyfs	endp
 
 
 procedure dbcs_check
 
-	push	ds				;Save registers 	;AC000;
-	push	si				; "  "	  "  "		;AC000;
-	push	ax				; "  "	  "  "		;AC000;
-	push	ds				; "  "	  "  "		;AC000;
-	pop	es				;Establish addressability;AC000;
-	cmp	byte ptr es:DBCS_VECTOR,Yes	;Have we set this yet?	;AC000;
-	push	ax				;Save input character	;AC000;
-;	$IF	NE				;Nope			;AN000;
+	push	ds				;Save registers
+	push	si				; "  "	  "  "
+	push	ax				; "  "	  "  "
+	push	ds				; "  "	  "  "
+	pop	es				;Establish addressability
+	cmp	byte ptr es:DBCS_VECTOR,Yes	;Have we set this yet?
+	push	ax				;Save input character
+;	$IF	NE				;Nope
 	JE $$IF19
-	   mov	   al,0 			;Get DBCS environment vectors;AC000;
-	   DOS_Call Hongeul			;  "  "    "  " 	;AC000;
-	   mov	   byte ptr es:DBCS_VECTOR,YES	;Indicate we've got vector;AC000;
-	   mov	   es:DBCS_Vector_Off,si	;Save the vector	;AC000;
-	   mov	   ax,ds			;			;AC000;
-	   mov	   es:DBCS_Vector_Seg,ax	;			;AC000;
-;	$ENDIF					; for next time in	;AC000;
+	   mov	   al,0 			;Get DBCS environment vectors
+	   DOS_Call Hongeul			;  "  "    "  "
+	   mov	   byte ptr es:DBCS_VECTOR,YES	;Indicate we've got vector
+	   mov	   es:DBCS_Vector_Off,si	;Save the vector
+	   mov	   ax,ds			;
+	   mov	   es:DBCS_Vector_Seg,ax	;
+;	$ENDIF					; for next time in
 $$IF19:
-	pop	ax				;Restore input character;AC000;
-	mov	si,es:DBCS_Vector_Seg		;Get saved vector pointer;AC000;
-	mov	ds,si				;			;AC000;
-	mov	si,es:DBCS_Vector_Off		;			;AC000;
-;	$SEARCH 				;Check all the vectors	;AC000;
+	pop	ax				;Restore input character
+	mov	si,es:DBCS_Vector_Seg		;Get saved vector pointer
+	mov	ds,si				;
+	mov	si,es:DBCS_Vector_Off		;
+;	$SEARCH 				;Check all the vectors
 $$DO21:
-	   cmp	   word ptr ds:[si],End_Of_Vector ;End of vector table? ;AC000;
-;	$LEAVE	E				;Yes, done		;AC000;
+	   cmp	   word ptr ds:[si],End_Of_Vector ;End of vector table?
+;	$LEAVE	E				;Yes, done
 	JE $$EN21
-	   cmp	   al,ds:[si]			;See if char is in vector;AC000;
-;	$EXITIF AE,AND				;If >= to lower, and	;AC000;
+	   cmp	   al,ds:[si]			;See if char is in vector
+;	$EXITIF AE,AND				;If >= to lower, and
 	JNAE $$IF21
-	   cmp	   al,ds:[si+1] 		; =< than higher range	;AC000;
-;	$EXITIF BE				; then DBCS character	;AC000;
+	   cmp	   al,ds:[si+1] 		; =< than higher range
+;	$EXITIF BE				; then DBCS character
 	JNBE $$IF21
-	   stc					;Set CY to indicate DBCS;AC000;
-;	$ORELSE 				;Not in range, check next;AC000;
+	   stc					;Set CY to indicate DBCS
+;	$ORELSE 				;Not in range, check next
 	JMP SHORT $$SR21
 $$IF21:
-	   add	   si,DBCS_Vector_Size		;Get next DBCS vector	;AC000;
-;	$ENDLOOP				;We didn't find DBCS chaR;AC000;
+	   add	   si,DBCS_Vector_Size		;Get next DBCS vector
+;	$ENDLOOP				;We didn't find DBCS chaR
 	JMP SHORT $$DO21
 $$EN21:
-	   clc					;Clear CY for exit	;AC000;
-;	$ENDSRCH				;			;AC000;
+	   clc					;Clear CY for exit
+;	$ENDSRCH				;
 $$SR21:
-	pop	ax				;Restore registers	;AC000;
-	pop	si				; "  "	  "  "		;AC000;
-	pop	ds				;Restore data segment	;AC000;
-	ret					;			;AC000;
+	pop	ax				;Restore registers
+	pop	si				; "  "	  "  "
+	pop	ds				;Restore data segment
+	ret					;
 
-	ret								;AN000;
-dbcs_check  endp							;AN000;
+	ret
+dbcs_check  endp
 
 
 
 CODE	ends
 
 
-	end	main_init						;AC000;
+	end	main_init
 
 

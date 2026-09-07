@@ -1,4 +1,3 @@
-;       SCCSID = @(#)strin.asm  1.2 85/04/18
 Break
 
 ; Inputs:

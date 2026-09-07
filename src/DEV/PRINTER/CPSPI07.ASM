@@ -23,14 +23,14 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 					;;
 INCLUDE CPSPEQU.INC			;;
-INT2F_LOW	EQU	(4*2FH) 	;; WGR interrupt 2F vector location	    ;AN000;
-INT2F_HI	EQU	(4*2FH)+2	;; WGR					    ;AN000;
+INT2F_LOW	EQU	(4*2FH) 	;; WGR interrupt 2F vector location
+INT2F_HI	EQU	(4*2FH)+2	;; WGR
 					;;
 .XLIST					;;
-INCLUDE SYSMSG.INC			;; WGR					    ;AN000;
+INCLUDE SYSMSG.INC			;; WGR
 .LIST					;;
 					;;
-MSG_UTILNAME <PRINTER>			;; WGR					    ;AN000;
+MSG_UTILNAME <PRINTER>			;; WGR
 					;;
 PUBLIC	INIT				;;
 PUBLIC	CODE_END			;; for MAP listing only
@@ -53,10 +53,10 @@ CSEG	SEGMENT PARA PUBLIC 'CODE'      ;;
 	ASSUME	CS:CSEG 		;;
 					;;
 					;;
-EXTRN	PARSER:NEAR			;; WGR					    ;AN000;
-EXTRN	ROM_INT2F:WORD			;; WGR					    ;AN000;
-EXTRN	INT2F_COM:NEAR			;; WGR					    ;AN000;
-EXTRN	ABORT:BYTE			;; WGR					    ;AN000;
+EXTRN	PARSER:NEAR			;; WGR
+EXTRN	ROM_INT2F:WORD			;; WGR
+EXTRN	INT2F_COM:NEAR			;; WGR
+EXTRN	ABORT:BYTE			;; WGR
 
 CODE_END     EQU $			;; end of resident code
 					;;
@@ -221,20 +221,20 @@ RAM_SLA LABEL	word			;;
 	DW	OFFSET (RAM_SL4)	;;
 ; up to DID_MAX 			;;
 					;;
-SUB_SIZE	EQU	11		;; WGR sublist size			    ;AN000;
-LEFT_ASCIIZ	EQU	00010000B	;; WGR left-aligned asciiz string	    ;AN000;
-UNLIMITED	EQU	0		;; WGR unlimited message size.		    ;AN000;
-					;; WGR					    ;AN000;
-SUBLIST LABEL	DWORD			;; WGR					    ;AN000;
-	DB	SUB_SIZE		;; WGR					    ;AN000;
-	DB	0			;; WGR					    ;AN000;
-MSG_PTR DW	?			;; WGR					    ;AN000;
-MSG_SEG DW	SEG CSEG		;; WGR					    ;AN000;
-	DB	1			;; WGR					    ;AN000;
-	DB	LEFT_ASCIIZ		;; WGR					    ;AN000;
-	DB	UNLIMITED		;; WGR					    ;AN000;
-	DB	1			;; WGR					    ;AN000;
-	DB	" "                     ;; WGR                                      ;AN000;
+SUB_SIZE	EQU	11		;; WGR sublist size
+LEFT_ASCIIZ	EQU	00010000B	;; WGR left-aligned asciiz string
+UNLIMITED	EQU	0		;; WGR unlimited message size.
+					;; WGR
+SUBLIST LABEL	DWORD			;; WGR
+	DB	SUB_SIZE		;; WGR
+	DB	0			;; WGR
+MSG_PTR DW	?			;; WGR
+MSG_SEG DW	SEG CSEG		;; WGR
+	DB	1			;; WGR
+	DB	LEFT_ASCIIZ		;; WGR
+	DB	UNLIMITED		;; WGR
+	DB	1			;; WGR
+	DB	" "                     ;; WGR
 					;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -250,15 +250,15 @@ INIT	PROC	NEAR			;;
 ;; parse the initialization parameters in DEVICE command
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
-	PUSH	BX			;; WGR					    ;AN000;
-	CALL	SYSLOADMSG		;; WGR load messages			    ;AN000;
-	JNC	CONT_1			;; WGR if no error then continue	    ;AN000;
-	CALL	SYSDISPMSG		;; WGR error (DOS version)..display	    ;AN000;
-	POP	BX			;; WGR message....			    ;AN000;
-	JMP	SYNTAX_ERROR		;; WGR ...and exit with error code.	    ;AN000;
-					;; WGR					    ;AN000;
-CONT_1: 				;; WGR					    ;AN000;
-	POP	BX			;; WGR					    ;AN000;
+	PUSH	BX			;; WGR
+	CALL	SYSLOADMSG		;; WGR load messages
+	JNC	CONT_1			;; WGR if no error then continue
+	CALL	SYSDISPMSG		;; WGR error (DOS version)..display
+	POP	BX			;; WGR message....
+	JMP	SYNTAX_ERROR		;; WGR ...and exit with error code.
+					;; WGR
+CONT_1: 				;; WGR
+	POP	BX			;; WGR
 	CMP	BUF.BFLAG,BF_PRN	;; since PRN is the FIRST device header
 	JNE	NOT_PRN 		;;
 					;;
@@ -312,15 +312,15 @@ PROCESS_TABLE : 			;;
 	CMP	DEV_NUM,0		;;
 	JNZ	NO_SYNTAX_ERR		;;
 					;;
-					;; WGR					    ;AN000;
-	PUSH	BX			;; WGR					    ;AN000;
-	MOV	AX,BAD_SYNTAX_MSG	;; WGR 'bad syntax' message                 ;AN000;
-	MOV	BX,STDERR		;; WGR	to standard error		    ;AN000;
-	XOR	CX,CX			;; WGR					    ;AN000;
-	XOR	DL,DL			;; WGR					    ;AN000;
-	MOV	DH,UTILITY_MSG_CLASS	;; WGR class = parse error		    ;AN000;
-	CALL	SYSDISPMSG		;; WGR display message. 		    ;AN000;
-	POP	BX			;; WGR					    ;AN000;
+					;; WGR
+	PUSH	BX			;; WGR
+	MOV	AX,BAD_SYNTAX_MSG	;; WGR 'bad syntax' message
+	MOV	BX,STDERR		;; WGR	to standard error
+	XOR	CX,CX			;; WGR
+	XOR	DL,DL			;; WGR
+	MOV	DH,UTILITY_MSG_CLASS	;; WGR class = parse error
+	CALL	SYSDISPMSG		;; WGR display message.
+	POP	BX			;; WGR
 					;;
 					;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 SYNTAX_ERROR :				;; set the request header status
@@ -630,7 +630,7 @@ CS_LPEND2:				;;
 					;;
 MATCH_GOOD :				;;
 	MOV	RH.RHC_STA,AX		;; set status in request header
-	CALL	LOAD_INT2F		;; WGR load INT2f handler		    ;AN000;
+	CALL	LOAD_INT2F		;; WGR load INT2f handler
 					;;
 BUF_END :				;;
 					;;
@@ -709,8 +709,8 @@ MSG_LOOP :				;;
 	PUSH	DI			;;
 	PUSH	CX			;;
 	PUSH	AX			;;
-	PUSH	BX			;; WGR					    ;AN000;
-	PUSH	DX			;; WGR					    ;AN000;
+	PUSH	BX			;; WGR
+	PUSH	DX			;; WGR
 					;;
 	MOV	DI,PSE.PAR_OFF		;;
 	MOV	SI,PSE.PAR_DNMO 	;;
@@ -723,24 +723,23 @@ MSG_LOOP :				;;
 	MOV	CX,8			;;
 	LEA	SI,[SI].PAR_DNM 	;;
 	MOV	DI,SI			;;
-	MOV	AL,' '                  ;; WGR                                      ;AN000;
-	CLD				;; WGR					    ;AN000;
-	REPNE	SCASB			;; WGR					    ;AN000;
-	DEC	DI			;; WGR					    ;AN000;
-	MOV	BYTE PTR ES:[DI],ZERO	;; WGR					    ;AN000;
-					;; WGR					    ;AN000;
-	MOV	MSG_SEG,CS		;; WGR					    ;AN000;
-	MOV	MSG_PTR,SI		;; WGR					    ;AN000;
-	MOV	AX,BAD_DEVICE_MSG	;; WGR					    ;AN000;
-	MOV	BX,STDERR		;; WGR					    ;AN000;
-	LEA	SI,SUBLIST		;; WGR					    ;AN000;
-	MOV	CX,ONE			;; WGR					    ;AN000;
-	XOR	DL,DL			;; WGR					    ;AN000;
-	MOV	DH,UTILITY_MSG_CLASS	;; WGR					    ;AN000;
-	CALL	SYSDISPMSG		;; WGR					    ;AN000;
-					;;					    ;AN000;
-	POP	DX			;; WGR					    ;AN000;
-	POP	BX			;; WGR					    ;AN000;
+	MOV	AL,' '                  ;; WGR
+	CLD				;; WGR
+	REPNE	SCASB			;; WGR
+	DEC	DI			;; WGR
+	MOV	BYTE PTR ES:[DI],ZERO	;; WGR
+					;; WGR
+	MOV	MSG_SEG,CS		;; WGR
+	MOV	MSG_PTR,SI		;; WGR
+	MOV	AX,BAD_DEVICE_MSG	;; WGR
+	MOV	BX,STDERR		;; WGR
+	LEA	SI,SUBLIST		;; WGR
+	MOV	CX,ONE			;; WGR
+	XOR	DL,DL			;; WGR
+	MOV	DH,UTILITY_MSG_CLASS	;; WGR
+	CALL	SYSDISPMSG		;; WGR
+	POP	DX			;; WGR
+	POP	BX			;; WGR
 	POP	AX			;;
 	POP	CX			;;
 	POP	DI			;;
@@ -1370,44 +1369,43 @@ DEV_CHECK ENDP				;;
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-SEMAPHORE  DB	  0								    ;AN000;
-										    ;AN000;
-LOAD_INT2F PROC   NEAR								    ;AN000;
-	   CMP	  CS:SEMAPHORE,0		   ; already loaded?		    ;AN000;
-	   JNE	  LI_1				   ; yes.....exit		    ;AN000;
-	   PUSH   ES				   ; no...load. 		    ;AN000;
-	   PUSH   CX				   ;				    ;AN000;
-	   PUSH   AX				   ;				    ;AN000;
-	   XOR	  AX,AX 			   ; point ES to low..		    ;AN000;
-	   MOV	  ES,AX 			   ; memory.			    ;AN000;
-	   MOV	  AX,ES:WORD PTR INT2F_LOW	   ; store original..		    ;AN000;
-	   MOV	  CS:ROM_INT2F,AX		   ; interrupt 2Fh..		    ;AN000;
-	   MOV	  CX,ES:WORD PTR INT2F_HI	   ; location.. 		    ;AN000;
-	   MOV	  CS:ROM_INT2F+2,CX		   ;				    ;AN000;
-	   OR	  AX,CX 			   ; check if old int2F..	    ;AN000;
-	   JNZ	  LI_0				   ; is 0.			    ;AN000;
-	   MOV	  AX,OFFSET ABORT		   ; yes....point to..		    ;AN000;
-	   MOV	  CS:ROM_INT2F,AX		   ; IRET.			    ;AN000;
-	   MOV	  AX,CS 			   ;				    ;AN000;
-	   MOV	  CS:ROM_INT2F+2,AX		   ;				    ;AN000;
-LI_0:						   ;				    ;AN000;
-	   CLI					   ;				    ;AN000;
-	   MOV	  ES:WORD PTR INT2F_LOW,OFFSET INT2F_COM ; replace vector..	    ;AN000;
-	   MOV	  ES:WORD PTR INT2F_HI,CS	   ; with our own..		    ;AN000;
-	   STI					   ;				    ;AN000;
-	   POP	  AX				   ;				    ;AN000;
-	   POP	  CX				   ;				    ;AN000;
-	   POP	  ES				   ;				    ;AN000;
-	   MOV	  CS:SEMAPHORE,1		   ; now loaded.		    ;AN000;
-LI_1:	   RET					   ;				    ;AN000;
+SEMAPHORE  DB	  0
+LOAD_INT2F PROC   NEAR
+	   CMP	  CS:SEMAPHORE,0		   ; already loaded?
+	   JNE	  LI_1				   ; yes.....exit
+	   PUSH   ES				   ; no...load.
+	   PUSH   CX				   ;
+	   PUSH   AX				   ;
+	   XOR	  AX,AX 			   ; point ES to low..
+	   MOV	  ES,AX 			   ; memory.
+	   MOV	  AX,ES:WORD PTR INT2F_LOW	   ; store original..
+	   MOV	  CS:ROM_INT2F,AX		   ; interrupt 2Fh..
+	   MOV	  CX,ES:WORD PTR INT2F_HI	   ; location..
+	   MOV	  CS:ROM_INT2F+2,CX		   ;
+	   OR	  AX,CX 			   ; check if old int2F..
+	   JNZ	  LI_0				   ; is 0.
+	   MOV	  AX,OFFSET ABORT		   ; yes....point to..
+	   MOV	  CS:ROM_INT2F,AX		   ; IRET.
+	   MOV	  AX,CS 			   ;
+	   MOV	  CS:ROM_INT2F+2,AX		   ;
+LI_0:						   ;
+	   CLI					   ;
+	   MOV	  ES:WORD PTR INT2F_LOW,OFFSET INT2F_COM ; replace vector..
+	   MOV	  ES:WORD PTR INT2F_HI,CS	   ; with our own..
+	   STI					   ;
+	   POP	  AX				   ;
+	   POP	  CX				   ;
+	   POP	  ES				   ;
+	   MOV	  CS:SEMAPHORE,1		   ; now loaded.
+LI_1:	   RET					   ;
 LOAD_INT2F ENDP
 
 .XLIST
-MSG_SERVICES <MSGDATA>			  ; WGR 				    ;AN000;
-MSG_SERVICES <DISPLAYmsg,LOADmsg,CHARmsg> ; WGR 				    ;AN000;
-MSG_SERVICES <PRINTER.CL1>		  ; WGR 				    ;AN000;
-MSG_SERVICES <PRINTER.CL2>		  ; WGR 				    ;AN000;
-MSG_SERVICES <PRINTER.CLA>		  ; WGR 				    ;AN000;
+MSG_SERVICES <MSGDATA>			  ; WGR
+MSG_SERVICES <DISPLAYmsg,LOADmsg,CHARmsg> ; WGR
+MSG_SERVICES <PRINTER.CL1>		  ; WGR
+MSG_SERVICES <PRINTER.CL2>		  ; WGR
+MSG_SERVICES <PRINTER.CLA>		  ; WGR
 .LIST
 
 include msgdcl.inc

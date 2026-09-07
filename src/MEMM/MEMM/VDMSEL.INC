@@ -8,26 +8,8 @@
 ;
 ;   Module:   VDMSEL.INC - Selector Definitions for MEMM
 ;
-;   Version:  0.05
-;
-;   Date:     May 12, 1986
-;
-;   Author:
-;
 ;******************************************************************************
 ;
-;   Change log:
-;
-;     DATE    REVISION			DESCRIPTION
-;   --------  --------	-------------------------------------------------------
-;	      Original
-;   05/12/86  A 	Cleanup and segment reorganization
-;   06/07/86  C 	merged with module from Rick
-;   06/28/86  0.02	Name change from MEMM386 to MEMM
-;   07/10/86  0.05	Changed CODE_GSEL to RCODEA_GSEL
-;   07/20/88		Remove debugger selectors
-;
-;******************************************************************************
 ifndef INC_LIST
 .xlist
 endif

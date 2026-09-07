@@ -30,13 +30,6 @@
 ;; Linkage Information:  Refer to file KEYB.ASM
 ;; --------------------
 ;;
-;; Change History:
-;; ---------------
-;;
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                                       ;;
-;****
         INCLUDE KEYBEQU.INC            ;;
         INCLUDE DSEG.inc               ;; System data segments
         INCLUDE POSTEQU.inc            ;; System equates

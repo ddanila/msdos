@@ -1,4 +1,3 @@
-;	SCCSID = @(#)mi.asm	1.1 85/04/10
 BREAK <Machine instruction, flag definitions and character types>
 
 mi_INT		EQU	0CDh

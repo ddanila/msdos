@@ -1,13 +1,7 @@
-;	SCCSID = @(#)shrprint.asm	1.1 85/04/10
 TITLE	SHRPRINT - PRINTF at SHARE level
 NAME	SHRPRINT
 ;
 ;
-;   Modification history:
-;
-;	Created: MZ 16 June 1984
-;
-
 .xlist
 ;
 ; get the appropriate segment definitions

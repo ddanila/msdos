@@ -1,4 +1,3 @@
-;	SCCSID = @(#)ctrlc.asm	1.4 85/08/16
 ; Low level routines for detecting special characters on CON input,
 ;	the ^C exit/int code, the Hard error INT 24 code, the
 ;	process termination code, and the INT 0 divide overflow handler.
@@ -13,15 +12,6 @@
 ;   DIVOV
 ;   CHARHARD
 ;   HardErr
-;
-;   Revision history:
-;
-;	AN000	version 4.0   Jan 1988
-;	A002	PTM    -- dir >lpt3 hangs
-;	A003	PTM 3957- fake version for IBMCAHE.COM
-
-;
-; get the appropriate segment definitions
 ;
 .xlist
 include dosseg.asm
@@ -108,10 +98,10 @@ ASSUME	DS:NOTHING,ES:NOTHING
 	MOV	BYTE PTR [DSKSTCOM],DEVRDND
 	MOV	BYTE PTR [DSKSTCALL],DRDNDHL
 	MOV	[DSKSTST],0
- IF  DBCS				;AN000;
+ IF  DBCS
 	MOV	AL, [InterCon]		;AN000;get type of status read 2/13/KK
 	MOV	BYTE PTR [DSKCHRET],AL	;AN000; load interim flag into packet
- ENDIF					;AN000;
+ ENDIF
 	MOV	BX,OFFSET DOSGROUP:DSKSTCALL
 	LDS	SI,[BCON]
 ASSUME	DS:NOTHING
@@ -284,11 +274,11 @@ EndProc STATCHK
 ; (not IRET) with carry CLEAR.	If carry is SET then an terminate system call
 ; is simulated.
 	TEST	[DOS34_FLAG],CTRL_BREAK_FLAG  ;AN002; from RAWOUT
-	JNZ	around_deadlock 	      ;AN002;
+	JNZ	around_deadlock
 	MOV	AL,3			; Display "^C"
 	invoke	BUFOUT
 	invoke	CRLF
-around_deadlock:			      ;AN002;
+around_deadlock:
 	Context DS
 	CMP	BYTE PTR [CONSWAP],0
 	JZ	NOSWAP
@@ -520,14 +510,14 @@ NoFree:
 	INC	BYTE PTR [ERRORMODE]	; Flag INT 24 in progress
 	DEC	BYTE PTR [INDOS]	; INT 24 handler might not return
 ;; Extneded Open hooks
-	TEST	[DOS34_FLAG],Force_I24_Fail   ;AN000;IFS. form IFS Call Back	      ;AN000;
-	JNZ	faili24 		      ;AN000;IFS.			      ;AN000;
-	TEST	[EXTOPEN_ON],EXT_OPEN_I24_OFF ;AN000;IFS.I24 error disabled	      ;AN000;
-	JZ	i24yes			      ;AN000;IFS.no			      ;AN000;
-faili24:				      ;AN000;
-	MOV	AL,3			      ;AN000;IFS.fake fail		      ;AN000;
-	JMP	passi24 		      ;AN000;IFS.exit			      ;AN000;
-i24yes: 				      ;AN000;
+	TEST	[DOS34_FLAG],Force_I24_Fail   ;AN000;IFS. form IFS Call Back
+	JNZ	faili24 		      ;AN000;IFS.
+	TEST	[EXTOPEN_ON],EXT_OPEN_I24_OFF ;AN000;IFS.I24 error disabled
+	JZ	i24yes			      ;AN000;IFS.no
+faili24:
+	MOV	AL,3			      ;AN000;IFS.fake fail
+	JMP	passi24 		      ;AN000;IFS.exit
+i24yes:
 
 ;; Extended Open hooks
 	MOV	SS,[user_SS]
@@ -539,13 +529,13 @@ ASSUME	SS:NOTHING
 	MOV	BP,ES
 	MOV	SS,BP
 ASSUME	SS:DOSGROUP
-passi24:				;AN000;
+passi24:
 	MOV	SP,[CONTSTK]
 	INC	BYTE PTR [INDOS]	; Back in the DOS
 	MOV	BYTE PTR [ERRORMODE],0	; Back from INT 24
 	STI
-;;	MOV	[ACT_PAGE],-1		;LB. invalidate DOS active page 	;AN000;
-;;	invoke	SAVE_MAP		;LB. save user's EMS map                ;AN000;
+;;	MOV	[ACT_PAGE],-1		;LB. invalidate DOS active page
+;;	invoke	SAVE_MAP		;LB. save user's EMS map
 	fmt TypINT24,LevLog,<"INT 24: User reply = $x\n">,<AX>
 FAILRET:
 	LES	BP,[EXITHOLD]

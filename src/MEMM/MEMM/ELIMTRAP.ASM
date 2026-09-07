@@ -10,41 +10,8 @@
 ;
 ;   Module:   DMATRAP.ASM - Trap Handlers for DMA ports
 ;
-;   Version:  0.04
-;
-;   Date:     April 9, 1986
-;
-;   Author:
-;
 ;******************************************************************************
 ;
-;   Change log:
-;
-;     DATE    REVISION			DESCRIPTION
-;   --------  --------	-------------------------------------------------------
-;   04/09/86  Original
-;   06/18/86  0.01	Modified LIM_Map to handle all 4 boards and call
-;			page mapping routine in EMMLIB.LIB
-;   06/27/86  0.02	Made _page_frame_address indexing dword (was word)
-;
-;   06/28/86  0.02	Name change from MEMM386 to MEMM
-;   07/01/86  0.03	Added DMA support routines
-;   07/02/86  0.03	Fixed CNT size vs. length problem
-;   07/06/86  0.04	Made _pft386 a ptr to _pft386 array
-;   07/06/86  0.04	now sets _window array also
-;   08/11/86  0.05	moved IO_Trap code for LIM DMA trapping here
-;   06/09/88		remove IOT_LIM, LIMMap, and InitELIM since we don't
-;			have any EMM hardware to trap and emulate now (Paulch)
-;   07/26/88		reintroduced initelim removing iab port trap (ISP)
-;
-;   07/27/88            Started rewriting the DMA port trap handlers - similar to the
-;			code in VDMAD.ASM in Win/386 V2.03
-;			 - Jaywant H Bharadwaj
-;
-;*****************************************************************************
-
-
-;******************************************************************************
 ;
 ;   Functional Description:
 ;

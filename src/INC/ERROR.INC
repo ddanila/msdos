@@ -1,5 +1,3 @@
-;	SCCSID = @(#)error.asm	1.1 85/04/10
-;	SCCSID = @(#)error.asm	1.1 85/04/10
 BREAK <Xenix error codes>
 
 ;
@@ -62,9 +60,9 @@ error_lock_violation		EQU	33
 error_wrong_disk		EQU	34
 error_FCB_unavailable		EQU	35
 error_sharing_buffer_exceeded	EQU	36
-error_Code_Page_Mismatched	EQU	37    ; DOS 4.00 			;AN000;
-error_handle_EOF		EQU	38    ; DOS 4.00 			;AN000;
-error_handle_Disk_Full		EQU	39    ; DOS 4.00 			;AN000;
+error_Code_Page_Mismatched	EQU	37    ; DOS 4.00
+error_handle_EOF		EQU	38    ; DOS 4.00
+error_handle_Disk_Full		EQU	39    ; DOS 4.00
 ;
 ; New OEM network-related errors are 50-79
 ;
@@ -84,7 +82,7 @@ error_Already_assigned		EQU	85
 error_invalid_password		EQU	86
 error_invalid_parameter 	EQU	87
 error_NET_write_fault		EQU	88
-error_sys_comp_not_loaded	EQU	90    ; DOS 4.00				;AN000;
+error_sys_comp_not_loaded	EQU	90    ; DOS 4.00
 
 BREAK <Interrupt 24 error codes>
 

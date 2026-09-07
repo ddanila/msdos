@@ -9,7 +9,7 @@
 ; PCPANEL PCB Structure
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-PCB_PB	       STRUC			     ;AN000;
+PCB_PB	       STRUC
 PCB_OPT1       DW   0			     ;AN000;option word
 PCB_OPT2       DB   0			     ;AN000;option 2 added
 PCB_OPT3       DB   0			     ;AN000;option 3 added
@@ -52,13 +52,13 @@ PCB_RESERVED   DW   0			     ;AN000;reserved
 PCB_CHILDNUM   DW   0			     ;AN000;Number of child panel entries
 PCB_CHILDOFF   DW   0			     ;AN000;Off address of child panel table
 PCB_CHILDSEG   DW   0			     ;AN000;Seg address of child panel table
-PCB_PB	       ENDS			     ;AN000;
+PCB_PB	       ENDS
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; PCSLCTP Structure
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-SCB_PB	       STRUC			     ;AN000;
+SCB_PB	       STRUC
 SCB_OPT1       DW   0			     ;AN000;option word one
 SCB_OPT2       DW   0			     ;AN000;option word two
 SCB_OPT3       DW   0			     ;AN000;option word three
@@ -167,13 +167,13 @@ SCB_DBCSOFF    DW   0			     ;AN000;dbcs table offset
 SCB_DBCSSEG    DW   0			     ;AN000;dbcs table segment
 SCB_FONTOFF    DW   0			     ;AN068;SEH offset of font descriptor block
 SCB_FONTSEG    DW   0			     ;AN068;SEH segment of font descriptor block
-SCB_PB	       ENDS			     ;AN000;
+SCB_PB	       ENDS
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ;
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-CHD_PB	STRUC				     ;AN000;
+CHD_PB	STRUC
 CHD_PCB DW	0			     ;AN000;child PCB element number
 CHD_ROW DW	0			     ;AN000;row override
 CHD_COL DW	0			     ;AN000;column override
@@ -181,7 +181,7 @@ CHD_INX DW	0			     ;AN000;color index pointer override
 	DW	0			     ;AN000;function key attribute
 	DB	0,0			     ;AN000;keystroke associated with child
 	DW	0			     ;AN000;option word
-CHD_PB	ENDS				     ;AN000;
+CHD_PB	ENDS
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; Input Field Control Block (ICB) Structure
@@ -235,5 +235,5 @@ ICB_MINUSSEG   DW   0			     ;AN000;segment of minus sign string
 ICB_PLUSLEN    DW   0			     ;AN000;length of plus sign string
 ICB_PLUSOFF    DW   0			     ;AN000;offset of plus sign string
 ICB_PLUSSEG    DW   0			     ;AN000;segment of plus sign string
-ICB_PB	       ENDS			     ;AN000;
+ICB_PB	       ENDS
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

@@ -1,4 +1,3 @@
-;      SCCSID = @(#)d_gctrcd.asm        1.1 86/06/03
 .xlist
 ;  include struc.inc
 include nlsapi.inc

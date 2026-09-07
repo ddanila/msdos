@@ -36,12 +36,6 @@
 ;; ------------------------------
 ;;       None
 ;;
-;; Change History:
-;; ---------------
-;;
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                                       ;;
         PUBLIC TABLE_BUILD             ;;
         PUBLIC FIND_CP_TABLE           ;;
         PUBLIC CPN_INVALID             ;;
@@ -182,8 +176,8 @@ TABLE_BUILD          PROC NEAR            ;;
         SUB   AX,OFFSET SD_DEST_PTR       ;;     value used to calculate
         MOV   SD_AREA_DIFFERENCE,AX       ;;      new ptr values for
                                           ;;        SHARED_DATA_AREA
-        MOV   AX,[BP].ID_PARM             ;; WGR Get id parameter              ;AN000
-        MOV   TB_ID_PARM,AX               ;; WGR                               ;AN000
+        MOV   AX,[BP].ID_PARM             ;; WGR Get id parameter
+        MOV   TB_ID_PARM,AX               ;; WGR
         MOV   AX,[BP].LANGUAGE_PARM       ;;    Get language parameter
         MOV   TB_LANGUAGE_PARM,AX         ;;
         MOV   BX,[BP].CODE_PAGE_PARM      ;;    Get code page parameter
@@ -195,8 +189,8 @@ TABLE_BUILD          PROC NEAR            ;;
         JMP   TB_ERROR6                   ;;               for language THEN
                                           ;;
 TB_CHECK_CONTINUE1:                       ;;;;;;;;
-        MOV   BP,OFFSET SD_SOURCE_PTR           ;;    Put language parm and    ;AN000
-        MOV   AX,TB_ID_PARM                     ;; WGR id parm and..           ;AN000
+        MOV   BP,OFFSET SD_SOURCE_PTR           ;;    Put language parm and
+        MOV   AX,TB_ID_PARM                     ;; WGR id parm and..
         MOV   ES:[BP].INVOKED_KBD_ID,AX         ;; WGR
         MOV   BX,TB_CODE_PAGE_PARM              ;;
         MOV   ES:[BP].INVOKED_CP_TABLE,BX       ;;;;;; code page parm into the

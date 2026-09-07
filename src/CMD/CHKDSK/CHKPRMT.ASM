@@ -1,93 +1,79 @@
-TITLE	CHKPRMT - Procedures called from chkdsk which prompt			;an000;bgb
-page	,132					;				;an000;bgb
-										;an000;bgb
-	.xlist									;an000;bgb
-	include chkseg.inc							;an000;bgb
-	INCLUDE CHKCHNG.INC							;an000;bgb
-	INCLUDE SYSCALL.INC							;an000;bgb
-	INCLUDE CHKEQU.INC							;an000;bgb
-	INCLUDE CHKMACRO.INC							;an000;bgb
-	include pathmac.inc							;an000;bgb
-	.list									;an000;bgb
-										;an000;bgb
-										;an000;bgb
-CONST	SEGMENT PUBLIC PARA 'DATA'						;an000;bgb
-	EXTRN	YES_BYTE:BYTE,NO_BYTE:BYTE					;an000;bgb
-	EXTRN	YN_ARG:WORD							;an000;bgb
-	EXTRN	HECODE:byte,CONBUF:byte 					;an000;bgb
-CONST	ENDS									;an000;bgb
-										;an000;bgb
-										;an000;bgb
-CODE	SEGMENT PUBLIC PARA 'CODE'						;an000;bgb
-ASSUME	CS:DG,DS:DG,ES:DG,SS:DG 						;an000;bgb
-	EXTRN	PRINTF_CRLF:NEAR,DOCRLF:NEAR					;an000;bgb
-										;an000;bgb
-	pathlabl chkprmt							;an000;bgb
-;*****************************************************************************	;an000;bgb
-;Routine name:PromptYN								;an000;bgb
-;*****************************************************************************	;an000;bgb
-;										;an000;bgb
-;description: Validate that input is valid Y/N for the country dependent info	;an000;bgb
-;	     Return Z flag if 'Y' entered					;an000;bgb
-;Called Procedures: Message (macro)						;an000;bgb
-;		    User_String 						;an000;bgb
-;										;an000;bgb
-;Change History: Created	5/10/87 	MT				;an000;bgb
-;										;an000;bgb
-;Input: DX = offset to message							;an000;bgb
-;										;an000;bgb
-;Output: Z flag if 'Y' entered							;an000;bgb
-;										;an000;bgb
-;Psuedocode									;an000;bgb
-;----------									;an000;bgb
-;										;an000;bgb
-;	DO									;an000;bgb
-;	   Display prompt and input character					;an000;bgb
-;	   IF got character							;an000;bgb
+TITLE	CHKPRMT - Procedures called from chkdsk which prompt
+page	,132					;
+	.xlist
+	include chkseg.inc
+	INCLUDE CHKCHNG.INC
+	INCLUDE SYSCALL.INC
+	INCLUDE CHKEQU.INC
+	INCLUDE CHKMACRO.INC
+	include pathmac.inc
+	.list
+CONST	SEGMENT PUBLIC PARA 'DATA'
+	EXTRN	YES_BYTE:BYTE,NO_BYTE:BYTE
+	EXTRN	YN_ARG:WORD
+	EXTRN	HECODE:byte,CONBUF:byte
+CONST	ENDS
+CODE	SEGMENT PUBLIC PARA 'CODE'
+ASSUME	CS:DG,DS:DG,ES:DG,SS:DG
+	EXTRN	PRINTF_CRLF:NEAR,DOCRLF:NEAR
+	pathlabl chkprmt
+;*****************************************************************************
+;Routine name:PromptYN
+;*****************************************************************************
+;description: Validate that input is valid Y/N for the country dependent info
+;	     Return Z flag if 'Y' entered
+;Called Procedures: Message (macro)
+;		    User_String
+;Input: DX = offset to message
+;Output: Z flag if 'Y' entered
+;Psuedocode
+;----------
+;	DO
+;	   Display prompt and input character
+;	   IF got character
 ;	      Check for country dependent Y/N (INT 21h, AX=6523h Get Ext Country;an000;bgb)
-;	      IF NC (Yes or No) 						;an000;bgb
-;		 Set Z if Yes, NZ if No 					;an000;bgb
-;	      ENDIF								;an000;bgb
-;	   ELSE  (nothing entered)						;an000;bgb
-;	      stc								;an000;bgb
-;	   ENDIF								;an000;bgb
-;	ENDDO NC								;an000;bgb
-;	ret									;an000;bgb
-;*****************************************************************************	;an000;bgb
-Procedure PromptYN				;				;an000;bgb;AN000;
-	push	si				;Save reg			;an000;bgb
-;	$DO					;				;an000;bgb;AC000;
+;	      IF NC (Yes or No)
+;		 Set Z if Yes, NZ if No
+;	      ENDIF
+;	   ELSE  (nothing entered)
+;	      stc
+;	   ENDIF
+;	ENDDO NC
+;	ret
+;*****************************************************************************
+Procedure PromptYN				;
+	push	si				;Save reg
+;	$DO					;
 $$DO1:
-	   Call    Display_Interface		;Display the message		;an000;bgb;AC000;
-	   MOV	   DX,OFFSET DG:CONBUF		;Point at input buffer		;an000;bgb
-	   DOS_Call Std_Con_String_Input	;Get input			;an000;bgb;AC000;
-	   CALL    DOCRLF			;				;an000;bgb
-	   MOV	   SI,OFFSET DG:CONBUF+2	;Point at contents of buffer	;an000;bgb
-	   CMP	   BYTE PTR [SI-1],0		;Was there input?		;an000;bgb
-;	   $IF	   NE				;Yep				;an000;bgb;AC000;
+	   Call    Display_Interface		;Display the message
+	   MOV	   DX,OFFSET DG:CONBUF		;Point at input buffer
+	   DOS_Call Std_Con_String_Input	;Get input
+	   CALL    DOCRLF			;
+	   MOV	   SI,OFFSET DG:CONBUF+2	;Point at contents of buffer
+	   CMP	   BYTE PTR [SI-1],0		;Was there input?
+;	   $IF	   NE				;Yep
 	   JE $$IF2
-	      mov     al,23h			;See if it is Y/N		;an000;bgb;AN000;
-	      mov     dl,[si]			;Get character			;an000;bgb;AN000;
-	      DOS_Call GetExtCntry		;Get country info call		;an000;bgb;AN000;
-;	      $IF     NC			;Yes or No entered		;an000;bgb;AN000;
+	      mov     al,23h			;See if it is Y/N
+	      mov     dl,[si]			;Get character
+	      DOS_Call GetExtCntry		;Get country info call
+;	      $IF     NC			;Yes or No entered
 	      JC $$IF3
-		 cmp	 ax,Yes_Found		;Set Z if Yes, NZ if No 	;an000;bgb;AN000;
-		 clc				;CY=0 means Y/N found		;an000;bgb
-;	      $ENDIF				;CY set if neither		;an000;bgb;AN000;
+		 cmp	 ax,Yes_Found		;Set Z if Yes, NZ if No
+		 clc				;CY=0 means Y/N found
+;	      $ENDIF				;CY set if neither
 $$IF3:
-;	   $ELSE				;No characters input		;an000;bgb
+;	   $ELSE				;No characters input
 	   JMP SHORT $$EN2
 $$IF2:
-	      stc				;CY means not Y/N		;an000;bgb
-;	   $ENDIF				;				;an000;bgb
+	      stc				;CY means not Y/N
+;	   $ENDIF				;
 $$EN2:
-;	$ENDDO	NC				;				;an000;bgb;AN000;
+;	$ENDDO	NC				;
 	JC $$DO1
-	pop	si				;				;an000;bgb
-	ret					;				;an000;bgb
-PromptYN endp					;				;an000;bgb;AN000;
-	pathlabl chkprmt							;an000;bgb
-										;an000;bgb
-CODE	ENDS									;an000;bgb
-	END									;an000;bgb
+	pop	si				;
+	ret					;
+PromptYN endp					;
+	pathlabl chkprmt
+CODE	ENDS
+	END
 

@@ -1,4 +1,3 @@
-;	SCCSID = @(#)mult.asm	1.2 85/04/12
 Break <Critical section and Multiplex channels>
 
 ;----+----+----+----+----+----+----+----+----+----+----+----+----+----+----;

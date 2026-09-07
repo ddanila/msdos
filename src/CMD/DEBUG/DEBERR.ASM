@@ -28,11 +28,6 @@
 ;	 LINK DEBUG+DEBCOM1+DEBCOM2+DEBCOM3+DEBASM+DEBUASM+DEBERR+DEBCONST+
 ;	      DEBDATA+DEBMES
 ;
-; REVISION HISTORY:
-;
-;	AN000	VERSION DOS 4.0 - MESSAGE RETRIEVER IMPLEMENTED.  DMS:6/17/87
-;
-;
 ; COPYRIGHT: "MS DOS DEBUG Utility"
 ;	     "Version 4.00 (C) Copyright 1988 Microsoft"
 ;	     "Licensed Material - Property of Microsoft  "
@@ -59,7 +54,7 @@ CODE	ENDS
 CONST	SEGMENT PUBLIC BYTE
 	EXTRN	RDFLG:BYTE
 	EXTRN	DRVLET:BYTE
-	EXTRN	dr1_ptr:word,dr2_ptr:word,dr3_ptr:word,dr4_ptr:word ;ac000
+	EXTRN	dr1_ptr:word,dr2_ptr:word,dr3_ptr:word,dr4_ptr:word
 CONST	ENDS
 
 CSTACK	SEGMENT STACK
@@ -152,7 +147,7 @@ DRVERR:
 		JMP SHORT $$EN2
 $$IF2:
 			mov	dx,offset dg:dr1_ptr	;an000;message
-;		$endif				;an000;
+;		$endif
 $$EN2:
 ;	$else					;an000;write protect error
 	JMP SHORT $$EN1
@@ -166,9 +161,9 @@ $$IF1:
 		JMP SHORT $$EN6
 $$IF6:
 			mov	dx,offset dg:dr3_ptr	;an000;message
-;		$endif				;an000;
+;		$endif
 $$EN6:
-;	$endif					;an000;
+;	$endif
 $$EN1:
 
 ; CLEAN OUT THE DISK...

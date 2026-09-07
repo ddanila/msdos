@@ -1,6 +1,4 @@
  page 80,132
-;	SCCSID = @(#)copypr1.asm	1.1 85/05/14
-;	SCCSID = @(#)copypr1.asm	1.1 85/05/14
 	INCLUDE comsw.asm
 
 .xlist
@@ -13,24 +11,24 @@
 .cref
 
 
-TRANDATA	SEGMENT PUBLIC BYTE	;AC000;
+TRANDATA	SEGMENT PUBLIC BYTE
 	EXTRN	DEVWMES_ptr:word
-	EXTRN	ext_open_parms:byte	;AN000;
-	EXTRN	ext_open_seg:word	;AN000;
-	EXTRN	ext_open_off:word	;AN000;
-	EXTRN	Extend_buf_sub:byte	;AN000;
+	EXTRN	ext_open_parms:byte
+	EXTRN	ext_open_seg:word
+	EXTRN	ext_open_off:word
+	EXTRN	Extend_buf_sub:byte
 	EXTRN	LOSTERR_ptr:word
 	EXTRN	NOSPACE_ptr:word
 	EXTRN	OVERWR_ptr:word
 TRANDATA ENDS
 
-TRANSPACE	SEGMENT PUBLIC BYTE	;AC000;
+TRANSPACE	SEGMENT PUBLIC BYTE
 	EXTRN	ALLSWITCH:WORD
 	EXTRN	ASCII:BYTE
 	EXTRN	BINARY:BYTE
 	EXTRN	CFLAG:BYTE
 	EXTRN	CONCAT:BYTE
-	EXTRN	concat_xa:byte		;AC000;
+	EXTRN	concat_xa:byte
 	EXTRN	DESTBUF:BYTE
 	EXTRN	DESTCLOSED:BYTE
 	EXTRN	DESTHAND:WORD
@@ -40,11 +38,11 @@ TRANSPACE	SEGMENT PUBLIC BYTE	;AC000;
 	EXTRN	NOWRITE:BYTE
 	EXTRN	OVERWRITECANCEL:BYTE
 	EXTRN	NXTADD:WORD
-	EXTRN	plus_comma:byte 	;AN000;
+	EXTRN	plus_comma:byte
 	EXTRN	RDEOF:BYTE
-	EXTRN	src_xa_seg:word 	;AN000;
+	EXTRN	src_xa_seg:word
 	EXTRN	SRCISDEV:BYTE
-	EXTRN	string_ptr_2:word	;AN000;
+	EXTRN	string_ptr_2:word
 	EXTRN	TERMREAD:BYTE
 	EXTRN	TPA:WORD
 	EXTRN	WRITTEN:WORD
@@ -90,9 +88,9 @@ NOTEXISTS:
 	CMP	[CONCAT],0			; Concatenation?
 	MOV	DX,OFFSET TRANGROUP:OVERWR_ptr
 	JNZ	NO_CONCAT_ERR			;AC000; If not, overwrite error
-	JMP	COPERR				;AC000;
+	JMP	COPERR
 
-NO_CONCAT_ERR:					;AC000;
+NO_CONCAT_ERR:
 	MOV	[NOWRITE],1			; Flag not writting (just seeking)
 
 PROCDEST:
@@ -121,7 +119,7 @@ OverwriteDone:
 	mov	ext_open_seg,bx 		;AN030; put it in parameter list
 	mov	ext_open_off,0			;AN030; offset is 0
 
-cont_no_xa:					;AN030;
+cont_no_xa:
 	mov	bx,write_open_mode		;AN000; get open mode for COPY
 	xor	cx,cx				;AN000; no special files
 	mov	dx,write_open_flag		;AN000; set up open flags
@@ -136,19 +134,19 @@ DODESTOPEN:
 ; We assume that the error is normal.  TriageError will correct the DX value
 ; appropriately.
 ;
-	JNC	dest_open_okay			;AC030;
+	JNC	dest_open_okay
 
 xa_set_error:					;AN030; error occurred on XA
 	invoke	set_ext_error_msg		;AN030; get extended error
 
-ext_err_set:					;AN030;
+ext_err_set:
 	mov	string_ptr_2,offset trangroup:destbuf ;AN000; get address of failed string
 	mov	Extend_buf_sub,one_subst	;AN030; put number of subst in control block
 
-COPERRJ2:					;AN030;
+COPERRJ2:
 	jmp	COPERR				;AN030; go issue message
 
-dest_open_okay: 				;AC030
+dest_open_okay:
 	mov	[DESTHAND],ax			; Save handle
 	mov	[CFLAG],1			; Destination now exists
 	mov	bx,ax
@@ -207,7 +205,7 @@ EXISTS:
 ; be set).
 ;
 	MOV	DX,OFFSET TRANGROUP:LOSTERR_ptr ; Tell him he's not going to get it
-	invoke	std_Eprintf			;AC022;
+	invoke	std_Eprintf
 	MOV	[NXTADD],0			; Set return
 	INC	[TERMREAD]			; Tell Read to give up
 
@@ -314,7 +312,7 @@ DEVWRTERR:
 
 PUBLIC COPERR
 COPERR:
-	INVOKE	std_Eprintf			;AC022;
+	INVOKE	std_Eprintf
 
 COPERRP:
 	inc	[DESTCLOSED]
@@ -336,7 +334,7 @@ ENDCOPYJ:
 	JMP	ENDCOPY
 
 XA_SET_ERROR_JMP:				;AN022; Go set up error message
-	jmp	xa_set_error			;AN022;
+	jmp	xa_set_error
 
 SEEKEND:
 	xor	dx,dx				; Zero high half of offset

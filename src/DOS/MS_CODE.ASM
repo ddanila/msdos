@@ -1,4 +1,3 @@
-;	SCCSID = @(#)mscode.asm 1.2 85/07/23
 ;
 ; MSCODE.ASM -- MSDOS code
 ;
@@ -171,18 +170,18 @@ Procedure   AbsSetup,NEAR
 	PUSH	DS
 	Context DS
 	CALL	GETBP
-	JC	errdriv 		;PM. error drive			;AN000;
+	JC	errdriv 		;PM. error drive
 	MOV	ES:[BP.dpb_free_cnt],-1 ; do not trust user at all.
 errdriv:
 	POP	DS
 ASSUME	DS:NOTHING
 	retc
 
-	MOV	[HIGH_SECTOR],0 	;>32mb	from API			;AN000;
-	CALL	RW32_CONVERT		;>32mb convert 32bit format to 16bit	;AN000;
+	MOV	[HIGH_SECTOR],0 	;>32mb	from API
+	CALL	RW32_CONVERT		;>32mb convert 32bit format to 16bit
 	retc
 
-	invoke	SET_RQ_SC_PARMS 	;LB. set up SC parms			;AN000;
+	invoke	SET_RQ_SC_PARMS 	;LB. set up SC parms
 	PUSH	DS
 	PUSH	SI
 	PUSH	AX
@@ -224,7 +223,7 @@ EndProc AbsSetup
 	POP	SS
 ASSUME	SS:DOSGROUP
 	MOV	SP,OFFSET DOSGROUP:DSKSTACK
-	invoke	Save_World		      ;>32mb save all regs		;AN000;
+	invoke	Save_World		      ;>32mb save all regs
 	PUSH	ES
 	CALL	AbsSetup
 	JC	ILEAVE
@@ -236,7 +235,7 @@ if (not ibmcopyright) AND 0FFFFh
 ;  we just won't use the secondary cache for absolute disk reads.
 ;                                                      -mw 8/5/88
 	EnterCrit   critDisk
-	MOV	[CURSC_DRIVE],-1	      ; invalidate SC			;AN000;
+	MOV	[CURSC_DRIVE],-1	      ; invalidate SC
 	LeaveCrit   critDisk
 endif
 	invoke	DSKREAD
@@ -261,13 +260,13 @@ LEAVECODE:
 	STC
 ILEAVE:
 	POP	ES
-	invoke	Restore_World		     ;>32mb				;AN000;
+	invoke	Restore_World		     ;>32mb
 	CLI
 	DEC	INDOS
 	MOV	SS,[user_SS]
 ASSUME	SS:NOTHING
 	MOV	SP,[user_SP]
-	MOV	AX,[IFS_DRIVER_ERR]	     ;>32mb restore error		;AN000;
+	MOV	AX,[IFS_DRIVER_ERR]	     ;>32mb restore error
 	STI
 	RET				; This must not be a RETURN!
 EndProc ABSDRD
@@ -293,15 +292,15 @@ ASSUME	DS:NOTHING,ES:NOTHING,SS:NOTHING
 	POP	SS
 ASSUME	SS:DOSGROUP
 	MOV	SP,OFFSET DOSGROUP:DSKSTACK
-	invoke	Save_World		      ;>32mb save all regs		;AN000;
+	invoke	Save_World		      ;>32mb save all regs
 
 	PUSH	ES
 	CALL	AbsSetup
 	JC	ILEAVE
 
 	EnterCrit   critDisk
-	MOV	[CURSC_DRIVE],-1	      ; invalidate SC			;AN000;
-	CALL	Fastxxx_Purge		      ; purge fatopen			;AN000;
+	MOV	[CURSC_DRIVE],-1	      ; invalidate SC
+	CALL	Fastxxx_Purge		      ; purge fatopen
 	LeaveCrit   critDisk
 
 	invoke	DSKWRITE
@@ -327,23 +326,23 @@ Procedure GETBP,NEAR
 	ADD	AL,1			; No increment; need carry flag
 	JC	SkipGet
 	invoke	GetThisDrv
-	JNC	SkipGet 		   ;PM. good drive			;AN000;
-	XOR	AH,AH			   ;DCR. ax= error code 		;AN000;
-	CMP	AX,error_not_dos_disk	   ;DCR. is unknown media ?		;AN000;
-	JZ	SkipGet 		   ;DCR. yes, let it go 		;AN000;
-	STC				   ;DCR.				;AN000;
-	MOV	ExtErr,AX		   ;PM. invalid drive or Non DOS drive	;AN000;
-	MOV	[IFS_DRIVER_ERR],0201H	   ;PM. other errors/unknown unit	;AN000;
+	JNC	SkipGet 		   ;PM. good drive
+	XOR	AH,AH			   ;DCR. ax= error code
+	CMP	AX,error_not_dos_disk	   ;DCR. is unknown media ?
+	JZ	SkipGet 		   ;DCR. yes, let it go
+	STC				   ;DCR.
+	MOV	ExtErr,AX		   ;PM. invalid drive or Non DOS drive
+	MOV	[IFS_DRIVER_ERR],0201H	   ;PM. other errors/unknown unit
 SkipGet:
 	POP	AX
 	retc
 	LES	BP,[THISCDS]
 	TEST	ES:[BP.curdir_flags],curdir_isnet   ; Clears carry
 	JZ	GETBP_CDS
-	LES	BP,ES:[BP.curdir_ifs_hdr]	    ;IFS. if remote file	;AN000;
-	TEST	ES:[BP.ifs_attribute],IFSREMOTE     ;IFS.			;AN000;
+	LES	BP,ES:[BP.curdir_ifs_hdr]	    ;IFS. if remote file
+	TEST	ES:[BP.ifs_attribute],IFSREMOTE     ;IFS.
 	LES	BP,[THISCDS]
-	JZ	GETBP_CDS			    ;IFS. then error		;AN000;
+	JZ	GETBP_CDS			    ;IFS. then error
 	MOV	ExtErr,error_not_supported
 	STC
 	return
@@ -1081,34 +1080,34 @@ ENDIF
 ;
 Procedure   RW32_CONVERT,NEAR
 	ASSUME	CS:DOSGROUP,DS:NOTHING,ES:NOTHING,SS:NOTHING
-	CMP	CX,-1			     ;>32mb  new format ?		;AN000;
-	JZ	new32format		     ;>32mb  yes			;AN000;
-	PUSH	AX			     ;>32mb  save ax			;AN000;
-	PUSH	DX			     ;>32mb  save dx			;AN000;
-	MOV	AX,ES:[BP.dpb_max_cluster]   ;>32mb  get max cluster #		;AN000;
-	MOV	DL,ES:[BP.dpb_cluster_mask]  ;>32mb				;AN000;
-	CMP	DL,0FEH 		     ;>32mb  removable ?		;AN000;
-	JZ	letold			     ;>32mb  yes			;AN000;
-	INC	DL			     ;>32mb				;AN000;
-	XOR	DH,DH			     ;>32mb  dx = sector/cluster	;AN000;
-	MUL	DX			     ;>32mb  dx:ax= max sector #	;AN000;
-	OR	DX,DX			     ;>32mb  > 32mb ?			;AN000;
+	CMP	CX,-1			     ;>32mb  new format ?
+	JZ	new32format		     ;>32mb  yes
+	PUSH	AX			     ;>32mb  save ax
+	PUSH	DX			     ;>32mb  save dx
+	MOV	AX,ES:[BP.dpb_max_cluster]   ;>32mb  get max cluster #
+	MOV	DL,ES:[BP.dpb_cluster_mask]  ;>32mb
+	CMP	DL,0FEH 		     ;>32mb  removable ?
+	JZ	letold			     ;>32mb  yes
+	INC	DL			     ;>32mb
+	XOR	DH,DH			     ;>32mb  dx = sector/cluster
+	MUL	DX			     ;>32mb  dx:ax= max sector #
+	OR	DX,DX			     ;>32mb  > 32mb ?
 letold:
-	POP	DX			     ;>32mb  retore dx			;AN000;
-	POP	AX			     ;>32mb  restore ax 		;AN000;
-	JZ	old_style		     ;>32mb  no 			;AN000;
-	MOV	[IFS_DRIVER_ERR],0207H	     ;>32mb  error			;AN000;
-	STC				     ;>32mb				;AN000;
-	return				     ;>32mb				;AN000;
+	POP	DX			     ;>32mb  retore dx
+	POP	AX			     ;>32mb  restore ax
+	JZ	old_style		     ;>32mb  no
+	MOV	[IFS_DRIVER_ERR],0207H	     ;>32mb  error
+	STC				     ;>32mb
+	return				     ;>32mb
 new32format:
-	MOV	DX,WORD PTR [BX.SECTOR_RBA+2];>32mb				;AN000;
-	MOV	[HIGH_SECTOR],DX	     ;>32mb				;AN000;
-	MOV	DX,WORD PTR [BX.SECTOR_RBA]  ;>32mb				;AN000;
-	MOV	CX,[BX.ABS_RW_COUNT]	     ;>32mb				;AN000;
-	LDS	BX,[BX.BUFFER_ADDR]	     ;>32mb				;AN000;
-old_style:				     ;>32mb				;AN000;
-	CLC				     ;>32mb				;AN000;
-	return				     ;>32mb				;AN000;
+	MOV	DX,WORD PTR [BX.SECTOR_RBA+2];>32mb
+	MOV	[HIGH_SECTOR],DX	     ;>32mb
+	MOV	DX,WORD PTR [BX.SECTOR_RBA]  ;>32mb
+	MOV	CX,[BX.ABS_RW_COUNT]	     ;>32mb
+	LDS	BX,[BX.BUFFER_ADDR]	     ;>32mb
+old_style:				     ;>32mb
+	CLC				     ;>32mb
+	return				     ;>32mb
 EndProc RW32_CONVERT
 
 
@@ -1119,27 +1118,27 @@ EndProc RW32_CONVERT
 ;
 Procedure   Fastxxx_Purge,NEAR
 	ASSUME	CS:DOSGROUP,DS:NOTHING,ES:NOTHING,SS:NOTHING
-	PUSH	AX			      ; save regs.			;AN000;
-	PUSH	SI								;AN000;
-	PUSH	DX								;AN000;
-	TEST	FastSeekflg,Fast_yes	      ; fastseek installed ?		;AN000;
-	JZ	topen			      ; no				;AN000;
-	MOV	AH,FastSeek_ID		      ; set fastseek id 		;AN000;
-	JMP	SHORT dofast		      ; 				;AN000;
+	PUSH	AX			      ; save regs.
+	PUSH	SI
+	PUSH	DX
+	TEST	FastSeekflg,Fast_yes	      ; fastseek installed ?
+	JZ	topen			      ; no
+	MOV	AH,FastSeek_ID		      ; set fastseek id
+	JMP	SHORT dofast		      ;
 topen:
-	TEST	FastOpenflg,Fast_yes	      ; fastopen installed ?		;AN000;
-	JZ	nofast			      ; no				;AN000;
-	MOV	AH,FastOpen_ID		      ; set fastseek installed		;AN000;
+	TEST	FastOpenflg,Fast_yes	      ; fastopen installed ?
+	JZ	nofast			      ; no
+	MOV	AH,FastOpen_ID		      ; set fastseek installed
 dofast:
-	MOV	AL,FONC_purge		      ; purge				;AN000;
-	MOV	DL,ES:[BP.dpb_drive]	      ; set up drive number		;AN000;
-	invoke	Fast_Dispatch		      ; call fastopen/seek		;AN000;
+	MOV	AL,FONC_purge		      ; purge
+	MOV	DL,ES:[BP.dpb_drive]	      ; set up drive number
+	invoke	Fast_Dispatch		      ; call fastopen/seek
 nofast:
-	POP	DX								;AN000;
-	POP	SI			      ; restore regs			;AN000;
-	POP	AX			      ; 				;AN000;
+	POP	DX
+	POP	SI			      ; restore regs
+	POP	AX			      ;
 
-	return				      ; exit				;AN000;
+	return				      ; exit
 EndProc Fastxxx_Purge
 
 CODE	ENDS

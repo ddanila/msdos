@@ -125,34 +125,12 @@
 ;	 These modules must be linked in this order.  The load module is
 ;	 a COM file, to be converted to COM with EXE2BIN.
 
-; REVISION HISTORY:
-;	     A000 Version 4.00: add PARSER, System Message Handler,
-;		  Make new unique vol serial number on new diskette.
-;	     A001 DCR 27, display vol serial number, if present.
-;	     A002 ptm473 Flag duplicate switches as error
-;	     A003 Display parm in error
-;	     A004 PTR752 Add close door to drive not ready
-;	     A005 PTR756 After bad parms, specify help info
-;	     A006 DCR210 SELECT, if present, handles all msgs
-;	     A007 PTM1100 Clear keyboard buffer before input response
-;	     A008 PTM1434 CR,LF MISSING FROM MSGS 22 AND 23
-;	     A009 PTM1406 USE 69H INSTEAD OF IOCTL FOR GET/SET MEDIA ID
-;	     A010 PTM1821 Move INCLUDE COPYRIGH.INC into MSG_SERVICE macro.
-;	     A011 PTM1837 ADD CHECK FOR UNKNOWN MEDIA TO TRIGGER FORMAT
-;	     A012 PTM2441 COPY FROM 360 TO 1.2 CLOBBERS 1.2
-;	     A013 PTM3184 SUPPORT OS/2 1.0/1.1 TYPE BOOT RECORDS ALSO
-;			REMOVE USE OF GET/SET MEDIA ID
-;	     A014 PTM3262 specify BASESW EQU 1 before PARSE.ASM
-;	     A015 PTM3512 PATHGEN
-;
 ; COPYRIGHT: The following notice is found in the OBJ code generated from
 ;	     the "DCOPYSM.SAL" module:
 
 ;	     "Version 4.00 (C) Copyright 1988 Microsoft"
 ;	     "Licensed Material - Property of Microsoft  "
 
-;PROGRAM AUTHOR: Original written by: JK
-;		 4.00 modifications by: EMK
 ;****************** END OF SPECIFICATIONS *****************************
 	IF1				;
 	    %OUT    COMPONENT=DISKCOPY, MODULE=DISKCOPY.SAL ;
@@ -181,7 +159,7 @@
 	INCLUDE DCPYMACR.INC		;(formerly called MACRO.DEF)
 	INCLUDE DISKCOPY.EQU		;EQUATES
 
-;	       $salut (4,16,22,36) ;AN000;
+;	       $salut (4,16,22,36)
 MY_BPB	       STRUC		   ;
 CBYTE_SECT     DW    0		   ; 200H  BYTES / SECTOR
 CSECT_CLUSTER  DB    0		   ; 2h    SECTORS / CLUSTER
@@ -201,7 +179,7 @@ MY_BPB	       ENDS		   ;
 
 	       INCLUDE BOOTFORM.INC ;AN013;DEFINE EXT_BPB_INFO & EXT_IBMBOOT_HEADER
 
-CSEG	       SEGMENT PARA PUBLIC 'CODE' ;AN000;
+CSEG	       SEGMENT PARA PUBLIC 'CODE'
 	       ASSUME CS:CSEG, DS:CSEG, ES:CSEG, SS:CSEG ;
 
 ;*****************************************************************************
@@ -209,7 +187,7 @@ CSEG	       SEGMENT PARA PUBLIC 'CODE' ;AN000;
 ;			EXTERNAL VARIABLES				     *
 ;									     *
 ;*****************************************************************************
-;$salut (4,2,9,36)		   ;AN000;
+;$salut (4,2,9,36)
  EXTRN	SYSLOADMSG	    :NEAR  ;AN000;SYSTEM MSG HANDLER INTIALIZATION
  EXTRN	SYSDISPMSG	    :NEAR  ;AN000;SYSTEM MSG HANDLER DISPLAY
 
@@ -252,12 +230,12 @@ CSEG	       SEGMENT PARA PUBLIC 'CODE' ;AN000;
 				   ;"%2 Sectors/Track, %3 Side(s)"
  EXTRN	MSGNUM_STRIKE	   :WORD   ;AC000;"Press any key to continue . . ."
  EXTRN	MSGNUM_WRITE_PROTECT :WORD ;AC000;"Attempt to write to write-protected diskette"
- EXTRN	MSGNUM_CR_LF	   :WORD   ;AC000;
+ EXTRN	MSGNUM_CR_LF	   :WORD
  EXTRN	MSGNUM_SERNO	    :WORD  ;AN001;"VOLUME SERIAL NUMBER IS %1-%0"
  EXTRN	SUBLIST_26A	    :WORD  ;AN001;POINTS TO FIRST PART OF SERIAL NUMBER
  EXTRN	SUBLIST_26B	    :WORD  ;AN001;POINTS TO SECND PART OF SERIAL NUMBER
 
- EXTRN	DRIVE_LETTER	   :BYTE   ;AN000;
+ EXTRN	DRIVE_LETTER	   :BYTE
 ;*****************************************************************************
 ;									     *
 ;			     PUBLIC VARIABLES				     *
@@ -326,7 +304,7 @@ MY_STACK_PTR LABEL WORD 	   ;
 ;			INTERNAL VARIABLES				     *
 ;									     *
 ;*****************************************************************************
-;		     $salut (4,22,26,36) ;AN000;
+;		     $salut (4,22,26,36)
 ; INPUT PARMETERS FROM INIT SUBROUTINE:
 
 S_OWNER_SAVED	     DB  0	   ;DRIVE LETTER THAT OWNED SOUCE DRIVE OWNERSHIP
@@ -389,8 +367,8 @@ VOLSER_FLAG	     DB  0	   ;AN000;0=EITHER MEDIA NOT READ YET, OR
 ;				    1=TARGET NEEDS VOL SER WRITTEN
 SERIAL		     DD  0	   ;AN013;SERIAL NUMBER OF NEW DISKETTE
 EXITFL		     DB  EXOK	   ;AN000;ERRORLEVEL VALUE
-		     PUBLIC EXITFL ;AN000;
-		     PUBLIC EXPAR  ;AN000;
+		     PUBLIC EXITFL
+		     PUBLIC EXPAR
 EXCBR		     EQU 2	   ;AN000;CONTROL BREAK
 EXVER		     EQU 1	   ;AN000;BAD DOS VERSION ERRORLEVEL CODE
 EXPAR		     EQU 1	   ;AN000; BAD PARMS, OR OTHER ERRORS
@@ -460,8 +438,8 @@ DS_numberOfCylinders dw  ?	   ;
 DS_mediaType	     db  ?	   ;
 DS_BPB_PTR	     LABEL BYTE    ;
 DS_deviceBPB	     my_bpb <>	   ;
-DS_trackLayout	     LABEL WORD    ;AC000;
-		     my_trackLayout ;AC000;
+DS_trackLayout	     LABEL WORD
+		     my_trackLayout
 ;---------------------------------------
 
 DT_IOCTL_DRV_PARM    LABEL BYTE    ;
@@ -473,8 +451,8 @@ DT_numberOfCylinders dw  ?	   ;
 DT_mediaType	     db  ?	   ;
 DT_BPB_PTR	     LABEL BYTE    ;
 DT_deviceBPB	     my_bpb <>	   ;
-DT_trackLayout	     LABEL WORD    ;AC000;
-		     my_trackLayout ;AC000;
+DT_trackLayout	     LABEL WORD
+		     my_trackLayout
 
 ;---------------------------------------
 
@@ -488,8 +466,8 @@ MS_mediaType	     db  ?	   ;
 MS_BPB_PTR	     LABEL BYTE    ;
 MS_deviceBPB	     my_bpb <>	   ;
 MS_deviceBPB_leng    equ $-MS_deviceBPB ;
-MS_trackLayout	     LABEL WORD    ;AC000;
-		     my_trackLayout ;AC000;
+MS_trackLayout	     LABEL WORD
+		     my_trackLayout
 ;---------------------------------------
 MT_IOCTL_DRV_PARM    LABEL BYTE    ;DRIVE PARM FROM TARGET MEDIUM
 MT_specialFunctions  db  ?	   ;
@@ -500,8 +478,8 @@ MT_numberOfCylinders dw  ?	   ;
 MT_mediaType	     db  ?	   ;
 MT_BPB_PTR	     LABEL BYTE    ;
 MT_deviceBPB	     my_bpb <>	   ;
-MT_trackLayout	     LABEL WORD    ;AC000;
-		     my_trackLayout ;AC000;
+MT_trackLayout	     LABEL WORD
+		     my_trackLayout
 
 
 ;		IOCTL  format a track function control string.
@@ -522,7 +500,7 @@ TAddress_seg	     dw  ?	   ;
 ;  =  =  =  =  =  =  =	=  =  =  =  =
 ;		GET/SET MEDIA ID - FUNCTION OF GENERIC IOCTL
 ;			(USED BY VOLSER PROC)
-;(Deleted ;AN013;) MEDIA_ID_BUF A_MEDIA_ID_INFO <> ;				;AN000;
+;(Deleted ;AN013;) MEDIA_ID_BUF A_MEDIA_ID_INFO <> ;
 ;  =  =  =  =  =  =  =	=  =  =  =  =
 DISKCOPY_HELP_STR DB "Copies the contents of one floppy disk to another.",0Dh,0Ah
 		  DB 0Dh,0Ah
@@ -531,8 +509,8 @@ DISKCOPY_HELP_STR DB "Copies the contents of one floppy disk to another.",0Dh,0A
 		  DB "  /1    Copy only the first side of the disk",0Dh,0Ah
 		  DB "  /V    Verify that the information is copied correctly",0Dh,0Ah,"$"
 
-		     PATHLABL DISKCOPY ;AN015;
-		     HEADER <BEGIN - VERSION CHECK, SYSMSG INIT, EXIT TO DOS> ;AN000;
+		     PATHLABL DISKCOPY
+		     HEADER <BEGIN - VERSION CHECK, SYSMSG INIT, EXIT TO DOS>
 		     PUBLIC DISKCOPY_BEGIN ;
 DISKCOPY_BEGIN	     LABEL NEAR    ;
 
@@ -541,9 +519,9 @@ DISKCOPY_BEGIN	     LABEL NEAR    ;
 ;		 D I S K C O P Y   M A I N   P R O G R A M		     *
 ;									     *
 ;*****************************************************************************
-;  $salut (4,4,10,36)		   ;AN000;
+;  $salut (4,4,10,36)
 BEGIN PROC NEAR 		   ;
-   PUBLIC BEGIN 		   ;AN000;
+   PUBLIC BEGIN
 ;OUTPUT - "EXITFL" HAS ERRORLEVEL RETURN CODE
 
   ; Check for /? help (COM file: CS=DS=PSP throughout)
@@ -621,25 +599,25 @@ EXIT_TO_DOS:			   ;
        CALL  SET_LOGICAL_DRIVE	   ;
 
        CMP   S_DRV_SET_FLAG, 0	   ;
-;      $IF   NE 		   ;AN000;
+;      $IF   NE
        JE $$IF8
 	   MOV	 BL, SOURCE_DRIVE  ;
 	   MOV	 DS_specialFunctions, SET_SP_FUNC_DOS ;=0
 	   MOV	 DX, OFFSET DS_IOCTL_DRV_PARM ;
 	   CALL  SET_DRV_PARM_DEF  ;RESTORE SOURCE DRIVE PARM
 
-;      $ENDIF			   ;AN000;
+;      $ENDIF
 $$IF8:
 
        CMP   T_DRV_SET_FLAG, 0	   ;
-;      $IF   NE 		   ;AN000;
+;      $IF   NE
        JE $$IF10
 	   MOV	 BL, TARGET_DRIVE  ;
 	   MOV	 DT_specialFunctions, SET_SP_FUNC_DOS ;=0
 	   MOV	 DX, OFFSET DT_IOCTL_DRV_PARM ;
 	   CALL  SET_DRV_PARM_DEF  ;RESTORE TARGET DRIVE PARM
 
-;      $ENDIF			   ;AN000;
+;      $ENDIF
 $$IF10:
 EXIT_PROGRAM:			   ;
 
@@ -649,9 +627,9 @@ $$EN1:
    DOSCALL RET_CD_EXIT		   ;AN000;RETURN TO DOS WITH RET CODE
 
    INT	 20H			   ;AN000;IF ABOVE NOT WORK,
-BEGIN ENDP			   ;AN000;
+BEGIN ENDP
 ; = = = = = = = = = = = = = = = = =
-   HEADER <SET_LOGICAL_DRIVE - SET LOG. DRV LETTER THAT OWNS DRIVE> ;AN000;
+   HEADER <SET_LOGICAL_DRIVE - SET LOG. DRV LETTER THAT OWNS DRIVE>
    PUBLIC SET_LOGICAL_DRIVE	   ;
 ;*****************************************************************************
 SET_LOGICAL_DRIVE PROC NEAR	   ;
@@ -663,14 +641,14 @@ SET_LOGICAL_DRIVE PROC NEAR	   ;
 ;  $IF	 NE			   ;IF BL = 0, THEN JUST RETURN
    JE $$IF13
 				   ;ELSE SET BL AS AN OWNER OF THAT DRIVE
-       MOV   AX,(IOCTL_FUNC SHL 8)+SET_LOGIC_DRIVE ;AC000;
+       MOV   AX,(IOCTL_FUNC SHL 8)+SET_LOGIC_DRIVE
        INT   21H		   ;
 ;  $ENDIF			   ;
 $$IF13:
    RET				   ;
 SET_LOGICAL_DRIVE ENDP		   ;
 ;  =  =  =  =  =  =  =	=  =  =  =  =
-   HEADER <COPY - COPY THE DISKETTE IMAGE> ;AN000;
+   HEADER <COPY - COPY THE DISKETTE IMAGE>
 ;*****************************************************************************
 ;MODULE NAME:  COPY							     *
 ;									     *
@@ -731,7 +709,7 @@ $$EN17:
 ;      $IF   NE 		   ;
        JE $$IF21
 				   ;CR,LF,"Target diskette may be unusable",CR,LF
-	   PRINT MSGNUM_TARGET_MB_UNUSABLE ;AC000;
+	   PRINT MSGNUM_TARGET_MB_UNUSABLE
 
 ;      $ENDIF			   ;
 $$IF21:
@@ -754,7 +732,7 @@ $$EN24:
 
 COPY ENDP			   ;
 ;  =  =  =  =  =  =  =	=  =  =  =  =
-   HEADER <TEST_REPEAT - SEE IF USER WANTS TO COPY ANOTHER> ;AN000;
+   HEADER <TEST_REPEAT - SEE IF USER WANTS TO COPY ANOTHER>
 ;*****************************************************************************
 ;									     *
    PUBLIC TEST_REPEAT		   ;AN000;MAKE ENTRY IN LINK MAP
@@ -767,15 +745,15 @@ TEST_REPEAT PROC NEAR		   ;TEST IF USER WANTS TO COPY ANOTHER		*
 ;  $SEARCH COMPLEX		   ;AC000;REPEAT THIS PROMPT UNTIL (Y/N) RESPONDED
    JMP SHORT $$SS27
 $$DO27:
-       PRINT MSGNUM_CR_LF	   ;AC000;
+       PRINT MSGNUM_CR_LF
 
-;  $STRTSRCH			   ;AN000;
+;  $STRTSRCH
 $$SS27:
 				   ;CR,LF,"Copy another diskette (Y/N)?"
        PRINT MSGNUM_COPY_ANOTHER   ;AC000;SEE IF USER WANTS TO COPY ANOTHER
 				   ; AND READ RESPONSE TO AL
        PUSH  AX 		   ;AN000;SAVE THE RESPONSE
-       PRINT MSGNUM_CR_LF	   ;AC000;
+       PRINT MSGNUM_CR_LF
 
        POP   DX 		   ;AN000;RESTORE THE REPONSE CHAR TO DL
        CALL  YESNO		   ;AN000;CHECK FOR (Y/N)
@@ -794,9 +772,9 @@ $$SS27:
        JMP SHORT $$EN31
 $$IF31:
 	   STC			   ;AN000;SET CARRY TO INDICATE NO REPEAT
-;      $ENDIF			   ;AN000;
+;      $ENDIF
 $$EN31:
-;  $ENDSRCH			   ;AN000;
+;  $ENDSRCH
 $$SR27:
 .XLIST				   ;
 ;	MOV   AL,USER_INPUT
@@ -814,7 +792,7 @@ $$SR27:
 
 TEST_REPEAT ENDP		   ;
 ;  =  =  =  =  =  =  =	=  =  =  =  =
-   HEADER <READ_SOURCE - READ FROM SOURCE AS MUCH AS POSSIBLE> ;AN000;
+   HEADER <READ_SOURCE - READ FROM SOURCE AS MUCH AS POSSIBLE>
 ;*****************************************************************************
 ;									     *
    PUBLIC READ_SOURCE		   ;AN000;MAKE ENTRY IN LINK MAP		   *
@@ -845,7 +823,7 @@ $$IF35:
 ;  $IF	 NE			   ;
    JE $$IF37
 $$LL37:
-;(deleted ;AN013;) CALL  READ_VOLSER ;GO READ THE MEDIA ID TO GET SERIAL NUMBER ;AN000;
+;(deleted ;AN013;) CALL  READ_VOLSER ;GO READ THE MEDIA ID TO GET SERIAL NUMBER
 
        MOV   BX,BUFFER_BEGIN	   ;
        MOV   BUFFER_PTR,BX	   ;INITIALIZE BUFFER POINTER
@@ -873,7 +851,7 @@ $$IF37:
    RET				   ;
 READ_SOURCE ENDP		   ;
 ;  =  =  =  =  =  =  =	=  =  =  =  =
-   HEADER <WRITE_TARGET - WRITE DATA FROM MEMORY TO TARGET DISKETTE> ;AN000;
+   HEADER <WRITE_TARGET - WRITE DATA FROM MEMORY TO TARGET DISKETTE>
 ;*****************************************************************************
 ;									     *
    PUBLIC WRITE_TARGET		   ;AN000;MAKE ENTRY IN LINK MAP
@@ -938,7 +916,7 @@ $$IF45:
    RET				   ;
 WRITE_TARGET ENDP		   ;
 ;  =  =  =  =  =  =  =	=  =  =  =  =
-   HEADER <READ_WRITE_TRACK - READ A TRACK AND STORE IT INTO MEMORY> ;AN000;
+   HEADER <READ_WRITE_TRACK - READ A TRACK AND STORE IT INTO MEMORY>
 ;*****************************************************************************
 ;									     *
    PUBLIC READ_WRITE_TRACK	   ;AN000;MAKE ENTRY IN LINK MAP
@@ -990,7 +968,7 @@ RWT_EXIT:			   ;
    RET				   ;
 READ_WRITE_TRACK ENDP		   ;
 ;  =  =  =  =  =  =  =	=  =  =  =  =
-   HEADER <READ_OP - IOCTL READ A TRACK OPERATION> ;AN000;
+   HEADER <READ_OP - IOCTL READ A TRACK OPERATION>
 ;*****************************************************************************
 ;									     *
    PUBLIC READ_OP		   ;AN000;MAKE ENTRY IN LINK MAP
@@ -1053,8 +1031,8 @@ $$SR60:
    RET				   ;
 READ_OP ENDP			   ;
 ;  =  =  =  =  =  =  =	=  =  =  =  =
-   HEADER <MAYBE_ADJUST_SERIAL - MAKE NEW SERIAL IN BOOT> ;AN013;
-MAYBE_ADJUST_SERIAL PROC NEAR	   ;AN013;
+   HEADER <MAYBE_ADJUST_SERIAL - MAKE NEW SERIAL IN BOOT>
+MAYBE_ADJUST_SERIAL PROC NEAR
 ;INPUT: TADDRESS_OFF/_SEG HAS TRACK BUFFER WHICH HAS BOOT RECORD
 ;	"VOLSER_FLAG" IS FALSE.
 ;OUTPUT:SERIAL NUMBER FIELD IS MODIFIED TO HAVE NEW SERIAL NUMBER
@@ -1123,9 +1101,9 @@ $$IF69:
    POP	 BX			   ;AN013;RESTORE THE BASE POINTER
    POP	 ES			   ;AN013;RESTORE EXTRA SEG REG
    RET				   ;AN013;RETURN TO CALLER
-MAYBE_ADJUST_SERIAL ENDP	   ;AN013;
+MAYBE_ADJUST_SERIAL ENDP
 ;  =  =  =  =  =  =  =	=  =  =  =  =
-   HEADER <WRITE_OP - IOCTL WRITE A TRACK OPERATION> ;AN000;
+   HEADER <WRITE_OP - IOCTL WRITE A TRACK OPERATION>
 ;*****************************************************************************
 ;									     *
    PUBLIC WRITE_OP		   ;AN000;MAKE ENTRY IN LINK MAP
@@ -1269,7 +1247,7 @@ VERIFY_EXIT:
    RET
 VERIFY_WRITE ENDP
 ;  =  =  =  =  =  =  =	=  =  =  =  =
-   HEADER <FORMAT_ALL - FORMATS ALL TRACKS TO END> ;AN000;
+   HEADER <FORMAT_ALL - FORMATS ALL TRACKS TO END>
 ;*****************************************************************************
 ;									     *
    PUBLIC FORMAT_ALL		   ;AN000;MAKE ENTRY IN LINK MAP
@@ -1381,7 +1359,7 @@ FA_DONE:			   ;
    RET				   ;
 FORMAT_ALL ENDP 		   ;
 ;  =  =  =  =  =  =  =	=  =  =  =  =
-   HEADER <FORMAT_TRACK - IOCTL FORMAT A TRACK> ;AN000;
+   HEADER <FORMAT_TRACK - IOCTL FORMAT A TRACK>
 ;******************************************************************************
 ; SUBROUTINE NAME :  FORMAT_TRACK     -  IOCTL FORMAT A TRACK		      *
 ;					 (BOTH SIDES IF 2-SIDED DSKT)	      *
@@ -1421,7 +1399,7 @@ $$DO79:
    RET				   ;
 FORMAT_TRACK ENDP		   ;
 ;  =  =  =  =  =  =  =	=  =  =  =  =
-   HEADER <CHECK_SOURCE - CHECK SOURCE DISKETTE TYPE> ;AN000;
+   HEADER <CHECK_SOURCE - CHECK SOURCE DISKETTE TYPE>
 ;*****************************************************************************
 ;									     *
    PUBLIC CHECK_SOURCE		   ;AN000;MAKE ENTRY IN LINK MAP
@@ -1495,7 +1473,7 @@ CS_FATAL:			   ;
    MOV	 COPY_STATUS, FATAL	   ;
 				   ;CR,LF,"Drive types or diskette types",CR,LF
 				   ;"not compatible",CR,LF
-   PRINT MSGNUM_NOT_COMPATIBLE	   ;AC000;
+   PRINT MSGNUM_NOT_COMPATIBLE
    JMP	 CS_EXIT		   ;
 
 ;  =  =  =  =  =  =  =	=  =  =  =
@@ -1622,14 +1600,14 @@ $$IF83:
    MOV	 BYTE PTR MSG_SIDES,AL	   ;AC000;HOW MANY SIDES?
 				   ;CR,LF,"Copying %1 tracks",CR,LF
 				   ;"%2 Sectors/Track, %3 Side(s)",CR,LF
-   PRINT MSGNUM_COPYING 	   ;AC000;
+   PRINT MSGNUM_COPYING
 
 CS_EXIT:			   ;
    RET				   ;
 
 CHECK_SOURCE ENDP		   ;
 ;  =  =  =  =  =  =  =	=  =  =  =  =
-   HEADER <READ_A_SECTOR - GET ONE SECTOR WITH IOCTL READ> ;AN000;
+   HEADER <READ_A_SECTOR - GET ONE SECTOR WITH IOCTL READ>
 ;******************************************************************************
    PUBLIC READ_A_SECTOR 	   ;AN000;MAKE ENTRY IN LINK MAP
 READ_A_SECTOR PROC NEAR 	   ;
@@ -1700,7 +1678,7 @@ $$EN87:
 
 READ_A_SECTOR ENDP		   ;
 ;  =  =  =  =  =  =  =	=  =  =  =  =
-   HEADER <CALC_TRACK_SIZE - GET MEM SIZE TO STORE ONE TRACK> ;AN000;
+   HEADER <CALC_TRACK_SIZE - GET MEM SIZE TO STORE ONE TRACK>
 ;*****************************************************************************
    PUBLIC CALC_TRACK_SIZE	   ;AN000;MAKE ENTRY IN LINK MAP
 CALC_TRACK_SIZE PROC NEAR	   ;CALCULATE MEMORY SIZE REQUIRED TO STORE ONE
@@ -1742,7 +1720,7 @@ $$IF90:
    RET				   ;
 CALC_TRACK_SIZE ENDP		   ;
 ;  =  =  =  =  =  =  =	=  =  =  =  =
-   HEADER <CHECK_MEMORY_SIZE - VERIFY WE HAVE ENUF TO COPY 1 TRACK> ;AN000;
+   HEADER <CHECK_MEMORY_SIZE - VERIFY WE HAVE ENUF TO COPY 1 TRACK>
 ;*****************************************************************************
    PUBLIC CHECK_MEMORY_SIZE	   ;AN000;MAKE ENTRY IN LINK MAP
 CHECK_MEMORY_SIZE PROC NEAR	   ;MAKE SURE WE HAVE ENOUGH TO COPY 1 TRACK INTO
@@ -1777,7 +1755,7 @@ $$IF92:
 
 CHECK_MEMORY_SIZE ENDP		   ;
 ;  =  =  =  =  =  =  =	=  =  =  =  =
-   HEADER <SET_FOR_THE_OLD  - SET BPB FOR BEFORE-2.0 FMTTED MEDIA> ;AN000;
+   HEADER <SET_FOR_THE_OLD  - SET BPB FOR BEFORE-2.0 FMTTED MEDIA>
 ;*****************************************************************************
    PUBLIC SET_FOR_THE_OLD	   ;AN000;MAKE ENTRY IN LINK MAP
 SET_FOR_THE_OLD PROC NEAR	   ;
@@ -1820,7 +1798,7 @@ $$EN94:
    RET				   ;
 SET_FOR_THE_OLD ENDP		   ;
 ;  =  =  =  =  =  =  =	=  =  =  =  =
-   HEADER <SET_TRACKLAYOUT - MOVE DATA TO TRACK IMAGE> ;AN000;
+   HEADER <SET_TRACKLAYOUT - MOVE DATA TO TRACK IMAGE>
 ;*****************************************************************************
    PUBLIC SET_TRACKLAYOUT	   ;AN000;MAKE ENTRY IN LINK MAP
 SET_TRACKLAYOUT PROC NEAR	   ;
@@ -1858,7 +1836,7 @@ $$EN100:
    RET				   ;
 SET_TRACKLAYOUT ENDP		   ;
 ;  =  =  =  =  =  =  =	=  =  =  =  =
-   HEADER <CHECK_TARGET - READ TARGET BOOT RCD, NEEDS FORMAT?> ;AN000;
+   HEADER <CHECK_TARGET - READ TARGET BOOT RCD, NEEDS FORMAT?>
 ;*****************************************************************************
    PUBLIC CHECK_TARGET		   ;AN000;MAKE ENTRY IN LINK MAP
 CHECK_TARGET PROC NEAR		   ;					*
@@ -1937,7 +1915,7 @@ CT_FORMAT:			   ;
 				   ; FROM TRACK_TO_WRITE
    JMP	 CT_EXIT		   ;
 
-CT_OLD: 			   ;AC011;
+CT_OLD:
    CMP	 UKM_ERR,ON		   ;AN011;IS THIS HARD ERROR "UNKNOWN MEDIA"?
    JE	 CT_FORMAT		   ;AN011; IF SO, GO TRY FORMATTING
 				   ;SAME OLD... ;AGAIN, THIS DOES
@@ -2012,7 +1990,7 @@ CT_EXIT:			   ;
 
 CHECK_TARGET ENDP		   ;
 ;  =  =  =  =  =  =  =	=  =  =  =  =
-   HEADER <CHK_MULTI_MEDIA - CHECK IF DRIVE IS MULTI-MEDIA> ;AN000;
+   HEADER <CHK_MULTI_MEDIA - CHECK IF DRIVE IS MULTI-MEDIA>
 ;*****************************************************************************
    PUBLIC CHK_MULTI_MEDIA	   ;AN000;MAKE ENTRY IN LINK MAP
 CHK_MULTI_MEDIA PROC NEAR	   ;
@@ -2049,7 +2027,7 @@ $$EN105:
    RET				   ;
 CHK_MULTI_MEDIA ENDP		   ;
 ;  =  =  =  =  =  =  =	=  =  =  =  =
-   HEADER <SET_DRV_PARM_DEF - SET DRIVE PARMS VIA IOCTL> ;AN000;
+   HEADER <SET_DRV_PARM_DEF - SET DRIVE PARMS VIA IOCTL>
 ;*****************************************************************************
    PUBLIC SET_DRV_PARM_DEF	   ;AN000;MAKE ENTRY IN LINK MAP
 SET_DRV_PARM_DEF PROC NEAR	   ;
@@ -2064,7 +2042,7 @@ SET_DRV_PARM_DEF PROC NEAR	   ;
    RET				   ;
 SET_DRV_PARM_DEF ENDP		   ;
 ;  =  =  =  =  =  =  =	=  =  =  =  =
-   HEADER <CHK_MEDIATYPE - DETERMINE MEDIATYPE OF TARGET FOR FORMAT> ;AN000;
+   HEADER <CHK_MEDIATYPE - DETERMINE MEDIATYPE OF TARGET FOR FORMAT>
 ;*****************************************************************************
    PUBLIC CHK_MEDIATYPE 	   ;AN000;MAKE ENTRY IN LINK MAP
 CHK_MEDIATYPE PROC NEAR 	   ;
@@ -2092,7 +2070,7 @@ $$IF110:
    RET				   ;
 CHK_MEDIATYPE ENDP		   ;
 ;  =  =  =  =  =  =  =	=  =  =  =  =
-   HEADER <GENERIC_IOCTL - COMMUNICATE WITH THE DEVICE DRIVER> ;AN000;
+   HEADER <GENERIC_IOCTL - COMMUNICATE WITH THE DEVICE DRIVER>
 ;*****************************************************************************
    PUBLIC GENERIC_IOCTL 	   ;AN000;MAKE ENTRY IN LINK MAP
 GENERIC_IOCTL PROC NEAR 	   ;
@@ -2116,7 +2094,7 @@ $$IF112:
    RET				   ;
 GENERIC_IOCTL ENDP		   ;
 ;  =  =  =  =  =  =  =	=  =  =  =  =
-   HEADER <EXTENDED_ERROR_HANDLER - RESPOND TO DOS ERRORS> ;AN000;
+   HEADER <EXTENDED_ERROR_HANDLER - RESPOND TO DOS ERRORS>
 ;*****************************************************************************
    PUBLIC EXTENDED_ERROR_HANDLER   ;AN000;MAKE ENTRY IN LINK MAP
 EXTENDED_ERROR_HANDLER PROC NEAR   ;
@@ -2209,7 +2187,7 @@ EEH_HARD_ERROR: 		   ;
    JNE $$IF114
        MOV   UKM_ERR,ON 	   ;AN011;SET FLAG TO INDICATE "UNKNOWN MEDIA"
 				   ; TO CAUSE FORMATTING OF TARGET DISKETTE
-;  $ENDIF			   ;AN011;
+;  $ENDIF
 $$IF114:
 
 EEH_EXIT:			   ;
@@ -2227,7 +2205,7 @@ EEH_EXIT:			   ;
 .LIST				   ;
 EXTENDED_ERROR_HANDLER ENDP	   ;
 ;  =  =  =  =  =  =  =	=  =  =  =  =
-   HEADER <TRY_FORMAT - ATTEMPT TRACK FORMAT, TRY FOR ERROR RECOVERY> ;AN000;
+   HEADER <TRY_FORMAT - ATTEMPT TRACK FORMAT, TRY FOR ERROR RECOVERY>
 ;*****************************************************************************
    PUBLIC TRY_FORMAT		   ;AN000;MAKE ENTRY IN LINK MAP
 TRY_FORMAT PROC NEAR		   ;
@@ -2288,7 +2266,7 @@ TRY_FORMAT PROC NEAR		   ;
 
 TRY_FORMAT ENDP 		   ;
 ;  =  =  =  =  =  =  =	=  =  =  =  =
-   HEADER <ERROR_MESSAGE - SAY WHAT AND WHERE FAILURE> ;AN000;
+   HEADER <ERROR_MESSAGE - SAY WHAT AND WHERE FAILURE>
 ;*****************************************************************************
 ;									     *
 ERROR_MESSAGE PROC NEAR 	   ;DISPLAY ERROR MESSAGE		     *
@@ -2315,12 +2293,12 @@ ERROR_MESSAGE PROC NEAR 	   ;DISPLAY ERROR MESSAGE		     *
 ;  $IF	 E			   ;AN000;YES, READ ERROR
    JNE $$IF116
        MOV   BL,TRACK_TO_READ	   ;SAVE BAD TRACK NUMBER FOR READ
-       MOV   DI,OFFSET MSGNUM_HARD_ERROR_READ ;AN000;
+       MOV   DI,OFFSET MSGNUM_HARD_ERROR_READ
 ;  $ELSE			   ;AN000;NO, NOT READ, MUST BE WRITE ERROR
    JMP SHORT $$EN116
 $$IF116:
        MOV   BL,TRACK_TO_WRITE	   ;SAVE BAD TRACK NUMBER FOR WRITE
-       MOV   DI,OFFSET MSGNUM_HARD_ERROR_WRITE ;AN000;
+       MOV   DI,OFFSET MSGNUM_HARD_ERROR_WRITE
 ;  $ENDIF			   ;AN000;READ ERROR?
 $$EN116:
    MOV	 AL,SIDE		   ;
@@ -2370,9 +2348,9 @@ ERROR_MESSAGE ENDP		   ;
 ;CALL_PRINTF ENDP
 ;  =  =  =  =  =  =  =	=  =  =  =  =
 .list				   ;
-   HEADER <SENDMSG - PASS IN REGS DATA FROM MSG DESCRIPTOR TO DISP MSG> ;AN000;
-SENDMSG PROC NEAR		   ;AN000;
-   PUBLIC SENDMSG		   ;AN000;
+   HEADER <SENDMSG - PASS IN REGS DATA FROM MSG DESCRIPTOR TO DISP MSG>
+SENDMSG PROC NEAR
+   PUBLIC SENDMSG
 ; INPUT - DI=POINTER TO MSG_DESC STRUC FOR THIS MESSAGE
 ; OUTPUT - IF CARRY SET, EXTENDED ERROR MSG ATTEMPTED DISPLAYED
 ;	   IF CARRY CLEAR, ALL OK
@@ -2380,9 +2358,9 @@ SENDMSG PROC NEAR		   ;AN000;
 ;  =  =  =  =  =  =  =	=  =  =  =  =
 
    PUSH  BX			   ;AN000;SAVE CALLER'S REGS
-   PUSH  CX			   ;AN000;
-   PUSH  DX			   ;AN000;
-   PUSH  SI			   ;AN000;
+   PUSH  CX
+   PUSH  DX
+   PUSH  SI
 
 ;		 PASS PARMS TO MESSAGE HANDLER IN
 ;		 THE APPROPRIATE REGISTERS IT NEEDS.
@@ -2402,7 +2380,7 @@ SENDMSG PROC NEAR		   ;AN000;
 
 ;      $IF   C			   ;AN000;IF THERE IS A PROBLEM
        JNC $$IF120
-				   ;AX=EXTENDED ERROR NUMBER			;AN000;
+				   ;AX=EXTENDED ERROR NUMBER
 	   LEA	 DI,MSGNUM_EXTERR  ;AN000;GET REST OF ERROR DESCRIPTOR
 	   MOV	 BX,[DI].MSG_HANDLE ;AN000;HANDLE TO DISPLAY TO
 	   MOV	 SI,[DI].MSG_SUBLIST ;AN000;OFFSET IN ES: OF SUBLIST, OR 0 IF NONE
@@ -2422,15 +2400,15 @@ $$IF119:
 $$EN119:
 
    POP	 SI			   ;AN000;RESTORE CALLER'S REGISTERS
-   POP	 DX			   ;AN000;
-   POP	 CX			   ;AN000;
-   POP	 BX			   ;AN000;
+   POP	 DX
+   POP	 CX
+   POP	 BX
 
-   RET				   ;AN000;
-SENDMSG ENDP			   ;AN000;
+   RET
+SENDMSG ENDP
 ;  =  =  =  =  =  =  =	=  =  =  =  =
-   HEADER <YESNO - DETERMINE IF A RESPONSE IS YES OR NO> ;AN000;
-YESNO PROC NEAR 		   ;AN000;
+   HEADER <YESNO - DETERMINE IF A RESPONSE IS YES OR NO>
+YESNO PROC NEAR
    PUBLIC YESNO 		   ;AN000;MAKE ENTRY IN LINK MAP
 ;INPUT: DL=CHAR WITH Y OR N EQUIVALENT CHAR TO BE TESTED
 ;	SELECT_FLAG - IF SELECT IS DOING MESSAGES, ALWAYS ASSUME "NO"
@@ -2448,7 +2426,7 @@ YESNO PROC NEAR 		   ;AN000;
 				   ;  23H=YES/NO CHECK
 				   ;  80H BIT 0=USE NORMAL UPPER CASE TABLE
 				   ;  80H BIT 1=USE FILE UPPER CASE TABLE
-				   ;DL=CHAR TO CAP (FUNCTION 23H)		;AN000;
+				   ;DL=CHAR TO CAP (FUNCTION 23H)
        MOV   AX,(GET_EXT_CNTRY_INFO SHL 8) + YESNO_CHECK ;AN000;(6523H) GET EXTENDED
 				   ; COUNTRY INFORMATION, (Y/N)
        INT   21H		   ;AN000;SEE IF Y OR N
@@ -2457,14 +2435,14 @@ YESNO PROC NEAR 		   ;AN000;
    JMP SHORT $$EN124
 $$IF124:
        MOV   AX,NO		   ;AN006;ASSUME RESPONSE WAS 'NO'
-;  $ENDIF			   ;AN006;
+;  $ENDIF
 $$EN124:
    RET				   ;AN000;RETURN TO CALLER
-YESNO ENDP			   ;AN000;
+YESNO ENDP
 ;  =  =  =  =  =  =  =	=  =  =  =  =
-;(deleted ;AN013;)   HEADER <READ_VOLSER - OBTAIN OLD VOLUME SERIAL NUMBER FROM SOURCE> ;AN000;
-;(deleted ;AN013;) READ_VOLSER PROC NEAR	      ; 			;AN000;
-;(deleted ;AN013;)    PUBLIC READ_VOLSER	      ; 			;AN000;
+;(deleted ;AN013;)   HEADER <READ_VOLSER - OBTAIN OLD VOLUME SERIAL NUMBER FROM SOURCE>
+;(deleted ;AN013;) READ_VOLSER PROC NEAR	      ;
+;(deleted ;AN013;)    PUBLIC READ_VOLSER	      ;
 ;(deleted ;AN013;) ;IF THE SOURCE DISKETTE SUPPORTED A VOL SERIAL NUMBER, THEN MAKE A NEW ONE
 ;(deleted ;AN013;) ; AND SEND IT TO THE TARGET DISKETTE.  FOR OLD STYLE DISKETTES THAT DID NOT
 ;(deleted ;AN013;) ; HAVE ANY VOL SERIAL NUMBER, MAKE NO CHANGE AFTER THE TRADITIONAL FULL COPY.
@@ -2473,23 +2451,23 @@ YESNO ENDP			   ;AN000;
 ;(deleted ;AN013;) ;REFERENCED: A_MEDIA_ID_INFO STRUC (DEFINED IN DISKCOPY.EQU)
 ;(deleted ;AN013;) ; = = = = = = = = = = = = = = = = = =
 ;(deleted ;AN013;) ;		  ISSUE GET MEDIA ID FROM SOURCE
-;(deleted ;AN013;)    MOV BH,ZERO		 ;BH=0, RES		   ;AN000;
-;(deleted ;AN013;)    MOV BL,SOURCE_DRIVE	 ;BL=DRIVE NUM (1=A:, 2=B:, ETC);AN000;
-;(deleted ;AN013;)    MOV DX,OFFSET MEDIA_ID_BUF ;DS:DX=BUFFER (see A_MEDIA_ID_INFO STRUC);AN000;
-;(deleted ;AN013;)    DOSCALL GSET_MEDIA_ID,GET_ID ;(6900H) GET MEDIA ID	;AC009;
+;(deleted ;AN013;)    MOV BH,ZERO		 ;BH=0, RES
+;(deleted ;AN013;)    MOV BL,SOURCE_DRIVE	 ;BL=DRIVE NUM (1=A:, 2=B:, ETC)
+;(deleted ;AN013;)    MOV DX,OFFSET MEDIA_ID_BUF ;DS:DX=BUFFER (see A_MEDIA_ID_INFO STRUC)
+;(deleted ;AN013;)    DOSCALL GSET_MEDIA_ID,GET_ID ;(6900H) GET MEDIA ID
 ;(deleted ;AN013;)				 ;CARRY SET ON ERROR (OLD STYLE BOOT RECORD)
 ;(deleted ;AN013;)
-;(deleted ;AN013;)    $IF NC			 ;IF THERE IS NO PROBLEM	;AN000;
+;(deleted ;AN013;)    $IF NC			 ;IF THERE IS NO PROBLEM
 ;(deleted ;AN013;) ;	     GET CURRENT DATE
-;(deleted ;AN013;)	  DOSCALL GET_DATE	 ;READ SYSTEM DATE		;AN000;
+;(deleted ;AN013;)	  DOSCALL GET_DATE	 ;READ SYSTEM DATE
 ;(deleted ;AN013;)				 ;OUTPUT: DL = DAY (1-31)
 ;(deleted ;AN013;)				 ;  AL = DAY OF WEEK (0=SUN,6=SAT)
 ;(deleted ;AN013;)				 ;  CX = YEAR (1980-2099)
 ;(deleted ;AN013;)				 ;  DH = MONTH (1-12)
-;(deleted ;AN013;)	  PUSH	CX		 ;SAVE THESE FOR		;AN000;
-;(deleted ;AN013;)	  PUSH	DX		 ; INPUT INTO HASH ALGORITHM	;AN000;
+;(deleted ;AN013;)	  PUSH	CX		 ;SAVE THESE FOR
+;(deleted ;AN013;)	  PUSH	DX		 ; INPUT INTO HASH ALGORITHM
 ;(deleted ;AN013;) ;	      GET CURRENT TIME
-;(deleted ;AN013;)	  DOSCALL GET_TIME	 ;READ SYSTEM TIME CLOCK	;AN000;
+;(deleted ;AN013;)	  DOSCALL GET_TIME	 ;READ SYSTEM TIME CLOCK
 ;(deleted ;AN013;)				 ;OUTPUT: CH = HOUR (0-23)
 ;(deleted ;AN013;)				 ;  CL = MINUTES (0-59)
 ;(deleted ;AN013;)				 ;  DH = SECONDS (0-59)
@@ -2499,37 +2477,37 @@ YESNO ENDP			   ;AN000;
 ;(deleted ;AN013;) ;	      MI_SERIAL+0 = DX FROM DATE + DX FROM TIME
 ;(deleted ;AN013;) ;	      MI_SERIAL+2 = CX FROM DATE + CX FROM TIME
 ;(deleted ;AN013;)
-;(deleted ;AN013;)	  POP	AX		 ;GET THE DX FROM DATE		;AN000;
-;(deleted ;AN013;)	  ADD	AX,DX		 ;ADD IN THE DX FROM TIME	;AN000;
-;(deleted ;AN013;)	  MOV	WORD PTR MEDIA_ID_BUF.MI_SERIAL,AX ;SAVE FIRST RESULT OF HASH;AN000;
+;(deleted ;AN013;)	  POP	AX		 ;GET THE DX FROM DATE
+;(deleted ;AN013;)	  ADD	AX,DX		 ;ADD IN THE DX FROM TIME
+;(deleted ;AN013;)	  MOV	WORD PTR MEDIA_ID_BUF.MI_SERIAL,AX ;SAVE FIRST RESULT OF HASH
 ;(deleted ;AN013;)
-;(deleted ;AN013;)	  POP	AX		 ;GET THE CX FROM DATE		;AN000;
-;(deleted ;AN013;)	  ADD	AX,CX		 ;ADD IN THE CX FROM TIME	;AN000;
-;(deleted ;AN013;)	  MOV	WORD PTR MEDIA_ID_BUF.MI_SERIAL+WORD,AX ;SAVE SECOND RESULT OF HASH;AN000;
+;(deleted ;AN013;)	  POP	AX		 ;GET THE CX FROM DATE
+;(deleted ;AN013;)	  ADD	AX,CX		 ;ADD IN THE CX FROM TIME
+;(deleted ;AN013;)	  MOV	WORD PTR MEDIA_ID_BUF.MI_SERIAL+WORD,AX ;SAVE SECOND RESULT OF HASH
 ;(deleted ;AN013;)
-;(deleted ;AN013;)	  MOV	VOLSER_FLAG,TRUE ;REQUEST THE NEW VOL SERIAL NUMBER BE WRITTEN;AN000;
-;(deleted ;AN013;)    $ENDIF			 ;				;AN000;
-;(deleted ;AN013;)    RET			 ;RETURN TO CALLER		;AN000;
-;(deleted ;AN013;) READ_VOLSER ENDP		 ;				;AN000;
+;(deleted ;AN013;)	  MOV	VOLSER_FLAG,TRUE ;REQUEST THE NEW VOL SERIAL NUMBER BE WRITTEN
+;(deleted ;AN013;)    $ENDIF			 ;
+;(deleted ;AN013;)    RET			 ;RETURN TO CALLER
+;(deleted ;AN013;) READ_VOLSER ENDP		 ;
 ; = = = = = = = = = = = = = = = = = = =
-   HEADER <WRITE_VOLSER - PUT NEW VOL SER NUMBER TO TARGET> ;AN000;
-WRITE_VOLSER PROC NEAR		   ;AN000;
+   HEADER <WRITE_VOLSER - PUT NEW VOL SER NUMBER TO TARGET>
+WRITE_VOLSER PROC NEAR
    PUBLIC WRITE_VOLSER		   ;AN000;MAKE ENTRY IN LINK MAP
    CMP	 VOLSER_FLAG,TRUE	   ;AN000;IF NEW NUMBER READY TO BE WRITTEN
 ;  $IF	 E			   ;AN000;THEN WRITE IT
    JNE $$IF127
 
-;NOTE FOR ;AN013;
+;NOTE FOR
 ;THERE IS NO NEED TO DO A SET MEDIA ID TO WRITE OUT THE MODIFIED SERIAL NUMBER
 ;BECAUSE THAT NUMBER WAS CHANGED IN THE IMAGE OF THE BOOT RECORD WHEN THE
 ;ORIGINAL BOOT RECORD WAS READ IN, SO WHEN THAT TRACK IMAGE WAS WRITTEN,
 ;IT CONTAINED THE NEW SERIAL NUMBER ALREADY.
 
 ;(deleted ;AN013;) ;	 ISSUE SET MEDIA ID TO TARGET
-;(deleted ;AN013;)  MOV   BH,ZERO		;BH=0, RES			;AN000;
-;(deleted ;AN013;)  MOV   BL,TARGET_DRIVE	;BL=DRIVE NUM			;AN000;
-;(deleted ;AN013;)  MOV   DX,OFFSET MEDIA_ID_BUF ;DS:DX=BUFFER (see STRUC above);AN000;
-;(deleted ;AN013;)  DOSCALL GSET_MEDIA_ID,SET_ID ;(6901H) SET MEDIA ID		;AC009;
+;(deleted ;AN013;)  MOV   BH,ZERO		;BH=0, RES
+;(deleted ;AN013;)  MOV   BL,TARGET_DRIVE	;BL=DRIVE NUM
+;(deleted ;AN013;)  MOV   DX,OFFSET MEDIA_ID_BUF ;DS:DX=BUFFER (see STRUC above)
+;(deleted ;AN013;)  DOSCALL GSET_MEDIA_ID,SET_ID ;(6901H) SET MEDIA ID
 
 ; NOTE: IN THE FOLLOWING TWO SUBLISTS, WE ARE GOING TO DISPLAY, IN HEX,
 ; A CONSECUTIVE SET OF 4 BYTES, THE VOLUME SERIAL NUMBER.  THE ORDER OF
@@ -2550,12 +2528,12 @@ WRITE_VOLSER PROC NEAR		   ;AN000;
 				   ;"Volume Serial Number is %1-%2"
        PRINT MSGNUM_SERNO	   ;AN001;DISPLAY THE NEW SERIAL NUMBER
 
-;  $ENDIF			   ;AN000;
+;  $ENDIF
 $$IF127:
    RET				   ;AN000;RETURN TO CALLER
-WRITE_VOLSER ENDP		   ;AN000;
+WRITE_VOLSER ENDP
 ; = = = = = = = = = = = = = = = = = = =
-   HEADER <PRESS_ANY_KEY - PUTS A BLANK LINE BEFORE PROMPT> ;AN000;
+   HEADER <PRESS_ANY_KEY - PUTS A BLANK LINE BEFORE PROMPT>
 PRESS_ANY_KEY PROC NEAR 	   ;
 ;THE CANNED MESSAGE "PRESS ANY KEY..." DOES NOT START WITH CR,LF.
 ;THIS PUTS OUT THE CR LF TO CAUSE SEPARATION OF THIS PROMP FROM
@@ -2566,12 +2544,12 @@ PRESS_ANY_KEY PROC NEAR 	   ;
    PRINT MSGNUM_STRIKE		   ;AN000;"Press any key when ready..."
 
    RET				   ;AN000;RETURN TO CALLER
-PRESS_ANY_KEY ENDP		   ;AN000;
+PRESS_ANY_KEY ENDP
 ;  =  =  =  =  =  =  =	=  =  =  =  =
    PUBLIC DISKCOPY_END		   ;
 DISKCOPY_END LABEL NEAR 	   ;
 
-   PATHLABL DISKCOPY		   ;AN015;
+   PATHLABL DISKCOPY
 CSEG ENDS			   ;
    END	 DISKCOPY		   ;
 

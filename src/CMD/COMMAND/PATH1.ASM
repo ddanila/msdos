@@ -1,6 +1,4 @@
  page 80,132
-;	SCCSID = @(#)path1.asm	1.1 85/05/14
-;	SCCSID = @(#)path1.asm	1.1 85/05/14
 .sall
 .xlist
 .xcref
@@ -56,11 +54,11 @@ break <Path.Asm>
 ; DATA:
 ;---------------
 
-TRANDATA	SEGMENT PUBLIC BYTE	;AC000;
+TRANDATA	SEGMENT PUBLIC BYTE
 	EXTRN	baddrv_ptr:word
 TRANDATA	ENDS
 
-TRANSPACE	SEGMENT PUBLIC BYTE	;AC000;
+TRANSPACE	SEGMENT PUBLIC BYTE
 	EXTRN	arg:byte
 	EXTRN	BADPMES_ptr:word
 	EXTRN	curdrv:byte
@@ -71,7 +69,7 @@ TRANSPACE	SEGMENT PUBLIC BYTE	;AC000;
 	EXTRN	tpbuf:byte
 TRANSPACE	ENDS
 
-TRANCODE	SEGMENT PUBLIC BYTE	;AC000;
+TRANCODE	SEGMENT PUBLIC BYTE
 
 assume cs:trangroup, ds:trangroup, es:trangroup, ss:nothing
 
@@ -105,7 +103,7 @@ break <Path_Search>
 pbuflen 	equ	128		; length of EXECPATH
 path_sep_char	equ	';'
 
-TRANSPACE	SEGMENT PUBLIC BYTE	;AC000;
+TRANSPACE	SEGMENT PUBLIC BYTE
 	EXTRN	fbuf:byte
 	EXTRN	pathinfo:word
 	EXTRN	psep_char:byte

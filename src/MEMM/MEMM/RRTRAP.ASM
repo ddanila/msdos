@@ -11,25 +11,8 @@ page	58,132
 ;
 ;   Module:   RRTRAP.ASM - Return to Real Trap
 ;
-;   Version:  0.04
-;
-;   Date:     June 1, 1986
-;
-;   Author:
-;
 ;******************************************************************************
 ;
-;   Change log:
-;
-;     DATE    REVISION			DESCRIPTION
-;   --------  --------	-------------------------------------------------------
-;   06/01/86  Original
-;   06/28/86  0.02	Name changed from MEMM386 to MEMM
-;   07/03/86  0.03	Changed to P84/85 Handlers
-;   07/06/86  0.04	Moved JumpReal to R_CODE and far label
-;   07/06/86  0.04	Changed assume to DGROUP
-;
-;******************************************************************************
 ;
 ;   Functional Description:
 ;	This module traps ports 85h and 84h and watches for an application

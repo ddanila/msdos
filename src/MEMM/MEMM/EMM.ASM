@@ -11,29 +11,7 @@
 ;
 ;    Module:	EMM - Expanded Memory Manager interface
 ;
-;    Version:	0.05
-;
-;    Date:	June 14, 1986
-;
-;    Author:
-;
 ;******************************************************************************
-;
-;	Change Log:
-;
-;	DATE	 REVISION	Description
-;	-------- --------	--------------------------------------------
-;	06/14/86 original
-;	06/28/86 0.02		Name change from MEMM386 to MEMM
-;	06/29/86 0.02		Protect port 84/85 from ints
-;	07/05/86 0.04		moved EMM_rEntry to R_CODE
-;	07/06/86 0.04		Changed assume to DGROUP
-;	07/08/86 0.04		Changed EMM_pEntry to call EMM functions
-;				directly
-;	07/10/86 0.05		jmp $+2 before "POPF"
-;	07/10/86 0.05		added EMM_Flag
-;	06/09/88		remove _map_known since there is no map now (pc)
-;	07/20/88		remove debugger code (pc)
 ;
 ;******************************************************************************
 ;   Functional Description:

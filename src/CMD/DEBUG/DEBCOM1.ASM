@@ -30,14 +30,6 @@
 ;	 LINK DEBUG+DEBCOM1+DEBCOM2+DEBCOM3+DEBASM+DEBUASM+DEBERR+
 ;	      DEBCONST+DEBDATA+DEBMES
 ;
-; REVISION HISTORY:
-;
-;	AN000	VERSION 4.00 - REVISIONS MADE RELATE TO THE FOLLOWING:
-;
-;				- IMPLEMENT DBCS HANDLING	DMS:6/17/87
-;				- IMPLEMENT MESSAGE RETRIEVER	DMS:6/17/87
-;				- IMPLEMENT > 32MB SUPPORT	DMS:6/17/87
-;
 ; COPYRIGHT: "MS DOS DEBUG UTILITY"
 ;	     "VERSION 4.00 (C) COPYRIGHT 1988 Microsoft"
 ;	     "LICENSED MATERIAL - PROPERTY OF Microsoft  "
@@ -947,7 +939,7 @@ $$DO1:
 ;		$if	c			;an000;did low word carry
 		JNC $$IF3
 			or	bx,01h		;an000;set bit 0 of high word
-;		$endif				;an000;
+;		$endif
 $$IF3:
 		dec	cx			;an000;decrease counter
 ;	$enddo					;an000;end while loop

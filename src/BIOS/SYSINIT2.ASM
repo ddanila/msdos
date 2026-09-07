@@ -1,33 +1,8 @@
 	PAGE	,132			;
-;	SCCSID = @(#)sysinit2.asm	1.13 85/10/15
 TITLE	BIOS SYSTEM INITIALIZATION
 %OUT ...SYSINIT2
 
 ;==============================================================================
-;REVISION HISTORY:
-;AN000 - New for DOS Version 4.00 - J.K.
-;AC000 - Changed for DOS Version 4.00 - J.K.
-;AN00x - PTM number for DOS Version 4.00 - J.K.
-;==============================================================================
-;AN001; p132 Multiple character device installation problem.	    6/27/87 J.K.
-;AN002; d24  MultiTrack= command added. 			    6/29/87 J.K.
-;AN003; p29  Extra space character in parameters passed.
-;	     (Modification on ORGANIZE routine for COMMENT= fixed this
-;	      problem too)					    6/29/87 J.K.
-;AN004; d41  REM command in CONFIG.SYS				    7/7/87  J.K.
-;AN005; d184 Set DEVMARK for MEM command			    8/25/87 J.K.
-;AN006; p1820 New Message SKL file				   10/20/87 J.K.
-;AN007; p1821 Include the COPYRIGH.INC file			   10/22/87 J.K.
-;AN008; p2210 IBMDOS returns incorrect DBCS vector table length    11/02/87 J.K.
-;AN009; p2667 ccMono_Ptr problem				   11/30/87 J.K.
-;AN010; p2792 Device?driver.sys /d:2 command should not work	   12/09/87 J.K.
-;AN011; p3120 REM followed by CR, LF causes problem		   01/13/88 J.K.
-;AN012; p3111 Take out the order dependency of the INSTALL=	   01/25/88 J.K.
-;AN013; d479  New option to disable extended INT 16h function call 02/12/88 J.K.
-;AN014; D486 SHARE installation for big media			   02/23/88 J.K.
-;AN015; D526 Add /NC parameter when installing SHARE.EXE	   04/28/88 J.K.
-;==============================================================================
-
 TRUE	    EQU 0FFFFh
 FALSE	    EQU 0
 LF	equ	10
@@ -91,9 +66,9 @@ ASSUME	CS:SYSINITSEG,DS:NOTHING,ES:NOTHING,SS:NOTHING
 	extrn  Cmd_Indicator:byte
 	extrn  DoNotShowNum:byte
 	extrn  MultDeviceFlag:byte
-	extrn  DevMark_Addr:word			;AN005;
-	extrn  SetDevMarkFlag:byte			;AN005;
-	extrn  Org_Count:word				;AN012;
+	extrn  DevMark_Addr:word
+	extrn  SetDevMarkFlag:byte
+	extrn  Org_Count:word
 
 	EXTRN  Stall:near
 	EXTRN  Error_Line:near
@@ -105,8 +80,8 @@ ASSUME	CS:SYSINITSEG,DS:NOTHING,ES:NOTHING,SS:NOTHING
 	PUBLIC Skip_delim,SetDOSCountryInfo,Set_Country_Path,Move_Asciiz
 	PUBLIC Cntry_Drv,Cntry_Root,Cntry_Path
 	PUBLIC Delim
-	public PathString				;AN014;
-	public LShare					;AN014;
+	public PathString
+	public LShare
 
 ;
 ; The following set of routines is used to parse the DRIVPARM = command in
@@ -411,19 +386,19 @@ ORGANIZE:
 ;	 CMP	 AL,' '
 ;	 JB	 ORG1
 Org1:
-	call	Skip_Comment		;AN000;
+	call	Skip_Comment
 	jz	End_Commd_Line		;AN000; found a comment string and skipped.
 	call	Get2			;AN000; Not a comment string. Then get a char.
-	cmp	al, LF			;AN000;
+	cmp	al, LF
 	je	End_Commd_Line		;AN000; starts with a blank line.
-	cmp	al, ' '                 ;AN000;
+	cmp	al, ' '
 	jbe	Org1			;AN000; skip leading control characters
-	jmp	Findit			;AN000;
-End_Commd_Line: 			;AN000;
+	jmp	Findit
+End_Commd_Line:
 	stosb				;AN000; store line feed char in buffer for the LineCount.
 	mov	COM_Level, 0		;AN000; reset the command level.
-	jmp	Org1			;AN000;
-Findit: 				;AN000;
+	jmp	Org1
+Findit:
 	PUSH	CX
 	PUSH	SI
 	PUSH	DI
@@ -444,13 +419,13 @@ FINDCOM:
 	JNZ	FINDCOM
 	cmp	byte ptr es:[di], CR	;AN011;The next char might be CR,LF
 	je	GotCom0 		;AN011; such as in "REM",CR,LF case.
-	cmp	byte ptr es:[di], LF	;AN011;
-	je	GotCom0 		;AN011;
-	push	ax			;AN010;
+	cmp	byte ptr es:[di], LF
+	je	GotCom0
+	push	ax
 	mov	al, byte ptr es:[di]	;AN010;Now the next char. should be a delim.
-	call	delim			;AN010;
-	pop	ax			;AN010;
-	jnz	findcom 		;AN010;
+	call	delim
+	pop	ax
+	jnz	findcom
 GotCom0:
 	POP	DI
 	POP	SI
@@ -463,23 +438,23 @@ NOCOM:
 	POP	CX
 	MOV	AL,'Z'
 	stosb				;AN000; save indicator char.
-Skip_Line:				;AN000;
-	call	Get2			;AN000;
+Skip_Line:
+	call	Get2
 	cmp	al, LF			;AN000; skip this bad command line
-	jne	Skip_Line		;AN000;
+	jne	Skip_Line
 	jmp	End_Commd_Line		;AN000; handle next command line
 
 GOTCOM: STOSB				;SAVE INDICATOR CHAR IN BUFFER
 	mov	Cmd_Indicator, al	;AN000; save it for the future use.
 
 ORG2:	CALL	GET2			;SKIP the commad name UNTIL DELIMITER
-	cmp	al, LF			;AN011;
-	je	Org21			;AN011;
-	cmp	al, CR			;AN011;
-	je	Org21			;AN011;
+	cmp	al, LF
+	je	Org21
+	cmp	al, CR
+	je	Org21
 	CALL	DELIM			;
 	JNZ	ORG2
-	jmp	short	Org3		;AN011;
+	jmp	short	Org3
 Org21:					;AN011;if CR or LF then
 	dec	si			;AN011; undo SI, CX register
 	inc	cx			;AN011;  and continue
@@ -498,83 +473,83 @@ Org21:					;AN011;if CR or LF then
 
 Org3:
 	cmp	Cmd_Indicator, 'Y'      ;AN000; Comment= command?
-	je	Get_Cmt_Token		;AN000;
+	je	Get_Cmt_Token
 	cmp	Cmd_Indicator, 'I'      ;AN000; Install= command?
-	je	Org_file		;AN000;
+	je	Org_file
 	cmp	Cmd_Indicator, 'V'      ; INSTALLHIGH= uses INSTALL's file/tail layout.
 	je	Org_file
 	cmp	Cmd_Indicator, 'D'      ;AN000; Device= command?
-	je	Org_file		;AN000;
+	je	Org_file
 	cmp	Cmd_Indicator, 'U'      ; Preserve DEVICEHIGH options for SYSINIT.
 	je	Org4
 	cmp	Cmd_Indicator, 'J'      ;AN000; IFS= command?
-	je	Org_file		;AN000;
+	je	Org_file
 	cmp	Cmd_Indicator, 'S'      ;AN000; Shell= is a special one!!!
-	je	Org_file		;AN000;
+	je	Org_file
 	cmp	Cmd_Indicator, '1'      ;AN013; SWITCHES= command?
-	je	Org_Switch		;AN013;
-	jmp	Org4			;AN000;
+	je	Org_Switch
+	jmp	Org4
 Org_Switch:
-	call	Skip_Comment		;AN013;
-	jz	End_Commd_Line_Brdg	;AN013;
-	call	Get2			;AN013;
-	call	Org_Delim		;AN013;
-	jz	Org_Switch		;AN013;
-	stosb				;AN013;
-	jmp	Org5			;AN013;
+	call	Skip_Comment
+	jz	End_Commd_Line_Brdg
+	call	Get2
+	call	Org_Delim
+	jz	Org_Switch
+	stosb
+	jmp	Org5
 Org_file:				;AN000; Get the filename and put 0 at end,
-	call	Skip_Comment		;AN000;
-	jz	Org_Put_Zero		;AN000;
+	call	Skip_Comment
+	jz	Org_Put_Zero
 	call	Get2			;AN000; Not a comment
-	call	Delim			;AN000;
+	call	Delim
 	jz	Org_file		;AN000; Skip the possible delimeters
 	stosb				;AN000; copy the first non delim char found in buffer
-Org_Copy_File:				;AN000;
+Org_Copy_File:
 	call	Skip_Comment		;AN000; comment char in the filename?
 	jz	Org_Put_Zero		;AN000; then stop copying filename at that point
-	call	Get2			;AN000;
+	call	Get2
 	cmp	al, '/'                 ;AN000; a switch char? (device=filename/xxx)
 	je	End_File_slash		;AN000; this will be the special case.
 	stosb				;AN000; save the char. in buffer
-	call	Delim			;AN000;
-	jz	End_Copy_File		;AN000;
-	cmp	al, ' '                 ;AN000;
+	call	Delim
+	jz	End_Copy_File
+	cmp	al, ' '
 	ja	Org_Copy_File		;AN000; keep copying
 	jmp	End_Copy_File		;AN000; otherwise, assume end of the filename.
 Get_Cmt_token:				;AN000; get the token. Just max. 2 char.
-	call	Get2			;AN000;
+	call	Get2
 	cmp	al, ' '                 ;AN000; skip white spaces or "=" char.
 	je	Get_Cmt_Token		;AN000; (we are allowing the other special
 	cmp	al, TAB 		;AN000;  charaters can used for comment id.
 	je	Get_Cmt_Token		;AN000;  character.)
 	cmp	al, '='                 ;AN000; = is special in this case.
-	je	Get_Cmt_Token		;AN000;
-	cmp	al, CR			;AN000;
+	je	Get_Cmt_Token
+	cmp	al, CR
 	je	Get_Cmt_End		;AN000; cannot accept the carridge return
-	cmp	al, LF			;AN000;
-	je	Get_Cmt_End		;AN000;
+	cmp	al, LF
+	je	Get_Cmt_End
 	mov	CMMT1, al		;AN000; store it
 	mov	CMMT, 1 		;AN000; 1 char. so far.
-	call	Get2			;AN000;
-	cmp	al, ' '                 ;AN000;
-	je	Get_Cmt_End		;AN000;
-	cmp	al, TAB 		;AN000;
-	je	Get_Cmt_End		;AN000;
-	cmp	al, CR			;AN000;
-	je	Get_Cmt_End		;AN000;
-	cmp	al, LF			;AN000;
-	je	End_Commd_Line_Brdg	;AN000;
-	mov	CMMT2, al		;AN000;
-	inc	CMMT			;AN000;
-Get_Cmt_End:				;AN000;
-	call	Get2			;AN000;
-	cmp	al, LF			;AN000;
+	call	Get2
+	cmp	al, ' '
+	je	Get_Cmt_End
+	cmp	al, TAB
+	je	Get_Cmt_End
+	cmp	al, CR
+	je	Get_Cmt_End
+	cmp	al, LF
+	je	End_Commd_Line_Brdg
+	mov	CMMT2, al
+	inc	CMMT
+Get_Cmt_End:
+	call	Get2
+	cmp	al, LF
 	jne	Get_Cmt_End		;AN000; skip it.
 End_Commd_Line_Brdg: jmp End_Commd_Line ;AN000; else jmp to End_Commd_Line
 
 Org_Put_Zero:				;AN000; Make the filename in front of
 	mov	byte ptr es:[di], 0	;AN000;  the comment string to be an asciiz.
-	inc	di			;AN000;
+	inc	di
 	jmp	End_Commd_Line		;AN000;  (Maybe null if device=/*)
 End_file_slash: 			;AN000; AL = "/" option char.
 	mov	byte ptr es:[di],0	;AN000; make a filename an asciiz
@@ -582,41 +557,41 @@ End_file_slash: 			;AN000; AL = "/" option char.
 	stosb				;AN000; store "/" after that.
 	jmp	Org5			;AN000; continue with the rest of the line
 
-End_Copy_File:				;AN000;
+End_Copy_File:
 	mov	byte ptr es:[di-1], 0	;AN000; make it an asciiz and handle the next char.
-	cmp	al, LF			;AN000;
-	je	End_Commd_Line_brdg	;AN000;
-	jmp	Org5			;AN000;
+	cmp	al, LF
+	je	End_Commd_Line_brdg
+	jmp	Org5
 
 Org4:					;AN000; Org4 skips all delimiters after the command name except for '/'
-	call	Skip_Comment		;AN000;
-	jz	End_Commd_Line_brdg	;AN000;
-	call	Get2			;AN000;
+	call	Skip_Comment
+	jz	End_Commd_Line_brdg
+	call	Get2
 	call	Org_Delim		;AN000; skip delimiters EXCEPT '/' (mrw 4/88)
-	jz	Org4			;AN000;
-	jmp	Org51			;AN000;
+	jz	Org4
+	jmp	Org51
 Org5:					;AN000; rest of the line
 	call	Skip_Comment		;AN000; Comment?
-	jz	End_Commd_Line_brdg	;AN000;
+	jz	End_Commd_Line_brdg
 	call	Get2			;AN000; Not a comment.
-Org51:					;AN000;
+Org51:
 	stosb				;AN000; copy the character
 	cmp	al, '"'                 ;AN000; a quote ?
-	je	At_Quote		;AN000;
-	cmp	al, ' '                 ;AN000;
-	ja	Org5			;AN000;
+	je	At_Quote
+	cmp	al, ' '
+	ja	Org5
 	cmp	al, LF			;AN000; line feed?
 	je	Org1_brdg		;AN000; handles the next command line.
 	jmp	Org5			;AN000; handles next char in this line.
-Org1_brdg: jmp	 Org1			;AN000;
-At_Quote:				;AN000;
-	cmp	COM_Level, 0		;AN000;
-	je	Up_Level		;AN000;
+Org1_brdg: jmp	 Org1
+At_Quote:
+	cmp	COM_Level, 0
+	je	Up_Level
 	mov	COM_Level, 0		;AN000; reset it.
-	jmp	Org5			;AN000;
-Up_Level:				;AN000;
+	jmp	Org5
+Up_Level:
 	inc	COM_level		;AN000; set it.
-	jmp	Org5			;AN000;
+	jmp	Org5
 
 
 ;ORG5:	 CALL	 GET2
@@ -665,25 +640,25 @@ Skip_Comment:
 	cmp	COM_Level, 0	;AN000; only check it if parameter level is 0.
 	jne	No_Commt	;AN000;  (Not inside quotations)
 
-	cmp	CMMT, 1 	;AN000;
-	jb	No_Commt	;AN000;
-	mov	al, es:[si]	;AN000;
-	cmp	CMMT1, al	;AN000;
-	jne	No_Commt	;AN000;
-	cmp	CMMT, 2 	;AN000;
-	jne	Skip_Cmmt	;AN000;
-	mov	al, es:[si+1]	;AN000;
-	cmp	CMMT2, al	;AN000;
-	jne	No_Commt	;AN000;
-Skip_Cmmt:			;AN000;
+	cmp	CMMT, 1
+	jb	No_Commt
+	mov	al, es:[si]
+	cmp	CMMT1, al
+	jne	No_Commt
+	cmp	CMMT, 2
+	jne	Skip_Cmmt
+	mov	al, es:[si+1]
+	cmp	CMMT2, al
+	jne	No_Commt
+Skip_Cmmt:
 	jcxz	NoGet		;AN000; get out of Organize routine.
-	mov	al, es:[si]	;AN000;
-	inc	si		;AN000;
-	dec	cx		;AN000;
+	mov	al, es:[si]
+	inc	si
+	dec	cx
 	cmp	al, LF		;AN000; line feed?
-	jne	Skip_Cmmt	;AN000;
-No_Commt:			;AN000;
-	ret			;AN000;
+	jne	Skip_Cmmt
+No_Commt:
+	ret
 
 
 DELIM:
@@ -706,7 +681,7 @@ Org_Delim:			;AN000;  Used by Organize routine except for getting
 
 NOGET:	POP	CX
 	MOV	COUNT,DI
-	mov	Org_Count, DI	;AN012;
+	mov	Org_Count, DI
 	XOR	SI,SI
 	MOV	CHRPTR,SI
 	return
@@ -815,7 +790,7 @@ SET_BREAK:
 
 	PUSH	AX
 	MOV	AX,WORD PTR [BREAK_ADDR+2]  ;REMOVE THE INIT CODE
-	cmp	MultDeviceFlag, 0	    ;AN001;
+	cmp	MultDeviceFlag, 0
 	jne	Set_Break_Continue	    ;AN001;Do not check it.
 	cmp	ax, [MEMHI]
 	jne	Set_Break_Continue	    ;if not same, then O.K.
@@ -848,19 +823,19 @@ ROUND:
 	CMP	AX,[ALLOCLIM]		; if new memhi >= alloclim, error
 	JAE	MEM_ERR
 Round_Bounds_Ok:
-	test	cs:[SetDevMarkFlag], FOR_DEVMARK	    ;AN005;
-	jz	Skip_Set_DEVMARKSIZE			;AN005;
-	push	es					;AN005;
-	push	si					;AN005;
-	mov	si, cs:[DevMark_Addr]			;AN005;
-	mov	es, si					;AN005;
-	sub	ax, si					;AN005;
-	dec	ax					;AN005;
+	test	cs:[SetDevMarkFlag], FOR_DEVMARK
+	jz	Skip_Set_DEVMARKSIZE
+	push	es
+	push	si
+	mov	si, cs:[DevMark_Addr]
+	mov	es, si
+	sub	ax, si
+	dec	ax
 	mov	es:[DEVMARK_SIZE], ax			;AN005; Paragraph
-	and	cs:[SetDevMarkFlag], NOT_FOR_DEVMARK	    ;AN005;
-	pop	si					;AN005;
-	pop	es					;AN005;
-Skip_Set_DEVMARKSIZE:					;AN005;
+	and	cs:[SetDevMarkFlag], NOT_FOR_DEVMARK
+	pop	si
+	pop	es
+Skip_Set_DEVMARKSIZE:
 	POP	AX
 	clc				;clear carry
 	return
@@ -1098,24 +1073,24 @@ SetDOSCntry_data:
 	jne	SetDOSData_fail
 
 	mov	dx, word ptr ds:[si+4]	;AN008;get offset of data again.
-	mov	cx, word ptr ds:[si+6]	;AN008;
-	mov	ax, 4200h		;AN008;
-	stc				;AN008;
+	mov	cx, word ptr ds:[si+6]
+	mov	ax, 4200h
+	stc
 	int	21h			;AN008;move pointer back again
-	jc	SetDOSData_fail 	;AN008;
+	jc	SetDOSData_fail
 
-	push	si			;AN008;
+	push	si
 	mov	si, (512+8)		;AN008;get length of the data from the file
-	mov	cx, word ptr ds:[si]	;AN008;
-	pop	si			;AN008;
+	mov	cx, word ptr ds:[si]
+	pop	si
 	mov	dx, 512 		;AN008;start of data buffer
 	add	cx, 10			;AN008;Signature + A word for the length itself
 	mov	ah, 3fh 		;AN008;Read the data from the file.
-	stc				;AN008;
-	int	21h			;AN008;
-	jc	SetDOSData_fail 	;AN008;
-	cmp	ax, cx			;AN008;
-	jne	SetDOSData_fail 	;AN008;
+	stc
+	int	21h
+	jc	SetDOSData_fail
+	cmp	ax, cx
+	jne	SetDOSData_fail
 
 	mov	al, byte ptr ds:[si+2]	;save Data id for future use.
 	mov	si, (512+8)		;SI-> data buffer + id tag field
@@ -1141,7 +1116,7 @@ SetDOSCntry_Mov:
 	jne	SetDOSCntry_data_next
 	pop	di			;restore DI
 	pop	word ptr es:[di+ccMono_Ptr-ccCountryInfoLen+2]	 ;AN009;restore
-	pop	word ptr es:[di+ccMono_Ptr-ccCountryInfoLen]	 ;AN009;
+	pop	word ptr es:[di+ccMono_Ptr-ccCountryInfoLen]
 
 SetDOSCntry_data_next:
 	pop	si			;restore control buffer pointer
@@ -1151,11 +1126,11 @@ SetDOSCntry_data_next:
 	inc	si
 	inc	si			;take a word of entry length itself
 ;	 loop	 SetDOSCntry_data
-	dec	cx			;AN008;
-	cmp	cx,0			;AN008;
-	je	SetDOSCntry_OK		;AN008;
-	jmp	SetDOSCntry_data	;AN008;
-SetDOSCntry_OK: 			;AN008;
+	dec	cx
+	cmp	cx,0
+	je	SetDOSCntry_OK
+	jmp	SetDOSCntry_data
+SetDOSCntry_OK:
 	ret
 SetDOSCountryInfo	endp
 ;
@@ -1322,7 +1297,7 @@ BADFIL:
 BADLOAD:
 	MOV	DX,OFFSET BADLD_PRE	;WANT TO PRINT CONFIG ERROR
 ;	 MOV	 BX,OFFSET BADLD_POST
-	mov	bx, offset CRLFM	;AN006;
+	mov	bx, offset CRLFM
 PRNERR:
 	PUSH	CS
 	POP	DS
@@ -1516,7 +1491,7 @@ CntryCodePage_Id DW ?
 COMMND	DB	"\COMMAND.COM",0
 	DB	51 dup (0)
 
-PathString db	64 dup (0)		;AN014;
+PathString db	64 dup (0)
 LShare	db	"SHARE.EXE",0,"/NC",0Dh,0Ah ;AN014;AN015;To be used by Load/exec.
 					;/NC parm will disable file sharing check.
 
@@ -1530,7 +1505,7 @@ COMTAB	LABEL	BYTE
 	DB	5,"FILES",    'F'
 	DB	4,"FCBS",     'X'
 	DB	9,"LASTDRIVE",'L'
-	db     10,"MULTITRACK", 'M'     ;AN002;
+	db     10,"MULTITRACK", 'M'
 	DB	7,"NUMLOCK",  '3'
 	DB	3,"SET",      '4'
 	DB	8,"DRIVPARM", 'P'       ; RS for DOS 3.2
@@ -1540,13 +1515,13 @@ COMTAB	LABEL	BYTE
 	DB	7,"COUNTRY",  'Q'
 	DB	5,"SHELL",    'S'
 	db     11,"INSTALLHIGH",'V'
-	db	7,"INSTALL",  'I'       ;AN000;
-	db	3,"IFS",      'J'       ;AN000;
-	db	4,"CPSW",     'W'       ;AN000;
+	db	7,"INSTALL",  'I'
+	db	3,"IFS",      'J'
+	db	4,"CPSW",     'W'
 ;;;;	   DB	   8,"SWITCHAR",'W'     ; NO LONGER SUPPORTED
-	db	7,"COMMENT",  'Y'       ;AN000;
-	db	3,"REM",      '0'       ;AN004;
-	db	8,"SWITCHES", '1'       ;AN013;
+	db	7,"COMMENT",  'Y'
+	db	3,"REM",      '0'
+	db	8,"SWITCHES", '1'
 	DB	0
 
 public DeviceParameters

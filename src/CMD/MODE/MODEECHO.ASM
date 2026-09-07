@@ -43,7 +43,7 @@ VECT	ENDS
 ascii_to_int	EQU   0FH     ;ANDed with an ascii 0-9 value yeilds binary 0-9
 CR		EQU	13	;CARRIAGE RETURN
 LF		EQU	10	;LINE FEED
-parm_list	EQU	[BP]	;AN000; 					 ;AN000;
+parm_list	EQU	[BP]
 TO_SCREEN	EQU	9	;REQUEST OUTPUT TO SCREEN
 
 PUBLIC	       LPTNO	      ;used by modeprin and modepars
@@ -72,7 +72,7 @@ EXTRN PARM1:BYTE,PARM2:BYTE,PARM3:BYTE,MODE:BYTE,FLAG:BYTE
 ;FLAG	DB	0
 ENDPARM EQU	MODE
 EXTRN CRLF:BYTE 		    ;AN000;carriage return linefeed
-EXTRN	 parm_lst:BYTE		    ;AN000;
+EXTRN	 parm_lst:BYTE
 EXTRN	illegal_device_ptr:WORD     ;AN000;pointer to bad com device name string
 EXTRN MODELOAD:NEAR
 EXTRN PRINTF:NEAR		;FORMATTED "C" LIKE SCREEN OUTPUT ROUTINE
@@ -221,13 +221,13 @@ MOV   BL,AL			    ;BX=disp from 40:0 of com port address word
 			   ; WORDS AND NEW_PTSFLAG
 	       CALL	   cmd_echo     ;CHANGE JMP IN MODEPTS COPY IN LOW MEMORY
    ;				    SO PROPER LPTn GETS REDIRECTED
-	       DISPLAY	   CRLF 					;AN000;
+	       DISPLAY	   CRLF
 	       DISPLAY	   REDIRMSG
 
 .ELSE				    ;valid com name, adapter not there
-   MOV	 DI,0			    ;COM device name is always the first parm, the value of "LPTX[:]=value"    ;AN000;
+   MOV	 DI,0			    ;COM device name is always the first parm, the value of "LPTX[:]=value"
    MOV	 BP,OFFSET parm_lst   ;address the parm list via parm_list which is [BP]
-   MOV	 CX,parm_list[DI].value1    ;AN000;					     ;AN000;
+   MOV	 CX,parm_list[DI].value1
    MOV	illegal_device_ptr,CX	    ;AN000;set up message with bad com device name string
    DISPLAY ERR1 		       ;"Illegal device name - COMX"
 .ENDIF
@@ -402,7 +402,7 @@ ENDC:
 cmd_echo	ENDP
 
 
-;ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ					   ;AN000;
+;ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
 ;³
 ;³ DISPLAY_PRINTER_REROUTE_STATUS
 ;³ ------------------------------
@@ -433,16 +433,16 @@ cmd_echo	ENDP
 ;³
 ;³  SIDE EFFECT: ES - lost
 ;³		 SI - lost
-;³															   ;AN000;
-;ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ					   ;AN000;
+;³
+;ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
 
 display_printer_reroute_status	PROC  NEAR
 
-XOR  CX,CX								;AN665;
-MOV  ES,CX			       ;set segment to zero		;AN665;
+XOR  CX,CX
+MOV  ES,CX			       ;set segment to zero
 
 .IF <<ES:WORD PTR resseg> NE 0000H> AND      ;IF the resident code is loaded AND
-MOV  ES,ES:WORD PTR resseg[2]					     ;AN665;
+MOV  ES,ES:WORD PTR resseg[2]
 ;;XOR	BX,BX
 ;;MOV	BL,printer_reroute_mask
 TEST  BL,ES:PTSFLAG1	   ;see if the printer is rerouted

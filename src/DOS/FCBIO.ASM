@@ -1,5 +1,3 @@
-;	SCCSID = @(#)fcbio.asm	1.5 85/07/30
-;	SCCSID = @(#)fcbio.asm	1.5 85/07/30
 TITLE	FCBIO - FCB system calls
 NAME	FCBIO
 
@@ -21,19 +19,9 @@ NAME	FCBIO
 ;   SFTFromFCB
 ;   FCBHardErr
 ;
-;   Revision history:
-;
-;	Created: ARR 4 April 1983
-;		 MZ  6 June  1983 completion of functions
-;		 MZ 15 Dec   1983 Brain damaged programs close FCBs multiple
-;				  times.  Change so successive closes work by
-;				  always returning OK.	Also, detect I/O to
-;				  already closed FCB and return EOF.
-;		 MZ 16 Jan   1984 More braindamage.  Need to separate info
-;				  out of sft into FCB for reconnection
-;
-;	A000	 version 4.00  Jan. 1988
-;
+; Compatibility: repeated FCB closes succeed; I/O on a closed FCB returns EOF.
+; Keep reconnection information in the FCB even after its SFT has been closed.
+
 .xlist
 ;
 ; get the appropriate segment definitions
@@ -885,17 +873,16 @@ RegenNoSharing:
 RegenCopyName2:
 	LODSB
 
- IF  DBCS				;AN000;
-	invoke	testkanj		;AN000;
-	jz	notkanj9		;AN000;
-	STOSB				;AN000;
-	DEC	CX			;AN000;
+ IF  DBCS
+	invoke	testkanj
+	jz	notkanj9
+	STOSB
+	DEC	CX
 	JCXZ	DoneNam2		;AN000; ; Ignore split kanji char error
-	LODSB				;AN000;
-	jmp	short StuffChar2	;AN000;
-					;AN000;
-notkanj9:				;AN000;
- ENDIF					;AN000;
+	LODSB
+	jmp	short StuffChar2
+notkanj9:
+ ENDIF
 
 	Invoke	UCase
 StuffChar2:
@@ -954,7 +941,7 @@ RegenFileNoSharing:
 RegenCopyName:
 	LODSB
 
-	IF	DBCS			;AN000;
+	IF	DBCS
 	invoke	testkanj
 	jz	notkanj1
 	STOSB
@@ -964,7 +951,7 @@ RegenCopyName:
 	jmp	short StuffChar
 
 notkanj1:
-	ENDIF				;AN000;
+	ENDIF
 
 	Invoke	UCase
 StuffChar:

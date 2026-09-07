@@ -8,25 +8,8 @@
 ;
 ;   Module:   OEMDEP.INC
 ;
-;   Version:  0.04
-;
-;   Date:     June 13, 1986
-;
-;   Author:
-;
 ;******************************************************************************
 ;
-;   Change log:
-;
-;     DATE    REVISION			DESCRIPTION
-;   --------  --------	-------------------------------------------------------
-;   06/13/86  Original
-;   06/28/86  0.02	Name change from MEMM386 to MEMM
-;   07/05/86  0.04	Moved Diagbyte to _DATA
-;   07/06/86  0.04	Change from _DATA assume to DGROUP
-;   08/06/86  0.05	Broke out OEMPROC.ASM from OEMDEP.INC
-;
-;******************************************************************************
 ifndef INC_LIST
 .xlist
 endif

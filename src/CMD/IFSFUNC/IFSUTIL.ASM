@@ -1,2148 +1,1710 @@
-	PAGE	,132				; 					 ;AN000;
-;	SCCSID = @(#)ifsutil.asm	1.0 87/05/05					 ;AN000;
-TITLE	IFSFUNC UTILITY ROUTINES - Routines for IFSFUNC 				 ;AN000;
-NAME	IFSUTIL 									 ;AN000;
-;************************************************************************************	 ;AN000;
-;											 ;AN000;
-; Miscellaneous routines								 ;AN000;
-;											 ;AN000;
-;   IFSFlushBuf 									 ;AN000;
-;   IFS_UPDATE_CB	(Part II)							 ;AN000;
-;   SERVER_DOSCALL_CLOSEFILES_FOR_UID							 ;AN000;
-;   SERVER_IFSFUNC_DATA_AREA								 ;AN000;
-;   DRIVE_FROM_CDS									 ;AN000;
-;   DRIVE_FROM_SFT									 ;AN000;
-;   PREP_IFSR										 ;AN000;
-;   CALL_IFS										 ;AN000;
-;   CREATE_DFL_ENTRY									 ;AN000;
-;;;alias ENTER_NAMES_LIST								 ;AN000;
-;   DELETE_DFL_ENTRY									 ;AN000;
-;;;alias EXIT_NAMES_LIST								 ;AN000;
-;   DFL_MATCH										 ;AN000;
-;   DFL_SINGLE_FILE_CHECK								 ;AN000;
-;;;alias PROCESS_ALIAS									 ;AN000;
-;   CDS_TO_CD										 ;AN000;
-;   CD_TO_CDS										 ;AN000;
-;   DFL_TO_DF										 ;AN000;
-;   DF_TO_DFL										 ;AN000;
-;   SFT_TO_SFF										 ;AN000;
-;   SF_TO_SFT										 ;AN000;
-;   XCHGP										 ;AN000;
-;   CONSIST_SFT 									 ;AN000;
-;   CONSIST_DFL 									 ;AN000;
-;   PRN_CHECK										 ;AN000;
-;   IFSDrvFromCDS									 ;AN000;
-;   SET_THISIFS_UNC									 ;AN000;
-;   SET_CATEGORY									 ;AN000;
-;   SET_DEPIOCTL_IFSR									 ;AN000;
+	PAGE	,132				; 
+TITLE	IFSFUNC UTILITY ROUTINES - Routines for IFSFUNC
+NAME	IFSUTIL
+;************************************************************************************
+; Miscellaneous routines
+;   IFSFlushBuf
+;   IFS_UPDATE_CB	(Part II)
+;   SERVER_DOSCALL_CLOSEFILES_FOR_UID
+;   SERVER_IFSFUNC_DATA_AREA
+;   DRIVE_FROM_CDS
+;   DRIVE_FROM_SFT
+;   PREP_IFSR
+;   CALL_IFS
+;   CREATE_DFL_ENTRY
+;;;alias ENTER_NAMES_LIST
+;   DELETE_DFL_ENTRY
+;;;alias EXIT_NAMES_LIST
+;   DFL_MATCH
+;   DFL_SINGLE_FILE_CHECK
+;;;alias PROCESS_ALIAS
+;   CDS_TO_CD
+;   CD_TO_CDS
+;   DFL_TO_DF
+;   DF_TO_DFL
+;   SFT_TO_SFF
+;   SF_TO_SFT
+;   XCHGP
+;   CONSIST_SFT
+;   CONSIST_DFL
+;   PRN_CHECK
+;   IFSDrvFromCDS
+;   SET_THISIFS_UNC
+;   SET_CATEGORY
+;   SET_DEPIOCTL_IFSR
 ;   GET_UNC_FS_NAME
-;   MOVE_DRIVER_NAME									 ;AN000;
-;   CONVERT_NAME_ASCIIZ 								 ;AN000;
-;   CHECK_SEQ										 ;AN000;
-;   CHECK_REAL_DEVICE									 ;AN000;
-;   NET_TRANS										 ;AN000;
+;   MOVE_DRIVER_NAME
+;   CONVERT_NAME_ASCIIZ
+;   CHECK_SEQ
+;   CHECK_REAL_DEVICE
+;   NET_TRANS
 ;   STRIP_WFP_START
 ;   CHECK_IFS_ATTRIBUTE
 ;   CHECK_IFS_SUPPORT
-;											 ;AN000;
-;   REVISION HISTORY:									 ;AN000;
-;	A000	Original version 4.00   May 1987 					 ;AN000;
-;	A001	P453 - Correct $NameTrans processing on connect part of string		 ;AN000;
-;		RGazzia Aug 25,1987
-;	A002	D158 - merge redir info into attach stuff		8/87 RGazzia
-;	A003	P635 - read problem - sff-to-sft problem		8/87 RGazzia
-;	A004	P764 - printer attach problem				8/87 RGazzia
-;	A005	P845 - Disk reset infinitely calls			8/87 RGazzia
-;	A006	P868 - Lock problems					8/87 RGazzia
-;	A007	P849 - Printer open problems				8/87 RGazzia
-;	A008	P2307- Critical error problems			       11/87 RGazzia
-;	A009	P2364- Chkdsk fails if afs loaded		       11/87 RGazzia
-;		       due to losing cx in flush buf loop
-;	A010	P2385- check for ifs support of multifile/device fcns  11/87 RGazzia
-;	A011	P2827- ifs driver error mapping 		       12/87 RGazzia
-;	A012	P3225- prn to lpt1 problems				1/88 RGazzia
-;	A013	P3251- Net trans buffer problems			1/88 RGazzia
-;	A014	P3692- detach of attached ptr problem			3/88 RGazzia
-;	A015	P3745- commit problem due to sft flags problem		3/88 RGazzia
-;	A016	P3810- new sff field - sft entry id			3/88 RGazzia
-;	A017	P3680- sft changes					3/88 RGazzia
-;	A018	P3883- Share violation problems 			3/16/88 RMG
-;	A019	P3971- pause problems					3/24/88 RMG
-;	A020	P4055  Make sure THISDFL reset to null			3/30/88 RMG
-;	A021	P4172  share violation fail - wrong dos extended error	4/08/88 RMG
-;	A022	P4188  names=0 problems 				4/08/88 RMG
-;	A023	P4227  Austin garbage attach problem			4/11/88 RMG
-;	A024	P4392  Yet another sft change				4/18/88 RMG
-;	A025	P4751  retry logic fix					5/05/88 RMG
-;	A026	P4802  NET821 retry hang/ fail hang			5/10/88 RMG
-;	A027	P4839  ctrl-prtsc problems (consist_sft)		5/13/88 RMG
-;	A028	P4863  criter/parms problem				5/14/88 RMG
-;	A029	P4968  I24 DI not set right				5/25/88 RMG
-;	A030	P5004  Cap of device name corrupted			6/01/88 RMG
-;	A031	P5006  ctrl prtsc problems - pause back to real 	6/02/88 RMG
-;			 consist_sft
-;
-;   LOC - 696
-;************************************************************************************	 ;AN000;
-											 ;AN000;
-.xlist											 ;AN000;
-.xcref											 ;AN000;
-INCLUDE IFSSYM.INC									 ;AN000;
-INCLUDE IFSFSYM.INC									 ;AN000;
-INCLUDE DOSSYM.INC									 ;AN000;
-INCLUDE DEVSYM.INC									 ;AN000;
-.cref											 ;AN000;
-.list											 ;AN000;
-											 ;AN000;
-AsmVars <IBM, Installed, DEBUG> 							 ;AN000;
-											 ;AN000;
-; define the base code segment of the network support first				 ;AN000;
-											 ;AN000;
-IFSSEG	SEGMENT BYTE PUBLIC 'IFSSEG'                                                     ;AN000;
-IFSSEG	ENDS										 ;AN000;
-											 ;AN000;
-; include the rest of the segment definitions for normal MSDOS				 ;AN000;
-											 ;AN000;
-include dosseg.asm									 ;AN000;
-											 ;AN000;
-DATA		SEGMENT WORD PUBLIC 'DATA'                                               ;AN000;
-	;DOSGROUP Data									 ;AN000;
-	Extrn	sft_addr:DWORD								 ;AN000;
-	Extrn	sftFCB:DWORD								 ;AN000;
-	Extrn	WFP_START:WORD								 ;AN000;
-	Extrn	THISCDS:DWORD								 ;AN000;
-	Extrn	THISSFT:DWORD								 ;AN000;
-	Extrn	CDSADDR:DWORD								 ;AN000;
-	Extrn	CDSCOUNT:BYTE								 ;AN000;
-	Extrn	CurrentPDB:WORD 							 ;AN000;
-	Extrn	RetryCount:WORD 							 ;AN000;
-	Extrn	SysInitTable:BYTE							 ;AN000;
-	Extrn	CurrentPDB:WORD 							 ;AN000;
-	Extrn	IFS_HEADER:DWORD							 ;AN000;
-	Extrn	NULDEV:DWORD								 ;AN000;
-	Extrn	SWAP_AREA_TABLE:BYTE							 ;AN000;
-	Extrn	EXTERR:WORD								 ;AN011;
-	Extrn	EXTERR_ACTION:BYTE							 ;AN011;
-	Extrn	EXTERR_CLASS:BYTE							 ;AN011;
-	Extrn	EXTERR_LOCUS:BYTE							 ;AN011;
-	Extrn	ALLOWED:BYTE								 ;AN011;
+.xlist
+.xcref
+INCLUDE IFSSYM.INC
+INCLUDE IFSFSYM.INC
+INCLUDE DOSSYM.INC
+INCLUDE DEVSYM.INC
+.cref
+.list
+AsmVars <IBM, Installed, DEBUG>
+; define the base code segment of the network support first
+IFSSEG	SEGMENT BYTE PUBLIC 'IFSSEG'
+IFSSEG	ENDS
+; include the rest of the segment definitions for normal MSDOS
+include dosseg.asm
+DATA		SEGMENT WORD PUBLIC 'DATA'
+	;DOSGROUP Data
+	Extrn	sft_addr:DWORD
+	Extrn	sftFCB:DWORD
+	Extrn	WFP_START:WORD
+	Extrn	THISCDS:DWORD
+	Extrn	THISSFT:DWORD
+	Extrn	CDSADDR:DWORD
+	Extrn	CDSCOUNT:BYTE
+	Extrn	CurrentPDB:WORD
+	Extrn	RetryCount:WORD
+	Extrn	SysInitTable:BYTE
+	Extrn	CurrentPDB:WORD
+	Extrn	IFS_HEADER:DWORD
+	Extrn	NULDEV:DWORD
+	Extrn	SWAP_AREA_TABLE:BYTE
+	Extrn	EXTERR:WORD
+	Extrn	EXTERR_ACTION:BYTE
+	Extrn	EXTERR_CLASS:BYTE
+	Extrn	EXTERR_LOCUS:BYTE
+	Extrn	ALLOWED:BYTE
 	Extrn	ErrMap24End:BYTE
 	Extrn	ErrMap24:BYTE
-if debug										 ;AN000;
-	Extrn	BugLev:WORD								 ;AN000;
-	Extrn	BugTyp:WORD								 ;AN000;
-	include bugtyp.asm								 ;AN000;
-endif											 ;AN000;
-DATA		ENDS									 ;AN000;
-											 ;AN000;
-; define our own code segment								 ;AN000;
-											 ;AN000;
-IFSSEG	SEGMENT BYTE PUBLIC 'IFSSEG'                                                     ;AN000;
-	ASSUME	SS:DOSGROUP,CS:IFSSEG							 ;AN000;
-											 ;AN000;
-	;IFS Data									 ;AN000;
-	Extrn	IFSPROC_FLAGS:WORD							 ;AN000;
-	Extrn	IFSFUNC_FLAGS:WORD							 ;AN000;
-;;;aliasExtrn	NLAddr:DWORD								 ;AN000;
-	Extrn	TEMPBUF:BYTE								 ;AN000;
-	Extrn	DFLAddr:DWORD								 ;AN000;
-	Extrn	DFLCount:BYTE								 ;AN000;
-	Extrn	UNC_FS_HDR:DWORD							 ;AN000;
-	Extrn	THISIFS:DWORD								 ;AN000;
-	Extrn	THISDFL:DWORD								 ;AN000;
-	Extrn	IFSR:WORD								 ;AN000;
-	Extrn	CD1:WORD								 ;AN000;
-	Extrn	DF1:WORD								 ;AN000;
-	Extrn	SFF1:WORD								 ;AN000;
-	Extrn	IFSDRV:BYTE								 ;AN000;
-	Extrn	PHONEY_NAME:BYTE							 ;AN000;
-	Extrn	DEVICE_CB@_OFFSET:WORD							 ;AN000;
-	Extrn	SAVE_CB@:DWORD								 ;AN000;
-	Extrn	IFSF_SWAP_START:BYTE							 ;AN000;
-	Extrn	IFSF_SWAP_END:BYTE							 ;AN000;
-											 ;AN000;
-	PUBLIC	LPT1_NAME								 ;AN000;
-LPT1_NAME	DB	"LPT1",0                                                         ;AN000;
-PRN_NAME	DB	"PRN",0                                                          ;AN000;
-											 ;AN000;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;					 ;AN013;
-; The following buffer was created 1/88 to temporarily hold canonicalized		 ;AN013;
-; path name for $Nametrans call for Redir						 ;AN013;
-; Some area of TEMPBUF should be used instead for optimized storage space but		 ;AN013;
-; I didn't have time to research the best way to use it as time was short to             ;AN013;
-; fix ptm										 ;AN013;
-; This buffer should later be taken out when time permits to do this right		 ;AN013;
+if debug
+	Extrn	BugLev:WORD
+	Extrn	BugTyp:WORD
+	include bugtyp.asm
+endif
+DATA		ENDS
+; define our own code segment
+IFSSEG	SEGMENT BYTE PUBLIC 'IFSSEG'
+	ASSUME	SS:DOSGROUP,CS:IFSSEG
+	;IFS Data
+	Extrn	IFSPROC_FLAGS:WORD
+	Extrn	IFSFUNC_FLAGS:WORD
+;;;aliasExtrn	NLAddr:DWORD
+	Extrn	TEMPBUF:BYTE
+	Extrn	DFLAddr:DWORD
+	Extrn	DFLCount:BYTE
+	Extrn	UNC_FS_HDR:DWORD
+	Extrn	THISIFS:DWORD
+	Extrn	THISDFL:DWORD
+	Extrn	IFSR:WORD
+	Extrn	CD1:WORD
+	Extrn	DF1:WORD
+	Extrn	SFF1:WORD
+	Extrn	IFSDRV:BYTE
+	Extrn	PHONEY_NAME:BYTE
+	Extrn	DEVICE_CB@_OFFSET:WORD
+	Extrn	SAVE_CB@:DWORD
+	Extrn	IFSF_SWAP_START:BYTE
+	Extrn	IFSF_SWAP_END:BYTE
+	PUBLIC	LPT1_NAME
+LPT1_NAME	DB	"LPT1",0
+PRN_NAME	DB	"PRN",0
+; The following buffer was created 1/88 to temporarily hold canonicalized
+; path name for $Nametrans call for Redir
+; Some area of TEMPBUF should be used instead for optimized storage space but
+; I didn't have time to research the best way to use it as time was short to
+; fix ptm
+; This buffer should later be taken out when time permits to do this right
 ;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;					 ;AN013;
-NET_TRANS_BUFFER DB	128 DUP (0)		; temporary buffer used for $Nametrans	 ;AN013;
-						; storage of canonicalized pathname	 ;AN013;
-											 ;AN000;
-BREAK <IFSFlushBuf -- Flush all Net Cache Buffers>					 ;AN000;
-											 ;AN000;
-;************************************************************************************	 ;AN000;
-;											 ;AN000;
-; IFSFlushBuf										 ;AN000;
-;											 ;AN000;
-; Called by:	   Dispatcher								 ;AN000;
-;											 ;AN000;
-; Routines called: CD_TO_CDS								 ;AN000;
-;		   CDS_TO_CD								 ;AN000;
-;		   CALL_IFS								 ;AN000;
-;											 ;AN000;
-; Input: AL = 0  Flush all Net buffers. 						 ;AN000;
-;	      -1     "    "       "   plus invalidate them.                              ;AN000;
-;											 ;AN000;
-; Function:										 ;AN000;
-;	FOR I = 1 to # CDSs								 ;AN000;
-;	  DO										 ;AN000;
-;	    IF CURDIR_ISIFS = true THEN 						 ;AN000;
-;	       DO									 ;AN000;
-;		 Prepare IFSRH: 							 ;AN000;
-;		 *  IFSR_LENGTH      DW     40	     ; Request length			 ;AN000;
-;		 *  IFSR_FUNCTION    DB      4	     ; Execute API function		 ;AN000;
-;		  + IFSR_RETCODE     DW      ?						 ;AN000;
-;		  + IFSR_RETCLASS    DB      ?						 ;AN000;
-;		    IFSR_RESV1	     DB     16 DUP(0)					 ;AN000;
-;		 *  IFSR_APIFUNC     DB      1	     ; Drive Reset			 ;AN000;
-;		  + IFSR_ERROR_CLASS DB      ?						 ;AN000;
-;		  + IFSR_ERROR_ACTION DB     ?						 ;AN000;
-;		  + IFSR_ERROR_LOCUS DB      ?						 ;AN000;
-;		  + IFSR_ALLOWED     DB      ?						 ;AN000;
-;		  + IFSR_I24_RETRY   DB      ?						 ;AN000;
-;		  + IFSR_I24_RESP    DB      ?						 ;AN000;
-;		    IFSR_RESV2	     DB      ?						 ;AN000;
-;		 *+ IFSR_DEVICE_CB@  DD      ?	     ; Call CDS_TO_CD to convert	 ;AN000;
-;						    ; CDS to CD and set this as 	 ;AN000;
-;						    ; pointer to it.			 ;AN000;
-;		    IFSR_OPEN_CB@    DD      ?						 ;AN000;
-;		 *  IFSR_FUNC	     DB      ?	     ; 0 IF AL=0.  1 IF AL=-1.		 ;AN000;
-;		    IFSR_RESV2	     DB      0						 ;AN000;
-;											 ;AN000;
-;		 CALL routine, CALL_IFS, with pointer to CURDIR_IFSR_HDR		 ;AN000;
-;	       ENDDO									 ;AN000;
-;	    ENDIF									 ;AN000;
-;	  ENDDO 									 ;AN000;
-;											 ;AN000;
-; Output:  None 									 ;AN000;
-;											 ;AN000;
-; Notes:   all destroyed								 ;AN000;
-;											 ;AN000;
-;************************************************************************************	 ;AN000;
-											 ;AN000;
-	procedure   IFSFlushBuf,NEAR							 ;AN000;
-ASSUME	DS:DOSGROUP,ES:NOTHING								  ;AN000;
-											 ;AN000;
-	ifsr_fcn_def  EXECAPI								 ;AN000;
-	ifsr_api_def  DRIVERESET							 ;AN000;
-											 ;AN000;
-	MOV	CL,CDSCount			; CX = # CDS's                           ;AN000;
-	MOV	DX,SIZE curdir_list		; DX = size CDS entry			 ;AN000;
-	LDS	SI,[CDSAddr]			; Get addr 1st CDS			 ;AN000;
-											 ;AN000;
-IFB_20: 										 ;AN000;
-	TEST	DS:[SI.curdir_flags],curdir_isnet					 ;AN000;
-	JZ	IFB_60									 ;AN000;
-						; Is IFS.  Send drive reset request	 ;AN000;
-	invoke	PREP_IFSR			; sets es:bx -> ifsr (zeroed out)	 ;AN000;
-	MOV	ES:[BX.IFSR_LENGTH],LENGTH_DRIVERESET					 ;AN000;
-	MOV	ES:[BX.IFSR_FUNCTION],IFSEXECAPI					 ;AN000;
-	MOV	ES:[BX.IFSR_APIFUNC],IFSDRIVERESET					 ;AN000;
-	SaveReg <DS,SI> 			; save cds ptr				 ;AN000;
-	MOV	CS:DEVICE_CB@_OFFSET,IFSR_DEVICE_CB@					 ;AN000;
-	invoke	CDS_TO_CD								 ;AN000;
-	MOV	ES:[BX.IFSR_FUNC],AL							 ;AN000;
-											 ;AN000;
+NET_TRANS_BUFFER DB	128 DUP (0)		; temporary buffer used for $Nametrans
+						; storage of canonicalized pathname
+BREAK <IFSFlushBuf -- Flush all Net Cache Buffers>
+;************************************************************************************
+; IFSFlushBuf
+; Called by:	   Dispatcher
+; Routines called: CD_TO_CDS
+;		   CDS_TO_CD
+;		   CALL_IFS
+; Input: AL = 0  Flush all Net buffers.
+;	      -1     "    "       "   plus invalidate them.
+; Function:
+;	FOR I = 1 to # CDSs
+;	  DO
+;	    IF CURDIR_ISIFS = true THEN
+;	       DO
+;		 Prepare IFSRH:
+;		 *  IFSR_LENGTH      DW     40	     ; Request length
+;		 *  IFSR_FUNCTION    DB      4	     ; Execute API function
+;		  + IFSR_RETCODE     DW      ?
+;		  + IFSR_RETCLASS    DB      ?
+;		    IFSR_RESV1	     DB     16 DUP(0)
+;		 *  IFSR_APIFUNC     DB      1	     ; Drive Reset
+;		  + IFSR_ERROR_CLASS DB      ?
+;		  + IFSR_ERROR_ACTION DB     ?
+;		  + IFSR_ERROR_LOCUS DB      ?
+;		  + IFSR_ALLOWED     DB      ?
+;		  + IFSR_I24_RETRY   DB      ?
+;		  + IFSR_I24_RESP    DB      ?
+;		    IFSR_RESV2	     DB      ?
+;		 *+ IFSR_DEVICE_CB@  DD      ?	     ; Call CDS_TO_CD to convert
+;						    ; CDS to CD and set this as
+;						    ; pointer to it.
+;		    IFSR_OPEN_CB@    DD      ?
+;		 *  IFSR_FUNC	     DB      ?	     ; 0 IF AL=0.  1 IF AL=-1.
+;		    IFSR_RESV2	     DB      0
+;		 CALL routine, CALL_IFS, with pointer to CURDIR_IFSR_HDR
+;	       ENDDO
+;	    ENDIF
+;	  ENDDO
+; Output:  None
+; Notes:   all destroyed
+;************************************************************************************
+	procedure   IFSFlushBuf,NEAR
+ASSUME	DS:DOSGROUP,ES:NOTHING
+	ifsr_fcn_def  EXECAPI
+	ifsr_api_def  DRIVERESET
+	MOV	CL,CDSCount			; CX = # CDS's
+	MOV	DX,SIZE curdir_list		; DX = size CDS entry
+	LDS	SI,[CDSAddr]			; Get addr 1st CDS
+IFB_20:
+	TEST	DS:[SI.curdir_flags],curdir_isnet
+	JZ	IFB_60
+						; Is IFS.  Send drive reset request
+	invoke	PREP_IFSR			; sets es:bx -> ifsr (zeroed out)
+	MOV	ES:[BX.IFSR_LENGTH],LENGTH_DRIVERESET
+	MOV	ES:[BX.IFSR_FUNCTION],IFSEXECAPI
+	MOV	ES:[BX.IFSR_APIFUNC],IFSDRIVERESET
+	SaveReg <DS,SI> 			; save cds ptr
+	MOV	CS:DEVICE_CB@_OFFSET,IFSR_DEVICE_CB@
+	invoke	CDS_TO_CD
+	MOV	ES:[BX.IFSR_FUNC],AL
 	SaveReg <CX>				; preserve loop count
-	invoke	CALL_IFS			; Call IFS				 ;AN000;
+	invoke	CALL_IFS			; Call IFS
 	RestoreReg <CX> 			; retrieve loop count
-	JNC	IFB_30									 ;AN000;
-	RestoreReg <SI,DS>			; restore cds ptr			 ;AN000;
-	JMP	SHORT IFB_60								 ;AN000;
-IFB_30: 										 ;AN000;
-	RestoreReg <DI,ES>			; restore cds ptr into es:di		 ;AN000;
-	CALL	CD_TO_CDS			; update CDS if retcode ok		 ;AN000;
-	PUSH	ES				; get cds ptr into ds:si		 ;AN000;
-	POP	DS									 ;AN000;
-	MOV	SI,DI									 ;AN000;
-											 ;AN000;
-IFB_60: 										 ;AN000;
-	ADD	SI,DX				; Skip to next CDS			 ;AN000;
-	LOOP	IFB_20									 ;AN000;
-	JMP	IFS_990 								 ;AN000;
-											 ;AN000;
-;***********************************************************************************	 ;AN000;
-;						  ifs common return area		 ;AN000;
-;***********************************************************************************	 ;AN000;
-	entry  IFS_980									 ;AN000;
-	STC										 ;AN000;
-	return										 ;AN000;
-	entry  IFS_990									 ;AN000;
-	CLC										 ;AN000;
-	entry  IFS_1000 								 ;AN000;
-	return										 ;AN000;
-											 ;AN000;
-											 ;AN000;
-EndProc IFSFlushBuf									 ;AN000;
-											 ;AN000;
-											 ;AN000;
-BREAK <IFS_UPDATE_CB  Update SFT entry> 						 ;AN000;
-											 ;AN000;
-;****************************************************************************** 	 ;AN000;
-;											 ;AN000;
-; IFS_UPDATE_CB 									 ;AN000;
-;											 ;AN000;
-; Called by:  IFSFUNC Dispatcher  (Share)						 ;AN000;
-;											 ;AN000;
-; Routines called:									 ;AN000;
-;		     SFT_TO_SFF 							 ;AN000;
-;		     SF_TO_SFT								 ;AN000;
-;		     CALL_IFS								 ;AN000;
-;											 ;AN000;
-; Inputs:										 ;AN000;
-;	DS:SI -> SFT									 ;AN000;
-;											 ;AN000;
-; Function:										 ;AN000;
-;	Prep IFSRH:									 ;AN000;
-;	*  IFS_LENGTH	   DW	  28	   ; Request length				 ;AN000;
-;	*  IFS_FUNCTION    DB	   6	   ; Control Block Update			 ;AN000;
-;	   IFS_RETCODE	   DW	   ?							 ;AN000;
-;	   IFS_RETCLASS    DB	   ?							 ;AN000;
-;	   IFS_RESV1	   DB	  16 DUP(0)						 ;AN000;
-;	*  IFS_CB@	   DD	   ?	   ; Control Block Address			 ;AN000;
-;	*  IFS_TYPE	   DB	   ?	   ; Control Block Type 			 ;AN000;
-;	     IFSOPEN	   EQU	   0	   ;  Open instnce (SFT) entry			 ;AN000;
-;	     IFSCB	   EQU	  -1	   ;  See CB Type Field 			 ;AN000;
-;	   IFS_RESV2	   DB	   0							 ;AN000;
-;											 ;AN000;
-;	Call IFS specified in SFT							 ;AN000;
-;											 ;AN000;
-; Outputs:										 ;AN000;
-;	Carry set on error.  Error code in AX.						 ;AN000;
-;											 ;AN000;
-; Regs: 										 ;AN000;
-;											 ;AN000;
-; Programming notes:									 ;AN000;
-;											 ;AN000;
-;****************************************************************************** 	 ;AN000;
-											 ;AN000;
-	procedure IFS_UPDATE_CB,NEAR							 ;AN000;
-ASSUME	DS:NOTHING,ES:NOTHING								 ;AN000;
-											 ;AN000;
-	ifsr_fcn_def	UPDATECB							 ;AN000;
-						; Reset ifsfunc processing flags	 ;AN000;
-	MOV	CS:IFSPROC_FLAGS,ISCTLFCN+ISSFT ; Set this so SFT_TO_SFF sets		 ;AN000;
-						; ifsr_cb@ instead of ifsr_open_cb@	 ;AN000;
-						; ISSFT set so sft_to_sff sets		 ;AN000;
-						; thisifs				 ;AN000;
-	invoke	PREP_IFSR			; sets es:bx -> ifsr (zeroed out)	 ;AN000;
-	Context DS									 ;AN000;
-	invoke	SFT_TO_SFF			; SFT: sets [THISIFS]			 ;AN000;
-						;	    ES:BX -> IFSRH		 ;AN000;
-						;	    IFSR_CB@			 ;AN000;
-						;	    ds - IFSSEG 		 ;AN000;
-	MOV	ES:[BX.IFSR_LENGTH],LENGTH_UPDATECB	; prep IFSRH			 ;AN000;
-	MOV	ES:[BX.IFSR_FUNCTION],IFSUPDATECB					 ;AN000;
-	MOV	ES:[BX.IFSR_TYPE],IFSOPEN						 ;AN000;
-											 ;AN000;
-	invoke	CALL_IFS								 ;AN000;
-	JC	ifs_1000			; cf already set			 ;AN000;
-	invoke	SFF_TO_SFT								 ;AN000;
-	JMP	ifs_990 								 ;AN000;
-											 ;AN000;
-EndProc IFS_UPDATE_CB									 ;AN000;
-											 ;AN000;
-											 ;AN000;
-BREAK <SERVER_DOSCALL_CLOSEFILES_FOR_UID>						 ;AN000;
-											 ;AN000;
-;************************************************************************************	 ;AN000;
-;											 ;AN000;
-; SERVER_DOSCALL_CLOSEFILES_FOR_UID							 ;AN000;
-;											 ;AN000;
-; Called by:	   IFSFUNC Dispatcher							 ;AN000;
-;											 ;AN000;
-; Routines called:									 ;AN000;
-;	CALL_IFS									 ;AN000;
-;											 ;AN000;
-; Inputs:										 ;AN000;
-;	[CurrentPDB] set to UID of user aborting					 ;AN000;
-; Function:										 ;AN000;
-;	Get address of IFS driver chain.						 ;AN000;
-;	FOR I = 1 to last IFS driver							 ;AN000;
-;	    Send request below to IFS driver						 ;AN000;
-;											 ;AN000;
-;	IFSRH:										 ;AN000;
-;	*  IFSR_LENGTH	    DW	   40	    ; Request length				 ;AN000;
-;	*  IFSR_FUNCTION    DB	    4	    ; Execute API function			 ;AN000;
-;	   IFSR_RETCODE     DW	    ?							 ;AN000;
-;	   IFSR_RETCLASS    DB	    ?							 ;AN000;
-;	   IFSR_RESV1	    DB	   16 DUP(0)						 ;AN000;
-;	*  IFSR_APIFUNC     DB	   19	    ; End of Computer ID			 ;AN000;
-;	   IFSR_ERROR_CLASS DB	    ?							 ;AN000;
-;	   IFSR_ERROR_ACTION DB     ?							 ;AN000;
-;	   IFSR_ERROR_LOCUS DB	    ?							 ;AN000;
-;	 + IFSR_ALLOWED     DB	    ?							 ;AN000;
-;	 + IFSR_I24_RETRY   DB	    ?							 ;AN000;
-;	 + IFSR_I24_RESP    DB	    ?							 ;AN000;
-;	   IFSR_RESV2	    DB	    ?							 ;AN000;
-;	   IFSR_DEVICE_CB@  DD	    ?	    ; CD					 ;AN000;
-;	   IFSR_OPEN_CB@    DD	    ?							 ;AN000;
-;	*  IFSR_UID	    DW	    ?							 ;AN000;
-;											 ;AN000;
-; Outputs: None 									 ;AN000;
-;											 ;AN000;
-; Regs: All destroyed									 ;AN000;
-;											 ;AN000;
-;************************************************************************************	 ;AN000;
-											 ;AN000;
-	procedure   SERVER_DOSCALL_CLOSEFILES_FOR_UID,NEAR				 ;AN000;
-ASSUME	DS:DOSGROUP,ES:NOTHING								 ;AN000;
-											 ;AN000;
-	ifsr_fcn_def EXECAPI								 ;AN000;
-	ifsr_api_def EOCID								 ;AN000;
-											 ;AN000;
-	LDS	SI,IFS_HEADER			; get 1st ifs driver			 ;AN000;
-ASSUME	DS:NOTHING									 ;AN000;
-											 ;AN000;
-SDC_20: 					; ** Loop here on ifs drivers		 ;AN000;
-	MOV	CS:WORD PTR [THISIFS],SI	; Send end of process request		 ;AN000;
-	MOV	CS:WORD PTR [THISIFS+2],DS	; to all fs drivers.			 ;AN000;
-						; Set thisifs for call_ifs		 ;AN000;
-	invoke	PREP_IFSR			; sets es:bx -> ifsr (zeroed out)	 ;AN000;
-	MOV	ES:[BX.IFSR_LENGTH],LENGTH_EOCID					 ;AN000;
-	MOV	ES:[BX.IFSR_FUNCTION],IFSEXECAPI					 ;AN000;
-	MOV	ES:[BX.IFSR_APIFUNC],IFSEOCID						 ;AN000;
-	MOV	AX,[CurrentPDB] 							 ;AN000;
-	MOV	ES:[BX.IFSR_UID],AX							 ;AN000;
-											 ;AN000;
-	SaveReg <DS,CS> 								 ;AN000;
-	RestoreReg <DS> 								 ;AN000;
-ASSUME	DS:IFSSEG				; ds - ifsseg				 ;AN000;
-											 ;AN000;
-	invoke	CALL_IFS								 ;AN000;
-											 ;AN000;
-	RestoreReg <DS> 			; ds - fs driver			 ;AN000;
-	LDS	SI,[SI.IFS_NEXT]		; Do next fs driver			 ;AN000;
-	CMP	SI,NULL_PTR			; if ptr null, no more			 ;AN000;
-	JNE	SDC_20									 ;AN000;
-	PUSH	DS									 ;AN000;
-	POP	AX									 ;AN000;
-	CMP	AX,NULL_PTR								 ;AN000;
-	JNE	SDC_20									 ;AN000;
-											 ;AN000;
-	jmp	ifs_1000			; go return				 ;AN000;
-											 ;AN000;
-											 ;AN000;
-EndProc SERVER_DOSCALL_CLOSEFILES_FOR_UID						 ;AN000;
-											 ;AN000;
-											 ;AN000;
-BREAK <SERVER_IFSFUNC_DATA_AREA - IFSFUNC swappable data area>				 ;AN000;
-											 ;AN000;
-;************************************************************************************	 ;AN000;
-;											 ;AN000;
-; SERVER_IFSFUNC_DATA_AREA								 ;AN000;
-;											 ;AN000;
-; Called by:	    Dispatcher								 ;AN000;
-;											 ;AN000;
-; Routines called:  None								 ;AN000;
-;											 ;AN000;
-; Inputs:										 ;AN000;
-;	DS - DOSGroup									 ;AN000;
-;											 ;AN000;
-; Function:										 ;AN000;
+	JNC	IFB_30
+	RestoreReg <SI,DS>			; restore cds ptr
+	JMP	SHORT IFB_60
+IFB_30:
+	RestoreReg <DI,ES>			; restore cds ptr into es:di
+	CALL	CD_TO_CDS			; update CDS if retcode ok
+	PUSH	ES				; get cds ptr into ds:si
+	POP	DS
+	MOV	SI,DI
+IFB_60:
+	ADD	SI,DX				; Skip to next CDS
+	LOOP	IFB_20
+	JMP	IFS_990
+;***********************************************************************************
+;						  ifs common return area
+;***********************************************************************************
+	entry  IFS_980
+	STC
+	return
+	entry  IFS_990
+	CLC
+	entry  IFS_1000
+	return
+EndProc IFSFlushBuf
+BREAK <IFS_UPDATE_CB  Update SFT entry>
+;******************************************************************************
+; IFS_UPDATE_CB
+; Called by:  IFSFUNC Dispatcher  (Share)
+; Routines called:
+;		     SFT_TO_SFF
+;		     SF_TO_SFT
+;		     CALL_IFS
+; Inputs:
+;	DS:SI -> SFT
+; Function:
+;	Prep IFSRH:
+;	*  IFS_LENGTH	   DW	  28	   ; Request length
+;	*  IFS_FUNCTION    DB	   6	   ; Control Block Update
+;	   IFS_RETCODE	   DW	   ?
+;	   IFS_RETCLASS    DB	   ?
+;	   IFS_RESV1	   DB	  16 DUP(0)
+;	*  IFS_CB@	   DD	   ?	   ; Control Block Address
+;	*  IFS_TYPE	   DB	   ?	   ; Control Block Type
+;	     IFSOPEN	   EQU	   0	   ;  Open instnce (SFT) entry
+;	     IFSCB	   EQU	  -1	   ;  See CB Type Field
+;	   IFS_RESV2	   DB	   0
+;	Call IFS specified in SFT
+; Outputs:
+;	Carry set on error.  Error code in AX.
+; Regs:
+; Programming notes:
+;******************************************************************************
+	procedure IFS_UPDATE_CB,NEAR
+ASSUME	DS:NOTHING,ES:NOTHING
+	ifsr_fcn_def	UPDATECB
+						; Reset ifsfunc processing flags
+	MOV	CS:IFSPROC_FLAGS,ISCTLFCN+ISSFT ; Set this so SFT_TO_SFF sets
+						; ifsr_cb@ instead of ifsr_open_cb@
+						; ISSFT set so sft_to_sff sets
+						; thisifs
+	invoke	PREP_IFSR			; sets es:bx -> ifsr (zeroed out)
+	Context DS
+	invoke	SFT_TO_SFF			; SFT: sets [THISIFS]
+						;	    ES:BX -> IFSRH
+						;	    IFSR_CB@
+						;	    ds - IFSSEG
+	MOV	ES:[BX.IFSR_LENGTH],LENGTH_UPDATECB	; prep IFSRH
+	MOV	ES:[BX.IFSR_FUNCTION],IFSUPDATECB
+	MOV	ES:[BX.IFSR_TYPE],IFSOPEN
+	invoke	CALL_IFS
+	JC	ifs_1000			; cf already set
+	invoke	SFF_TO_SFT
+	JMP	ifs_990
+EndProc IFS_UPDATE_CB
+BREAK <SERVER_DOSCALL_CLOSEFILES_FOR_UID>
+;************************************************************************************
+; SERVER_DOSCALL_CLOSEFILES_FOR_UID
+; Called by:	   IFSFUNC Dispatcher
+; Routines called:
+;	CALL_IFS
+; Inputs:
+;	[CurrentPDB] set to UID of user aborting
+; Function:
+;	Get address of IFS driver chain.
+;	FOR I = 1 to last IFS driver
+;	    Send request below to IFS driver
+;	IFSRH:
+;	*  IFSR_LENGTH	    DW	   40	    ; Request length
+;	*  IFSR_FUNCTION    DB	    4	    ; Execute API function
+;	   IFSR_RETCODE     DW	    ?
+;	   IFSR_RETCLASS    DB	    ?
+;	   IFSR_RESV1	    DB	   16 DUP(0)
+;	*  IFSR_APIFUNC     DB	   19	    ; End of Computer ID
+;	   IFSR_ERROR_CLASS DB	    ?
+;	   IFSR_ERROR_ACTION DB     ?
+;	   IFSR_ERROR_LOCUS DB	    ?
+;	 + IFSR_ALLOWED     DB	    ?
+;	 + IFSR_I24_RETRY   DB	    ?
+;	 + IFSR_I24_RESP    DB	    ?
+;	   IFSR_RESV2	    DB	    ?
+;	   IFSR_DEVICE_CB@  DD	    ?	    ; CD
+;	   IFSR_OPEN_CB@    DD	    ?
+;	*  IFSR_UID	    DW	    ?
+; Outputs: None
+; Regs: All destroyed
+;************************************************************************************
+	procedure   SERVER_DOSCALL_CLOSEFILES_FOR_UID,NEAR
+ASSUME	DS:DOSGROUP,ES:NOTHING
+	ifsr_fcn_def EXECAPI
+	ifsr_api_def EOCID
+	LDS	SI,IFS_HEADER			; get 1st ifs driver
+ASSUME	DS:NOTHING
+SDC_20: 					; ** Loop here on ifs drivers
+	MOV	CS:WORD PTR [THISIFS],SI	; Send end of process request
+	MOV	CS:WORD PTR [THISIFS+2],DS	; to all fs drivers.
+						; Set thisifs for call_ifs
+	invoke	PREP_IFSR			; sets es:bx -> ifsr (zeroed out)
+	MOV	ES:[BX.IFSR_LENGTH],LENGTH_EOCID
+	MOV	ES:[BX.IFSR_FUNCTION],IFSEXECAPI
+	MOV	ES:[BX.IFSR_APIFUNC],IFSEOCID
+	MOV	AX,[CurrentPDB]
+	MOV	ES:[BX.IFSR_UID],AX
+	SaveReg <DS,CS>
+	RestoreReg <DS>
+ASSUME	DS:IFSSEG				; ds - ifsseg
+	invoke	CALL_IFS
+	RestoreReg <DS> 			; ds - fs driver
+	LDS	SI,[SI.IFS_NEXT]		; Do next fs driver
+	CMP	SI,NULL_PTR			; if ptr null, no more
+	JNE	SDC_20
+	PUSH	DS
+	POP	AX
+	CMP	AX,NULL_PTR
+	JNE	SDC_20
+	jmp	ifs_1000			; go return
+EndProc SERVER_DOSCALL_CLOSEFILES_FOR_UID
+BREAK <SERVER_IFSFUNC_DATA_AREA - IFSFUNC swappable data area>
+;************************************************************************************
+; SERVER_IFSFUNC_DATA_AREA
+; Called by:	    Dispatcher
+; Routines called:  None
+; Inputs:
+;	DS - DOSGroup
+; Function:
 ;	Put IFSFUNC swappable data area info in ibmdos's swap_area_table
-;											 ;AN000;
-; Outputs:										 ;AN000;
-;	swap_area_table filled in:							 ;AN000;
-;			dw	num areas - 3						 ;AN000;
+; Outputs:
+;	swap_area_table filled in:
+;			dw	num areas - 3
 ;			dd	ibmdos swap indos area address
 ;			dw	ibmdos swap indos area length
 ;			dd	ibmdos swap always area address
 ;			dw	ibmdos swap always area length
 ;			dd	ifsfunc swap indos area address
 ;			dw	ifsfunc swap indos area length
-;											 ;AN000;
 ; Regs: All preserved
-;											 ;AN000;
-;************************************************************************************	 ;AN000;
-											 ;AN000;
-	procedure   SERVER_IFSFUNC_DATA_AREA,NEAR					 ;AN000;
-ASSUME	DS:DOSGROUP,ES:NOTHING								 ;AN000;
-											 ;AN000;
-	SaveReg <AX,ES,DI,DS,SI,DX,CS>							 ;AN000;
-	RestoreReg <ES> 								 ;AN000;
-	MOV	DI,OFFSET CS:IFSF_SWAP_START						 ;AN000;
-	MOV	DX,OFFSET CS:IFSF_SWAP_END						 ;AN000;
-	SUB	DX,DI									 ;AN000;
-	LEA	SI,SWAP_AREA_TABLE	; get offset address of swap area table 	 ;AN000;
+;************************************************************************************
+	procedure   SERVER_IFSFUNC_DATA_AREA,NEAR
+ASSUME	DS:DOSGROUP,ES:NOTHING
+	SaveReg <AX,ES,DI,DS,SI,DX,CS>
+	RestoreReg <ES>
+	MOV	DI,OFFSET CS:IFSF_SWAP_START
+	MOV	DX,OFFSET CS:IFSF_SWAP_END
+	SUB	DX,DI
+	LEA	SI,SWAP_AREA_TABLE	; get offset address of swap area table
 
-	MOV	WORD PTR DS:[SI],3	; number of data areas increased from 2 to 3	 ;AN000;
-	ADD	SI,14			; skip to ifsfunc area				 ;AN000;
-	MOV	WORD PTR DS:[SI],DI	; fill in ifsfunc data area address		 ;AN000;
-	MOV	WORD PTR DS:[SI+2],ES							 ;AN000;
-	MOV WORD PTR DS:[SI+4],DX	; fill in ifsfunc data area length		 ;AN000;
-											 ;AN000;
-	RestoreReg <DX,SI,DS,DI,ES,AX>							 ;AN000;
-											 ;AN000;
-	return										 ;AN000;
-											 ;AN000;
-EndProc SERVER_IFSFUNC_DATA_AREA							 ;AN000;
-											 ;AN000;
-											 ;AN000;
-BREAK <DRIVE_FROM_XXX -- Compute a drive index from a CDS or SFT>			 ;AN000;
-											 ;AN000;
-	procedure DRIVE_FROM_CDS,NEAR							 ;AN000;
-ASSUME	DS:NOTHING,ES:NOTHING								 ;AN000;
-;************************************************************************************	 ;AN000;
-;											 ;AN000;
-; DRIVE_FROM_CDS									 ;AN000;
-;											 ;AN000;
-; Inputs:										 ;AN000;
-;	[THISCDS] Set									 ;AN000;
-;	DS - DOSGROUP									 ;AN000;
-; Function:										 ;AN000;
-;	Compute drive letter from THISCDS						 ;AN000;
-; Outputs:										 ;AN000;
-;	[IFSDRV] = Drive # (0=A)							 ;AN000;
-; No registers Revised 								 ;AN000;
-;************************************************************************************	 ;AN000;
-											 ;AN000;
-	PUSH	BX									 ;AN000;
-	PUSH	AX									 ;AN000;
-	MOV	[IFSDRV],0FEH		; Default to ?, 0FEH + 'A' = '?'                 ;AN000;
-	MOV	AX,WORD PTR [THISCDS]							 ;AN000;
-	CMP	AX,-1									 ;AN000;
-	JZ	DFC_20									 ;AN000;
-	CALL	IFSDrvFromCDS								 ;AN000;
-DFC_20: 										 ;AN000;
-	POP	AX									 ;AN000;
-	POP	BX									 ;AN000;
-	jmp	ifs_1000		; go return					 ;AN000;
-											 ;AN000;
-EndProc DRIVE_FROM_CDS									 ;AN000;
-											 ;AN000;
-;************************************************************************************	 ;AN000;
-;											 ;AN000;
-; DRIVE_FROM_SFT									 ;AN000;
-;											 ;AN000;
-; Inputs:										 ;AN000;
-;	[THISSFT] Set	   DS-Dosgroup							 ;AN000;
-; Function:										 ;AN000;
-;	Compute drive letter from THISSFT						 ;AN000;
-; Outputs:										 ;AN000;
-;	[IFSDRV] = Drive # (0=A)							 ;AN000;
-;	[IFSDRV] = -1 if printer							 ;AN000;
-;		PHONEY_NAME								 ;AN000;
-; No registers Revised 								 ;AN000;
-;************************************************************************************	 ;AN000;
-											 ;AN000;
-	procedure DRIVE_FROM_SFT,NEAR							 ;AN000;
-ASSUME	DS:NOTHING,ES:NOTHING								 ;AN000;
-											 ;AN000;
-	SaveReg <DS,BX,CX>								 ;AC006;
-	LDS	BX,[THISSFT]								 ;AN000;
-	TEST	[BX.sf_flags],sf_net_spool						 ;AN000;
-	JNZ	DFS_100 								 ;AN000;
-	MOV	BL,BYTE PTR [BX.sf_flags]						 ;AN000;
-	AND	BL,devid_file_mask_drive						 ;AN000;
-	CMP	BL,0FEH AND devid_file_mask_drive	; UNC ????			 ;AN000;
-	JNZ	DFS_20			; No						 ;AN000;
-	MOV	BL,0FEH 		; Restore lost bits if UNC			 ;AN000;
-DFS_20: 										 ;AN000;
-	MOV	[IFSDRV],BL								 ;AN000;
-	RestoreReg <CX,BX,DS>								 ;AC006;
-	JMP	ifs_1000		; go return					 ;AN000;
-											 ;AN000;
-DFS_100:										 ;AN000;
-	SaveReg <ES,DI,SI>								 ;AN000;
-	MOV	DI,OFFSET CS:[PHONEY_NAME]	; Set name for I24 handler		 ;AN000;
-	PUSH	CS									 ;AN000;
-	POP	ES									 ;AN000;
-	MOV	SI,BX									 ;AN000;
-	ADD	SI,SF_NAME								 ;AN000;
-	MOV	CX,8									 ;AC007;
-	REP	MOVSB									 ;AN000;
-											 ;AN000;
-	RestoreReg <SI,DI,ES>								 ;AN000;
-	MOV	BL,-1									 ;AN000;
-	JMP	DFS_20									 ;AN000;
-											 ;AN000;
-EndProc DRIVE_FROM_SFT									 ;AN000;
-											 ;AN000;
-											 ;AN000;
-BREAK <PREP_IFSR -- zero out ifsr>							 ;AN000;
-											 ;AN000;
-;************************************************************************************	 ;AN000;
-;											 ;AN000;
-; PREP_IFSR										 ;AN000;
-;											 ;AN000;
-; Called by:	all function routines							 ;AN000;
-;											 ;AN000;
-; Inputs: none										 ;AN000;
-;											 ;AN000;
-; Function:										 ;AN000;
-;	set all ifsrh fields to zero							 ;AN000;
-;											 ;AN000;
-; Outputs:										 ;AN000;
-;	ES:BX -> IFSRH									 ;AN000;
-;											 ;AN000;
-; Regs: all except ES,BX saved								 ;AN000;
-;											 ;AN000;
-;************************************************************************************	 ;AN000;
-											 ;AN000;
-	procedure PREP_IFSR,NEAR							 ;AN000;
-											 ;AN000;
-	SaveReg <DS,DI,AX,CX>			; save regs				 ;AN000;
-											 ;AN000;
-	SaveReg <CS,CS> 			; get ds,es -> ifsseg			 ;AN000;
-	RestoreReg <DS,ES>								 ;AN000;
-ASSUME	DS:IFSSEG,ES:IFSSEG								 ;AN000;
-											 ;AN000;
-	MOV	DI,OFFSET IFSR			; es:di -> ifsrh			 ;AN000;
-	MOV	BX,DI				; es:bx -> ifsrh			 ;AN000;
-	MOV	CX,SIZE IFSRH  /2							 ;AN000;
-	XOR	AX,AX									 ;AN000;
-	REP	STOSW				; fill ifsr w/zeros			 ;AN000;
-											 ;AN000;
-	RestoreReg <CX,AX,DI,DS>		; restore regs				 ;AN000;
-											 ;AN000;
-	return										 ;AN000;
-											 ;AN000;
-EndProc PREP_IFSR									 ;AN000;
-											 ;AN000;
-											 ;AN000;
-BREAK <CALL_IFS - call IFS Driver>							 ;AN000;
-											 ;AN000;
-;************************************************************************************	 ;AN000;
-;											 ;AN000;
-; CALL_IFS										 ;AN000;
-;											 ;AN000;
-; Called by:	all function routines							 ;AN000;
-;											 ;AN000;
-; Inputs:										 ;AN000;
-;	[THISIFS] set									 ;AN000;
-;	ES:BX -> IFS request header							 ;AN000;
-;	DS - IFSSEG									 ;AN000;
-;											 ;AN000;
-; Function:										 ;AN000;
-;	Call file system function entry point						 ;AN000;
-;											 ;AN000;
-; Outputs:										 ;AN000;
-;	Outputs of call 								 ;AN000;
-;											 ;AN000;
-; Regs: none preserved									 ;AN000;
-;											 ;AN000;
-;************************************************************************************	 ;AN000;
-											 ;AN000;
-	procedure CALL_IFS,NEAR 							 ;AN000;
-											 ;AN000;
-	CALL	CHECK_IFS_SUPPORT		; 1st check if this request ok for ifs	 ;AN010;
-	PUSH	WORD PTR [THISIFS]		; save thisifs offset			 ;AN000;
+	MOV	WORD PTR DS:[SI],3	; number of data areas increased from 2 to 3
+	ADD	SI,14			; skip to ifsfunc area
+	MOV	WORD PTR DS:[SI],DI	; fill in ifsfunc data area address
+	MOV	WORD PTR DS:[SI+2],ES
+	MOV WORD PTR DS:[SI+4],DX	; fill in ifsfunc data area length
+	RestoreReg <DX,SI,DS,DI,ES,AX>
+	return
+EndProc SERVER_IFSFUNC_DATA_AREA
+BREAK <DRIVE_FROM_XXX -- Compute a drive index from a CDS or SFT>
+	procedure DRIVE_FROM_CDS,NEAR
+ASSUME	DS:NOTHING,ES:NOTHING
+;************************************************************************************
+; DRIVE_FROM_CDS
+; Inputs:
+;	[THISCDS] Set
+;	DS - DOSGROUP
+; Function:
+;	Compute drive letter from THISCDS
+; Outputs:
+;	[IFSDRV] = Drive # (0=A)
+; No registers Revised
+;************************************************************************************
+	PUSH	BX
+	PUSH	AX
+	MOV	[IFSDRV],0FEH		; Default to ?, 0FEH + 'A' = '?'
+	MOV	AX,WORD PTR [THISCDS]
+	CMP	AX,-1
+	JZ	DFC_20
+	CALL	IFSDrvFromCDS
+DFC_20:
+	POP	AX
+	POP	BX
+	jmp	ifs_1000		; go return
+EndProc DRIVE_FROM_CDS
+;************************************************************************************
+; DRIVE_FROM_SFT
+; Inputs:
+;	[THISSFT] Set	   DS-Dosgroup
+; Function:
+;	Compute drive letter from THISSFT
+; Outputs:
+;	[IFSDRV] = Drive # (0=A)
+;	[IFSDRV] = -1 if printer
+;		PHONEY_NAME
+; No registers Revised
+;************************************************************************************
+	procedure DRIVE_FROM_SFT,NEAR
+ASSUME	DS:NOTHING,ES:NOTHING
+	SaveReg <DS,BX,CX>
+	LDS	BX,[THISSFT]
+	TEST	[BX.sf_flags],sf_net_spool
+	JNZ	DFS_100
+	MOV	BL,BYTE PTR [BX.sf_flags]
+	AND	BL,devid_file_mask_drive
+	CMP	BL,0FEH AND devid_file_mask_drive	; UNC ????
+	JNZ	DFS_20			; No
+	MOV	BL,0FEH 		; Restore lost bits if UNC
+DFS_20:
+	MOV	[IFSDRV],BL
+	RestoreReg <CX,BX,DS>
+	JMP	ifs_1000		; go return
+DFS_100:
+	SaveReg <ES,DI,SI>
+	MOV	DI,OFFSET CS:[PHONEY_NAME]	; Set name for I24 handler
+	PUSH	CS
+	POP	ES
+	MOV	SI,BX
+	ADD	SI,SF_NAME
+	MOV	CX,8
+	REP	MOVSB
+	RestoreReg <SI,DI,ES>
+	MOV	BL,-1
+	JMP	DFS_20
+EndProc DRIVE_FROM_SFT
+BREAK <PREP_IFSR -- zero out ifsr>
+;************************************************************************************
+; PREP_IFSR
+; Called by:	all function routines
+; Inputs: none
+; Function:
+;	set all ifsrh fields to zero
+; Outputs:
+;	ES:BX -> IFSRH
+; Regs: all except ES,BX saved
+;************************************************************************************
+	procedure PREP_IFSR,NEAR
+	SaveReg <DS,DI,AX,CX>			; save regs
+	SaveReg <CS,CS> 			; get ds,es -> ifsseg
+	RestoreReg <DS,ES>
+ASSUME	DS:IFSSEG,ES:IFSSEG
+	MOV	DI,OFFSET IFSR			; es:di -> ifsrh
+	MOV	BX,DI				; es:bx -> ifsrh
+	MOV	CX,SIZE IFSRH  /2
+	XOR	AX,AX
+	REP	STOSW				; fill ifsr w/zeros
+	RestoreReg <CX,AX,DI,DS>		; restore regs
+	return
+EndProc PREP_IFSR
+BREAK <CALL_IFS - call IFS Driver>
+;************************************************************************************
+; CALL_IFS
+; Called by:	all function routines
+; Inputs:
+;	[THISIFS] set
+;	ES:BX -> IFS request header
+;	DS - IFSSEG
+; Function:
+;	Call file system function entry point
+; Outputs:
+;	Outputs of call
+; Regs: none preserved
+;************************************************************************************
+	procedure CALL_IFS,NEAR
+	CALL	CHECK_IFS_SUPPORT		; 1st check if this request ok for ifs
+	PUSH	WORD PTR [THISIFS]		; save thisifs offset
 
-	CALL	SET_CATEGORY			; do this to determine unc or ifs	 ;AN000;
-	OR	CL,CL				; cl-1 for unc, 0 for ifs		 ;AN000;
-	JNZ	CI_05									 ;AN000;
-	invoke	EcritIFS			; enter ifs critical section		 ;AN000;
-	JMP	SHORT CI_10								 ;AN000;
-CI_05:											 ;AN000;
-	invoke	EcritNET			; enter network critical section	 ;AN000;
+	CALL	SET_CATEGORY			; do this to determine unc or ifs
+	OR	CL,CL				; cl-1 for unc, 0 for ifs
+	JNZ	CI_05
+	invoke	EcritIFS			; enter ifs critical section
+	JMP	SHORT CI_10
+CI_05:
+	invoke	EcritNET			; enter network critical section
 
 CI_10:
-	LDS	SI,[THISIFS]			; set thisifs=fs driver fcn entry pt	 ;AN000;
-	MOV	AX,DS:[SI.IFS_CALL@]		; offset=contents of ifs_call@		 ;AN000;
-											 ;AN000;
-	PUSH	CS									 ;AN000;
-	POP	DS									 ;AN000;
-ASSUME	DS:IFSSEG									 ;AN000;
-											 ;AN000;
-	MOV	WORD PTR [THISIFS],AX							 ;AN000;
-	PUSH	CX				; save this for later unc vs. ifs check  ;AN000;
-;----------------------------------------------------------------------------		 ;AN000;
-	CALL	[THISIFS]			; call fs driver with request		 ;AN000;
-;----------------------------------------------------------------------------		 ;AN000;
-	POP	CX				; unc or ifs result			 ;AN000;
-	POP	WORD PTR [THISIFS]		; restore thisifs offset		 ;AN000;
-
-	OR	CL,CL				; again, determine whether to exit ifs	 ;AN000;
-	JNZ	CI_15				; or unc critical section		 ;AN000;
-	invoke	LcritIFS			; leave ifs critical section		 ;AN000;
-	JMP	SHORT CI_17								 ;AN000;
-CI_15:											 ;AN000;
-	invoke	LcritNET			; leave network critical section	 ;AN000;
-
-CI_17:											 ;AN000;
-	MOV	AL,ES:[BX.IFSR_RETCLASS]	; check for error (class)		 ;AN000;
-	CMP	AL,IFSR_NO_ERROR		; (any err must have class set) 	 ;AN000;
-	JNE	CI_20									 ;AN000;
-	JMP	ifs_990 			; no error, go ret no carry		 ;AN000;
-											 ;AN000;
-;-----------------------------------------------; error processing			 ;AN000;
-CI_20:											 ;AN000;
-	TEST	IFSPROC_FLAGS,IsInit		; if in init code, skip error proc	 ;AN011;
-	JZ	CI_22									 ;AN011;
-	JMP	ifs_980 			; init error- just go stc and quit	 ;AN011;
-CI_22:											 ;AN011;
-	CMP	AL,IFSR_INT21H_CRITER		; critical error?			 ;AN000;
-	JE	CI_23									 ;AN029;
-	JMP	CI_30									 ;AC029;
-CI_23:											 ;AN029;
-	MOV	AX,ES:[BX.IFSR_RETCODE] 	; put retcode in al before condition	 ;AN000;
-
-
-	CMP	AX,error_write_protect							 ;AN029;
-	JB	NO_UNMAP								 ;AN029;
-	CMP	AX,error_gen_failure							 ;AN029;
-	JA	NO_UNMAP								 ;AN029;
-	SUB	AX,error_write_protect	; BIAS old errors back down into 0-12 range	 ;AN029;
-NO_UNMAP:										 ;AN029;
-	PUSH	DS									 ;AN029;
-	Context DS									 ;AN029;
-ASSUME	DS:DOSGROUP									 ;AN029;
-	MOV	DI,AX									 ;AN029;
-	MOV	AX,OFFSET DOSGroup:ErrMap24End						 ;AN029;
-	SUB	AX,OFFSET DOSGroup:ErrMap24						 ;AN029;
-;											 ;AN029;
-; AX is the index of the first unavailable error.  Do not translate if			 ;AN029;
-; greater or equal to AX.								 ;AN029;
-;											 ;AN029;
-	CMP	DI,AX									 ;AN029;
-	MOV	AX,DI									 ;AN029;
-	JAE	NoTrans 								 ;AN029;
-	MOV	AL,ErrMap24[DI] 							 ;AN029;
-	XOR	AH,AH									 ;AN029;
-NoTrans:										 ;AN029;
+	LDS	SI,[THISIFS]			; set thisifs=fs driver fcn entry pt
+	MOV	AX,DS:[SI.IFS_CALL@]		; offset=contents of ifs_call@
+	PUSH	CS
 	POP	DS
-	invoke	SET_EXTERR_INFO 		; yes - set error info			 ;AN000;
+ASSUME	DS:IFSSEG
+	MOV	WORD PTR [THISIFS],AX
+	PUSH	CX				; save this for later unc vs. ifs check
+;----------------------------------------------------------------------------
+	CALL	[THISIFS]			; call fs driver with request
+;----------------------------------------------------------------------------
+	POP	CX				; unc or ifs result
+	POP	WORD PTR [THISIFS]		; restore thisifs offset
 
-CI_25:											 ;AN011;
-	SaveReg <DS,SI,ES,DI,CX,AX>		; temporarily save ifsr in tempbuf over  ;AN008;
-	SaveReg <ES>				; next call				 ;AN008;
-	RestoreReg <DS> 			; Set dssi -> ifsr (current esbx)	 ;AN008;
-	MOV	SI,BX									 ;AN008;
-	MOV	CX,36				; half size of max ifsr 		 ;AN008;
-	MOV	DI,OFFSET TEMPBUF		; set esdi -> tempbuf			 ;AN008;
-	CLD					; next instr auto-increment		 ;AN008;
-	REP	MOVSW				; copy the ifsr over (word move)	 ;AN008;
-	MOV	AX,CS:IFSPROC_FLAGS		; preserve ifsproc_flags		 ;AN026;
-	STOSW										 ;AN026;
-	RestoreReg <AX,CX,DI,ES,SI,DS>		; restore regs				 ;AN008;
+	OR	CL,CL				; again, determine whether to exit ifs
+	JNZ	CI_15				; or unc critical section
+	invoke	LcritIFS			; leave ifs critical section
+	JMP	SHORT CI_17
+CI_15:
+	invoke	LcritNET			; leave network critical section
 
-	CMP	DI,error_I24_gen_failure						 ;AN029;
-	JBE	CI_26									 ;AN029;
-	MOV	DI,error_I24_gen_failure						 ;AN029;
-CI_26:											 ;AN029;
-	SaveReg <AX>				; preserve dos ext err			 ;AN021;
-	invoke	IFS_I24 			;	do int 24h			 ;AN000;
+CI_17:
+	MOV	AL,ES:[BX.IFSR_RETCLASS]	; check for error (class)
+	CMP	AL,IFSR_NO_ERROR		; (any err must have class set)
+	JNE	CI_20
+	JMP	ifs_990 			; no error, go ret no carry
+;-----------------------------------------------; error processing
+CI_20:
+	TEST	IFSPROC_FLAGS,IsInit		; if in init code, skip error proc
+	JZ	CI_22
+	JMP	ifs_980 			; init error- just go stc and quit
+CI_22:
+	CMP	AL,IFSR_INT21H_CRITER		; critical error?
+	JE	CI_23
+	JMP	CI_30
+CI_23:
+	MOV	AX,ES:[BX.IFSR_RETCODE] 	; put retcode in al before condition
 
-	SaveReg <DS,SI,ES,DI,CX,AX>		; restore original ifsr (over criter one);AN008;
-	SaveReg <CS,CS> 			; set dssi -> tempbuf			 ;AN008;
-	RestoreReg <DS,ES>			; set esdi -> ifsr			 ;AN008;
-	MOV	SI,OFFSET TEMPBUF		;					 ;AN008;
-	MOV	DI,OFFSET IFSR			;					 ;AN008;
-	MOV	CX,36				; half size of max ifsr 		 ;AN008;
-	CLD					; next instr auto-increment		 ;AN008;
-	REP	MOVSW				; copy the ifsr over (word move)	 ;AN008;
-	LODSW					; restore ifsproc_flags 		 ;AN026;
-	MOV	CS:IFSPROC_FLAGS,AX		;					 ;AN026;
-	RestoreReg <AX,CX,DI,ES,SI,DS>		; restore regs				 ;AN008;
 
-	CMP	AL,RETRY			;	if retry, restart request	 ;AN000;
-	JE	CI_27				;	else, go ret w/carry		 ;AC011;
+	CMP	AX,error_write_protect
+	JB	NO_UNMAP
+	CMP	AX,error_gen_failure
+	JA	NO_UNMAP
+	SUB	AX,error_write_protect	; BIAS old errors back down into 0-12 range
+NO_UNMAP:
+	PUSH	DS
+	Context DS
+ASSUME	DS:DOSGROUP
+	MOV	DI,AX
+	MOV	AX,OFFSET DOSGroup:ErrMap24End
+	SUB	AX,OFFSET DOSGroup:ErrMap24
+; AX is the index of the first unavailable error.  Do not translate if
+; greater or equal to AX.
+	CMP	DI,AX
+	MOV	AX,DI
+	JAE	NoTrans
+	MOV	AL,ErrMap24[DI]
+	XOR	AH,AH
+NoTrans:
+	POP	DS
+	invoke	SET_EXTERR_INFO 		; yes - set error info
+
+CI_25:
+	SaveReg <DS,SI,ES,DI,CX,AX>		; temporarily save ifsr in tempbuf over
+	SaveReg <ES>				; next call
+	RestoreReg <DS> 			; Set dssi -> ifsr (current esbx)
+	MOV	SI,BX
+	MOV	CX,36				; half size of max ifsr
+	MOV	DI,OFFSET TEMPBUF		; set esdi -> tempbuf
+	CLD					; next instr auto-increment
+	REP	MOVSW				; copy the ifsr over (word move)
+	MOV	AX,CS:IFSPROC_FLAGS		; preserve ifsproc_flags
+	STOSW
+	RestoreReg <AX,CX,DI,ES,SI,DS>		; restore regs
+
+	CMP	DI,error_I24_gen_failure
+	JBE	CI_26
+	MOV	DI,error_I24_gen_failure
+CI_26:
+	SaveReg <AX>				; preserve dos ext err
+	invoke	IFS_I24 			;	do int 24h
+
+	SaveReg <DS,SI,ES,DI,CX,AX>		; restore original ifsr (over criter one)
+	SaveReg <CS,CS> 			; set dssi -> tempbuf
+	RestoreReg <DS,ES>			; set esdi -> ifsr
+	MOV	SI,OFFSET TEMPBUF		;
+	MOV	DI,OFFSET IFSR			;
+	MOV	CX,36				; half size of max ifsr
+	CLD					; next instr auto-increment
+	REP	MOVSW				; copy the ifsr over (word move)
+	LODSW					; restore ifsproc_flags
+	MOV	CS:IFSPROC_FLAGS,AX		;
+	RestoreReg <AX,CX,DI,ES,SI,DS>		; restore regs
+
+	CMP	AL,RETRY			;	if retry, restart request
+	JE	CI_27				;	else, go ret w/carry
 	RestoreReg <AX> 			; retrieve dos ext err			 ;AN021;;AM025;
-	JMP	ifs_980 								 ;AN000;
-CI_27:											 ;AN011;
-	ADD	SP,2				; restore stack (dos ext error #)	 ;AN025;
-	JMP	CI_80									 ;AN011;
-											 ;AN000;
-CI_30:						; not critical error:			 ;AN000;
-	CMP	AL,IFSR_BAD_FORMAT		; map ifsr bad format error to general	 ;AN011;
-	JNE	CI_32				; failure (12) critical error		 ;AN011;
+	JMP	ifs_980
+CI_27:
+	ADD	SP,2				; restore stack (dos ext error #)
+	JMP	CI_80
+CI_30:						; not critical error:
+	CMP	AL,IFSR_BAD_FORMAT		; map ifsr bad format error to general
+	JNE	CI_32				; failure (12) critical error
 	MOV	AL,12
-	MOV	SS:[EXTERR],31			; set dos error variables for abort	 ;AN011;
-	MOV	SS:[EXTERR_CLASS],4		; (Internal)				 ;AN011;
-	MOV	SS:[EXTERR_ACTION],4		; (Abort)				 ;AN011;
-	MOV	SS:[EXTERR_LOCUS],1		; (Unknown)				 ;AN011;
-	MOV	SS:[ALLOWED],08H		; allow only fail			 ;AN011;
-	MOV	DI,AX									 ;AN029;
-	JMP	CI_25				; go back & treat as critical error	 ;AN011;
-CI_32:											 ;AN011;
-	CMP	AL,IFSR_DRIVER_ERROR							 ;AN011;
-	JNE	CI_37									 ;AC011;
-	MOV	AX,ES:[BX.IFSR_RETCODE] 	; *** driver error class ***		 ;AN011;
-	CMP	AX,IFSR_NO_FCN_SUPPORT							 ;AN011;
-	JG	CI_34									 ;AN011;
-	MOV	AX,50				; request not supported by file system	 ;AN011;
-	JMP	CI_100									 ;AN011;
-CI_34:											 ;AN011;
-	CMP	AX,IFSR_ACCESS_DENIED							 ;AN011;
-	JNE	CI_35									 ;AN011;
-	MOV	AX,65				; access denied by file system		 ;AN011;
-	JMP	CI_100									 ;AN011;
-CI_35:											 ;AN011;
-	CMP	AX,IFSR_DEVICE_TYPE_MISMATCH						 ;AN011;
-	JNE	CI_36									 ;AN011;
-	MOV	AX,66				; file sytem device type incorrect	 ;AN011;
-	JMP	CI_100									 ;AN011;
-CI_36:											 ;AN011;
-	MOV	AX,59				; fs experienced an unexpected error	 ;AN011;
-	JMP	CI_100									 ;AN011;
+	MOV	SS:[EXTERR],31			; set dos error variables for abort
+	MOV	SS:[EXTERR_CLASS],4		; (Internal)
+	MOV	SS:[EXTERR_ACTION],4		; (Abort)
+	MOV	SS:[EXTERR_LOCUS],1		; (Unknown)
+	MOV	SS:[ALLOWED],08H		; allow only fail
+	MOV	DI,AX
+	JMP	CI_25				; go back & treat as critical error
+CI_32:
+	CMP	AL,IFSR_DRIVER_ERROR
+	JNE	CI_37
+	MOV	AX,ES:[BX.IFSR_RETCODE] 	; *** driver error class ***
+	CMP	AX,IFSR_NO_FCN_SUPPORT
+	JG	CI_34
+	MOV	AX,50				; request not supported by file system
+	JMP	CI_100
+CI_34:
+	CMP	AX,IFSR_ACCESS_DENIED
+	JNE	CI_35
+	MOV	AX,65				; access denied by file system
+	JMP	CI_100
+CI_35:
+	CMP	AX,IFSR_DEVICE_TYPE_MISMATCH
+	JNE	CI_36
+	MOV	AX,66				; file sytem device type incorrect
+	JMP	CI_100
+CI_36:
+	MOV	AX,59				; fs experienced an unexpected error
+	JMP	CI_100
 
-CI_37:											 ;AN011;
-	CMP	AL,IFSR_DEVICE_ERROR		; fs got device error			 ;AN011;
-	JNE	CI_38									 ;AN011;
-	MOV	AX,ES:[BX.IFSR_RETCODE] 						 ;AN011;
-	invoke	DEVICE2EXTERR			; convert device - ext error		 ;AN011;
-	JMP	CI_100				; go set class/action/locus		 ;AN011;
-CI_38:											 ;AN011;
-	MOV	AX,ES:[BX.IFSR_RETCODE] 						 ;AN011;
-	CMP	AX,error_sharing_violation						 ;AN000;
-	JNZ	CI_100									 ;AN000;
-											 ;AN000;
-	SaveReg <DS>				;  save ifsseg				 ;AN018;
-	Context DS				;     Share error			 ;AN000;
-	invoke	PHONEY_DPB			;     Set phoney NET DPB for INT 24	 ;AN000;
-	CMP	ES:[BX.IFSR_APIFUNC],IFSOPENFILE ; on open/create - share error,no int24 ;AN018;
-	JNE	CI_39									 ;AN018;
-	CallInstall SHARE_ERROR,MultDOS,11						 ;AN018;
-	JMP	SHORT  CI_39_20 							 ;AN018;
-CI_39:											 ;AN018;
-	CallInstall SHARE_VIOLATION,MultDOS,10						 ;AN000;
-CI_39_20:										 ;AN018;
-	RestoreReg <DS> 								 ;AN018;
-											 ;AN000;
-	JNC	CI_40									 ;AN000;
-	MOV	AX,error_sharing_violation	;      carry set - quit w/error 	 ;AN000;
-	invoke	SET_EXTERR_INFO 							 ;AN000;
-	JMP	ifs_980 								 ;AN000;
-											 ;AN000;
-CI_40:						;      carry clear - retry		 ;AN000;
-	MOV	AL,RETRY								 ;AN000;
+CI_37:
+	CMP	AL,IFSR_DEVICE_ERROR		; fs got device error
+	JNE	CI_38
+	MOV	AX,ES:[BX.IFSR_RETCODE]
+	invoke	DEVICE2EXTERR			; convert device - ext error
+	JMP	CI_100				; go set class/action/locus
+CI_38:
+	MOV	AX,ES:[BX.IFSR_RETCODE]
+	CMP	AX,error_sharing_violation
+	JNZ	CI_100
+	SaveReg <DS>				;  save ifsseg
+	Context DS				;     Share error
+	invoke	PHONEY_DPB			;     Set phoney NET DPB for INT 24
+	CMP	ES:[BX.IFSR_APIFUNC],IFSOPENFILE ; on open/create - share error,no int24
+	JNE	CI_39
+	CallInstall SHARE_ERROR,MultDOS,11
+	JMP	SHORT  CI_39_20
+CI_39:
+	CallInstall SHARE_VIOLATION,MultDOS,10
+CI_39_20:
+	RestoreReg <DS>
+	JNC	CI_40
+	MOV	AX,error_sharing_violation	;      carry set - quit w/error
+	invoke	SET_EXTERR_INFO
+	JMP	ifs_980
+CI_40:						;      carry clear - retry
+	MOV	AL,RETRY
 
-CI_80:											 ;AN000;
-	INC	ES:[BX.IFSR_I24_COUNT]		;	retry: inc retry count		 ;AN000;
-	MOV	ES:[BX.IFSR_I24_RESP],AL	;	     store i24 response 	 ;AN000;
-	MOV	ES:[BX.IFSR_RETCODE],0		;	     reset retcode and class	 ;AN008;
-	MOV	ES:[BX.IFSR_RETCLASS],0 						 ;AN008;
-	MOV	ES:[BX.IFSR_ERROR_CLASS],0	;	     reset retcode and class	 ;AN025;
-	MOV	ES:[BX.IFSR_ERROR_ACTION],0						 ;AN025;
-	MOV	ES:[BX.IFSR_ERROR_LOCUS],0	;	     reset retcode and class	 ;AN025;
-	MOV	ES:[BX.IFSR_ALLOWED],0							 ;AN025;
-	SaveReg <CS>				;	       restore ds-ifsseg	 ;AN000;
-	RestoreReg <DS> 								 ;AN000;
-ASSUME	DS:IFSSEG									 ;AN000;
-	JMP	CALL_IFS								 ;AN000;
-											 ;AN000;
-CI_100: 					;     non-critical error		 ;AN000;
-	TEST	CS:IFSPROC_FLAGS,IsMsgRet	;     if msg ret call to int 2f-5 stack  ;AN028;
-	JNZ	CI_120				;     not dosgroup so can't call next    ;AN028;
-	CALL	SET_EXTERR_INFO 		;     set exterr info and		 ;AN000;
-CI_120: 										 ;AN028;
-	JMP	ifs_980 			;     go ret w/carry			 ;AN000;
-											 ;AN000;
-											 ;AN000;
-EndProc CALL_IFS									 ;AN000;
-											 ;AN000;
-											 ;AN000;
-BREAK <CREATE_DFL_ENTRY - fill in DFL entry, add to names list if alias>		 ;AN000;
-											 ;AN000;
-;************************************************************************************	 ;AN000;
-;											 ;AN000;
-; CREATE_DFL_ENTRY									 ;AN000;
-;											 ;AN000;
-; Routine called by:  ATTACH_START							 ;AN000;
-;		      PROCESS_ALIAS							 ;AN000;
-;											 ;AN000;
-; Routines called:    DFL_TO_DF 							 ;AN000;
-;		      ENTER_NAMES_LIST							 ;AN000;
-;											 ;AN000;
-; Inputs:										 ;AN000;
-;	[THISIFS] set									 ;AN000;
-;	BL = macro type 								 ;AN000;
+CI_80:
+	INC	ES:[BX.IFSR_I24_COUNT]		;	retry: inc retry count
+	MOV	ES:[BX.IFSR_I24_RESP],AL	;	     store i24 response
+	MOV	ES:[BX.IFSR_RETCODE],0		;	     reset retcode and class
+	MOV	ES:[BX.IFSR_RETCLASS],0
+	MOV	ES:[BX.IFSR_ERROR_CLASS],0	;	     reset retcode and class
+	MOV	ES:[BX.IFSR_ERROR_ACTION],0
+	MOV	ES:[BX.IFSR_ERROR_LOCUS],0	;	     reset retcode and class
+	MOV	ES:[BX.IFSR_ALLOWED],0
+	SaveReg <CS>				;	       restore ds-ifsseg
+	RestoreReg <DS>
+ASSUME	DS:IFSSEG
+	JMP	CALL_IFS
+CI_100: 					;     non-critical error
+	TEST	CS:IFSPROC_FLAGS,IsMsgRet	;     if msg ret call to int 2f-5 stack
+	JNZ	CI_120				;     not dosgroup so can't call next
+	CALL	SET_EXTERR_INFO 		;     set exterr info and
+CI_120:
+	JMP	ifs_980 			;     go ret w/carry
+EndProc CALL_IFS
+BREAK <CREATE_DFL_ENTRY - fill in DFL entry, add to names list if alias>
+;************************************************************************************
+; CREATE_DFL_ENTRY
+; Routine called by:  ATTACH_START
+;		      PROCESS_ALIAS
+; Routines called:    DFL_TO_DF
+;		      ENTER_NAMES_LIST
+; Inputs:
+;	[THISIFS] set
+;	BL = macro type
 ;	CX = user word
-;	DS:SI -> ASCIIZ device name							 ;AN000;
-;	ES:DI -> Target driver to attach to and parms.					 ;AN000;
-;			  DW ASCIIZ  -	FS name 					 ;AN000;
-;			  DW n	     -	number of parms 				 ;AN000;
-;			  DB ASCIIZ,... parms						 ;AN000;
-;											 ;AN000;
-; Function:										 ;AN000;
-;	WHILE DFL entries								 ;AN000;
-;	  IF entry not in use THEN							 ;AN000;
-;	     DO 									 ;AN000;
-;	       Set in progress flag for this entry					 ;AN000;
-;	       DFL_TYPE = BL								 ;AN000;
-;	       DFL_DEV_NAME = name pointed to by DS:SI					 ;AN000;
+;	DS:SI -> ASCIIZ device name
+;	ES:DI -> Target driver to attach to and parms.
+;			  DW ASCIIZ  -	FS name
+;			  DW n	     -	number of parms
+;			  DB ASCIIZ,... parms
+; Function:
+;	WHILE DFL entries
+;	  IF entry not in use THEN
+;	     DO
+;	       Set in progress flag for this entry
+;	       DFL_TYPE = BL
+;	       DFL_DEV_NAME = name pointed to by DS:SI
 ;	       DFL_USER_WORD = CX
-;	       IF alias, Call ENTER_NAMES_LIST						 ;AN000;
-;	       DFL_IFS_HDR = [THISIFS]							 ;AN000;
-;	       Set in use flag								 ;AN000;
-;	       Reset in progress flag							 ;AN000;
-;	       Set [THISDFL]								 ;AN000;
-;	       Call DFL_TO_DF								 ;AN000;
-;	       LEAVE WHILE								 ;AN000;
-;	     ENDDO									 ;AN000;
-;	  ELSE DO									 ;AN000;
-;		 Get next DFL entry							 ;AN000;
-;		 IF no entry THEN							 ;AN000;
-;		    Set error_out_of_structures 					 ;AN000;
-;		 ENDIF									 ;AN000;
-;	       ENDDO									 ;AN000;
-;	ENDWHILE									 ;AN000;
-;											 ;AN000;
-; Outputs:										 ;AN000;
-;    carry clear:									 ;AN000;
-;	DFL entry created.  Names list addition if alias.				 ;AN000;
-;	[THISDFL] set									 ;AN000;
-;	DS:SI -> DFL									 ;AN000;
-;	If not alias:									 ;AN000;
-;	  DF loaded									 ;AN000;
-;	  ES:BX -> IFSRH								 ;AN000;
-;	  IFSR_DEVICE_CB@ -> DF 							 ;AN000;
-;											 ;AN000;
-;    carry set on error, ax - error							 ;AN000;
-;											 ;AN000;
-; Regs: DS:SI -> DFL, all others destroyed						 ;AN000;
-;************************************************************************************	 ;AN000;
-											 ;AN000;
-	procedure CREATE_DFL_ENTRY,NEAR 						 ;AN000;
-											 ;AN000;
-	SaveReg <DS,SI> 			; save input DS:SI (devname)		 ;AN000;
-	MOV	DX,CX				; save user word in dx			 ;AN002;
-											 ;AN000;
-	LDS	SI,CS:[DFLAddr] 		; Set DS:SI -> 1st DFL entry		 ;AN000;
-	MOV	CL,CS:DFLCount			; CX = # DFL entries			 ;AN000;
-	OR	CL,CL				; check for available dfl structure	 ;AN022;
+;	       IF alias, Call ENTER_NAMES_LIST
+;	       DFL_IFS_HDR = [THISIFS]
+;	       Set in use flag
+;	       Reset in progress flag
+;	       Set [THISDFL]
+;	       Call DFL_TO_DF
+;	       LEAVE WHILE
+;	     ENDDO
+;	  ELSE DO
+;		 Get next DFL entry
+;		 IF no entry THEN
+;		    Set error_out_of_structures
+;		 ENDIF
+;	       ENDDO
+;	ENDWHILE
+; Outputs:
+;    carry clear:
+;	DFL entry created.  Names list addition if alias.
+;	[THISDFL] set
+;	DS:SI -> DFL
+;	If not alias:
+;	  DF loaded
+;	  ES:BX -> IFSRH
+;	  IFSR_DEVICE_CB@ -> DF
+;    carry set on error, ax - error
+; Regs: DS:SI -> DFL, all others destroyed
+;************************************************************************************
+	procedure CREATE_DFL_ENTRY,NEAR
+	SaveReg <DS,SI> 			; save input DS:SI (devname)
+	MOV	DX,CX				; save user word in dx
+	LDS	SI,CS:[DFLAddr] 		; Set DS:SI -> 1st DFL entry
+	MOV	CL,CS:DFLCount			; CX = # DFL entries
+	OR	CL,CL				; check for available dfl structure
 	JZ	CDE_30
-	XOR	CH,CH									 ;AN000;
-ASSUME	DS:NOTHING,ES:NOTHING								 ;AN000;
-											 ;AN000;
-	CALL	CONSIST_DFL			; reset all in_prog flags		 ;AN000;
-CDE_20: 										 ;AN000;
-	TEST	[SI.DFLL_FLAGS],DFL_INUSE	; look for unused DFL			 ;AN000;
-	JZ	CDE_40				; entry 				 ;AN000;
-	ADD	SI,SIZE DFLL_LIST							 ;AN000;
-	LOOP	CDE_20									 ;AN000;
+	XOR	CH,CH
+ASSUME	DS:NOTHING,ES:NOTHING
+	CALL	CONSIST_DFL			; reset all in_prog flags
+CDE_20:
+	TEST	[SI.DFLL_FLAGS],DFL_INUSE	; look for unused DFL
+	JZ	CDE_40				; entry
+	ADD	SI,SIZE DFLL_LIST
+	LOOP	CDE_20
 CDE_30:
-	MOV	AX,error_out_of_structures						 ;AN000;
-	RestoreReg <SI,DS>			; restore stack 			 ;AN000;
-	JMP	ifs_980 			; go return w/carry			 ;AN000;
-CDE_40: 										 ;AN000;
-	CALL	INIT_DFL			; zero out dfl entry			 ;AN000;
-	OR	[SI.DFLL_FLAGS],DFL_INPROG	; Found DFL entry -			 ;AN000;
-						; Set in progress flag			 ;AN000;
-	MOV	[SI.DFLL_TYPE],BL		; Store DFL_TYPE			 ;AN000;
-	MOV	[SI.DFLL_USER_WORD],DX		; store user word			 ;AN002;
-											 ;AN000;
-	RestoreReg <DI,ES>			; get dev name ptr off stack		 ;AN000;
-	CALL	XCHGP				; Set DS:SI -> devname			 ;AN000;
-	PUSH	DI				;     ES:DI -> DFL			 ;AN000;
-						; save dfl start offset 		 ;AN000;
-CDE_60: 										 ;AN000;
-	INC	DI				; mov di to dfl_dev_name		 ;AN000;
-	INC	DI									 ;AN000;
-	MOV	CX,8				; Devs max of 8 ch and ':', and a NUL    ;AN000;
-CDE_70: 					; dssi->source, esdi->dfl_dev_name	 ;AN000;
-	LODSB					; just store 1st 8 padded to right	 ;AN000;
+	MOV	AX,error_out_of_structures
+	RestoreReg <SI,DS>			; restore stack
+	JMP	ifs_980 			; go return w/carry
+CDE_40:
+	CALL	INIT_DFL			; zero out dfl entry
+	OR	[SI.DFLL_FLAGS],DFL_INPROG	; Found DFL entry -
+						; Set in progress flag
+	MOV	[SI.DFLL_TYPE],BL		; Store DFL_TYPE
+	MOV	[SI.DFLL_USER_WORD],DX		; store user word
+	RestoreReg <DI,ES>			; get dev name ptr off stack
+	CALL	XCHGP				; Set DS:SI -> devname
+	PUSH	DI				;     ES:DI -> DFL
+						; save dfl start offset
+CDE_60:
+	INC	DI				; mov di to dfl_dev_name
+	INC	DI
+	MOV	CX,8				; Devs max of 8 ch and ':', and a NUL
+CDE_70: 					; dssi->source, esdi->dfl_dev_name
+	LODSB					; just store 1st 8 padded to right
 	CallInstall UCase,multDOS,19,<AX>,<BX>	; w/blanks				 ;AC030; ax chg to bx
-	OR	AL,AL				; 0 . : signal end			 ;AN000;
-	JZ	CDE_73									 ;AN000;
-	CMP	AL,'.'                                                                   ;AN000;
-	JZ	CDE_73									 ;AN000;
-	CMP	AL,':'                                                                   ;AN000;
-	JZ	CDE_73									 ;AN000;
-	STOSB										 ;AN000;
-	LOOP	CDE_70									 ;AN000;
-	JMP	SHORT CDE_80								 ;AN000;
-CDE_73: 										 ;AN000;
-	MOV	AL," "                                                                   ;AN000;
-CDE_76: 										 ;AN000;
-	STOSB										 ;AN000;
-	LOOP	CDE_76									 ;AN000;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;	 ;AN000;
-;;;aliasCMP	BL,TYPE_ALIAS								 ;AN000;
-;;;;;;;;JNE	CDE_80									 ;AN000;
-;;;;;;;;CALL	ENTER_NAMES_LIST			; Store alias index		 ;AN000;
-;;;;;;;;JNC	CDE_120 								 ;AN000;
-;;;;;;;;POP	DI					; if error back out		 ;AN000;
-;;;;;;;;AND	[SI.DFLL_FLAGS],NOT DFL_INPROG		; go exit with carry		 ;AN000;
-;;;aliasJMP	ifs_980 								 ;AN000;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;	 ;AN000;
-CDE_80: 										 ;AN000;
-	ADD	DI,4					; skip alias index and user wd	 ;AC004;
+	OR	AL,AL				; 0 . : signal end
+	JZ	CDE_73
+	CMP	AL,'.'
+	JZ	CDE_73
+	CMP	AL,':'
+	JZ	CDE_73
+	STOSB
+	LOOP	CDE_70
+	JMP	SHORT CDE_80
+CDE_73:
+	MOV	AL," "
+CDE_76:
+	STOSB
+	LOOP	CDE_76
+;;;aliasCMP	BL,TYPE_ALIAS
+;;;;;;;;JNE	CDE_80
+;;;;;;;;CALL	ENTER_NAMES_LIST			; Store alias index
+;;;;;;;;JNC	CDE_120
+;;;;;;;;POP	DI					; if error back out
+;;;;;;;;AND	[SI.DFLL_FLAGS],NOT DFL_INPROG		; go exit with carry
+;;;aliasJMP	ifs_980
+CDE_80:
+	ADD	DI,4					; skip alias index and user wd
 ;;;;	INC	DI									 ;AD004;
-CDE_100:										 ;AN000;
-	MOV	AX,WORD PTR [THISIFS]							 ;AN000;
-	STOSW						; Set DFL_IFS_HDR to		 ;AN000;
-	MOV	AX,WORD PTR [THISIFS+2] 		; [THISIFS]			 ;AN000;
-	STOSW										 ;AN000;
-CDE_120:										 ;AN000;
-	POP	DI					; retrieve dfl start		 ;AN000;
-	MOV	WORD PTR CS:[THISDFL],DI		; Set [thisdfl] 		 ;AN000;
-	MOV	WORD PTR CS:[THISDFL+2],ES						 ;AN000;
-											 ;AN000;
-	PUSH	ES					; Set DS:SI -> DFL		 ;AN000;
-	POP	DS									 ;AN000;
-	MOV	SI,DI									 ;AN000;
-											 ;AN000;
-	CALL	CHECK_REAL_DEVICE			; this will set dfl_dev_real	 ;AN000;
-											 ;AN000;
-	OR	[SI.DFLL_FLAGS],DFL_INUSE						 ;AN000;
-	AND	[SI.DFLL_FLAGS],NOT DFL_INPROG						 ;AN000;
-											 ;AN000;
-;;;aliasCMP	BL,TYPE_ALIAS								 ;AN000;
-;;;aliasJNE	CDE_140 								 ;AN000;
-;;;aliasJMP	ifs_990 			; go ret no carry			 ;AN000;
-CDE_140:										 ;AN000;
-	invoke	PREP_IFSR			; init req hdr				 ;AN000;
-	invoke	DFL_TO_DF								 ;AN000;
-	JMP	ifs_990 								 ;AN000;
-											 ;AN000;
-EndProc CREATE_DFL_ENTRY								 ;AN000;
-											 ;AN000;
-BREAK <DELETE_DFL_ENTRY - Delete DFL entry, remove from names list if alias>		 ;AN000;
-											 ;AN000;
-;************************************************************************************	 ;AN000;
-;											 ;AN000;
-; DELETE_DFL_ENTRY									 ;AN000;
-;											 ;AN000;
-; Routine called by:  IFS_ASSOPER							 ;AN000;
-;											 ;AN000;
-; Routines called:									 ;AN000;
-;											 ;AN000;
-; Inputs:										 ;AN000;
-;	[THISDFL] set									 ;AN000;
-;											 ;AN000;
-; Function:										 ;AN000;
-;											 ;AN000;
-; Outputs:										 ;AN000;
-;    carry clear:									 ;AN000;
-;	DFL entry deleted.								 ;AN000;
-;    carry set on error, ax - error							 ;AN000;
-;											 ;AN000;
-; Regs: everything preserved								 ;AN000;
-;											 ;AN000;
-;************************************************************************************	 ;AN000;
-											 ;AN000;
-	procedure DELETE_DFL_ENTRY,NEAR 						 ;AN000;
-											 ;AN000;
-	LDS	SI,[THISDFL]			; simply reset in_use bit		 ;AN000;
-	AND	DS:[SI.DFLL_FLAGS],NOT DFL_INUSE 					 ;AN000;
-;;;aliasCMP	DS:[SI.DFLL_TYPE],TYPE_ALIAS	; if alias, must remove name		 ;AN000;
-;;;aliasJE	DDE_20				; from names list, and reset		 ;AN000;
-	JMP	ifs_1000								 ;AN000;
-;;;aliasDDE_20: 									 ;AN000;
-;;;aliasCALL	EXIT_NAMES_LIST 		; all alias indicies			 ;AN000;
-;;;aliasJMP	ifs_1000								 ;AN000;
-											 ;AN000;
-EndProc DELETE_DFL_ENTRY								 ;AN000;
-											 ;AN000;
-;BREAK <ENTER_NAMES_LIST - add alias name to Names List>				 ;AN000;
-;;;alias										 ;AN000;
-;************************************************************************************	 ;AN000;
-;											 ;AN000;
-; ENTER_NAMES_LIST									 ;AN000;
-;											 ;AN000;
-; Routine called by:  CREATE_DFL_ENTRY							 ;AN000;
-;											 ;AN000;
-; Routines called:	DOS: DStrLen							 ;AN000;
-;											 ;AN000;
-; Inputs:										 ;AN000;
-;	  DS:SI -> DFL									 ;AN000;
-;	  ES:DI -> Target driver to attach to and parms.				 ;AN000;
-;			  DW ASCIIZ  -	FS name 					 ;AN000;
-;			  DW n	     -	number of parms 				 ;AN000;
-;			  DB ASCIIZ,... parms						 ;AN000;
-; Function:										 ;AN000;
-;	Place one and only parameter (alias) into names list.				 ;AN000;
-; Outputs:										 ;AN000;
-;	carry clear: name added 							 ;AN000;
-;	carry set:   AX error								 ;AN000;
-;											 ;AN000;
-; Notes:  all preserved except AX							 ;AN000;
-;											 ;AN000;
-;************************************************************************************	 ;AN000;
-;											 ;AN000;
-;	procedure ENTER_NAMES_LIST							 ;AN000;
-;SSUME	DS:IFSSEG,ES:IFSSEG								 ;AN000;
-;											 ;AN000;
-;	SaveReg <ES,DI,CX,DX,DS,SI>							 ;AN000;
-;	PUSH	ES									 ;AN000;
-;	POP	DS									 ;AN000;
-;	MOV	SI,DI									 ;AN000;
-;	ADD	SI,4				; ds:si -> alias name			 ;AN000;
-;	CallInstall DStrlen,multDOS,37		; get size of alias name in cx		 ;AN000;
-;	LES	DI,[NLAddr]			; get address of names list		 ;AN000;
-;	MOV	DX,WORD PTR ES:[DI]		; DX=total size of names list		 ;AN000;
-;	INC	DI									 ;AN000;
-;	INC	DI									 ;AN000;
-;	MOV	AX,WORD PTR ES:[DI]		; AX=used size of names list		 ;AN000;
-;	PUSH	AX				; save used size for dfl_alias_index	 ;AN000;
-;	ADD	AX,CX				; AX=hopefully new used size		 ;AN000;
-;	CMP	DX,AX				; check that new string fits		 ;AN000;
-;	JAE	ENL_20									 ;AN000;
-;	MOV	AX,error_out_of_structures	; error - doesn't fit                    ;AN000;
-;	JMP	ENL_980 			; ret w/carry				 ;AN000;
-;NL_20: 					; ok - fits				 ;AN000;
-;	STOSW					; store new used size			 ;AN000;
-;	POP	AX				; get index from stack			 ;AN000;
-;	PUSH	AX									 ;AN000;
-;	INC	DI									 ;AN000;
-;	INC	DI									 ;AN000;
-;	ADD	DI,AX				; Space to spot in list to put name	 ;AN000;
-;	REP	MOVSB									 ;AN000;
-;	RestoreReg <SI,DS>			; Set dfl alias index to byte offset	 ;AN000;
-;	POP	AX				; (+4) of name in list			 ;AN000;
-;	MOV	DS:WORD PTR [SI.DFL_ALIAS_INDEX],AX					 ;AN000;
-;	JMP	ENL_990 			; go ret no carry			 ;AN000;
-;											 ;AN000;
-;											 ;AN000;
-;NL_980:					; Return area				 ;AN000;
-;	STC					; error 				 ;AN000;
-;	RestoreReg <SI,DS,DX,CX,DI,ES>							 ;AN000;
-;	return										 ;AN000;
-;NL_990:										 ;AN000;
-;	CLC					; no error				 ;AN000;
-;	RestoreReg <DX,CX,DI,ES>							 ;AN000;
-;NL_1000:										 ;AN000;
-;	return										 ;AN000;
-;											 ;AN000;
-;											 ;AN000;
-;ndProc ENTER_NAMES_LIST								 ;AN000;
-;											 ;AN000;
-;											 ;AN000;
-;REAK <EXIT_NAMES_LIST - remove alias name from Names List>				 ;AN000;
-;											 ;AN000;
-;************************************************************************************	 ;AN000;
-;											 ;AN000;
-; EXIT_NAMES_LIST									 ;AN000;
-;											 ;AN000;
-; Routine called by:  DELETE_DFL_ENTRY							 ;AN000;
-;											 ;AN000;
-; Routines called:	DOS: StrLen							 ;AN000;
-;											 ;AN000;
-; Inputs:										 ;AN000;
-;	  DS:SI -> DFL									 ;AN000;
-;											 ;AN000;
-; Function:										 ;AN000;
-;	Remove alias name from Names List						 ;AN000;
-; Outputs:										 ;AN000;
-;	name removed									 ;AN000;
-;											 ;AN000;
-; Notes:  all preserved 								 ;AN000;
-;											 ;AN000;
-;************************************************************************************	 ;AN000;
-;											 ;AN000;
-;	procedure EXIT_NAMES_LIST							 ;AN000;
-;SSUME	DS:IFSSEG,ES:IFSSEG								 ;AN000;
-;											 ;AN000;
-;	MOV	DX,DS:[SI.DFL_ALIAS_INDEX]	; DX=index				 ;AN000;
-;	LES	DI,[NLAddr]								 ;AN000;
-;	MOV	AX,ES:WORD PTR [DI+2]		; AX=used size				 ;AN000;
-;	SaveReg <ES,DI,AX>								 ;AN000;
-;	ADD	DI,DX+4 								 ;AN000;
-;	CallInstall StrLen,multDOS,18		; CX=size of alias name 		 ;AN000;
-;	PUSH	ES									 ;AN000;
-;	POP	DS									 ;AN000;
-;	MOV	SI,DI									 ;AN000;
-;	ADD	SI,CX									 ;AN000;
-;	MOV	BX,CX									 ;AN000;
-;	SUB	AX,SI				; CX= #bytes to move =			 ;AN000;
-;	MOV	CX,AX				; used size - index of next name	 ;AN000;
-;	REP	MOVSB				; move names up 			 ;AN000;
-;											 ;AN000;
-;	RestoreReg <AX,DI,ES>			; adjust used size			 ;AN000;
-;	SUB	AX,BX									 ;AN000;
-;	MOV	ES:WORD PTR [DI+2],AX							 ;AN000;
-;											 ;AN000;
-;	LDS	SI,[DFLAddr]			; loop thru all dfl entries to		 ;AN000;
-;	MOV	DI,SIZE DFL_LIST		; adjust alias indicies above		 ;AN000;
-;	MOV	CL,[DFLCount]			; index removed 			 ;AN000;
-;	XOR	CH,CH									 ;AN000;
-;XNL_20:					; ** Loop here on dfl entries		 ;AN000;
-;	TEST	DS:[SI.DFLL_FLAGS],DFL_INUSE						 ;AN000;
-;	JZ	EXNL_40 								 ;AN000;
-;	MOV	AX,DS:[SI.DFL_ALIAS_INDEX]	; 0 if not alias			 ;AN000;
-;	CMP	AX,DX									 ;AN000;
-;	JB	EXNL_40 								 ;AN000;
-;	SUB	AX,BX				; adjust by size of name deleted	 ;AN000;
-;	MOV	DS:[SI.DFL_ALIAS_INDEX],AX						 ;AN000;
-;XNL_40:										 ;AN000;
-;	ADD	SI,DX									 ;AN000;
-;	LOOP	EXNL_20 								 ;AN000;
-;											 ;AN000;
-;	JMP	ifs_1000			; go return				 ;AN000;
-;											 ;AN000;
-;											 ;AN000;
-;ndProc EXIT_NAMES_LIST 								 ;AN000;
-											 ;AN000;
-BREAK <DFL_SINGLE_FILE_CHECK - support single file check>				 ;AN000;
-											 ;AN000;
-;************************************************************************************	 ;AN000;
-;											 ;AN000;
-; DFL_SINGLE_FILE_CHECK 								 ;AN000;
-;											 ;AN000;
-; Routine called by:  IFS_FILE_ATTRIBUTES						 ;AN000;
-;											 ;AN000;
-; Inputs:										 ;AN000;
-;	  [THISDFL]									 ;AN000;
-;	  [WFP_START]									 ;AN000;
-;											 ;AN000;
-; Function:										 ;AN000;
-;	IF [THISDFL] .NOT. NULL THEN							 ;AN000;
-;	   DO										 ;AN000;
-;	     Get IFS header from DFL_IFS_HDR						 ;AN000;
-;	     IF IFSDEVICE true THEN							 ;AN000;
-;		DO									 ;AN000;
-;		  Call DFL_TO_DF							 ;AN000;
-;		  Clear carry								 ;AN000;
-;		ENDDO									 ;AN000;
-;	     ELSE   Set error - device doesn't support single file fcn                   ;AN000;
-;	     ENDIF									 ;AN000;
-;	   ENDDO									 ;AN000;
-;	ELSE DO 									 ;AN000;
-;	       CALL DFL_MATCH								 ;AN000;
-;	       IF match found THEN							 ;AN000;
-;		  DO									 ;AN000;
-;		    Get IFS header from DFL_IFS_HDR					 ;AN000;
-;		    IF IFSDEVICE true THEN						 ;AN000;
-;		       DO								 ;AN000;
-;			 Call DFL_TO_DF 						 ;AN000;
-;			 Clear carry							 ;AN000;
-;		       ENDDO								 ;AN000;
-;		    ELSE Set error - device doesn't support single file fcn              ;AN000;
-;		  ENDDO 								 ;AN000;
-;	       ELSE Set error - device not IFS						 ;AN000;
-;	       ENDIF									 ;AN000;
-;	     ENDDO									 ;AN000;
-;	ENDIF										 ;AN000;
-;											 ;AN000;
-;											 ;AN000;
-; Outputs:										 ;AN000;
-;	no carry:		carry: error						 ;AN000;
-;	  [THISIFS] set 								 ;AN000;
-;	  ES:BX -> IFSRH								 ;AN000;
-;	  IFSR_DEVICE_CB@								 ;AN000;
-;	  ds - IFSSEG									 ;AN000;
-;											 ;AN000;
-;************************************************************************************	 ;AN000;
-											 ;AN000;
-	procedure DFL_SINGLE_FILE_CHECK 						 ;AN000;
-ASSUME	DS:IFSSEG,ES:IFSSEG								 ;AN000;
-;; assume thisdfl aready set up here							 ;AN000;
-;; don't want to write another parse routine                                             ;AN000;
-;;	CMP	WORD PTR [THISDFL],MINUS_ONE						 ;AN000;
-;;	JNZ	DSFC_20 								 ;AN000;
-;;	CALL	DFL_MATCH			; check for dfl entry			 ;AN000;
-;;	JNC	DSFC_20 								 ;AN000;
-;;	MOV	AX,error_not_ifs_device 						 ;AN000;
-;;	JMP	ifs_1000								 ;AN000;
-											 ;AN000;
-DSFC_20:										 ;AN000;
-	LES	DI,CS:[THISDFL] 							 ;AN000;
-	LES	DI,ES:[DI.DFLL_IFS_HDR]		; check that ifs device supports	 ;AN000;
-	TEST	ES:[DI.IFS_ATTRIBUTE],IFSDEVICE ; single file function			 ;AN000;
-	JNZ	DSFC_60 								 ;AN000;
-	MOV	AX,error_file_not_found 	; no - set error & go return w/carry	 ;AN000;
-	JMP	ifs_980 								 ;AN000;
-DSFC_60:										 ;AN000;
-	invoke	DFL_TO_DF								 ;AN000;
-	JMP	ifs_990 								 ;AN000;
-											 ;AN000;
-											 ;AN000;
-EndProc DFL_SINGLE_FILE_CHECK								 ;AN000;
-											 ;AN000;
-;BREAK <PROCESS_ALIAS -- add alias name>						 ;AN000;
-;											 ;AN000;
-;************************************************************************************	 ;AN000;
-;											 ;AN000;
-; PROCESS_ALIAS 									 ;AN000;
-;											 ;AN000;
-; Called by: ATTACH_START								 ;AN000;
-;											 ;AN000;
-; Routines called:  DFL_MATCH								 ;AN000;
-;		    CREATE_DFL_ENTRY							 ;AN000;
-;											 ;AN000;
-; Inputs:										 ;AN000;
-;	    DS:SI -> ASCIIZ source name 						 ;AN000;
-;	    ES:DI -> ALIAS name 							 ;AN000;
-;											 ;AN000;
-; Function:										 ;AN000;
-;											 ;AN000;
-; Regs: 										 ;AN000;
-;											 ;AN000;
-;************************************************************************************	 ;AN000;
-;											 ;AN000;
-;	Procedure   PROCESS_ALIAS,NEAR							 ;AN000;
-;SSUME	DS:NOTHING,ES:NOTHING								 ;AN000;
-;											 ;AN000;
-;	CALL	DFL_MATCH								 ;AN000;
-;	JC	PA_20									 ;AN000;
-;;;???	match found, error or override???						 ;AN000;
-;A_20:											 ;AN000;
-;	CALL	CREATE_DFL_ENTRY							 ;AN000;
-;	JMP	ifs_1000								 ;AN000;
-;											 ;AN000;
-;											 ;AN000;
-;ndProc PROCESS_ALIAS									 ;AN000;
-											 ;AN000;
-											 ;AN000;
-BREAK <DFL_MATCH -- check for DFL entry>						 ;AN000;
-											 ;AN000;
-;************************************************************************************	 ;AN000;
-;											 ;AN000;
-; DFL_MATCH										 ;AN000;
-;											 ;AN000;
-; Called by: ATTACH_START  CONSIST_SFT							 ;AN000;
-;	     IFS_DELETE 								 ;AN000;
-;											 ;AN000;
-; Routines called:									 ;AN000;
-;											 ;AN000;
-; Inputs:										 ;AN000;
-;	    DS:SI -> Asciiz Device name 						 ;AN000;
-;											 ;AN000;
-; Function:										 ;AN000;
-;	Search DFL for match on name							 ;AN000;
-;	If match found - set [THISDFL] and clear carry					 ;AN000;
-;	Else set carry									 ;AN000;
-;											 ;AN000;
-; Output:										 ;AN000;
-;	carry clear - match found, [THISDFL] set					 ;AN000;
-;	carry set   - match not found							 ;AN000;
-;											 ;AN000;
-; Regs: all preserved									 ;AN000;
-;											 ;AN000;
-;************************************************************************************	 ;AN000;
-											 ;AN000;
-	Procedure   DFL_MATCH								 ;AN000;
-ASSUME	DS:NOTHING,ES:NOTHING								 ;AN000;
-											 ;AN000;
-	SaveReg <DS,SI,ES,DI,AX,CX,BX>		; save registers			 ;AN000;
-											 ;AN000;
-	SaveReg    <CS> 			; store canonicalized version of	 ;AN000;
-	RestoreReg <ES> 			; source asciiz dev name in		 ;AN000;
-	MOV	DI,OFFSET TEMPBUF+10		; tempbuf+10				 ;AN000;
-	MOV	CX,10				; devs max of 8 ch and : and nul	 ;AN000;
-DM_20:											 ;AN000;
-	LODSB										 ;AN000;
-	CallInstall UCase,multDOS,19,<AX>,<BX>						 ;AN000;
-	STOSB										 ;AN000;
-	OR	AL,AL									 ;AN000;
-	JZ	DM_60									 ;AN000;
-	CMP	AL,"."                                                                   ;AN000;
-	JZ	DM_40									 ;AN000;
-	LOOP	DM_20									 ;AN000;
-DM_40:											 ;AN000;
-	XOR	AL,AL									 ;AN000;
-	MOV	BYTE PTR ES:[DI-1],AL							 ;AN000;
-DM_60:											 ;AN000;
-	CMP	BYTE PTR ES:[DI-2],":"                                                   ;AN000;
-	JNZ	DM_80									 ;AN000;
-	MOV	BYTE PTR ES:[DI-2],0							 ;AN000;
-											 ;AN000;
-DM_80:											 ;AN000;
-	XOR	AX,AX				; ax is counter through DFL entries	 ;AN000;
-	LDS	SI,[DFLAddr]			; dssi -> dfl entry			 ;AN000;
-DM_100: 					; <<<<< matching loop >>>>>		 ;AN000;
-	CMP	AL,CS:[DFLCount]							 ;AN000;
-	JAE	DM_980									 ;AN000;
-	TEST	DS:[SI.DFLL_FLAGS],DFL_INUSE						 ;AN000;
-	JZ	DM_160									 ;AN000;
-	SaveReg <SI>				; dfl entry offset			 ;AN000;
-	ADD	SI,DFL_DEV_NAME 							 ;AN000;
-	MOV	DI,OFFSET TEMPBUF							 ;AN000;
-	CALL	CONVERT_NAME_ASCIIZ		; moves dev name into tempbuf		 ;AN000;
-						; in asciiz form - di preserved 	 ;AN000;
-	MOV	SI,OFFSET TEMPBUF+10							 ;AN000;
-	Call	PRN_CHECK			; if si->prn - chg si->lpt1		 ;AN012;
-	CallInstall StrCmp,multDOS,30,<AX>,<AX> ; check for match			 ;AN000;
-	RestoreReg <SI> 			; dfl entry offset			 ;AN000;
-	JZ	DM_990									 ;AN000;
-DM_160: 										 ;AN000;
-	ADD	SI,SIZE DFLL_LIST							 ;AN000;
-	INC	AL									 ;AN000;
-	JMP	SHORT DM_100			; go up & try next entry		 ;AN000;
-											 ;AN000;
-DM_980: 										 ;AN000;
-	SaveReg <AX,CS> 			; set thisdfl null on error		 ;AN020;
-	RestoreReg <DS> 								 ;AN020;
-	MOV	AX,NULL_PTR								 ;AN020;
-	MOV	WORD PTR [THISDFL],AX							 ;AN020;
-	MOV	WORD PTR [THISDFL+2],AX 						 ;AN020;
-	RestoreReg <AX> 								 ;AN020;
-	STC										 ;AN000;
-	JMP	SHORT DM_1000								 ;AN000;
-DM_990: 										 ;AN000;
-	TEST	DS:[SI.DFLL_FLAGS],dfl_paused	; if printer paused, no match		 ;AN019;
-	JNZ	DM_980									 ;AN019;
+CDE_100:
+	MOV	AX,WORD PTR [THISIFS]
+	STOSW						; Set DFL_IFS_HDR to
+	MOV	AX,WORD PTR [THISIFS+2] 		; [THISIFS]
+	STOSW
+CDE_120:
+	POP	DI					; retrieve dfl start
+	MOV	WORD PTR CS:[THISDFL],DI		; Set [thisdfl]
+	MOV	WORD PTR CS:[THISDFL+2],ES
+	PUSH	ES					; Set DS:SI -> DFL
+	POP	DS
+	MOV	SI,DI
+	CALL	CHECK_REAL_DEVICE			; this will set dfl_dev_real
+	OR	[SI.DFLL_FLAGS],DFL_INUSE
+	AND	[SI.DFLL_FLAGS],NOT DFL_INPROG
+;;;aliasCMP	BL,TYPE_ALIAS
+;;;aliasJNE	CDE_140
+;;;aliasJMP	ifs_990 			; go ret no carry
+CDE_140:
+	invoke	PREP_IFSR			; init req hdr
+	invoke	DFL_TO_DF
+	JMP	ifs_990
+EndProc CREATE_DFL_ENTRY
+BREAK <DELETE_DFL_ENTRY - Delete DFL entry, remove from names list if alias>
+;************************************************************************************
+; DELETE_DFL_ENTRY
+; Routine called by:  IFS_ASSOPER
+; Routines called:
+; Inputs:
+;	[THISDFL] set
+; Function:
+; Outputs:
+;    carry clear:
+;	DFL entry deleted.
+;    carry set on error, ax - error
+; Regs: everything preserved
+;************************************************************************************
+	procedure DELETE_DFL_ENTRY,NEAR
+	LDS	SI,[THISDFL]			; simply reset in_use bit
+	AND	DS:[SI.DFLL_FLAGS],NOT DFL_INUSE
+;;;aliasCMP	DS:[SI.DFLL_TYPE],TYPE_ALIAS	; if alias, must remove name
+;;;aliasJE	DDE_20				; from names list, and reset
+	JMP	ifs_1000
+;;;aliasDDE_20:
+;;;aliasCALL	EXIT_NAMES_LIST 		; all alias indicies
+;;;aliasJMP	ifs_1000
+EndProc DELETE_DFL_ENTRY
+;BREAK <ENTER_NAMES_LIST - add alias name to Names List>
+;;;alias
+;************************************************************************************
+; ENTER_NAMES_LIST
+; Routine called by:  CREATE_DFL_ENTRY
+; Routines called:	DOS: DStrLen
+; Inputs:
+;	  DS:SI -> DFL
+;	  ES:DI -> Target driver to attach to and parms.
+;			  DW ASCIIZ  -	FS name
+;			  DW n	     -	number of parms
+;			  DB ASCIIZ,... parms
+; Function:
+;	Place one and only parameter (alias) into names list.
+; Outputs:
+;	carry clear: name added
+;	carry set:   AX error
+; Notes:  all preserved except AX
+;************************************************************************************
+;	procedure ENTER_NAMES_LIST
+;SSUME	DS:IFSSEG,ES:IFSSEG
+;	SaveReg <ES,DI,CX,DX,DS,SI>
+;	PUSH	ES
+;	POP	DS
+;	MOV	SI,DI
+;	ADD	SI,4				; ds:si -> alias name
+;	CallInstall DStrlen,multDOS,37		; get size of alias name in cx
+;	LES	DI,[NLAddr]			; get address of names list
+;	MOV	DX,WORD PTR ES:[DI]		; DX=total size of names list
+;	INC	DI
+;	INC	DI
+;	MOV	AX,WORD PTR ES:[DI]		; AX=used size of names list
+;	PUSH	AX				; save used size for dfl_alias_index
+;	ADD	AX,CX				; AX=hopefully new used size
+;	CMP	DX,AX				; check that new string fits
+;	JAE	ENL_20
+;	MOV	AX,error_out_of_structures	; error - doesn't fit
+;	JMP	ENL_980 			; ret w/carry
+;NL_20: 					; ok - fits
+;	STOSW					; store new used size
+;	POP	AX				; get index from stack
+;	PUSH	AX
+;	INC	DI
+;	INC	DI
+;	ADD	DI,AX				; Space to spot in list to put name
+;	REP	MOVSB
+;	RestoreReg <SI,DS>			; Set dfl alias index to byte offset
+;	POP	AX				; (+4) of name in list
+;	MOV	DS:WORD PTR [SI.DFL_ALIAS_INDEX],AX
+;	JMP	ENL_990 			; go ret no carry
+;NL_980:					; Return area
+;	STC					; error
+;	RestoreReg <SI,DS,DX,CX,DI,ES>
+;	return
+;NL_990:
+;	CLC					; no error
+;	RestoreReg <DX,CX,DI,ES>
+;NL_1000:
+;	return
+;ndProc ENTER_NAMES_LIST
+;REAK <EXIT_NAMES_LIST - remove alias name from Names List>
+;************************************************************************************
+; EXIT_NAMES_LIST
+; Routine called by:  DELETE_DFL_ENTRY
+; Routines called:	DOS: StrLen
+; Inputs:
+;	  DS:SI -> DFL
+; Function:
+;	Remove alias name from Names List
+; Outputs:
+;	name removed
+; Notes:  all preserved
+;************************************************************************************
+;	procedure EXIT_NAMES_LIST
+;SSUME	DS:IFSSEG,ES:IFSSEG
+;	MOV	DX,DS:[SI.DFL_ALIAS_INDEX]	; DX=index
+;	LES	DI,[NLAddr]
+;	MOV	AX,ES:WORD PTR [DI+2]		; AX=used size
+;	SaveReg <ES,DI,AX>
+;	ADD	DI,DX+4
+;	CallInstall StrLen,multDOS,18		; CX=size of alias name
+;	PUSH	ES
+;	POP	DS
+;	MOV	SI,DI
+;	ADD	SI,CX
+;	MOV	BX,CX
+;	SUB	AX,SI				; CX= #bytes to move =
+;	MOV	CX,AX				; used size - index of next name
+;	REP	MOVSB				; move names up
+;	RestoreReg <AX,DI,ES>			; adjust used size
+;	SUB	AX,BX
+;	MOV	ES:WORD PTR [DI+2],AX
+;	LDS	SI,[DFLAddr]			; loop thru all dfl entries to
+;	MOV	DI,SIZE DFL_LIST		; adjust alias indicies above
+;	MOV	CL,[DFLCount]			; index removed
+;	XOR	CH,CH
+;XNL_20:					; ** Loop here on dfl entries
+;	TEST	DS:[SI.DFLL_FLAGS],DFL_INUSE
+;	JZ	EXNL_40
+;	MOV	AX,DS:[SI.DFL_ALIAS_INDEX]	; 0 if not alias
+;	CMP	AX,DX
+;	JB	EXNL_40
+;	SUB	AX,BX				; adjust by size of name deleted
+;	MOV	DS:[SI.DFL_ALIAS_INDEX],AX
+;XNL_40:
+;	ADD	SI,DX
+;	LOOP	EXNL_20
+;	JMP	ifs_1000			; go return
+;ndProc EXIT_NAMES_LIST
+BREAK <DFL_SINGLE_FILE_CHECK - support single file check>
+;************************************************************************************
+; DFL_SINGLE_FILE_CHECK
+; Routine called by:  IFS_FILE_ATTRIBUTES
+; Inputs:
+;	  [THISDFL]
+;	  [WFP_START]
+; Function:
+;	IF [THISDFL] .NOT. NULL THEN
+;	   DO
+;	     Get IFS header from DFL_IFS_HDR
+;	     IF IFSDEVICE true THEN
+;		DO
+;		  Call DFL_TO_DF
+;		  Clear carry
+;		ENDDO
+;	     ELSE   Set error - device doesn't support single file fcn
+;	     ENDIF
+;	   ENDDO
+;	ELSE DO
+;	       CALL DFL_MATCH
+;	       IF match found THEN
+;		  DO
+;		    Get IFS header from DFL_IFS_HDR
+;		    IF IFSDEVICE true THEN
+;		       DO
+;			 Call DFL_TO_DF
+;			 Clear carry
+;		       ENDDO
+;		    ELSE Set error - device doesn't support single file fcn
+;		  ENDDO
+;	       ELSE Set error - device not IFS
+;	       ENDIF
+;	     ENDDO
+;	ENDIF
+; Outputs:
+;	no carry:		carry: error
+;	  [THISIFS] set
+;	  ES:BX -> IFSRH
+;	  IFSR_DEVICE_CB@
+;	  ds - IFSSEG
+;************************************************************************************
+	procedure DFL_SINGLE_FILE_CHECK
+ASSUME	DS:IFSSEG,ES:IFSSEG
+;; assume thisdfl aready set up here
+;; don't want to write another parse routine
+;;	CMP	WORD PTR [THISDFL],MINUS_ONE
+;;	JNZ	DSFC_20
+;;	CALL	DFL_MATCH			; check for dfl entry
+;;	JNC	DSFC_20
+;;	MOV	AX,error_not_ifs_device
+;;	JMP	ifs_1000
+DSFC_20:
+	LES	DI,CS:[THISDFL]
+	LES	DI,ES:[DI.DFLL_IFS_HDR]		; check that ifs device supports
+	TEST	ES:[DI.IFS_ATTRIBUTE],IFSDEVICE ; single file function
+	JNZ	DSFC_60
+	MOV	AX,error_file_not_found 	; no - set error & go return w/carry
+	JMP	ifs_980
+DSFC_60:
+	invoke	DFL_TO_DF
+	JMP	ifs_990
+EndProc DFL_SINGLE_FILE_CHECK
+;BREAK <PROCESS_ALIAS -- add alias name>
+;************************************************************************************
+; PROCESS_ALIAS
+; Called by: ATTACH_START
+; Routines called:  DFL_MATCH
+;		    CREATE_DFL_ENTRY
+; Inputs:
+;	    DS:SI -> ASCIIZ source name
+;	    ES:DI -> ALIAS name
+; Function:
+; Regs:
+;************************************************************************************
+;	Procedure   PROCESS_ALIAS,NEAR
+;SSUME	DS:NOTHING,ES:NOTHING
+;	CALL	DFL_MATCH
+;	JC	PA_20
+;;;???	match found, error or override???
+;A_20:
+;	CALL	CREATE_DFL_ENTRY
+;	JMP	ifs_1000
+;ndProc PROCESS_ALIAS
+BREAK <DFL_MATCH -- check for DFL entry>
+;************************************************************************************
+; DFL_MATCH
+; Called by: ATTACH_START  CONSIST_SFT
+;	     IFS_DELETE
+; Routines called:
+; Inputs:
+;	    DS:SI -> Asciiz Device name
+; Function:
+;	Search DFL for match on name
+;	If match found - set [THISDFL] and clear carry
+;	Else set carry
+; Output:
+;	carry clear - match found, [THISDFL] set
+;	carry set   - match not found
+; Regs: all preserved
+;************************************************************************************
+	Procedure   DFL_MATCH
+ASSUME	DS:NOTHING,ES:NOTHING
+	SaveReg <DS,SI,ES,DI,AX,CX,BX>		; save registers
+	SaveReg    <CS> 			; store canonicalized version of
+	RestoreReg <ES> 			; source asciiz dev name in
+	MOV	DI,OFFSET TEMPBUF+10		; tempbuf+10
+	MOV	CX,10				; devs max of 8 ch and : and nul
+DM_20:
+	LODSB
+	CallInstall UCase,multDOS,19,<AX>,<BX>
+	STOSB
+	OR	AL,AL
+	JZ	DM_60
+	CMP	AL,"."
+	JZ	DM_40
+	LOOP	DM_20
+DM_40:
+	XOR	AL,AL
+	MOV	BYTE PTR ES:[DI-1],AL
+DM_60:
+	CMP	BYTE PTR ES:[DI-2],":"
+	JNZ	DM_80
+	MOV	BYTE PTR ES:[DI-2],0
+DM_80:
+	XOR	AX,AX				; ax is counter through DFL entries
+	LDS	SI,[DFLAddr]			; dssi -> dfl entry
+DM_100: 					; <<<<< matching loop >>>>>
+	CMP	AL,CS:[DFLCount]
+	JAE	DM_980
+	TEST	DS:[SI.DFLL_FLAGS],DFL_INUSE
+	JZ	DM_160
+	SaveReg <SI>				; dfl entry offset
+	ADD	SI,DFL_DEV_NAME
+	MOV	DI,OFFSET TEMPBUF
+	CALL	CONVERT_NAME_ASCIIZ		; moves dev name into tempbuf
+						; in asciiz form - di preserved
+	MOV	SI,OFFSET TEMPBUF+10
+	Call	PRN_CHECK			; if si->prn - chg si->lpt1
+	CallInstall StrCmp,multDOS,30,<AX>,<AX> ; check for match
+	RestoreReg <SI> 			; dfl entry offset
+	JZ	DM_990
+DM_160:
+	ADD	SI,SIZE DFLL_LIST
+	INC	AL
+	JMP	SHORT DM_100			; go up & try next entry
+DM_980:
+	SaveReg <AX,CS> 			; set thisdfl null on error
+	RestoreReg <DS>
+	MOV	AX,NULL_PTR
+	MOV	WORD PTR [THISDFL],AX
+	MOV	WORD PTR [THISDFL+2],AX
+	RestoreReg <AX>
+	STC
+	JMP	SHORT DM_1000
+DM_990:
+	TEST	DS:[SI.DFLL_FLAGS],dfl_paused	; if printer paused, no match
+	JNZ	DM_980
 
-	MOV	CS:WORD PTR [THISDFL],SI						 ;AN000;
-	MOV	CS:WORD PTR [THISDFL+2],DS						 ;AN000;
-	CLC					; es:di -> dfl on match 		 ;AN000;
-DM_1000:										 ;AN000;
-	RestoreReg <BX,CX,AX,DI,ES,SI,DS>	; restore regs				 ;AN000;
-	return										 ;AN000;
-											 ;AN000;
-EndProc DFL_MATCH									 ;AN000;
-											 ;AN000;
-BREAK <SFT_TO_SFF -- Convert SFT to SFF>						 ;AN000;
-											 ;AN000;
-;************************************************************************************	 ;AN000;
-;											 ;AN000;
-; SFT_TO_SFF										 ;AN000;
-;											 ;AN000;
-; Inputs:										 ;AN000;
-;	[THISSFT] set									 ;AN000;
-;	DS - DOSGROUP									 ;AN000;
-; Function:										 ;AN000;
-;	Load SFF from SFT								 ;AN000;
-;											 ;AN000;
-;	  SFF_TYPE	=  0								 ;AN000;
-;	  SFF_TYPE+1	=  0								 ;AN000;
-;	  SFF_FLAGS	=  SF_FLAGS							 ;AN000;
-;	  SFF_MODE	=  SF_MODE							 ;AN000;
-;	  SFF_RESV1	=  0								 ;AN000;
-;	  SFF_ATTR	=  SF_ATTR							 ;AN000;
-;	  SFF_UID	=  SF_UID							 ;AN000;
-;	  SFF_PID	=  SF_PID							 ;AN000;
-;	  SFF_SIZE	=  SF_SIZE							 ;AN000;
-;	  SFF_POSITION	=  SF_POSITION							 ;AN000;
-;	  SFF_TIME	=  SF_TIME							 ;AN000;
-;	  SFF_DATE	=  SF_DATE							 ;AN000;
-;	  SFF_NAME	=  SF_NAME							 ;AN000;
-;	  SFF_EXT	=  SF_NAME+8							 ;AN000;
-;	  SFF_RESV2	=  0								 ;AN000;
+	MOV	CS:WORD PTR [THISDFL],SI
+	MOV	CS:WORD PTR [THISDFL+2],DS
+	CLC					; es:di -> dfl on match
+DM_1000:
+	RestoreReg <BX,CX,AX,DI,ES,SI,DS>	; restore regs
+	return
+EndProc DFL_MATCH
+BREAK <SFT_TO_SFF -- Convert SFT to SFF>
+;************************************************************************************
+; SFT_TO_SFF
+; Inputs:
+;	[THISSFT] set
+;	DS - DOSGROUP
+; Function:
+;	Load SFF from SFT
+;	  SFF_TYPE	=  0
+;	  SFF_TYPE+1	=  0
+;	  SFF_FLAGS	=  SF_FLAGS
+;	  SFF_MODE	=  SF_MODE
+;	  SFF_RESV1	=  0
+;	  SFF_ATTR	=  SF_ATTR
+;	  SFF_UID	=  SF_UID
+;	  SFF_PID	=  SF_PID
+;	  SFF_SIZE	=  SF_SIZE
+;	  SFF_POSITION	=  SF_POSITION
+;	  SFF_TIME	=  SF_TIME
+;	  SFF_DATE	=  SF_DATE
+;	  SFF_NAME	=  SF_NAME
+;	  SFF_EXT	=  SF_NAME+8
+;	  SFF_RESV2	=  0
 ;	  SFF_SF_ID	=  math on sft address
-;	  SFF_FSDA	=  SF_CLUSPOS							 ;AN000;
-;	  SFF_FSDA + 2	=  SF_DIRSEC							 ;AN000;
-;	  SFF_FSDA + 4	=  SF_DIRSEC+2							 ;AN000;
-;	  SFF_FSDA + 6	=  SF_LSTCLUS							 ;AN000;
-; Outputs:										 ;AN000;
-;	SF loaded									 ;AN000;
-;	ES:BX -> IFSRH									 ;AN000;
-;	IFSR_OPEN_CB@ set								 ;AN000;
-;	If SetDeviceCB set then IFSR_DEVICE_CB@ set					 ;AN000;
-;	DS - IFSSEG									 ;AN000;
-;											 ;AN000;
-; notes: all except ES,BX,DS preserved							 ;AN000;
-;************************************************************************************	 ;AN000;
-											 ;AN000;
-	procedure SFT_TO_SFF,NEAR							 ;AN000;
-ASSUME	DS:NOTHING,ES:NOTHING								 ;AN000;
-											 ;AN000;
-	SaveReg <DI,SI,AX,CX>			; save regs				 ;AN000;
-											 ;AN000;
-	SaveReg <CS>									 ;AN000;
-	RestoreReg <ES> 								 ;AN000;
-ASSUME	ES:IFSSEG									 ;AN000;
-	MOV	DI,OFFSET SFF1			; DS:SI -> SFT				 ;AN000;
-	LDS	SI,[THISSFT]			; ES:DI -> SFF				 ;AN000;
-											 ;AN000;
-	SaveReg <DI>				; save SFF offset			 ;AN000;
-	MOV	AH,CBTYPE_SFF			; sff_type				 ;AN000;
-	XOR	AL,AL									 ;AN000;
-	STOSW										 ;AN000;
-											 ;AN000;
-	MOV	AX,WORD PTR [SI.SF_FLAGS]	; sff_flags				 ;AN000;
-	STOSW										 ;AN015;
-	MOV	AX,WORD PTR [SI.SF_MODE]	; sff_mode				 ;AN000;
+;	  SFF_FSDA	=  SF_CLUSPOS
+;	  SFF_FSDA + 2	=  SF_DIRSEC
+;	  SFF_FSDA + 4	=  SF_DIRSEC+2
+;	  SFF_FSDA + 6	=  SF_LSTCLUS
+; Outputs:
+;	SF loaded
+;	ES:BX -> IFSRH
+;	IFSR_OPEN_CB@ set
+;	If SetDeviceCB set then IFSR_DEVICE_CB@ set
+;	DS - IFSSEG
+; notes: all except ES,BX,DS preserved
+;************************************************************************************
+	procedure SFT_TO_SFF,NEAR
+ASSUME	DS:NOTHING,ES:NOTHING
+	SaveReg <DI,SI,AX,CX>			; save regs
+	SaveReg <CS>
+	RestoreReg <ES>
+ASSUME	ES:IFSSEG
+	MOV	DI,OFFSET SFF1			; DS:SI -> SFT
+	LDS	SI,[THISSFT]			; ES:DI -> SFF
+	SaveReg <DI>				; save SFF offset
+	MOV	AH,CBTYPE_SFF			; sff_type
+	XOR	AL,AL
+	STOSW
+	MOV	AX,WORD PTR [SI.SF_FLAGS]	; sff_flags
+	STOSW
+	MOV	AX,WORD PTR [SI.SF_MODE]	; sff_mode
 ;;;;;;;;PUSH	BX									 ;AD015;
 ;;;;;;;;AND	BX,8000H								 ;AD015;
 ;;;;;;;;OR	AX,BX									 ;AD015;
-	STOSW										 ;AN000;
+	STOSW
 ;;;;;;;;POP	AX									 ;AD015;
 ;;;;;;;;AND	AX,0EFFFH								 ;AD015;
 ;;;;;;;;STOSW										 ;AD015;
 ;;;;;;;;MOV	AX,WORD PTR [SI.SF_IOMODE]	; sff_iomode				 ;AD024;
-	XOR	AX,AX				; just put zero in reserved area	 ;AN024;
-	STOSW										 ;AN000;
-	MOV	AL,BYTE PTR [SI.SF_ATTR]	; sff_attr				 ;AN000;
+	XOR	AX,AX				; just put zero in reserved area
+	STOSW
+	MOV	AL,BYTE PTR [SI.SF_ATTR]	; sff_attr
 ;;;;;;;;MOV	AH,BYTE PTR [SI.SF_ATTR_HI]	; sff_attr_hi  - no longer exists	 ;AD024;
-	STOSW										 ;AN000;
-	MOV	AX,WORD PTR [SI.SF_UID] 	; sff_uid				 ;AN000;
-	STOSW										 ;AN000;
-	MOV	AX,WORD PTR [SI.SF_PID] 	; sff_pid				 ;AN000;
-	STOSW										 ;AN000;
-	SaveReg <SI>									 ;AN000;
-	ADD	SI,SF_SIZE								 ;AN000;
-	MOV	CX,4									 ;AN000;
-	REP	MOVSW				; sff_size & position			 ;AN000;
-	RestoreReg <SI> 								 ;AN000;
-	MOV	AX,WORD PTR [SI.SF_TIME]	; sff_time				 ;AN000;
-	STOSW										 ;AN000;
-	MOV	AX,WORD PTR [SI.SF_DATE]	; sff_date				 ;AN000;
-	STOSW										 ;AN000;
-											 ;AN000;
-	SaveReg <SI>				; sff_name/ext/cp			 ;AN000;
-	ADD	SI,SF_NAME								 ;AN000;
-	MOV	CX,11				;   (name - 11, cp - 2 bytes) cp out	 ;AC024;
-	REP	MOVSB									 ;AN000;
-	XOR	AX,AX									 ;AN024;
-	STOSW					; just put zero in reserved area	 ;AN024;
+	STOSW
+	MOV	AX,WORD PTR [SI.SF_UID] 	; sff_uid
+	STOSW
+	MOV	AX,WORD PTR [SI.SF_PID] 	; sff_pid
+	STOSW
+	SaveReg <SI>
+	ADD	SI,SF_SIZE
+	MOV	CX,4
+	REP	MOVSW				; sff_size & position
+	RestoreReg <SI>
+	MOV	AX,WORD PTR [SI.SF_TIME]	; sff_time
+	STOSW
+	MOV	AX,WORD PTR [SI.SF_DATE]	; sff_date
+	STOSW
+	SaveReg <SI>				; sff_name/ext/cp
+	ADD	SI,SF_NAME
+	MOV	CX,11				;   (name - 11, cp - 2 bytes) cp out
+	REP	MOVSB
+	XOR	AX,AX
+	STOSW					; just put zero in reserved area
 
-	RestoreReg <SI> 			; sff_sf_id				 ;AN000;
-	SaveReg <SI,DS,DS>			;     calculate based on sft address	 ;AN016
-	RestoreReg <AX> 								 ;AN016;
-	MOV	CL,4									 ;AN016;
-	SHL	AX,CL									 ;AN016;
-	ADD	SI,AX									 ;AN016;
-	RestoreReg <AX> 								 ;AN016;
-	AND	AX,0F000H								 ;AN016;
-	ADD	AX,SI									 ;AN016;
-	STOSW										 ;AN016;
-	RestoreReg <SI> 								 ;AN016;
-											 ;AN000;
-	ADD	DI,SIZE SFF_RESV		; sff_fsda  1st word			 ;AN000;
-	SaveReg <SI>				; save si for issft case		 ;AN015;
-	ADD	SI,SF_CLUSPOS								 ;AN000;
-	MOV	CX,3									 ;AC017;
-	REP	MOVSW									 ;AN000;
+	RestoreReg <SI> 			; sff_sf_id
+	SaveReg <SI,DS,DS>			;     calculate based on sft address
+	RestoreReg <AX>
+	MOV	CL,4
+	SHL	AX,CL
+	ADD	SI,AX
+	RestoreReg <AX>
+	AND	AX,0F000H
+	ADD	AX,SI
+	STOSW
+	RestoreReg <SI>
+	ADD	DI,SIZE SFF_RESV		; sff_fsda  1st word
+	SaveReg <SI>				; save si for issft case
+	ADD	SI,SF_CLUSPOS
+	MOV	CX,3
+	REP	MOVSW
 ;;;;;;;;ADD	SI,12									 ;AN017;;AD024;
 ;;;;;;;;MOVSW										 ;AN017;;AD024;
-	RestoreReg <SI> 								 ;AN015;
-	MOV	AX,WORD PTR [SI.SF_LSTCLUS]	; manually put lstclus in fsda+6	 ;AN024;
-	STOSW										 ;AN024;
-											 ;AN000;
-	TEST	CS:[IFSPROC_FLAGS],ISSFT						 ;AN000;
-	JZ	SFT_20									 ;AN000;
-	MOV	AX,WORD PTR [SI.SF_IFS_HDR]	; Set [THISIFS] only if 		 ;AN000;
-	MOV	WORD PTR CS:[THISIFS],AX	;   no yet set by cds_to_cd or		 ;AN000;
-	MOV	AX,WORD PTR [SI.SF_IFS_HDR+2]	;   dfl_to_df				 ;AN000;
-	MOV	WORD PTR CS:[THISIFS+2],AX						 ;AN000;
-											 ;AN000;
-SFT_20: 										 ;AN000;
-	RestoreReg <DI> 			; restore ES:DI -> start of SFF 	 ;AN000;
-	SaveReg    <ES> 			; set DS:DI -> SFF			 ;AN000;
-	RestoreReg <DS> 								 ;AN000;
-ASSUME	DS:IFSSEG									 ;AN000;
-											 ;AN000;
-	MOV	BX,OFFSET IFSR			 ; set ES:BX -> IFSRH			 ;AN000;
-											 ;AN000;
-	TEST	CS:IFSPROC_FLAGS,ISCTLFCN						 ;AN000;
-	JNZ	SFT_40					; API fcn -			 ;AN000;
-	MOV	WORD PTR ES:[BX.IFSR_OPEN_CB@],DI	; set IFSR_OPEN_CB@		 ;AN000;
-	MOV	WORD PTR ES:[BX.IFSR_OPEN_CB@+2],DS					 ;AN000;
-	JMP	SFT_60									 ;AN000;
-SFT_40: 					; Ctl fcn -				 ;AN000;
-	MOV	WORD PTR ES:[BX.IFSR_CB@],DI	; set IFSR_CB@				 ;AN000;
-	MOV	WORD PTR ES:[BX.IFSR_CB@+2],DS						 ;AN000;
-											 ;AN000;
-SFT_60: 										 ;AN000;
-	TEST	IFSPROC_FLAGS,SetDeviceCB	; check whether to set			 ;AN000;
-	JZ	SFT_1000			; device cb or not			 ;AN000;
-	LDS	SI,[THISSFT]								 ;AN000;
-	CMP	WORD PTR DS:[SI.SF_DEVPTR],NULL_PTR  ; null if seq			 ;AN000;
-	JE	SFT_1000								 ;AN000;
+	RestoreReg <SI>
+	MOV	AX,WORD PTR [SI.SF_LSTCLUS]	; manually put lstclus in fsda+6
+	STOSW
+	TEST	CS:[IFSPROC_FLAGS],ISSFT
+	JZ	SFT_20
+	MOV	AX,WORD PTR [SI.SF_IFS_HDR]	; Set [THISIFS] only if
+	MOV	WORD PTR CS:[THISIFS],AX	;   no yet set by cds_to_cd or
+	MOV	AX,WORD PTR [SI.SF_IFS_HDR+2]	;   dfl_to_df
+	MOV	WORD PTR CS:[THISIFS+2],AX
+SFT_20:
+	RestoreReg <DI> 			; restore ES:DI -> start of SFF
+	SaveReg    <ES> 			; set DS:DI -> SFF
+	RestoreReg <DS>
+ASSUME	DS:IFSSEG
+	MOV	BX,OFFSET IFSR			 ; set ES:BX -> IFSRH
+	TEST	CS:IFSPROC_FLAGS,ISCTLFCN
+	JNZ	SFT_40					; API fcn -
+	MOV	WORD PTR ES:[BX.IFSR_OPEN_CB@],DI	; set IFSR_OPEN_CB@
+	MOV	WORD PTR ES:[BX.IFSR_OPEN_CB@+2],DS
+	JMP	SFT_60
+SFT_40: 					; Ctl fcn -
+	MOV	WORD PTR ES:[BX.IFSR_CB@],DI	; set IFSR_CB@
+	MOV	WORD PTR ES:[BX.IFSR_CB@+2],DS
+SFT_60:
+	TEST	IFSPROC_FLAGS,SetDeviceCB	; check whether to set
+	JZ	SFT_1000			; device cb or not
+	LDS	SI,[THISSFT]
+	CMP	WORD PTR DS:[SI.SF_DEVPTR],NULL_PTR  ; null if seq
+	JE	SFT_1000
 	TEST	DS:[SI.SF_FLAGS],DEVID_DEVICE	; cds or dfl?				 ;AM007;
 	LDS	SI,DS:[SI.SF_DEVPTR]		; get device ptr (cds/dfl)		 ;AM007;
-	JNZ	SFT_100 			; jmp if dfl				 ;AN000;
-	MOV	WORD PTR CS:SAVE_CB@,SI 	; CDS					 ;AN000;
-	MOV	WORD PTR CS:SAVE_CB@+2,DS						 ;AN000;
-	TEST	DS:[SI.CURDIR_FLAGS],CURDIR_ISIFS					 ;AN000;
-	JZ	SFT_1000								 ;AN000;
-	CALL	CDS_TO_CD								 ;AN000;
-	JMP	SHORT SFT_1000								 ;AN000;
-											 ;AN000;
-SFT_100:										 ;AN000;
-	MOV	WORD PTR CS:[THISDFL],SI	; DFL					 ;AN000;
-	MOV	WORD PTR CS:[THISDFL+2],DS	; set this cause dfl-df 		 ;AN000;
-	CALL	DFL_TO_DF			; expects it				 ;AN000;
-											 ;AN000;
-											 ;AN000;
-SFT_1000:										 ;AN000;
-	RestoreReg <CX,AX,SI,DI>		; restore regs				 ;AN000;
-	SaveReg <CS>									 ;AN000;
-	RestoreReg <DS> 			; set ds -ifsseg			 ;AN000;
-											 ;AN000;
-	return										 ;AN000;
-											 ;AN000;
-EndProc SFT_TO_SFF									 ;AN000;
-											 ;AN000;
-											 ;AN000;
-BREAK <SFF_TO_SFT -- Convert SFF to SFT>						 ;AN000;
-											 ;AN000;
-;************************************************************************************	 ;AN000;
-;											 ;AN000;
-; SFF_TO_SFT										 ;AN000;
-;											 ;AN000;
-; Inputs:										 ;AN000;
-;	[THISSFT] set									 ;AN000;
-; Function:										 ;AN000;
-;	Update SFT with SFF								 ;AN000;
-;	SF_FLAGS     =	SFF_FLAGS							 ;AN000;
-;	SF_MODE      =	SFF_MODE							 ;AN000;
-;	SF_ATTR      =	SFF_ATTR							 ;AN000;
-;	SF_UID	     =	SFF_UID 							 ;AN000;
-;	SF_PID	     =	SFF_PID 							 ;AN000;
-;	SF_SIZE      =	SFF_SIZE							 ;AN000;
-;	SF_POSITION  =	SFF_POSITION							 ;AN000;
-;	SF_TIME      =	SFF_TIME							 ;AN000;
-;	SF_DATE      =	SFF_DATE							 ;AN000;
-;	SF_NAME      =	SFF_NAME							 ;AN000;
-;	SF_NAME+8    =	SFF_EXT 							 ;AN000;
-;	SF_CLUSPOS   =	SFF_FSDA							 ;AN000;
-;	SF_DIRSEC    =	SFF_FSDA + 2							 ;AN000;
-;	SF_DIRSEC+2  =	SFF_FSDA + 4							 ;AN000;
-;	SF_LSTCLUS   =	SFF_FSDA + 6							 ;AN000;
-;											 ;AN000;
-; Outputs:										 ;AN000;
-;	SFT loaded									 ;AN000;
-; notes: all regs preserved								 ;AN000;
-;											 ;AN000;
-;************************************************************************************	 ;AN000;
-											 ;AN000;
-	procedure SFF_TO_SFT,NEAR							 ;AN000;
-ASSUME	DS:NOTHING,ES:NOTHING								 ;AN000;
-											 ;AN000;
-	SaveReg <ES,DI,DS,SI,AX,CX>		; save regs				 ;AC003;
-											 ;AN000;
-	PUSH	SS									 ;AN000;
-	POP	DS									 ;AN000;
-ASSUME	DS:DOSGROUP									 ;AN000;
-	LES	DI,[THISSFT]			; DS:SI -> SFF				 ;AN000;
-	PUSH	CS									 ;AN000;
-	POP	DS									 ;AN000;
-ASSUME	DS:IFSSEG									 ;AN000;
-	MOV	SI,OFFSET SFF1			; ES:DI -> SFT				 ;AN000;
-	INC	SI									 ;AN000;
-	INC	SI									 ;AN000;
-											 ;AN000;
-	LODSW					; sff_flags				 ;AN000;
+	JNZ	SFT_100 			; jmp if dfl
+	MOV	WORD PTR CS:SAVE_CB@,SI 	; CDS
+	MOV	WORD PTR CS:SAVE_CB@+2,DS
+	TEST	DS:[SI.CURDIR_FLAGS],CURDIR_ISIFS
+	JZ	SFT_1000
+	CALL	CDS_TO_CD
+	JMP	SHORT SFT_1000
+SFT_100:
+	MOV	WORD PTR CS:[THISDFL],SI	; DFL
+	MOV	WORD PTR CS:[THISDFL+2],DS	; set this cause dfl-df
+	CALL	DFL_TO_DF			; expects it
+SFT_1000:
+	RestoreReg <CX,AX,SI,DI>		; restore regs
+	SaveReg <CS>
+	RestoreReg <DS> 			; set ds -ifsseg
+	return
+EndProc SFT_TO_SFF
+BREAK <SFF_TO_SFT -- Convert SFF to SFT>
+;************************************************************************************
+; SFF_TO_SFT
+; Inputs:
+;	[THISSFT] set
+; Function:
+;	Update SFT with SFF
+;	SF_FLAGS     =	SFF_FLAGS
+;	SF_MODE      =	SFF_MODE
+;	SF_ATTR      =	SFF_ATTR
+;	SF_UID	     =	SFF_UID
+;	SF_PID	     =	SFF_PID
+;	SF_SIZE      =	SFF_SIZE
+;	SF_POSITION  =	SFF_POSITION
+;	SF_TIME      =	SFF_TIME
+;	SF_DATE      =	SFF_DATE
+;	SF_NAME      =	SFF_NAME
+;	SF_NAME+8    =	SFF_EXT
+;	SF_CLUSPOS   =	SFF_FSDA
+;	SF_DIRSEC    =	SFF_FSDA + 2
+;	SF_DIRSEC+2  =	SFF_FSDA + 4
+;	SF_LSTCLUS   =	SFF_FSDA + 6
+; Outputs:
+;	SFT loaded
+; notes: all regs preserved
+;************************************************************************************
+	procedure SFF_TO_SFT,NEAR
+ASSUME	DS:NOTHING,ES:NOTHING
+	SaveReg <ES,DI,DS,SI,AX,CX>		; save regs
+	PUSH	SS
+	POP	DS
+ASSUME	DS:DOSGROUP
+	LES	DI,[THISSFT]			; DS:SI -> SFF
+	PUSH	CS
+	POP	DS
+ASSUME	DS:IFSSEG
+	MOV	SI,OFFSET SFF1			; ES:DI -> SFT
+	INC	SI
+	INC	SI
+	LODSW					; sff_flags
 ;;;;;;;;AND	AX,0EFFFH			; (hi bit sft_flags - also mode       )  ;AD015;
-	MOV	WORD PTR ES:[DI.SF_FLAGS],AX	; sft_flags				 ;AC015;
-	LODSW										 ;AN000;
+	MOV	WORD PTR ES:[DI.SF_FLAGS],AX	; sft_flags
+	LODSW
 ;;;;;;;;AND	AX,0EFFFH								 ;AD015;
-	MOV	WORD PTR ES:[DI.SF_MODE],AX	; sft_mode				 ;AC015;
-	LODSW										 ;AN000;
+	MOV	WORD PTR ES:[DI.SF_MODE],AX	; sft_mode
+	LODSW
 ;;;;;;;;MOV	WORD PTR ES:[DI.SF_IOMODE],AX	; sft_iomode	...no longer exists	 ;AD024;
-	LODSW										 ;AN000;
-	MOV	BYTE PTR ES:[DI.SF_ATTR],AL	; sft_attr				 ;AN000;
+	LODSW
+	MOV	BYTE PTR ES:[DI.SF_ATTR],AL	; sft_attr
 ;;;;;;;;MOV	BYTE PTR ES:[DI.SF_ATTR_HI],AH	;    no longer exists			 ;AD024;
-	LODSW										 ;AN000;
-	MOV	WORD PTR ES:[DI.SF_UID],AX	; sft_uid				 ;AN000;
-	LODSW										 ;AN000;
-	MOV	WORD PTR ES:[DI.SF_PID],AX	; sft_pid				 ;AN000;
-	SaveReg <DI>									 ;AN000;
-	ADD	DI,SF_SIZE								 ;AN000;
-	MOV	CX,4									 ;AN000;
-	REP	MOVSW				; sft_size & position			 ;AN000;
-	RestoreReg <DI> 								 ;AN000;
-	LODSW										 ;AN000;
-	MOV	WORD PTR ES:[DI.SF_TIME],AX	; sft_time				 ;AN000;
-	LODSW										 ;AN000;
-	MOV	WORD PTR ES:[DI.SF_DATE],AX	; sft_date				 ;AN000;
-											 ;AN000;
-											 ;AN000;
-	PUSH	DI				; sft_name/ext/cp			 ;AN000;
-	ADD	DI,SF_NAME								 ;AN000;
-	MOV	CX,11				;   (name - 11, cp - 2 bytes)		 ;AN000;
-	REP	MOVSB									 ;AN000;
-											 ;AN000;
-	ADD	SI,SIZE SFF_RESV		; sft_fsda  1st word			 ;AN000;
-	ADD	SI,4				; for sff_sf_id 			 ;AN016;;AC024;
-	POP	DI									 ;AN000;
-											 ;AN000;
-	SaveReg <DI>									 ;AN003;
-	ADD	DI,SF_CLUSPOS								 ;AN000;
-	MOV	CX,3									 ;AC017;
-	REP	MOVSW									 ;AN000;
+	LODSW
+	MOV	WORD PTR ES:[DI.SF_UID],AX	; sft_uid
+	LODSW
+	MOV	WORD PTR ES:[DI.SF_PID],AX	; sft_pid
+	SaveReg <DI>
+	ADD	DI,SF_SIZE
+	MOV	CX,4
+	REP	MOVSW				; sft_size & position
+	RestoreReg <DI>
+	LODSW
+	MOV	WORD PTR ES:[DI.SF_TIME],AX	; sft_time
+	LODSW
+	MOV	WORD PTR ES:[DI.SF_DATE],AX	; sft_date
+	PUSH	DI				; sft_name/ext/cp
+	ADD	DI,SF_NAME
+	MOV	CX,11				;   (name - 11, cp - 2 bytes)
+	REP	MOVSB
+	ADD	SI,SIZE SFF_RESV		; sft_fsda  1st word
+	ADD	SI,4				; for sff_sf_id
+	POP	DI
+	SaveReg <DI>
+	ADD	DI,SF_CLUSPOS
+	MOV	CX,3
+	REP	MOVSW
 ;;;;;;;;ADD	DI,12									 ;AN017;;AD024;
 ;;;;;;;;MOVSW										 ;AN017;;AD024;
-	LODSW										 ;AN024;
+	LODSW
 	RestoreReg <DI> 								 ;AN003;;AM024;
-	MOV	WORD PTR ES:[DI.SF_LSTCLUS],AX						 ;AN024;
-											 ;AN000;
-	TEST	IFSPROC_FLAGS,SetDeviceCB	; check whether to update		 ;AN000;
-	JZ	SFF_1000			; device cb or not			 ;AN000;
-	TEST	IFSPROC_FLAGS,IsSeq							 ;AN000;
-	JNZ	SFF_1000								 ;AN000;
-											 ;AN000;
+	MOV	WORD PTR ES:[DI.SF_LSTCLUS],AX
+	TEST	IFSPROC_FLAGS,SetDeviceCB	; check whether to update
+	JZ	SFF_1000			; device cb or not
+	TEST	IFSPROC_FLAGS,IsSeq
+	JNZ	SFF_1000
 	TEST	ES:[DI.SF_FLAGS],DEVID_DEVICE	; cds or dfl?				 ;AM007;
-	PUSHF					;  save results of this test for later	 ;AN007;
-	LES	DI,ES:[DI.SF_DEVPTR]		; get device ptr (cds/dfl)		 ;AN000;
-	CMP	DI,NULL_PTR								 ;AN000;
-	JNE	SFF_20									 ;AN000;
-	POPF										 ;AN000;
-	JMP	SFF_1000								 ;AN000;
+	PUSHF					;  save results of this test for later
+	LES	DI,ES:[DI.SF_DEVPTR]		; get device ptr (cds/dfl)
+	CMP	DI,NULL_PTR
+	JNE	SFF_20
+	POPF
+	JMP	SFF_1000
 
-SFF_20: 										 ;AN000;
-	POPF					; retrieve cd/df test results		 ;AN000;
-	JNZ	SFF_100 			; jmp if dfl				 ;AN000;
-	MOV	DI,WORD PTR CS:SAVE_CB@ 	; CDS					 ;AN000;
-	PUSH	WORD PTR CS:SAVE_CB@+2							 ;AN000;
-	POP	ES									 ;AN000;
+SFF_20:
+	POPF					; retrieve cd/df test results
+	JNZ	SFF_100 			; jmp if dfl
+	MOV	DI,WORD PTR CS:SAVE_CB@ 	; CDS
+	PUSH	WORD PTR CS:SAVE_CB@+2
+	POP	ES
 	TEST	ES:[DI.CURDIR_FLAGS],CURDIR_ISIFS
 	JZ	SFF_1000
-	CALL	CD_TO_CDS								 ;AN000;
-	JMP	SHORT SFF_1000								 ;AN000;
-											 ;AN000;
-SFF_100:										 ;AN000;
-	MOV	WORD PTR CS:[THISDFL],DI	; DFL					 ;AN000;
-	MOV	WORD PTR CS:[THISDFL+2],ES	; set this cause DF_TO_DFL		 ;AN000;
-	CALL	DF_TO_DFL			; expects it				 ;AN000;
-											 ;AN000;
-SFF_1000:										 ;AN000;
-	RestoreReg <CX,AX,SI,DS,DI,ES>		; restore regs				 ;AC003;
-											 ;AN000;
-	return										 ;AN000;
-											 ;AN000;
-EndProc SFF_TO_SFT									 ;AN000;
-											 ;AN000;
-BREAK <CDS_TO_CD -- Convert CDS to CD>							 ;AN000;
-											 ;AN000;
-;************************************************************************************	 ;AN000;
-;											 ;AN000;
-; CDS_TO_CD										 ;AN000;
-;											 ;AN000;
-; Inputs:										 ;AN000;
-;	DS:SI -> CDS									 ;AN000;
-;											 ;AN000;
-; Function:										 ;AN000;
-;	Load CD from CDS								 ;AN000;
-;	  CD_TYPE   = 1 								 ;AN000;
-;	  CD_TYPE+1 = 0 								 ;AN000;
-;	  CD_END    = CURDIR_END							 ;AN000;
-;	  CD_TEXT   = CURDIR_TEXT							 ;AN000;
-;	  CD_FSDA   = CURDIR_ID 							 ;AN000;
-;	  CD_FSDA+2 = CURDIR_ID+2							 ;AN000;
-;	  CD_FSDA+4 = CURDIR_USER_WORD							 ;AN000;
-;	  CD_FSDA+6 = CURDIR_FSDA							 ;AN000;
-; Outputs:										 ;AN000;
-;	CD loaded									 ;AN000;
-;	ES:BX -> IFSRH									 ;AN000;
-;	IFSR_DEVICE_CB@ -> CD								 ;AN000;
-;	[THISIFS] = CURDIR_IFS_HDR							 ;AN000;
-;	DS - IFSSEG									 ;AN000;
-;											 ;AN000;
-; Regs: all except DS,ES,BX saved							 ;AN000;
-;											 ;AN000;
-;************************************************************************************	 ;AN000;
-											 ;AN000;
-	procedure CDS_TO_CD,NEAR							 ;AN000;
-											 ;AN000;
-	SaveReg <DI,SI,AX,CX>			; save regs				 ;AN000;
-											 ;AN000;
-	PUSH	CS									 ;AN000;
-	POP	ES				; DS:SI -> CDS				 ;AN000;
-ASSUME	ES:IFSSEG				; ES:DI -> CD				 ;AN000;
-	MOV	DI,OFFSET CS:CD1							 ;AN000;
-											 ;AN000;
-	PUSH	DI				; save cd offset			 ;AN000;
-	MOV	AL,CBTYPE_CD			; cd_type				 ;AN000;
-	TEST	CS:IFSPROC_FLAGS,ISDUMMYCDS	;    check for dummy cd 		 ;AN000;
-	JZ	CCD_10									 ;AN000;
-	MOV	AL,CBTYPE_DUMMYCD							 ;AN000;
-CCD_10: 										 ;AN000;
-	XOR	AH,AH									 ;AN000;
-	STOSW					; move di down thru cd during store	 ;AN000;
-											 ;AN000;
-	MOV	AX,WORD PTR [SI.CURDIR_END]	; cd_end				 ;AN000;
-	STOSW										 ;AN000;
-											 ;AN000;
-	PUSH	SI				; cd_text				 ;AN000;
-	MOV	CX,DIRSTRLEN								 ;AN000;
-	REP	MOVSB									 ;AN000;
-	POP	SI									 ;AN000;
-											 ;AN000;
-	MOV	AX,WORD PTR [SI.CURDIR_ID]	; cd_fsda				 ;AN000;
-	ADD	DI,SIZE CD_RESV 							 ;AN000;
-	STOSW										 ;AN000;
-	MOV	AX,WORD PTR [SI.CURDIR_ID+2]						 ;AN000;
-	STOSW										 ;AN000;
-	MOV	AX,WORD PTR [SI.CURDIR_USER_WORD]					 ;AN000;
-	STOSW										 ;AN000;
-	MOV	AX,WORD PTR [SI.CURDIR_FSDA]						 ;AN000;
-	STOSW										 ;AN000;
-											 ;AN000;
-	TEST	CS:IFSPROC_FLAGS,THISIFS_SET						 ;AN000;
-	JNZ	CCD_20									 ;AN000;
-	MOV	AX,WORD PTR [SI.CURDIR_IFS_HDR] ; Set [THISIFS] 			 ;AN000;
-	MOV	WORD PTR CS:[THISIFS],AX						 ;AN000;
-	MOV	AX,WORD PTR [SI.CURDIR_IFS_HDR+2]					 ;AN000;
-	MOV	WORD PTR CS:[THISIFS+2],AX						 ;AN000;
-CCD_20: 										 ;AN000;
-	POP	DI				; restore CD offset			 ;AN000;
-	PUSH	CS				; get DS -> IFSSEG			 ;AN000;
-	POP	DS									 ;AN000;
-ASSUME	DS:IFSSEG									 ;AN000;
-											 ;AN000;
-	MOV	BX,OFFSET IFSR			; ES:BX -> IFSRH			 ;AN000;
-	SaveReg <BX>									 ;AN000;
-	ADD	BX,DEVICE_CB@_OFFSET							 ;AN000;
-	MOV	WORD PTR ES:[BX],DI		; set IFSR_DEVICE_CB@			 ;AN000;
-	ADD	BX,2									 ;AN000;
-	MOV	WORD PTR ES:[BX],ES							 ;AN000;
-	RestoreReg <BX> 								 ;AN000;
-											 ;AN000;
-	RestoreReg <CX,AX,SI,DI>		; restore regs				 ;AN000;
-											 ;AN000;
-	return										 ;AN000;
-											 ;AN000;
-EndProc CDS_TO_CD									 ;AN000;
-											 ;AN000;
-											 ;AN000;
-BREAK <CD_TO_CDS -- Convert CD to CDS>							 ;AN000;
-											 ;AN000;
-;************************************************************************************	 ;AN000;
-;											 ;AN000;
-; CD_TO_CDS										 ;AN000;
-;											 ;AN000;
-; Inputs:										 ;AN000;
-;	ES:DI -> CDS									 ;AN000;
-;	DS    -> IFSSEG 								 ;AN000;
-; Function:										 ;AN000;
-;	Update CDS with CD								 ;AN000;
-;	  CURDIR_TEXT	   =	CD_TEXT 						 ;AN000;
-;	  CURDIR_ID	   =	CD_FSDA 						 ;AN000;
-;	  CURDIR_ID+2	   =	CD_FSDA+2						 ;AN000;
-;	  CURDIR_USER_WORD =	CD_FSDA+4						 ;AN000;
-;	  CURDIR_END	   =	CD_END							 ;AN000;
-;	  CURDIR_FSDA	   =	CD_FSDA+6						 ;AN000;
-; Outputs:										 ;AN000;
-;	CDS updated									 ;AN000;
-;											 ;AN000;
-; notes: all regs preserved								 ;AN000;
-;											 ;AN000;
-;************************************************************************************	 ;AN000;
-											 ;AN000;
-	procedure CD_TO_CDS,NEAR							 ;AN000;
-ASSUME	DS:IFSSEG,ES:IFSSEG								 ;AN000;
-											 ;AN000;
-	SaveReg <ES,DI,DS,SI,AX,CX>		; save regs				 ;AC005;
-											 ;AN000;
-	MOV	SI,OFFSET CD1			; ES:DI -> CDS				 ;AN000;
-						; DS:SI -> CD				 ;AN000;
-	INC	SI									 ;AN000;
-	INC	SI									 ;AN000;
-											 ;AN000;
-	LODSW					; curdir_end				 ;AN000;
-	MOV	ES:[DI.CURDIR_END],AX							 ;AN000;
-											 ;AN000;
-	PUSH	DI									 ;AN000;
-	MOV	CX,DIRSTRLEN								 ;AN000;
-	REP	MOVSB									 ;AN000;
-	POP	DI									 ;AN000;
-											 ;AN000;
-	ADD	SI,SIZE CD_RESV 		; curdir_id				 ;AN000;
-	LODSW										 ;AN000;
-	MOV	WORD PTR ES:[DI.CURDIR_ID],AX						 ;AN000;
-	LODSW										 ;AN000;
-	MOV	WORD PTR ES:[DI.CURDIR_ID+2],AX 					 ;AN000;
-	LODSW					; curdir_user_word			 ;AN000;
-	MOV	WORD PTR ES:[DI.CURDIR_USER_WORD],AX					 ;AN000;
-	LODSW					; curdir_fsda				 ;AN000;
-	MOV	WORD PTR ES:[DI.CURDIR_FSDA],AX 					 ;AN000;
-											 ;AN000;
-	RestoreReg <CX,AX,SI,DS,DI,ES>		; restore regs				 ;AC005;
-											 ;AN000;
-	return										 ;AN000;
-											 ;AN000;
-EndProc CD_TO_CDS									 ;AN000;
-											 ;AN000;
-											 ;AN000;
-BREAK <DFL_TO_DF -- Convert DFL to DF>							 ;AN000;
-											 ;AN000;
-;************************************************************************************	 ;AN000;
-;											 ;AN000;
-; DFL_TO_DF										 ;AN000;
-;											 ;AN000;
-; Inputs:										 ;AN000;
-;	[THISDFL]									 ;AN000;
-; Function:										 ;AN000;
-;	Load DF from DFL								 ;AN000;
-;											 ;AN000;
-;	  DF_TYPE     = 2								 ;AN000;
-;	  DF_TYPE + 1 = 0								 ;AN000;
-;	  DF_DEV_NAME = DFL_DEV_NAME							 ;AN000;
-;	  DF_FSDA     = DFL_FSDA							 ;AN000;
-; Outputs:										 ;AN000;
-;	DF loaded									 ;AN000;
-;	ES:BX -> IFSRH									 ;AN000;
-;	IFSR_DEVICE_CB@ -> DF								 ;AN000;
-;	[THISIFS] = DFL_IFS_HDR 							 ;AN000;
-;	DS - IFSSEG									 ;AN000;
-;											 ;AN000;
-; notes: es,bx,ds Revised, others saved						 ;AN000;
-;											 ;AN000;
-;************************************************************************************	 ;AN000;
-											 ;AN000;
-	procedure DFL_TO_DF,NEAR							 ;AN000;
-ASSUME	DS:NOTHING,ES:NOTHING								 ;AN000;
-											 ;AN000;
-	SaveReg <DI,SI,AX>			; save regs				 ;AN000;
-											 ;AN000;
-	PUSH	CS									 ;AN000;
-	POP	ES									 ;AN000;
-ASSUME	ES:IFSSEG									 ;AN000;
-	MOV	DI,OFFSET DF1			; es:di -> df				 ;AN000;
-											 ;AN000;
-	MOV	BX,OFFSET IFSR			; set es:bx - ifsrh			 ;AN000;
-	PUSH	BX				; fill in device cb@			 ;AN000;
-	ADD	BX,CS:DEVICE_CB@_OFFSET 						 ;AN000;
-	MOV	WORD PTR ES:[BX],DI							 ;AN000;
-	ADD	BX,2									 ;AN000;
-	MOV	WORD PTR ES:[BX],ES							 ;AN000;
-	POP	BX									 ;AN000;
-											 ;AN000;
-	LDS	SI,[THISDFL]			; ds:si -> dfl				 ;AN000;
-											 ;AN000;
-	MOV	AL,CBTYPE_DF			; df_type				 ;AN000;
-	XOR	AH,AH									 ;AN000;
-	STOSW										 ;AN000;
-											 ;AN000;
-	PUSH	SI				; df_dev_name				 ;AN000;
-	ADD	SI,DFL_DEV_NAME 							 ;AN000;
-	MOV	CX,8									 ;AN000;
-	REP	MOVSB									 ;AN000;
-	POP	SI									 ;AN000;
-	PUSH	SI									 ;AN000;
-	ADD	SI,DFL_FSDA			; df_fsda				 ;AN000;
+	CALL	CD_TO_CDS
+	JMP	SHORT SFF_1000
+SFF_100:
+	MOV	WORD PTR CS:[THISDFL],DI	; DFL
+	MOV	WORD PTR CS:[THISDFL+2],ES	; set this cause DF_TO_DFL
+	CALL	DF_TO_DFL			; expects it
+SFF_1000:
+	RestoreReg <CX,AX,SI,DS,DI,ES>		; restore regs
+	return
+EndProc SFF_TO_SFT
+BREAK <CDS_TO_CD -- Convert CDS to CD>
+;************************************************************************************
+; CDS_TO_CD
+; Inputs:
+;	DS:SI -> CDS
+; Function:
+;	Load CD from CDS
+;	  CD_TYPE   = 1
+;	  CD_TYPE+1 = 0
+;	  CD_END    = CURDIR_END
+;	  CD_TEXT   = CURDIR_TEXT
+;	  CD_FSDA   = CURDIR_ID
+;	  CD_FSDA+2 = CURDIR_ID+2
+;	  CD_FSDA+4 = CURDIR_USER_WORD
+;	  CD_FSDA+6 = CURDIR_FSDA
+; Outputs:
+;	CD loaded
+;	ES:BX -> IFSRH
+;	IFSR_DEVICE_CB@ -> CD
+;	[THISIFS] = CURDIR_IFS_HDR
+;	DS - IFSSEG
+; Regs: all except DS,ES,BX saved
+;************************************************************************************
+	procedure CDS_TO_CD,NEAR
+	SaveReg <DI,SI,AX,CX>			; save regs
+	PUSH	CS
+	POP	ES				; DS:SI -> CDS
+ASSUME	ES:IFSSEG				; ES:DI -> CD
+	MOV	DI,OFFSET CS:CD1
+	PUSH	DI				; save cd offset
+	MOV	AL,CBTYPE_CD			; cd_type
+	TEST	CS:IFSPROC_FLAGS,ISDUMMYCDS	;    check for dummy cd
+	JZ	CCD_10
+	MOV	AL,CBTYPE_DUMMYCD
+CCD_10:
+	XOR	AH,AH
+	STOSW					; move di down thru cd during store
+	MOV	AX,WORD PTR [SI.CURDIR_END]	; cd_end
+	STOSW
+	PUSH	SI				; cd_text
+	MOV	CX,DIRSTRLEN
+	REP	MOVSB
+	POP	SI
+	MOV	AX,WORD PTR [SI.CURDIR_ID]	; cd_fsda
+	ADD	DI,SIZE CD_RESV
+	STOSW
+	MOV	AX,WORD PTR [SI.CURDIR_ID+2]
+	STOSW
+	MOV	AX,WORD PTR [SI.CURDIR_USER_WORD]
+	STOSW
+	MOV	AX,WORD PTR [SI.CURDIR_FSDA]
+	STOSW
+	TEST	CS:IFSPROC_FLAGS,THISIFS_SET
+	JNZ	CCD_20
+	MOV	AX,WORD PTR [SI.CURDIR_IFS_HDR] ; Set [THISIFS]
+	MOV	WORD PTR CS:[THISIFS],AX
+	MOV	AX,WORD PTR [SI.CURDIR_IFS_HDR+2]
+	MOV	WORD PTR CS:[THISIFS+2],AX
+CCD_20:
+	POP	DI				; restore CD offset
+	PUSH	CS				; get DS -> IFSSEG
+	POP	DS
+ASSUME	DS:IFSSEG
+	MOV	BX,OFFSET IFSR			; ES:BX -> IFSRH
+	SaveReg <BX>
+	ADD	BX,DEVICE_CB@_OFFSET
+	MOV	WORD PTR ES:[BX],DI		; set IFSR_DEVICE_CB@
+	ADD	BX,2
+	MOV	WORD PTR ES:[BX],ES
+	RestoreReg <BX>
+	RestoreReg <CX,AX,SI,DI>		; restore regs
+	return
+EndProc CDS_TO_CD
+BREAK <CD_TO_CDS -- Convert CD to CDS>
+;************************************************************************************
+; CD_TO_CDS
+; Inputs:
+;	ES:DI -> CDS
+;	DS    -> IFSSEG
+; Function:
+;	Update CDS with CD
+;	  CURDIR_TEXT	   =	CD_TEXT
+;	  CURDIR_ID	   =	CD_FSDA
+;	  CURDIR_ID+2	   =	CD_FSDA+2
+;	  CURDIR_USER_WORD =	CD_FSDA+4
+;	  CURDIR_END	   =	CD_END
+;	  CURDIR_FSDA	   =	CD_FSDA+6
+; Outputs:
+;	CDS updated
+; notes: all regs preserved
+;************************************************************************************
+	procedure CD_TO_CDS,NEAR
+ASSUME	DS:IFSSEG,ES:IFSSEG
+	SaveReg <ES,DI,DS,SI,AX,CX>		; save regs
+	MOV	SI,OFFSET CD1			; ES:DI -> CDS
+						; DS:SI -> CD
+	INC	SI
+	INC	SI
+	LODSW					; curdir_end
+	MOV	ES:[DI.CURDIR_END],AX
+	PUSH	DI
+	MOV	CX,DIRSTRLEN
+	REP	MOVSB
+	POP	DI
+	ADD	SI,SIZE CD_RESV 		; curdir_id
+	LODSW
+	MOV	WORD PTR ES:[DI.CURDIR_ID],AX
+	LODSW
+	MOV	WORD PTR ES:[DI.CURDIR_ID+2],AX
+	LODSW					; curdir_user_word
+	MOV	WORD PTR ES:[DI.CURDIR_USER_WORD],AX
+	LODSW					; curdir_fsda
+	MOV	WORD PTR ES:[DI.CURDIR_FSDA],AX
+	RestoreReg <CX,AX,SI,DS,DI,ES>		; restore regs
+	return
+EndProc CD_TO_CDS
+BREAK <DFL_TO_DF -- Convert DFL to DF>
+;************************************************************************************
+; DFL_TO_DF
+; Inputs:
+;	[THISDFL]
+; Function:
+;	Load DF from DFL
+;	  DF_TYPE     = 2
+;	  DF_TYPE + 1 = 0
+;	  DF_DEV_NAME = DFL_DEV_NAME
+;	  DF_FSDA     = DFL_FSDA
+; Outputs:
+;	DF loaded
+;	ES:BX -> IFSRH
+;	IFSR_DEVICE_CB@ -> DF
+;	[THISIFS] = DFL_IFS_HDR
+;	DS - IFSSEG
+; notes: es,bx,ds Revised, others saved
+;************************************************************************************
+	procedure DFL_TO_DF,NEAR
+ASSUME	DS:NOTHING,ES:NOTHING
+	SaveReg <DI,SI,AX>			; save regs
+	PUSH	CS
+	POP	ES
+ASSUME	ES:IFSSEG
+	MOV	DI,OFFSET DF1			; es:di -> df
+	MOV	BX,OFFSET IFSR			; set es:bx - ifsrh
+	PUSH	BX				; fill in device cb@
+	ADD	BX,CS:DEVICE_CB@_OFFSET
+	MOV	WORD PTR ES:[BX],DI
+	ADD	BX,2
+	MOV	WORD PTR ES:[BX],ES
+	POP	BX
+	LDS	SI,[THISDFL]			; ds:si -> dfl
+	MOV	AL,CBTYPE_DF			; df_type
+	XOR	AH,AH
+	STOSW
+	PUSH	SI				; df_dev_name
+	ADD	SI,DFL_DEV_NAME
+	MOV	CX,8
+	REP	MOVSB
+	POP	SI
+	PUSH	SI
+	ADD	SI,DFL_FSDA			; df_fsda
 
-	TEST	CS:IFSPROC_FLAGS,SetDeviceCB	; if this flag set, i24 already taken	 ;AN004;
-	JNZ	DDF_20				; care of, otherwise take care of it	 ;AN004;
-	SaveReg <DI,SI> 			; df, dfl dev name offsets		 ;AN004;
-	MOV	DI,OFFSET CS:[PHONEY_NAME]	; set phoney name and ifsdrv		 ;AN004;
-	MOV	CX,4									 ;AN004;
-	REP	MOVSW									 ;AN004;
-	MOV	CS:[IFSDRV],-1								 ;AN004;
-	RestoreReg <SI,DI>			; dfl dev name, df offsets		 ;AN004;
+	TEST	CS:IFSPROC_FLAGS,SetDeviceCB	; if this flag set, i24 already taken
+	JNZ	DDF_20				; care of, otherwise take care of it
+	SaveReg <DI,SI> 			; df, dfl dev name offsets
+	MOV	DI,OFFSET CS:[PHONEY_NAME]	; set phoney name and ifsdrv
+	MOV	CX,4
+	REP	MOVSW
+	MOV	CS:[IFSDRV],-1
+	RestoreReg <SI,DI>			; dfl dev name, df offsets
 
-DDF_20: 										 ;AN004;
-	MOV	CX,SIZE DFL_FSDA 							 ;AN000;
-	REP	MOVSB									 ;AN000;
-	POP	SI									 ;AN000;
-											 ;AN000;
-	MOV	AX,WORD PTR DS:[SI.DFLL_IFS_HDR] ; Set [THISIFS] 			 ;AN000;
-	MOV	WORD PTR [THISIFS],AX							 ;AN000;
-	MOV	AX,WORD PTR DS:[SI.DFLL_IFS_HDR+2]					 ;AN000;
-	MOV	WORD PTR [THISIFS+2],AX 						 ;AN000;
-											 ;AN000;
-	PUSH	CS				; set ds - ifsseg			 ;AN000;
-	POP	DS									 ;AN000;
-											 ;AN000;
-	RestoreReg <AX,SI,DI>			; restore regs				 ;AN000;
-											 ;AN000;
-	return										 ;AN000;
-											 ;AN000;
-EndProc DFL_TO_DF									 ;AN000;
-											 ;AN000;
-											 ;AN000;
-BREAK <DF_TO_DFL -- Convert DF to DFL>							 ;AN000;
-											 ;AN000;
-;************************************************************************************	 ;AN000;
-;											 ;AN000;
-; DF_TO_DFL										 ;AN000;
-;											 ;AN000;
-; Inputs:										 ;AN000;
-;	[THISDFL] set									 ;AN000;
-; Function:										 ;AN000;
-;	Update DFL with DF								 ;AN000;
-;	  DFL_DEV_NAME = DF_DEV_NAME							 ;AN000;
-;	  DFL_FSDA     = DF_FSDA							 ;AN000;
-; Outputs:										 ;AN000;
-;	DFL updated									 ;AN000;
-;											 ;AN000;
-; notes: all regs preserved								 ;AN000;
-;											 ;AN000;
-;************************************************************************************	 ;AN000;
-											 ;AN000;
-	procedure DF_TO_DFL,NEAR							 ;AN000;
-ASSUME	DS:NOTHING,ES:NOTHING								 ;AN000;
-											 ;AN000;
-	SaveReg <ES,DI,DS,SI>			; save regs				 ;AN000;
-											 ;AN000;
-	LES	DI,[THISDFL]			; esdi -> dfl				 ;AN000;
-	PUSH	CS									 ;AN000;
-	POP	DS									 ;AN000;
-ASSUME	DS:IFSSEG									 ;AN000;
-	MOV	SI,OFFSET DF1			; dssi -> df				 ;AN000;
-											 ;AN000;
-	INC	SI				; space si,di to dev_name		 ;AN000;
-	INC	SI									 ;AN000;
-	PUSH	DI									 ;AN000;
-	ADD	DI,DFL_DEV_NAME 							 ;AN000;
-	MOV	CX,8									 ;AN000;
-	REP	MOVSB				; update dfl_dev_name for some reason	 ;AN000;
-											 ;AN000;
-	POP	DI									 ;AN000;
-	ADD	DI,DFL_FSDA								 ;AN000;
-	MOV	CX,SIZE DFL_FSDA							 ;AN000;
-	REP	MOVSB				; update dfl_fsda			 ;AN000;
-											 ;AN000;
-	RestoreReg <SI,DS,DI,ES>		; restore regs				 ;AN000;
-											 ;AN000;
-	return										 ;AN000;
-											 ;AN000;
-EndProc DF_TO_DFL									 ;AN000;
-											 ;AN000;
-											 ;AN000;
-BREAK <CONSIST_SFT -- Make SFT caches consistent with state of IFSFUNC> 		 ;AN000;
-											 ;AN000;
-;************************************************************************************	 ;AN000;
-;											 ;AN000;
-; CONSIST_SFT										 ;AN000;
-;											 ;AN000;
-; Inputs:										 ;AN000;
-;	None										 ;AN000;
-;											 ;AN000;
-; Function:										 ;AN000;
-;	Make sure all device SFTs are consistent with current IFSFUNC state		 ;AN000;
-;											 ;AN000;
-; Outputs:										 ;AN000;
-;	None										 ;AN000;
-;											 ;AN000;
-; Regs: DS,ES,SI,DI preserved others destroyed						 ;AN000;
-;											 ;AN000;
-;************************************************************************************	 ;AN000;
-											 ;AN000;
-	procedure CONSIST_SFT,NEAR							 ;AN000;
-ASSUME	DS:NOTHING,ES:NOTHING								 ;AN000;
-											 ;AN000;
-	CMP	CS:[DFLCount],0 	; if no dfl, forget it				 ;AN022;
+DDF_20:
+	MOV	CX,SIZE DFL_FSDA
+	REP	MOVSB
+	POP	SI
+	MOV	AX,WORD PTR DS:[SI.DFLL_IFS_HDR] ; Set [THISIFS]
+	MOV	WORD PTR [THISIFS],AX
+	MOV	AX,WORD PTR DS:[SI.DFLL_IFS_HDR+2]
+	MOV	WORD PTR [THISIFS+2],AX
+	PUSH	CS				; set ds - ifsseg
+	POP	DS
+	RestoreReg <AX,SI,DI>			; restore regs
+	return
+EndProc DFL_TO_DF
+BREAK <DF_TO_DFL -- Convert DF to DFL>
+;************************************************************************************
+; DF_TO_DFL
+; Inputs:
+;	[THISDFL] set
+; Function:
+;	Update DFL with DF
+;	  DFL_DEV_NAME = DF_DEV_NAME
+;	  DFL_FSDA     = DF_FSDA
+; Outputs:
+;	DFL updated
+; notes: all regs preserved
+;************************************************************************************
+	procedure DF_TO_DFL,NEAR
+ASSUME	DS:NOTHING,ES:NOTHING
+	SaveReg <ES,DI,DS,SI>			; save regs
+	LES	DI,[THISDFL]			; esdi -> dfl
+	PUSH	CS
+	POP	DS
+ASSUME	DS:IFSSEG
+	MOV	SI,OFFSET DF1			; dssi -> df
+	INC	SI				; space si,di to dev_name
+	INC	SI
+	PUSH	DI
+	ADD	DI,DFL_DEV_NAME
+	MOV	CX,8
+	REP	MOVSB				; update dfl_dev_name for some reason
+	POP	DI
+	ADD	DI,DFL_FSDA
+	MOV	CX,SIZE DFL_FSDA
+	REP	MOVSB				; update dfl_fsda
+	RestoreReg <SI,DS,DI,ES>		; restore regs
+	return
+EndProc DF_TO_DFL
+BREAK <CONSIST_SFT -- Make SFT caches consistent with state of IFSFUNC>
+;************************************************************************************
+; CONSIST_SFT
+; Inputs:
+;	None
+; Function:
+;	Make sure all device SFTs are consistent with current IFSFUNC state
+; Outputs:
+;	None
+; Regs: DS,ES,SI,DI preserved others destroyed
+;************************************************************************************
+	procedure CONSIST_SFT,NEAR
+ASSUME	DS:NOTHING,ES:NOTHING
+	CMP	CS:[DFLCount],0 	; if no dfl, forget it
 	JE	CS_20
-	SaveReg <DS,SI,ES,DI>								 ;AN000;
-	CLI				; This scan of the SFT tables is		 ;AN000;
-					;  a critical section we must protect		 ;AN000;
-					;  with CLI and STI as CritNET must		 ;AN000;
-					;  be disjoint from all other critical		 ;AN000;
-					;  sections					 ;AN000;
-	LDS	SI,[SFTFCB]								 ;AN000;
-ASSUME	DS:NOTHING									 ;AN000;
-	MOV	CX,[SI].sfCount 							 ;AN000;
-	LEA	SI,[SI].sfTable 							 ;AN000;
-	JCXZ	DONE_LOOK_FCB								 ;AN000;
-	CALL	LOOK_FIX								 ;AN000;
-DONE_LOOK_FCB:										 ;AN000;
-	LDS	SI,[SFT_Addr]		; get pointer to beginning of table		 ;AN000;
-ScanLoop:										 ;AN000;
-	MOV	CX,[SI].SFCount 							 ;AN000;
-	PUSH	DS									 ;AN000;
-	PUSH	SI									 ;AN000;
-	LEA	SI,[SI].sfTable 							 ;AN000;
-	CALL	LOOK_FIX								 ;AN000;
-	POP	SI									 ;AN000;
-	POP	DS									 ;AN000;
-	LDS	SI,[SI].SFLink		; get next table segment			 ;AN000;
-	CMP	SI,-1			; end of tables?				 ;AN000;
-	JNZ	ScanLoop		; no, try again 				 ;AN000;
-	STI										 ;AN000;
-	RestoreReg <DI,ES,SI,DS>							 ;AN000;
+	SaveReg <DS,SI,ES,DI>
+	CLI				; This scan of the SFT tables is
+					;  a critical section we must protect
+					;  with CLI and STI as CritNET must
+					;  be disjoint from all other critical
+					;  sections
+	LDS	SI,[SFTFCB]
+ASSUME	DS:NOTHING
+	MOV	CX,[SI].sfCount
+	LEA	SI,[SI].sfTable
+	JCXZ	DONE_LOOK_FCB
+	CALL	LOOK_FIX
+DONE_LOOK_FCB:
+	LDS	SI,[SFT_Addr]		; get pointer to beginning of table
+ScanLoop:
+	MOV	CX,[SI].SFCount
+	PUSH	DS
+	PUSH	SI
+	LEA	SI,[SI].sfTable
+	CALL	LOOK_FIX
+	POP	SI
+	POP	DS
+	LDS	SI,[SI].SFLink		; get next table segment
+	CMP	SI,-1			; end of tables?
+	JNZ	ScanLoop		; no, try again
+	STI
+	RestoreReg <DI,ES,SI,DS>
 CS_20:
-	return										 ;AN000;
-											 ;AN000;
-LOOK_FIX:										 ;AN000;
-	CMP	[SI].sf_ref_count,0							 ;AN000;
-	JZ	NEXT_SFT		; Ignore Free ones				 ;AN000;
-	TEST	[SI].sf_flags,devid_device						 ;AN000;
-	JZ	NEXT_SFT		; Only look at device SFTs			 ;AN000;
+	return
+LOOK_FIX:
+	CMP	[SI].sf_ref_count,0
+	JZ	NEXT_SFT		; Ignore Free ones
+	TEST	[SI].sf_flags,devid_device
+	JZ	NEXT_SFT		; Only look at device SFTs
 	TEST	[SI].sf_flags,sf_isnet
-;AN000;
-	PUSH	CX			; sft loop count				 ;AN000;
-	PUSH	DS			; sft ptr					 ;AN000;
-	PUSH	SI									 ;AN000;
-	PUSHF				; Save result of above TEST			 ;AN000;
-	ADD	SI,sf_name		; put asciiz form of sf_name in tempbuf 	 ;AN000;
-	PUSH	CS			; to call dfl_match with			 ;AN000;
-	POP	ES									 ;AN000;
-	MOV	DI,OFFSET TEMPBUF							 ;AN000;
-	CALL	CONVERT_NAME_ASCIIZ							 ;AN000;
-	PUSH	CS									 ;AN000;
-	POP	DS									 ;AN000;
-	MOV	SI,DI									 ;AN000;
-	CALL	DFL_MATCH		; is this sft attached? cf1-no,cf0-yes		 ;AN000;
-	JC	NOT_R_DEV								 ;AN000;
-	PUSH	CS			; IS ATTACHED - recover test for sf_isnet	 ;AN000;
-	CALL	PIRET									 ;AN000;
-	JNZ	NOT_REDIR		; jmp if marked attached - ok			 ;AN000;
-; [THISDFL] dfl entry									 ;AN000;
-; (TOS+2):(TOS) -> SFT									 ;AN000;
-; (TOS+4) = CX loop count								 ;AN000;
-					; Not marked attached, but should & will be	 ;AN000;
-	LES	DI,[THISDFL]								 ;AN000;
-	POP	SI									 ;AN000;
-	POP	DS			; DS:SI -> SFT					 ;AN000;
-	MOV	AX,WORD PTR [SI.sf_devptr+2]	; save original devptr			 ;AN031;
-	MOV	WORD PTR ES:[DI.DFLL_DEVPTR+2],AX					 ;AN031;
-	MOV	AX,WORD PTR [SI.sf_devptr]						 ;AN031;
-	MOV	WORD PTR ES:[DI.DFLL_DEVPTR],AX						 ;AN031;
-	MOV	WORD PTR [SI.sf_devptr+2],ES						 ;AC027;
-	MOV	WORD PTR [SI.sf_devptr],DI						 ;AC027;
-	MOV	AX,WORD PTR ES:[DI.DFL_FSDA]	 ; put dfl fsda into sft fsda		 ;AN027;
-	MOV	WORD PTR [SI.sf_cluspos],AX						 ;AN027;
-	MOV	AX,WORD PTR ES:[DI.DFL_FSDA+2]						 ;AN027;
-	MOV	WORD PTR [SI.sf_dirsec],AX						 ;AN027;
-	MOV	AX,WORD PTR ES:[DI.DFL_FSDA+4]						 ;AN027;
-	MOV	WORD PTR [SI.sf_dirsec+2],AX						 ;AN027;
-	MOV	AX,WORD PTR ES:[DI.DFL_FSDA+6]						 ;AN027;
-	MOV	WORD PTR [SI.sf_lstclus],AX						 ;AN027;
-	OR	[SI.sf_flags],sf_isnet + sf_net_spool ; Turn on bits			 ;AC027;
-	JMP	SHORT CLEAN_CX								 ;AN000;
-											 ;AN000;
-PIRET:											 ;AN000;
-	IRET										 ;AN000;
-											 ;AN000;
-NOT_R_DEV:										 ;AN000;
-	PUSH	CS			; NOT ATTACHED - recover test for sf_isnet	 ;AN000;
-	CALL	PIRET									 ;AN000;
-	JNZ	UNDO_BITS		; jmp if marked attached - problem		 ;AN000;
-NOT_REDIR:										 ;AN000;
-	POP	SI									 ;AN000;
-	POP	DS									 ;AN000;
-CLEAN_CX:										 ;AN000;
-	POP	CX									 ;AN000;
-NEXT_SFT:										 ;AN000;
-	ADD	SI,size sf_entry							 ;AN000;
-	LOOP	LOOK_FIX								 ;AN000;
-	return										 ;AN000;
-											 ;AN000;
-; [THISDFL] dfl entry									 ;AN000;
-; (TOS+2):(TOS) -> SFT									 ;AN000;
-; (TOS+4) = CX loop count								 ;AN000;
-UNDO_BITS:				; device not attached, but marked so		 ;AN000;
-	POP	SI			; unmark it, restore original devptr		 ;AN000;
-	POP	DS			; DS:SI -> SFT					 ;AN000;
-	AND	[SI.sf_flags],NOT (sf_isnet + sf_net_spool) ; Turn off bits		 ;AN000;
-	MOV	ES,WORD PTR [SI.sf_devptr+2]	    ; set esdi -> dfl			 ;AN031;
-	MOV	DI,WORD PTR [SI.sf_devptr]						 ;AN031;
-	MOV	AX,WORD PTR ES:[DI.DFLL_DEVPTR+2]    ; restore original devptr		 ;AN031;
-	MOV	WORD PTR [SI.sf_devptr+2],AX						 ;AN031;
-	MOV	AX,WORD PTR ES:[DI.DFLL_DEVPTR]						 ;AN031;
-	MOV	WORD PTR [SI.sf_devptr],AX						 ;AN031;
-	JMP	SHORT CLEAN_CX								 ;AN000;
-											 ;AN000;
-EndProc CONSIST_SFT									 ;AN000;
-											 ;AN000;
-											 ;AN000;
-BREAK <CONSIST_DFL -- Reset all DFL in_prog flags>					 ;AN000;
-											 ;AN000;
-;************************************************************************************	 ;AN000;
-;											 ;AN000;
-; CONSIST_DFL										 ;AN000;
-;											 ;AN000;
-; Inputs:										 ;AN000;
-;	DS:SI -> 1st DFL entry								 ;AN000;
-;	CX = DFLCount									 ;AN000;
-; Function:										 ;AN000;
-;	Set all dfl_inprog flags to zero						 ;AN000;
-; Outputs:										 ;AN000;
-;	dfl_inprog flags all zero							 ;AN000;
-;											 ;AN000;
-; notes: all regs preserved								 ;AN000;
-;											 ;AN000;
-;************************************************************************************	 ;AN000;
-											 ;AN000;
-	procedure CONSIST_DFL,NEAR							 ;AN000;
-ASSUME	DS:NOTHING,ES:NOTHING								 ;AN000;
-											 ;AN000;
-	SaveReg <SI,DX,CX>								 ;AC023;
-	MOV	DX,SIZE DFLL_LIST							 ;AN000;
-CD_20:						; reset loop				 ;AN000;
-	AND	BYTE PTR DS:[SI],NOT DFL_INPROG 					 ;AN000;
-	ADD	SI,DX									 ;AN000;
-	LOOP	CD_20									 ;AN000;
-											 ;AN000;
-	RestoreReg <CX,DX,SI>								 ;AC023;
-	return										 ;AN000;
-											 ;AN000;
-EndProc CONSIST_DFL									 ;AN000;
+	PUSH	CX			; sft loop count
+	PUSH	DS			; sft ptr
+	PUSH	SI
+	PUSHF				; Save result of above TEST
+	ADD	SI,sf_name		; put asciiz form of sf_name in tempbuf
+	PUSH	CS			; to call dfl_match with
+	POP	ES
+	MOV	DI,OFFSET TEMPBUF
+	CALL	CONVERT_NAME_ASCIIZ
+	PUSH	CS
+	POP	DS
+	MOV	SI,DI
+	CALL	DFL_MATCH		; is this sft attached? cf1-no,cf0-yes
+	JC	NOT_R_DEV
+	PUSH	CS			; IS ATTACHED - recover test for sf_isnet
+	CALL	PIRET
+	JNZ	NOT_REDIR		; jmp if marked attached - ok
+; [THISDFL] dfl entry
+; (TOS+2):(TOS) -> SFT
+; (TOS+4) = CX loop count
+					; Not marked attached, but should & will be
+	LES	DI,[THISDFL]
+	POP	SI
+	POP	DS			; DS:SI -> SFT
+	MOV	AX,WORD PTR [SI.sf_devptr+2]	; save original devptr
+	MOV	WORD PTR ES:[DI.DFLL_DEVPTR+2],AX
+	MOV	AX,WORD PTR [SI.sf_devptr]
+	MOV	WORD PTR ES:[DI.DFLL_DEVPTR],AX
+	MOV	WORD PTR [SI.sf_devptr+2],ES
+	MOV	WORD PTR [SI.sf_devptr],DI
+	MOV	AX,WORD PTR ES:[DI.DFL_FSDA]	 ; put dfl fsda into sft fsda
+	MOV	WORD PTR [SI.sf_cluspos],AX
+	MOV	AX,WORD PTR ES:[DI.DFL_FSDA+2]
+	MOV	WORD PTR [SI.sf_dirsec],AX
+	MOV	AX,WORD PTR ES:[DI.DFL_FSDA+4]
+	MOV	WORD PTR [SI.sf_dirsec+2],AX
+	MOV	AX,WORD PTR ES:[DI.DFL_FSDA+6]
+	MOV	WORD PTR [SI.sf_lstclus],AX
+	OR	[SI.sf_flags],sf_isnet + sf_net_spool ; Turn on bits
+	JMP	SHORT CLEAN_CX
+PIRET:
+	IRET
+NOT_R_DEV:
+	PUSH	CS			; NOT ATTACHED - recover test for sf_isnet
+	CALL	PIRET
+	JNZ	UNDO_BITS		; jmp if marked attached - problem
+NOT_REDIR:
+	POP	SI
+	POP	DS
+CLEAN_CX:
+	POP	CX
+NEXT_SFT:
+	ADD	SI,size sf_entry
+	LOOP	LOOK_FIX
+	return
+; [THISDFL] dfl entry
+; (TOS+2):(TOS) -> SFT
+; (TOS+4) = CX loop count
+UNDO_BITS:				; device not attached, but marked so
+	POP	SI			; unmark it, restore original devptr
+	POP	DS			; DS:SI -> SFT
+	AND	[SI.sf_flags],NOT (sf_isnet + sf_net_spool) ; Turn off bits
+	MOV	ES,WORD PTR [SI.sf_devptr+2]	    ; set esdi -> dfl
+	MOV	DI,WORD PTR [SI.sf_devptr]
+	MOV	AX,WORD PTR ES:[DI.DFLL_DEVPTR+2]    ; restore original devptr
+	MOV	WORD PTR [SI.sf_devptr+2],AX
+	MOV	AX,WORD PTR ES:[DI.DFLL_DEVPTR]
+	MOV	WORD PTR [SI.sf_devptr],AX
+	JMP	SHORT CLEAN_CX
+EndProc CONSIST_SFT
+BREAK <CONSIST_DFL -- Reset all DFL in_prog flags>
+;************************************************************************************
+; CONSIST_DFL
+; Inputs:
+;	DS:SI -> 1st DFL entry
+;	CX = DFLCount
+; Function:
+;	Set all dfl_inprog flags to zero
+; Outputs:
+;	dfl_inprog flags all zero
+; notes: all regs preserved
+;************************************************************************************
+	procedure CONSIST_DFL,NEAR
+ASSUME	DS:NOTHING,ES:NOTHING
+	SaveReg <SI,DX,CX>
+	MOV	DX,SIZE DFLL_LIST
+CD_20:						; reset loop
+	AND	BYTE PTR DS:[SI],NOT DFL_INPROG
+	ADD	SI,DX
+	LOOP	CD_20
+	RestoreReg <CX,DX,SI>
+	return
+EndProc CONSIST_DFL
 
 
 BREAK <PRN_CHECK -- change PRN to LPT1>
@@ -2165,26 +1727,25 @@ BREAK <PRN_CHECK -- change PRN to LPT1>
 ;
 ;************************************************************************************
 
-	procedure PRN_CHECK,NEAR							 ;AN012;
-ASSUME	DS:IFSSEG,ES:NOTHING								 ;AN012;
+	procedure PRN_CHECK,NEAR
+ASSUME	DS:IFSSEG,ES:NOTHING
 
-	SaveReg <ES,DI,AX,CS>								 ;AN012;;AC014;
-	RestoreReg <ES> 								 ;AN012;
-	MOV	DI,OFFSET PRN_NAME							 ;AN012;
-	SaveReg <SI>									 ;AN012;
-	CallInstall StrCmp,MultDOS,30							 ;AN012;
-	RestoreReg <SI> 								 ;AN012;
-	JNZ	PC_20									 ;AN012;
-	MOV	SI,OFFSET LPT1_NAME							 ;AN012;
-PC_20:											 ;AN012;
-	RestoreReg <AX,DI,ES>								 ;AN012;;AC014;
-	return										 ;AN012;
+	SaveReg <ES,DI,AX,CS>
+	RestoreReg <ES>
+	MOV	DI,OFFSET PRN_NAME
+	SaveReg <SI>
+	CallInstall StrCmp,MultDOS,30
+	RestoreReg <SI>
+	JNZ	PC_20
+	MOV	SI,OFFSET LPT1_NAME
+PC_20:
+	RestoreReg <AX,DI,ES>
+	return
 
-EndProc PRN_CHECK									 ;AN012;
+EndProc PRN_CHECK
 
 
-BREAK <CHECK_REAL_DEVICE -- Match dfl_dev_name to real device>				 ;AN000;
-											 ;AN000;
+BREAK <CHECK_REAL_DEVICE -- Match dfl_dev_name to real device>
 ;************************************************************************************
 ;
 ; CHECK_REAL_DEVICE
@@ -2205,150 +1766,117 @@ BREAK <CHECK_REAL_DEVICE -- Match dfl_dev_name to real device>				 ;AN000;
 ; Regs: AX,CX destroyed.  All others preserved.
 ;
 ;************************************************************************************
-											 ;AN000;
-	procedure CHECK_REAL_DEVICE,NEAR						 ;AN000;
-ASSUME	DS:NOTHING,ES:NOTHING								 ;AN000;
-											 ;AN000;
-	SaveReg <ES,DI,DS,SI,CS>							 ;AN000;
-	RestoreReg <ES> 								 ;AN000;
-ASSUME	ES:IFSSEG									 ;AN000;
-	MOV	DI,OFFSET TEMPBUF+10		; esdi-> tempbuf+10			 ;AN000;
-	ADD	SI,DFL_DEV_NAME 		; dssi -> dfl_dev_name			 ;AN000;
-	CALL	CONVERT_NAME_ASCIIZ		; asciiz form of dfl_dev_name		 ;AN000;
-						; at tempbuf+10 			 ;AN000;
-						; Use this to match real devnames	 ;AN000;
-											 ;AN000;
-	Context DS				; get addressability to dosgroup	 ;AN000;
-						; to access device driver chain 	 ;AN000;
-	LDS	SI,NULDEV			; dssi -> real device driver chain	 ;AN000;
-CRD_20: 					; <<< matching loop on dev drvrs >>>	 ;AN000;
-	SaveReg <DS,SI> 								 ;AN000;
-	ADD	SI,SDEVNAME			; dssi -> real dev name 		 ;AN000;
-	MOV	DI,OFFSET TEMPBUF							 ;AN000;
-	CALL	CONVERT_NAME_ASCIIZ							 ;AN000;
-	SaveReg <ES>									 ;AN000;
-	RestoreReg <DS> 								 ;AN000;
-	MOV	SI,DI				; dssi -> tempbuf    (real)		 ;AN000;
-	ADD	DI,10				; esdi -> tempbuf+10 (dfl)		 ;AN000;
-	CallInstall StrCmp,MultDOS,30		; compare (case insensitive)		 ;AN000;
-	RestoreReg <SI,DS>			; device driver chain			 ;AN000;
-	JZ	CRD_40									 ;AN000;
-	LDS	SI,DS:[SI.SDEVNEXT]							 ;AN000;
-	CMP	SI,NULL_PTR								 ;AN000;
-	JNE	CRD_20									 ;AN000;
+	procedure CHECK_REAL_DEVICE,NEAR
+ASSUME	DS:NOTHING,ES:NOTHING
+	SaveReg <ES,DI,DS,SI,CS>
+	RestoreReg <ES>
+ASSUME	ES:IFSSEG
+	MOV	DI,OFFSET TEMPBUF+10		; esdi-> tempbuf+10
+	ADD	SI,DFL_DEV_NAME 		; dssi -> dfl_dev_name
+	CALL	CONVERT_NAME_ASCIIZ		; asciiz form of dfl_dev_name
+						; at tempbuf+10
+						; Use this to match real devnames
+	Context DS				; get addressability to dosgroup
+						; to access device driver chain
+	LDS	SI,NULDEV			; dssi -> real device driver chain
+CRD_20: 					; <<< matching loop on dev drvrs >>>
+	SaveReg <DS,SI>
+	ADD	SI,SDEVNAME			; dssi -> real dev name
+	MOV	DI,OFFSET TEMPBUF
+	CALL	CONVERT_NAME_ASCIIZ
+	SaveReg <ES>
+	RestoreReg <DS>
+	MOV	SI,DI				; dssi -> tempbuf    (real)
+	ADD	DI,10				; esdi -> tempbuf+10 (dfl)
+	CallInstall StrCmp,MultDOS,30		; compare (case insensitive)
+	RestoreReg <SI,DS>			; device driver chain
+	JZ	CRD_40
+	LDS	SI,DS:[SI.SDEVNEXT]
+	CMP	SI,NULL_PTR
+	JNE	CRD_20
 ;;;;;;;;SaveReg <DS>				; only offset null			 ;AD022;
 ;	RestoreReg <AX> 								 ;AD022;
 ;	CMP	AX,NULL_PTR								 ;AD022;
 ;;;;;;;;JNE	CRD_20									 ;AD022;
-	RestoreReg <SI,DS>			; dfl entry				 ;AN000;
-	JMP	SHORT CRD_100			; go check "prn"                         ;AN000;
-											 ;AN000;
-CRD_40: 					; match found				 ;AN000;
-	RestoreReg <SI,DS>			; dfl entry				 ;AN000;
-	OR	DS:[SI.DFLL_FLAGS],DFL_DEV_REAL						 ;AN000;
-											 ;AN000;
-CRD_100:										 ;AN000;
-	SaveReg <DS,SI> 			; dfl entry				 ;AN000;
-	SaveReg <CS>									 ;AN000;
-	RestoreReg <DS> 								 ;AN000;
-ASSUME	DS:IFSSEG									 ;AN000;
-	MOV	SI,OFFSET PRN_NAME		; ds:si -> "prn",0                       ;AN000;
-						; es:di -> tempbuf+10 (dfl)		 ;AN000;
-	CallInstall StrCmp,MultDOS,30		; compare (case insensitive)		 ;AN000;
-	RestoreReg <SI,DS>			; dfl entry				 ;AN000;
-	JNZ	CRD_120 								 ;AN000;
-						; prn match				 ;AN000;
-	CALL	XCHGP				; after call: ds ifsseg 		 ;AN000;
-						;	      esdi->dfl entry		 ;AN000;
-ASSUME	DS:IFSSEG									 ;AN000;
-	MOV	SI,OFFSET LPT1_NAME							 ;AN000;
-	SaveReg <ES,DI> 			; dfl entry offset			 ;AN000;
-	ADD	DI,DFL_DEV_NAME 		; make dfl_dev_name = "LPT1    "         ;AN000;
-	MOV	CX,4									 ;AN000;
-	REP	MOVSB									 ;AN000;
-	RestoreReg <SI,DS>			; dfl entry offset			 ;AN000;
-	OR	DS:[SI.DFLL_FLAGS],DFL_DEV_REAL						 ;AN022;
-											 ;AN000;
-CRD_120:										 ;AN000;
-	RestoreReg <DI,ES>			; restore es,di 			 ;AN000;
-	return										 ;AN000;
-											 ;AN000;
-EndProc CHECK_REAL_DEVICE								 ;AN000;
-											 ;AN000;
-											 ;AN000;
-Break	<XCHGP - exchange source and destination pointers>				 ;AN000;
-											 ;AN000;
-;************************************************************************************	 ;AN000;
-;											 ;AN000;
-; XCHGP 										 ;AN000;
-;											 ;AN000;
-; Inputs:										 ;AN000;
-;	DS:SI & ES:DI									 ;AN000;
-; Function:										 ;AN000;
-;	Swap ds:si with es:di								 ;AN000;
-; Outputs:										 ;AN000;
-;	ds<=>es, si<=>di								 ;AN000;
-;											 ;AN000;
-; notes: all preserved									 ;AN000;
-;											 ;AN000;
-;************************************************************************************	 ;AN000;
-											 ;AN000;
-Procedure XCHGP,NEAR									 ;AN000;
-	SaveReg <DS,ES> 								 ;AN000;
-	RestoreReg  <DS,ES>								 ;AN000;
-	XCHG	SI,DI									 ;AN000;
-	return										 ;AN000;
-EndProc XCHGP										 ;AN000;
-											 ;AN000;
-											 ;AN000;
-Break	<IFSDrvFromCDS - convert an offset to a CDS into the 0-based drive>		 ;AN000;
-											 ;AN000;
-;************************************************************************************	 ;AN000;
-;											 ;AN000;
-;   IFSDrvFromCDS - convert an offset to a CDS into a 0-based drive number.		 ;AN000;
-;   Sets IFSDrv also.									 ;AN000;
-;											 ;AN000;
-;   Inputs:	AX contains offset from the beginning of CDSAddr			 ;AN000;
-;   Outputs:	AL contains the 0-based drive number					 ;AN000;
-;		IFSDrv is set								 ;AN000;
-;   Registers Revised: AH, BL								 ;AN000;
-;											 ;AN000;
-;************************************************************************************	 ;AN000;
-											 ;AN000;
-Procedure   IFSDrvFromCDS,NEAR								 ;AN000;
-	ASSUME	DS:NOTHING,ES:NOTHING							 ;AN000;
-	SUB	AX,WORD PTR [CDSADDR]	; AX is offset of THISCDS			 ;AN000;
-	MOV	BL,SIZE CurDir_list	; size in convenient spot			 ;AN000;
-	DIV	BL			; get drive number				 ;AN000;
-	MOV	CS:[IFSDRV],AL								    ;AN000;
-	return										 ;AN000;
-EndProc IFSDrvFromCDS									 ;AN000;
-											 ;AN000;
-											 ;AN000;
-Break	<SET_THISIFS_UNC - put UNC_FS_HDR into [THISIFS]>				 ;AN000;
-											 ;AN000;
-;************************************************************************************	 ;AN000;
-;											 ;AN000;
-;   SET_THISIFS_UNC									 ;AN000;
-;											 ;AN000;
-;   Inputs:	DS - IFSSEG, UNC_FS_HDR set						 ;AN000;
-;   Outputs:	[THISIFS] = UNC_FS_HDR							 ;AN000;
-;											 ;AN000;
-;   Registers Revised: none								 ;AN000;
-;											 ;AN000;
-;************************************************************************************	 ;AN000;
-											 ;AN000;
-Procedure   SET_THISIFS_UNC,NEAR							 ;AN000;
-	MOV	AX,CS:WORD PTR [UNC_FS_HDR]						 ;AN000;
-	MOV	CS:WORD PTR [THISIFS],AX						 ;AN000;
-	MOV	AX,CS:WORD PTR [UNC_FS_HDR+2]						 ;AN000;
-	MOV	CS:WORD PTR [THISIFS+2],AX						 ;AN000;
-	return										 ;AN000;
-EndProc SET_THISIFS_UNC 								 ;AN000;
-											 ;AN000;
-											 ;AN000;
-Break	<SET_CATEGORY - set category for ifs dependent ioctl request>			 ;AN000;
-											 ;AN000;
+	RestoreReg <SI,DS>			; dfl entry
+	JMP	SHORT CRD_100			; go check "prn"
+CRD_40: 					; match found
+	RestoreReg <SI,DS>			; dfl entry
+	OR	DS:[SI.DFLL_FLAGS],DFL_DEV_REAL
+CRD_100:
+	SaveReg <DS,SI> 			; dfl entry
+	SaveReg <CS>
+	RestoreReg <DS>
+ASSUME	DS:IFSSEG
+	MOV	SI,OFFSET PRN_NAME		; ds:si -> "prn",0
+						; es:di -> tempbuf+10 (dfl)
+	CallInstall StrCmp,MultDOS,30		; compare (case insensitive)
+	RestoreReg <SI,DS>			; dfl entry
+	JNZ	CRD_120
+						; prn match
+	CALL	XCHGP				; after call: ds ifsseg
+						;	      esdi->dfl entry
+ASSUME	DS:IFSSEG
+	MOV	SI,OFFSET LPT1_NAME
+	SaveReg <ES,DI> 			; dfl entry offset
+	ADD	DI,DFL_DEV_NAME 		; make dfl_dev_name = "LPT1    "
+	MOV	CX,4
+	REP	MOVSB
+	RestoreReg <SI,DS>			; dfl entry offset
+	OR	DS:[SI.DFLL_FLAGS],DFL_DEV_REAL
+CRD_120:
+	RestoreReg <DI,ES>			; restore es,di
+	return
+EndProc CHECK_REAL_DEVICE
+Break	<XCHGP - exchange source and destination pointers>
+;************************************************************************************
+; XCHGP
+; Inputs:
+;	DS:SI & ES:DI
+; Function:
+;	Swap ds:si with es:di
+; Outputs:
+;	ds<=>es, si<=>di
+; notes: all preserved
+;************************************************************************************
+Procedure XCHGP,NEAR
+	SaveReg <DS,ES>
+	RestoreReg  <DS,ES>
+	XCHG	SI,DI
+	return
+EndProc XCHGP
+Break	<IFSDrvFromCDS - convert an offset to a CDS into the 0-based drive>
+;************************************************************************************
+;   IFSDrvFromCDS - convert an offset to a CDS into a 0-based drive number.
+;   Sets IFSDrv also.
+;   Inputs:	AX contains offset from the beginning of CDSAddr
+;   Outputs:	AL contains the 0-based drive number
+;		IFSDrv is set
+;   Registers Revised: AH, BL
+;************************************************************************************
+Procedure   IFSDrvFromCDS,NEAR
+	ASSUME	DS:NOTHING,ES:NOTHING
+	SUB	AX,WORD PTR [CDSADDR]	; AX is offset of THISCDS
+	MOV	BL,SIZE CurDir_list	; size in convenient spot
+	DIV	BL			; get drive number
+	MOV	CS:[IFSDRV],AL
+	return
+EndProc IFSDrvFromCDS
+Break	<SET_THISIFS_UNC - put UNC_FS_HDR into [THISIFS]>
+;************************************************************************************
+;   SET_THISIFS_UNC
+;   Inputs:	DS - IFSSEG, UNC_FS_HDR set
+;   Outputs:	[THISIFS] = UNC_FS_HDR
+;   Registers Revised: none
+;************************************************************************************
+Procedure   SET_THISIFS_UNC,NEAR
+	MOV	AX,CS:WORD PTR [UNC_FS_HDR]
+	MOV	CS:WORD PTR [THISIFS],AX
+	MOV	AX,CS:WORD PTR [UNC_FS_HDR+2]
+	MOV	CS:WORD PTR [THISIFS+2],AX
+	return
+EndProc SET_THISIFS_UNC
+Break	<SET_CATEGORY - set category for ifs dependent ioctl request>
 ;************************************************************************************
 ;
 ;   SET_CATEGORY
@@ -2359,109 +1887,79 @@ Break	<SET_CATEGORY - set category for ifs dependent ioctl request>			 ;AN000;
 ;   Registers Revised: CX
 ;
 ;************************************************************************************
-											 ;AN000;
-Procedure   SET_CATEGORY,NEAR								 ;AN000;
-	SaveReg <AX>				; preserve used regs			 ;AN000;
-	XOR	CH,CH									 ;AN000;
-	MOV	CL,CATEGORY_FS			; set category: 0 - non-UNC		 ;AN000;
-	TEST	IFSFUNC_FLAGS,UNC_INSTALLED	; check if unc fs installed		 ;AN000;
-	JZ	SC_20				; no unc - go set category to fs	 ;AN000;
-	MOV	AX,WORD PTR [THISIFS]		; now must check if thisifs=unc 	 ;AN000;
-	CMP	AX,WORD PTR [UNC_FS_HDR]						 ;AN000;
-	JNE	SC_20									 ;AN000;
-	MOV	AX,WORD PTR [THISIFS+2] 						 ;AN000;
-	CMP	AX,WORD PTR [UNC_FS_HDR+2]						 ;AN000;
-	JNE	SC_20									 ;AN000;
-	INC	CL				; is unc - inc category to 1=unc	 ;AN000;
-SC_20:											 ;AN000;
-	RestoreReg <AX> 								 ;AN000;
-	return										 ;AN000;
-EndProc SET_CATEGORY									 ;AN000;
-											 ;AN000;
-											 ;AN000;
-Break	<SET_DEPIOCTL_IFSR - set length,function,apifunc,func ifsr fields>		 ;AN000;
-											 ;AN000;
-;************************************************************************************	 ;AN000;
-;											 ;AN000;
-;   SET_DEPIOCTL_IFSR									 ;AN000;
-;											 ;AN000;
+Procedure   SET_CATEGORY,NEAR
+	SaveReg <AX>				; preserve used regs
+	XOR	CH,CH
+	MOV	CL,CATEGORY_FS			; set category: 0 - non-UNC
+	TEST	IFSFUNC_FLAGS,UNC_INSTALLED	; check if unc fs installed
+	JZ	SC_20				; no unc - go set category to fs
+	MOV	AX,WORD PTR [THISIFS]		; now must check if thisifs=unc
+	CMP	AX,WORD PTR [UNC_FS_HDR]
+	JNE	SC_20
+	MOV	AX,WORD PTR [THISIFS+2]
+	CMP	AX,WORD PTR [UNC_FS_HDR+2]
+	JNE	SC_20
+	INC	CL				; is unc - inc category to 1=unc
+SC_20:
+	RestoreReg <AX>
+	return
+EndProc SET_CATEGORY
+Break	<SET_DEPIOCTL_IFSR - set length,function,apifunc,func ifsr fields>
+;************************************************************************************
+;   SET_DEPIOCTL_IFSR
 ;   Inputs:	ES:BX -> IFSR
-;   Outputs:	IFSR_LENGTH, IFSR_FUNCTION, IFSR_APIFUNC, IFSR_FUNC set 		 ;AN000;
-;											 ;AN000;
-;   Registers Revised: none								 ;AN000;
-;											 ;AN000;
-;************************************************************************************	 ;AN000;
-											 ;AN000;
-Procedure   SET_DEPIOCTL_IFSR,NEAR							 ;AN000;
-	ifsr_fcn_def	EXECAPI 							 ;AN000;
-	ifsr_api_def	DEPIOCTL							 ;AN000;
-	MOV	ES:[BX.IFSR_LENGTH],LENGTH_DEPIOCTL					 ;AN000;
-	MOV	ES:[BX.IFSR_FUNCTION],IFSEXECAPI					 ;AN000;
-	MOV	ES:[BX.IFSR_APIFUNC],IFSDEPIOCTL					 ;AN000;
-	MOV	ES:[BX.IFSR_FUNC],GEN_IOCTL_BY_DEVNUM					 ;AN000;
-	return										 ;AN000;
-EndProc SET_DEPIOCTL_IFSR								 ;AN000;
-											 ;AN000;
+;   Outputs:	IFSR_LENGTH, IFSR_FUNCTION, IFSR_APIFUNC, IFSR_FUNC set
+;   Registers Revised: none
+;************************************************************************************
+Procedure   SET_DEPIOCTL_IFSR,NEAR
+	ifsr_fcn_def	EXECAPI
+	ifsr_api_def	DEPIOCTL
+	MOV	ES:[BX.IFSR_LENGTH],LENGTH_DEPIOCTL
+	MOV	ES:[BX.IFSR_FUNCTION],IFSEXECAPI
+	MOV	ES:[BX.IFSR_APIFUNC],IFSDEPIOCTL
+	MOV	ES:[BX.IFSR_FUNC],GEN_IOCTL_BY_DEVNUM
+	return
+EndProc SET_DEPIOCTL_IFSR
 
-Break	<GET_UNC_FS_NAME - put UNC ifs driver name into esdi>				    ;AN000;
-											 ;AN000;
-;************************************************************************************	 ;AN000;
-;											 ;AN000;
-;   GET_UNC_FS_NAME									 ;AN000;
-;											 ;AN000;
+Break	<GET_UNC_FS_NAME - put UNC ifs driver name into esdi>
+;************************************************************************************
+;   GET_UNC_FS_NAME
 ;   Inputs:
-;		ES:DI -> BUFFER 							 ;AN000;
-;											 ;AN000;
-;   Outputs:	Buffer contains asciiz form of ifs driver name				 ;AN000;
-;											 ;AN000;
-;   Registers Revised: none								 ;AN000;
-;											 ;AN000;
-;************************************************************************************	 ;AN000;
-											 ;AN000;
-Procedure   GET_UNC_FS_NAME,NEAR							;AN000;
-											 ;AN000;
+;		ES:DI -> BUFFER
+;   Outputs:	Buffer contains asciiz form of ifs driver name
+;   Registers Revised: none
+;************************************************************************************
+Procedure   GET_UNC_FS_NAME,NEAR
 	SaveReg <DS,SI,DI>
 	LDS	SI,CS:UNC_FS_HDR
 	CALL	MOVE_DRIVER_NAME
-	RestoreReg <DI,SI,DS>								 ;AN000;
-	return										 ;AN000;
-EndProc GET_UNC_FS_NAME 								;AN000;
+	RestoreReg <DI,SI,DS>
+	return
+EndProc GET_UNC_FS_NAME
 
-											 ;AN000;
-Break	<MOVE_DRIVER_NAME - put ifs driver name into esdi>				 ;AN000;
-											 ;AN000;
-;************************************************************************************	 ;AN000;
-;											 ;AN000;
-;   MOVE_DRIVER_NAME									 ;AN000;
-;											 ;AN000;
-;   Inputs:	DS:SI -> IFS DRIVER							 ;AN000;
-;		ES:DI -> BUFFER 							 ;AN000;
-;											 ;AN000;
-;   Outputs:	Buffer contains asciiz form of ifs driver name				 ;AN000;
-;											 ;AN000;
-;   Registers Revised: SI,DI								 ;AN000;
-;											 ;AN000;
-;************************************************************************************	 ;AN000;
-											 ;AN000;
-Procedure   MOVE_DRIVER_NAME,NEAR							 ;AN000;
-											 ;AN000;
-	ADD	SI,IFS_NAME			; space to name in ifs hdr		 ;AN000;
-	MOV	CX,8									 ;AN000;
-MDN_20: 					; move name into buffer 		 ;AN000;
-	LODSB					; move till 1st space or 8 chars	 ;AN000;
-	CMP	AL," "                          ; then add 0                             ;AN000;
-	JE	MDN_40									 ;AN000;
-	STOSB										 ;AN000;
-	LOOP	MDN_20									 ;AN000;
-MDN_40: 										 ;AN000;
-	XOR	AL,AL									 ;AN000;
-	STOSB										 ;AN000;
-											 ;AN000;
-	return										 ;AN000;
-EndProc MOVE_DRIVER_NAME								 ;AN000;
-											 ;AN000;
-											 ;AN000;
-Break	<CONVERT_NAME_ASCIIZ - put name into buffer in asciiz form>			 ;AN000;
+Break	<MOVE_DRIVER_NAME - put ifs driver name into esdi>
+;************************************************************************************
+;   MOVE_DRIVER_NAME
+;   Inputs:	DS:SI -> IFS DRIVER
+;		ES:DI -> BUFFER
+;   Outputs:	Buffer contains asciiz form of ifs driver name
+;   Registers Revised: SI,DI
+;************************************************************************************
+Procedure   MOVE_DRIVER_NAME,NEAR
+	ADD	SI,IFS_NAME			; space to name in ifs hdr
+	MOV	CX,8
+MDN_20: 					; move name into buffer
+	LODSB					; move till 1st space or 8 chars
+	CMP	AL," "                          ; then add 0
+	JE	MDN_40
+	STOSB
+	LOOP	MDN_20
+MDN_40:
+	XOR	AL,AL
+	STOSB
+	return
+EndProc MOVE_DRIVER_NAME
+Break	<CONVERT_NAME_ASCIIZ - put name into buffer in asciiz form>
 
 ;************************************************************************************
 ;
@@ -2476,29 +1974,23 @@ Break	<CONVERT_NAME_ASCIIZ - put name into buffer in asciiz form>			 ;AN000;
 ;
 ;************************************************************************************
 
-Procedure   CONVERT_NAME_ASCIIZ,NEAR							 ;AN000;
-	SaveReg <DI,AX> 			; esdi buffer offset			 ;AC014;
-	CLD					; store name in asciiz format		 ;AN000;
-	MOV	CX,8				; in esdi buffer			 ;AN000;
-CNA_20: 										 ;AN000;
-	LODSB										 ;AN000;
-	CMP	AL," "                                                                   ;AN000;
-	JE	CNA_40									 ;AN000;
-	STOSB										 ;AN000;
-	LOOP	CNA_20									 ;AN000;
-CNA_40: 										 ;AN000;
-	XOR	AL,AL									 ;AN000;
-	STOSB										 ;AN000;
-											 ;AN000;
-	RestoreReg <AX,DI>			; esdi buffer offset			 ;AC014;
-											 ;AN000;
-	return										 ;AN000;
-											 ;AN000;
-EndProc CONVERT_NAME_ASCIIZ								 ;AN000;
-											 ;AN000;
-											 ;AN000;
-Break	<CHECK_SEQ - check for unc vs ifs device>					 ;AN000;
-											 ;AN000;
+Procedure   CONVERT_NAME_ASCIIZ,NEAR
+	SaveReg <DI,AX> 			; esdi buffer offset
+	CLD					; store name in asciiz format
+	MOV	CX,8				; in esdi buffer
+CNA_20:
+	LODSB
+	CMP	AL," "
+	JE	CNA_40
+	STOSB
+	LOOP	CNA_20
+CNA_40:
+	XOR	AL,AL
+	STOSB
+	RestoreReg <AX,DI>			; esdi buffer offset
+	return
+EndProc CONVERT_NAME_ASCIIZ
+Break	<CHECK_SEQ - check for unc vs ifs device>
 ;************************************************************************************
 ;
 ;   CHECK_SEQ
@@ -2516,8 +2008,8 @@ Break	<CHECK_SEQ - check for unc vs ifs device>					 ;AN000;
 ;
 ;************************************************************************************
 
-Procedure   CHECK_SEQ,NEAR								 ;AN000;
-ASSUME	DS:DOSGROUP									 ;AN000;
+Procedure   CHECK_SEQ,NEAR
+ASSUME	DS:DOSGROUP
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;	SaveReg <SI,AX> 	    ;							 ;AD007;
 ;	MOV	SI,[WFP_START]	    ;							 ;AD007;
@@ -2532,102 +2024,76 @@ ASSUME	DS:DOSGROUP									 ;AN000;
 ;S_20:				    ;							 ;AD007;
 ;	RestoreReg <AX,SI>	    ;							 ;AD007;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-	SaveReg <DS,SI> 		; save used regs				 ;AN007;
-	LDS	SI,[THISCDS]		; check for cds 				 ;AN007;
-	CMP	SI,NULL_PTR								 ;AN007;
-	JNE	CS_10									 ;AN007;
-	LDS	SI,CS:[THISDFL] 	; no cds, check dfl				 ;AN007;
-	CMP	SI,NULL_PTR								 ;AN007;
-	JNE	CS_10									 ;AN007;
-	CLC				; no cds, no dfl  - is deviceless - clear carry  ;AN007;
-	JMP	SHORT CS_1000								 ;AN007;
-											 ;AN007;
-CS_10:											 ;AN007;
-	STC				; has device - set carry			 ;AN007;
-											 ;AN007;
-CS_1000:										 ;AN007;
-	RestoreReg <SI,DS>		; restore used regs				 ;AN007;
-	return										 ;AN000;
-											 ;AN000;
-EndProc CHECK_SEQ									 ;AN000;
-											 ;AN000;
-											 ;AN000;
-Break	<INIT_DFL - zero out dfl entry> 						 ;AN000;
-											 ;AN000;
-;************************************************************************************	 ;AN000;
-;											 ;AN000;
-;   INIT_DFL										 ;AN000;
-;											 ;AN000;
-;   Inputs:	DS:SI -> dfl entry							 ;AN000;
-;											 ;AN000;
-;   Outputs:	dfl entry zeroed out							 ;AN000;
-;											 ;AN000;
-;   Registers Revised: none								 ;AN000;
-;											 ;AN000;
-;************************************************************************************	 ;AN000;
-											 ;AN000;
-Procedure   INIT_DFL,NEAR								 ;AN000;
-	SaveReg <ES,DI,AX,CX,DS>							 ;AN000;
-	RestoreReg <ES> 								 ;AN000;
-	MOV	DI,SI									 ;AN000;
-	MOV	CX,SIZE DFLL_LIST / 2							 ;AN000;
-	XOR	AX,AX									 ;AN000;
-	CLD										 ;AN000;
-	REP	STOSW									 ;AN000;
-	RestoreReg <CX,AX,DI,ES>							 ;AN000;
-											 ;AN000;
-	return										 ;AN000;
-											 ;AN000;
-EndProc INIT_DFL									 ;AN000;
-											 ;AN000;
-											 ;AN000;
-BREAK <NET_TRANS -- A Routine which does NAMETRANS on session start strings>		 ;AN000;
-											 ;AN000;
-;************************************************************************************	 ;AN000;
-;											 ;AN000;
-;   NET_TRANS										 ;AN000;
-;											 ;AN000;
-;   Inputs:										 ;AN000;
-;	ES:DI -> Double string session start string for blockredir			 ;AC001;
-;		 or printerredir.							 ;AN000;
-;											 ;AN000;
-;   Function:										 ;AN000;
-;	Perform NAMETRANS DOS function on the connect part of the string		 ;AN000;
-;											 ;AN000;
-;   Outputs:										 ;AN000;
-;		ES:DI points to NAMETRANSed REDIR string				 ;AC001;
-;		password, or extra 0, appended at end of string 			 ;AC001;
-;											 ;AN000;
-;   Registers Revised: 								 ;AN000;
-;		ES,DI Revised, others preserved					 ;AC001;
-;											 ;AN000;
-;************************************************************************************	 ;AN000;
-											 ;AN000;
-	procedure NET_TRANS,NEAR							 ;AN000;
-ASSUME	DS:NOTHING,ES:NOTHING								 ;AN000;
-											 ;AN000;
-	SaveReg <DS,SI,AX,BX>								 ;AC001;
-											 ;AN000;
-	SaveReg <ES>				; set ds:si -> string			 ;AN001;
-	RestoreReg <DS> 			; for nametrans input			 ;AN001;
-	MOV	SI,DI									 ;AN001;
+	SaveReg <DS,SI> 		; save used regs
+	LDS	SI,[THISCDS]		; check for cds
+	CMP	SI,NULL_PTR
+	JNE	CS_10
+	LDS	SI,CS:[THISDFL] 	; no cds, check dfl
+	CMP	SI,NULL_PTR
+	JNE	CS_10
+	CLC				; no cds, no dfl  - is deviceless - clear carry
+	JMP	SHORT CS_1000
+CS_10:
+	STC				; has device - set carry
+CS_1000:
+	RestoreReg <SI,DS>		; restore used regs
+	return
+EndProc CHECK_SEQ
+Break	<INIT_DFL - zero out dfl entry>
+;************************************************************************************
+;   INIT_DFL
+;   Inputs:	DS:SI -> dfl entry
+;   Outputs:	dfl entry zeroed out
+;   Registers Revised: none
+;************************************************************************************
+Procedure   INIT_DFL,NEAR
+	SaveReg <ES,DI,AX,CX,DS>
+	RestoreReg <ES>
+	MOV	DI,SI
+	MOV	CX,SIZE DFLL_LIST / 2
+	XOR	AX,AX
+	CLD
+	REP	STOSW
+	RestoreReg <CX,AX,DI,ES>
+	return
+EndProc INIT_DFL
+BREAK <NET_TRANS -- A Routine which does NAMETRANS on session start strings>
+;************************************************************************************
+;   NET_TRANS
+;   Inputs:
+;	ES:DI -> Double string session start string for blockredir
+;		 or printerredir.
+;   Function:
+;	Perform NAMETRANS DOS function on the connect part of the string
+;   Outputs:
+;		ES:DI points to NAMETRANSed REDIR string
+;		password, or extra 0, appended at end of string
+;   Registers Revised:
+;		ES,DI Revised, others preserved
+;************************************************************************************
+	procedure NET_TRANS,NEAR
+ASSUME	DS:NOTHING,ES:NOTHING
+	SaveReg <DS,SI,AX,BX>
+	SaveReg <ES>				; set ds:si -> string
+	RestoreReg <DS> 			; for nametrans input
+	MOV	SI,DI
 
-	PUSH	CS									 ;AN000;
-	POP	ES									 ;AN000;
-	MOV	DI,OFFSET NET_TRANS_BUFFER	; name transed string will be placed	 ;AC013;
+	PUSH	CS
+	POP	ES
+	MOV	DI,OFFSET NET_TRANS_BUFFER	; name transed string will be placed
 						; in temporary buffer
-	SaveReg <DI,DS,SI>			; $NAMETRANS zaps these 		 ;AC013;
-	CallInstall  $Nametrans,MultDOS,33						 ;AN000;
-	RestoreReg <SI,DS>								 ;AN000;
-	JNC	NT_20									 ;AN023;
-	RestoreReg <DI> 			; nametrans error - set carry & exit	 ;AN023;
-	JMP	SHORT	NT_60								 ;AN023;
+	SaveReg <DI,DS,SI>			; $NAMETRANS zaps these
+	CallInstall  $Nametrans,MultDOS,33
+	RestoreReg <SI,DS>
+	JNC	NT_20
+	RestoreReg <DI> 			; nametrans error - set carry & exit
+	JMP	SHORT	NT_60
 
 						; dssi -> input target string
-NT_20:						; esdi -> nametrans version in nettranbuf;AC001;;AC013;
-	LODSB					; move password or zero 		 ;AC001;
-	OR	AL,AL									 ;AC001;
-	JNZ	NT_20				; skip to password  (or zero)		 ;AC001;
+NT_20:						; esdi -> nametrans version in nettranbuf
+	LODSB					; move password or zero
+	OR	AL,AL
+	JNZ	NT_20				; skip to password  (or zero)
 ;;;;;;;;MOV	DI,OFFSET TEMPBUF		; no need for this;			 ;AC001;;AD013;
 ;	SaveReg <DI>				; nametrans already does it;		 ;AC001;;AD013;
 ;NT_40: 							  ;			  ;AC001;;AD013;
@@ -2635,49 +2101,36 @@ NT_20:						; esdi -> nametrans version in nettranbuf;AC001;;AC013;
 ;	 INC	 DI						  ;			  ;AC001;;AD013;
 ;	 OR	 AL,AL						  ;			  ;AC001;;AD013;
 ;;;;;;;;;JNZ	 NT_40				 ; Skip first part;			  ;AD013;
-	CallInstall  StrCpy,MultDOS,17	; Copy password string				 ;AC001;
-	RestoreReg <DI> 								 ;AC001;
-	CLC										 ;AN023;
-NT_60:											 ;AN023;
-	RestoreReg <BX,AX,SI,DS>							 ;AC001;
-											 ;AN001;
-	return										 ;AN000;
-											 ;AN000;
-EndProc NET_TRANS									 ;AN000;
-											 ;AN000;
+	CallInstall  StrCpy,MultDOS,17	; Copy password string
+	RestoreReg <DI>
+	CLC
+NT_60:
+	RestoreReg <BX,AX,SI,DS>
+	return
+EndProc NET_TRANS
 
-Break	<STRIP_WFP_START - strip leading d:\ >						 ;AN000;
-											 ;AN000;
-;************************************************************************************	 ;AN000;
-;											 ;AN000;
-;   STRIP_WFP_START									 ;AN000;
+Break	<STRIP_WFP_START - strip leading d:\ >
+;************************************************************************************
+;   STRIP_WFP_START
 ;
 ;   Called by:	IFS_SEARCH_FIRST
-;											 ;AN000;
-;   Inputs:	DS:SI -> WFP_START							 ;AN000;
-;											 ;AN000;
-;   Outputs:	none									 ;AN000;
-;											 ;AN000;
-;   Registers Revised: none								 ;AN000;
-;											 ;AN000;
-;************************************************************************************	 ;AN000;
-											 ;AN000;
-Procedure   STRIP_WFP_START,NEAR							 ;AN000;
-											 ;AN000;
-	CMP	BYTE PTR DS:[SI+1],":"                                                   ;AN000;
-	JNE	SW_1000 								 ;AN000;
-	ADD	SI,2									 ;AN000;
-	CMP	BYTE PTR DS:[SI],"\"                                                     ;AN000;
-	JE	SW_20									 ;AN000;
-	CMP	BYTE PTR DS:[SI],"/"                                                     ;AN000;
-	JNE	SW_1000 								 ;AN000;
-SW_20:											 ;AN000;
-	INC	SI									 ;AN000;
-											 ;AN000;
-SW_1000:										 ;AN000;
-	return										 ;AN000;
-											 ;AN000;
-EndProc STRIP_WFP_START 								 ;AN000;
+;   Inputs:	DS:SI -> WFP_START
+;   Outputs:	none
+;   Registers Revised: none
+;************************************************************************************
+Procedure   STRIP_WFP_START,NEAR
+	CMP	BYTE PTR DS:[SI+1],":"
+	JNE	SW_1000
+	ADD	SI,2
+	CMP	BYTE PTR DS:[SI],"\"
+	JE	SW_20
+	CMP	BYTE PTR DS:[SI],"/"
+	JNE	SW_1000
+SW_20:
+	INC	SI
+SW_1000:
+	return
+EndProc STRIP_WFP_START
 
 
 Break	<CHECK_IFS_ATTRIBUTE - check if fs supports function in DX>
@@ -2696,19 +2149,15 @@ Break	<CHECK_IFS_ATTRIBUTE - check if fs supports function in DX>
 ;   Registers Revised: none
 ;
 ;************************************************************************************
-											 ;AN000;
-Procedure   CHECK_IFS_ATTRIBUTE,NEAR							     ;AN000;
-											 ;AN000;
+Procedure   CHECK_IFS_ATTRIBUTE,NEAR
 	SaveReg <ES,DI>
 
 	LES	DI,[THISIFS]		 ; esdi -> ifs header
 	TEST	ES:[DI.IFS_ATTRIBUTE],DX ; test attribute
 
 	RestoreReg <DI,ES>
-											 ;AN000;
-	return										 ;AN000;
-											 ;AN000;
-EndProc CHECK_IFS_ATTRIBUTE								 ;AN000;
+	return
+EndProc CHECK_IFS_ATTRIBUTE
 
 
 Break	<CHECK_IFS_SUPPORT - check if IFS supports request>
@@ -2727,13 +2176,11 @@ Break	<CHECK_IFS_SUPPORT - check if IFS supports request>
 ;   Registers Revised: TBD
 ;
 ;************************************************************************************
-											   ;AN000;
-Procedure   CHECK_IFS_SUPPORT,NEAR							   ;AN000;
+Procedure   CHECK_IFS_SUPPORT,NEAR
 
-	return										 ;AN010;
+	return
 
-EndProc CHECK_IFS_SUPPORT								 ;AN010;
+EndProc CHECK_IFS_SUPPORT
 
-											 ;AN000;
-IFSSEG	ENDS										 ;AN000;
-    END 										 ;AN000;
+IFSSEG	ENDS
+    END

@@ -1,4 +1,3 @@
-/*      SCCSID = @(#)basemid.h	8.26 87/05/21 */
 
 #define MSG_RESPONSE_DATA               0         /* data for valid responses (Y N A R I) */
 #define MSG_INVALID_FUNCTION            1         /* Invalid function */

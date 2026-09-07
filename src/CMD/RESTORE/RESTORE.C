@@ -68,28 +68,6 @@
 /*	   3   Terminated by user
 /*	   4   Terminated due to error
 /*
-/*
-/*   SOURCE HISTORY:
-/*
-/*	Modification History:
-/*
-/*	   Code added in DOS 3.3 to allow control file > 64k commented as:
-/*	   /* !wrw */
-/*
-/*	 ;AN000; Code added in DOS 4.0
-/*		;AN000;2  Support for APPEND /X deactivation
-/*		;AN000;3  Support for Extended Attributes
-/*		;AN000;4  Support for PARSE service routines
-/*		;AN000;5  Support for code page file tags
-/*		;AN000;6  Support for MESSAGE retriever
-/*		;AN000;8  Eliminate double prompting on single drive systems
-/*		;AN000;9  Fix for termination on "Unable to MKDIR"
-/*		;AN000;10 Fix for p1620
-/*		;AN001;   Add CR, LF to end of command line
-/*		;AN002;   Make parser errors display the offending parameter
-/*		;AN003;   Only disallow restore of system files in ROOT !!
-/*		;AN004;   Fix parser
-/*		;AN005;   Replace COM_STRRCHR dbcs routine, fixes p5029
 /*****************  END OF SPECIFICATION    *********************************/
 
 #include <stdio.h>

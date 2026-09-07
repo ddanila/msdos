@@ -74,11 +74,6 @@
 ;	 For LINK instructions, refer to the PROLOG of the main module,
 ;	 XCOPY.SAL.
 ;
-; REVISION HISTORY: A000 Version 4.00: add PARSER, System Message Handler,
-;			 Ignore unique volume serial number differences
-;		    A004 PTM0700 9/02/87 Avoid duplicate switches and
-;			 display parm in error.
-;
 ;     Label: "The DOS XCOPY Utility"
 ;	     "Version 4.00 (C)Copyright 1988 Microsoft"
 ;	     "Licensed Material - Program Property of Microsoft "
@@ -155,7 +150,7 @@ DSEG_INIT	SEGMENT PARA PUBLIC
  INCLUDE PSDATA.INC		   ;AN018;WORK AREA USED BY PARSE.ASM
 ;
 ;--- EXTERNAL VARIABLES ---
-EXTRN		PARM_FLAG: BYTE    ;AN000;
+EXTRN		PARM_FLAG: BYTE
 		IF1
 		    %OUT COMPONENT=XCOPY, SUBCOMPONENT=PARSE
 		ENDIF
@@ -217,7 +212,6 @@ PARMSX		LABEL BYTE	   ;AN000; PARMS EXTENSION CONTROL BLOCK
 ;
 		PUBLIC CONTROL_POS1 ;AN000; LET LINK MAKE THIS ADDRESSABLE
 CONTROL_POS1	LABEL BYTE	   ;AN000; FIRST POSITIONAL DESCRIPTOR FOR FILESPEC
-				   ;AN000;
 		DW   0200H	   ;AN000; CONTROLS TYPE MATCHED
 				   ; SELECTED BITS: "FILE SPEC"
 
@@ -411,7 +405,7 @@ DSEG_INIT	ENDS
 CSEG	     SEGMENT PUBLIC
 	     ASSUME CS:CSEG, DS:DGROUP, ES:DGROUP
 
-	     PUBLIC SYSPARSE	   ;AN000;SUBROUTINE ENTRY POINT		 ;AN000;
+	     PUBLIC SYSPARSE	   ;AN000;SUBROUTINE ENTRY POINT
 
 
 	     IF1

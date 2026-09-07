@@ -1,6 +1,4 @@
  page 80,132
-;	SCCSID = @(#)command2.asm	4.3 85/10/16
-;	SCCSID = @(#)command2.asm	4.3 85/10/16
 TITLE	COMMAND2 - resident code for COMMAND.COM part II
 NAME	COMMAND2
 .XCREF
@@ -8,7 +6,7 @@ NAME	COMMAND2
 	INCLUDE DOSSYM.INC
 	INCLUDE comsw.asm
 	INCLUDE comequ.asm
-	INCLUDE resmsg.equ		;AN000;
+	INCLUDE resmsg.equ
 	INCLUDE RESBIND.INC
 	INCLUDE SHELLGATE.INC
 IFDEF COMMAND_HIGH_RESIDENT
@@ -19,7 +17,7 @@ ENDIF
 
 tokenized = FALSE
 
-CODERES 	SEGMENT PUBLIC BYTE	;AC000;
+CODERES 	SEGMENT PUBLIC BYTE
 	IFDEF COMMAND_RESIDENT_BINDING
 	SHELL_ENTRY_LIST SHELL_GATE_EXTERN
 	ENDIF
@@ -29,11 +27,11 @@ DATARES SEGMENT PUBLIC BYTE
 IFDEF COMMAND_UMB_DATA
         EXTRN MYSEG:WORD,BATCH:WORD
 ENDIF
-	EXTRN	append_state:word	;AN020;
-	EXTRN	append_flag:byte	;AN020;
+	EXTRN	append_state:word
+	EXTRN	append_flag:byte
 	EXTRN	COMDRV:BYTE
-	EXTRN	comprmt1_block:byte	;AN000;
-	EXTRN	comprmt1_subst:byte	;AN000;
+	EXTRN	comprmt1_block:byte
+	EXTRN	comprmt1_subst:byte
 	EXTRN	COMSPEC:BYTE
 	EXTRN	cpdrv:byte
 	EXTRN	comspec_print:word
@@ -41,19 +39,19 @@ ENDIF
 	EXTRN	EXTCOM:BYTE
 	EXTRN	HANDLE01:WORD
 	EXTRN	InitFlag:BYTE
-	EXTRN	INT_2E_RET:DWORD	;AC000;
+	EXTRN	INT_2E_RET:DWORD
 	EXTRN	IO_SAVE:WORD
 	EXTRN	LOADING:BYTE
 	EXTRN	LTPA:WORD
 	EXTRN	MEMSIZ:WORD
-	EXTRN	number_subst:byte	;AN000;
-	EXTRN	OldTerm:DWORD		;AC000;
-	EXTRN	PARENT:WORD		;AC000;
+	EXTRN	number_subst:byte
+	EXTRN	OldTerm:DWORD
+	EXTRN	PARENT:WORD
 	EXTRN	PERMCOM:BYTE
 	EXTRN	RDIRCHAR:BYTE
 	EXTRN	RES_TPA:WORD
 	EXTRN	RETCODE:WORD
-	EXTRN	rsrc_xa_seg:word	;AN030;
+	EXTRN	rsrc_xa_seg:word
 	EXTRN	RSWITCHAR:BYTE
 	EXTRN	SAVE_PDB:WORD
 	EXTRN	SINGLECOM:WORD
@@ -83,13 +81,13 @@ SHELLFIX SEGMENT PUBLIC WORD
 SHELLFIX ENDS
 ENDIF
 
-BATARENA	SEGMENT PUBLIC PARA	;AC000;
+BATARENA	SEGMENT PUBLIC PARA
 BATARENA ENDS
 
-BATSEG		SEGMENT PUBLIC PARA	;AC000;
+BATSEG		SEGMENT PUBLIC PARA
 BATSEG	 ENDS
 
-ENVARENA	SEGMENT PUBLIC PARA	;AC000;
+ENVARENA	SEGMENT PUBLIC PARA
 ENVARENA  ENDS
 
 ENVIRONMENT SEGMENT PUBLIC PARA 	; Default COMMAND environment
@@ -135,7 +133,7 @@ TRANGROUP GROUP TRANCODE,TRANDATA,TRANSPACE,TRANEXT,TRANTAIL
 	IFDEF COMMAND_HIGH_RESIDENT
 SHELLCODE SEGMENT PUBLIC BYTE
 	ELSE
-CODERES 	SEGMENT PUBLIC BYTE	;AC000;
+CODERES 	SEGMENT PUBLIC BYTE
 	ENDIF
 
 	PUBLIC	CHKSUM
@@ -471,16 +469,16 @@ CLOSELOOP:
 	jnz	append_fix_end		;AN030; no - just exit
 	mov	ax,AppendSetState	;AN020; Set the state of Append
 	mov	bx,Append_state 	;AN020;     back to the original state
-	SHELL_INT	2fh			;AN020;
+	SHELL_INT	2fh
 	mov	append_flag,0		;AN020; Set append flag to invalid
-append_fix_end: 			;AN030;
+append_fix_end:
 	cmp	[rsrc_xa_seg],no_xa_seg ;AN030; Is there any active XA segment?
 	jz	xa_fix_end		;AN030; no - exit
 	push	es			;AN030; Yes - deallocate it
-	mov	es,rsrc_xa_seg		;AN030;
+	mov	es,rsrc_xa_seg
 	mov	ax,(Dealloc SHL 8)	;AN030; Deallocate memory call
-	SHELL_INT	int_command		;AN030;
-	pop	es			;AN030;
+	SHELL_INT	int_command
+	pop	es
 	mov	[rsrc_xa_seg],no_xa_seg ;AN030; reset to no segment
 xa_fix_end:
 	pop	ds			;AN020; get data segment back
@@ -550,7 +548,7 @@ ASSUME DS:NOTHING
 ASSUME DS:RESGROUP,SS:RESGROUP
 
 HOPELESS:
-	MOV	DX,COMBAD		;AC000;
+	MOV	DX,COMBAD
 	JMP	FATALC
 
 GETCOMDSK:
@@ -558,7 +556,7 @@ GETCOMDSK:
 	CALL	REMCHECK
 	jNZ	HOPELESS		;Non-removable media
 getcomdsk3:
-	cmp	dx,combad		;AC000;
+	cmp	dx,combad
 	jnz	getcomdsk4
 	mov	dx,combad		;AN000; get message number
 	invoke	RPRINT			; Say command is invalid
@@ -587,13 +585,13 @@ IF tokenized
 endif
 	SHELL_FORMAT_REF <MOV AL,SHELL_FORMAT_SEG COMPRMT1_SUBST>,0 ;AN000; get number of substitutions
 	SHELL_FORMAT_REF <MOV SI,OFFSET RESGROUP:COMPRMT1_BLOCK>,0 ;AN000; get address of subst block
-	SHELL_FORMAT_REF <MOV SHELL_FORMAT_SEG NUMBER_SUBST,AL>,0 ;AN000;
+	SHELL_FORMAT_REF <MOV SHELL_FORMAT_SEG NUMBER_SUBST,AL>,0
 	invoke	rprint
 if tokenized
 	and	byte ptr [si],NOT 80h
 endif
 	mov	dx,prompt		;AN047; Tell the user to strike a key
-	invoke	rprint			;AN047;
+	invoke	rprint
 	CALL	GetRawFlushedByte
 	return
 
@@ -613,7 +611,7 @@ LOADCOM:				; Load in transient
 	JNC	READCOM
 	CMP	AX,error_too_many_open_files
 	JNZ	TRYDOOPEN
-	MOV	DX,NOHANDMES		;AC000;
+	MOV	DX,NOHANDMES
 	JMP	FATALC			; Fatal, will never find a handle
 
 TRYDOOPEN:
@@ -648,7 +646,7 @@ WRONGCOM1:
 	CMP	AX,CX
 	retz				; Size matched
 WRONGCOM:
-	MOV	DX,COMBAD		;AC000;
+	MOV	DX,COMBAD
 	CALL	GETCOMDSK
 	JMP	LOADCOM 		; Try again
 

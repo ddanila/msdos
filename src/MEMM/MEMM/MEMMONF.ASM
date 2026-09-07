@@ -11,22 +11,8 @@
 ;
 ;   Module:   MEMMONF - parse for on/off/auto and perform the function
 ;
-;   Version:  0.02
-;
-;   Date:     June 4, 1986
-;
-;   Author:
-;
 ;******************************************************************************
 ;
-;   Change log:
-;
-;     DATE    REVISION			DESCRIPTION
-;   --------  --------	-------------------------------------------------------
-;   06/04/86  Original
-;   06/28/86  0.02	Name change from MEMM386 to MEMM
-;
-;******************************************************************************
 ;
 ;   Functional Description:
 ;	MEMMONF is used by MEMM.EXE UTILITY code and MEMM.COM to parse

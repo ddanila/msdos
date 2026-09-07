@@ -11,28 +11,8 @@ page	58,132
 ;
 ;   Module:   VMINIT - Initialization routines for MEMM/ VDM
 ;
-;   Version:  0.04
-;
-;   Date:     January 30, 1986
-;
-;   Author:
-;
 ;******************************************************************************
 ;
-;   Change log:
-;
-;     DATE    REVISION			DESCRIPTION
-;   --------  --------	-------------------------------------------------------
-;   01/30/86  Original
-;   04/07/86  A 	Added InitBitMap
-;   05/12/86  B 	Cleanup and segment reorganization
-;   06/18/86  0.01	Re-arranged comments, etc.
-;   06/28/86  0.02	Name change from MEMM386 to MEMM
-;   07/03/86  0.03	Added call to Kybd_Watch
-;   07/06/86  0.04	changed assume to DGROUP
-;   07/30/86  0.06	removed PortClear reference
-;
-;******************************************************************************
 ;
 ;   Functional Description:
 ;

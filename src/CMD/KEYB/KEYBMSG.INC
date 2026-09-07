@@ -14,12 +14,6 @@
 ;; ------------
 ;;	 External declarations for procedures in file KEYBCMD.ASM.
 ;;
-;; Change History:
-;; ---------------
-;;
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-				       ;;
 	EXTRN	 ACT_KEYB_CP :BYTE     ;;
 	EXTRN	 ACT_CON_CP  :BYTE     ;;
 	EXTRN	 ACT_KEYB    :BYTE     ;;

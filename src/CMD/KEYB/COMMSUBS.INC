@@ -14,12 +14,6 @@
 ;; ------------
 ;;       External declarations for procedures in file KEYBCMD.ASM.
 ;;
-;; Change History:
-;; ---------------
-;;
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                                       ;;
         EXTRN    FIND_SYS_TYPE   :NEAR ;;
         EXTRN    FIND_KEYB_TYPE  :NEAR ;;
                                        ;;

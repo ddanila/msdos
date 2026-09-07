@@ -1,13 +1,11 @@
  page 80,132
-;	SCCSID = @(#)rucode.asm 4.5 85/07/22
-;	SCCSID = @(#)rucode.asm 4.5 85/07/22
 TITLE	COMMAND Language modifiable Code Resident
 
 
 .xlist
 .xcref
-INCLUDE DOSSYM.INC			;AC000;
-include doscntry.inc			;AC000;
+INCLUDE DOSSYM.INC
+include doscntry.inc
 DEBUG = 0				; NEED TO SET IT TO WHAT IT IS IN DOSSYM.INC
 
 
@@ -20,7 +18,7 @@ DEBUG = 0				; NEED TO SET IT TO WHAT IT IS IN DOSSYM.INC
 IFDEF COMMAND_HIGH_RESIDENT
 EXTRN shell_int21_bridge:NEAR,shell_int2f_bridge:NEAR
 ENDIF
-	include resmsg.equ		;AN000;
+	include resmsg.equ
 .list
 .cref
 
@@ -84,34 +82,34 @@ critical_&entryname&_segment dw 0
 ENDM
 ENDIF
 
-DATARES 	SEGMENT PUBLIC BYTE	;AC000;
+DATARES 	SEGMENT PUBLIC BYTE
 IFDEF COMMAND_UMB_DATA
         EXTRN MYSEG:WORD
 ENDIF
 	EXTRN	abort_char:byte
-	EXTRN	badfat_block:byte	;AC000;
-	EXTRN	badfat_subst:byte	;AC000;
+	EXTRN	badfat_block:byte
+	EXTRN	badfat_subst:byte
 	EXTRN	Batch_Abort:byte
 	EXTRN	CDEVAT:BYTE
-	EXTRN	COMSPEC:BYTE		;AN060;
+	EXTRN	COMSPEC:BYTE
 	EXTRN	com_xlat_addr:word
 	EXTRN	crit_err_info:byte
-	EXTRN	crit_msg_off:word	;AC000;
-	EXTRN	crit_msg_seg:word	;AC000;
-	EXTRN	dbcs_vector_addr:dword	;AN000;
-	EXTRN	devemes_block:byte	;AC000;
-	EXTRN	devemes_subst:byte	;AC000;
+	EXTRN	crit_msg_off:word
+	EXTRN	crit_msg_seg:word
+	EXTRN	dbcs_vector_addr:dword
+	EXTRN	devemes_block:byte
+	EXTRN	devemes_subst:byte
 	EXTRN	DEVENAM:BYTE
-	EXTRN	deve_op_off:word	;AC000;
+	EXTRN	deve_op_off:word
 	EXTRN	deve_op_seg:word
-	EXTRN	disp_class:byte 	;AC000;
+	EXTRN	disp_class:byte
 	EXTRN	DRVLET:BYTE
-	EXTRN	drvnum_block:byte	;AC000;
-	EXTRN	drvnum_op_off:word	;AC000;
+	EXTRN	drvnum_block:byte
+	EXTRN	drvnum_op_off:word
 	EXTRN	drvnum_op_seg:word
-	EXTRN	drvnum_subst:byte	;AC000;
-	EXTRN	err15mes_block:byte	;AC000;
-	EXTRN	err15mes_subst:byte	;AC000;
+	EXTRN	drvnum_subst:byte
+	EXTRN	err15mes_block:byte
+	EXTRN	err15mes_subst:byte
 	EXTRN	ERRCD_24:WORD
 	EXTRN	ErrType:BYTE
 	EXTRN	fail_char:byte
@@ -125,11 +123,11 @@ ENDIF
 	EXTRN	LOADING:BYTE
 ;AD054; EXTRN	MESBAS:BYTE
 	EXTRN	no_char:byte
-	EXTRN	number_subst:byte	;AC000;
+	EXTRN	number_subst:byte
 	EXTRN	olderrno:word
 	EXTRN	PARENT:WORD
-;AD060; EXTRN	pars_msg_off:word	;AC000;
-;AD060; EXTRN	pars_msg_seg:word	;AC000;
+;AD060; EXTRN	pars_msg_off:word
+;AD060; EXTRN	pars_msg_seg:word
 	EXTRN	PERMCOM:BYTE
 	EXTRN	RemMsg:DWORD
 	EXTRN	retry_char:byte
@@ -157,8 +155,8 @@ CODERES SEGMENT PUBLIC BYTE
 	PUBLIC	ASKEND
 	PUBLIC	CRLF
 	PUBLIC	DSKERR
-	PUBLIC	ITESTKANJ		;AN000;
-	PUBLIC	RESET_MSG_POINTERS	;AC000;
+	PUBLIC	ITESTKANJ
+	PUBLIC	RESET_MSG_POINTERS
 	PUBLIC	RPRINT
 
 ASSUME	CS:RESGROUP,DS:NOTHING,ES:NOTHING,SS:NOTHING
@@ -302,10 +300,10 @@ critical_body_start:
 	JMP	FATERR
 
 NOHARDE:
-	MOV	SI,MREAD			;AC000;
+	MOV	SI,MREAD
 	TEST	AH,1
 	JZ	SAVMES
-	MOV	SI,MWRITE			;AC000;
+	MOV	SI,MWRITE
 
 SAVMES:
 	IF	Tokenized
@@ -316,7 +314,7 @@ SAVMES:
 	ENDIF
 
 	mov	olderrno,di			; keep code in a safe place
-	PUSH	ES				;AN000;
+	PUSH	ES
 	PUSH	DS				; GetExtendedError likes to STOMP
 	PUSH	BP
 	PUSH	SI
@@ -339,7 +337,7 @@ SAVMES:
 	mov	word ptr cs:[RemMsg],di 	;AC000; save pointer to remote message
 	mov	word ptr cs:[RemMsg+2],es	;AC000;    (only used on code 15)
 	ENDIF
-	pop	ES				;AN000;
+	pop	ES
 	XOR	AH,AH
 	mov	di,ax				; REAL error code to DI
 ;
@@ -371,7 +369,7 @@ SetStyle:
 
 GotStyle:
 	MOV	[ERRCD_24],DI
-	cmp	di,error_handle_disk_full-error_write_protect  ;AC026;
+	cmp	di,error_handle_disk_full-error_write_protect
 						; If the error message is unknown
 	jbe	NormalError			;  redirector, continue.  Otherwise,
 ;
@@ -395,11 +393,11 @@ GotStyle:
 	CRITICAL_INT 2fh,int2f
 	cmp	al,0ffh
 	jnz	NoHandler			; No, go to NoHandler
-	push	bx								   ;AN063;
-	mov	bx,di				; Get ErrType and ptr to error msg ;AC063;
-	mov	ax,0501h							   ;AC063;
+	push	bx
+	mov	bx,di				; Get ErrType and ptr to error msg
+	mov	ax,0501h
 	CRITICAL_INT 2fh,int2f
-	pop	bx								   ;AC063;
+	pop	bx
 	jc	NoHandler
 
 	mov	ErrType,al
@@ -418,7 +416,7 @@ GotStyle:
 	ELSE
 	mov	byte ptr [di-1],'$'
 	MOV	AH,Std_con_string_output	;AC000; Print the message
-	CRITICAL_INT 21h,int21				;AN000;
+	CRITICAL_INT 21h,int21
 	mov	byte ptr [di-1],0		; Restore msg to original condition
 	ENDIF
 
@@ -433,7 +431,7 @@ NoHandler:					; Redir isn't available or doesn't
 NormalError:
 ;AD054; SHL	DI,1
 ;AD054; MOV	DI,WORD PTR [DI+MESBAS] 	; Get pointer to error message
-	add	DI,error_write_protect		;AN054;
+	add	DI,error_write_protect
 	XCHG	DI,DX				; May need DX later
 	SHELL_FORMAT_REF <MOV SHELL_FORMAT_SEG DISP_CLASS,EXT_CRLF_CLASS>,1 ;AN054; printing extended error class
 	CRITICAL_CALL	RPRINT				; Print error type
@@ -465,7 +463,7 @@ ContOld:
 	SHELL_FORMAT_REF <MOV SHELL_FORMAT_SEG DEVE_OP_OFF,SI>,0 ;AN000; put address of read/write in subst block
 	SHELL_FORMAT_REF <MOV SHELL_FORMAT_SEG DEVE_OP_SEG,BX>,0
 	SHELL_FORMAT_REF <MOV AL,SHELL_FORMAT_SEG DEVEMES_SUBST>,0 ;AN000; get number of substitutions
-	SHELL_FORMAT_REF <MOV SHELL_FORMAT_SEG NUMBER_SUBST,AL>,0 ;AN000;
+	SHELL_FORMAT_REF <MOV SHELL_FORMAT_SEG NUMBER_SUBST,AL>,0
 	SHELL_FORMAT_REF <MOV SI,OFFSET RESGROUP:DEVEMES_BLOCK>,0 ;AN000; get address of subst block
 
 	CRITICAL_CALL	RPRINT				;AC000; print the message
@@ -476,7 +474,7 @@ BLKERR:
 	SHELL_FORMAT_REF <MOV SHELL_FORMAT_SEG DRVNUM_OP_OFF,SI>,0 ;AN000; put address of read/write in subst block
 	SHELL_FORMAT_REF <MOV SHELL_FORMAT_SEG DRVNUM_OP_SEG,BX>,0
 	SHELL_FORMAT_REF <MOV AL,SHELL_FORMAT_SEG DRVNUM_SUBST>,0 ;AN000; get number of substitutions
-	SHELL_FORMAT_REF <MOV SHELL_FORMAT_SEG NUMBER_SUBST,AL>,0 ;AN000;
+	SHELL_FORMAT_REF <MOV SHELL_FORMAT_SEG NUMBER_SUBST,AL>,0
 	SHELL_FORMAT_REF <MOV SI,OFFSET RESGROUP:DRVNUM_BLOCK>,0 ;AN000; get address of subst block
 	CRITICAL_CALL	RPRINT
 	CMP	[LOADING],0
@@ -518,7 +516,7 @@ assume	ds:nothing
 assume	ds:resgroup
 	mov	dx,Err15Mes			;AC000; get message number
 	SHELL_FORMAT_REF <MOV AL,SHELL_FORMAT_SEG ERR15MES_SUBST>,0 ;AN000; get number of substitutions
-	SHELL_FORMAT_REF <MOV SHELL_FORMAT_SEG NUMBER_SUBST,AL>,0 ;AN000;
+	SHELL_FORMAT_REF <MOV SHELL_FORMAT_SEG NUMBER_SUBST,AL>,0
 	SHELL_FORMAT_REF <MOV SI,OFFSET RESGROUP:ERR15MES_BLOCK>,0 ;AN000; get address of subst block
 	CRITICAL_CALL	RPRINT
 
@@ -676,9 +674,9 @@ RESTHD:
 	ENDIF
 
 FATERR:
-	MOV	DX,BADFAT			;AC000;
+	MOV	DX,BADFAT
 	SHELL_FORMAT_REF <MOV AL,SHELL_FORMAT_SEG BADFAT_SUBST>,0 ;AN000; get number of substitutions
-	SHELL_FORMAT_REF <MOV SHELL_FORMAT_SEG NUMBER_SUBST,AL>,0 ;AN000;
+	SHELL_FORMAT_REF <MOV SHELL_FORMAT_SEG NUMBER_SUBST,AL>,0
 	SHELL_FORMAT_REF <MOV SI,OFFSET RESGROUP:BADFAT_BLOCK>,0 ;AN000; get address of subst block
 	CRITICAL_CALL	RPRINT
 
@@ -720,7 +718,7 @@ ASSUME CS:RESGROUP,DS:RESGROUP
 ASSUME DS:RESGROUP,SS:RESGROUP
 
 CRLF:
-	MOV	DX,NEWLIN			;AC000;
+	MOV	DX,NEWLIN
 
 ;
 ; RPRINT prints out a message on the user's console.  We clear carry before
@@ -764,8 +762,8 @@ if NOT tokenized
 	SHELL_FORMAT_REF <MOV SHELL_FORMAT_SEG DISP_CLASS,UTIL_MSG_CLASS>,1 ;AC000; reset display class
 	SHELL_FORMAT_REF <MOV SHELL_FORMAT_SEG NUMBER_SUBST,NO_SUBST>,1 ;AC000; reset number of substitutions
 	POP	DX				;AC000; restore registers
-	POP	CX				;AC000;
-	POP	BX				;AC000;
+	POP	CX
+	POP	BX
 	POP	AX
 
 	return
@@ -901,7 +899,7 @@ ENDIF
 ASSUME CS:RESGROUP,DS:RESGROUP
 ;---------------------- DBCS lead byte check. this is resident code ; 3/3/KK
 
-ITESTKANJ:					;AN000;
+ITESTKANJ:
 TestKanjR:					;AN000;  3/3/KK
 	cmp	word ptr SHELL_TEXT_STATE:[hma_test_kanj_entry+2],0
 	jne	short test_kanj_high
@@ -1014,8 +1012,8 @@ assume	ds:resgroup, es:nothing
 
 reset_msg_pointers	endp
 
-PUBLIC		MSG_SERV_ST			;AN000;
-MSG_SERV_ST	LABEL	BYTE			;AN000;
+PUBLIC		MSG_SERV_ST
+MSG_SERV_ST	LABEL	BYTE
 
 ASSUME	DS:RESGROUP, ES:RESGROUP
 
@@ -1065,8 +1063,8 @@ hma_sysdispmsg_gateway LABEL BYTE
 	ENDIF
 SYSDISPMSG endp
 
-PUBLIC		RES_CODE_END			;AN000;
-RES_CODE_END	LABEL	BYTE			;AN000;
+PUBLIC		RES_CODE_END
+RES_CODE_END	LABEL	BYTE
 
 IFDEF COMMAND_HIGH_RESIDENT
 SHELLCODE ENDS

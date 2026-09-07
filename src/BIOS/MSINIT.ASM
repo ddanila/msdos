@@ -1,28 +1,6 @@
 	PAGE	,132			;
 	%OUT	...MSINIT.ASM
 ;=======================================================
-;REVISION HISTORY:
-;AN000; - NEW Version 4.00. J.K.
-;AC000; - Modified Line 4.00. J.K.
-;ANxxx; - PTMyyy
-;==============================================================================
-;AN001; P87 Set the value of MOTOR START TIME Variable		    6/25/87 J.K.
-;AN002; P40 Boot from the system with no floppy diskette drives     6/26/87 J.K.
-;AN003; D9  Double Word MOV instruction for 386 based machine	    7/1/87  J.K.
-;AN004; D64 Extend DOS 3.3 FAT tables to 64 K entries.		    7/8/87  J.K.
-;AN005; D113 Disable I/O access to unformatted media		    9/03/87 J.K.
-;AN006; p941 D113 does not implemented properly.		    9/11/87 J.K.
-;AN007; p969 Should Honor OS2 boot record.			    9/11/87 J.K.
-;AN008; p985 Allow I/O access to unformtted media		    9/14/87 J.K.
-;AN009; p1535 Disallow I/O access to unformtted media		   10/15/87 J.K.
-;AN010; p2349 Cover DOS 3.3 and below FDISK bug 		   11/10/87 J.K.
-;AN011; P2431 OS2 boot record version number is at offset 7 (not 8)11/12/87 J.K.
-;AN012; P2900 DOS 4.0 does not recognize 3.0 formatted media	   12/18/87 J.K.
-;AN013; P3409 Extended keyboard not recognized			   02/05/88 J.K.
-;AN014; D486 Share installation for big media			   02/23/88 J.K.
-;AN015; P3929 Boot record buffer overlaps MSBIO code		   03/18/88 J.K.
-;==============================================================================
-
 	itest = 0
 	INCLUDE MSGROUP.INC	;DEFINE CODE SEGMENT
 	INCLUDE MSDSKPR.INC
@@ -122,7 +100,7 @@ ENDK09	LABEL	BYTE
 ;********************************************************
 
 ;SYSIZE=200H		       ;NUMBER OF PARAGRAPHS IN SYSINIT MODULE
-sysize=500h    ;AC000;
+sysize=500h
 	IFDEF BIOS_SERVICE_BOOT
 	BIOS_DYNAMIC_STAGING EQU 1
 	ELSE
@@ -145,7 +123,6 @@ BIOS$_L DW	0000			;FIRST SECTOR OF DATA (Low word)
 bios$_H dw	0000			;First sector of data (High word)
 DOSCNT	DW	0000			;HOW MANY SECTORS TO READ
 FBIGFAT DB	0			; FLAGS FOR DRIVE
-;an004
 ;FATLEN  DW	 ?			 ; NUMBER OF SECTORS IN FAT.
 FATLOC	DW	?			; SEG ADDR OF FAT SECTOR
 Init_BootSeg	dw	?		;AN015; seg addr of buffer for reading boot record
@@ -180,7 +157,6 @@ DISKTABLE DW	512,	0100H,	64,	0
 ;DISKTABLE2 DW	 32680,  0803H,  512,	 0	;Warning !!! Old values  ;J.K.3/16/87 P54 Return to old value!!!
 ;DISKTABLE2 DW	 20740,  0803H,  512,	 0	 ;PTM p892 J.K. 12/3/86 DOS 3.3 will use this.
 ;	 DW	 65535,  0402H,  512,	 FBIG
-;AN000;
 ;DISKTABLE2 dw	 0, 32680, 0803h, 512, 0	 ;table with the assumption of the
 ;	    dw	2h, 0000h, 0402h, 512, FBIG	 ;total fat size <= 64KB.
 ;	    dw	4h, 0000h, 0803h, 512, FBIG	 ;-This will cover upto 134 MB
@@ -358,7 +334,7 @@ INIT	PROC	NEAR
 ;     limitation of MSBIO.COM file.
 ;J.K. AN004 - Don't need this information any more, since we are not going to
 ;	      read the whole FAT into memory.
-;	 mov	 cs:Boot_Sec_Per_FAT, di ;sectors/FAT for boot media. ;AN000;
+;	 mov	 cs:Boot_Sec_Per_FAT, di ;sectors/FAT for boot media.
 
 ;
 ; PRESERVE ORIGINAL INT 13 VECTOR
@@ -513,15 +489,15 @@ Turn_Timer_On:
 	je	Skip_Patch_DoubleWordMov; yes: skip the patch
 
 Patch_DoubleWordMov:
-	push	es			 ;AN003;
-	push	cs			 ;AN003;
+	push	es
+	push	cs
 	pop	es			 ;AN003;ES -> CS
-	mov	di, offset DoubleWordMov ;AN003;
+	mov	di, offset DoubleWordMov
 	mov	cx, 3			;AN003; 3 bytes to NOP
-	mov	al, 90h 		;AN003;
-	rep	stosb			;AN003;
-	pop	es			;AN003;
-Skip_Patch_DoubleWordMov:		;AN003;
+	mov	al, 90h
+	rep	stosb
+	pop	es
+Skip_Patch_DoubleWordMov:
 	MESSAGE FTESTINIT,<"COM DEVICES",CR,LF>
 ;SB33IN1*********************************************************
 
@@ -629,7 +605,6 @@ NO_DIDDLE:				;			  ARR 2.41
 	PUSH	AX
 ;J.K. Don't have to look at the boot addr.
 ;	 MOV	 DX,DS:(7C00H + 16H)	 ; NUMBER OF SECTORS/FAT FROM BOOT SEC
-;an004
 ;	 mov	 dx, cs:Boot_Sec_Per_FAT  ;AC000;Do not use the bpb info from Boot record any more.
 ;	 XOR	 DH,DH
 ;	 MOV	 FATLEN,DX
@@ -647,7 +622,7 @@ NO_DIDDLE:				;			  ARR 2.41
 	sub	ax, 64			;AN004; Room for FATLOC segment. (1 KB buffer)
 	MOV	FATLOC,AX		; LOCATION TO READ FAT
 	sub	ax, 64			;Room for Boot Record buffer segment (1 KB)
-	mov	Init_BootSeg, ax	;AN015;
+	mov	Init_BootSeg, ax
 	POP	AX
 
 	MOV	DX,SYSINITSEG
@@ -1560,7 +1535,7 @@ SETRET:
 ;it a conventional BPB format.
 
 SET2:
-;	 PUSH	 DX	;AN000;
+;	 PUSH	 DX
 	mov	cs:ROM_drv_num, dl	;AN000; save the ROM BIOS drive number we are handling now.
 
 	MOV	AX,WORD PTR ES:[BX+4]	;Hidden sectors
@@ -1576,7 +1551,7 @@ SET2:
 	ADD	AX,WORD PTR ES:[BX+8]	;Sectors in Partition
 	ADC	DX,WORD PTR ES:[BX+10]
 ;	 JZ	 OKDRIVE
-	jnc	Okdrive 		;AC000;
+	jnc	Okdrive
 	  MESSAGE FTESTHARD,<"PARTITION INVALID",CR,LF>
 	OR	FBIGFAT,FTOOBIG
 OKDRIVE:
@@ -1584,49 +1559,49 @@ OKDRIVE:
 	MOV	AX,WORD PTR ES:[BX+4]
 
 	MOV	[DI].HIDSEC_L,AX	;   BPB->HIDSECCT = P->PARTITIONBEGIN;
-	mov	ax,word ptr es:[bx+6]	;AN000;
-	mov	[di].HIDSEC_H,ax	;AN000;
+	mov	ax,word ptr es:[bx+6]
+	mov	[di].HIDSEC_H,ax
 
 	mov	dx,word ptr es:[bx+10]	;AN000; # of sectors (High)
 	MOV	AX,WORD PTR ES:[BX+8]	;# of sectors (Low)
-	mov	word ptr [di].DRVLIM_H,dx ;AN000;
+	mov	word ptr [di].DRVLIM_H,dx
 	MOV	WORD PTR [DI].DRVLIM_L,AX ;   BPB->MAXSEC = P->PARTITIONLENGTH;
-	cmp	dx,0			;AN000;
-	ja	OKDrive_Cont		;AN000;
+	cmp	dx,0
+	ja	OKDrive_Cont
 	CMP	AX,64			;   IF (P->PARTITIONLENGTH < 64)
 	JB	SETRET			;	RETURN -1;
 
-OKDrive_Cont:				;AN000;
- ;	 PUSH	 DX			;AC000;
-	mov	dx,[di].HIDSEC_H	;AN000;
+OKDrive_Cont:
+ ;	 PUSH	 DX
+	mov	dx,[di].HIDSEC_H
 	MOV	AX,[DI].HIDSEC_L	; BOOT SECTOR NUMBER - For mini disk,;J.K.
-;	 XOR	 DX,DX			 ; this will be logical and equal to  ;AC000;
+;	 XOR	 DX,DX			 ; this will be logical and equal to
 	xor	bx,bx			;usUally equal to the # of sec/trk.  ;J.K.
-;	 MOV	 BH,DH			;AC000;
+;	 MOV	 BH,DH
 	MOV	BL,BYTE PTR [DI].SECLIM
-	push	ax			;AN000;
-	mov	ax,dx			;AN000;
-	xor	dx,dx			;AN000;
-	div	bx			;AN000;
-	mov	cs:[Temp_H],ax		;AN000;
-	pop	ax			;AN000;
+	push	ax
+	mov	ax,dx
+	xor	dx,dx
+	div	bx
+	mov	cs:[Temp_H],ax
+	pop	ax
 	DIV	BX			;(Sectors)DX;AX / (Seclim)BX =(Track) Temp_H;AX + (Sector)DX
 	MOV	CL,DL			; CL IS SECTOR NUMBER;J.K.Assume sector number < 255.
 	INC	CL			; SECTORS ARE 1 BASED
-;	 CWD				;AC000;
+;	 CWD
 
-	xor	bx,bx			;AN000;
+	xor	bx,bx
 	MOV	BL,BYTE PTR [DI].HDLIM
-	push	ax			;AN000;
-	xor	dx,dx			;AN000;
-	mov	ax, cs:[Temp_H] 	;AN000;
-	div	bx			;AN000;
-	mov	cs:[Temp_H],ax		;AN000;
-	pop	ax			;AN000;
+	push	ax
+	xor	dx,dx
+	mov	ax, cs:[Temp_H]
+	div	bx
+	mov	cs:[Temp_H],ax
+	pop	ax
 	DIV	BX			; DL IS HEAD, AX IS CYLINDER
-	cmp	cs:[Temp_H],0		;AN000;
+	cmp	cs:[Temp_H],0
 	ja	SetRet_brdg		;AN000; Exceeds the limit of Int 13h
-	cmp	ax, 1024		;AN000;
+	cmp	ax, 1024
 	ja	SetRet_brdg		;AN000; Exceeds the limit of Int 13h
 
 ; DL IS HEAD.
@@ -1678,7 +1653,7 @@ OKnotMini:				;J.K. 4/7/86
 ; cs:Disksec contains THE BOOT SECTOR.	IN THEORY, (HA HA) THE BPB IN THIS THING
 ; IS CORRECT.  WE CAN, THEREFORE, SUCK OUT ALL THE RELEVANT STATISTICS ON THE
 ; MEDIA IF WE RECOGNIZE THE VERSION NUMBER.
-	mov	bx, offset DiskSector	;AN000;
+	mov	bx, offset DiskSector
 ; look for a signature for msdos...
 	cmp	word ptr cs:[bx+3], "S" shl 8 + "M"
 	jnz	notmssig
@@ -1718,7 +1693,7 @@ UNKNOWN3_0_J:					;AN012;Legally formatted media,
 	jmp	Unknown3_0			;AN012; although, content might be bad.
 
 TRY5:
-	call	Cover_Fdisk_Bug 		;AN010;
+	call	Cover_Fdisk_Bug
 	CMP	WORD PTR cs:[bx+8],"." SHL 8 + "3"
 	jb	Unknown3_0_J			;AN012; Must be 2.1 boot record. Do not trust it, but still legal.
 	JNZ	COPYBPB 			;AN007; Honor OS2 boot record, or DOS 4.0 version
@@ -1738,57 +1713,57 @@ COPYBPB:
 ;For the non_FAT system, don't need to set the other value. So just
 ;do GOODRET.- J.K.
 
-	cmp	cs:[Ext_Boot_Sig], EXT_BOOT_SIGNATURE ;AN000;
+	cmp	cs:[Ext_Boot_Sig], EXT_BOOT_SIGNATURE
 	jne	COPYBPB_FAT		;AN000; Conventional Fat system
 	cmp	cs:[NumberOfFats], 0	;AN000; If (# of FAT <> 0) then
 	jne	COPYBPB_FAT		;AN000;   a Fat system.
 ;J.K. Non Fat based media.
 	push	di			;AN000; Sav Reg.
-	push	ds			;AN000;
+	push	ds
 
-	push	ds			;AN000;
+	push	ds
 	pop	es			;AN000; now es:di -> bds
-	push	cs			;AN000;
+	push	cs
 	pop	ds			;AN000; ds = cs
 
 	mov	si, offset Bpb_In_Sector ;AN000; ds:si -> BPB in Boot
 	add	di, BYTEPERSEC		;AN000; es:di -> BPB in BDS
-	mov	cx, size BPB_TYPE	;AN000;
-	rep	movsb			;AN000;
+	mov	cx, size BPB_TYPE
+	rep	movsb
 
 	pop	ds			;AN000; Restore Reg.
-	pop	di			;AN000;
+	pop	di
 	call	Mov_Media_IDs		;AN000; Set Volume id, SystemId, Serial.
 	jmp	GoodRet
 
 COPYBPB_FAT:				;AN000;  Fat system
-	xor	dx,dx			;AN000;
+	xor	dx,dx
 	mov	si, offset Bpb_In_Sector ;AN000;  cs:bx -> bpb in boot
 	mov	ax, cs:[si.SECNUM]	;AN000;  total sectors
 	cmp	ax,0			;AN000; double word sector number?
 	jnz	Fat_Big_Small		;AN000;  No. Conventional BPB.
 	mov	ax, word ptr cs:[si.SECNUM_L] ;AN000; Use double word
-	mov	dx, word ptr es:[si.SECNUM_H] ;AN000;
+	mov	dx, word ptr es:[si.SECNUM_H]
 
 Fat_Big_Small:				 ;AN000; Determine Fat entry size.
 ;At this moment DX;AX = Total sector number
 ;	 DEC	 AX			 ; SUBTRACT # RESERVED (ALWAYS 1)
 	sub	ax,1			;AN000; Subtrack # reserved (always 1)
-	sbb	dx,0			;AN000;
+	sbb	dx,0
 	mov	bx, cs:[si.FATSIZE]	;AN000;  BX = Sectors/Fat
 	mov	[di.CSECFAT],bx 	;AN000;  Set in BDS BPB
 	shl	bx,1			;AN000; Always 2 FATS
 	sub	ax,bx			;AN000; Sub # fat sectors
-	sbb	dx,0			;AN000;
+	sbb	dx,0
 	mov	bx, cs:[si.DIRNUM]	;AN000;  # root entries
 	mov	[di.cDIR],bx		;AN000;  Set in BDS BPB
 
 	MOV	CL,4
 	shr	bx,cl			;AN000;  Div by 16 ents/sector
 	sub	ax,bx			;AN000;  sub # dir sectors
-	sbb	dx,0			;AN000;
+	sbb	dx,0
 					;AN000; DX;AX now contains the # of data sectors
-	xor	cx,cx			;AN000;
+	xor	cx,cx
 	MOV	CL, cs:[si.SECALL]	; SECTORS PER CLUSTER
 	MOV	[DI.SECPERCLUS],CL	; SET IN BIOS BPB
 ;	 XOR	 DX,DX
@@ -1798,14 +1773,14 @@ Fat_Big_Small:				 ;AN000; Determine Fat entry size.
 ;J.K. 3/16/87 P54 Returning back to old logic for compatibility reason.
 ;So, use the old logic again that once had been commented out!!!!!!!!!!!!
 ;Old logic to determine FAT Entry Size J.K. 12/3/86
-	push	ax			;AN000;
-	mov	ax,dx			;AN000;
-	xor	dx,dx			;AN000;
+	push	ax
+	mov	ax,dx
+	xor	dx,dx
 	div	cx			;AN000; cx = sectors per cluster
-	mov	cs:[Temp_H],ax		;AN000;
-	pop	ax			;AN000;
+	mov	cs:[Temp_H],ax
+	pop	ax
 	DIV	CX			;AN000;  [Temp_H];AX NOW CONTAINS THE # CLUSTERS.
-	cmp	cs:[Temp_H],0		;AN000;
+	cmp	cs:[Temp_H],0
 	ja	TooBig_Ret		;AN000;  Too big cluster number
 	CMP	AX,4096-10		; IS THIS 16-BIT FAT?
 	JB	CopyMediaID		; NO, small FAT
@@ -1817,7 +1792,7 @@ CopyMediaID:
 					;boot record.
 	JMP	Massage_bpb		;AN000; Now final check for BPB info. and return.
 
-TooBig_Ret:				;AN000;
+TooBig_Ret:
 	OR	cs:FBIGFAT,FTOOBIG
 	JMP	GOODRET 		;AN000; Still drive letter is assigned
 					;AN000; But useless. To big for
@@ -1826,26 +1801,25 @@ UNKNOWN:
 ;	or	[di].FLAGS, UNFORMATTED_MEDIA	;AN005; Set unformatted media flag.
 	; preceeding line commented out 10/88 by MRW--  The boot signature
 	;   may not be recognizable, but we should TRY and read it anyway.
-						;AN006;
 						;AN008; For the time being, allow it.
 						;AN009; Now implemented again
 Unknown3_0:				;AN012;Skip setting UNFORMATTED_MEDIA bit
 	MESSAGE FTESTHARD,<"UNKNOWN HARD MEDIA. ASSUMING 3.0.",CR,LF>
-	mov	dx, [di.DRVLIM_H]	;AN000;
-	mov	ax, [di.DRVLIM_L]	;AN000;
+	mov	dx, [di.DRVLIM_H]
+	mov	ax, [di.DRVLIM_L]
 	MOV	SI,OFFSET DISKTABLE2
 SCAN:
 ;	 CMP	 AX,[SI]
 ;	 JBE	 GOTPARM
 ;	 ADD	 SI,4 * 2
 
-	cmp	dx, word ptr cs:[si]	;AN000;
-	jb	GotParm 		;AN000;
-	ja	Scan_Next		;AN000;
-	cmp	ax, word ptr cs:[si+2]	;AN000;
-	jbe	GotParm 		;AN000;
-Scan_Next:				;AN000;
-	add	si, 5 * 2		;AN000;
+	cmp	dx, word ptr cs:[si]
+	jb	GotParm
+	ja	Scan_Next
+	cmp	ax, word ptr cs:[si+2]
+	jbe	GotParm
+Scan_Next:
+	add	si, 5 * 2
 	JMP	SCAN			;AN000;  Covers upto 512 MB media
 GOTPARM:
 ;	 MOV	 CL,BYTE PTR [SI+6]
@@ -1853,8 +1827,8 @@ GOTPARM:
 	OR	FBIGFAT,CL
 ;	 MOV	 CX,[SI+2]
 ;	 MOV	 DX,[SI+4]
-	mov	cx, word ptr cs:[SI+4]	;AN000;
-	mov	dx, word ptr cs:[SI+6]	;AN000;
+	mov	cx, word ptr cs:[SI+4]
+	mov	dx, word ptr cs:[SI+6]
 
 ;	DX = NUMBER OF DIR ENTRIES,
 ;	CH = NUMBER OF SECTORS PER CLUSTER
@@ -1874,8 +1848,8 @@ GOTPARM:
 ;Now, CX = SecPerClus|Clusshift
 ;     [DI.CDIR] = number of directory entries.
 
-	mov	dx, [di.DRVLIM_H]	;AN000;
-	mov	ax, [di.DRVLIM_L]	;AN000;
+	mov	dx, [di.DRVLIM_H]
+	mov	ax, [di.DRVLIM_L]
 	MOV	BYTE PTR SECPERCLUS[DI],CH ;SAVE SECTORS PER CLUSTER
 	TEST	FBIGFAT,FBIG		;   IF (FBIGFAT)
 	JNZ	DOBIG			;	GOTO DOBIG;
@@ -1904,14 +1878,14 @@ DOBIG:
 	  MESSAGE FTESTHARD,<" BIG FAT",CR,LF>
 	MOV	CL,4			; 16 (2^4) DIRECTORY ENTRIES PER SECTOR
 	push	dx			;AN000; Save total sectors (high)
-	mov	dx, CDIR[DI]		;AN000;
+	mov	dx, CDIR[DI]
 	SHR	DX,CL			; CSECDIR = CDIR / 16;
 	SUB	AX,DX			; DX;AX -= CSECDIR; DX;AX -= CSECRESERVED;
-	pop	dx			;AN000;
-	SBB	dx,0			;AN000;
+	pop	dx
+	SBB	dx,0
 ;	 DEC	 AX			 ; AX = T - R - D
 	SUB	ax,1			;AN000; DX;AX = T - R - D
-	SBB	dx,0			;AN000;
+	SBB	dx,0
 	MOV	BL,2
 	MOV	BH,SECPERCLUS[DI]	; BX = 256 * SECPERCLUS + 2
 ;	 XOR	 DX,DX
@@ -1927,7 +1901,7 @@ DOBIG:
 ;J.K. Now, set the default FileSys_ID, Volume label, Serial number
 	MOV	BL,FBIGFAT
 	MOV	[DI].FATSIZ,BL		; SET SIZE OF FAT ON MEDIA
-	call	Clear_IDs		;AN000;
+	call	Clear_IDs
 
 ;J.K. At this point, in BPB of BDS table, DRVLIM_H,DRVLIM_L which were
 ;set according to the partition information. We are going to
@@ -1936,29 +1910,29 @@ DOBIG:
 ;and DRVLIM_L will be set to 0.
 ;We don't do this for the bpb information from the boot record. We
 ;are not going to change the BPB information from the boot record.
-Massage_bpb:				;AN000;
-	mov	dx, [di.DRVLIM_H]	;AN000;
-	mov	ax, [di.DRVLIM_L]	;AN000;
+Massage_bpb:
+	mov	dx, [di.DRVLIM_H]
+	mov	ax, [di.DRVLIM_L]
 	cmp	dx,0			;AN000; Double word total sector?
 	ja	GOODRET 		;AN000; don't have to change it.
-	cmp	[di.HIDSEC_H], 0	;AN000;
+	cmp	[di.HIDSEC_H], 0
 	ja	GOODRET 		;AN000; don't have to change it.
-	add	ax, [di.HIDSEC_L]	;AN000;
+	add	ax, [di.HIDSEC_L]
 	jc	GOODRET 		;AN000; bigger than a word boundary
-	mov	ax, [di.DRVLIM_L]	;AN000;
-	mov	[di.DRVLIM], ax 	;AN000;
-	mov	[di.DRVLIM_L], 0	;AN000;
+	mov	ax, [di.DRVLIM_L]
+	mov	[di.DRVLIM], ax
+	mov	[di.DRVLIM_L], 0
 GOODRET:
 	cmp	[di].DRVLIM_H, 0	;AN014; Big media?
 	jbe	Not_BigMedia		;AN014; No.
-	push	es			;AN014;
-	push	ax			;AN014;
-	mov	ax, SYSINITSEG		;AN014;
-	mov	es, ax			;AN014;
+	push	es
+	push	ax
+	mov	ax, SYSINITSEG
+	mov	es, ax
 	mov	es:Big_Media_Flag, 1	;AN014; Set the flag in SYSINITSEG.
-	pop	ax			;AN014;
-	pop	es			;AN014;
-Not_BigMedia:				;AN014;
+	pop	ax
+	pop	es
+Not_BigMedia:
 	MOV	BL,FBIGFAT
 	MOV	[DI].FATSIZ,BL		; SET SIZE OF FAT ON MEDIA
 	CLC
@@ -1970,38 +1944,38 @@ RET_HARD:
 
 SETHARD ENDP
 
-Cover_FDISK_Bug 	proc			      ;AN010;
+Cover_FDISK_Bug 	proc
 ;FDISK of PC DOS 3.3 and below, OS2 1.0 has a bug.  The maximum number of
 ;sector that can be handled by PC DOS 3.3 ibmbio should be 0FFFFh.
 ;Instead, sometimes FDISK use 10000h to calculate the maximum number.
 ;So, we are going to check that if SECNUM + Hidden sector = 10000h
 ;then subtrack 1 from SECNUM.
-	push	ax				      ;AN010;
-	push	dx				      ;AN010;
-	push	si				      ;AN010;
-	cmp	cs:[Ext_Boot_Sig], EXT_BOOT_SIGNATURE ;AN010;
+	push	ax
+	push	dx
+	push	si
+	cmp	cs:[Ext_Boot_Sig], EXT_BOOT_SIGNATURE
 	je	CFB_Retit			      ;AN010;if extended BPB, then >= PC DOS 4.00
 	cmp	word ptr cs:[bx+7], "0" shl 8 + "1"   ;AN011; OS2 1.0 ? = IBM 10.0
-	jne	CFB_Chk_SECNUM			      ;AN010;
-	cmp	byte ptr cs:[bx+10], "0"              ;AN010;
-	jne	CFB_Retit			      ;AN010;
-CFB_Chk_SECNUM: 				      ;AN010;
-	mov	si, offset BPB_In_Sector	      ;AN010;
+	jne	CFB_Chk_SECNUM
+	cmp	byte ptr cs:[bx+10], "0"
+	jne	CFB_Retit
+CFB_Chk_SECNUM:
+	mov	si, offset BPB_In_Sector
 	cmp	cs:[si.SECNUM], 0		      ;AN010;Just to make sure.
-	je	CFB_Retit			      ;AN010;
-	mov	ax, cs:[si.SECNUM]		      ;AN010;
-	add	ax, cs:[si.HIDDEN_L]		      ;AN010;
-	jnc	CFB_Retit			      ;AN010;
+	je	CFB_Retit
+	mov	ax, cs:[si.SECNUM]
+	add	ax, cs:[si.HIDDEN_L]
+	jnc	CFB_Retit
 	xor	ax, ax				      ;AN010;if carry set and AX=0?
-	jnz	CFB_Retit			      ;AN010;
+	jnz	CFB_Retit
 	dec	cs:[si.SECNUM]			      ;AN010;  then decrease SECNUM by 1.
-	dec	[di].DRVLIM_L			      ;AN010;
-CFB_Retit:					      ;AN010;
-	pop	si				      ;AN010;
-	pop	dx				      ;AN010;
-	pop	ax				      ;AN010;
-	ret					      ;AN010;
-Cover_FDISK_Bug 	endp			      ;AN010;
+	dec	[di].DRVLIM_L
+CFB_Retit:
+	pop	si
+	pop	dx
+	pop	ax
+	ret
+Cover_FDISK_Bug 	endp
 
 
 ; SETDRVPARMS SETS UP THE RECOMMENDED BPB IN EACH BDS IN THE SYSTEM BASED ON
@@ -2029,26 +2003,26 @@ DO_SETP:
 	CMP	BL,FFHARDFILE
 	JNZ	NOTHARDFF
 
-	xor	dx,dx			;AN000;
+	xor	dx,dx
 	MOV	AX,ES:[DI].DRVLIM
-	cmp	ax,0			;AN000;
-	jne	GET_cCYL		;AN000;
+	cmp	ax,0
+	jne	GET_cCYL
 	mov	dx,es:[di].DRVLIM_H	;AN000; Use Double word sector number
-	MOV	AX,ES:[DI].DRVLIM_L	;AN000;
+	MOV	AX,ES:[DI].DRVLIM_L
 GET_cCYL:
-	push	dx			;AN000;
+	push	dx
 	PUSH	AX
 	MOV	AX,WORD PTR ES:[DI].HDLIM
 	MUL	WORD PTR ES:[DI].SECLIM ;Assume Sectorsp per cyl. < 64K.
 	MOV	CX,AX			; CX HAS # SECTORS PER CYLINDER
 	POP	AX			;
 	pop	dx			;AN000; Restore drvlim.
-	push	ax			;AN000;
-	mov	ax,dx			;AN000;
-	xor	dx,dx			;AN000;
-	div	cx			;AN000;
+	push	ax
+	mov	ax,dx
+	xor	dx,dx
+	div	cx
 	mov	cs:[Temp_H],ax		;AN000; AX be 0 here.
-	pop	ax			;AN000;
+	pop	ax
 	DIV	CX			; DIV #SEC BY SEC/CYL TO GET # CYL.
 	OR	DX,DX
 	JZ	NO_CYL_RND		; CAME OUT EVEN
@@ -2172,7 +2146,7 @@ UNPACK:
 	PUSH	BX
 	MOV	SI,FATLOC
 	MOV	DS,SI			;DS -> FATLOC segment
-	mov	si, bx			;AN004;
+	mov	si, bx
 	TEST	cs:FBIGFAT,FBIG 	;16 bit fat?
 	JNZ	UNPACK16
 ;	 MOV	 SI,BX
@@ -2182,13 +2156,13 @@ UNPACK:
 	mov	ax, [bx]		;AN004;Save it into AX
 	jne	Even_Odd		;AN004;IF not a splitted FAT, check even-odd.
 	mov	al, byte ptr [bx]	;AN004;Splitted FAT.
-	mov	byte ptr cs:Temp_Cluster, al	;AN004;
-	inc	si				;AN004;
-	call	Get_Fat_Sector			;AN004;
-	mov	al, byte ptr ds:[0]		 ;AN004;
-	mov	byte ptr cs:Temp_Cluster+1, al	;AN004;
-	mov	ax, cs:Temp_Cluster	;AN004;
-Even_Odd:				;AN004;
+	mov	byte ptr cs:Temp_Cluster, al
+	inc	si
+	call	Get_Fat_Sector
+	mov	al, byte ptr ds:[0]
+	mov	byte ptr cs:Temp_Cluster+1, al
+	mov	ax, cs:Temp_Cluster
+Even_Odd:
 	pop	bx			;AN004;Restore old Fat entry value
 	push	bx			;AN004;Save it right away.
 	shr	bx, 1			;AN004;Was it even or odd?
@@ -2203,7 +2177,7 @@ HAVCLUS:
 	JMP	SHORT UNPACKX
 UNPACK16:				;16 bit fat.
 	shl	si, 1			;Get the offset value.
-	call	Get_Fat_Sector		;AN004;
+	call	Get_Fat_Sector
 	mov	bx, [bx]		;AN004; Now BX = New FAT entry.
 UNPACKX:
 	POP	SI			;Retore Old BX value into SI
@@ -2239,7 +2213,7 @@ GETCL2:
 
 GETCLUS ENDP				;   RETURN;
 
-Get_FAT_Sector	proc	near		;AN004;
+Get_FAT_Sector	proc	near
 ;Function: FInd and read the corresponding FAT sector into DS:0
 ;In). SI - offset value (starting from FAT entry 0) of FAT entry to find.
 ;     DS - FATLOC segment
@@ -2254,15 +2228,15 @@ Get_FAT_Sector	proc	near		;AN004;
 ;      should save this byte, and read the next FAT sector to get the rest
 ;      of the FAT entry value. (This will only happen with the 12 bit fat.)
 
-	push	ax				;AN004;
-	push	cx				;AN004;
-	push	dx				;AN004;
-	push	di				;AN004;
-	push	si				;AN004;
-	push	es				;AN004;
-	push	ds				;AN004;
-	xor	dx, dx				;AN004;
-	mov	ax, si				;AN004;
+	push	ax
+	push	cx
+	push	dx
+	push	di
+	push	si
+	push	es
+	push	ds
+	xor	dx, dx
+	mov	ax, si
 	mov	cx, cs:Md_SectorSize		;AN004; =512 bytes
 	div	cx				;AN004; AX=sector number, dx = offset
 	inc	ax				;AN004; Make AX to relative logical sector number
@@ -2273,26 +2247,26 @@ Get_FAT_Sector	proc	near		;AN004;
 	mov	cs:[Start_Sec_H],0		;AN004; Prepare to read the FAT sector
 	mov	dx, ax				;AN004; Start_Sec_H is always 0 for FAT sector.
 	mov	cx, 1				;AN004; 1 sector to read
-	mov	ax, cs:DrvFAT			;AN004;
-	push	ds				;AN004;
-	pop	es				;AN004;
+	mov	ax, cs:DrvFAT
+	push	ds
+	pop	es
 	xor	di, di				;AN004; es:di -> FatLoc segment:0
 	call	DiskRD				;AN004; cross your finger.
 	pop	dx				;AN004; restore offset value.
-	mov	cx, cs:Md_SectorSize		;AN004;
-GFS_Split_Chk:					;AN004;
+	mov	cx, cs:Md_SectorSize
+GFS_Split_Chk:
 	dec	cx				;AN004;if offset points to the
 	cmp	dx, cx				;AN004;last byte of this sector, then splitted entry.
 	mov	bx, dx				;AN004;Set BX to DX
-	pop	ds				;AN004;
-	pop	es				;AN004;
-	pop	si				;AN004;
-	pop	di				;AN004;
-	pop	dx				;AN004;
-	pop	cx				;AN004;
-	pop	ax				;AN004;
-	ret					;AN004;
-Get_FAT_Sector	endp				;AN004;
+	pop	ds
+	pop	es
+	pop	si
+	pop	di
+	pop	dx
+	pop	cx
+	pop	ax
+	ret
+Get_FAT_Sector	endp
 
 ;
 ; SI POINTS TO DEVICE HEADER
@@ -2501,12 +2475,12 @@ FmpGot: 				;found my partition.
 	mov	al, Mininum
 	mov	[DI].DRIVELET, al	;set logical number
 
-	cmp	word ptr es:[bx+10], 0	;AN000;
-	ja	FmpGot_Cont		;AN000;
+	cmp	word ptr es:[bx+10], 0
+	ja	FmpGot_Cont
 	cmp	word ptr ES:[BX+8], 64	;**With current BPB, only lower word
 					; is meaningful.
 	jb	FmpRet			;should be bigger than 64 sectors at least
-FmpGot_Cont:				;AN000;
+FmpGot_Cont:
 	sub	bx, 4			;let BX point to the start of the entry
 	mov	dh, byte ptr ES:[BX+2]
 	and	dh, 11000000b		;get higher bits of cyl

@@ -28,11 +28,11 @@ ENDIF
 ; for use with the /F switch
 
 
-Size_160	equ	0001h			;Flag settings for size switch	;AN000;
-Size_180	equ	0002h			;				;AN000;
-Size_320	equ	0004h			;				;AN000;
-Size_360	equ	0008h			;				;AN000;
-Size_720	equ	0010h			;				;AN000;
-Size_1200	equ	0020h			;				;AN000;
-Size_1440	equ	0040h			;				;AN000;
+Size_160	equ	0001h			;Flag settings for size switch
+Size_180	equ	0002h			;
+Size_320	equ	0004h			;
+Size_360	equ	0008h			;
+Size_720	equ	0010h			;
+Size_1200	equ	0020h			;
+Size_1440	equ	0040h			;
 Size_2880	equ	0080h			; 3.5-inch 2.88 MB media

@@ -1,5 +1,3 @@
-;       SCCSID = @(#)disp.asm   1.1 85/04/10
-;       SCCSID = @(#)disp.asm   1.1 85/04/10
 ;
 ; Dispatcher code
 ;
@@ -45,15 +43,15 @@ CODE    SEGMENT BYTE PUBLIC 'CODE'
         I_need  EXTERR_LOCUS,BYTE
         I_need  IdleInt,BYTE
         I_need  Printer_Flag,BYTE
-        I_need  CPSWFLAG,BYTE              ;AN000;
-        I_need  CPSWSAVE,BYTE              ;AN000;
-        I_need  DISK_FULL,BYTE             ;AN000;
-        I_need  InterCon,BYTE              ;AN000;
-        I_need  BOOTDRIVE,BYTE             ;AN000;
+        I_need  CPSWFLAG,BYTE
+        I_need  CPSWSAVE,BYTE
+        I_need  DISK_FULL,BYTE
+        I_need  InterCon,BYTE
+        I_need  BOOTDRIVE,BYTE
 	I_need	MSVERS,WORD
-        I_need  EXTOPEN_ON,BYTE            ;AN000;
-        I_need  DOS34_FLAG,WORD            ;AN000;
-        I_need  ACT_PAGE,WORD              ;AN000;
+        I_need  EXTOPEN_ON,BYTE
+        I_need  DOS34_FLAG,WORD
+        I_need  ACT_PAGE,WORD
 	EXTRN	hma_low_segment:WORD
 	EXTRN	hma_resident:BYTE
 
@@ -62,8 +60,8 @@ CODE    SEGMENT BYTE PUBLIC 'CODE'
         ENDIF
 
 	IF	BUFFERFLAG
-	i_need	BUF_EMS_SEG_CNT,WORD	     ; DOS 4.00 EMS seg count		;AN000;
-	i_need	BUF_EMS_MODE,BYTE	     ; DOS 4.00 EMS mode 		;AN000;
+	i_need	BUF_EMS_SEG_CNT,WORD	     ; DOS 4.00 EMS seg count
+	i_need	BUF_EMS_MODE,BYTE	     ; DOS 4.00 EMS mode
 	i_am	BUF_EMS_MAP_USER,12,<0,0,0,0,0,0,0,0,0,0,0,0>
 	ENDIF
 
@@ -106,7 +104,7 @@ ctrl_c_owner_ready:
         JMP     SHORT ctrl_c_return
 Check1:
         CMP     AL,2
-        JA      CPSWchk                        ;AN000;
+        JA      CPSWchk
         JZ      SetAndRet
         PUSH    DX
         AND     DL,01h
@@ -122,10 +120,10 @@ BadVal:
         JMP     SHORT ctrl_c_return
 ;; DOS 4.00 File Tagging
 
-CPSWchk:                                ;AN000;
+CPSWchk:
         CMP     AL,4                    ; Code-page switching is unsupported.
         JBE     CPSWreturn              ; Functions 3 and 4 remain no-ops.
-QueryDOSboot:                            ;AN000;
+QueryDOSboot:
 	CMP	AL,6
 	JA	BadVal
 	JNE	QueryBootDrive
@@ -348,10 +346,10 @@ ASSUME  SS:DOSGROUP
 entry   REDISP
         MOV     SP,OFFSET DOSGROUP:AUXSTACK ; Enough stack for interrupts
         STI                             ; stack is in our space now...
- IF  DBCS                                       ;AN000;
+ IF  DBCS
         MOV     BH, BYTE PTR DS:[PDB_InterCon]  ;AN000;; get interim mode  2/13/KK
         MOV     SS:[InterCon], BH               ;AN000;; 2/13/KK
- ENDIF                                          ;AN000;
+ ENDIF
 	PUSH	SS
 	POP	DS
         DOSAssume   CS,<DS>,"MSCODE/ReDisp"
@@ -521,77 +519,73 @@ EndProc save_world
 
 IF BUFFERFLAG
 
-Break	<SAVE_USER_MAP - save map >							;AN000;
-; Inputs:									;AN000;
-;	none									;AN000;
-; Function:									;AN000;
-;	save map								;AN000;
-; Outputs:									;AN000;
-;	none									;AN000;
-; No other registers altered							;AN000;
-										;AN000;
-Procedure   SAVE_USER_MAP,NEAR							 ;AN000;
-	ASSUME	DS:NOTHING,ES:NOTHING						;AN000;
-										;AN000;
-	CMP	cs:[BUF_EMS_MODE],-1	  ;LB. EMS support			;AN000;
-	JZ	No_user_save 		  ;LB. no				;AN000;
-;	MOV	[ACT_PAGE],-1		  ;LB. invalidate active page		;AN000;
-;	MOV	WORD PTR [LASTBUFFER],-1  ;LB.	and last buffer pointer 	;AN000;
-	PUSH	AX			  ;LB. save regs			;AN000;
-	PUSH	DS			  ;LB. save regs			;AN000;
-	PUSH	ES			  ;LB.					;AN000;
-	PUSH	SI			  ;LB.					;AN000;
-	PUSH	DI			  ;LB.					;AN000;
-	MOV	SI,OFFSET DOSGROUP:BUF_EMS_SEG_CNT     ;LB.			;AN000;
-	MOV	DI,OFFSET DOSGROUP:BUF_EMS_MAP_USER     ;LB.			;AN000;
+Break	<SAVE_USER_MAP - save map >
+; Inputs:
+;	none
+; Function:
+;	save map
+; Outputs:
+;	none
+; No other registers altered
+Procedure   SAVE_USER_MAP,NEAR
+	ASSUME	DS:NOTHING,ES:NOTHING
+	CMP	cs:[BUF_EMS_MODE],-1	  ;LB. EMS support
+	JZ	No_user_save 		  ;LB. no
+;	MOV	[ACT_PAGE],-1		  ;LB. invalidate active page
+;	MOV	WORD PTR [LASTBUFFER],-1  ;LB.	and last buffer pointer
+	PUSH	AX			  ;LB. save regs
+	PUSH	DS			  ;LB. save regs
+	PUSH	ES			  ;LB.
+	PUSH	SI			  ;LB.
+	PUSH	DI			  ;LB.
+	MOV	SI,OFFSET DOSGROUP:BUF_EMS_SEG_CNT     ;LB.
+	MOV	DI,OFFSET DOSGROUP:BUF_EMS_MAP_USER     ;LB.
 
 	Context ES
-	Context DS			  ;LB. ds:si -> ems seg cnt 		;AN000;
+	Context DS			  ;LB. ds:si -> ems seg cnt
 
-	MOV	AX,4F00H		  ;LB. save map 			;AN000;
-	EnterCrit  critDisk		  ;LB. enter critical section		;AN000;
-	INT	67H			  ;LB.					;AN000;
-	LeaveCrit  critDisk		  ;LB. leave critical section		;AN000;
-	POP	DI			  ;LB.					;AN000;
-	POP	SI			  ;LB. restore regs			;AN000;
-	POP	ES			  ;LB.					;AN000;
-	POP	DS			  ;LB.					;AN000;
-	POP	AX			  ;LB. restore				;AN000;
-No_user_save:									 ;AN000;
-	return									;AN000;
-EndProc SAVE_USER_MAP								 ;AN000;
-										;AN000;
+	MOV	AX,4F00H		  ;LB. save map
+	EnterCrit  critDisk		  ;LB. enter critical section
+	INT	67H			  ;LB.
+	LeaveCrit  critDisk		  ;LB. leave critical section
+	POP	DI			  ;LB.
+	POP	SI			  ;LB. restore regs
+	POP	ES			  ;LB.
+	POP	DS			  ;LB.
+	POP	AX			  ;LB. restore
+No_user_save:
+	return
+EndProc SAVE_USER_MAP
 
-Break	<RESTORE_USER_MAP- retore map >						;AN000;
-; Inputs:									;AN000;
-;	none									;AN000;
-; Function:									;AN000;
-;	restore_map								;AN000;
-; Outputs:									;AN000;
-;	none									;AN000;
-; No other registers altered							;AN000;
-										;AN000;
-Procedure   RESTORE_USER_MAP,NEAR							 ;AN000;
-	ASSUME	DS:NOTHING,ES:NOTHING						;AN000;
+Break	<RESTORE_USER_MAP- retore map >
+; Inputs:
+;	none
+; Function:
+;	restore_map
+; Outputs:
+;	none
+; No other registers altered
+Procedure   RESTORE_USER_MAP,NEAR
+	ASSUME	DS:NOTHING,ES:NOTHING
 	
-	CMP	cs:[BUF_EMS_MODE],-1	  ;LB. EMS support			;AN000;
-	JZ	No_user_restore		  ;LB. no				;AN000;
-	PUSH	AX			  ;LB. save regs			;AN000;
-	PUSH	DS			  ;LB. save regs			;AN000;
-	PUSH	SI			  ;LB.					;AN000;
-	MOV	SI,OFFSET DOSGROUP:BUF_EMS_MAP_USER     ;LB.			;AN000;
+	CMP	cs:[BUF_EMS_MODE],-1	  ;LB. EMS support
+	JZ	No_user_restore		  ;LB. no
+	PUSH	AX			  ;LB. save regs
+	PUSH	DS			  ;LB. save regs
+	PUSH	SI			  ;LB.
+	MOV	SI,OFFSET DOSGROUP:BUF_EMS_MAP_USER     ;LB.
 
 	Context DS
 
-	MOV	AX,4F01H		  ;LB. restore map			;AN000;
-	EnterCrit  critDisk		  ;LB. enter critical section		;AN000;
-	INT	67H			  ;LB.					;AN000;
-	LeaveCrit  critDisk		  ;LB. leave critical section		;AN000;
-	POP	SI			  ;LB. restore regs			;AN000;
-	POP	DS			  ;LB.					;AN000;
-	POP	AX			  ;LB.					;AN000;
-No_user_restore:									 ;AN000;
-	return									;AN000;
+	MOV	AX,4F01H		  ;LB. restore map
+	EnterCrit  critDisk		  ;LB. enter critical section
+	INT	67H			  ;LB.
+	LeaveCrit  critDisk		  ;LB. leave critical section
+	POP	SI			  ;LB. restore regs
+	POP	DS			  ;LB.
+	POP	AX			  ;LB.
+No_user_restore:
+	return
 EndProc RESTORE_USER_MAP
 
 ENDIF

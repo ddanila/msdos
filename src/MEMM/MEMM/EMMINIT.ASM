@@ -11,28 +11,7 @@
 ;
 ;   Module:	EMMINIT - Expanded Memory Manager initialization routine
 ;
-;   Version:	0.05
-;
-;   Date:	May 24 ,1986
-;
-;   Author:
-;
 ;******************************************************************************
-;
-;	Change Log:
-;
-;	DATE	 REVISION	Description
-;	-------- --------	--------------------------------------------
-;	04/16/86 Original	Adapted from DOS clock driver.
-;	05/24/86 0.00		From EMML test driver.
-;	06/21/86 0.02		added cld to EMM_Init
-;	06/28/86 0.02		Name change from MEMM386 to MEMM
-;	06/29/86 0.02		INC AX (was INC AL) for emm_free init
-;	07/06/86 0.04		Size _emm_page,_emm_free, & _pft386 based
-;				on # of pages in system
-;	07/06/86 0.04		Changed assume to DGROUP
-;	07/10/86 0.05		moved int 67h patch to INIT
-;	06/07/88		added FRS_array initialization (Paul Chan)
 ;
 ;******************************************************************************
 ;   Functional Description:

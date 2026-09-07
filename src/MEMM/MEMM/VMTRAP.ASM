@@ -11,28 +11,8 @@ page	58,132
 ;
 ;   Module:	VMTRAP - 386 Virtual Mode interrupt handler routines
 ;
-;   Version:	0.02
-;
-;   Date:	January 26, 1986
-;
-;   Author:
-;
 ;******************************************************************************
 ;
-;   Change log:
-;
-;     DATE    REVISION			DESCRIPTION
-;   --------  --------	 ------------------------------------------------------
-;   01/26/86  Original
-;   02/05/86  A-	Added int 15h trap to move block function.
-;   05/12/86  A 	Cleanup and segment reorganization
-;   06/19/86  0.01	Added emul_reflect entry point for preserving
-;			IF and TF flags bits on reflections done by
-;			instruction emulators.
-;   06/28/86  0.02	Name change from MEMM386 to MEMM
-;   07/20/88		Removed debugger codes (pc)
-;
-;******************************************************************************
 ;
 ;   Functional Description:
 ;

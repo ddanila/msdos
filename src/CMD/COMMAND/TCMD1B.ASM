@@ -1,6 +1,4 @@
  page 80,132
-;	SCCSID = @(#)tcmd1b.asm 1.1 85/05/14
-;	SCCSID = @(#)tcmd1b.asm 1.1 85/05/14
 TITLE	PART4 COMMAND Transient routines.
 
 ;	Internal commands DIR,PAUSE,ERASE,TYPE,VOL,VER
@@ -9,56 +7,56 @@ TITLE	PART4 COMMAND Transient routines.
 .xcref
 	INCLUDE DOSSYM.INC
 	INCLUDE comseg.asm
-	INCLUDE comsw.asm		;AC000;
+	INCLUDE comsw.asm
 	INCLUDE comequ.asm
-	INCLUDE ioctl.inc		;AN000;
-	INCLUDE ea.inc			;AN030;
+	INCLUDE ioctl.inc
+	INCLUDE ea.inc
 .list
 .cref
 
 
-TRANDATA	SEGMENT PUBLIC BYTE	;AC000;
-	EXTRN	badcpmes_ptr:word	;AC022;
-	EXTRN	Extend_buf_ptr:word	;AC000;
-	EXTRN	Extend_buf_sub:byte	;AN000;
+TRANDATA	SEGMENT PUBLIC BYTE
+	EXTRN	badcpmes_ptr:word
+	EXTRN	Extend_buf_ptr:word
+	EXTRN	Extend_buf_sub:byte
 	EXTRN	inornot_ptr:word
-	EXTRN	msg_disp_class:byte	;AC000;
-	EXTRN	parse_erase:byte	;AC000;
-	EXTRN	parse_mrdir:byte	;AC000;
-	EXTRN	parse_rename:byte	;AC000;
-	EXTRN	parse_vol:byte		;AC000;
+	EXTRN	msg_disp_class:byte
+	EXTRN	parse_erase:byte
+	EXTRN	parse_mrdir:byte
+	EXTRN	parse_rename:byte
+	EXTRN	parse_vol:byte
 	EXTRN	PauseMes_ptr:word
 	EXTRN	renerr_ptr:word
-	EXTRN	slash_p_syn:word	;AC000;
-	EXTRN	volmes_ptr:word 	;AC000;
-	EXTRN	volmes_ptr_2:word	;AC000;
-	EXTRN	volsermes_ptr:word	;AC000;
-	EXTRN	xa_cp:byte		;AN030;
+	EXTRN	slash_p_syn:word
+	EXTRN	volmes_ptr:word
+	EXTRN	volmes_ptr_2:word
+	EXTRN	volsermes_ptr:word
+	EXTRN	xa_cp:byte
 TRANDATA	ENDS
 
-TRANSPACE	SEGMENT PUBLIC BYTE	;AC000;
+TRANSPACE	SEGMENT PUBLIC BYTE
 	EXTRN	bytcnt:word
 	EXTRN	charbuf:byte
 	EXTRN	comsw:word
-	EXTRN	cpyflag:byte		;AC000;
+	EXTRN	cpyflag:byte
 	EXTRN	curdrv:byte
 	EXTRN	destinfo:byte
 	EXTRN	destisdir:byte
 	EXTRN	dirbuf:byte
-	EXTRN	msg_numb:word		;AN022;
+	EXTRN	msg_numb:word
 	EXTRN	one_char_val:byte
-	EXTRN	parse1_addr:dword	;AN000;
-	EXTRN	parse1_syn:word 	;AN000;
-	EXTRN	srcbuf:byte		;AN000;
-	EXTRN	string_ptr_2:word	;AN000;
+	EXTRN	parse1_addr:dword
+	EXTRN	parse1_syn:word
+	EXTRN	srcbuf:byte
+	EXTRN	string_ptr_2:word
 	EXTRN	TPA:word
 	EXTRN	vol_drv:byte
-	EXTRN	vol_ioctl_buf:byte	;AC000;
-	EXTRN	vol_label:byte		;AC000;
-	EXTRN	vol_serial:dword	;AC000;
-	EXTRN	xa_cp_out:byte		;AN030;
-	EXTRN	xa_cp_length:word	;AN030;
-	EXTRN	xa_list_attr:word	;AC030;
+	EXTRN	vol_ioctl_buf:byte
+	EXTRN	vol_label:byte
+	EXTRN	vol_serial:dword
+	EXTRN	xa_cp_out:byte
+	EXTRN	xa_cp_length:word
+	EXTRN	xa_list_attr:word
 	EXTRN	zflag:byte
 TRANSPACE	ENDS
 
@@ -68,7 +66,7 @@ ASSUME	CS:TRANGROUP,DS:NOTHING,ES:NOTHING,SS:NOTHING
 
 ;---------------
 
-TRANSPACE	SEGMENT PUBLIC BYTE	;AC000;
+TRANSPACE	SEGMENT PUBLIC BYTE
 	EXTRN	arg:byte		; the arg structure!
 transpace   ends
 ;---------------
@@ -76,19 +74,19 @@ transpace   ends
 	EXTRN	cerror:near
 	EXTRN	error_output:near
 	EXTRN	notest2:near
-	EXTRN	slashp_erase:near	;AN000;
+	EXTRN	slashp_erase:near
 	EXTRN	std_printf:near
 	EXTRN	tcommand:near
 
-	PUBLIC	badpath_err		;AN022;
+	PUBLIC	badpath_err
 	PUBLIC	crename
 	PUBLIC	erase
-	PUBLIC	extend_setup		;AN022;
-	PUBLIC	Get_ext_error_number	;AN022;
-	PUBLIC	Get_file_code_page_tag	;AN000;
+	PUBLIC	extend_setup
+	PUBLIC	Get_ext_error_number
+	PUBLIC	Get_file_code_page_tag
 	PUBLIC	pause
-	PUBLIC	Set_ext_error_msg	;AN000;
-	PUBLIC	set_file_code_page	;AN000;
+	PUBLIC	Set_ext_error_msg
+	PUBLIC	set_file_code_page
 	PUBLIC	typefil
 	PUBLIC	volume
 
@@ -187,7 +185,7 @@ ERASE_NORM:
 	xor	cx,cx				;AN000; clear cx,dx
 
 erase_scan:
-	xor	dx,dx				;AN000;
+	xor	dx,dx
 	invoke	parse_with_msg			;AC018; call parser
 	cmp	ax,end_of_line			;AN000; are we at end of line?
 	jz	good_line			;AN000; yes - done parsing
@@ -221,7 +219,7 @@ set_erase_prompt:
 	invoke	setup_parse_error_msg		;AN018; set up an error message
 	jmp	short errj2			;AN018; exit
 
-ok_to_set_erase_prompt: 			;AN018;
+ok_to_set_erase_prompt:
 	inc	comsw				;AN000; indicate /p specified
 	jmp	short erase_scan		;AN000; continue parsing
 
@@ -245,12 +243,12 @@ notest2j:
 badpath_err:					;AN022; "Path not found" message
 	mov	ax,error_path_not_found 	;AN022; set up error number
 
-extend_setup:					;AN022;
+extend_setup:
 	mov	msg_disp_class,ext_msg_class	;AN022; set up extended error msg class
 	mov	dx,offset TranGroup:Extend_Buf_ptr ;AC022; get extended message pointer
 	mov	Extend_Buf_ptr,ax		;AN022; get message number in control block
 errj2:						;AC022; exit jump
-	jmp	Cerror				;AN022;
+	jmp	Cerror
 
 	break	Rename
 
@@ -303,7 +301,7 @@ CRENAME_NORM:
 	mov	si,81H				;AC000; Point to command line
 	mov	di,offset trangroup:parse_rename;AN000; Get adderss of PARSE_RENAME
 	xor	cx,cx				;AN000; clear cx,dx
-	xor	dx,dx				;AN000;
+	xor	dx,dx
 	invoke	parse_with_msg			;AC018; call parser
 	cmp	ax,result_no_error		;AC000; did we have an error?
 	jz	crename_no_parse_error		;AC000; no - continue
@@ -329,16 +327,16 @@ crename_no_parse_error:
 	push	si				;AN000; save position in line
 	lds	si,parse1_addr			;AC000; get address of path
 
-	mov	al,':'                          ;AC000;
+	mov	al,':'
 	cmp	[si+1],al			;AC000; Does the 2nd parm have a drive spec?
 	jnz	ren_no_drive			;AN000; Yes, error
 	mov	msg_disp_class,parse_msg_class	;AN000; set up parse error msg class
 	mov	dx,offset TranGroup:Extend_Buf_ptr  ;AC000; get extended message pointer
 	mov	Extend_Buf_ptr,BadParm_ptr	;AN000; get "Invalid parameter" message number
 
-	pop	si				;AN000;
-crename_parse_error:				;AC022;
-	jmp	short errj			;AC000;
+	pop	si
+crename_parse_error:
+	jmp	short errj
 
 ;
 ;  Get second file name returned from parse into the fCB.  Save
@@ -348,7 +346,7 @@ crename_parse_error:				;AC022;
 
 ren_no_drive:
 	mov	di,FCB+10H			;AC000; set up to parse second file name
-	mov	ax,(Parse_File_Descriptor SHL 8) OR 01H ;AC000;
+	mov	ax,(Parse_File_Descriptor SHL 8) OR 01H
 	int	int_command			;AC000; do the function
 	lodsb					;AC000; Load char after filename
 	mov	one_char_val,al 		;AN000; save char after filename
@@ -409,7 +407,7 @@ renameok:
 	jmp	extend_setup			;AN022; need long jump - use extended error
 
 use_renerr:
-	mov	dx,offset trangroup:RenErr_ptr	;AC022;
+	mov	dx,offset trangroup:RenErr_ptr
 
 ERRJ:
 	jmp	Cerror
@@ -464,7 +462,7 @@ TYPEFIL_NORM:
 	mov	si,81H
 	mov	di,offset trangroup:parse_mrdir ;AN000; Get adderss of PARSE_MRDIR
 	xor	cx,cx				;AN000; clear cx,dx
-	xor	dx,dx				;AN000;
+	xor	dx,dx
 	invoke	parse_with_msg			;AC018; call parser
 	cmp	ax,result_no_error		;AC000; did we have an error?
 	jnz	typefil_parse_error		;AN000; yes - issue error message
@@ -496,12 +494,12 @@ nowilds:
 	int	int_command
 	jnc	typecont			; If open worked, continue. Otherwise load
 
-Typerr: 					;AN022;
+Typerr:
 	push	cs				;AN022; make sure we have local segment
-	pop	ds				;AN022;
-	invoke	set_ext_error_msg		;AN022;
+	pop	ds
+	invoke	set_ext_error_msg
 
-Typerr2:					;AN022;
+Typerr2:
 	mov	string_ptr_2,offset trangroup:srcbuf ;AC022; get address of failed string
 	mov	Extend_buf_sub,one_subst	;AC022; put number of subst in control block
 	jmp	cerror				;AC022; exit
@@ -606,7 +604,7 @@ VOLUME_NORM:
 	mov	si,81H
 	mov	di,offset trangroup:parse_vol	;AN000; Get adderss of PARSE_VOL
 	xor	cx,cx				;AN000; clear cx,dx
-	xor	dx,dx				;AN000;
+	xor	dx,dx
 	invoke	parse_with_msg			;AC018; call parser
 	cmp	ax,end_of_line			;AC000; are we at end of line?
 	jz	OkVolArg			;AC000; Yes, display default volume ID
@@ -617,7 +615,7 @@ VOLUME_NORM:
 ;
 
 	mov	di,offset trangroup:parse_vol	;AC000; get address of parse_vol
-	xor	dx,dx				;AC000;
+	xor	dx,dx
 	invoke	parse_check_eol 		;AC000; call parser
 	jz	OkVolArg			;AC000; yes, end of road
 ;
@@ -736,11 +734,11 @@ printvol_end:
 ;*
 ;****************************************************************
 
-Set_file_code_page proc near			;AN000;
+Set_file_code_page proc near
 
 	push	bx				;AN000; save registers
-	push	di				;AN000;
-	push	dx				;AN000;
+	push	di
+	push	dx
 
 	cmp	cpyflag,1			;AN000; were we called from COPY?
 	jz	Already_have_cp 		;AN000; yes - already have code page
@@ -751,7 +749,7 @@ already_have_cp:				;AN000; See what was returned.
 	mov	ax,(file_times SHL 8)+set_XA	;AC030; set code page
 	mov	di,offset trangroup:xa_cp_out	;AC030; offset of attr list
 	mov	bx,cx				;AN000; get handle of output device
-	int	int_command			;AN000;
+	int	int_command
 	jnc	set_file_cp_end 		;AN000; all okay - return
 cp_set_error:
 	pop	dx				;AC030; we don't restore DX for error -
@@ -762,12 +760,12 @@ set_file_cp_end:				;AN000; finished
 	pop	dx				;AN000; restore registers
 
 set_file_cp_exit:
-	pop	di				;AN000;
-	pop	bx				;AN000;
+	pop	di
+	pop	bx
 
 	ret					;AN000; return
 
-Set_file_code_page endp 			;AN000;
+Set_file_code_page endp
 
 
 ;****************************************************************
@@ -786,24 +784,24 @@ Set_file_code_page endp 			;AN000;
 ;****************************************************************
 
 
-Get_file_code_page_tag proc near		;AN000;
+Get_file_code_page_tag proc near
 
-	push	cx				;AN030;
-	push	si				;AN030;
-	push	di				;AN030;
+	push	cx
+	push	si
+	push	di
 	mov	xa_list_attr,0			;AN030; initialize code page
 	mov	ax,(file_times SHL 8)+get_XA	;AC030; get extended attributes
 	mov	si,offset trangroup:xa_cp	;AN030; get xa request buffer
 	mov	di,offset trangroup:xa_cp_out	;AC030; get xa output buffer
 	mov	cx,xa_cp_length 		;AN030; length of buffer
-	int	int_command			;AN000;
-	pop	di				;AN030;
-	pop	si				;AN030;
-	pop	cx				;AN030;
+	int	int_command
+	pop	di
+	pop	si
+	pop	cx
 
 	ret					;AN000; return
 
-Get_file_code_page_tag endp			;AN000;
+Get_file_code_page_tag endp
 
 
 ;****************************************************************
@@ -819,7 +817,7 @@ Get_file_code_page_tag endp			;AN000;
 ;*
 ;****************************************************************
 
-Set_ext_error_msg proc near			;AN000;
+Set_ext_error_msg proc near
 
 	call	get_ext_error_number		;AC022; get the extended error
 	mov	msg_disp_class,ext_msg_class	;AN000; set up extended error msg class
@@ -829,7 +827,7 @@ Set_ext_error_msg proc near			;AN000;
 
 	ret					;AN000; return
 
-Set_ext_error_msg endp				;AN000;
+Set_ext_error_msg endp
 
 ;****************************************************************
 ;*
@@ -843,17 +841,17 @@ Set_ext_error_msg endp				;AN000;
 ;*
 ;****************************************************************
 
-Get_ext_error_number proc near			;AN022;
+Get_ext_error_number proc near
 
 	SaveReg <BX,CX,DX,SI,DI,BP,ES,DS>	;AN022; save registers
 	mov	ah,GetExtendedError		;AN022; get extended error
 	xor	bx,bx				;AN022; clear BX
-	int	int_command			;AN022;
+	int	int_command
 	RestoreReg  <DS,ES,BP,DI,SI,DX,CX,BX>	;AN022; restore registers
 
 	ret					;AN022; return
 
-Get_ext_error_number endp			;AN022;
+Get_ext_error_number endp
 
 trancode    ends
 	    end

@@ -1,6 +1,4 @@
  page 80,132
-;	SCCSID = @(#)tenv.asm	4.2 85/08/16
-;	SCCSID = @(#)tenv.asm	4.2 85/08/16
 TITLE	Part6 COMMAND Transient routines.
 
 ;	Environment utilities and misc. routines
@@ -12,21 +10,21 @@ TITLE	Part6 COMMAND Transient routines.
 	INCLUDE DOSSYM.INC
 	INCLUDE comseg.asm
 	INCLUDE comequ.asm
-	INCLUDE DOSCNTRY.INC		;AN000;
+	INCLUDE DOSCNTRY.INC
 .list
 .cref
 
 
-DATARES 	SEGMENT PUBLIC BYTE	;AC000;
+DATARES 	SEGMENT PUBLIC BYTE
 	EXTRN	comdrv:byte
 	EXTRN	comspec_end:word
-	EXTRN	dbcs_vector_addr:dword	;AN000;
+	EXTRN	dbcs_vector_addr:dword
 	EXTRN	ENVIRSEG:WORD
-	EXTRN	fucase_addr:word	;AC000;
+	EXTRN	fucase_addr:word
 	EXTRN	RESTDIR:BYTE
 DATARES ENDS
 
-TRANDATA	SEGMENT PUBLIC BYTE	;AC000;
+TRANDATA	SEGMENT PUBLIC BYTE
 	EXTRN	arg_buf_ptr:word
 	EXTRN	comspec:byte
 	EXTRN	comspec_flag:byte
@@ -37,7 +35,7 @@ TRANDATA	SEGMENT PUBLIC BYTE	;AC000;
 	EXTRN	SYNTMES_PTR:WORD
 TRANDATA	ENDS
 
-TRANSPACE	SEGMENT PUBLIC BYTE	;AC000;
+TRANSPACE	SEGMENT PUBLIC BYTE
 	EXTRN	Arg_Buf:BYTE
 	EXTRN	RESSEG:WORD
 	EXTRN	USERDIR1:BYTE
@@ -508,7 +506,7 @@ TESTKANJ:
 	push	si				;AN000;  3/3/KK
 	push	ax				;AN000;  3/3/KK
 	mov	ds,cs:[SHELL_DATA_SELECTOR]			;AN000;  Get resident segment
-	assume	ds:resgroup			;AN000;
+	assume	ds:resgroup
 	lds	si,dbcs_vector_addr		;AN000;  get DBCS vector
 ktlop:						;AN000;  3/3/KK
 	cmp	word ptr ds:[si],0		;AN000;  end of Table	3/3/KK
@@ -552,36 +550,36 @@ ktret:						;AN000;  3/3/KK
 ; *
 ; ****************************************************************
 
-assume	ds:trangroup				;AN000;
+assume	ds:trangroup
 
-upconv	proc	near				;AN000;
+upconv	proc	near
 
 	cmp	al,80h				;AN000;  see if char is > ascii 128
 	jb	oth_fucase			;AN000;  no - upper case math
 	sub	al,80h				;AN000;  only upper 128 chars in table
-	push	ds				;AN000;
-	push	bx				;AN000;
+	push	ds
+	push	bx
 	mov	ds,[SHELL_DATA_SELECTOR]			;AN000;  get resident data segment
-assume	ds:resgroup				;AN000;
+assume	ds:resgroup
 	lds	bx,dword ptr fucase_addr+1	;AN000;  get table address
 	add	bx,2				;AN000;  skip over first word
 	xlat	ds:byte ptr [bx]		;AN000;  convert to upper case
-	pop	bx				;AN000;
-	pop	ds				;AN000;
-assume	ds:trangroup				;AN000;
+	pop	bx
+	pop	ds
+assume	ds:trangroup
 	jmp	short upconv_end		;AN000;  we finished - exit
 
-oth_fucase:					;AN000;
+oth_fucase:
 	cmp	al,small_a			;AC000; if between "a" and "z",
 	jb	upconv_end			;AC000;     subtract 20h to get
 	cmp	al,small_z			;AC000;    upper case equivalent.
-	ja	upconv_end			;AC000;
+	ja	upconv_end
 	sub	al,20h				;AC000; Change lower-case to upper
 
-upconv_end:					;AN000;
+upconv_end:
 	ret
 
-upconv	endp					;AN000;
+upconv	endp
 
 
 ;
@@ -590,14 +588,14 @@ upconv	endp					;AN000;
 STORE_CHAR:
 	PUSH	CX
 	PUSH	BX
-	PUSH	ES				;AN056;
+	PUSH	ES
 	PUSH	DS				;AN056; Save local DS
 	MOV	DS,[SHELL_DATA_SELECTOR]			;AN056; Get resident segment
-	ASSUME	DS:RESGROUP			;AN056;
+	ASSUME	DS:RESGROUP
 	MOV	ES,[ENVIRSEG]			;AN056; Get environment segment
-	ASSUME	ES:NOTHING			;AN056;
+	ASSUME	ES:NOTHING
 	POP	DS				;AN056; Get local segment back
-	ASSUME	DS:TRANGROUP			;AN056;
+	ASSUME	DS:TRANGROUP
 	CALL	GETENVSIZ
 	MOV	BX,CX
 	SUB	BX,2				; SAVE ROOM FOR DOUBLE NULL
@@ -613,7 +611,7 @@ STORE_CHAR:
 
 	CMP	BX, 8000H			; Don't let environment grow > 32K
 	JB	ENVSIZ_OK
-BAD_ENV_SIZE:					;AN056;
+BAD_ENV_SIZE:
 	STC
 	JMP	ENVNOSET
 ENVSIZ_OK:
@@ -639,7 +637,7 @@ ENVNOSET:
 	POP	CX
 	POP	AX
 	JNC	STORE1
-	POP	ES				;AN056;
+	POP	ES
 	push	cs			; Restore ES=TRANGROUP before error
 	pop	es			; path — CERROR/TCOMMAND need ES=TRANGROUP
 	MOV	DX,OFFSET TRANGROUP:ENVERR_ptr
@@ -647,7 +645,7 @@ ENVNOSET:
 STORE1:
 	STOSB
 	MOV	WORD PTR ES:[DI],0		; NULL IS AT END
-	POP	ES				;AN056;
+	POP	ES
 	POP	BX
 	POP	CX
 	return

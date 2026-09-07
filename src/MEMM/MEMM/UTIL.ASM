@@ -11,34 +11,8 @@ page	58,132
 ;
 ;   Module:   UTIL - utilities
 ;
-;   Version:  0.04
-;
-;   Date:     June 11, 1986
-;
-;   Author:
-;
 ;******************************************************************************
 ;
-;   Change log:
-;
-;     DATE    REVISION			DESCRIPTION
-;   --------  --------	-------------------------------------------------------
-;   06/11/86  Original	from i286.asm
-;   06/18/86  0.01	in GoVirtual - added code to init VDM state variables
-;   06/25/86  0.02	in GoVirtual - more DiagByte state variable.
-;   06/28/86  0.02	Name change from MEMM386 to MEMM
-;   06/29/86  0.02	Changed check code for ROM write protect state
-;   07/01/86  0.03	Added call to InitDMA in GoVirtual
-;   07/05/86  0.04	Moved code to InitLOCK
-;   07/05/86  0.04	Added FarGoVirtual and moved IsReal to PRINT.ASM
-;   07/06/86  0.04	Changed assume to DGROUP and moved stack out of DGROUP
-;
-;******************************************************************************
-;
-;   Functional Description:
-;
-;
-;******************************************************************************
 .lfcond 				; list false conditionals
 .386p
 

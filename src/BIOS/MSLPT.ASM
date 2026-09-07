@@ -3,13 +3,6 @@
 	%OUT	...MSLPT.ASM
 
 ;==============================================================================
-;REVISION HISTORY:
-;AN000 - New for DOS Version 4.00 - J.K.
-;AC000 - Changed for DOS Version 4.00 - J.K.
-;AN00x - PTM number for DOS Version 4.00 - J.K.
-;==============================================================================
-;AN001 - P156 KBMLPT device driver's retry logic.                  8/18/87 J.K.
-;==============================================================================
 	itest=0
 	INCLUDE CHARSEG.INC	;normal or shared high character owner
 	INCLUDE MSEQU.INC

@@ -1,19 +1,9 @@
-;	SCCSID = @(#)dup.asm	1.1 85/04/10
-;	SCCSID = @(#)dup.asm	1.1 85/04/10
 TITLE	DOS_DUP - Internal SFT DUP (for network SFTs)
 NAME	DOS_DUP
 ; Low level DUP routine for use by EXEC when creating a new process. Exports
 ;   the DUP to the server machine and increments the SFT ref count
 ;
 ; DOS_DUP
-;
-;   Modification history:
-;
-;	Created: ARR 30 March 1983
-;
-
-;
-; get the appropriate segment definitions
 ;
 .xlist
 include dosseg.asm

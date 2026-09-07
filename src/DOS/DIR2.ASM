@@ -1,5 +1,3 @@
-;	SCCSID = @(#)dir2.asm	1.2 85/07/23
-;	SCCSID = @(#)dir2.asm	1.2 85/07/23
 TITLE	DIR2 - Directory and path cracking
 NAME	Dir2
 ; Main Path cracking routines, low level search routines and device
@@ -16,14 +14,6 @@ NAME	Dir2
 ;   Build_device_ent
 ;   Validate_CDS
 ;   CheckThisDevice
-;
-;   Revision history:
-;
-;	A000  version 4.00  Jan. 1988
-;	A001  PTM 3564 -- search using fastopen
-
-;
-; get the appropriate segment definitions
 ;
 .xlist
 include dosseg.asm
@@ -314,7 +304,7 @@ Procedure   ChkDev,NEAR
 	MOV	CX,9
 TESTLOOP:
 	invoke	GETLET
- IF  DBCS				;AN000;
+ IF  DBCS
 	invoke	Testkanj		;AN000;; 2/13/KK
 	jz	Notkanja		;AN000;; 2/13/KK
 	stosb				;AN000;; Skip second byte   2/13/KK
@@ -322,8 +312,8 @@ TESTLOOP:
 	jcxz	notdev			;AN000;; 2/13/KK
 	lodsb				;AN000;; 2/13/KK
 	jmp	short stowit		;AN000;; 2/13/KK
-Notkanja:				;AN000;
- ENDIF					;AN000;
+Notkanja:
+ ENDIF
 	CMP	AL,'.'
 	JZ	TESTDEVICE
 	invoke	PATHCHRCMP
@@ -472,7 +462,7 @@ NOIDS:
 	STOSW
 	MOV	DI,OFFSET DOSGroup:Name1
 	XOR	AH,AH			; bits for CL
- IF  DBCS				;AN000;
+ IF  DBCS
 ;-------------------------- Start of DBC;AN000;S 2/13/KK
 	XOR	CL,CL			;AN000;; clear count for volume id
 	LODSB				;AN000;;IBMJ fix 9/04/86
@@ -489,7 +479,7 @@ NOIDS:
 GetNam:
 	INC	CL			;AN000; KK incrment volid count
 	LODSB
- IF  DBCS				;AN000;
+ IF  DBCS
 GetNam2:				;AN000;; 2/13/KK
 	invoke	Testkanj		;AN000;; 2/13/KK
 	jz	Notkanjb		;AN000;; 2/13/KK
@@ -504,10 +494,10 @@ GetNam3:				;AN000;; 2/13/KK
 	CMP	AL,'.'                  ;AN000;; 2/13/KK
 	JNZ	notvol			;AN000;; 2/13/KK
 	LODSB				;AN000;; 2/13/KK
-notvol: 				;AN000;
+notvol:
 	jmp	short StoNam		;AN000;; 2/13/KK
 Notkanjb:				;AN000;; 2/13/KK
- ENDIF					;AN000;
+ ENDIF
 	CMP	AL,'.'
 	JZ	setExt
 	OR	AL,AL
@@ -523,14 +513,14 @@ SetExt:
 	MOV	DI,OFFSET DOSGroup:Name1+8
 GetExt:
 	LODSB
- IF  DBCS				;AN000;
+ IF  DBCS
 	invoke	TestKanj		;AN000;; 2/13/KK
 	jz	Notkanjc		;AN000;; 2/13/KK
 	STOSB				;AN000;; 2/13/KK
 	LODSB				;AN000;; 2/13/KK
 	jmp	short StoExt		;AN000;; 2/13/KK
 Notkanjc:				;AN000;; 2/13/KK
- ENDIF					;AN000;
+ ENDIF
 	OR	AL,AL
 	JZ	GetDone
 	CMP	AL,'\'
@@ -1075,15 +1065,15 @@ PathSkip:
 	LODSB
 	OR	AL,AL
 	JZ	FoundEnd
- IF  DBCS			;AN000;
+ IF  DBCS
 	invoke	Testkanj	;AN000;; 2/13/KK
 	jz	Notkanje	;AN000;; 2/13/KK
 	lodsb			;AN000;; 2/13/KK
 	or	al,al		;AN000;; Skip second byte 2/13/KK  removed
 	jz	FoundEnd	;AN000;; 2/13/KK		   removed
 	jmp	Short Pathskip	;AN000;; Ignore missing second byte for now.
-NotKanje:			;AN000;
-  ENDIF 			;AN000;
+NotKanje:
+  ENDIF
 ;kanji load of next char too	  2/13/KK
 IF Kanji
  kanji load of next char too

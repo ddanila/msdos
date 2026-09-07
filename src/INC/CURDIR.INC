@@ -1,5 +1,3 @@
-;	SCCSID = @(#)curdir.asm 1.1 85/04/10
-;	SCCSID = @(#)curdir.asm 1.1 85/04/10
 BREAK <Current directory list structure>
 ;----+----+----+----+----+----+----+----+----+----+----+----+----+----+----;
 ;	     C	A  V  E  A  T	  P  R	O  G  R  A  M  M  E  R		   ;

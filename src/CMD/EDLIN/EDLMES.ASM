@@ -38,19 +38,10 @@
 ; NOTES: THIS MODULE IS TO BE PREPPED BY SALUT WITH THE "PR" OPTIONS
 ;	 LINK EDLIN+EDLCMD1+EDLCMD2+EDLMES+EDLPARSE
 ;
-; REVISION HISTORY:
-;
-;	AN000	VERSION DOS 4.00 - IMPLEMENTATION OF MESSAGE RETRIEVER
-;
 ; COPYRIGHT: "MS DOS EDLIN UTILITY"
 ;	     "VERSION 4.00 (C) COPYRIGHT 1988 Microsoft"
 ;	     "LICENSED MATERIAL - PROPERTY OF Microsoft  "
 ;
-; MICROSOFT REVISION HISTORY
-;
-;	 MODIFIED BY: AARON R
-;		      M.A. U
-;		      N. P
 ;======================= END OF SPECIFICATIONS ===========================
 
 .xlist
@@ -102,11 +93,11 @@ message_table	ends				;an000;end struc
 
 disp_message	macro	tbl			;an000;display message macro
 
-	push	bx				;an000;
-	push	cx				;an000;
-	push	dx				;an000;
-	push	di				;an000;
-	push	si				;an000;
+	push	bx
+	push	cx
+	push	dx
+	push	di
+	push	si
 
 	push	tbl				;an000;exchange tbl with si
 	pop	si				;an000;exchanged
@@ -122,10 +113,10 @@ disp_message	macro	tbl			;an000;display message macro
 	call	sysdispmsg			;an000;display the message
 
 	pop	si				;an000;restore affected regs
-	pop	di				;an000;
-	pop	dx				;an000;
-	pop	cx				;an000;
-	pop	bx				;an000;
+	pop	di
+	pop	dx
+	pop	cx
+	pop	bx
 
 endm						;an000;end macro disp_message
 
@@ -151,14 +142,14 @@ DATA	ENDS
 DG	GROUP	CODE,CONST,cstack,DATA
 
 code	segment public	byte			;an000;code segment
-	assume cs:dg,ds:dg,es:dg,ss:CStack	;an000;
+	assume cs:dg,ds:dg,es:dg,ss:CStack
 
 	public	printf				;an000;share printf
 	public	disp_fatal			;an000;fatal error display
 	public	pre_load_message		;an000;message loader
 
 .xlist
-msg_services <MSGDATA>				;an000;
+msg_services <MSGDATA>
 .list
 
 ;======================= sysmsg.inc invocation ===========================
@@ -184,7 +175,7 @@ msg_services <MSGDATA>				;an000;
  msg_services <DISPLAYmsg,CHARmsg,NUMmsg,INPUTmsg>  ;an000;display messages
  msg_services <EDLIN.CLA,EDLIN.CLB,EDLIN.CLC>	;an000;message types
  msg_services <EDLIN.CL1,EDLIN.CL2>		;an000;message types
- msg_services <EDLIN.CTL>			;an000;
+ msg_services <EDLIN.CTL>
 
 .list
 
@@ -207,7 +198,7 @@ printf	proc	near				;an000;printf procedure
 ;	$if	c				;an000;if an error occurred
 	JNC $$IF1
 		call	disp_fatal		;an000;display the fatal error
-;	$endif					;an000;
+;	$endif
 $$IF1:
 
 	ret					;an000;return to caller
@@ -255,7 +246,7 @@ PRE_LOAD_MESSAGE	proc	near		;an000;pre-load messages
 		pushf				;an000;save flags
 		call	SYSDISPMSG		;an000;let him say why
 		popf				;an000;restore flags
-;	$endif					;an000;
+;	$endif
 $$IF3:
 
 	ret					;an000;return to caller
@@ -271,10 +262,10 @@ code	ends					;an000;end code segment
 
 CONST	SEGMENT PUBLIC BYTE
 
-	extrn	arg_buf:byte			;an000;
-	extrn	line_num:byte			;an000;
-	extrn	line_flag:byte			;an000;
-	extrn	Temp_Path:byte			;an000;
+	extrn	arg_buf:byte
+	extrn	line_num:byte
+	extrn	line_flag:byte
+	extrn	Temp_Path:byte
 
 	public	baddrv_ptr,bad_vers_err,opt_err_ptr,nobak_ptr
 	public	too_many_ptr,dskful_ptr,memful_ptr,badcom_ptr
@@ -287,7 +278,7 @@ CONST	SEGMENT PUBLIC BYTE
 	public	arg_buf_ptr			;an000;DMS:6/15/87
 	public	cont_ptr			;an000;DMS:6/18/87
 	public	cp_err_ptr			;an000;DMS:6/22/87
-	public	Del_Bak_Ptr			;an000;dms;
+	public	Del_Bak_Ptr
 
 	yes_byte	db	"y"
 

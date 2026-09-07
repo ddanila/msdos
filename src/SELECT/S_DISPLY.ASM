@@ -11,33 +11,33 @@
 ; be used.
 ;
 ;********************************************************************************
-.ALPHA						 ;AN000;
-.XLIST						 ;AN000;
-INCLUDE  STRUC.INC				 ;AN000;
-.LIST						 ;AN000;
+.ALPHA
+.XLIST
+INCLUDE  STRUC.INC
+.LIST
 
-DATA	 SEGMENT   BYTE PUBLIC 'DATA'            ;AN000;
+DATA	 SEGMENT   BYTE PUBLIC 'DATA'
 
 
 ; Buffer for IOCTL calls
-BUFFER	 LABEL	   BYTE 			 ;AN000;
+BUFFER	 LABEL	   BYTE
 	      DB	0			 ;AN000; INFO LEVEL
 	      DB	0			 ;AN000; RESERVED
 	      DW	14			 ;AN000; SIZE
-FLAGS	      DW	0			 ;AN000;
+FLAGS	      DW	0
 D_MODE	      DB	0			 ;AN000; 1 = TEXT, 2 = APA
 	      DB	0			 ;AN000; RESERVED
-COLORS	      DW	0			 ;AN000;
+COLORS	      DW	0
 B_WIDTH       DW	0			 ;AN000; PELS ==> -1 FOR TEXT
 B_LENGTH      DW	0			 ;AN000; PELS ==> -1 FOR TEXT
-COLS	      DW	0			 ;AN000;
-ROWS	      DW	0			 ;AN000;
+COLS	      DW	0
+ROWS	      DW	0
 
-DATA	 ENDS					 ;AN000;
+DATA	 ENDS
 
-CODE_FAR SEGMENT BYTE PUBLIC 'CODE'              ;AN000;
+CODE_FAR SEGMENT BYTE PUBLIC 'CODE'
 
-    ASSUME    CS:CODE_FAR, DS:DATA		 ;AN000;
+    ASSUME    CS:CODE_FAR, DS:DATA
 
 ;********************************************************************************
 ; SET_DISPLAY_MODE_ROUTINE: Set the display mode to 80X25 text mode.
@@ -53,8 +53,8 @@ CODE_FAR SEGMENT BYTE PUBLIC 'CODE'              ;AN000;
 ;    otherwise BIOS calls are used.
 ;
 ;********************************************************************************
-PUBLIC	 SET_DISPLAY_MODE_ROUTINE		 ;AN000;
-SET_DISPLAY_MODE_ROUTINE     PROC FAR		 ;AN000;
+PUBLIC	 SET_DISPLAY_MODE_ROUTINE
+SET_DISPLAY_MODE_ROUTINE     PROC FAR
 
     ;**********************************************************************
     ; See if ANSI.SYS is loaded
@@ -69,17 +69,17 @@ SET_DISPLAY_MODE_ROUTINE     PROC FAR		 ;AN000;
 	     MOV  AX, 07H			 ;AN000; Set monochrome mode
 	.ELSE					 ;AN000; Otherwise...
 	     MOV  AX, 03H			 ;AN000; Set mode 3: 80 column, color enabled
-	.ENDIF					 ;AN000;
+	.ENDIF
 	INT  10H				 ;AN000; Set the mode
-    .ELSE					 ;AN000;
+    .ELSE
 	 MOV  AX, 440CH 			 ;AN000; Get the info from ANSI.
-	 MOV  BX, 0				 ;AN000;
-	 MOV  CX, 037FH 			 ;AN000;
-	 MOV  DX, OFFSET BUFFER 		 ;AN000;
-	 INT  21H				 ;AN000;
+	 MOV  BX, 0
+	 MOV  CX, 037FH
+	 MOV  DX, OFFSET BUFFER
+	 INT  21H
 	 .IF < C >				 ;AN000; Was there an error?
 	      JMP  ERROR_SETTING		 ;AN000; Yes! Exit the subroutine.
-	 .ENDIF 				 ;AN000;
+	 .ENDIF
 	 MOV  D_MODE, 1 			 ;AN000; Set to text mode
 	 MOV  B_WIDTH, -1			 ;AN000; -1 for text mode
 	 MOV  B_LENGTH, -1			 ;AN000; -1 for text mode
@@ -87,26 +87,26 @@ SET_DISPLAY_MODE_ROUTINE     PROC FAR		 ;AN000;
 	 MOV  ROWS, 25				 ;AN000; Number of rows
 	 .IF < COLORS NE 0 >			 ;AN000; If colors = 0, monochrome
 	      MOV  COLORS, 16			 ;AN000; Otherwise set 16 color mode
-	 .ENDIF 				 ;AN000;
+	 .ENDIF
 	 MOV  AX, 440CH 			 ;AN000; Set the new mode
-	 MOV  BX, 0				 ;AN000;
-	 MOV  CX, 035FH 			 ;AN000;
-	 MOV  DX, OFFSET BUFFER 		 ;AN000;
-	 INT  21H				 ;AN000;
+	 MOV  BX, 0
+	 MOV  CX, 035FH
+	 MOV  DX, OFFSET BUFFER
+	 INT  21H
 	 .IF < C >				 ;AN000; Was there en error?
 	      JMP  ERROR_SETTING		 ;AN000; Yes! Exit the subroutine
-	 .ENDIF 				 ;AN000;
+	 .ENDIF
 	 CLC					 ;AN000; Indicate there were no errors
-    .ENDIF					 ;AN000;
-    JMP  EXIT_SET				 ;AN000;
-ERROR_SETTING:					 ;AN000;
+    .ENDIF
+    JMP  EXIT_SET
+ERROR_SETTING:
     STC 					 ;AN000; Indicate that there were errors
-EXIT_SET:					 ;AN000;
-    RET 					 ;AN000;
+EXIT_SET:
+    RET
 
-SET_DISPLAY_MODE_ROUTINE     ENDP		 ;AN000;
+SET_DISPLAY_MODE_ROUTINE     ENDP
 
 
-CODE_FAR ENDS					 ;AN000;
+CODE_FAR ENDS
 
-END						 ;AN000;
+END

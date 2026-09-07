@@ -1,6 +1,4 @@
  page 80,132
-;	SCCSID = @(#)tfor.asm	4.1 85/09/17
-;	SCCSID = @(#)tfor.asm	4.1 85/09/17
 TITLE	Part3 COMMAND Transient Routines
 
 ;     For loop processing routines
@@ -17,7 +15,7 @@ TITLE	Part3 COMMAND Transient Routines
 .cref
 
 
-DATARES 	SEGMENT PUBLIC BYTE	;AC000;
+DATARES 	SEGMENT PUBLIC BYTE
 	EXTRN	BATCH:WORD
 	EXTRN	ECHOFLAG:BYTE
 	EXTRN	FORFLAG:BYTE
@@ -28,14 +26,14 @@ DATARES 	SEGMENT PUBLIC BYTE	;AC000;
 	EXTRN	SINGLECOM:WORD
 DATARES ENDS
 
-TRANDATA	SEGMENT PUBLIC BYTE	;AC000;
-	EXTRN	Extend_buf_ptr:word	;AN000;
+TRANDATA	SEGMENT PUBLIC BYTE
+	EXTRN	Extend_buf_ptr:word
 	extrn	fornestmes_ptr:word
-	EXTRN	msg_disp_class:byte	;AN000;
+	EXTRN	msg_disp_class:byte
 	extrn	string_buf_ptr:word
 TRANDATA	ENDS
 
-TRANSPACE	SEGMENT PUBLIC BYTE	;AC000;
+TRANSPACE	SEGMENT PUBLIC BYTE
 	extrn	arg:byte		; the arg structure!
 	EXTRN	COMBUF:BYTE
 	EXTRN	RESSEG:WORD
@@ -63,8 +61,8 @@ ASSUME	DS:RESGROUP,ES:TRANGROUP
 FORTERM:
 	push	cs				;AN037; Get local segment into
 	pop	ds				;AN037;    DS, ES
-	push	cs				;AN037;
-	pop	es				;AN037;
+	push	cs
+	pop	es
 	call	ForOff
 	mov	ds,SHELL_DATA_SELECTOR
 ASSUME	DS:RESGROUP

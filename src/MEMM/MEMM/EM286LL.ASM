@@ -11,27 +11,8 @@ page	58,132
 ;
 ;   Module:   EMM286LL - 286 loadall emulation routine
 ;
-;   Version:  0.04
-;
-;   Date:     April 11,1986
-;
-;   Author:
-;
 ;******************************************************************************
 ;
-;   Change log:
-;
-;     DATE    REVISION			DESCRIPTION
-;   --------  --------	-------------------------------------------------------
-;   04/16/86  Original
-;   05/12/86  A	Cleanup and segment reorganization
-;   06/18/86  0.01	Moved EL_Off before buffer
-;   06/28/86  0.02	Name change from MEMM386 to MEMM
-;   06/28/86  0.02	Modified CR0 logic & Edi for LL3 buffer
-;   07/03/86  0.03	Removed logic for enabling A20 watch
-;   07/06/86  0.04	Change assume to DGROUP
-;
-;******************************************************************************
 ;
 ;   Functional Description:
 ;

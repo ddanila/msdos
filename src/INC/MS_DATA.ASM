@@ -1,4 +1,3 @@
-;       SCCSID = @(#)msdata.asm 1.8 85/09/12
         AsmVars <Kanji, Debug, Redirector, ShareF>
  
 Break <Uninitialized data overlayed by initialization code>
@@ -109,25 +108,25 @@ DEVFCB  LABEL   BYTE                    ; Uses NAME1, NAME2, combined
         I_am    restore_tmp,WORD        ; return address for restore world
         I_am    NSS,WORD
         I_am    NSP,WORD
-        I_am    EXTOPEN_FLAG,WORD,<0>   ;FT. extended open input flag           ;AN000;
-        I_am    EXTOPEN_ON,BYTE,<0>     ;FT. extended open conditional flag     ;AN000;
-        I_am    EXTOPEN_IO_MODE,WORD,<0>;FT. extende open io mode               ;AN000;
-        I_am    SAVE_DI,WORD            ;FT. extende open saved DI              ;AN000;
-        I_am    SAVE_ES,WORD            ;FT. extende open saved ES              ;AN000;
-        I_am    SAVE_DX,WORD            ;FT. extende open saved DX              ;AN000;
-        I_am    SAVE_CX,WORD            ;FT. extende open saved CX              ;AN000;
-        I_am    SAVE_BX,WORD            ;FT. extende open saved BX              ;AN000;
-        I_am    SAVE_SI,WORD            ;FT. extende open saved SI              ;AN000;
-        I_am    SAVE_DS,WORD            ;FT. extende open saved DS              ;AN000;
-        I_am    HIGH_SECTOR,WORD,<0>    ;>32mb higher sector #                  ;AN000;
-        I_am    HIGH_SECTOR_TEMP,WORD,<0>;>32mb high sector #                   ;AN000;
-        I_am    DISK_FULL,BYTE          ;>32mb indicating disk full when 1      ;AN000;
-        I_am    TEMP_VAR,WORD           ; temporary variable for everyone       ;AN000;
-        I_am    TEMP_VAR2,WORD          ; temporary variable 2 for everyone     ;AN000;
-        I_am    DrvErr,BYTE             ; used to save drive error              ;AN000;
-        I_am    DOS34_FLAG,WORD,<0>     ; common flag for DOS 3.4               ;AN000;
-        I_am    NO_FILTER_PATH,DWORD    ; pointer to orignal path               ;AN000;
-        I_am    NO_FILTER_DPATH,DWORD   ; pointer to orignal path of destination;AN000;
+        I_am    EXTOPEN_FLAG,WORD,<0>   ;FT. extended open input flag
+        I_am    EXTOPEN_ON,BYTE,<0>     ;FT. extended open conditional flag
+        I_am    EXTOPEN_IO_MODE,WORD,<0>;FT. extende open io mode
+        I_am    SAVE_DI,WORD            ;FT. extende open saved DI
+        I_am    SAVE_ES,WORD            ;FT. extende open saved ES
+        I_am    SAVE_DX,WORD            ;FT. extende open saved DX
+        I_am    SAVE_CX,WORD            ;FT. extende open saved CX
+        I_am    SAVE_BX,WORD            ;FT. extende open saved BX
+        I_am    SAVE_SI,WORD            ;FT. extende open saved SI
+        I_am    SAVE_DS,WORD            ;FT. extende open saved DS
+        I_am    HIGH_SECTOR,WORD,<0>    ;>32mb higher sector #
+        I_am    HIGH_SECTOR_TEMP,WORD,<0>;>32mb high sector #
+        I_am    DISK_FULL,BYTE          ;>32mb indicating disk full when 1
+        I_am    TEMP_VAR,WORD           ; temporary variable for everyone
+        I_am    TEMP_VAR2,WORD          ; temporary variable 2 for everyone
+        I_am    DrvErr,BYTE             ; used to save drive error
+        I_am    DOS34_FLAG,WORD,<0>     ; common flag for DOS 3.4
+        I_am    NO_FILTER_PATH,DWORD    ; pointer to orignal path
+        I_am    NO_FILTER_DPATH,DWORD   ; pointer to orignal path of destination
         I_am   Callback_SS,WORD         ;AN000; call back SS for system call
         I_am   Callback_SP,WORD         ;AN000; call back SP for system call
         I_am   Callback_flag,BYTE,<0>   ;AN000; call back flag
@@ -173,7 +172,7 @@ IBMPATCH    label byte
       I_am     FSeek_firclus,WORD       ;AN000; fastseek first cluster #
       I_am     FSeek_logclus,WORD       ;AN000; fastseek logical cluster #
       I_am     FSeek_logsave,WORD       ;AN000; fastseek returned log clus #
-      I_am     ACT_PAGE,WORD,<-1>       ;;;;;;; ;BL ; active EMS page                       ;AN000;
+      I_am     ACT_PAGE,WORD,<-1>       ;;;;;;; ;BL ; active EMS page
  
  
 SWAP_END    LABEL   BYTE

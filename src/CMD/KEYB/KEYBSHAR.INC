@@ -16,12 +16,6 @@
 ;;       Data Area is allocated in the KEYBI2F file and will be
 ;;       resident following initial installation.
 ;;
-;; Change History:
-;; ---------------
-;;
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                                       ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; SHARED_DATA_STR defines the initial fixed length portion of the
 ;; Shared Data Area.
@@ -73,7 +67,7 @@ TIMING_FACTOR       DW    1            ;; Scale factor for INT 9 timing loops
                                        ;; Table copy begins here:
 ACTIVE_LANGUAGE     DB    'US'         ;; language code
 INVOKED_CP_TABLE    DW    437          ;; ptr to table for invoked code page
-INVOKED_KBD_ID      DW    0            ;; WGR invoked keyboard id.             ;AN000
+INVOKED_KBD_ID      DW    0            ;; WGR invoked keyboard id.
 ACTIVE_XLAT_PTR     DW    -1           ;; ptr to active Specific Translate Sect
 FIRST_XLAT_PTR      DW    -1           ;; ptr to first Specific Translate Sect
 RESIDENT_END        DW    0ffffh       ;; offset of last byte in resident mem

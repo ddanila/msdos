@@ -109,7 +109,7 @@ RHC	STRUC				;fields common to all request types
 RHC_CMD DB	?			;command code
 RHC_STA DW	?			;status
 	DQ	?			;reserved for DOS
-;;;;;	DW	?			;reserved for BIOS message flag 	;an006; dms;
+;;;;;	DW	?			;reserved for BIOS message flag
 RHC	ENDS				;end of common portion
 
 CMD_INPUT EQU	4			;RHC_CMD is INPUT request
@@ -134,7 +134,7 @@ RH0_ENDS DW	?			;segment of ending address
 RH0_BPBO DW	?			;offset  of BPB array address
 RH0_BPBS DW	?			;segment of BPB array address
 RH0_DRIV DB	?			;drive code (DOS 3 only)
-RH0_FLAG DW	0			;initialized to no error		;an000; dms;
+RH0_FLAG DW	0			;initialized to no error
 RH0	ENDS
 
 RH0_BPBA EQU	DWORD PTR RH0_BPBO	;offset/segment of BPB array address
@@ -348,10 +348,10 @@ BIOS_SYSTEM_DESCRIPTOR struc		;AN000;SYSTEM TYPE STRUC
 
 bios_SD_leng dw ?			;AN000;VECTOR LENGTH
 bios_SD_modelbyte db ?			;AN000;SYSTEM MODEL TYPE
-bios_SD_scnd_modelbyte db ?		;AN000;
-	db	?			;AN000;
-bios_SD_featurebyte1 db ?		;AN000;
-	db	4 dup (?)		;AN000;
+bios_SD_scnd_modelbyte db ?
+	db	?
+bios_SD_featurebyte1 db ?
+	db	4 dup (?)
 
 BIOS_SYSTEM_DESCRIPTOR ends		;AN000;END OF STRUC
 
@@ -420,23 +420,23 @@ TGT	DESC	<,,,93H,>		;target descriptor
 ;			Returns  : AX - Kbyte size of EM
 ;
 ;=========================================================================
-VDISK_INT15 PROC			;an001; dms;
+VDISK_INT15 PROC
 
 	cmp	ah,EM_Size_Get		;an001; dms;function 88h
 ;	$if	e			;an001; dms;get size
 	JNE $$IF1
 	    mov     ax,cs:EM_KSize	;an001; dms;return size
 	    clc 			;an001; dms;clear CY
-;	$else				;an001; dms;
+;	$else
 	JMP SHORT $$EN1
 $$IF1:
 	    jmp     cs:INTV15		;an001; dms;jump to org. vector
-;	$endif				;an001; dms;
+;	$endif
 $$EN1:
 
-	iret				;an001; dms;
+	iret
 
-VDISK_INT15 ENDP			;an001; dms;
+VDISK_INT15 ENDP
 
 
 	ASSUME	DS:NOTHING
@@ -715,7 +715,7 @@ INOUT_EM:				;Extended memory I/O routine
 
 
 	CMP	EM_SW,EM_Mem		;AC005; Is EM requested?
-	JE	INOUT_EM_A		;AN000;
+	JE	INOUT_EM_A
 	JMP	INOUT_EMS		;AN000; Yes, compute page
 
 INOUT_EM_A:				;AN000; No, compute 24-bit address
@@ -819,7 +819,7 @@ INOUT_EM_E:				;do while SECT_LEFT <> zero
 ;	EMS Support				  ;RPS; 		;
 ;-----------------------------------------------------------------------;
 
-INOUT_EMS:				;AN000;
+INOUT_EMS:
 
 ; Save EMS state in case anyone is using it
 	PUSH	AX			;AN000; DMS;SAVE IT
@@ -830,8 +830,8 @@ INOUT_EMS:				;AN000;
 	push	ds			;an000; dms;save it
 	push	es			;an000; dms;save it
 	mov	ax,cs			;an000; dms;transfer cs to ds/es
-	mov	ds,ax			;an000; dms;
-	mov	es,ax			;an000; dms;
+	mov	ds,ax
+	mov	es,ax
 
 	mov	di,offset cs:EMS_SAVE_ARRAY ;an000; point to save area
 	mov	si,offset cs:EMS_SEG_ARRAY ;an000; point to segment area
@@ -839,7 +839,7 @@ INOUT_EMS:				;AN000;
 	mov	ax,cs:EMS_Frame_Addr	;an000; get segment
 	mov	word ptr cs:EMS_SEG_ARRAY+2,ax ;an000; segment
 	MOV	AX,EMS_SAVE_STATE	;AN000; Function code to save active handle state
-	INT	EMS_INT 		;AN000;
+	INT	EMS_INT
 
 	pop	es			;an000; dms;restore
 	pop	ds			;an000; dms;restore
@@ -894,7 +894,7 @@ $$EN4:
 	mov	ds,ax			;an000; dms;put in ds
 	MOV	AX,EMS_RESTORE_STATE	;AN000;   Function code to restore active handle state
 	MOV	SI,OFFSET CS:EMS_SAVE_ARRAY ;AN000; POINT TO SAVE ARRAY
-	INT	EMS_INT 		;AN000;
+	INT	EMS_INT
 
 	pop	ds			;an000; dms;restore
 	POP	SI			;AN000; DMS;RESTORE
@@ -945,9 +945,9 @@ ems_page_off_calc proc near		;an000; dms;calc page/offset
 	mov	si,ax			;an000; dms;save sector offset
 	mov	cx,cs:ems_frame_addr	;an000; dms;obtain sector seg
 
-	ret				;an000; dms;
+	ret
 
-ems_page_off_calc endp			;an000; dms;
+ems_page_off_calc endp
 
 
 ;=========================================================================
@@ -970,9 +970,9 @@ ems_dta_calc proc near			;an000; dms;calc DTA buffer
 	adc	dx,0			;an002; dms;pick up carry
 	div	cs:wpara_size		;an000; dms;/16
 
-	ret				;an000; dms;
+	ret
 
-ems_dta_calc endp			;an000; dms;
+ems_dta_calc endp
 
 
 ;=========================================================================
@@ -989,16 +989,16 @@ ems_dta_calc endp			;an000; dms;
 
 ems_dta_adj proc near			;an000; dms;adjust DTA
 
-	call	ems_dta_calc		;an000; dms;
+	call	ems_dta_calc
 	push	ax			;an000; dms;save reg
 	mov	ax,cs:curr_dta_off	;an000; dms;get current off.
 	add	ax,cs:bpb_ssz		;an000; dms;adjust up
 	mov	cs:curr_dta_off,ax	;an000; dms;save new off
 	add	dx,ax			;an000; dms;set dx to new off
 	pop	ax			;an000; dms;restore reg
-	ret				;an000; dms;
+	ret
 
-ems_dta_adj endp			;an000; dms;
+ems_dta_adj endp
 
 ;=========================================================================
 ; EMS_SRC_TGT		: Determine the source and target segments for
@@ -1017,20 +1017,20 @@ ems_dta_adj endp			;an000; dms;
 ems_src_tgt proc near			;an000; dms;src/tgt calc
 
 	cmp	rh.rhc_cmd,cmd_input	;an000; dms;input/output?
-;	$if	ne			;an000; dms;
+;	$if	ne
 	JE $$IF7
 	    xchg    ax,cx		;an000; dms;swap src/tgt seg
 	    xchg    dx,si		;an000; dms;swap src/tgt off
-;	$endif				;an000; dms;
+;	$endif
 $$IF7:
 
 	mov	cs:io_srcs,cx		;an000; dms;save src seg
 	mov	cs:io_srco,si		;an000; dms;save src off
 	mov	cs:io_tgts,ax		;an000; dms;save tgt seg
 	mov	cs:io_tgto,dx		;an000; dms;save tgt off
-	ret				;an000; dms;
+	ret
 
-ems_src_tgt endp			;an000; dms;
+ems_src_tgt endp
 
 
 ;=========================================================================
@@ -1050,7 +1050,7 @@ ems_trf proc	near			;an000; dms;transfer data
 	shr	ax,1			;an000; dms;make words
 	mov	cx,ax			;an000; dms;set loop counter
 	push	ds			;an000; dms;save regs
-	push	es			;an000; dms;
+	push	es
 
 	lds	si,cs:io_srca		;an000; dms;get src address
 	les	di,cs:io_tgta		;an000; dms;get tgt address
@@ -1060,32 +1060,32 @@ ems_trf proc	near			;an000; dms;transfer data
 	JNE $$IF9
 	    SHR     CX,1		;AN000; /2 = DW COUNT
 	    DB	    66H 		;AN000; SIMULATE A MOVSDW
-;	$ENDIF				;AN000;
+;	$ENDIF
 $$IF9:
 	rep	movsw			;an000; dms;perform transfer
 
 	pop	es			;an000; dms;restore regs
-	pop	ds			;an000; dms;
+	pop	ds
 	inc	cs:ems_curr_sect	;an000; dms;increment sector
 
-	ret				;an000; dms;
+	ret
 
-ems_trf endp				;an000; dms;
+ems_trf endp
 
 
 
-MAP_FRAME PROC	NEAR			;AN000;
+MAP_FRAME PROC	NEAR
 
-	PUSH	BX			;AN000; DMS;
+	PUSH	BX
 	mov	ax,cs:DOS_Page		;an000; get physical page
 	MOV	AH,EMS_MAP_HANDLE	;AN000; EMS function to map page
 	MOV	BX,CS:CURR_EMS_PAGE	;AN000; Page number
 	MOV	DX,CS:EMS_HANDLE	;AN000; EMS handle
-	INT	EMS_INT 		;AN000;
-	POP	BX			;AN000; DMS;
-	RET				;AN000;
+	INT	EMS_INT
+	POP	BX
+	RET
 
-MAP_FRAME ENDP				;AN000;
+MAP_FRAME ENDP
 
 
 INOUT_D_LOW_MEM PROC NEAR		;AN000; LOW MEMORY TRANSFER
@@ -1107,7 +1107,7 @@ INOUT_D_LOW_MEM PROC NEAR		;AN000; LOW MEMORY TRANSFER
 	JNE $$IF11
 	    SHR     CX,1		;AN000; /2 = DW COUNT
 	    DB	    66H 		;AN000; SIMULATE A MOVSDW
-;	$ENDIF				;AN000;
+;	$ENDIF
 $$IF11:
 	REP	MOVSW			;AN000; PERFORM DOUBLE WORD MOVE
 
@@ -1293,8 +1293,8 @@ ERR_SWTCH EQU	04H			;invalid switch character
 ERR_EXTSW EQU	02H			;extender card switches don't match memory size
 ERR_ESIZE EQU	01H			;Transfer size adjusted
 
-DOS_PG_SZ DB	DOS_PAGE_SZ		;AN000;
-DOS_Page_Size_Word dw DOS_Page_Sz	;an000;
+DOS_PG_SZ DB	DOS_PAGE_SZ
+DOS_Page_Size_Word dw DOS_Page_Sz
 
 err_flag2 db	0
 err_baddos equ	01h			; Invalid DOS Version
@@ -1304,20 +1304,20 @@ PARM_COUNT db 0
 ;	SUBLIST definitions and EQUATES for Message Retreiver		;
 ;-----------------------------------------------------------------------;
 					;AN000; Message Number
-INCORRECT_DOS EQU 1			;AN000;
-SYS_TOO_SMALL EQU 2			;AN000;
-VDISK_TITLE EQU 3			;AN000;
-BUFFER_ADJUSTED EQU 4			;AN000;
-SECTOR_ADJUSTED EQU 5			;AN000;
-DIR_ADJUSTED EQU 6			;AN000;
-INVALID_SW_CHAR EQU 7			;AN000;
-TRANS_ADJUSTED EQU 8			;AN000;
-BUF_SZ	EQU	9			;AN000;
-SEC_SZ	EQU	10			;AN000;
-DIR_ENTRIES EQU 11			;AN000;
-TRANS_SZ EQU	12			;AN000;
-VDISK_NOT_INST EQU 13			;AN000;
-EXTEND_CARD_WRONG EQU 14		;AN000;
+INCORRECT_DOS EQU 1
+SYS_TOO_SMALL EQU 2
+VDISK_TITLE EQU 3
+BUFFER_ADJUSTED EQU 4
+SECTOR_ADJUSTED EQU 5
+DIR_ADJUSTED EQU 6
+INVALID_SW_CHAR EQU 7
+TRANS_ADJUSTED EQU 8
+BUF_SZ	EQU	9
+SEC_SZ	EQU	10
+DIR_ENTRIES EQU 11
+TRANS_SZ EQU	12
+VDISK_NOT_INST EQU 13
+EXTEND_CARD_WRONG EQU 14
 
 NO_REPLACE EQU	0			;AN000; CX = 0 -> No replacement
 ONE_REPLACE EQU 1			;AN000; CX = 1 -> One replacement
@@ -1326,7 +1326,7 @@ SMALLEST_MIN EQU 1			;AN000; MIN field - 1 character long
 PAD_BLANK EQU	20H			;AN000; PAD character is a blank
 
 
-DRIVE_CODE DB	?			;AN000;
+DRIVE_CODE DB	?
 	DB	":",NULL		;AN000; ASCIIZ string for drive code
 
 ; For the message: "VDISK Version 4.00 virtual disk %1",CR,LF
@@ -1403,8 +1403,8 @@ T_PAD	DB	PAD_BLANK		;AN000; Character for Pad field
 ;	EMS Support							;
 ;-----------------------------------------------------------------------;
 
-FRAME_BUFFER DB 10 DUP(0)		;AN000;
-VDISK_Name db	"VDISK   "		;an000; dms;
+FRAME_BUFFER DB 10 DUP(0)
+VDISK_Name db	"VDISK   "
 
 four	DB	4
 
@@ -1450,14 +1450,14 @@ INIT_P1 PROC				;first part of initialization
 
 
 	PUSH	DS			;AN000;SAVE REGS
-	PUSH	ES			;AN000;
+	PUSH	ES
 
 	PUSH	CS			;AN000;TRANSFER TO DS
-	POP	DS			;AN000;
-	PUSH	CS			;AN000;
-	POP	ES			;AN000;
+	POP	DS
+	PUSH	CS
+	POP	ES
 
-	ASSUME	DS:CSEG,ES:CSEG 	;AN000;
+	ASSUME	DS:CSEG,ES:CSEG
 
 	CALL	SYSLOADMSG		;AN000; LOAD messages and do DOS version check
 	JNC	VDISK_CONTINUE_1	;AN000; Did we load OK?
@@ -1477,11 +1477,11 @@ INIT_P1 PROC				;first part of initialization
 	MOV	BX,NO_HANDLE		;AN000;NO DISPLAY HANDLE
 	CALL	SYSDISPMSG		;AN000;DISPLAY THE MESSAGE
 
-VDISK_CONTINUE_1:			;AN000;
+VDISK_CONTINUE_1:
 
 	POP	ES			;AN000;RESTORE REGS
-	POP	DS			;AN000;
-	ASSUME	DS:NOTHING,ES:NOTHING	;AN000;
+	POP	DS
+	ASSUME	DS:NOTHING,ES:NOTHING
 
 	CALL	PC_386_CHK		;AN000;SEE IF WE HAVE A 386 PC
 					; Yes, continue
@@ -1593,13 +1593,13 @@ INIT_P1_A:
 PC_386_CHK PROC NEAR			;AN000;DETERMINE MACHINE TYPE
 
 	PUSH	AX			;AN000;SAVE AFFECTED REGS
-	PUSH	BX			;AN000;
-	PUSH	ES			;AN000;
+	PUSH	BX
+	PUSH	ES
 
 	MOV	CS:PC_386,FALSE 	;AN000;INITIALIZE TO FALSE
 
 	MOV	AH,0C0H 		;AN000;RETURN SYSTEM CONFIGURATION
-	INT	15H			;AN000;
+	INT	15H
 
 ;	$IF	NC			;AN000;IF A GOOD RETURN
 	JC $$IF13
@@ -1611,20 +1611,20 @@ PC_386_CHK PROC NEAR			;AN000;DETERMINE MACHINE TYPE
 ;		$IF	E		;AN000;YES
 		JNE $$IF15
 		    MOV     CS:PC_386,(TRUE) AND 0FFh ;AN000;SIGNAL A 386
-;		$ENDIF			;AN000;
+;		$ENDIF
 $$IF15:
-;	    $ENDIF			;AN000;
+;	    $ENDIF
 $$IF14:
-;	$ENDIF				;AN000;
+;	$ENDIF
 $$IF13:
 
 	POP	ES			;AN000;RESTORE REGS.
-	POP	BX			;AN000;
-	POP	AX			;AN000;
+	POP	BX
+	POP	AX
 
-	RET				;AN000;
+	RET
 
-PC_386_CHK ENDP 			;AN000;
+PC_386_CHK ENDP
 
 
 	SUBTTL	GET_PARMS Parameter Line Scan
@@ -1687,22 +1687,20 @@ GET_SLASH:			;check for slash
 	CALL	GET_PCHAR	;get char following slash
 	CMP	AL,'E'		;don't have to test for lower case E,
 				;letters have been changed to upper case
-	JNE	CHECK_FOR_X	;not 'E'				 ;AN005;
-	CMP	CS:EM_SW,'X'	;Was /X already defined?		 ;AN005;
-	JE	GET_PARMS_E	;indicate invalid switch		 ;AN005;
-	MOV	CS:EM_SW,AL	;indicate /E found			 ;AN005;
-	JMP	SHORT GOT_E_OR_X					 ;AN005;
-									 ;AN005;
-CHECK_FOR_X:								 ;AN005;
-	CMP	AL,'X'		;don't have to test for lower case X,    ;AN005;
-				;letters have been changed to upper case ;AN005;
-	JNE	GET_PARMS_E	;not 'X'				 ;AN005;
-	CMP	CS:EM_SW,'E'	;Was /E already defined?		 ;AN005;
-	JE	GET_PARMS_E	;indicate invalid switch		 ;AN005;
-	MOV	CS:EM_SW,'X'	;indicate /X found			 ;AN005;
-									 ;AN005;
-GOT_E_OR_X:								 ;AN005;
-	CALL	GET_PCHAR	;get char following E or X		 ;AN005;
+	JNE	CHECK_FOR_X	;not 'E'
+	CMP	CS:EM_SW,'X'	;Was /X already defined?
+	JE	GET_PARMS_E	;indicate invalid switch
+	MOV	CS:EM_SW,AL	;indicate /E found
+	JMP	SHORT GOT_E_OR_X
+CHECK_FOR_X:
+	CMP	AL,'X'		;don't have to test for lower case X,
+				;letters have been changed to upper case
+	JNE	GET_PARMS_E	;not 'X'
+	CMP	CS:EM_SW,'E'	;Was /E already defined?
+	JE	GET_PARMS_E	;indicate invalid switch
+	MOV	CS:EM_SW,'X'	;indicate /X found
+GOT_E_OR_X:
+	CALL	GET_PCHAR	;get char following E or X
 	CMP	AL,':'		;is it a delimeter ?
 	JNE	GET_PARMS_D	;not a ':'
 
@@ -1750,11 +1748,11 @@ Get_Parms_X_Exit:
 
 GET_PARMS_X:				;premature end of line
 	TEST	cs:ERR_FLAG,ERR_SWTCH	;was an invalid switch character found?
-;	$if	nz			;yes - set flag to regular VDISK	;an000; dms;
+;	$if	nz			;yes - set flag to regular VDISK
 	JZ $$IF19
 					;  this is consistent with DOS 3.3
-		mov	cs:EM_SW,0	;set flag to regular VDISK		;an000; dms;
-;	$endif				;					;an000; dms;
+		mov	cs:EM_SW,0	;set flag to regular VDISK
+;	$endif				;
 $$IF19:
 	POP	DS			;restore DS
 	RET
@@ -1909,16 +1907,16 @@ DETERMINE_START PROC
 	CMP	EM_SW,0 		;IS EXTENDED MEMORY REQUESTED?
 	JE	DETERMINE_START_X	;if not, we're done here
 
-;-----------------------------------------------------------------------;AN000;
+;-----------------------------------------------------------------------
 ;If EMS is not installed, the calculation to determine the starting address
 ;of the VDISK will remain the same.
 
 ;If EMS is installed we really don't need this calculation, the EMM will
 ;manage the expanded memory insuring mutiple VDISKs may reside concurrently.
-;-----------------------------------------------------------------------;AN000;
+;-----------------------------------------------------------------------
 
-	cmp	EM_SW,EMS_Mem		;EMS requested? 			;an005; dms;
-	je	Determine_Start_X	;yes - leave routine			;an005; dms;
+	cmp	EM_SW,EMS_Mem		;EMS requested?
+	je	Determine_Start_X	;yes - leave routine
 					;no  - continue routine
 
 	clc				;an001; dms;clear carry for INT
@@ -2087,15 +2085,15 @@ GET_MSIZE PROC				;determine memory available to VDISK
 	CMP	EM_SW,0 		;EXTENDED MEMORY?
 	JE	GET_MSIZE_2		;use non-extended memory routine
 
-	cmp	EM_SW,EM_Mem		;Extended memory requested?		;an005; dms;
-	je	Use_Extended_Support	;yes					;an005; dms;
+	cmp	EM_SW,EM_Mem		;Extended memory requested?
+	je	Use_Extended_Support	;yes
 					;no - check for EMS availability
 
 
 	CALL	EMS_CHECK		;AN000; Check if EMS is installed
 	JC	GET_MSIZE_Z		;AN000; Yes, it is installed but in error
 					;	 then notify caller by setting AX to zero
-	CMP	AH,NOT EMS_INSTALLED_FLAG ;AN000;
+	CMP	AH,NOT EMS_INSTALLED_FLAG
 	JE	Get_Msize_Z		;ac005; flag an error occurred
 	MOV	EM_SW2,AH		;AN000;   Set EMS flag
 	CALL	EMS_GET_PAGES		;AN000;   Get count of total number of pages
@@ -2138,7 +2136,7 @@ VAL_BSIZE ENDP
 
 
 
-EMS_CHECK PROC	NEAR			;AN000;
+EMS_CHECK PROC	NEAR
 
 	CALL	EMS_CHECK1		;AN000; SEE IF EMS INSTALLED
 	JNC	EMS_INSTALLED		;AN000; No,
@@ -2152,15 +2150,15 @@ EMS_INSTALLED:				;AN000; Yes,
 	push	di				;an006; save di
 
 	mov	ah,EMS_2F_Handler		;an006;see if our 2Fh is there
-	xor	al,al				;an006;
-	int	2Fh				;an006;
+	xor	al,al
+	int	2Fh
 	cmp	al,0ffh 			;an006;2Fh handler there?
 ;	$if	e				;an006;yes
 	JNE $$IF21
 		mov	ah,EMS_2F_Handler	;an006;get EMS page for VDISK
-		mov	al,0FFh 		;an006;
-		mov	di,0FEh 		;an006;
-		int	2Fh			;ac006;
+		mov	al,0FFh
+		mov	di,0FEh
+		int	2Fh
 
 		or	ah,ah			;an006;page available?
 ;		$if	z			;an006;yes
@@ -2174,7 +2172,7 @@ EMS_INSTALLED:				;AN000; Yes,
 $$IF22:
 			mov	ah,not EMS_INSTALLED_FLAG ;an000;signal no EMS
 			stc			;an006;flag it
-;		$endif				;an006;
+;		$endif
 $$EN22:
 ;	$else
 	JMP SHORT $$EN21
@@ -2191,7 +2189,7 @@ EMS_Check_Exit:
 
 	RET				;AN000;    Return
 
-EMS_CHECK ENDP				;AN000;
+EMS_CHECK ENDP
 
 
 
@@ -2217,53 +2215,53 @@ EMS_CHECK1 PROC NEAR			;AN000;EMS INSTALL CHECK
 	JE $$IF27
 	    MOV     AH,EMS_STATUS	;AN000;see if EMS installed
 	    XOR     AL,AL		;AN000;CLEAR AL
-	    INT     EMS_INT		;AN000;
+	    INT     EMS_INT
 	    OR	    AH,AH		;AN000;EMS INSTALLED?
 ;	    $IF     Z			;AN000;YES
 	    JNZ $$IF28
 		MOV	AH,EMS_VERSION	;AN000;GET VERSION NUMBER
 		XOR	AL,AL		;AN000;CLEAR AL
-		INT	EMS_INT 	;AN000;
+		INT	EMS_INT
 		CMP	AL,EMS_VERSION_LEVEL ;AN000;CORRECT VERSION?
 ;		$IF	AE		;AN000;YES
 		JNAE $$IF29
 		    CLC 		;AN000;FLAG IT AS GOOD EMS
-;		$ELSE			;AN000;
+;		$ELSE
 		JMP SHORT $$EN29
 $$IF29:
 		    STC 		;AN000;BAD EMS
-;		$ENDIF			;AN000;
+;		$ENDIF
 $$EN29:
-;	    $ELSE			;AN000;
+;	    $ELSE
 	    JMP SHORT $$EN28
 $$IF28:
 		STC			;AN000;EMS NOT INSTALLED
-;	    $ENDIF			;AN000;
+;	    $ENDIF
 $$EN28:
-;	$ELSE				;AN000;
+;	$ELSE
 	JMP SHORT $$EN27
 $$IF27:
 	    STC 			;AN000;EMS VECTOR NOT THERE
-;	$ENDIF				;AN000;
+;	$ENDIF
 $$EN27:
 
 	RET				;AN000;RETURN TO CALLER
 
-EMS_CHECK1 ENDP 			;AN000;
+EMS_CHECK1 ENDP
 
 
-EMS_GET_PAGES PROC NEAR 		;AN000;
+EMS_GET_PAGES PROC NEAR
 
 	MOV	AH,EMS_GET_NUM_PAGES	;AN000; Query EMS for page count
-	INT	EMS_INT 		;AN000;
+	INT	EMS_INT
 	OR	AH,AH			;AN000; Has EMS returned page count?
 	JNZ	EMS_GET_ERROR		;AN000; Yes,
 	MOV	AX,BX			;AN000;   Get number of pages
-	RET				;AN000;
+	RET
 
-EMS_GET_ERROR:				;AN000;
-	STC				;AN000;
-	RET				;AN000;
+EMS_GET_ERROR:
+	STC
+	RET
 
 EMS_GET_PAGES ENDP
 
@@ -2548,24 +2546,22 @@ UPDATE_AVAIL PROC
 ;	$if	nz			;an004; yes
 	JZ $$IF36
 	    inc     ax			;an004; need 1 extra page
-;	$endif				;an004;
+;	$endif
 $$IF36:
 	MOV	BX,AX			;AN000;   Prepare for EMS call
 
 	MOV	AH,EMS_ALLOC_PAGES	;AN000;   Allocate requested pages
-	INT	EMS_INT 		;AN000;
+	INT	EMS_INT
 	OR	AH,AH			;AN000;   Was there an error allocating?
 	JNZ	ALLOC_ERROR		;AN000;   No,
 	MOV	EMS_HANDLE,DX		;AN000;     Save EMS handle for this VDISK
-	call	EMS_Build_Handle_Name	;an000; dms;
+	call	EMS_Build_Handle_Name
 
-	RET				;AN000;
-					;AN000;
-ALLOC_ERROR:				;AN000;
+	RET
+ALLOC_ERROR:
 	MOV	ERR_FLAG,EMS_ALLOC_ERROR ;AN000;    ??????    *RPS
-	RET				;AN000;
-					;AN000;
-USE_INT15_LOGIC:			;AN000;
+	RET
+USE_INT15_LOGIC:
 
 	call	Modify_CMOS_EM		;an001; dms;adjust EM for new size
 
@@ -2585,7 +2581,7 @@ UPDATE_AVAIL ENDP
 ;						 port 71h.
 ;=========================================================================
 
-Modify_CMOS_EM Proc Near		;an001; dms;
+Modify_CMOS_EM Proc Near
 
 	push	ax			;an001; dms;save ax
 	call	Steal_Int15		;an001; dms;get INT 15h vector
@@ -2594,9 +2590,9 @@ Modify_CMOS_EM Proc Near		;an001; dms;
 	mov	word ptr cs:EM_KSize,ax ;an001; dms;set EM size to new size
 	pop	ax			;an001; dms;restore ax
 
-	ret				;an001; dms;
+	ret
 
-Modify_CMOS_EM endp			;an001; dms;
+Modify_CMOS_EM endp
 
 ;=========================================================================
 ; EMS_Build_Handle_Name 	- This routine will build an EMS handle's
@@ -2608,7 +2604,7 @@ Modify_CMOS_EM endp			;an001; dms;
 ;	Outputs : Handle name
 ;=========================================================================
 
-EMS_Build_Handle_Name proc near 	;an000; dms;
+EMS_Build_Handle_Name proc near
 
 	push	si			;an000; dms;save si
 	push	cx			;an000; dms;save cx
@@ -2626,14 +2622,14 @@ EMS_Build_Handle_Name proc near 	;an000; dms;
 	mov	byte ptr [si+7],":"	;an000; dms;colon terminate it
 
 	mov	ax,EMS_Set_Handle_Name	;an000; dms;set the handle's name
-	int	EMS_INT 		;an000; dms;
+	int	EMS_INT
 
 	pop	cx			;an000; dms;restore cx
 	pop	si			;an000; dms;restore si
 
-	ret				;an000; dms;
+	ret
 
-EMS_Build_Handle_Name endp		;an000; dms;
+EMS_Build_Handle_Name endp
 
 	SUBTTL	FORMAT_VDISK
 	PAGE
@@ -2780,7 +2776,7 @@ FILL_RH PROC				;fill in INIT Request Header fields
 ;	$IF	NE			;AN000; DMS; EM REQUESTED
 	JE $$IF38
 	    MOV     DX,CX		;AN000; DMS;END OF CODE SEGMENT ADDR
-;	$ENDIF				;AN000; DMS;
+;	$ENDIF
 $$IF38:
 
 FILL_RH_A:				;DX is proper ending segment address
@@ -2817,8 +2813,8 @@ FILL_RH ENDP
 WRITE_MESSAGES PROC			;display all messages
 
 
-	test	cs:err_flag2,err_baddos ;AN000;
-	JZ	DISPLAY_ALL_MESSAGES	;AN000;
+	test	cs:err_flag2,err_baddos
+	JZ	DISPLAY_ALL_MESSAGES
 	RET
 
 DISPLAY_ALL_MESSAGES:			;AN000; No, then display messages
@@ -2919,24 +2915,24 @@ WRITE_MESSAGES_G:			;display adjusted size messages
 	LEA	SI,BUF_SZ_SUBLIST	;AN000; Specify SUBLIST to use for replacement
 	MOV	CX,ONE_REPLACE		;AN000; Notify SYSDISPMSG of 1 replacement
 	CALL	DISPLAY_MESSAGE 	;AN000; Display the message
-	JC	SYSDISP_ERROR		;AN000;
+	JC	SYSDISP_ERROR
 
 	MOV	AX,SEC_SZ		;AN000; "Sector size: %1",CR,LF
 	LEA	SI,SEC_SZ_SUBLIST	;AN000; Specify SUBLIST to use for replacement
 	CALL	DISPLAY_MESSAGE 	;AN000; Display the message
-	JC	SYSDISP_ERROR		;AN000;
+	JC	SYSDISP_ERROR
 
 	MOV	AX,DIR_ENTRIES		;AN000; "Directory entries: %1",CR,LF
 	LEA	SI,DIR_ENT_SUBLIST	;AN000; Specify SUBLIST to use for replacement
 	CALL	DISPLAY_MESSAGE 	;AN000; Display the message
-	JC	SYSDISP_ERROR		;AN000;
+	JC	SYSDISP_ERROR
 
 	CMP	CS:EM_SW,0		;extended memory ?
 	JE	END_LINE		;
 	MOV	AX,TRANS_SZ		;AN000; "Transfer size: %1",CR,LF,CR,LF
 	LEA	SI,TRANS_SZ_SUBLIST	;AN000; Specify SUBLIST to use for replacement
 	CALL	DISPLAY_MESSAGE 	;AN000; Display the message
-	JC	SYSDISP_ERROR		;AN000;
+	JC	SYSDISP_ERROR
 
 
 END_LINE:
@@ -2953,28 +2949,28 @@ SYSDISP_ERROR:
 
 					;AN000; Set error conditions
 	MOV	BX,NO_HANDLE		;AN000; Write to NO_HANDLE
-	MOV	CX,NO_REPLACE		;AN000;
-	MOV	DH,EXT_ERR_CLASS	;AN000;
-	MOV	DL,NO_INPUT		;AN000;
+	MOV	CX,NO_REPLACE
+	MOV	DH,EXT_ERR_CLASS
+	MOV	DL,NO_INPUT
 
 	PUSH	DS			;AN000;SET UP ADDRESSIBILITY TO MSG
-	PUSH	ES			;AN000;
+	PUSH	ES
 
 	PUSH	CS			;AN000;TRANSFER CS
 	POP	DS			;AN000;  TO DS
 	PUSH	CX			;AN000;TRANSFER CS
 	POP	ES			;AN000;  TO ES
 
-	ASSUME	DS:CSEG,ES:CSEG 	;AN000;
+	ASSUME	DS:CSEG,ES:CSEG
 	CALL	GET_PARM_SEGMENT	;AN000;OBTAIN PARM SEGMENT
 
-	CALL	SYSDISPMSG		;AN000;
+	CALL	SYSDISPMSG
 
 	POP	ES			;AN000;RESTORE REG
 	POP	DS			;AN000;RESTORE REG
-	ASSUME	DS:NOTHING,ES:NOTHING	;AN000;
+	ASSUME	DS:NOTHING,ES:NOTHING
 
-	RET				;AN000;
+	RET
 
 WRITE_MESSAGES ENDP
 
@@ -2985,23 +2981,23 @@ DISPLAY_MESSAGE PROC NEAR
 	MOV	DH,UTILITY_MSG_CLASS	;AN000; Utility class message
 	MOV	DL,NO_INPUT		;AN000; No input is requested
 	PUSH	DS			;AN000;SET UP ADDRESSIBILITY TO MSG
-	PUSH	ES			;AN000;
+	PUSH	ES
 
 	PUSH	CS			;AN000;TRANSFER CS
 	POP	DS			;AN000;  TO DS
 	PUSH	CS			;AN000;TRANSFER CS
 	POP	ES			;AN000;  TO ES
 
-	ASSUME	DS:CSEG,ES:CSEG 	;AN000;
+	ASSUME	DS:CSEG,ES:CSEG
 	CALL	GET_PARM_SEGMENT	;AN000;OBTAIN PARM SEGMENT
 
-	CALL	SYSDISPMSG		;AN000;
+	CALL	SYSDISPMSG
 
 	POP	ES			;AN000;RESTORE REG
 	POP	DS			;AN000;RESTORE REG
-	ASSUME	DS:NOTHING,ES:NOTHING	;AN000;
+	ASSUME	DS:NOTHING,ES:NOTHING
 
-	RET				;AN000;
+	RET
 
 DISPLAY_MESSAGE ENDP
 
@@ -3027,7 +3023,7 @@ GET_PARM_SEGMENT PROC			;AN000;OBTAIN PARM SEGMENT
 
 	RET				;AN000;RETURN TO CALLER
 
-GET_PARM_SEGMENT ENDP			;AN000;
+GET_PARM_SEGMENT ENDP
 
 
 
@@ -3035,11 +3031,11 @@ GET_PARM_SEGMENT ENDP			;AN000;
 INIT_P1 ENDP				;end of INIT part one
 .xlist
 MSG_SERVICES <MSGDATA>			;AN000:
-MSG_SERVICES <LOADmsg>			;AN000;
-MSG_SERVICES <DISPLAYmsg,CHARmsg,NUMmsg> ;AN000;
-MSG_SERVICES <VDISK.CL1,VDISK.CL2,VDISK.CLA> ;AN000;
+MSG_SERVICES <LOADmsg>
+MSG_SERVICES <DISPLAYmsg,CHARmsg,NUMmsg>
+MSG_SERVICES <VDISK.CL1,VDISK.CL2,VDISK.CLA>
 .list
-MSGEND	LABEL	BYTE			;AN000;
+MSGEND	LABEL	BYTE
 
 CSEG	ENDS
 	END

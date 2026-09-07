@@ -1,14 +1,5 @@
  page 80,132
-;	SCCSID = @(#)tdata.asm	4.3 85/05/17
-;	SCCSID = @(#)tdata.asm	4.3 85/05/17
 TITLE	COMMAND Transient Initialized DATA
-
-; MODIFICATION HISTORY
-;
-;	EE 10-20-83	Changed the drive check indicator bytes (DCIB's) in
-;			COMTAB to be a flag byte in which bit 0 is now the
-;			DCIB(bit) and bit 1 is on if the command can take
-;			switches.
 
 fmt macro   name,string,args
 	local	a
@@ -32,10 +23,10 @@ ENDM
 
 .xlist
 .xcref
-	INCLUDE comsw.asm				;AC000;
+	INCLUDE comsw.asm
 	INCLUDE comseg.asm
-	INCLUDE EA.inc					;AN030;
-	INCLUDE dirent.inc				;AN042;
+	INCLUDE EA.inc
+	INCLUDE dirent.inc
 .list
 .cref
 
@@ -48,31 +39,31 @@ ENDM
 	INCLUDE ifequ.asm
 	INCLUDE comequ.asm
 
-TRANSPACE	SEGMENT PUBLIC BYTE	;AC000;
+TRANSPACE	SEGMENT PUBLIC BYTE
 	EXTRN	arg_buf:BYTE
 	EXTRN	bwdbuf:byte
 	EXTRN	bytes_free:WORD
 	EXTRN	charbuf:byte
 	EXTRN	copy_Num:WORD
 	EXTRN	cpyflag:BYTE
-	EXTRN	DATE_OUTPUT:BYTE	;AC000;
+	EXTRN	DATE_OUTPUT:BYTE
 	EXTRN	Dir_Num:WORD
-	EXTRN	DRIVE_OUTPUT:BYTE	;AC000;
+	EXTRN	DRIVE_OUTPUT:BYTE
 	EXTRN	file_size_high:WORD
 	EXTRN	file_size_low:WORD
 	EXTRN	major_ver_num:WORD
 	EXTRN	minor_ver_num:WORD
 	EXTRN	one_char_val:BYTE
-	EXTRN	PARSE1_OUTPUT:BYTE	;AC000;
+	EXTRN	PARSE1_OUTPUT:BYTE
 	EXTRN	srcbuf:byte
 	EXTRN	string_ptr_2:WORD
 	EXTRN	system_cpage:word
-	EXTRN	TIME_OUTPUT:BYTE	;AC000;
+	EXTRN	TIME_OUTPUT:BYTE
 	EXTRN	vol_drv:BYTE
-	EXTRN	vol_serial:dword	;AN000;
+	EXTRN	vol_serial:dword
 TRANSPACE	ENDS
 
-TRANCODE	SEGMENT PUBLIC BYTE	;AC000;
+TRANCODE	SEGMENT PUBLIC BYTE
 	EXTRN	$CALL:NEAR
 	EXTRN	$CHDIR:NEAR
 	EXTRN	$EXIT:NEAR
@@ -116,7 +107,7 @@ TRANCODE	SEGMENT PUBLIC BYTE	;AC000;
 	EXTRN	SHIFT:NEAR
 	EXTRN	TCOMMAND:NEAR
 	EXTRN	REM_HANDLER:NEAR
-	EXTRN	TRUENAME:NEAR		;AN000;
+	EXTRN	TRUENAME:NEAR
 	EXTRN	TYPEFIL:NEAR
 	EXTRN	VERSION:NEAR
 	EXTRN	VOLUME:NEAR
@@ -132,123 +123,123 @@ TRANCODE	ENDS
 
 TRANDATA	SEGMENT PUBLIC BYTE
 
-	PUBLIC	accden_ptr		;AN000;
-	PUBLIC	acrlf_ptr		;AN000;
-	PUBLIC	arg_buf_ptr		;AN000;
-	PUBLIC	badbat_ptr		;AN000;
-	PUBLIC	badcd_ptr		;AN000;
-	PUBLIC	badCPmes_ptr		;AN000;
-	PUBLIC	badcurdrv		;AN000;
-	PUBLIC	baddat_ptr		;AN000;
-	PUBLIC	baddev_ptr		;AN000;
-	PUBLIC	baddrv_ptr		;AN000;
-	PUBLIC	badlab_ptr		;AN000;
-	PUBLIC	badmkd_ptr		;AN000;
-	PUBLIC	badnam_ptr		;AN000;
-	PUBLIC	bad_on_off_ptr		;AN000;
-	PUBLIC	badPmes_ptr		;AN000;
-	PUBLIC	badrmd_ptr		;AN000;
-	PUBLIC	badtim_ptr		;AN000;
+	PUBLIC	accden_ptr
+	PUBLIC	acrlf_ptr
+	PUBLIC	arg_buf_ptr
+	PUBLIC	badbat_ptr
+	PUBLIC	badcd_ptr
+	PUBLIC	badCPmes_ptr
+	PUBLIC	badcurdrv
+	PUBLIC	baddat_ptr
+	PUBLIC	baddev_ptr
+	PUBLIC	baddrv_ptr
+	PUBLIC	badlab_ptr
+	PUBLIC	badmkd_ptr
+	PUBLIC	badnam_ptr
+	PUBLIC	bad_on_off_ptr
+	PUBLIC	badPmes_ptr
+	PUBLIC	badrmd_ptr
+	PUBLIC	badtim_ptr
 	PUBLIC	batext
-	PUBLIC	bytmes_ptr		;AN000;
+	PUBLIC	bytmes_ptr
 	PUBLIC	CLSSTRING
 	PUBLIC	comext
 	PUBLIC	COMSPECSTR
 	PUBLIC	COMTAB
-	PUBLIC	copied_ptr		;AN000;
-	PUBLIC	cp_active_ptr		;AN000;
-	PUBLIC	cp_not_all_ptr		;AN000;
-	PUBLIC	cp_not_set_ptr		;AN000;
-	PUBLIC	ctrlcmes_ptr		;AN000;
-	PUBLIC	curdat_mo_day		;AN000;
-	PUBLIC	curdat_ptr		;AN000;
-	PUBLIC	curdat_yr		;AN000;
-	PUBLIC	curtim_hr_min		;AN000;
-	PUBLIC	curtim_ptr		;AN000;
-	PUBLIC	curtim_sec_hn		;AN000;
-	PUBLIC	dback_ptr		;AN000;
-	PUBLIC	del_Y_N_ptr		;AN000;
-	PUBLIC	devwmes_ptr		;AN000;
-	PUBLIC	dirdattim_ptr		;AN000;
-	PUBLIC	dirdat_mo_day		;AN000;
-	PUBLIC	dirdat_yr		;AN000;
-	PUBLIC	dirhead_ptr		;AN000;
-	PUBLIC	dirmes_ptr		;AN000;
-	PUBLIC	dirtim_hr_min		;AN000;
-	PUBLIC	dirtim_sec_hn		;AN000;
-	PUBLIC	disp_file_size_ptr	;AN000;
-	PUBLIC	dmes_ptr		;AN000;
-	PUBLIC	echomes_ptr		;AN000;
-	PUBLIC	enverr_ptr		;AN000;
-	PUBLIC	eurdat_ptr		;AN000;
+	PUBLIC	copied_ptr
+	PUBLIC	cp_active_ptr
+	PUBLIC	cp_not_all_ptr
+	PUBLIC	cp_not_set_ptr
+	PUBLIC	ctrlcmes_ptr
+	PUBLIC	curdat_mo_day
+	PUBLIC	curdat_ptr
+	PUBLIC	curdat_yr
+	PUBLIC	curtim_hr_min
+	PUBLIC	curtim_ptr
+	PUBLIC	curtim_sec_hn
+	PUBLIC	dback_ptr
+	PUBLIC	del_Y_N_ptr
+	PUBLIC	devwmes_ptr
+	PUBLIC	dirdattim_ptr
+	PUBLIC	dirdat_mo_day
+	PUBLIC	dirdat_yr
+	PUBLIC	dirhead_ptr
+	PUBLIC	dirmes_ptr
+	PUBLIC	dirtim_hr_min
+	PUBLIC	dirtim_sec_hn
+	PUBLIC	disp_file_size_ptr
+	PUBLIC	dmes_ptr
+	PUBLIC	echomes_ptr
+	PUBLIC	enverr_ptr
+	PUBLIC	eurdat_ptr
 	PUBLIC	exeext
-	PUBLIC	extend_buf_off		;AN000;
-	PUBLIC	extend_buf_ptr		;AN000;
-	PUBLIC	extend_buf_seg		;AN000;
-	PUBLIC	extend_buf_sub		;AN000;
-	PUBLIC	file_name_ptr		;AN000;
+	PUBLIC	extend_buf_off
+	PUBLIC	extend_buf_ptr
+	PUBLIC	extend_buf_seg
+	PUBLIC	extend_buf_sub
+	PUBLIC	file_name_ptr
 	PUBLIC	FILE_OPTIONAL2
-	PUBLIC	fornestmes_ptr		;AN000;
-	PUBLIC	fuldir_ptr		;AN000;
+	PUBLIC	fornestmes_ptr
+	PUBLIC	fuldir_ptr
 	PUBLIC	IFTAB
-	PUBLIC	inBdev_ptr		;AN000;
-	PUBLIC	inornot_ptr		;AN000;
-	PUBLIC	Inv_code_page		;AN000;
-	PUBLIC	inval_path_ptr		;AN000;
-	PUBLIC	japdat_ptr		;AN000;
-	PUBLIC	Losterr_ptr		;AN000;
-	PUBLIC	md_exists_ptr		;AN006;
-	PUBLIC	msg_cont_flag		;AN000;
-	PUBLIC	msg_disp_class		;AN000;
-	PUBLIC	needbat_ptr		;AN000;
-	PUBLIC	newdat_format		;AN000;
-	PUBLIC	newdat_ptr		;AN000;
-	PUBLIC	newtim_ptr		;AN000;
-	PUBLIC	NLSFUNC_ptr		;AN000;
-	PUBLIC	nospace_ptr		;AN000;
-	PUBLIC	no_values		;AN000;
-	PUBLIC	nulpath_ptr		;AN000;
-	PUBLIC	offmes_ptr		;AN000;
-	PUBLIC	onmes_ptr		;AN000;
-	PUBLIC	overwr_ptr		;AN000;
-	PUBLIC	PARSE_BREAK		;AN000;
-	PUBLIC	PARSE_CHCP		;AN000;
-	PUBLIC	PARSE_CHDIR		;AN000;
-	PUBLIC	PARSE_CTTY		;AN000;
-	PUBLIC	PARSE_DATE		;AN000;
-	PUBLIC	PARSE_ERASE		;AN000;
-	PUBLIC	PARSE_MRDIR		;AN000;
-	PUBLIC	PARSE_RENAME		;AN000;
-	PUBLIC	PARSE_TIME		;AN000;
-	PUBLIC	PARSE_VOL		;AN000;
+	PUBLIC	inBdev_ptr
+	PUBLIC	inornot_ptr
+	PUBLIC	Inv_code_page
+	PUBLIC	inval_path_ptr
+	PUBLIC	japdat_ptr
+	PUBLIC	Losterr_ptr
+	PUBLIC	md_exists_ptr
+	PUBLIC	msg_cont_flag
+	PUBLIC	msg_disp_class
+	PUBLIC	needbat_ptr
+	PUBLIC	newdat_format
+	PUBLIC	newdat_ptr
+	PUBLIC	newtim_ptr
+	PUBLIC	NLSFUNC_ptr
+	PUBLIC	nospace_ptr
+	PUBLIC	no_values
+	PUBLIC	nulpath_ptr
+	PUBLIC	offmes_ptr
+	PUBLIC	onmes_ptr
+	PUBLIC	overwr_ptr
+	PUBLIC	PARSE_BREAK
+	PUBLIC	PARSE_CHCP
+	PUBLIC	PARSE_CHDIR
+	PUBLIC	PARSE_CTTY
+	PUBLIC	PARSE_DATE
+	PUBLIC	PARSE_ERASE
+	PUBLIC	PARSE_MRDIR
+	PUBLIC	PARSE_RENAME
+	PUBLIC	PARSE_TIME
+	PUBLIC	PARSE_VOL
 	PUBLIC	PATH_TEXT
-	PUBLIC	pausemes_ptr		;AN000;
-	PUBLIC	pipeEmes_ptr		;AN000;
-	PUBLIC	promptdat_moday 	;AN000;
-	PUBLIC	promptdat_ptr		;AN000;
-	PUBLIC	promptdat_yr		;AN000;
+	PUBLIC	pausemes_ptr
+	PUBLIC	pipeEmes_ptr
+	PUBLIC	promptdat_moday
+	PUBLIC	promptdat_ptr
+	PUBLIC	promptdat_yr
 	PUBLIC	PROMPT_TABLE
 	PUBLIC	PROMPT_TEXT
-	PUBLIC	promtim_hr_min		;AN000;
-	PUBLIC	promtim_ptr		;AN000;
-	PUBLIC	promtim_sec_hn		;AN000;
-	PUBLIC	renerr_ptr		;AN000;
-	PUBLIC	SLASH_P_SYN		;AN000;
+	PUBLIC	promtim_hr_min
+	PUBLIC	promtim_ptr
+	PUBLIC	promtim_sec_hn
+	PUBLIC	renerr_ptr
+	PUBLIC	SLASH_P_SYN
 	PUBLIC	SLASH_P_SWITCH
-	PUBLIC	string_buf_ptr		;AN000;
-	PUBLIC	suremes_ptr		;AN000;
+	PUBLIC	string_buf_ptr
+	PUBLIC	suremes_ptr
 	PUBLIC	switch_list
-	PUBLIC	syntmes_ptr		;AN000;
-	PUBLIC	tab_ptr 		;AN000;
+	PUBLIC	syntmes_ptr
+	PUBLIC	tab_ptr
 	PUBLIC	TRANDATAEND
-	PUBLIC	usadat_ptr		;AN000;
-	PUBLIC	verimes_ptr		;AN000;
-	PUBLIC	vermes_ptr		;AN000;
-	PUBLIC	volmes_ptr		;AN000;
-	PUBLIC	volmes_ptr_2		;AN000;
-	PUBLIC	volsermes_ptr		;AN000;
+	PUBLIC	usadat_ptr
+	PUBLIC	verimes_ptr
+	PUBLIC	vermes_ptr
+	PUBLIC	volmes_ptr
+	PUBLIC	volmes_ptr_2
+	PUBLIC	volsermes_ptr
 	PUBLIC	WEEKTAB
-	PUBLIC	xa_cp			;AN030;
+	PUBLIC	xa_cp
 
 INCLUDE tranmsg.asm
 
@@ -353,7 +344,7 @@ COMTAB	DB	3,"DIR",fSwitchAllowed+fCheckDrive
 	DB	3,"CLS",fSwitchAllowed
 	DW	OFFSET TRANGROUP:CLS		; In TCMD2.ASM
 	DB	8,"TRUENAME",fSwitchAllowed+fCheckDrive  ;AN000; P3903 changed
-	DW	OFFSET TRANGROUP:TRUENAME	;AN000;
+	DW	OFFSET TRANGROUP:TRUENAME
 	DB	0				; Terminate command table
 
 
@@ -365,7 +356,7 @@ switch_list	DB	"YVBAPW"                ; flags we can recognize
 
 
 XA_cp	Label	  byte				;AN030; list for one extended attribute
-	DW	  1				;AN030;
+	DW	  1
 	DB	  EAISBINARY			;AN030; type
 	DW	  EASYSTEM			;AN030; flags
 	DB	  2				;AN030; name length
@@ -397,11 +388,11 @@ NO_VALUES	DW	0			;AN000;  no values
 ; PARSE control block for a required file specification (upper cased)
 ;
 
-FILE_REQUIRED	LABEL	BYTE			;AN000;
+FILE_REQUIRED	LABEL	BYTE
 		DW	0200H			;AN000;  filespec - required
 		DW	1			;AN000;  capitalize - file table
 		DW	TRANGROUP:PARSE1_OUTPUT ;AN000;  result buffer
-		DW	TRANGROUP:NO_VALUES	;AN000;
+		DW	TRANGROUP:NO_VALUES
 		DB	0			;AN000;  no keywords
 
 ;
@@ -409,35 +400,35 @@ FILE_REQUIRED	LABEL	BYTE			;AN000;
 ; or drive number
 ;
 
-FILE_OPTIONAL	LABEL	BYTE			;AN000;
+FILE_OPTIONAL	LABEL	BYTE
 		DW	0301H			;AN000;  filespec or drive number
 						;	 optional
 		DW	1			;AN000;  capitalize - file table
 		DW	TRANGROUP:PARSE1_OUTPUT ;AN000;  result buffer
-		DW	TRANGROUP:NO_VALUES	;AN000;
+		DW	TRANGROUP:NO_VALUES
 		DB	0			;AN000;  no keywords
 
 ;
 ; PARSE control block for an optional file specification (upper cased)
 ;
 
-FILE_OPTIONAL2	LABEL	BYTE			;AN000;
+FILE_OPTIONAL2	LABEL	BYTE
 		DW	0201H			;AN000;  filespec or drive number
 						;	 optional
 		DW	1			;AN000;  capitalize - file table
 		DW	TRANGROUP:PARSE1_OUTPUT ;AN000;  result buffer
-		DW	TRANGROUP:NO_VALUES	;AN000;
+		DW	TRANGROUP:NO_VALUES
 		DB	0			;AN000;  no keywords
 
 ;
 ; PARSE control block for an optional /P switch
 ;
 
-SLASH_P_SWITCH	LABEL	BYTE			;AN000;
+SLASH_P_SWITCH	LABEL	BYTE
 		DW	0			;AN000;  no match flags
 		DW	2			;AN000;  capitalize - char table
 		DW	TRANGROUP:PARSE1_OUTPUT ;AN000;  result buffer
-		DW	TRANGROUP:NO_VALUES	;AN000;
+		DW	TRANGROUP:NO_VALUES
 		DB	1			;AN000;  1 keyword
 SLASH_P_SYN	DB	"/P",0                  ;AN000;  /P switch
 
@@ -453,25 +444,25 @@ SLASH_P_SYN	DB	"/P",0                  ;AN000;  /P switch
 ; internal commands.
 ;
 
-PARSE_BREAK	LABEL	BYTE			;AN000;
-		DW	TRANGROUP:BREAK_PARMS	;AN000;
+PARSE_BREAK	LABEL	BYTE
+		DW	TRANGROUP:BREAK_PARMS
 		DB	0			;AN032; no extra delimiter
 
-BREAK_PARMS	LABEL	BYTE			;AN000;
+BREAK_PARMS	LABEL	BYTE
 		DB	0,1			;AN000;  1 positional parm
-		DW	TRANGROUP:BREAK_CONTROL1;AN000;
+		DW	TRANGROUP:BREAK_CONTROL1
 		DB	0			;AN000;  no switches
 		DB	0			;AN000;  no keywords
 
-BREAK_CONTROL1	LABEL	BYTE			;AN000;
+BREAK_CONTROL1	LABEL	BYTE
 		DW	2001H			;AN000;  string value - optional
 		DW	2			;AN000;  capitalize - char table
 		DW	TRANGROUP:PARSE1_OUTPUT ;AN000;  result buffer
-		DW	TRANGROUP:BREAK_VALUES	;AN000;
+		DW	TRANGROUP:BREAK_VALUES
 		DB	0			;AN000;  no keywords
 
-BREAK_VALUES	LABEL	BYTE			;AN000;
-		DB	3			;AN000;
+BREAK_VALUES	LABEL	BYTE
+		DB	3
 		DB	0			;AN000;  no ranges
 		DB	0			;AN000;  no numeric values
 		DB	2			;AN000;  2 string values
@@ -480,8 +471,8 @@ BREAK_VALUES	LABEL	BYTE			;AN000;
 		DB	'f'                     ;AN000;  returned if OFF
 		DW	TRANGROUP:BREAK_OFF	;AN000;  point to OFF string
 
-BREAK_ON	DB	"ON",0                  ;AN000;
-BREAK_OFF	DB	"OFF",0                 ;AN000;
+BREAK_ON	DB	"ON",0
+BREAK_OFF	DB	"OFF",0
 
 ;
 ; PARSE BLOCK FOR CHCP
@@ -493,28 +484,28 @@ BREAK_OFF	DB	"OFF",0                 ;AN000;
 ; Returns verified result in PARSE1_OUTPUT.  Currently used for the
 ; CHCP internal command.
 ;
-CHCP_MINVAL	EQU	100			;AN000;
-CHCP_MAXVAL	EQU	999			;AN000;
+CHCP_MINVAL	EQU	100
+CHCP_MAXVAL	EQU	999
 
-PARSE_CHCP	LABEL	BYTE			;AN000;
-		DW	TRANGROUP:CHCP_PARMS	;AN000;
+PARSE_CHCP	LABEL	BYTE
+		DW	TRANGROUP:CHCP_PARMS
 		DB	0			;AN000;  no extra delimiter
 
-CHCP_PARMS	LABEL	BYTE			;AN000;
+CHCP_PARMS	LABEL	BYTE
 		DB	0,1			;AN000;  1 positional parm
-		DW	TRANGROUP:CHCP_CONTROL1 ;AN000;
+		DW	TRANGROUP:CHCP_CONTROL1
 		DB	0			;AN000;  no switches
 		DB	0			;AN000;  no keywords
 
-CHCP_CONTROL1	LABEL	BYTE			;AN000;
+CHCP_CONTROL1	LABEL	BYTE
 		DW	8001H			;AN000;  numeric value - optional
 		DW	0			;AN000;  no function flags
 		DW	TRANGROUP:PARSE1_OUTPUT ;AN000;  result buffer
-		DW	TRANGROUP:CHCP_VALUES	;AN000;
+		DW	TRANGROUP:CHCP_VALUES
 		DB	0			;AN000;  no keywords
 
-CHCP_VALUES	LABEL	BYTE			;AN000;
-		DB	1			;AN000;
+CHCP_VALUES	LABEL	BYTE
+		DB	1
 		DB	1			;AN000;  1 range
 		DB	1			;AN000;  returned if result
 		DD	CHCP_MINVAL,CHCP_MAXVAL ;AN000;  minimum & maximum value
@@ -532,21 +523,21 @@ CHCP_VALUES	LABEL	BYTE			;AN000;
 ; result in DATE_OUTPUT.  Currently used for the DATE internal command.
 ;
 
-PARSE_DATE	LABEL	BYTE			;AN000;
-		DW	TRANGROUP:DATE_PARMS	;AN000;
+PARSE_DATE	LABEL	BYTE
+		DW	TRANGROUP:DATE_PARMS
 		DB	0			;AN000;  no extra delimiter
 
-DATE_PARMS	LABEL	BYTE			;AN000;
+DATE_PARMS	LABEL	BYTE
 		DB	0,1			;AN000;  1 positional parm
-		DW	TRANGROUP:DATE_CONTROL1 ;AN000;
+		DW	TRANGROUP:DATE_CONTROL1
 		DB	0			;AN000;  no switches
 		DB	0			;AN000;  no keywords
 
-DATE_CONTROL1	LABEL	BYTE			;AN000;
+DATE_CONTROL1	LABEL	BYTE
 		DW	1001H			;AN000;  date - optional
 		DW	0			;AN000;  no function flags
 		DW	TRANGROUP:DATE_OUTPUT	;AN000;  result buffer
-		DW	TRANGROUP:NO_VALUES	;AN000;
+		DW	TRANGROUP:NO_VALUES
 		DB	0			;AN000;  no keywords
 
 ;
@@ -559,21 +550,21 @@ DATE_CONTROL1	LABEL	BYTE			;AN000;
 ; result in TIME_OUTPUT.  Currently used for the TIME internal command.
 ;
 
-PARSE_TIME	LABEL	BYTE			;AN000;
-		DW	TRANGROUP:TIME_PARMS	;AN000;
+PARSE_TIME	LABEL	BYTE
+		DW	TRANGROUP:TIME_PARMS
 		DB	0			;AN000;  no extra delimiter
 
-TIME_PARMS	LABEL	BYTE			;AN000;
+TIME_PARMS	LABEL	BYTE
 		DB	0,1			;AN000;  1 positional parm
-		DW	TRANGROUP:TIME_CONTROL1 ;AN000;
+		DW	TRANGROUP:TIME_CONTROL1
 		DB	0			;AN000;  no switches
 		DB	0			;AN000;  no keywords
 
-TIME_CONTROL1	LABEL	BYTE			;AN000;
+TIME_CONTROL1	LABEL	BYTE
 		DW	0801H			;AN000;  TIME - optional
 		DW	0			;AN000;  no function flags
 		DW	TRANGROUP:TIME_OUTPUT	;AN000;  result buffer
-		DW	TRANGROUP:NO_VALUES	;AN000;
+		DW	TRANGROUP:NO_VALUES
 		DB	0			;AN000;  no keywords
 
 
@@ -588,21 +579,21 @@ TIME_CONTROL1	LABEL	BYTE			;AN000;
 ; internal command.
 ;
 
-PARSE_VOL	LABEL	BYTE			;AN000;
-		DW	TRANGROUP:VOL_PARMS	;AN000;
+PARSE_VOL	LABEL	BYTE
+		DW	TRANGROUP:VOL_PARMS
 		DB	0			;AN000;  no extra delimiter
 
-VOL_PARMS	LABEL	BYTE			;AN000;
+VOL_PARMS	LABEL	BYTE
 		DB	0,1			;AN000;  1 positional parm
-		DW	TRANGROUP:DRIVE_CONTROL1;AN000;
+		DW	TRANGROUP:DRIVE_CONTROL1
 		DB	0			;AN000;  no switches
 		DB	0			;AN000;  no keywords
 
-DRIVE_CONTROL1	LABEL	BYTE			;AN000;
+DRIVE_CONTROL1	LABEL	BYTE
 		DW	0101H			;AN000;  DRIVE - optional
 		DW	1			;AN000;  capitalize - file table
 		DW	TRANGROUP:DRIVE_OUTPUT	;AN000;  result buffer
-		DW	TRANGROUP:NO_VALUES	;AN000;
+		DW	TRANGROUP:NO_VALUES
 		DB	0			;AN000;  no keywords
 
 
@@ -617,13 +608,13 @@ DRIVE_CONTROL1	LABEL	BYTE			;AN000;
 ; for the MKDIR, RMDIR, and TYPE internal commands.
 ;
 
-PARSE_MRDIR	LABEL	BYTE			;AN000;
-		DW	TRANGROUP:MRDIR_PARMS	;AN000;
+PARSE_MRDIR	LABEL	BYTE
+		DW	TRANGROUP:MRDIR_PARMS
 		DB	0			;AN000;  no extra delimiter
 
-MRDIR_PARMS	LABEL	BYTE			;AN000;
+MRDIR_PARMS	LABEL	BYTE
 		DB	1,1			;AN000;  1 positional parm
-		DW	TRANGROUP:FILE_REQUIRED ;AN000;
+		DW	TRANGROUP:FILE_REQUIRED
 		DB	0			;AN000;  no switches
 		DB	0			;AN000;  no keywords
 
@@ -638,13 +629,13 @@ MRDIR_PARMS	LABEL	BYTE			;AN000;
 ; for the CHDIR and TRUENAME internal commands.
 ;
 
-PARSE_CHDIR	LABEL	BYTE			;AN000;
-		DW	TRANGROUP:CHDIR_PARMS	;AN000;
+PARSE_CHDIR	LABEL	BYTE
+		DW	TRANGROUP:CHDIR_PARMS
 		DB	0			;AN000;  no extra delimiter
 
-CHDIR_PARMS	LABEL	BYTE			;AN000;
+CHDIR_PARMS	LABEL	BYTE
 		DB	0,1			;AN000;  1 positional parm
-		DW	TRANGROUP:FILE_OPTIONAL ;AN000;
+		DW	TRANGROUP:FILE_OPTIONAL
 		DB	0			;AN000;  no switches
 		DB	0			;AN000;  no keywords
 
@@ -659,15 +650,15 @@ CHDIR_PARMS	LABEL	BYTE			;AN000;
 ; file specification is returned in PARSE1_OUTPUT.
 ;
 
-PARSE_ERASE	LABEL	BYTE			;AN000;
-		DW	TRANGROUP:ERASE_PARMS	;AN000;
+PARSE_ERASE	LABEL	BYTE
+		DW	TRANGROUP:ERASE_PARMS
 		DB	0			;AN000;  no extra delimiter
 
-ERASE_PARMS	LABEL	BYTE			;AN000;
+ERASE_PARMS	LABEL	BYTE
 		DB	1,1			;AN000;  1 positional parm
-		DW	TRANGROUP:FILE_REQUIRED ;AN000;
+		DW	TRANGROUP:FILE_REQUIRED
 		DB	1			;AN000;  1 switch
-		DW	TRANGROUP:SLASH_P_SWITCH;AN000;
+		DW	TRANGROUP:SLASH_P_SWITCH
 		DB	0			;AN000;  no keywords
 
 ;
@@ -681,14 +672,14 @@ ERASE_PARMS	LABEL	BYTE			;AN000;
 ; Currently used for the RENAME internal command.
 ;
 
-PARSE_RENAME	LABEL	BYTE			;AN000;
-		DW	TRANGROUP:RENAME_PARMS	;AN000;
+PARSE_RENAME	LABEL	BYTE
+		DW	TRANGROUP:RENAME_PARMS
 		DB	0			;AN000;  no extra delimiter
 
-RENAME_PARMS	LABEL	BYTE			;AN000;
+RENAME_PARMS	LABEL	BYTE
 		DB	2,2			;AN000;  2 positional parms
-		DW	TRANGROUP:FILE_REQUIRED ;AN000;
-		DW	TRANGROUP:FILE_REQUIRED ;AN000;
+		DW	TRANGROUP:FILE_REQUIRED
+		DW	TRANGROUP:FILE_REQUIRED
 		DB	0			;AN000;  no switches
 		DB	0			;AN000;  no keywords
 
@@ -703,32 +694,32 @@ RENAME_PARMS	LABEL	BYTE			;AN000;
 ; internal command.
 ;
 
-PARSE_CTTY	LABEL	BYTE			;AN000;
-		DW	TRANGROUP:CTTY_PARMS	;AN000;
+PARSE_CTTY	LABEL	BYTE
+		DW	TRANGROUP:CTTY_PARMS
 		DB	0			;AN000;  no extra delimiter
 
-CTTY_PARMS	LABEL	BYTE			;AN000;
+CTTY_PARMS	LABEL	BYTE
 		DB	1,1			;AN000;  1 positional parm
-		DW	TRANGROUP:CTTY_CONTROL1 ;AN000;
+		DW	TRANGROUP:CTTY_CONTROL1
 		DB	0			;AN000;  no switches
 		DB	0			;AN000;  no keywords
 
-CTTY_CONTROL1	LABEL	BYTE			;AN000;
+CTTY_CONTROL1	LABEL	BYTE
 		DW	2000H			;AN000;  string value - required
 		DW	11H			;AN000;  capitalize - file table
 						;AN000;  remove colon at end
 		DW	TRANGROUP:PARSE1_OUTPUT ;AN000;  result buffer
-		DW	TRANGROUP:NO_VALUES	;AN000;
+		DW	TRANGROUP:NO_VALUES
 		DB	0			;AN000;  no keywords
 
 TRANDATA	ENDS
 
-TRANCODE	SEGMENT PUBLIC BYTE		;AN000;
+TRANCODE	SEGMENT PUBLIC BYTE
 
 .xlist
 .xcref
 
-INCLUDE SYSMSG.INC				;AN000;
+INCLUDE SYSMSG.INC
 
 .list
 .cref
@@ -741,7 +732,7 @@ MSG_SERVICES <COMT,COMMAND.CLF,COMMAND.CL1,COMMAND.CL2> ;AN000; The transient me
 
 include msgdcl.inc
 
-TRANCODE	ENDS				;AN000;
+TRANCODE	ENDS
 
 TRANDATA	SEGMENT PUBLIC BYTE
 
@@ -753,6 +744,6 @@ RE_OUTSTR	DB	PIPE_OUTPUT_PATH_BYTES DUP (0)	; path restored after EXEC
 
 TRANDATAEND	LABEL	BYTE
 
-TRANDATA	ENDS				;AN000;
+TRANDATA	ENDS
 
 	END

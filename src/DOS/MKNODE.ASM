@@ -1,4 +1,3 @@
-;       SCCSID = @(#)mknode.asm 1.5 85/08/29
 TITLE   MKNODE - Node maker
 NAME    MKNODE
 ; Low level routines for making a new local file system node
@@ -13,14 +12,6 @@ NAME    MKNODE
 ;   DOOPEN
 ;   RENAME_MAKE
 ;   CHECK_VIRT_OPEN
-;
-;   Revision history:
-;
-;    AN000  version 4.0  Jan. 1988
-;    A004   PTM 3680  --- Make SFT NAME field offset same as 3.30
-
-;
-; get the appropriate segment definitions
 ;
 .xlist
 include dosseg.asm
@@ -58,12 +49,12 @@ include devsym.inc
         i_need  VIRTUAL_OPEN
         I_need  FastOpen_Ext_info,BYTE        ; DOS 3.3
         I_need  FastOpenFlg,BYTE              ; DOS 3.3
-        I_need  CPSWFLAG,BYTE                 ;FT. DOS 3.4                      ;AN000;
-        I_need  EXTOPEN_ON,BYTE               ;FT. DOS 3.4                      ;AN000;
-        I_need  EXTOPEN_FLAG,WORD             ;FT. DOS 3.4                      ;AN000;
-        I_need  EXTOPEN_IO_MODE,WORD          ;FT. DOS 3.4                      ;AN000;
-        I_need  HIGH_SECTOR,WORD              ;>32mb                            ;AN000;
-        I_need  ACT_PAGE,WORD                 ;>32mb                            ;AN000;
+        I_need  CPSWFLAG,BYTE                 ;FT. DOS 3.4
+        I_need  EXTOPEN_ON,BYTE               ;FT. DOS 3.4
+        I_need  EXTOPEN_FLAG,WORD             ;FT. DOS 3.4
+        I_need  EXTOPEN_IO_MODE,WORD          ;FT. DOS 3.4
+        I_need  HIGH_SECTOR,WORD              ;>32mb
+        I_need  ACT_PAGE,WORD                 ;>32mb
 
 Break   <BUILDDIR,NEWDIR -- ALLOCATE DIRECTORIES>
 
@@ -170,9 +161,9 @@ GET_SSIZE:
 EVENZ:
         POP     DI
 
-        TEST    ES:[DI.buf_flags],buf_dirty  ;LB. if already dirty              ;AN000;
-        JNZ     yesdirty                  ;LB.    don't increment dirty count   ;AN000;
-        invoke  INC_DIRTY_COUNT           ;LB.                                  ;AN000;
+        TEST    ES:[DI.buf_flags],buf_dirty  ;LB. if already dirty
+        JNZ     yesdirty                  ;LB.    don't increment dirty count
+        invoke  INC_DIRTY_COUNT           ;LB.
         OR      ES:[DI.buf_flags],buf_dirty
 yesdirty:
         POP     ES
@@ -307,14 +298,14 @@ make_err_ret:
 
 make_type:
 ;Extended Open hooks
-        TEST   [EXTOPEN_ON],ext_open_on  ;FT. from extended open                ;AN000;
-        JZ     make_type2                ;FT. no                                ;AN000;
-        OR     [EXTOPEN_ON],ext_file_not_exists ;FT. set for extended open      ;AN000;
-        TEST   [EXTOPEN_FLAG],0F0H       ;FT. not exists and fails              ;AN000;
-        JNZ    make_type2                ;FT. no                                ;AN000;
-        STC                              ;FT. set carry                         ;AN000;
-        MOV    AX,7                      ;FT. file not found                    ;AN000;
-        return                           ;FT.                                   ;AN000;
+        TEST   [EXTOPEN_ON],ext_open_on  ;FT. from extended open
+        JZ     make_type2                ;FT. no
+        OR     [EXTOPEN_ON],ext_file_not_exists ;FT. set for extended open
+        TEST   [EXTOPEN_FLAG],0F0H       ;FT. not exists and fails
+        JNZ    make_type2                ;FT. no
+        STC                              ;FT. set carry
+        MOV    AX,7                      ;FT. file not found
+        return                           ;FT.
 make_type2:
 ;Extended Open hooks
         LES     DI,[THISSFT]
@@ -404,9 +395,9 @@ make_new:
         LES     DI,CurBuf
         MOV     BYTE PTR ES:[BX],0E5H   ; nuke newly created entry.
 
-        TEST    ES:[DI.buf_flags],buf_dirty  ;LB. if already dirty              ;AN000;
-        JNZ     yesdirty2                 ;LB.    don't increment dirty count   ;AN000;
-        invoke  INC_DIRTY_COUNT           ;LB.                                  ;AN000;
+        TEST    ES:[DI.buf_flags],buf_dirty  ;LB. if already dirty
+        JNZ     yesdirty2                 ;LB.    don't increment dirty count
+        invoke  INC_DIRTY_COUNT           ;LB.
         OR      ES:[DI].buf_flags,buf_dirty ; flag buffer as dirty
 yesdirty2:
         LES     BP,ThisDPB
@@ -529,13 +520,13 @@ NOTVOLID:
         errnz   dir_attr-(dir_name+11)
         STOSB                   ; Attributes
 ;; File Tagging for Create DOS 4.00
-        MOV     CL,5            ;FT. assume normal                              ;AN000;
-;       CMP     [CPSWFLAG],0    ;FT. code page matching on                      ;AN000;
-;       JZ      NORMFT          ;FT. no, make null code page                    ;AN000;
-;       invoke  Get_Global_CdPg ;FT. get global code page                       ;AN000;
-;       STOSW                   ;FT. tag this file with global code page        ;AN000;
-;       DEC     CL              ;FT. only 4                                     ;AN000;
-;NORMFT:                        ;FT.                                            ;AN000;
+        MOV     CL,5            ;FT. assume normal
+;       CMP     [CPSWFLAG],0    ;FT. code page matching on
+;       JZ      NORMFT          ;FT. no, make null code page
+;       invoke  Get_Global_CdPg ;FT. get global code page
+;       STOSW                   ;FT. tag this file with global code page
+;       DEC     CL              ;FT. only 4
+;NORMFT:                        ;FT.
 
 ;; File Tagging for Create DOS 4.00
         XOR     AX,AX
@@ -559,9 +550,9 @@ updnxt:
         errnz   <(size dir_entry)-(dir_size_l+4)>
         MOV     SI,WORD PTR [CURBUF]
 
-        TEST    ES:[SI.buf_flags],buf_dirty  ;LB. if already dirty              ;AN000;
-        JNZ     yesdirty3                 ;LB.    don't increment dirty count   ;AN000;
-        invoke  INC_DIRTY_COUNT           ;LB.                                  ;AN000;
+        TEST    ES:[SI.buf_flags],buf_dirty  ;LB. if already dirty
+        JNZ     yesdirty3                 ;LB.    don't increment dirty count
+        invoke  INC_DIRTY_COUNT           ;LB.
         OR      ES:[SI.buf_flags],buf_dirty
 yesdirty3:
         LES     BP,[THISDPB]
@@ -587,16 +578,16 @@ yesdirty3:
 GotADevice:
         RestoreReg <DI,ES>
 
-        PUSH    [ACT_PAGE]      ;LB. save EMS page for curbuf                   ;AN000;
+        PUSH    [ACT_PAGE]      ;LB. save EMS page for curbuf
         invoke  FLUSHBUF
-        POP     BX              ;LB. restore EMS page for curbuf                ;AN000;
-        PUSHF                   ;LB. save flushbuf falg                         ;AN000;
+        POP     BX              ;LB. restore EMS page for curbuf
+        PUSHF                   ;LB. save flushbuf falg
         CMP     BX,-1           ;BL-NETWORK PTM #-?
         JE      Page_ok         ;BL-NETWORK PTM #-?
-        invoke  SET_MAP_PAGE    ;LB. remap curbuf                               ;AN000;
+        invoke  SET_MAP_PAGE    ;LB. remap curbuf
 Page_ok:                        ;BL-NETWORK PTM #-?
-        POPF                    ;LB. restore flush flag                         ;AN000;
-        Call    CHECK_VIRT_OPEN ; decrement ref. count                          ;AN000;
+        POPF                    ;LB. restore flush flag
+        Call    CHECK_VIRT_OPEN ; decrement ref. count
         POP     BX
         POP     AX
         POP     SI              ; Get SI input back
@@ -754,10 +745,10 @@ Not_FastOpen:
         POP     DS                      ; normal path
 ASSUME  DS:NOTHING
         MOV     SI,WORD PTR [CURBUF]    ; DS:SI->buffer header
-        MOV     AX,WORD PTR [SI.buf_sector]     ;F.C. >32mb                        ;AN000;
-        STOSW                   ; sf_dirsec     ;F.C. >32mb                        ;AN000;
-        MOV     AX,WORD PTR [SI.buf_sector+2]   ;F.C. >32mb                        ;AN000;
-        STOSW                   ; sf_dirsec     ;F.C. >32mb                        ;AN000;
+        MOV     AX,WORD PTR [SI.buf_sector]     ;F.C. >32mb
+        STOSW                   ; sf_dirsec     ;F.C. >32mb
+        MOV     AX,WORD PTR [SI.buf_sector+2]   ;F.C. >32mb
+        STOSW                   ; sf_dirsec     ;F.C. >32mb
         MOV     AX,BX
         ADD     SI,BUFINSIZ     ; DS:SI-> start of data in buffer
         SUB     AX,SI           ; AX = BX relative to start of sector
@@ -780,14 +771,14 @@ FILE_SFT2:
         REP     MOVSB           ; sf_name
         POP     SI              ; recover DS:SI -> dir_first
 ;; File tagging , code page and XA cluster must be after name
-;       MOV     AX,[BX.dir_CODEPG]       ;FT. set file's code page                 ;AN000;
-;       STOSW                            ;FT.                                      ;AN000;
-;       MOV     AX,[BX.dir_EXTCLUSTER]   ;FT. set XA cluster                       ;AN000;
-;       STOSW                            ;FT.                                      ;AN000;
-;       MOV     AX,[EXTOPEN_IO_MODE]     ;FT. extended open                        ;AN000;
-;       STOSW                            ;FT.                                      ;AN000;
-;       MOV     AL,[BX.dir_attr2]        ;FT. high attribute                       ;AN000;
-;       STOSB                            ;FT.                                      ;AN000;
+;       MOV     AX,[BX.dir_CODEPG]       ;FT. set file's code page
+;       STOSW                            ;FT.
+;       MOV     AX,[BX.dir_EXTCLUSTER]   ;FT. set XA cluster
+;       STOSW                            ;FT.
+;       MOV     AX,[EXTOPEN_IO_MODE]     ;FT. extended open
+;       STOSW                            ;FT.
+;       MOV     AL,[BX.dir_attr2]        ;FT. high attribute
+;       STOSB                            ;FT.
 
 ;; File tagging , code page and XA cluster must be after name
 
@@ -817,8 +808,8 @@ EndProc NEWENTRY
         LDS     DI,[CURBUF]
 ASSUME  DS:NOTHING
         MOV     CX,[SI]         ; Get pointer to clusters
-        MOV     DX,WORD PTR [DI.buf_sector+2]  ;F.C. >32mb                      ;AN000;
-        MOV     [HIGH_SECTOR],DX               ;F.C. >32mb                      ;AN000;
+        MOV     DX,WORD PTR [DI.buf_sector+2]  ;F.C. >32mb
+        MOV     [HIGH_SECTOR],DX               ;F.C. >32mb
         MOV     DX,WORD PTR [DI.buf_sector]
         POP     DS
         DOSAssume   CS,<DS>,"MKNODE/FreeEnt"
@@ -828,14 +819,14 @@ ASSUME  DS:NOTHING
         JA      RET1            ; Treat like zero length file (firclus mucked)
         SUB     BX,DI
         PUSH    BX              ; Save offset
-        PUSH    [HIGH_SECTOR]                  ;F.C. >32mb                      ;AN000;
+        PUSH    [HIGH_SECTOR]                  ;F.C. >32mb
         PUSH    DX              ; Save sector number
 
         MOV     BX,CX
-        invoke  Delete_FSeek    ; FS. delete Fastseek Clusters                  ;AN000;
+        invoke  Delete_FSeek    ; FS. delete Fastseek Clusters
         invoke  RELEASE         ; Free any data allocated
         POP     DX
-        POP     [HIGH_SECTOR]                  ;F.C. >32mb                      ;AN000;
+        POP     [HIGH_SECTOR]                  ;F.C. >32mb
         JNC     GET_BUF_BACK
         POP     BX
         return                  ; Screw up

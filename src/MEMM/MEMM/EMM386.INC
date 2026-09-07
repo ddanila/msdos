@@ -8,22 +8,8 @@
 ;
 ;	Module: EMM386.INC - general includes for MEMM
 ;
-;	Version: 0.02
-;
-;	Date:	May 25,1986
-;
-;	Author:
-;
 ;******************************************************************************
 ;
-;	Change Log:
-;
-;	DATE	 REVISION	Description
-;	-------- --------	--------------------------------------------
-;	04/25/86 Original
-;	06/28/86 0.02		Name change from MEMM386 to MEMM
-;
-;******************************************************************************
 ifndef INC_LIST
 .xlist
 endif

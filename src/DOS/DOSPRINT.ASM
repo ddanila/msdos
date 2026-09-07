@@ -1,14 +1,7 @@
-;	SCCSID = @(#)dosprint.asm	1.1 85/04/10
-;	SCCSID = @(#)dosprint.asm	1.1 85/04/10
 TITLE	DOSPRINT - PRINTF at DOS level
 NAME	DOSPRINT
 ;
 ;
-;   Modification history:
-;
-;	Created: MZ 16 June 1984
-;
-
 .xlist
 ;
 ; get the appropriate segment definitions

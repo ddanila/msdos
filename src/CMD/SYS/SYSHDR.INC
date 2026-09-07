@@ -57,76 +57,6 @@ BREAK   MACRO   subtitle	;JWASM: SYS lacks a BREAK def (was stripped by the WASM
 ;                         This has reqired a HARD CODED lower bound - DOS_low
 ;                         that is set in this file to 3.20
 ;
-; REVISION HISTORY: Ax000  Version 4.0  05/01/87 - first release             FG
-;                   Ax001          4.0  PTR P324                         D Love
-;                   Ax002          4.0  PTR P583                             FG
-;                   Ax003          4.0  DCR D4    - sys anything,anywhere    FG
-;                   Ax004          4.0  DCR D201  - extended arbib change    FG
-;                   Ax005          4.0  PTR P1334 - 1.2 MB + system  hang    FG
-;                   Ax006          4.0  PTR P1403 - BIO & DOS wrong spots    FG
-;                   Ax007          4.0  PTR P1404,5 - DIR search error       FG
-;                   Ax008          4.0  PTR P1406 - IOCTL to INT 21-69       FG
-;                   Ax009          4.0  PTR P1637 - full 720KB error         FG
-;                   Ax010          4.0  PTR P1764 - single file error        FG
-;                   Ax011          4.0  PTR P1772 - IBMBIO cluster chain     FG
-;                   Ax012          4.0  PTR P1710 - ASSIGN or SUBST invalid  FG
-;                   Ax013          4.0  PTR P1872 - ROOT restoration problem FG
-;                   Ax014          4.0  PTR P1884 - more ROOT problems       FG
-;                   Ax015          4.0  PTR P2165 - ROOT DIR above #100h sec.FG
-;                   Ax016          4.0  DCR D304  - change in BOOT.INC       FG
-;                   Ax017          4.0  PTR P2356 - HILDA error message      FG
-;                   Ax018          4.0  PTR P2769 - no system on default drv FG
-;                   Ax019          4.0  DCR D380  - run on current VER -1    FG
-;                   Ax020          4.0  PTR P3028 - run using PATHGEN        FG
-;                   Ax021          4.0  DCR D494  - add "source" & DOS 3.2   FG
-;                   Ax022          4.0  PTR P3728 - wrong network message    FG
-;                   Ax023          4.0  DCR D503  - Version is now 4.0       FG
-;                   Ax024          4.0  PTM P3905 - fix parse error format   FG
-;                   Ax025          4.0  PTM P4118 - fix message error        FG
-;
-; PRE-VERSION 4.0 HISTORY:
-;
-;   1.6     05/21/82    Added rev number message
-;   1.61    06/04/82    Allow SYS to blank disk TimP at SCP
-;   1.70    06/30/82    NON contiguous DOS allowed on 2.00 IBM.  Allows SYS to
-;                       1.0 1.1 disks.
-;   1.71    07/02/82    Put in CHDIRs to make sure everything done in root dir.
-;   1.80    04/26/83    MZ make sys work in small machines; use full 2.0
-;                       system calls
-;   1.81    07/22/83    ARR Added check in IBM version for valid FAT ID on
-;                       destination because of IBM problem with SYSing to
-;                       unformatted disks which are really formatted.  Prints
-;                       NoDest message for ridic IBM reasons, should have a
-;                       better message.
-;   1.82    08/12/83    ARR ZIBOed again.  Mark fails to check for errors on
-;                       his file I/O.  Results in SYS saying system
-;                       transferred when it hasn't been.
-;   1.83    09/08/83    EKE Added code to quit if sys called on a drive across
-;                       a net.
-;   1.84    09/09/83    CHRISP grabbed against his will to make this stupid
-;                       program write out a boot sector
-;   1.85    10/18/83    NP Printf to print messages and it's now an .EXE file
-;   1.86    11/8/83     MZ fix hard file output of boot sector
-;   1.87    5/1/84      MZ make sys prompt for system disk in default drive.
-;   3.20    11/9/84     RS make sys write out a correct boot sector for the
-;                       version of DOS. It grabs the boot sector off the system
-;                       disk and inserts the correct BPB.
-;                       Uses IOCTL Get Device Parms to get BPB for a Hard drive.
-;   3.20    08/5/85     RS Allow FAT ID byte of 0F0H for 'strange' media
-;                       layouts. These come about because of /T /N switches in
-;                       FORMAT.
-;   3.20    09/16/85    Incorporate tables of filenames to allow system files
-;                       used by other OEMs to be SYSed onto disks formatted on
-;                       other MSDOS systems. Allows the flexibility to replace
-;                       system files for one OEM by system files for another.
-;
-;
-;   3.30    06/04/86    MT removes initial check for IBMBIO and DOS - not needed
-;                       because of later search of dirs
-;   3.30    06/16/86    MT only force part of IBMBIO contig - do this by assuming
-;                       contig part smaller than 1.10 BIOS
-;   3.30    06/16/86    MT Check diks space for enough room to install BIO and DOS
-;
 ;     Label: "The DOS SHARE Utility"
 ;            "Version 4.00 (C) Copyright 1988 Microsoft
 ;            "Licenced Material - Program Property of Microsoft"
@@ -254,7 +184,7 @@ DGROUP  GROUP DATA
                                         ; constants
                                         ;--------------------------------------
 
-DOS_low                 equ  0300h + 20 ; 3 in high reg, 20 in low reg.        ;AN023;
+DOS_low                 equ  0300h + 20 ; 3 in high reg, 20 in low reg.
 not_used                equ  0          ; filler for INT 21's
 num_2_letter            equ  040h       ; turn dirve number to letter
 dev_local               equ  9          ; IOCtl - get device parameters

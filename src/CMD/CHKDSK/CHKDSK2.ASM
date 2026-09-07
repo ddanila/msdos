@@ -26,7 +26,7 @@ CONST	SEGMENT PUBLIC PARA 'DATA'
 	EXTRN  HIDMES:WORD,DIRMES:WORD,FILEMES:WORD,ORPHMES2:WORD
 	EXTRN  ORPHMES3:WORD,BADSPC:WORD,FRESPC:WORD
 	EXTRN  TOTMEM:WORD,FREMEM:WORD,REPORT_ARG:WORD,CRLF_ARG:WORD
-	EXTRN  RARG1:dWORD,RARG3:dWORD,ORPHCNT:dWORD		    ;an049;bgb
+	EXTRN  RARG1:dWORD,RARG3:dWORD,ORPHCNT:dWORD
 	EXTRN  SubstErr:BYTE
 	extrn  tot_bytes_lo:word, tot_bytes_hi:word
 
@@ -35,14 +35,14 @@ CONST	SEGMENT PUBLIC PARA 'DATA'
 	extrn	DOFIX:byte,DIRBUF:near,PARSTR:byte
 	extrn	NUL:byte,ERRSUB:word,ALLFILE:byte
 	extrn	ORPHFCB:byte,ORPHEXT:byte,HIDCNT:dword
-	extrn	HIDSIZ:word,FILCNT:dword,FILSIZ:word,DIRCNT:dword		 ;an049;bgb
-	extrn	DIRSIZ:word,CROSSCNT:dword,BADSIZ:word			     ;an049;bgb
-	extrn	ORPHSIZ:word						    ;an049;bgb
-	extrn	LCLUS:word						    ;an049;bgb
+	extrn	HIDSIZ:word,FILCNT:dword,FILSIZ:word,DIRCNT:dword
+	extrn	DIRSIZ:word,CROSSCNT:dword,BADSIZ:word
+	extrn	ORPHSIZ:word
+	extrn	LCLUS:word
 	extrn	USERDIR:byte,FRAGMENT:byte
 	extrn	ALLDRV:byte,FIXMFLG:byte,DIRCHAR:byte
-	extrn	EOFVAL:word						     ;an050;bgb
-	extrn	Idmes2:Byte,Idmes1:Byte,idmes3:byte				;an017;bgb
+	extrn	EOFVAL:word
+	extrn	Idmes2:Byte,Idmes1:Byte,idmes3:byte
 CONST	ENDS
 
 SUBTTL	Un-initialized Data
@@ -53,9 +53,9 @@ DATA	SEGMENT PUBLIC PARA 'DATA'
 	extrn	ISCROSS:byte,MCLUS:word,CSIZE:byte,SSIZE:word
 	extrn	DSIZE:word,ARG1:word,ARG_BUF:byte,ERRCNT:byte
 	extrn	USERDEV:byte,HARDCH:dword,CONTCH:dword
-	extrn	mem_size:word							;an055;bgb
-	extrn	psp_segment:word						;an030;bgb
-	extrn	write_fault:byte						;an045;bgb
+	extrn	mem_size:word
+	extrn	psp_segment:word
+	extrn	write_fault:byte
 DATA	ENDS
 
 CODE	SEGMENT PUBLIC PARA 'CODE'
@@ -79,7 +79,7 @@ ASSUME	CS:DG,DS:DG,ES:DG,SS:DG
 ;hav_eprint_arg:
 ;	 mov	 [file_arg1],dx
 ;	;mov	 dx,offset dg:file_arg
-;	 mov	 dx,file_arg			 ;Get offset of message 	 ;AC000;
+;	 mov	 dx,file_arg			 ;Get offset of message
 ;	 call	 printf_crlf
 ;	 mov	 byte ptr [nul_arg],0
 ;RET14:  ret
@@ -88,18 +88,18 @@ ASSUME	CS:DG,DS:DG,ES:DG,SS:DG
 EPrint:
 	call	CheckErr			;See if we should display msg
 	pathlabl chkdsk2
-;	$IF	Z				;Yes if Z set			;AC000;
+;	$IF	Z				;Yes if Z set
 	JNZ $$IF1
-	push	dx				;Save message			;AC000;
-	Message File_Arg			;Put out file in question	;AC000;
-	pop	dx				;Get back message		;AC000;
+	push	dx				;Save message
+	Message File_Arg			;Put out file in question
+	pop	dx				;Get back message
 	call	Printf_CRLF			;Print it
 	cmp	byte ptr [nul_arg],0		;Is there a second message?
-;	$IF	NZ				;Yes if not nul 		;AC000;
+;	$IF	NZ				;Yes if not nul
 	JZ $$IF2
-	mov	dx,File_Arg2			;Display it			;AN000;
-	call	Printf_CRLF			;				;AN000;
-;	$ENDIF					;				;AC000;
+	mov	dx,File_Arg2			;Display it
+	call	Printf_CRLF			;
+;	$ENDIF					;
 $$IF2:
 	mov	byte ptr [nul_arg],0		;Re-init this field
 ;	$ENDIF
@@ -176,28 +176,25 @@ find_done:				;
 
 
 DOINT26:
-;	PUSH	CX			;reg saves are handled in write_disk	;ac048;bgb;an045;bgb
-;	PUSH	DX			;reg saves are handled in write_disk	;ac048;bgb;an045;bgb
-;	PUSH	BX			;reg saves are handled in write_disk	;ac048;bgb;an045;bgb
-	call	Write_Disk		;					;an045;bgb;AC000;
-;	POP	BX			;reg saves are handled in write_disk	;ac048;bgb;an045;bgb
-;	POP	DX			;reg saves are handled in write_disk	;ac048;bgb;an045;bgb
-;	POP	CX			;reg saves are handled in write_disk	;ac048;bgb;an045;bgb
-;	JNC	RET23								;ac048;bgb;an045;bgb
-       ;MOV	SI,OFFSET DG:WRITING						;ac048;bgb;an045;bgb
-       ;CALL	DSKERR								;ac048;bgb;an045;bgb
-;      $IF	C								;ac048;bgb;an045;bgb
+;	PUSH	CX			;reg saves are handled in write_disk
+;	PUSH	DX			;reg saves are handled in write_disk
+;	PUSH	BX			;reg saves are handled in write_disk
+	call	Write_Disk		;
+;	POP	BX			;reg saves are handled in write_disk
+;	POP	DX			;reg saves are handled in write_disk
+;	POP	CX			;reg saves are handled in write_disk
+;	JNC	RET23
+       ;MOV	SI,OFFSET DG:WRITING
+       ;CALL	DSKERR
+;      $IF	C
        JNC $$IF7
-	   mov	   dx,offset dg:write_fault					;ac048;bgb;an045;bgb
-	   invoke  printf_crlf							;ac048;bgb;an045;bgb
-;      $ENDIF									;ac048;bgb;an045;bgb
+	   mov	   dx,offset dg:write_fault
+	   invoke  printf_crlf
+;      $ENDIF
 $$IF7:
-;										;ac048;bgb;ac048;bgb;an045;bgb
-;Need to handle 'Fail' option of critical error here.				;ac048;bgb;an045;bgb
-;										;ac048;bgb;an045;bgb
-										;ac048;bgb;an045;bgb
-;	JZ	DOINT26 							;ac048;bgb;an045;bgb
-RET23:	RET									;ac048;bgb;an045;bgb
+;Need to handle 'Fail' option of critical error here.
+;	JZ	DOINT26
+RET23:	RET
 
 
 
@@ -208,74 +205,74 @@ RET23:	RET									;ac048;bgb;an045;bgb
 REPORT:
 ;total disk space
     mov     bx,offset dg:dskspc
-    mov     dx,tot_bytes_hi		;total bytes   in disk		;AN006;bgb
-    mov     ax,tot_bytes_lo		;total bytes   in disk		;AN006;bgb
+    mov     dx,tot_bytes_hi		;total bytes   in disk
+    mov     ax,tot_bytes_lo		;total bytes   in disk
     xor     si,si			;no file count
     xor     di,di			;no file count
-    call    Report_Mes_2		;				;AN006;bgb
+    call    Report_Mes_2		;
 ;hidden files
-    mov     ax,hidsiz			;get cluster count		;an049;bgb
+    mov     ax,hidsiz			;get cluster count
     or	    ax,ax			;are there any hidden files?
-;   $IF     NZ				;yes				       ;AC000;
+;   $IF     NZ				;yes
     JZ $$IF9
-	mov	si,word ptr hidcnt	;si=low file count		    ;an049;bgb
-	mov	di,word ptr hidcnt+2	;di=hi file count		    ;an049;bgb
+	mov	si,word ptr hidcnt	;si=low file count
+	mov	di,word ptr hidcnt+2	;di=hi file count
 	mov	bx,offset dg:hidmes	;bx=msg ;
 	call	report_mes_1			;
-;   $ENDIF				    ;				    ;AC000;
+;   $ENDIF				    ;
 $$IF9:
 ;space in subdirectories
     mov     ax,dirsiz			;get cluster count
-    or	    ax,ax			;Are there any directories?    ;an049;bgb
-;   $IF     NZ				;yes				       ;AC000;
+    or	    ax,ax			;Are there any directories?
+;   $IF     NZ				;yes
     JZ $$IF11
-	mov	si,word ptr dircnt	;si=low file count		    ;an049;bgb
-	mov	di,word ptr dircnt+2	;di=hi file count		    ;an049;bgb
+	mov	si,word ptr dircnt	;si=low file count
+	mov	di,word ptr dircnt+2	;di=hi file count
 	mov	bx,offset dg:dirmes	;bx=msg
-	call	report_mes_1						    ;an049;bgb
-;   $ENDIF				    ;				    ;AC000;
+	call	report_mes_1
+;   $ENDIF				    ;
 $$IF11:
 ;user files
     mov     ax,filsiz			;get cluster count
-    or	    ax,ax			;Are there any user files?    ;an049;bgb
-;   $IF     NZ				;yes				       ;AC000;
+    or	    ax,ax			;Are there any user files?
+;   $IF     NZ				;yes
     JZ $$IF13
-	mov	si,word ptr filcnt	;si=lo file count		    ;an049;bgb
-	mov	di,word ptr filcnt+2	;di=hi file count		    ;an049;bgb
+	mov	si,word ptr filcnt	;si=lo file count
+	mov	di,word ptr filcnt+2	;di=hi file count
 	mov	bx,offset dg:filemes	;bx=msg
 	call	report_mes_1
-;   $ENDIF				    ;				    ;AC000;
+;   $ENDIF				    ;
 $$IF13:
 ;chains of lost clusters
     mov     ax,orphsiz			;get cluster count
-    or	    ax,ax			;Are there any lost clusters?	;an049;bgb
-;   $IF     NZ				;yes				       ;AC000;
+    or	    ax,ax			;Are there any lost clusters?
+;   $IF     NZ				;yes
     JZ $$IF15
 	mov	si,word ptr orphcnt	;si=lo file count
 	mov	di,word ptr orphcnt+2	;di=hi file count
 	cmp	dofix,0 		;/F entered?
-;	$IF	Z			;no				;AC000;
+;	$IF	Z			;no
 	JNZ $$IF16
 	    mov     bx,offset dg:orphmes3 ;bytes would be recovered
 ;	$else
 	JMP SHORT $$EN16
 $$IF16:
 	    mov     bx,offset dg:orphmes2 ;bytes were	recovered
-;	$ENDIF					;				;AC000;
+;	$ENDIF					;
 $$EN16:
 	call	report_mes_1
-;   $ENDIF				    ;				    ;AC000;
+;   $ENDIF				    ;
 $$IF15:
 ;clusters of bad spots
     mov     ax,badsiz			;get cluster count
     or	    ax,ax			;Are there any bad spots on disk?
-;   $IF     NZ				;if low word > zero, then yes	       ;AC000;
+;   $IF     NZ				;if low word > zero, then yes
     JZ $$IF20
 	xor	si,si			;no files to count
 	xor	di,di			;no files to count
 	mov	bx,offset dg:badspc		;Issue report
 	call	report_mes_1
-;   $ENDIF				    ;				    ;AC000;
+;   $ENDIF				    ;
 $$IF20:
 ;bytes on disk left - free space
 	mov	ax,[dsize]		;get total disk clusters
@@ -289,61 +286,61 @@ $$IF20:
 	xor	di,di
 	mov	bx,offset dg:frespc
 	call	report_mes_1		;Free space is whats left
-	call	docrlf				;				;AN000;
+	call	docrlf				;
 ;size of each allocation unit
-	xor	dx,dx				;Figure out cluster size	;AN000;
-	xor	ah,ah				;				;AN000;
-	mov	cx,SSize			;Bytes/sector * 		;AN000;
-	mov	al,CSize			; Sectors/cluster		;AN000;
-	mul	cx				; = Bytes/Cluster in AX 	;AN000;
-	mov	bx,offset dg:idmes2		;Allocation size message	;AN000;
+	xor	dx,dx				;Figure out cluster size
+	xor	ah,ah				;
+	mov	cx,SSize			;Bytes/sector *
+	mov	al,CSize			; Sectors/cluster
+	mul	cx				; = Bytes/Cluster in AX
+	mov	bx,offset dg:idmes2		;Allocation size message
 	xor	si,si
 	xor	di,di
-	call	Report_Mes_2			;				;AN000;
+	call	Report_Mes_2			;
 ;total clusters
-	mov	ax,Mclus			;Allocation units available	;AN000;
+	mov	ax,Mclus			;Allocation units available
 	dec	ax				;MCLUS is # clusters+1
-	xor	dx,dx				;				;AN000;
-	mov	bx,offset dg:idmes1		;				;AN000;
+	xor	dx,dx				;
+	mov	bx,offset dg:idmes1		;
 	xor	si,si
 	xor	di,di
-	call	Report_Mes_2			;				;AN000;
-;;;;;;;;call	docrlf			;					;an017;bgb
-;avail clusters 								;an017;bgb
+	call	Report_Mes_2			;
+;;;;;;;;call	docrlf			;
+;avail clusters
 public avail_clus
 avail_clus:
-	mov	ax,[dsize]		;total clusters on disk 		;an017;bgb
-	sub	ax,[dirsiz]		; - clusters in subdirs 		;an017;bgb
-	sub	ax,[filsiz]		; - user files				;an017;bgb
-	sub	ax,[hidsiz]		; - hidden files			;an017;bgb
-	sub	ax,[badsiz]		; - bad spots				;an017;bgb
-	sub	ax,[orphsiz]		; - lost clusters recovered					   ;an017;bgb
-	sub	ax,[lclus]		; - lost clusters not recovered 	;an017;bgb
-	mov	bx,offset dg:idmes3		;				;an017;bgb
-	xor	dx,dx				;				;AN017;bgb
+	mov	ax,[dsize]		;total clusters on disk
+	sub	ax,[dirsiz]		; - clusters in subdirs
+	sub	ax,[filsiz]		; - user files
+	sub	ax,[hidsiz]		; - hidden files
+	sub	ax,[badsiz]		; - bad spots
+	sub	ax,[orphsiz]		; - lost clusters recovered
+	sub	ax,[lclus]		; - lost clusters not recovered
+	mov	bx,offset dg:idmes3		;
+	xor	dx,dx				;
 	xor	si,si
 	xor	di,di
-	call	Report_Mes_2		;dont convert to bytes! 		;an017;bgb
-	call	docrlf								;an017;bgb
+	call	Report_Mes_2		;dont convert to bytes!
+	call	docrlf
 
 
 ;dcl Jan 8, 87 Compensate for RAM Carving - Start
 
 ramcarv:
-	push	es								;AN000;
-	xor	bx,bx								;AN000;
-	mov	ah,0c1h 		; return Ext'd Bios Data Seg Address    ;AN000;
-	int	15h								;AN000;
-;	$IF	NC			; ram carving exists if no carry	;AC000; 				;AN000;
+	push	es
+	xor	bx,bx
+	mov	ah,0c1h 		; return Ext'd Bios Data Seg Address
+	int	15h
+;	$IF	NC			; ram carving exists if no carry
 	JC $$IF22
 	   xor	   ax,ax		; zero out ax
-	   mov	   al,byte ptr es:[0]	; pointer to # of 1k blocks of RAM Carve;AN000;
-	   mov	   dx,64		; convert 1k blocks to paras		;AN000;
-	   mul	   dx								   ;AN000;
-	   mov	   bx,ax		   ; save value in BX			   ;AN000;
-;	$ENDIF					;				;AC000; 				;AN000;
+	   mov	   al,byte ptr es:[0]	; pointer to # of 1k blocks of RAM Carve
+	   mov	   dx,64		; convert 1k blocks to paras
+	   mul	   dx
+	   mov	   bx,ax		   ; save value in BX
+;	$ENDIF					;
 $$IF22:
-	pop	es								;AN000;
+	pop	es
 
 ;dcl Jan 8, 87 Compensate for RAM Carving - End
 
@@ -354,8 +351,8 @@ $$IF22:
 	mov	bx,offset dg:totmem
 	call	report_mes_2
 	mov	ax,[mem_size]
-;;;;;;; mov	dx,psp_segment							;an030;bgb
-	sub	ax,psp_segment							;an030;bgb
+;;;;;;; mov	dx,psp_segment
+	sub	ax,psp_segment
 	mov	dx,16
 	mul	dx
 	mov	bx,offset dg:fremem
@@ -432,15 +429,15 @@ report_mes_2:
 	mov	word ptr rarg3,si	;lo word of file count in si
 	mov	word ptr rarg3+2,di	;hi word of file count in di
 	mov	report_arg,bx		;Store the offset of the ctrl string
-	mov	dx,bx			;dx has ptr to msg for disp_interface  ;AC000;
+	mov	dx,bx			;dx has ptr to msg for disp_interface
 	call	printf_crlf		;print msg, then carraige return
 	ret
 
 PRINTF_CRLF:
-	call	display_interface   ;					    ;AC000;
+	call	display_interface   ;
 DOCRLF: mov	dx,offset dg:crlf_arg
-	call	Display_Interface	;Replace old printf call with SysDispMsg;AN000;
-	ret				;					;AN000;
+	call	Display_Interface	;Replace old printf call with SysDispMsg
+	ret				;
 
 
 	pathlabl chkdsk2

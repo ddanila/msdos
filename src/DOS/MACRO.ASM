@@ -1,4 +1,3 @@
-;	SCCSID = @(#)macro.asm	1.2 85/07/11
 TITLE	MACRO - Pathname and macro related internal routines
 NAME	MACRO
 ;
@@ -9,16 +8,6 @@ NAME	MACRO
 ;   GetVisDrv	    written
 ;   GetThisDrv	    written
 ;   GetCDSFromDrv   written
-;
-;   Revision history:
-;
-;	Created: MZ 4 April 1983
-;		 MZ 18 April 1983   Make TransFCB handle extended FCBs
-;		 AR 2 June 1983     Define/Delete macro for NET redir.
-;		 MZ 3 Nov 83	    Fix InitCDS to reset length to 2
-;		 MZ 4 Nov 83	    Fix NetAssign to use STRLEN only
-;		 MZ 18 Nov 83	    Rewrite string processing for subtree
-;				    aliasing.
 ;
 ;   MSDOS performs several types of name translation.  First, we maintain for
 ;   each valid drive letter the text of the current directory on that drive.
@@ -50,19 +39,6 @@ NAME	MACRO
 ;   the above translation and then converting the character back into a drive
 ;   number.
 ;
-;   curdir_list     STRUC
-;   curdir_text     DB	    DIRSTRLEN DUP (?) ; text of assignment and curdir
-;   curdir_flags    DW	    ?		    ; various flags
-;   curdir_devptr   DD	    ?		    ; local pointer to DPB or net device
-;   curdir_ID	    DW	    ?		    ; cluster of current dir (net ID)
-;		    DW	    ?
-;   curdir_end	    DW	    ?		    ; end of assignment
-;   curdir_list     ENDS
-;   curdir_netID    EQU     DWORD PTR curdir_ID
-;   ;Flag word masks
-;   curdir_isnet    EQU     1000000000000000B
-;   curdir_inuse    EQU     0100000000000000B
-;
 ;   There are two main entry points:  TransPath and TransFCB.  TransPath will
 ;   take a path and form the real text of the pathname with all .  and ..
 ;   removed.  TransFCB will translate an FCB into a path and then invoke
@@ -75,8 +51,6 @@ NAME	MACRO
 ;   A:/     \\foo\bar	    \\foo\bar\blech\bozo
 ;     ^ 	     ^		     ^
 ; A: -> d: /path/ path/ text
-;
-;   A000    version 4.00  Jan. 1988
 
 .xlist
 ;
@@ -142,29 +116,29 @@ BREAK <$AssignOper -- Set up a Macro>
 	procedure   $AssignOper,NEAR
 ASSUME	DS:NOTHING,ES:NOTHING
 
-	CMP	AL,7				      ; set in_use ?		;AN000;
-	JNZ	chk08				      ; no			;AN000;
-srinuse:									;AN000;
-	PUSH	AX				      ; save al 		;AN000;
-	MOV	AL,DL				      ; AL= drive id		;AN000;
-	CALL	GetCDSFromDrv			      ; ds:si -> cds		;AN000;
-	POP	AX				      ; 			;AN000;
-	JC	baddrv				      ; bad drive		;AN000;
-	CMP	WORD PTR [SI.curdir_devptr],0	      ; dpb ptr =0 ?		;AN000;
-	JZ	baddrv				      ;     no			;AN000;
-	CMP	AL,7				      ; set ?			;AN000;
-	JNZ	resetdrv			      ; no			;AN000;
-	OR	[SI.curdir_flags],curdir_inuse	      ; set in_use		;AN000;
-	JMP	SHORT okdone			      ; 			;AN000;
-resetdrv:									;AN000;
-	AND	[SI.curdir_flags],NOT curdir_inuse    ; reset in_use		;AN000;
-	JMP	SHORT okdone			      ; 			;AN000;
-baddrv: 									;AN000;
-	MOV	AX,error_invalid_drive		      ; error			;AN000;
-	JMP	SHORT ASS_ERR			      ; 			;AN000;
-chk08:										;AN000;
-	CMP	AL,8				      ; reset inuse ?		;AN000;
-	JZ	srinuse 			      ; yes			;AN000;
+	CMP	AL,7				      ; set in_use ?
+	JNZ	chk08				      ; no
+srinuse:
+	PUSH	AX				      ; save al
+	MOV	AL,DL				      ; AL= drive id
+	CALL	GetCDSFromDrv			      ; ds:si -> cds
+	POP	AX				      ;
+	JC	baddrv				      ; bad drive
+	CMP	WORD PTR [SI.curdir_devptr],0	      ; dpb ptr =0 ?
+	JZ	baddrv				      ;     no
+	CMP	AL,7				      ; set ?
+	JNZ	resetdrv			      ; no
+	OR	[SI.curdir_flags],curdir_inuse	      ; set in_use
+	JMP	SHORT okdone			      ;
+resetdrv:
+	AND	[SI.curdir_flags],NOT curdir_inuse    ; reset in_use
+	JMP	SHORT okdone			      ;
+baddrv:
+	MOV	AX,error_invalid_drive		      ; error
+	JMP	SHORT ASS_ERR			      ;
+chk08:
+	CMP	AL,8				      ; reset inuse ?
+	JZ	srinuse 			      ; yes
 
 	IF	(NOT INSTALLED) AND 0FFFFh
 	transfer NET_ASSOPER
@@ -349,7 +323,7 @@ Procedure   GetVisDrv,NEAR
 	TEST	[SI].curdir_flags,curdir_splice
 	RestoreReg  <SI,DS>
 	retz				; if not spliced, return OK
-	MOV	[DrvErr],error_invalid_drive ;IFS.				;AN000;
+	MOV	[DrvErr],error_invalid_drive ;IFS.
 	STC				; signal error
 	return
 EndProc GetVisDrv
@@ -400,7 +374,7 @@ GetBerr:
 	JNZ	notfat			;AN000;IFS. no
 GetBerr2:
 	MOV	AL,error_invalid_drive	;AN000;;IFS. invalid FAT drive
-notfat: 				;AN000;
+notfat:
 	MOV	[DrvErr],AL		;AN000;;IFS. save this for IOCTL
 	mov	[EXTERR_LOCUS],errLOC_UNK
 	STC

@@ -1,5 +1,3 @@
-;	SCCSID = @(#)dosmac.asm	1.1 85/04/10
-;	SCCSID = @(#)dosmac.asm	1.1 85/04/10
 ;
 ; Macro file for MSDOS.
 ;

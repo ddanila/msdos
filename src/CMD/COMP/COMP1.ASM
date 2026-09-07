@@ -144,21 +144,12 @@
 ;	 These modules must be linked in this order.  The load module is
 ;	 a COM file, to be converted to COM with EXE2BIN.
 ;
-; REVISION HISTORY:
-;	     AN000 Version 4.00: add PARSER, System Message Handler,
-;		  Add compare of code page extended attribute, if present.
-;
 ; COPYRIGHT: The following notice is found in the OBJ code generated from
 ;	     the "COMPSM.SAL" module:
 ;
 ;	     "The DOS COMP Utility"
 ;	     "Version 4.00 (C) Copyright 1988 Microsoft"
 ;	     "Licensed Material - Property of Microsoft"
-;
-;PROGRAM AUTHOR: Original written by: Dave L.
-;		 3.30 modifications by Russ W.
-;		 4.0  modifications by: Edwin M. K.
-;		 4.0  modifications by: Bill L.
 ;****************** END OF SPECIFICATIONS *****************************
 	PAGE
 ;	    $SALUT (4,13,18,36)
@@ -166,7 +157,7 @@
 		%OUT COMPONENT=COMP, MODULE=COMP1.ASM
 	    ENDIF
 
-CSEG	    segment PARA public  'CODE' ;AN000;
+CSEG	    segment PARA public  'CODE'
 	    assume cs:CSEG,ds:CSEG,es:CSEG,ss:CSEG ;AS SET BY DOS LOADER
 PSP_HEADER  EQU  $		   ;START OF PROGRAM SEGMENT PREFIX AREA
 	    org  02h

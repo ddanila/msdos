@@ -16,12 +16,6 @@
 ;;       Data Area is allocated in the KEYBI2F file and will be
 ;;       resident following initial installation.
 ;;
-;; Change History:
-;; ---------------
-;;
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                                       ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; SHARED_DATA_STR defines the initial fixed length portion of the
 ;; Shared Data Area.
