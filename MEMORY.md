@@ -101,6 +101,17 @@ Test real substitution/critical-error paths, reload and nested interruption befo
 releasing the old data. The other 285 bytes still need an ownership decision;
 this audit neither declares them all immovable nor completes BIOS placement.
 
+The formatter baseline now checks wrong-volume label/serial and character-device
+substitutions on both poisoned high and DOS-low layouts. A controlled AH=59h
+hook supplies the 16-byte volume record to real COMMAND INT 24h code; exact
+label padding, both hexadecimal serial halves and device-name output must match.
+The probe checks active layout/low MCB, foreign stack/segments, input-record guards
+and redirected handle restoration. Misbinding the serial high-word offset produces
+`ABCD-ABCD` instead of `1234-ABCD` and is detected. Evidence:
+`out/command-high-retirement-9nkb38pt/formatter-results.json`; reproduction is
+included in the whole-shell command above. This qualifies controlled formatter
+calls, not real wrong-volume media, nested interruption or an additional memory gain.
+
 **Pipeline reload contract:** PRESCAN must save the final output path and append
 flag before any external leg; LASTPIPE restores them to transient scratch only
 when opening final output. Keeping only canonicalized command text loses that

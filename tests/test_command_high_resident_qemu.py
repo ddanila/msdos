@@ -75,6 +75,56 @@ def check_pipelines(work, floppy, env, modes=("HIGH", "LOW")):
         assert after-before == {b"::/PIPE1.OUT", b"::/PIPE2.OUT", b"::/PIPE3.OUT"}, after-before
 
 
+def check_formatter_state(work, floppy, env, symbols):
+    results = []
+    for mode, negative in (("HIGH", False), ("LOW", False), ("HIGH", True)):
+        name = f"formatter-{mode}" + ("-wrong-offset" if negative else "")
+        probe = work / f"{name}.COM"
+        defines = [f"-DSHELL_HIGH_ACTIVE={symbols['shell_high_active']}",
+                   f"-DEXPECT_ACTIVE={int(mode == 'HIGH')}",
+                   f"-DEXPECT_LOW_PARAGRAPHS={(symbols['resident_catalog_start']+15)//16}"]
+        if negative:
+            defines.append(f"-DBAD_SERIAL_OFFSET={symbols['ERR15_OP_SEG2']-2}")
+        run(["nasm", "-f", "bin", *defines,
+             ROOT / "tests/command_formatter_state_probe.asm", "-o", probe])
+        disk = work / f"{name}.img"
+        shutil.copyfile(floppy, disk)
+        for source, destination in ((probe, "::FMTSTATE.COM"),
+                (ROOT / "out/command-startup-qexit.com", "::QEXIT.COM")):
+            run(["mcopy", "-o", "-i", disk, source, destination], env=env)
+        config = (f"DEVICE=A:\\HIMEM.SYS\r\nDOS={mode}\r\nBUFFERS=15\r\n"
+                  "SHELL=A:\\COMMAND.COM /P /F\r\n")
+        batch = ("@ECHO OFF\r\nCTTY AUX\r\nFMTSTATE.COM > STATE.OUT\r\n"
+                 "TYPE STATE.OUT\r\nECHO FORMATTER_CONTINUED\r\nQEXIT.COM\r\n")
+        for filename, contents in (("CONFIG.SYS", config), ("AUTOEXEC.BAT", batch)):
+            run(["mcopy", "-o", "-i", disk, "-", "::"+filename],
+                input=contents.encode("ascii"), env=env)
+        with (work / f"{name}.log").open("w") as log:
+            result = subprocess.run(["timeout", "30", "qemu-system-i386", "-display", "none",
+                "-monitor", "none", "-cpu", "486", "-m", "8", "-boot", "a",
+                "-drive", f"if=floppy,index=0,format=raw,file={disk}", "-serial", "stdio",
+                "-no-reboot", "-device", "isa-debug-exit,iobase=0xf4,iosize=0x04"],
+                stdout=log, stderr=log)
+        assert result.returncode == 33, (name, result.returncode)
+        serial = (work / f"{name}.log").read_text()
+        output = run(["mtype", "-i", disk, "::STATE.OUT"], env=env, capture_output=True).stdout
+        assert output == b"COMMAND_FORMATTER_STATE_PASS\r\n", (name, output, serial)
+        assert "FORMATTER_CONTINUED" in serial, (name, serial)
+        assert "General failure writing device FIXTURE " in serial, (name, serial)
+        assert serial.count("Abort, Fail?") == 2, (name, serial)
+        # The 11-character label is padded to the substitution's width of 12.
+        expected = "Please insert volume STATEVOL123  serial 1234-ABCD"
+        if negative:
+            assert expected not in serial, serial
+            assert "Please insert volume STATEVOL123  serial ABCD-ABCD" in serial, serial
+        else:
+            assert expected in serial, (name, serial)
+        results.append(dict(case=name, probe_sha256=sha(probe),
+                            serial_sha256=sha(work / f"{name}.log")))
+    (work / "formatter-results.json").write_text(json.dumps(dict(
+        input_floppy_sha256=sha(floppy), results=results), indent=2)+"\n")
+
+
 def check_entry_mutation(work, high, floppy, env, symbols):
     # Force a wrong owner without moving any entry/branch. Merely dropping the
     # CS prefix can accidentally work when incoming DS happens to be transient.
@@ -192,6 +242,7 @@ def main():
     for name in ("provider", "regions", "fallback", "high"):
         shutil.copyfile(ROOT / f"out/loadhigh-{name}.log", work / f"loadhigh-{name}.log")
     check_pipelines(work, floppy, env)
+    check_formatter_state(work, floppy, env, symbols)
     check_entry_mutation(work, high, floppy, env, symbols)
     probe = work / "CEILING.COM"
     run(["nasm", "-f", "bin", ROOT / "tests/memory_ceiling_probe.asm", "-o", probe])
