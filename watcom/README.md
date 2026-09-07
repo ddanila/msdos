@@ -1,4 +1,4 @@
-# Open Watcom V2 — Vendored Binaries
+# Vendored Open Watcom V2
 
 Pre-built host binaries from the project's
 [custom Open Watcom V2 fork](https://github.com/ddanila/open-watcom-v2/tree/custom),
@@ -30,25 +30,11 @@ and `f6699a32f53abc31888095790a58b9b95a477a38c864296d68872b44309e4721`.
 The remaining macOS tools and both unused OW `wasm` binaries come from the base
 release snapshot; production assembly uses the separately pinned custom JWasm.
 
-## Layout
+## Use
 
-| Directory         | Platform           | Extracted from |
-|-------------------|--------------------|----------------|
-| `bin/linux-x64/`  | Linux x86-64       | `binl64/` snapshot plus custom wcc/wlib/wlink |
-| `bin/macos-arm64/`| macOS Apple Silicon| `armo64/` snapshot plus custom WLINK |
-
-## Tools included
-
-| Binary  | Role                        | Replaces      |
-|---------|-----------------------------|---------------|
-| `wasm`  | Unused base-snapshot assembler | -          |
-| `wcc`   | 16-bit C compiler           | CL.EXE        |
-| `wlink` | Linker                      | LINK.EXE      |
-| `wlib`  | Library manager             | LIB.EXE       |
-
-The vendored 16-bit DOS runtime under `lib286/` includes the model-specific C
-libraries and `math87s.lib`, which Open Watcom links automatically for
-small-model programs that use floating-point arithmetic.
+`bin/linux-x64/` and `bin/macos-arm64/` contain the host tools selected by the
+parent repository's wrappers. Production uses `wcc`, `wlink`, and `wlib`;
+the included `wasm` binaries are unused. `lib286/` supplies the DOS C runtime.
 
 Host builds are deterministic within each pinned toolset, but independently
 built Linux GCC and macOS Clang host compilers do not promise byte-identical
@@ -67,11 +53,3 @@ Treat a refresh as a toolchain change, not a binary-copy operation:
    in this file;
 5. run focused adapter tests, pristine `-j1`/`-j4`/`-j8` builds, `make test`,
    deployment, and the applicable QEMU and 86Box matrices.
-
-The upstream snapshot extraction command, when needed, is:
-
-```sh
-tar -xJf ow-snapshot.tar.xz \
-  ./binl64/wasm ./binl64/wcc ./binl64/wlink ./binl64/wlib \
-  ./armo64/wasm ./armo64/wcc ./armo64/wlink ./armo64/wlib
-```

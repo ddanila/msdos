@@ -1,19 +1,22 @@
-# Local compatibility references
+# Compatibility references
 
-Copyrighted product manuals are kept in the git-ignored `.reference/`
-directory and are not redistributed by this repository.
+The retail English baselines are:
 
-The DOS 5 compatibility baseline is the 1991 Microsoft *MS-DOS 5.0 User's
-Guide and Reference*. Download it from the URL recorded in `DOS5_GAPS.md`, then
-extract searchable text with Ghostscript:
+- [MS-DOS 5.0 User's Guide and Reference (1991)](https://bitsavers.trailing-edge.com/pdf/microsoft/msdos_5/Microsoft_-_MS-DOS_5.0_Users_Guide_and_Reference_1991.pdf)
+- [MS-DOS Programmer's Reference (1991)](https://bitsavers.trailing-edge.com/pdf/microsoft/msdos_5/Microsoft_-_MS-DOS_Programmers_Reference_1991.pdf)
+- [MS-DOS 6.22 User's Guide (1994)](https://bitsavers.trailing-edge.com/pdf/microsoft/msdos_6.22/DOS_6.22_Users_Manual_1994.pdf)
+- [Archived DOS 6.22 Help](https://www.infania.net/misc/dos622help/)
+- [Supplemental Disk inventory, KB Q117600](https://ftp.zx.net.nz/pub/archive/ftp.microsoft.com/MISC/KB/en-us/117/600.HTM)
+
+Keep downloaded manuals in git-ignored `.reference/`; they are not redistributed.
+For searchable text, install Ghostscript, save the DOS 5 manual as
+`.reference/msdos5/users-guide.pdf`, then run:
 
 ```sh
-mkdir -p .reference/msdos5
 gs -q -dNOPAUSE -dBATCH -sDEVICE=txtwrite \
   -sOutputFile=.reference/msdos5/users-guide.txt \
   .reference/msdos5/users-guide.pdf
 ```
 
-Use the same process for the 1994 Microsoft *MS-DOS 6.22 User's Guide* linked
-from `DOS622_GAPS.md`, storing it as
-`.reference/msdos622/users-guide.{pdf,txt}`.
+Use `.reference/msdos622/users-guide.{pdf,txt}` for the DOS 6.22 manual.
+Genuine DOS and Windows media are external test inputs, not repository fixtures.

@@ -1,77 +1,51 @@
-# Emulator strategy
+# Emulator tests
 
-Local emulator results are authoritative while automatic CI is disabled.
-Emulators have distinct roles; a passing fast smoke test does not replace the
-machine model needed by a hardware contract.
-
-## Roles
+Local results are authoritative while automatic CI is paused. Choose the
+backend needed by the hardware contract; a command smoke test cannot qualify
+BIOS, A20, or protected-mode behavior.
 
 | Backend | Role |
 | --- | --- |
-| kvikdos | Fast deterministic command and utility behavior that does not need a complete PC. |
-| QEMU | Primary 80386-and-newer machine tests: boot, filesystems, drivers, TSRs, EMM386, interrupts, and multi-machine transports. |
-| 86Box | Authoritative IBM AT 80286 acceptance: real BIOS paths, A20/HMA, protected-mode block moves, fallback, and reboot. |
-| DOSBox-X | Fast 8086/286 comparison and smoke tests. Its synthesized 286 BIOS/protected-mode behavior is not sufficient as the sole oracle. |
-| MAME | Optional independent full-machine oracle when an 86Box result is disputed or stronger scripted timing is required. |
+| kvikdos | Fast command and utility tests without a complete PC. |
+| QEMU | Primary 386+ boot, filesystem, driver, TSR, interrupt, EMM386, and transport tests. |
+| 86Box | IBM AT 286 acceptance with a real BIOS: A20/HMA, block moves, fallback, CPU rejection, and reboot. |
+| DOSBox-X | Pre-386 comparison and smoke tests; synthesized BIOS behavior is insufficient as the sole 286 oracle. |
 
-PCem and Bochs currently offer no useful additional contract. Add another
-backend only when it closes a specific validation gap.
+MAME can provide an independent full-machine comparison when needed; it is not
+part of the maintained acceptance gate. Add backends only for a concrete gap.
 
-## 86Box reference machine
+## 286 acceptance
 
-Keep one versioned configuration for an IBM AT-class machine with:
-
-- an 80286 CPU;
-- a real AT BIOS from the separately installed 86Box ROM set;
-- enough extended memory to exercise HIMEM and BIOS block moves;
-- VGA text output;
-- a writable copy of the deployed FAT image; and
-- serial output captured to a private per-run file.
-
-86Box and its ROMs are test prerequisites, not distributable product
-artifacts. On macOS, install the emulator with:
+The suite uses the tracked [IBM AT configuration](tests/86box/ibmat-286.cfg).
+86Box 6.x and the IBM 5170 ROMs are external prerequisites. On macOS:
 
 ```sh
 brew install --cask 86box
 ```
 
-Use 86Box's normal ROM directory or set `ROM_PATH`. `EMU286` may select the
-binary. The suite must validate prerequisites and skip with a precise reason
-when they are absent.
+Set `BOX86_BIN` to the executable and `BOX86_ROMS` to the ROM-set directory
+when automatic discovery is insufficient. Binary discovery checks PATH and the
+macOS application; ROM discovery defaults to the macOS application-support
+path. Other installations should set `BOX86_ROMS` explicitly. Required ROM
+filenames and discovery rules are in [86box_286_lib.sh](tests/86box_286_lib.sh).
 
-Run the complete 286 acceptance gate with:
+After building, run:
 
 ```sh
-gmake test-286-acceptance
+FAIL_ON_SKIP=1 make test-286-acceptance
 ```
 
-The gate creates private images and logs, boots without UI interaction, waits
-for bounded serial completion, terminates the emulator, and leaves the
-canonical deployed image unchanged.
+Use `gmake` on macOS as described in [README.md](README.md). Missing prerequisites
+are reported as skips, or failures with `FAIL_ON_SKIP=1`. The suite uses private
+images, bounded serial completion, and disk-result checks; failure diagnostics
+are retained under `out/86box-286-failures/`.
 
-## 286 acceptance contract
+## Limits
 
-The current suite covers:
+The default 286 suite does not qualify opt-in composed memory layouts.
+Retest those with matched images and their own success/fallback probes; see
+[MEMORY.md](MEMORY.md).
 
-- clean IBM AT boot and DOS 6.22 identity;
-- BIOS `INT 15h/AH=87h` block movement and protected-mode return;
-- HIMEM installation, A20 ownership, HMA lifecycle, XMS moves, and warm reboot;
-- memory-stack behavior without 386-only EMM386 services;
-- safe 286 rejection by 386-only tools and MemMaker; and
-- fallback behavior for DEVICEHIGH and LOADHIGH when UMBs are unavailable.
-
-Any new hardware-sensitive 286 behavior should land in this gate and, where
-practical, receive a DOSBox-X comparison. QEMU remains the regression backend
-for 386-and-newer behavior.
-
-## Known limits
-
-DOSBox-X 2026.08.02 passes the focused HIMEM lifecycle, but the broader
-pre-386 boot image can stall before AUTOEXEC. Treat that as a backend
-limitation unless an independent full-machine emulator reproduces it.
-
-Emulation does not prove compatibility with every chipset or physical device.
-Unusual A20 controllers, shadow RAM, real Weitek hardware, physical storage
-controllers, and timing-sensitive peripherals remain explicit validation
-limits. Prefer agreement between independent full-machine emulators before
-changing hardware-facing code to accommodate a single backend.
+A DOSBox-X stall alone does not establish a product defect; compare a real-BIOS
+backend. Emulators do not prove every chipset, A20 controller, physical storage
+or printer device, Weitek coprocessor, or timing-sensitive peripheral.

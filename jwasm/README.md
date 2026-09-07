@@ -9,27 +9,17 @@ use the separate Open Watcom toolchain.
 | Item | Value |
 | --- | --- |
 | Branch | `ddanila/JWasm:custom` |
-| Required commit | `4c2f0a2f7440ca40a8cfa6718ac3ffd74ca1f9d9` |
-| Upstream base | 2026-07-01 snapshot, `7f6f32e` |
+| Pin | `REVISION` in [build.sh](build.sh) |
 | Supported hosts | Linux x86-64 and macOS arm64 |
 
-Upstream v2.20 is not an equivalent fallback. The custom revision supplies the
-MASM compatibility required by this source tree:
-
-- case-insensitive include lookup and structured-macro whitespace arguments;
-- PUBLIC-name casing and MASM-compatible explicit external OMF frames;
-- forward jump and conditional-branch sizing;
-- indexed structure-member sizing and scalar types through `EQU` aliases;
-- synchronized `.ALPHA` segment indices and saved fixup frames;
-- native macOS `alloca` support.
-
-These behaviors preserve the required layouts in KEYB, MODE, DISKCOMP, and
-SELECT without a generated source tree.
+Use the pinned custom assembler: upstream releases are not an equivalent
+fallback for this tree's MASM compatibility and linked-layout requirements.
 
 ## Build
 
 Host binaries are built locally and ignored by Git. The build script checks out
-the exact pin and installs the binary for the current platform:
+the exact pin and installs the binary for the current platform. From the repository
+root:
 
 ```sh
 ./jwasm/build.sh

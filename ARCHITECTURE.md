@@ -9,14 +9,14 @@ run DOS programs or proprietary Microsoft tools.
 | Role | Implementation |
 | --- | --- |
 | MASM-compatible assembly | pinned custom JWasm via `bin/jwasm-masm` |
-| 16-bit C compilation | vendored custom Open Watcom via `bin/wcc` |
-| OMF linking and libraries | vendored custom Open Watcom via `bin/wlink` and `bin/wlib` |
+| 16-bit C compilation | vendored Open Watcom via `bin/wcc` |
+| OMF linking and libraries | vendored Open Watcom via `bin/wlink` and `bin/wlib` |
 | Historical data/image tools | native programs and scripts under `bin/` |
 | Runtime testing | kvikdos for fast command tests; QEMU for 386+ machines; 86Box for real-BIOS 286 acceptance |
 
-Exact tool revisions and provenance are recorded in `jwasm/README.md` and
-`watcom/README.md`. The wrappers implement only the historical command-line
-surface used by this tree and reject unknown options.
+Tool pins and provenance are recorded in [jwasm/README.md](jwasm/README.md) and
+[watcom/README.md](watcom/README.md). The wrappers implement only the historical
+command-line surface used by this tree and reject unknown options.
 
 ## Retained compatibility operations
 
@@ -26,31 +26,30 @@ Some narrow transformations remain part of the build contract:
 - `exefix` changes requested MZ allocation fields;
 - `patch-bpb` writes deployment geometry into the boot sector;
 - `wlib` normalization clears nondeterministic archive timestamps;
-- `wcc` provides a temporary case-insensitive include view.
+- `wcc` provides a temporary case-insensitive include view;
+- COMMAND derives its critical-message layout with
+  `tools/layout_command_critical_catalog.py`.
 
-Focused tests constrain each operation. Do not broaden them into general
-post-processing or source rewriting. The production tree has no assembly
-shadow tree, generated-message rewriter, kernel entry patch, global MZ-header
-rewrite, or DOS-emulated build step.
+Keep these transformations narrow and covered by focused tests. Production
+assembly consumes the maintained source directly; experimental image builders
+under `tests/` have separate layout and mutation contracts.
 
 ## Memory architecture
 
-The kernel implements DOS 5 allocation strategies and conventional/UMB arena
-linking. SYSINIT acquires UMB extents through standard XMS, and the repository
-HIMEM/EMM386 pair provides XMS 3.00, HMA ownership, stable UMB mappings, and EMS
-isolation. `DOS=HIGH`, `DOS=UMB`, `DEVICEHIGH`, `INSTALLHIGH`, `LOADHIGH`/`LH`,
-and UMB-aware `MEM` use that shared model. See [MEMORY.md](MEMORY.md) for the
-invariants maintainers must preserve.
+DOS conventional/UMB allocation and the HIMEM/EMM386 memory services share an
+ownership model. The opt-in composed BIOS, COMMAND, and paired-provider layouts
+are under stabilization and need separate qualification from the default image.
+[MEMORY.md](MEMORY.md) records ownership and promotion constraints.
 
 ## Reproducibility and validation
 
-Production recipes are parallel-safe and keep temporary state private to each
-invocation. The release contract is:
+Builds must remain parallel-safe. Validate a release with:
 
 1. a pristine build with the pinned tools;
-2. byte-identical declared artifacts across `make -j1`, `-j4`, and `-j8`;
-3. `make test` with complete coverage manifests and no unexpected skips;
-4. `make deploy`;
+2. byte-identical declared artifacts across pristine `make -j1`, `-j4`, and `-j8`
+   builds on the same host/toolset;
+3. `FAIL_ON_SKIP=1 make test` with complete coverage manifests;
+4. `make deploy` and `make distribution` for installation media;
 5. the applicable QEMU and 86Box matrices for kernel, utilities, drivers,
    filesystems, and memory managers.
 

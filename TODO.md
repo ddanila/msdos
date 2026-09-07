@@ -1,26 +1,18 @@
 # Open work
 
-The complete product comparison and unsupported option surfaces are in
-[DOS622_GAPS.md](DOS622_GAPS.md). Current priorities are:
-
-1. implement retail-compatible DriveSpace, followed optionally by an explicit
-   extended format; and
-2. treat QBASIC/EDIT, AccessDOS, the Microsoft Network Client, and additional
+1. Stabilize and qualify the composed memory implementation before promotion;
+   see [MEMORY.md](MEMORY.md). Further memory optimization is deferred.
+2. Add missing `EGA.SYS` deletion-mutation evidence to
+   `tests/oracle_mutation_coverage.json`; the strict verifier currently rejects it.
+3. Implement retail-compatible DriveSpace, including compressed-volume support
+   throughout the system. An explicit extended format may follow.
+4. Treat QBASIC/EDIT, AccessDOS, the Microsoft Network Client, and additional
    DOS 6 locale packs as independent epics.
 
-MSBACKUP, MSAV, VSAFE, DOSSHELL, and Task Swapper are deliberate non-goals.
+[DOS622_GAPS.md](DOS622_GAPS.md) defines product scope and non-goals;
+[DOS5_GAPS.md](DOS5_GAPS.md) records inherited compatibility limits.
+[Windows 95 acceptance](tests/WINDOWS95-SETUP.md) describes the external-media
+checks and their remaining validation scope.
 
-Track the unresolved Windows 95 installer observations and isolated retest
-plan in [tests/WINDOWS95-SETUP.md](tests/WINDOWS95-SETUP.md): HIMEM/DOS=HIGH
-loader behavior and the pre-fix ScanDisk/source-directory damage observation.
-
-For every change, keep source-derived manifests complete and add focused
-success, failure, and state-transition contracts. Automatic CI remains paused;
-use local tests and the emulator roles in [EMULATION.md](EMULATION.md).
-
-Toolchain maintenance should update one pinned fork at a time and pass the
-applicable reproducibility and runtime gates. Remove a build adapter only after
-its replacement provides equivalent behavior.
-
-Commercial DOS binaries and derived content must not be committed. Genuine
-media may be used only as an external clean-room oracle.
+Use the local release gates in [ARCHITECTURE.md](ARCHITECTURE.md).
+Automatic CI remains paused. Completed work belongs in Git history.
