@@ -97,6 +97,30 @@ class OwnerTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             decode_rows(CAPTURE.replace("SUB 04CB", "SUB nope"))
 
+    def test_live_root_and_empty_upper_sft(self):
+        rows = decode_rows(CAPTURE + "SFT 011B 00DC 0005 0003 0009 \n"
+                           "SFT D100 0000 000F 0000 0000 \n")
+        self.assertEqual(sum(row[2] for row in rows["SFT"]), 20)
+        self.assertEqual(rows["SFT"][0][3:], [3, 9])
+
+    def test_invalid_sft_ownership_rejected(self):
+        for row in ("SFT 011B 00DC 0005 0006 0006 \n",
+                    "SFT 011B 00DC 0005 0003 0002 \n",
+                    "SFT 011B 00DC 0005 0000 0001 \n",
+                    "SFT FFFF FFFF 0005 0001 0001 \n",
+                    "SFT 011B 00DC 0005 0001 0001 \n" * 2):
+            with self.assertRaisesRegex(ValueError, "SFT"):
+                decode_rows(CAPTURE + row)
+
+    def test_hma_sft_is_not_a_low_memory_alias(self):
+        rows = decode_rows(CAPTURE + "SFT FFFF 00DC 0005 0004 000F \n")
+        self.assertEqual(rows["SFT"][0], [0xFFFF, 0xDC, 5, 4, 15])
+
+    def test_low_boot_can_report_same_table_twice(self):
+        rows = decode_rows(CAPTURE + "SFT 011B 00DC 0005 0004 000F \n"
+                           "LOWSFT 011B 00DC 0005 0004 000F \n")
+        self.assertEqual(rows["SFT"], rows["LOWSFT"])
+
 
 if __name__ == "__main__":
     unittest.main()

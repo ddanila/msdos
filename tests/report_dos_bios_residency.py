@@ -399,7 +399,7 @@ def main() -> int:
         ("SYSINIT pointers and resident device state", "SYSINITVAR", "HASHINITVAR"),
         ("Buffer and EMS initialization state", "HASHINITVAR", "JShare"),
         ("SHARE compatibility dispatch", "JShare", "MSCT001E"),
-        ("Bootstrap system file table", "CONST001S", "CARPOS"),
+        ("Initial five-slot SFT low image (live owner needs runtime census)", "CONST001S", "CARPOS"),
         ("Console input and editing buffers", "CARPOS", "PFLAG"),
         ("Global flags and network name", "PFLAG", "CritPatch"),
         ("Critical-section patch table", "CritPatch", "SWAP_START"),

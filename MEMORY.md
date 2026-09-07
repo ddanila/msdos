@@ -98,6 +98,32 @@ reads and retries, plus external-driver calls, without retaining another
 Continue the joint BIOS/COMMAND ownership decision rather than substituting
 that small retirement or unrelated qualification probes for the delivery gate.
 
+**Low-prefix duplication finding:** the initial 301-byte SFT is not proven
+live merely because its storage lies below `DOS_LOW_GATE_END`. In the current
+composition, AH=52h publishes `FFFF:00DC` (five slots, four occupied, 15
+references); the low image at `011B:00DC` still has one occupied slot and three
+references. The additional fifteen-slot table is at `CB02:0000`.
+`DOS_HMA_RELOCATE` redirects `sft_addr` in both data copies to HMA, and
+`TABLEUMB.INC` updates the additional-table link through that public root.
+
+The disposable-guest experiment overwrites all 301 low bytes with A5h. Public
+INT 2Fh/1220h and 1216h still resolve stdin into the initial HMA table; DUP and
+CLOSE increment/decrement its reference count while the low copy remains
+poisoned. Subsequent FCB I/O and return through COMMAND pass. Evidence:
+`out/system-owners-4bog9s0f/result.json` and `serial.log`; the read-only comparison
+is `out/system-owners-xf8oi94g/`. No installed binary or source image changes.
+
+Include this duplicate in the **joint retained-layout retirement**, not another
+copy mechanism or standalone table milestone. Removing its low storage still
+requires boot-console/cached-pointer, DOS-low fallback, SHARE/redirector and
+A20-off access qualification, followed by actual prefix packing and composed
+measurement. Its high copy already exists; do not automatically charge another
+301 HMA bytes. No memory saving is booked by this experiment.
+
+```sh
+python3 tests/capture_system_owners.py out/software-reboot-fix-wk9s16af/input.img --kernel src/DOS/MSDOS.SYS --dos-map src/DOS/MSDOS.MAP --poison-low-sft
+```
+
 #### Software-reboot ownership correction
 
 The preceding 624,624-byte candidate failed ordinary `INT 19h` with managers;
@@ -7088,7 +7114,9 @@ One UMB owner containing both existing marked allocations costs 1,200
 bytes including its MCB. Against the fixed 49,104-byte free-UMB baseline this
 leaves **47,904 bytes**, just 16 above the 47,888-byte floor. The development
 transaction now reclaims the complete 1,184-byte low span. The embedded first five SFT
-entries remain in the kernel prefix. This budget does not include LASTDRIVE.
+entries retain storage in the kernel prefix; the current runtime census above
+distinguishes that low image from the authoritative HMA table. This budget does
+not include LASTDRIVE.
 
 `TABLEUMB.INC`, enabled only with the development BIOS rebase build, runs after
 FCB initialization and before buffer allocation. Its transaction contract is:
