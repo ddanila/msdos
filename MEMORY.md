@@ -3,29 +3,41 @@
 This document records the durable HMA, UMB, XMS, and EMS constraints. Detailed
 delivery history belongs in Git; current evidence belongs in the test manifests.
 
-## Current architectural priority
+## Current priority: stabilization
 
-### Current checkpoint: complete owners, not paragraph targets
+**Decision:** the current memory result is good enough. Stabilize the existing
+composed implementation instead of pursuing more free conventional memory.
+This supersedes earlier optimization priorities and “next” relocation steps
+below; retain those as deferred design notes, not the active work queue.
 
-**Delivery gate:** the next memory achievement must retire superseded paths,
-pack retained allocations and demonstrate a real conventional-memory gain in
-the composed image. More routing/transport milestones do not meet this gate.
-Report UMB and application XMS costs alongside the gain. Complete BIOS and
-COMMAND placement still requires one shared HMA budget; it is not deferred
-by manager-interface progress.
+The working baseline is **625,888 bytes largest conventional block**, **47,936
+free UMB bytes** and **6,798,336 application XMS bytes** in the pinned comparison
+configuration. This is a regression reference, not a claim of production
+readiness or a hard ceiling on the memory cost of correctness fixes.
 
-The next delivery must include all four, in the same composed candidate:
+Stabilization work:
 
-1. A final BIOS/COMMAND ownership ledger separating mandatory low contracts,
-   high/upper owners and discarded initialization. Do not count already-retired
-   mirrors again or budget entire mixed census rows as movable code.
-2. Retirement of the superseded active-layout paths and storage, followed by
-   packing of the retained allocations. Preserve required inactive/failure
-   fallbacks; coexistence in the linked file is not necessarily live duplication.
-3. Paired largest-block, free-UMB, application-XMS and HMA measurements with
-   matching configuration and tools, charging every gateway and alignment cost.
-4. Local compatibility qualification of the resulting layout. Boundary probes
-   and diagnostic builds are supporting evidence, not memory achievements.
+1. Reproduce the composed build and measurements from matched sources, binaries
+   and configuration; distinguish the opt-in candidate from default builds.
+2. Fix correctness defects and qualify HIGH/LOW, allocation/publication rollback,
+   A20-off entry/return, interrupts, disk/media I/O, console editing, shell
+   reload/EXEC/pipes and software reboot on the composed image.
+3. Close or explicitly scope known compatibility gaps, including DBCS,
+   external drivers/hooks and supported emulator/hardware profiles. A focused
+   passing probe is not evidence of full compatibility.
+4. Use local regression runs for judgment; keep CI disabled until explicitly
+   requested otherwise. Record reproducible evidence and remaining limitations.
+
+Further BIOS state retirement, COMMAND relocation, HMA/UMB repacking and EBDA
+recovery are deferred unless needed to fix a demonstrated defect. Do not chase
+OpenDOS parity or isolated byte savings. Report memory changes alongside fixes;
+correctness takes precedence over preserving every byte of the baseline.
+
+Promotion requires repeatable builds, passing local tests for the declared
+support scope, and resolved or clearly documented remaining defects. No further
+memory gain or completion of the deferred optimization backlog is required.
+
+### Current measured checkpoint
 
 **Latest opt-in composed candidate:** **625,888 conventional / 47,936 free
 UMB / 6,798,336 application XMS bytes**, **7,152 above retail** and **7,952
@@ -369,9 +381,10 @@ make dos
 python3 tests/test_dos_char_retirement_qemu.py out/command-high-retirement-vj99uzvm/input-high.img out/dos-char-retirement.Ffw8gH/old-MSDOS.MAP
 ```
 
-**Next selection gate:** stop isolated table/paragraph harvesting after this
-completed owner. Resolve the remaining BIOS and COMMAND owners against the
-same shared budget, remove obsolete storage and measure their combined release.
+**Deferred optimization gate:** if memory optimization is explicitly resumed,
+resolve the remaining BIOS and COMMAND owners against the same shared budget,
+remove obsolete storage and measure their combined release. This is not a
+stabilization prerequisite.
 BIOS retains 2,368 low bytes; COMMAND's main allocation retains 432. These are allocations, not
 promised savings: BIOS request/ROM-return gates, public device/BDS pointers and
 DMA-facing storage need explicit low contracts. In particular, the census's
@@ -435,9 +448,9 @@ and inactive-layout readers, preserving their state contracts.
 `HIGHROM.INC` also retains distinct direct-interrupt, explicit-vector,
 mutable-vector, tail-chain and near-helper entry contracts. Similar return
 sequences do not prove that an entire gate is obsolete. No BIOS state or gate
-was retired by this audit, and no additional saving is booked. Resume with the
-remaining BIOS reader/lifetime decision against the joint ledger; do not
-restart COMMAND migration or pursue isolated epilogue/paragraph savings.
+was retired by this audit, and no additional saving is booked. Keep these
+constraints for stabilization fixes and any explicitly resumed optimization;
+do not restart COMMAND migration or pursue isolated epilogue/paragraph savings.
 
 Use `report_dos_bios_residency.py` with `--tail-body` and the matching `--boot-manifest`, not
 the map alone: cold helpers remain linked but successful activation no
