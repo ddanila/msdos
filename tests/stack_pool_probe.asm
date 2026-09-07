@@ -226,14 +226,27 @@ timer_check:
     add ax,0a500h
     mov [es:0],ax
     mov ax,[cs:timer_count]
+%ifdef POOL_A20_OFF
+    mov ax,[cs:timer_a20_count]
+%endif
     add ax,4
     mov [cs:timer_target],ax
 .wait:
+%ifdef POOL_A20_OFF
+    call a20_off_begin
+%endif
     sti
     hlt
     cli
+%ifdef POOL_A20_OFF
+    call a20_off_end
+%endif
     mov ax,[cs:timer_target]
+%ifdef POOL_A20_OFF
+    cmp [cs:timer_a20_count],ax
+%else
     cmp [cs:timer_count],ax
+%endif
     jb .wait
     mov es,[cs:timer_frame]
     mov ax,[cs:timer_page]
@@ -281,6 +294,12 @@ timer_check:
     cli
     cmp byte [cs:timer_bad],0
     jne fail
+%ifdef POOL_A20_OFF
+    cmp word [cs:timer_a20_count],16
+    jb fail
+    mov si,a20_passed
+    call debug
+%endif
     mov si,timer_passed
     call debug
     ret
@@ -302,6 +321,21 @@ timer_observe:
 .bad:
     mov byte [cs:timer_bad],1
 .count:
+%ifdef POOL_A20_OFF
+    push es
+    cmp byte [cs:a20_window],0
+    je .not_off
+    mov ax,0ffffh
+    mov es,ax
+    cmp word [es:0fff0h],01234h
+    je .alias_seen
+    mov byte [cs:timer_bad],1
+    jmp short .not_off
+.alias_seen:
+    inc word [cs:timer_a20_count]
+.not_off:
+    pop es
+%endif
     inc word [cs:timer_count]
     pop ax
     popf
@@ -314,6 +348,72 @@ timer_frame dw 0
 timer_ems_handle dw 0
 timer_bad db 0
 timer_passed db 'STACK_POOL_ASYNC_TIMER_EMS_PASS',13,10,0
+%ifdef POOL_A20_OFF
+a20_off_begin:
+    push ax
+    push ds
+    push es
+    xor ax,ax
+    mov ds,ax
+    mov ax,0ffffh
+    mov es,ax
+    mov ax,[0ffe0h]
+    mov [cs:a20_low_save],ax
+    mov ax,[es:0fff0h]
+    mov [cs:a20_high_save],ax
+    mov word [0ffe0h],01234h
+    mov word [es:0fff0h],05678h
+    cmp word [0ffe0h],01234h
+    jne fail
+    in al,92h
+    and al,0fch
+%ifdef POOL_A20_SKIP_DISABLE
+    mov si,a20_negative
+    call debug
+%else
+    out 92h,al
+%endif
+    cmp word [es:0fff0h],01234h
+    jne fail
+    mov byte [cs:a20_window],1
+    pop es
+    pop ds
+    pop ax
+    ret
+a20_off_end:
+    push ax
+    push ds
+    push es
+    mov byte [cs:a20_window],0
+    in al,92h
+    and al,0feh
+    or al,2
+    out 92h,al
+    xor ax,ax
+    mov ds,ax
+    mov ax,0ffffh
+    mov es,ax
+    cmp word [es:0fff0h],05678h
+    jne fail
+    cmp word [0ffe0h],01234h
+    jne fail
+    mov ax,[cs:a20_high_save]
+    mov [es:0fff0h],ax
+    mov ax,[cs:a20_low_save]
+    mov [0ffe0h],ax
+    pop es
+    pop ds
+    pop ax
+    ret
+a20_low_save dw 0
+a20_high_save dw 0
+timer_a20_count dw 0
+a20_window db 0
+a20_passed db 'STACK_POOL_A20_TIMER_PASS',13,10,0
+%ifdef POOL_A20_SKIP_DISABLE
+a20_negative db 'STACK_POOL_A20_NEGATIVE_READY',13,10,0
+%endif
+%endif
 %ifdef POOL_TIMER_WRONG_OWNER
 timer_negative db 'STACK_POOL_TIMER_NEGATIVE_READY',13,10,0
 %endif

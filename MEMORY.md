@@ -214,7 +214,7 @@ The unmodified-boot probe remains byte-identical and its failures remain open.
 Complete successor-chain depth and other-firmware behavior are still unknown.
 Default 128-byte and tested 512-byte profiles remain passing; no pool-size or
 memory-accounting change is made to work around the firmware writes. Continue
-default-profile A20 and broader asynchronous qualification before spending more
+the remaining default-profile transition qualification before spending more
 memory-layout effort on this separately diagnosed small-stack platform limit.
 
 **Real timer with live EMS mappings:** the default 9-by-128 pool passes in both
@@ -234,9 +234,29 @@ IRQ/NMI, nested asynchronous-interrupt or provider-transition coverage.
 python3 tests/test_stack_pool_retirement_qemu.py out/stack-pool-retirement-hmjvgcxp/input-upper.img --shapes-bios out/stack-pool-retirement-hmjvgcxp/upper --async-timer
 ```
 
+**A20-off timer entry:** the same default-profile test now also passes with
+A20 disabled in upper (`out/stack-pool-retirement-clcdlp4g/`) and low
+(`out/stack-pool-retirement-i7_hd5x8/`) placement. With IRQs masked it saves
+`0000:FFE0` and the unused HMA-tail word `FFFF:FFF0`, seeds distinct values,
+and verifies actual aliasing after disabling A20. Only callbacks inside that
+interval count: each EMS mapping requires four callbacks that observe the
+alias themselves, while SS/SP still select the pool. After each wakeup the
+probe re-enables A20, verifies both seeded words and restores their saved
+values before continuing. Both I/O-bracketing runs pass without marker repair.
+Skipping A20 disable and falsifying the observed stack owner each produce
+explicit negative markers and rejection in both placements.
+
+```sh
+python3 tests/test_stack_pool_retirement_qemu.py out/stack-pool-retirement-hmjvgcxp/input-upper.img --shapes-bios out/stack-pool-retirement-hmjvgcxp/upper --async-timer --a20-off
+```
+
+This qualifies the real-timer/pool/EMS entry scenario on the pinned 486/QEMU
+composition, not general high-service entry or provider teardown. No DOS binary,
+resident allocation or memory-comparison total changes.
+
 **Still unqualified:** paired-provider DOS-low, 286 and policy-restoration-failure
 paths, remaining configured shapes (including the failing 32-byte cases), exhaustion and clobbered-entry recovery,
-A20-off and broader IRQ/NMI/provider-transition stress, and software INT 19h
+other A20/IRQ/NMI/provider-transition stress, and software INT 19h
 reset. Upper backing must remain valid throughout those transitions. The
 controlled nested probe and the real-timer test above have distinct scopes.
 Do not reduce STACKS or other resources, or promote this opt-in layout, to avoid
