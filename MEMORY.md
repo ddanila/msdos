@@ -163,11 +163,9 @@ memory-comparison gains or permission to change the fixed profile.
 `8,32` and `64,32` **fail in both layouts**. Before any probe-driven nested
 call, the next-to-highest stack's back-pointer is zero instead of its entry
 offset: `0030h` (entry 6) or `01F0h` (entry 62). The probe verifies count, size,
-allocation bounds and DOS-high residency first. This is observed pre-existing
-marker damage, not proof of which writer caused it or a relocation regression.
-Next trace the installed interrupt chain's actual stack use and writes during
-startup; distinguish handler overhead from firmware/manager successors. Do not
-hide this by increasing the requested size or accepting damaged markers.
+allocation bounds and DOS-high residency first. This is pre-existing marker
+damage in both placements; do not hide it by increasing the requested size or
+accepting damaged markers.
 
 Evidence: `out/stack-pool-retirement-rjjhk3kl/` (candidate) and
 `out/stack-pool-retirement-ukv727m6/` (control). Each `shapes.json` retains all
@@ -178,6 +176,32 @@ The default nine-stack probe still assembles byte-identically. Reproduce with:
 python3 tests/test_stack_pool_retirement_qemu.py out/stack-pool-retirement-hmjvgcxp/input-upper.img --shapes-bios out/stack-pool-retirement-hmjvgcxp/upper
 python3 tests/test_stack_pool_retirement_qemu.py out/stack-pool-retirement-hmjvgcxp/input-control.img --shapes-bios out/stack-pool-retirement-hmjvgcxp/control
 ```
+
+**First writer identified:** a debugger watchpoint on the low control observes
+initialization of `03E4:011Eh` to `0030h`, then its first change to zero at the
+BIOS-ROM `PUSH EBP` at `F000:CFCC` (stopped immediately afterward at `CFCE`).
+EBP is zero and SS:SP is `03E4:011Eh`; the selected stack began at `013Eh`.
+Thus this firmware path reaches 32 bytes below its initial SP and overwrites
+the preceding stack's marker. The following ROM instructions push EAX, EDX and
+further return state. Removing only the shared handler's extra two-byte SI save
+cannot make this path fit. This identifies the first corrupting instruction,
+not the full chain's maximum depth or its portability to other firmware.
+
+Evidence: `out/stack-write-wnalgmo3/{watch.json,registers.log,writer.dis}`.
+The helper arms only after the expected pool header and initialized marker
+appear, uses disk snapshots, and reads our DOS image plus the executing ROM
+window—no DR-DOS binary or source. Reproduce with:
+
+```sh
+python3 tests/capture_stack_pool_write.py out/stack-pool-retirement-ukv727m6/8-32/probe.img
+```
+
+Next separate the controlled handler's 32-byte contract from this platform's
+firmware demand: measure the complete successor-chain depth and qualify small
+stacks with a bounded successor. Any controlled reinitialization must be labeled
+as such and must not turn the failing unmodified-boot shape tests green. Default
+128-byte and tested 512-byte profiles remain passing; no pool-size or memory
+accounting change is made to work around the firmware writes.
 
 **Still unqualified:** paired-provider DOS-low, 286 and policy-restoration-failure
 paths, remaining configured shapes (including the failing 32-byte cases), exhaustion and clobbered-entry recovery,
