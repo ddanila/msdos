@@ -287,7 +287,7 @@ these gates.
 This supersedes the older indivisible-stack destination restriction, not the
 BIOS/COMMAND completion gates. Keep their published pointers, firmware/DMA
 buffers and asynchronous entries valid. Finish the remaining ownership and
-fallback qualification against the same 3,879-byte HMA budget; do not resume
+fallback qualification against the same 3,865-byte HMA budget; do not resume
 isolated shell-byte reductions to explain a system-allocation difference.
 
 #### Packed initialized BIOS drive graph
@@ -426,9 +426,9 @@ access contract. Keep file reads and returned text low; private numeric scratch
 remains high. The low stack does not grow. Normal COMMAND remains byte-identical.
 
 The current shared HMA budget is **40,272 DOS + 7,744 BIOS + 7,988 buffers +
-5,621 COMMAND = 61,625 bytes**, leaving **3,879 bytes** at `F0C9h..FFF0h`.
+5,635 COMMAND = 61,639 bytes**, leaving **3,865 bytes** at `F0D7h..FFF0h`.
 The shell charge includes its previous 2,447-byte owner, eight binding-fallback
-bytes, the 2,661-byte service, 210-byte pipeline owner and 295-byte formatter;
+bytes, the 2,675-byte service, 210-byte pipeline owner and 295-byte formatter;
 do not add those owners again or reuse the preceding HMA remainders.
 
 Evidence: `out/command-high-retirement-vj99uzvm/`. The paired fresh captures
@@ -457,7 +457,7 @@ python3 tests/test_command_high_resident_qemu.py out/umb-fine-composition-l1byzj
 fault and reset qualification, remaining BIOS mixed state/services and the other
 low owners below. This service retirement does not complete shell code/state
 placement. Next, classify and move eligible state against the remaining shared
-3,879 bytes, preserve the low PSP/stack and published pointer contracts, then
+3,865 bytes, preserve the low PSP/stack and published pointer contracts, then
 measure the next composed gain; do not replace this with more copy-only milestones.
 
 **Remaining shell data ownership:** the current linked ranges below partition
@@ -476,6 +476,34 @@ inventory is these shared control interfaces together with the remaining BIOS
 services/state, against the same HMA budget; the formatter move does not complete
 either owner. Broader EXEC/reload error substitutions and nested interruptions
 also remain qualification work.
+
+**COMSPEC retirement correction:** `TENV.ASM` no longer writes `comspec_print`
+or `cpdrv` in the released low formatter range. `SET COMSPEC` updates only the
+canonical low path/drive; `COMMAND2.ASM:GETCOMDSK` derives both substitutions
+in the active formatter immediately before printing. This removes a stale
+writer without introducing a low mirror or another relocation interface.
+
+The frozen pre-fix high shell prints `SSING.COM` after setting
+`COMSPEC=MISSING.COM` and overwriting the transient; its low fallback prints
+`MISSING.COM` (`out/command-comspec-2m80z5cv/`). The corrected shell passes both
+relative and drive-qualified paths in high and low mode
+(`out/command-comspec-final-1wlmeqqp/`). Tests require the external overwrite
+marker and exact replacement-disk prompt, then intentionally wait without a
+key; they do not claim successful replacement-media recovery. No transient
+module retains references to the private formatter's mapped symbols.
+The correction adds **14 HMA bytes**, leaves the **880-byte low shell** intact,
+and earns no new conventional-memory saving. Both native and experimental
+builds use the corrected prompt; the normal low allocation grows by 16 bytes.
+The final composed rerun (`out/command-high-retirement-wv3n09ss/`) passes the
+full shell suite, including these four prompt cases and negative ownership
+controls. Fresh VC/MEM captures retain **624,416 conventional / 48,416 UMB /
+6,798,336 free XMS bytes**. Its 2,768-byte advantage over rebuilt normal COMMAND
+includes that normal-layout correctness cost; it is not a new 16-byte gain
+over the previous high-shell candidate.
+
+```sh
+python3 tests/test_command_comspec_qemu.py out/command-comspec-final-1wlmeqqp/high/COMMAND.COM
+```
 
 The formatter baseline now checks wrong-volume label/serial and character-device
 substitutions on both poisoned high and DOS-low layouts. A controlled AH=59h
@@ -575,7 +603,7 @@ qualification remains open.
 
 The whole-shell service retirement above supersedes this checkpoint's COMMAND
 code-placement task. Complete state placement, BIOS qualification and mixed low
-owners remain in scope; its current shared budget is the 3,879-byte remainder.
+owners remain in scope; its current shared budget is the 3,865-byte remainder.
 
 Historical BIOS-only reproduction (requires that checkpoint's pinned normal
 COMMAND binary). The current native COMMAND includes the TCOMMAND correction;

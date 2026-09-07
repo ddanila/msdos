@@ -33,6 +33,7 @@ DATARES SEGMENT PUBLIC BYTE
 	EXTRN	comprmt1_subst:byte	;AN000;
 	EXTRN	COMSPEC:BYTE
 	EXTRN	cpdrv:byte
+	EXTRN	comspec_print:word
 	EXTRN	envirseg:word
 	EXTRN	EXTCOM:BYTE
 	EXTRN	HANDLE01:WORD
@@ -519,10 +520,20 @@ getcomdsk3:
 	mov	dx,combad		;AN000; get message number
 	invoke	RPRINT			; Say command is invalid
 getcomdsk4:
-	SHELL_FORMAT_REF <cmp SHELL_FORMAT_SEG [cpdrv],0>,1 ;g is there a drive in the comspec?
-	jnz	users_drive		;g yes - use it
+	; SET COMSPEC owns the low path/drive, never the retired formatter.
+	; Reconstruct both substitutions, including changes to drive syntax.
+	mov	si,offset resgroup:COMSPEC
+	mov	al,[comdrv]
+	or	al,al
+	jz	short comspec_default_drive
+	add	si,2
+	dec	al
+	jmp	short comspec_prompt_ready
+comspec_default_drive:
 	mov	ah,Get_default_drive	;g use default drive
 	SHELL_INT	21h			;g
+comspec_prompt_ready:
+	SHELL_FORMAT_REF <mov SHELL_FORMAT_SEG [comspec_print],si>,0
 	add	al,"A"                  ;g convert to ascii
 	SHELL_FORMAT_REF <mov SHELL_FORMAT_SEG [cpdrv],al>,0 ;g put in message to print out
 

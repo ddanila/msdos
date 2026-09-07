@@ -161,7 +161,7 @@ def build(work, high):
     defines = ("-DCOMMAND_RESIDENT_BINDING -DCOMMAND_HIGH_RESIDENT "
                "-DCOMMAND_HIGH_RESIDENT_POISON") if high else ""
     with (work / "build.log").open("w") as log:
-        for module in ("COMMAND1", "COMMAND2", "RUCODE", "RDATA", "INIT", "TCMD2B", "TMISC1", "TPIPE", "TDATA", "TCODE"):
+        for module in ("COMMAND1", "COMMAND2", "RUCODE", "RDATA", "INIT", "TCMD2B", "TMISC1", "TPIPE", "TDATA", "TCODE", "TENV"):
             run([ROOT / "bin/jwasm-masm",
                  f"-Mx -t {defines} -I. -I../../INC -I../../DOS -Fl={work / module}.LST",
                  f"{module}.ASM,{work / module}.OBJ;"], cwd=SOURCE, stdout=log, stderr=log)
@@ -276,6 +276,10 @@ def main():
         shutil.copyfile(ROOT / f"out/loadhigh-{name}.log", work / f"loadhigh-{name}.log")
     check_pipelines(work, floppy, env)
     check_formatter_state(work, floppy, env, symbols)
+    from test_command_comspec_qemu import check as check_comspec
+    comspec_work = work / "comspec"
+    comspec_work.mkdir()
+    check_comspec(high, floppy, comspec_work)
     check_entry_mutation(work, high, floppy, env, symbols)
     probe = work / "CEILING.COM"
     run(["nasm", "-f", "bin", ROOT / "tests/memory_ceiling_probe.asm", "-o", probe])

@@ -20,8 +20,6 @@ TITLE	Part6 COMMAND Transient routines.
 DATARES 	SEGMENT PUBLIC BYTE	;AC000;
 	EXTRN	comdrv:byte
 	EXTRN	comspec_end:word
-	EXTRN	comspec_print:word
-	EXTRN	cpdrv:byte
 	EXTRN	dbcs_vector_addr:dword	;AN000;
 	EXTRN	ENVIRSEG:WORD
 	EXTRN	fucase_addr:word	;AC000;
@@ -248,7 +246,7 @@ add_name_ret:
 	mov	es,[resseg]			;  comspec var in the resident
 	assume	es:resgroup
 ;
-; Make sure that the printer knows where the beginning of the string is
+; Keep the canonical reload path in resident state.
 ;
 	mov	di,offset resgroup:comspec
 	mov	bx,di
@@ -267,19 +265,12 @@ add_name_ret:
 	mov	al,[si] 			; get his specified drive
 	call	UpConv				; convert to uppercase
 	sub	al,'A'                          ; convert to 0-based
-	add	di,2
 	inc	al				; convert to 1-based number
 	mov	comdrv,al
-;
-; Stick the drive letter in the prompt message.  Nothing special needs to be
-; done here..
-;
-
-	add	al,'A'-1
 
 GotDrive:					;g
-	mov	comspec_print,di		;g point to beginning of name after drive
-	mov	es:cpdrv,al
+; The resident reload prompt derives its private formatter arguments from
+; COMSPEC/COMDRV. Never write its obsolete low copy after high activation.
 ;
 ; Copy chars until delim
 ;
