@@ -245,14 +245,12 @@ nojoin:
 	MOV	[NoSetDir],FALSE
 	MOV	[SATTRIB],attr_directory+attr_system+attr_hidden
 				; Dir calls can find these
-; DOS 3.3  6/24/86 FastOpen
 
 	OR	[FastOpenFlg],FastOpen_Set	   ; set fastopen flag
 	invoke	GetPath
 	PUSHF
 	AND	[FastOpenFlg],Fast_yes		   ; clear it all
 	POPF
-; DOS 3.3  6/24/86 FastOpen
 	MOV	AX,error_path_not_found
 	JC	ChDirDone
 	JNZ	NOTDIRPATH	; Path not a DIR
@@ -371,9 +369,7 @@ ASSUME	DS:NOTHING
 	JNZ	NOTDIRPATHPOP		; Failure of search due to I 24 FAIL
 	LES	BP,[THISDPB]
 	MOV	BX,[DIRSTART]
-;; FastSeek 10/27/86
 	invoke	Delete_FSeek		; delete the fastseek entry
-;; FastSeek 10/27/86
 	invoke	RELEASE 		; Release data in sub dir
 	JC	NOTDIRPATHPOP		; Screw up
 	POP	DX			; Sector # of entry
@@ -390,13 +386,10 @@ ASSUME	DS:NOTHING
 	ADD	BX,DI			; Corrected
 	MOV	BYTE PTR [BX],0E5H	; Free the entry
 
-;DOS 3.3 FastOpen  6/16/86  F.C.
 	PUSH	DS
 	context DS
 	invoke	FastOpen_Delete 	; call fastopen to delete an entry
 	POP	DS
-;DOS 3.3 FastOpen  6/16/86  F.C.
-
 	JMP	DIRUP			; In MKDIR, dirty buffer and flush
 
 EndProc DOS_RMDIR

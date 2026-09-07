@@ -102,11 +102,7 @@ EndProc arena_free_process
 	MOV     AX,DS                   ; AX <- current block
 	ADD     AX,DS:[arena_size]      ; AX <- AX + current block length
 	INC     AX                      ; remember that header!
-;
-;       fall into check_signature and return
-;
-;       CALL    check_signature         ; ES <- AX, carry set if error
-;       RET
+; Fall through to check_signature.
 EndProc arena_next
 
 ;

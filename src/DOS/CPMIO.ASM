@@ -118,9 +118,8 @@ no_sys_wait:
 	MOV	AH,84h
 	INT	int_IBM
 
-;;; 7/15/86  update the date in the idle loop
-;;; Dec 19, 1986 D.C.L. changed following CMP to Byte Ptr from Word Ptr
-;;;;		 to shorten loop in consideration of the PC Convertible
+; Update the date in the idle loop. Keep the byte comparison short for
+; the PC Convertible.
 
 	CMP	byte ptr [DATE_FLAG],-1 ; date is updated may be every
 	JNZ	NoUpdate		; 65535 x ? ms if no one calls
@@ -158,21 +157,18 @@ check_ok:
 NoUpdate:
 	INC	[DATE_FLAG]
 
-;;; 7/15/86 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	JMP	Intest
 Get:
 	XOR	AH,AH
 	invoke	IOFUNC
 	POP	SI
 	POP	DS
-;;; 7/15/86
 	MOV	BYTE PTR [SCAN_FLAG],0
 	CMP	AL,0	    ; extended code ( AL )
 	JNZ	noscan
 	MOV	BYTE PTR [SCAN_FLAG],1	; set this flag for ALT_Q key
 
 noscan:
-;;; 7/15/86
  IF  DBCS
 	cmp	cs:[InterChar],1    ;AN000; set the zero flag if the character3/31/KK
  ENDIF

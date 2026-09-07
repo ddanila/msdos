@@ -120,35 +120,8 @@ LISTPARM =	1			;0=SUPPRESS LIST; 1=ALLOW LIST
 ;		For purposes of patching the GRAFTABL.EXE file, this byte
 ;		is at offset 5FH into the module.)
 
-; NOTES:
-;	 This module should be processed with the SALUT preprocessor
-;	 with the re-alignment not requested, as:
-
-;		SALUT GRTAB,NUL
-
-;	 To assemble these modules, the alphabetical or sequential
-;	 ordering of segments may be used.
-
-;	 Sample LINK command:
-
-; LINK @GRTABLK.ARF
-
-; Where the GRTABLK.ARF is defined as:
-;	 GRTABHAN+    (must be first in this list)
-;	 GRTABUS+     (these languages must be linked in this order)
-;	 GRTABML+     (Multi-Lingual)
-;	 GRTABPO+     (Portuguese)
-;	 GRTABCF+     (Canadian French)
-;	 GRTABNO+     (Nordic)
-;	 GRTABSM+     (contains COPYRIGHT, SYSDISPMSG, SYSLOADMSG code)
-;	 GRTABPAR+    (contains PARSE control blocks, code to call SYSPARSE)
-;	 GRTABP+      (contains SYSPARSE to decode COMMAND line parms)
-;	 GRTAB	      (MAIN ROUTINE)
-;	 GRAFTABL;
-
-;	 These modules must be linked in this order.  The load module is
-;	 a COM file, to be converted to COM with EXE2BIN.
-
+; Preserve the module order in the link response file: it defines the COM layout.
+;
 ; COPYRIGHT: The following notice is found in the OBJ code generated from
 ;	     the "GRTABSM.ASM" module:
 

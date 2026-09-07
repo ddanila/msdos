@@ -723,8 +723,6 @@ FILE_SFT1:
 
 
 
-; DOS 3.3  FastOpen  6/13/86
-
         PUSH   DS
         context DS
         TEST   [FastOpenFlg],Special_Fill_Set
@@ -738,8 +736,6 @@ FILE_SFT1:
         STOSB                   ; sf_dirpos
         POP     DS
         JMP     Next_Name
-
-; DOS 3.3  FastOpen  6/13/86
 
 Not_FastOpen:
         POP     DS                      ; normal path

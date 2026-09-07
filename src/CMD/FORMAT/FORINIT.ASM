@@ -291,7 +291,6 @@ Main_Init endp					;
 ;		    Parse_For_FS_Switch
 ;		    Parse_Command_Line
 ;
-;Change History: Created	4/1/87	       MT
 ;
 ;Input: PSP command line at 81h and length at 80h
 ;	Fatal_Error  = No
@@ -362,7 +361,6 @@ Init_Input_Output endp				;
 ;Called Procedures: SysLoadMsg
 ;
 ;
-;Change History: Created	5/1/87	       MT
 ;
 ;Input: Fatal_Error = NO
 ;
@@ -411,7 +409,6 @@ IF FSExec					;/FS: conditional assembly
 ;Called Procedures: Parse_For_FS_Switch
 ;		    EXEC_FS_Format
 ;
-;Change History: Created	6/21/87 	MT
 ;
 ;Input: Fatal_Error = NO
 ;
@@ -509,7 +506,6 @@ Check_For_FS_Switch endp			;
 ;		    Preload_Error
 ;		    SysParse
 ;
-;Change History: Created	5/1/87	       MT
 ;
 ;Input: Command line at 80h in PSP
 ;	   Fatal_Error = NO
@@ -588,7 +584,6 @@ ENDIF						;/FS: conditional assembly end
 ;		    SysParse
 ;		    Interpret_Parse
 ;
-;Change History: Created	5/1/87	       MT
 ;
 ;Input: Fatal_Error = NO
 ;	PSP_Segment
@@ -683,7 +678,6 @@ Parse_Command_Line endp 			;
 ;
 ;Called Procedures: Get_11_Characters
 ;
-;Change History: Created	5/1/87	       MT
 ;
 ;Input: Fatal_Error = NO
 ;
@@ -985,7 +979,6 @@ Interpret_Parse endp				;
 ;		    Check_For_Network
 ;		    Check_Translate_Drive
 ;
-;Change History: Created	5/1/87	       MT
 ;
 ;Input: Fatal_Error = NO
 ;
@@ -1033,7 +1026,6 @@ Validate_Target_Drive endp			;
 ;
 ;Called Procedures: Message (macro)
 ;
-;Change History: Created	5/1/87	       MT
 ;
 ;Input: Fatal_Error = NO
 ;
@@ -1089,7 +1081,6 @@ Check_Target_Drive endp 			;
 ;
 ;Called Procedures: Message (macro)
 ;
-;Change History: Created	5/1/87	       MT
 ;
 ;Input: Drive
 ;	   Fatal_Error = NO
@@ -1147,7 +1138,6 @@ Check_For_Network endp				;
 ;
 ;Called Procedures: Message (macro)
 ;
-;Change History: Created	5/1/87	       MT
 ;
 ;Input: Drive
 ;	   Fatal_Error = NO
@@ -1195,7 +1185,6 @@ Check_Translate_Drive endp			;
 ;
 ;Called Procedures: None
 ;
-;Change History: Created	4/21/87 	MT
 ;
 ;Input: None
 ;

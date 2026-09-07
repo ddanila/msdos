@@ -1,12 +1,5 @@
 page	,132	;
-;*****************************************************************************
-;*****************************************************************************
-;UTILITY NAME: FORMAT.COM
-;MODULE NAME: DISPLAY.ASM
-; Designed:  Mark T.
-; Change List: AN000 - New code DOS 3.3 spec additions
-;	       AC000 - Changed code DOS 3.3 spec additions
-;*****************************************************************************
+; CHKDSK message display.
 	EXTRN	command_line_buffer:byte
 ;*****************************************************************************
 ; Include Files

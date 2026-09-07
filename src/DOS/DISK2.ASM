@@ -325,9 +325,6 @@ OK:
 EOFERR:
 	POP	ES		; ES:DI point to SFT
 	XOR	CX,CX		; No bytes read
-;;;;;;;;;;; 7/18/86
-;	MOV	BYTE PTR [DISK_FULL],1	    ; set disk full flag
-;;;;;;;;;;;
 NOROOM:
 	POP	BX		; Kill return address
 	CLC

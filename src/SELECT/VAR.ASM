@@ -7,9 +7,7 @@ SUBTTL	var.asm
 ;
 ;	VAR.ASM:  Copyright 1988 Microsoft
 ;
-;	DATE:	 August 8/87
 ;
-;	COMMENTS: Assemble with MASM 3.0 (using the /A option)
 ;
 ;		  Module contains variables used by SELECT.
 ;

@@ -210,7 +210,6 @@ DOSREL:
 ; NOTE: DOS_RENAME depends on BX not being altered after this point
 
 	MOV	CX,SIZE dir_entry
-;;;;; 7/29/86
 	MOV	AX,DI			; save the 1st byte addr
 	REP	MOVSB
 	MOV	DI,AX			; restore 1st byte addr
@@ -219,7 +218,6 @@ DOSREL:
 	MOV	BYTE PTR ES:[DI],0E5H	; convert it back to E5
 NO05:
 
-;;;;; 7/29/86
 	AND	CS:[FastOpenflg],Fast_yes  ;AN000;;FO. reset fastopen
 	context DS
 	CLC

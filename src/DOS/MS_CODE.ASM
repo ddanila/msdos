@@ -228,12 +228,8 @@ ASSUME	SS:DOSGROUP
 	CALL	AbsSetup
 	JC	ILEAVE
 if (not ibmcopyright) AND 0FFFFh
-; Here is a gross temporary fix to get around a serious design flaw in
-;  the secondary cache.  The secondary cache does not check for media
-;  changed (it should).  Hence, you can change disks, do an absolute
-;  read, and get data from the previous disk.  To get around this,
-;  we just won't use the secondary cache for absolute disk reads.
-;                                                      -mw 8/5/88
+; Absolute disk reads bypass the secondary cache because it does not
+; detect media changes and could return sectors from the previous disk.
 	EnterCrit   critDisk
 	MOV	[CURSC_DRIVE],-1	      ; invalidate SC
 	LeaveCrit   critDisk

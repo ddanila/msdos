@@ -101,30 +101,8 @@
 ;	 DCOPYPAR.SAL - Defines the control blocks that describe the
 ;		DOS Command line parameters.
 
-; NOTES:
-;	 This module should be processed with the SALUT preprocessor
-;	 with the re-alignment not requested, as:
-
-;		SALUT DISKCOPY,NUL
-
-;	 To assemble these modules, the alphabetical or sequential
-;	 ordering of segments may be used.
-
-;	 Sample LINK command:
-
-; LINK @DISKCOPY.ARF
-
-; Where the DISKCOPY.ARF is defined as:
-
-;	 DISKCOPY+
-;	 DCOPYSM+
-;	 DCOPYP+
-;	 DCOPYPAR+
-;	 COPYINIT
-
-;	 These modules must be linked in this order.  The load module is
-;	 a COM file, to be converted to COM with EXE2BIN.
-
+; Preserve the module order in the link response file: it defines the COM layout.
+;
 ; COPYRIGHT: The following notice is found in the OBJ code generated from
 ;	     the "DCOPYSM.SAL" module:
 
@@ -136,24 +114,7 @@
 	    %OUT    COMPONENT=DISKCOPY, MODULE=DISKCOPY.SAL ;
 	ENDIF				;
 
-;*****************************************************************************
-;									     *
-;			     D I S K C O P Y				     *
-;									     *
-;  UPDATE HISTORY: 7-31, 8-3, 8-5A, 8-6, 8-7, 8-8, 8-10, 8-11, 8-13, 8-14    *
-;		   8-16, 8-17, 8-18, 8-20, 8-28, 9-3, 9-11, 10-6, 10-11      *
-;		   11-7,11-12, 11-17, 11-18, 12-19, 2-16-84, 3-27, 4-5, 4-7  *
-;		   6-20,7-23,10-31,3-27,4-24				     *
-;									     *
-;*****************************************************************************
-
-
-
-;*****************************************************************************
-;									     *
-;			     MACRO DEFINITION				     *
-;									     *
-;*****************************************************************************
+; Macro definitions.
 
 	INCLUDE PATHMAC.INC		;AN015;PATHGEN MACRO
 	INCLUDE DCPYMACR.INC		;(formerly called MACRO.DEF)

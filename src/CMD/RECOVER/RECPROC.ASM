@@ -297,7 +297,6 @@ calc_sp64k	endp
 ;
 ;Called Procedures: None
 ;
-;ChANge History: Created	6/29/87 	MT
 ;
 ;Input: DS:SI = String containing FCB input
 ;	ES:DI = Where to build string
@@ -358,7 +357,6 @@ Build_String endp				;
 ;
 ;Called Procedures: Check_DBCS_CharACter
 ;
-;ChANge History: Created	6/12/87 	MT
 ;
 ;Input: DS:SI = ASCIIZ string containing volume label input
 ;
@@ -421,7 +419,6 @@ ChANge_BlANks endp				;
 ;
 ;Called Procedures: None
 ;
-;ChANge History: Created	6/12/87 	MT
 ;
 ;Input: AL = CharACter to check for DBCS lead charACter
 ;	DBCS_Vector = YES/NO

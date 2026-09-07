@@ -111,12 +111,10 @@ CHKFNAM:
 	MOV	ES,SI
 	MOV	SI,BX
 	MOV	DI,OFFSET DOSGROUP:NAME1
-;;;;; 7/29/86
 	CMP	BYTE PTR [NAME1],0E5H	 ; special char check
 	JNZ	NO_E5
 	MOV	BYTE PTR [NAME1],05H
 NO_E5:
-;;;;; 7/29/86
 	CALL	MetaCompare
 	JZ	FOUND
 	POP	DS
@@ -387,12 +385,10 @@ Break	<SETDIRSRCH SETROOTSRCH -- Set Search environments>
 	MOV	AL,ES:[BP.dpb_cluster_mask]
 	INC	AL
 	MOV	BYTE PTR [CLUSFAC],AL
-; DOS 3.3 for FastOPen	F.C. 6/12/86
 	SaveReg <SI>
 	TEST	[FastOpenFlg],Lookup_Success
 	JNZ	UNP_OK
 
-; DOS 3.3 for FastOPen	F.C. 6/12/86
 	invoke	UNPACK
 	JNC	UNP_OK
 	RestoreReg  <SI>

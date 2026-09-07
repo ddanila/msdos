@@ -249,12 +249,9 @@ INCHK:
 	XOR	AH,AH
 	invoke	IOFUNC
 	CMP	AL,"P"-"@"
-;;;;;  7/14/86	ALT_Q key fix
-
 	JZ	PRINTON 		      ; no! must be CTRL_P
 
 NOPRINT:
-;;;;;  7/14/86	ALT_Q key fix
 	IF	(NOT TOGLPRN) AND 0FFFFh
 	CMP	AL,"N"-"@"
 	JZ	PRINTOFF

@@ -459,18 +459,6 @@ Org21:					;AN011;if CR or LF then
 	dec	si			;AN011; undo SI, CX register
 	inc	cx			;AN011;  and continue
 
-;ORG4:	 CALL	 GET2
-;	 call	 Delim			 ;J.K. 5/30/86. To permit "device=filename/p..." stuff.
-;	 jz	 ORG_EXT		 ;J.K. 5/30/86
-;Org4_Cont:
-;	 STOSB
-;	 CMP	 AL,' '
-;	 JA	 ORG4
-;	 CMP	 AL,10
-;	 JZ	 ORG1
-;
-;	 MOV	 BYTE PTR ES:[DI-1],0
-
 Org3:
 	cmp	Cmd_Indicator, 'Y'      ;AN000; Comment= command?
 	je	Get_Cmt_Token

@@ -1,23 +1,6 @@
 Title   LOCATE (EXE2BIN)
 
-;   Loader for EXE files under 86-DOS
-;   VER 1.5
-;       05/21/82   Added rev number
-;   VER 1.6
-;       07/01/82   A little less choosy about size matches
-;   VER 2.0  M.A.U
-;       10/08/82   Modified to use new 2.0 system calls for file i/o
-;   Ver 2.1  M.A.U
-;       10/27/82   Added the DOS version check
-;   Ver 2.2  MZ
-;       8/30/83     Fixed command line parsing
-;   Ver 2.3  EE
-;       10-12-83    More fixes to command line parsing
-;   Ver 2.4  NP
-;       10/17/83    Use Printf for messages
-;   Ver 2.5  MZ     Fix LOCATE sss D: problem
-;       04/09/87    Add PARSER and MESSAGE RETRIEVER
-;   Ver 4.00  DRM
+; EXE-to-binary loader.
 
 ; The following switch allows use with the "old linker", which put a version
 ; number where the new linker puts the number of bytes used in the last page.

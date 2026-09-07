@@ -1,7 +1,3 @@
-;    AN000 version 4.0 jan. 1988
-;    A007  PTM 3957 - fake vesrion for IBMCACHE.COM
-;    A008  PTM 4070 - fake version for MS WINDOWS
-
 SUBTTL $exec - load/go a program
 PAGE
 ;
@@ -182,29 +178,6 @@ exec_check_2:
 	invoke	$OPEN			; is the file there?
 	POP	BP
 	JC	exec_ret_err
-;File Type Checking
-;	CMP	BYTE PTR [Temp_Var2],EAEXISTING      ;AN000;;FT.  old file ?
-;	JZ	oldexf				     ;AN000;;FT.  yes
-;	TEST	BYTE PTR EXEC_FUNC,EXEC_FUNC_OVERLAY ;AN000;;FT.  exec overlay?
-;	JNZ	exovrly 			     ;AN000;;FT.  yes
-;	CMP	BYTE PTR [Temp_Var2],EAEXECUTABLE    ;AN000;;FT.  only file type
-;	JZ	oldexf				     ;AN000;;FT.  3 & 4 will pass
-;	CMP	BYTE PTR [Temp_Var2],EAINSTALLABLE   ;AN000;;FT.
-;	JZ	oldexf				     ;AN000;;FT.
-;exerr: 					      ;AN000;;FT.
-;	MOV	AL,error_access_denied		     ;AN000;;FT.  error
-;	JMP	exec_ret_err			     ;AN000;;FT.
-;exovrly:					      ;AN000;;FT.
-;	CMP	BYTE PTR [Temp_Var2],EAOVERLAY	     ;AN000;;FT.  only 5,6,7  pass
-;	JZ	oldexf				     ;AN000;;FT.
-;	CMP	BYTE PTR [Temp_Var2],EADEV_DRIVER    ;AN000;;FT.
-;	JZ	oldexf				     ;AN000;;FT.
-;	CMP	BYTE PTR [Temp_Var2],EAIFS_DRIVER    ;AN000;;FT.
-;	JNZ	exerr				     ;AN000;;FT.
-;
-;oldexf:
-;File Type Checking
-
 	MOV	exec_fh,AX
 	MOV	BX,AX
 	XOR	AL,AL

@@ -150,18 +150,8 @@ DISKTABLE DW	512,	0100H,	64,	0
 	DW	2048,	0201H,	112,	0
 	DW	8192,	0402H,	256,	0
 	DW	32680,	0803H,	512,	0      ;Warning !!! Old values
-;	DW	20740,	0803H,	 512,	0	;PTM P892 J.K. 12/3/86 DOS 3.3 will use this.
-						;J.K.3/16/87 P54 Return back to old value for compatibility.!!!
+; Keep the disk geometry compatible with the legacy media table.
 	DW	65535,	1004H,	1024,	0
-
-;DISKTABLE2 DW	 32680,  0803H,  512,	 0	;Warning !!! Old values  ;J.K.3/16/87 P54 Return to old value!!!
-;DISKTABLE2 DW	 20740,  0803H,  512,	 0	 ;PTM p892 J.K. 12/3/86 DOS 3.3 will use this.
-;	 DW	 65535,  0402H,  512,	 FBIG
-;DISKTABLE2 dw	 0, 32680, 0803h, 512, 0	 ;table with the assumption of the
-;	    dw	2h, 0000h, 0402h, 512, FBIG	 ;total fat size <= 64KB.
-;	    dw	4h, 0000h, 0803h, 512, FBIG	 ;-This will cover upto 134 MB
-;	    dw	8h, 0000h, 1004h, 512, FBIG	 ;-This will cover upto 268 MB
-;	    dw 10h, 0000h, 2005h, 512, FBIG	 ;-This will cover upto 536 MB
 
 ;AN004 Default DiskTable under the assumption of Total FAT size <= 128 KB, and
 ;	the maxium size of FAT entry = 16 Bit.
@@ -1770,9 +1760,6 @@ Fat_Big_Small:				 ;AN000; Determine Fat entry size.
 ;	 MOV	 CH,DH
 	MNUM	FTESTHARD,CX
 	MESSAGE FTESTHARD,<" SECPERCLUS",CR,LF>
-;J.K. 3/16/87 P54 Returning back to old logic for compatibility reason.
-;So, use the old logic again that once had been commented out!!!!!!!!!!!!
-;Old logic to determine FAT Entry Size J.K. 12/3/86
 	push	ax
 	mov	ax,dx
 	xor	dx,dx
@@ -2268,10 +2255,7 @@ GFS_Split_Chk:
 	ret
 Get_FAT_Sector	endp
 
-;
-; SI POINTS TO DEVICE HEADER
-; J.K. 4/22/86 - print_init, aux_init is modified to eliminate the self-modifying
-; J.K. code.
+; SI points to the device header.
 
 PRINT_INIT:
 	call	Get_device_number
@@ -2510,7 +2494,6 @@ FmpGot_Cont:
 	jc	FmpnextChain
 
 	call	Install_BDSM		;install the BDSM into the BDS table
-;	 call	 Show_Installed_Mini	 ;show the installed message. 3/35/86 - Don't show messages. J.K.
 	inc	mininum 		;increase the logical drive number for next
 	inc	num_mini_dsk		;increase the number of mini disk installed.
 
@@ -2570,27 +2553,7 @@ I_BDSM_ret:
 	pop	ax
 	ret
 
-;***The following code is not needed any more.	Don't show any
-;***messages to be compatible with the behavior of IBMBIO.COM.
-;;Show the message "Mini disk installed ..."
-;;This routine uses WRMSG procedure which will call OUTCHR.
-;Show_Installed_Mini:
-;	 push	 ax
-;	 push	 bx
-;	 push	 ds
-;
-;	 mov	 al, Mininum		 ;logical drive number
-;	 add	 al, Drv_Letter_Base	 ;='A'
-;	 mov	 Mini_Drv_Let, al
-;	 mov	 si, offset Installed_Mini
-;	 call	 WRMSG
-;
-;	 pop	 ds
-;	 pop	 bx
-;	 pop	 ax
-;	 ret
-;**End of mini disk initialization**	;J.K. 4/7/86
-
+; Mini-disk initialization stays silent for IBMBIO.COM compatibility.
 
 CMOS_Clock_Read proc	near
 

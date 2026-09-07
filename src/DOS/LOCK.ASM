@@ -91,26 +91,11 @@ lock_bad_func:
 	MOV	EXTERR_LOCUS,errLoc_Unk        ; Extended Error Locus
 	error	error_invalid_function
 
-; Align_buffer call has been deleted, since it corrupts the DTA  (6/5/88) P5013
+; Do not call Align_Buffer here: it corrupts the caller's DTA.
 
 lock_do:
-;	PUSH	AX			;AN000;;MS. save ax
-;	PUSH	BX			;AN000;;MS. save handle
-;	MOV	[Temp_Var],DX		;AN000;;MS. save DX
-;	invoke	Align_Buffer		;AN000;;MS. align ds:dx and set DMAADD
-;	POP	BX			;AN000;;MS. restore handle
-;	POP	AX			;AN000;;MS. save ax
-;	CMP	BP,Unlock_all		;AN000;;MS. old function 0 or 1 ?
-;	JA	chk_lock_mul		;AN000;;MS. no, new function
-;	TEST	AL,80H			;AN000;;MS. 80H bit on ?
-;	JZ	old_33			;AN000;;MS. no, old DOS 3.3 interface
-;	MOV	CX,1			;AN000;;MS. adjust for new interface
-;	ADD	BP,2			;AN000;;MS.
-;	JMP	SHORT chk_lock_mul	;AN000;;MS.
 old_33:
 	MOV	BX,AX			;AN000;;MS. save AX
-;;	MOV	DX,[Temp_Var]		;AN000;;MS. retore DX  (P5013) 6/5/88
-
 	MOV	BP, OFFSET DOSGROUP:Lock_Buffer ;AN000;;MS. get DOS LOCK buffer
 	MOV	WORD PTR [BP.Lock_position],DX	;AN000;;MS. set low offset
 	MOV	WORD PTR [BP.Lock_position+2],CX;AN000;;MS. set high offset
@@ -124,57 +109,6 @@ old_33:
 	TEST	AL,Unlock_all			;AN000;;MS. function 1
 	JNZ	DOS_Unlock			;AN000;;MS. yes
 	JMP	DOS_Lock			;AN000;;MS. function 0
-;;chk_lock_mul:
-;	POP	SI				;AN000;;MS. pop low length
-;	TEST	ES:[DI.sf_flags],sf_isnet	;AN000;;MS. net handle?
-;	JZ	LOCAL_DOS_LOCK			;AN000;;MS. no
-;	invoke	OWN_SHARE			;AN000;;MS. IFS owns share ?
-;	JNZ	LOCAL_DOS_LOCK			;AN000;;MS. no
-;	MOV	BX,AX				;AN000;;MS. BX=AX
-;	CallInstall NET_XLock,multNet,10	;AN000;;MS. issue Net Extended Lock
-;	MOV	[Temp_Var],CX			;AN000;;MS. cx= retuened from IFS
-;	JMP	ValChk				;AN000;;MS. check return
-;LOCAL_DOS_LOCK:
-;	CMP	BP,Lock_mul_range		;AN000;;MS. lock mul range?
-;	JNZ	unmul				;AN000;;MS. lock mul range?
-;	JMP	LOCAL_LOCK			;AN000;;MS. yes
-;unmul:
-;	CMP	BP,Unlock_mul_range		;AN000;;MS. unlock mul range?
-;	JZ	LOCAL_UNLOCK			;AN000;;MS. yes
-;	CMP	BP,Lock_read			;AN000;;MS. lock read?
-;	JNZ	chk_write_unlock		;AN000;;MS. no
-;	CALL	Set_Lock_Buffer 		;AN000;;MS. set DOS lock buffer
-;	CALL	Set_Lock			;AN000;;MS. set the lock
-;	JC	lockerror			;AN000;;MS. error
-;	invoke	$READ				;AN000;;MS. do read
-;	JC	lockerror			;AN000;;MS. error
-;lockend:
-;	transfer SYS_RET_OK			;AN000;;MS. return
-;chk_write_unlock:
-;	CMP	BP,Write_unlock 		;AN000;;MS. write unlock ?
-;	JNZ	Lock_addf			;AN000;;MS. no
-;	CALL	Set_Lock_Buffer 		;AN000;;MS. set DOS lock buffer
-;WriteUnlock:
-;	PUSH	AX				;AN000;;MS. save AX for unlock
-;	invoke	$WRITE				;AN000;;MS. do write
-;	MOV	[Temp_Var],AX			;AN000;;MS. save number of bytes writ
-;	POP	AX				;AN000;;MS. restore AX
-;	JC	lockerror			;AN000;;MS. error
-;	MOV	CX,1				;AN000;;MS. one range unlock
-;	PUSH	CS				;AN000;;MS.
-;	POP	DS				;AN000;;MS. DS:DX points to
-;	MOV	DX,OFFSET DOSGROUP:Lock_Buffer	;AN000;;MS.  Lock_BUffer
-;	JMP	LOCAL_UNLOCK			;AN000;;MS. do unlock
-;Lock_addf:
-;	MOV	SI,WORD PTR ES:[DI.SF_Size]	 ;AN000;;MS. must be lock add
-;	MOV	WORD PTR ES:[DI.SF_Position],SI  ;AN000;;MS. set file position to
-;	MOV	SI,WORD PTR ES:[DI.SF_Size+2]	 ;AN000;;MS. EOF
-;	MOV	WORD PTR ES:[DI.SF_Position+2],SI;AN000;;MS.
-;	CALL	Set_Lock_Buffer 		 ;AN000;;MS. set DOS lock buffer
-;	CALL	Set_Lock			 ;AN000;;MS. set the lock
-;	JC	lockerror			 ;AN000;;MS. error
-;	JMP	WriteUnlock			 ;AN000;;MS. do write unlock
-						 ;AN000;;MS.
 DOS_Unlock:
 	TEST	ES:[DI.sf_flags],sf_isnet
 	JZ	LOCAL_UNLOCK

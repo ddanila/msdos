@@ -9,9 +9,7 @@ SUBTTL	SELECT5.asm
 ;
 ;	SELECT5.ASM : Copyright 1988 Microsoft
 ;
-;	DATE:	 August 8/87
 ;
-;	COMMENTS: Assemble with MASM 3.0 (using the /A option)
 ;
 ;		  Panel flow is defined in the following files:
 ;
@@ -89,8 +87,6 @@ SELECT	SEGMENT PARA PUBLIC 'SELECT'                            ;AN000;segment fo
 ;
 ;  The VDISK PARAMETERS SCREEN is presented if the user selected to
 ;  install virtual disk support and the user wants to view/change parameters.
-;  Note.The view/change parameters condition is not specified in the May 5, 1987
-;  Functional Specification.
 ;  The screen gets parameters for the VDISK command.
 ;  Valid keys are ENTER, ESC, F1, F3 and ASCII characters.
 ;  Note.User entered parameter values are not checked for validity.

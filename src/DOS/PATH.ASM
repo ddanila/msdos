@@ -87,8 +87,6 @@ GetDst:
 	JNZ	CurrentCopy
 	INC	SI
 CurrentCopy:
-;	Invoke	FStrCpy
-;; 10/29/86 E5 char
 	PUSH	AX
 	LODSB			      ; get char
 	OR	AL,AL
@@ -113,7 +111,6 @@ FOK:
 	JNZ	FCPYNEXT	      ; no
 	POP	AX
 
-;; 10/29/86 E5 char
 	xor	AL,AL			; MZ 19 Jan 84
 	LeaveCrit   critDisk
 	transfer    Sys_Ret_OK		; no more, bye!

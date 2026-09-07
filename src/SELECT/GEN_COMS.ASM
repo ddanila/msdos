@@ -7,9 +7,7 @@ SUBTTL	GEN_COMS
 ;
 ;	GEN_COMS.ASM : Copyright 1988 Microsoft
 ;
-;	DATE:	 August 8/87
 ;
-;	COMMENTS: Assemble with MASM 3.0 (using the -A option)
 ;
 ;	Module contains code for :
 ;		- creation of AUTOEXEC file

@@ -129,17 +129,6 @@
 ;	 COMPPAR.SAL - Defines the control blocks that describe the
 ;		DOS Command line parameters.
 ;
-; NOTES:
-;	 This module should be processed with the SALUT preprocessor
-;	 with the re-alignment not requested, as:
-;
-;		SALUT COMP2,NUL
-;
-;	 To assemble these modules, the alphabetical or sequential
-;	 ordering of segments may be used.
-;
-;	 For LINK information, reference Prolog of COMP1.SAL.
-;
 ; COPYRIGHT: The following notice is found in the OBJ code generated from
 ;	     the "COMPSM.SAL" module:
 ;

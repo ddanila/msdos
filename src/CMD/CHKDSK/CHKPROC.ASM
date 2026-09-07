@@ -1215,7 +1215,6 @@ NT_SPLC:
 ;		    ThisEl
 ;		    Eprint
 ;
-;Change History: Created	5/10/87 	MT
 ;
 ;Input: BX = pointer to search FCB
 ;	AL is head mark with app type =81h
@@ -1384,7 +1383,6 @@ MarkFAT endp					;
 ;		    Eprint
 ;		       FixENT2
 ;
-;Change History: Created	5/10/87 	MT
 ;
 ;Input: First_Cluster
 ;	   Chain_End
@@ -1475,7 +1473,6 @@ Bad_Cluster endp				;
 ;		    Bad_Chain_Size
 ;
 ;
-;Change History: Created	5/10/87 	MT
 ;
 ;Input: CSIZE = sectors per cluster
 ;	SSIZE = bytes per sector
@@ -1600,7 +1597,6 @@ print_filename	  endp				;
 ;		    Get_ThisElErr
 ;		    Eprint
 ;
-;Change History: Created	5/11/87 	MT
 ;
 ;Input: XA_Pass = TRUE/FALSE
 ;	Chain_Size_High/Low
@@ -1665,7 +1661,6 @@ Bad_Chain_Size endp				;
 ;		    Unpack
 ;		    Pack
 ;
-;Change History: Created	5/11/87 	MT
 ;
 ;Input: First_Cluster
 ;	   Chain_End
@@ -1734,7 +1729,6 @@ Bad_Chain_Size endp				;
 ;		    Check_XA_Structure
 ;		    MarkFAT
 ;
-;Change History: Created	5/10/87 	MT
 ;
 ;Input: SI = pointer to directory entry
 ;
@@ -1800,7 +1794,6 @@ Bad_Chain_Size endp				;
 ;Called Procedures: Read_Disk
 ;
 ;
-;Change History: Created	5/13/87 	MT
 ;
 ;Input: AX has start cluster of XA chain
 ;	SI = dir pointer

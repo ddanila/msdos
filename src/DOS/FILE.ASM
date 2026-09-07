@@ -609,14 +609,6 @@ ASSUME	DS:NOTHING
 	cmp	al,error_access_denied
 	jz	CreateLoop		; access denied (attr mismatch)
 
-;	CMP	AL,error_file_exists	; certain errors cause failure
-;	JZ	CreateLoop
-;	CMP	AL,error_access_denied
-;	JNZ	SETTMPERR		; Error out
-;	CMP	[EXTERR],error_cannot_make  ; See if it's REALLY an att mismatch
-;	JNZ	CreateLoop		; It was, try again
-;	MOV	AL,error_cannot_make	; Return this "extended" error
-
 SETTMPERR:
 	STC
 CreateDone:
@@ -690,26 +682,6 @@ procedure   $Extended_Open,NEAR
 	CMP	AH,10H			  ;AN000;EO. > 10
 	JA	ext_inval2		  ;AN000;EO. yes error
 
-;	CMP	DI,-1			  ;AN000;EO. null parm list
-;	JZ	no_parm 		  ;AN000;EO. yes
-;					  ;AN000;EO
-;	PUSH	CX			  ;AN000;EO.
-;					  ;AN000;EO.
-;	MOV	CX,ES:[DI.EXT_NUM_OF_PARM];AN000;EO. get number of parms
-;	OR	CX,CX			  ;AN000;EO. 0 pamrs ?
-;	JZ	parmend 		  ;AN000;EO. yes
-;	PUSH	SI			  ;AN000;EO.
-;	PUSH	DS			  ;AN000;EO.
-;	MOV	SI,DI			  ;AN000;EO.
-;	ADD	SI,size EXT_OPEN_PARM	  ;AN000;EO. position to 1st parm
-;	PUSH	ES			  ;AN000;EO.
-;	POP	DS			  ;AN000;EO. ds:si -> parm list
-;	CALL	GetIOParms		  ;AN000;EO.
-;	POP	DS			  ;AN000;EO.
-;	POP	SI			  ;AN000;EO.
-;parmend:				  ;AN000;EO
-;	POP	CX			  ;AN000;EO. restore CX
-;no_parm:				  ;AN000;EO.
 	MOV	[SAVE_ES],ES		  ;AN000;EO. save API parms
 	MOV	[SAVE_DI],DI		  ;AN000;EO.
 	PUSH	[EXTOPEN_FLAG]		  ;AN000;EO.
@@ -803,20 +775,6 @@ ext_ok:
 setXAttr:
 ;	LES	DI,DWORD PTR [SAVE_DI]	;AN000;EO.
 	PUSH	AX			;AN000;;EO. save handle for final
-;	MOV	BX,AX			;AN000;;EO. bx= handle
-;	MOV	AX,04H			;AN000;;EO. set extended attr by handle
-;	PUSH	DS			;AN000;;EO. save file name addr
-;	PUSH	DX			;AN000;;EO.
-;	CMP	DI,-1			;AN000;;EO. null parm list
-;	JZ	nosetea 		;AN000;;EO. yes
-;	CMP	WORD PTR ES:[DI],-1	;AN000;;EO. null set list
-;	JZ	nosetea 		;AN000;;EO. yes
-;	LES	DI,DWORD PTR ES:[DI]	;AN000;;EO. es:di -> set list
-;	invoke	$File_times		;AN000;;EO.
-;nosetea:				;AN000; EO
-;	POP	DX			;AN000;;EO. restore file name addr
-;	POP	DS			;AN000;;EO.
-;	JC	extexit2		;AN000;;EO.
 	invoke	get_user_stack		;AN000;;EO.
 	MOV	AX,[EXTOPEN_FLAG]	;AN000;;EO.
 	MOV	[SI.USER_CX],AX 	;AN000;;EO. set action code for cx

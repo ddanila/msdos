@@ -76,14 +76,12 @@ Break   <FNDCLUS -- Skip over allocation units>
         ASSUME  ES:NOTHING
 
         Assert      ISDPB,<ES,BP>,"FndCLus"
-;; 10/31/86 FastSeek
         PUSH    ES
         LES     DI,[THISSFT]
         Assert      ISSFT,<ES,DI>,"FndClus"
         MOV     [FSeek_logclus],CX                ; presume CX is the position
         MOV     BX,ES:[DI.sf_lstclus]
         MOV     DX,ES:[DI.sf_cluspos]
-;; 10/31/86 FastSeek
         OR      BX,BX
         JNZ     YCLUS
         JMP     NOCLUS
@@ -94,9 +92,6 @@ YCLUS:
         XOR     DX,DX
         MOV     BX,ES:[DI.sf_firclus]
 FINDIT:
-;; 10/31/86 FastSeek
-
-
         POP     ES
         OR      CX,CX
         JNZ     skpclp
@@ -353,7 +348,6 @@ Break   <NEXTSEC -- Compute next sector to read or write>
         MOV     BX,[CLUSNUM]
         Invoke  IsEOF
         JAE     NONEXT
-;; 11/5/86 FastSeek
         TEST    [FastSeekflg],Fast_yes            ; fastseek installed?
         JZ      do_norm2                          ; no
         PUSH    [LASTPOS]               ; save logical cluster #
@@ -380,7 +374,6 @@ do_norm2:
         invoke  FastSeek_Insert         ; call insert
         AND     [FastSeekflg],FS_no_insert  ; clear insert flag
 clusgot:
-;; 11/5/86 FastSeek
         MOV     [CLUSNUM],DI
         INC     [LASTPOS]
         MOV     AL,0
@@ -427,7 +420,6 @@ Break   <OPTIMIZE -- DO A USER DISK REQUEST WELL>
         SUB     AL,DL           ; AL = Number of sectors left in first cluster
         MOV     DX,CX
         MOV     CX,0
-;;; 11/5/86 FastSeek
         PUSH    [LASTPOS]               ; save logical cluster #
         POP     [FSeek_logclus]
         INC     [FSeek_logclus]         ; get next cluster
@@ -465,7 +457,6 @@ do_norm3:
 clusgot2:
         invoke  FastSeek_Insert         ; call insert
         INC     [FSeek_logclus]         ; insert to next position
-;;; 11/5/86 FastSeek
         ADD     CL,AL
         ADC     CH,0
         CMP     CX,DX
@@ -734,7 +725,6 @@ ads4:   POP     BX
 ;       AND     [XA_condition],not XA_No_SFT  ;FT. clear the bit
 ;       CLC                                   ;FT.
 ;       ret                                   ;FT.
-;; 11/6/86 FastSeek
 dofastk:
         PUSH    DX
         MOV     DL,ES:[BP.dpb_drive]              ; get drive #

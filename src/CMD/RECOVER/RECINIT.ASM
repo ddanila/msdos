@@ -264,7 +264,6 @@ get_drive endp				;
 ;Called Procedures: Preload_Messages
 ;		   Parse_Recover
 ;
-;Change History: Created	5/10/87 	MT
 ;
 ;Input: PSP command line at 81h and length at 80h
 ;
@@ -360,7 +359,6 @@ Init_Io 	  endp			;
 ;
 ;Called Procedures: SysLoadMsg
 ;
-;Change History: Created	5/1/87	       MT
 ;
 ;Input: Fatal_Error = NO
 ;
@@ -399,7 +397,6 @@ Preload_Messages endp			;
 ;		    parse_good
 ;		    parse_err
 ;
-;Change History: Created	5/1/87	       MT
 ;
 ;Input: Fatal_Error = NO
 ;
@@ -474,7 +471,6 @@ Parse_recover endp			;
 ;
 ;Called Procedures: parse_message (macro)
 ;
-;Change History: Created	7/23/87 	bgb
 ;
 ;Input:
 ;
@@ -547,7 +543,6 @@ parse_good endp 			;
 ;
 ;Called Procedures: parse_message (macro)
 ;
-;Change History: Created	7/23/87 	bgb
 ;
 ;Input:
 ;
@@ -601,7 +596,6 @@ parse_err endp				;
 ;		    Check_For_Network
 ;		    Check_Translate_Drive
 ;
-;Change History: Created	5/1/87	       MT
 ;
 ;Input: Fatal_Error = NO
 ;
@@ -644,7 +638,6 @@ Validate_Target_Drive endp		;
 ;
 ;Called Procedures: Message (macro)
 ;
-;Change History: Created	5/1/87	       MT
 ;
 ;Input: Fatal_Error = NO
 ;
@@ -705,7 +698,6 @@ Check_Target_Drive endp 		;
 ;
 ;Called Procedures: Message (macro)
 ;
-;Change History: Created	5/1/87	       MT
 ;
 ;Input: Drive
 ;	   Fatal_Error = NO
@@ -772,7 +764,6 @@ Check_For_Network endp			;
 ;
 ;Called Procedures: Message (macro)
 ;
-;Change History: Created	5/1/87	       MT
 ;
 ;Input: Drive_Letter_Msg has drive string
 ;	   Fatal_Error = NO
@@ -831,7 +822,6 @@ Check_Translate_Drive endp		;
 ;
 ;Called Procedures: None
 ;
-;Change History: Created	4/21/87 	MT
 ;
 ;Input: None
 ;
@@ -883,7 +873,6 @@ Check_Translate_Drive endp		;
 ;
 ;Called Procedures: None
 ;
-;Change History: Created	4/21/87 	MT
 ;
 ;Input: None
 ;
@@ -923,7 +912,6 @@ Check_Translate_Drive endp		;
 ;Called Procedures: None
 ;
 ;
-;Change History: Created	5/13/87 	MT
 ;
 ;Input: None
 ;
@@ -968,7 +956,6 @@ Clear_Append_X endp			;
 ;Called Procedures: Main_Routine
 ;		   EXEC_FS_RECOVER
 ;
-;Change History: Created	5/8/87	       MT
 ;
 ;Input: FS_Not_FAT = Yes/No
 ;
@@ -1011,7 +998,6 @@ RECOVER_IFS endp			;
 ;Called Procedures: None
 ;
 ;
-;Change History: Created	5/13/87 	MT
 ;
 ;Input: None
 ;

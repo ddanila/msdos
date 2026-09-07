@@ -1077,7 +1077,6 @@ END
 /*Called Procedures:                                                           */
 /*                                                                             */
 /*                                                                             */
-/*Change History: Created        5/16/87         DRM                           */
 /*                                                                             */
 /*Input: Cylinders_in                                                          */
 /*                                                                             */

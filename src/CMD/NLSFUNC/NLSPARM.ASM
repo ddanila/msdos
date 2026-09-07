@@ -70,18 +70,6 @@
 ;
 ;    DATA AREAS: control blocks pointed to by input registers.
 ;
-; NOTES:
-;	 This module should be processed with the ASMUT preprocessor
-;	 with the re-alignment not requested, as:
-;
-;		SALUT  NLSPARM,NUL;
-;
-;	 To assemble these modules, the sequential
-;	 ordering of segments may be used.
-;
-;	 For LINK instructions, refer to the PROLOG of the main module,
-;	 NLSFUNC.SAL
-;
 ; COPYRIGHT: "The DOS NLSFUNC Utility"
 ;	     "Version 4.00 (C)Copyright 1988 Microsoft
 ;	     "Licensed Material - Program Property of Microsoft "

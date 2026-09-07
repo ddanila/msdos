@@ -84,13 +84,6 @@ Installed = TRUE
 
 	Invoke	TestNet
 	JNC	LOCAL_RENAME
-;	invoke	OWN_SHARE2		       ;IFS.  IFS owns share ?
-;	JZ	ifsshare		       ;IFS.  yes
-;	PUSH	WORD PTR [DMAADD+2]	       ;IFS.  save DMAADD
-;	PUSH	WORD PTR [DMAADD]	       ;IFS.
-;
-;	invoke	IFS_SEARCH_FIRST	       ;IFS.  search source name
-;	JC	nofiles 		       ;IFS.  not found
 rename_next_file:
 ;	invoke	IFS_REN_DEL_CHECK	       ;IFS.  do share check
 ;	JNC	share_okok		       ;IFS.  share ok
@@ -102,22 +95,6 @@ share_okok:
 ;	MOV	SI,[REN_WFP]		       ;IFS. ds:si -> destination name
 ;	MOV	BX,SI			       ;IFS.
 fndnxt: 				       ;IFS.
-;	LODSB				       ;IFS.
-;	CMP	AL,0			       ;IFS.
-;	JNZ	fndnxt			       ;IFS.
-;	MOV	DI,SI			       ;IFS. es:di -> end of destinatio
-;	ADD	BX,2			       ;IFS.
-;	invoke	SkipBack		       ;IFS.
-;	INC	DI			       ;IFS. es:di -> last component of
-;	MOV	SI,DI			       ;IFS.	      dstination
-;	MOV	BX,[SAVE_BX]		       ;IFS. ds:bx -> last component of
-;	CALL	NEW_RENAME		       ;IFS.	      source
-;	MOV	AX,(multNET SHL 8) OR 17       ;IFS.  replace ? chars with
-;	INT	2FH			       ;IFS.  source and issue RENAME
-;	JC	nofiles 		       ;IFS.  error
-;	invoke	DOS_SEARCH_NEXT 	       ;IFS.  serch next source
-;	JNC	rename_next_file	       ;IFS.  rename next
-;	CLC				       ;IFS.  no more files
 nofiles:
 ;	POP	WORD PTR [DMAADD]	       ;IFS. restore DMAADD
 ;	POP	WORD PTR [DMAADD+2]	       ;IFS.

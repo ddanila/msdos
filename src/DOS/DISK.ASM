@@ -1019,14 +1019,6 @@ safe_pick_last:
 	mov	[BUF_EMS_SAFE_FLAG], 1
 	jmp	fin_choose_page
 
-;pick_last:
-;	mov	ax, word ptr [BUF_EMS_LAST_PAGE]
-;	mov	[BUF_EMS_PFRAME], ax
-;	mov	ax, word ptr [BUF_EMS_LAST_PAGE+2]
-;	mov	[BUF_EMS_PAGE_FRAME], ax
-;	xor	ax, ax
-;	jmp	fin_choose_page
-
 pick_first:
 	mov	ax, word ptr [BUF_EMS_FIRST_PAGE]
 	cmp	[BUF_EMS_PFRAME], ax

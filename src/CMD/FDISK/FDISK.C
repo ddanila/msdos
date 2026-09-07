@@ -73,7 +73,6 @@
 /*   UTILITY NAME:         FDISK.com                                      */
 /*   SOURCE FILE NAME:     FDISK.c                                        */
 /*   STATUS:               FDISK utility, DOS 3.3	                  */
-/*   CHANGE HISTORY:       UPDATED        5-29-87     DOS4.0       DRM    */
 /*   SYNTAX (Command line)                                                */
 /*                                                                        */
 /*         [d:][path]FDISK                                                */

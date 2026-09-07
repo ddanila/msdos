@@ -120,29 +120,7 @@
 ;	 COMPPAR.SAL - Defines the control blocks that describe the
 ;		DOS Command line parameters.
 ;
-; NOTES:
-;	 This module should be processed with the SALUT preprocessor
-;	 with the re-alignment not requested, as:
-;
-;		SALUT COMP1,NUL
-;
-;	 To assemble these modules, the alphabetical or sequential
-;	 ordering of segments may be used.
-;
-;	 Sample LINK command:
-;
-;		LINK @COMP.ARF
-;
-;	 Where the COMP.ARF is defined as:
-;
-;	 COMP1+
-;	 COMPPAR+
-;	 COMPP+
-;	 COMPSM+
-;	 COMP2
-;
-;	 These modules must be linked in this order.  The load module is
-;	 a COM file, to be converted to COM with EXE2BIN.
+; Preserve the module order in the link response file: it defines the COM layout.
 ;
 ; COPYRIGHT: The following notice is found in the OBJ code generated from
 ;	     the "COMPSM.SAL" module:

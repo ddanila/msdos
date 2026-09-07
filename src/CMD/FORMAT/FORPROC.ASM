@@ -250,7 +250,6 @@ NOSERIALNUMBER:
 ;Called Procedures: None
 ;
 ;
-;Change History: Created	5/13/87 	MT
 ;
 ;Input: AL = Drive number (0=A)
 ;	DS:BX = Transfer address
@@ -323,7 +322,6 @@ Read_Disk endp					;
 ;Called Procedures: None
 ;
 ;
-;Change History: Created	5/13/87 	MT
 ;
 ;Input: AL = Drive number (0=A)
 ;	DS:BX = Transfer address

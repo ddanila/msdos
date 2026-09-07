@@ -1,15 +1,5 @@
 BREAK <Internal system file table format>
-;
-;   AN000   version 4.00   Jan. 1988
-;   AN003   PTM 3680 --  make NAME offset the same as before (<=3.30)
-;   AN009   PTM 3839	 reorder SFT for MS WINDOWS
-
-;----+----+----+----+----+----+----+----+----+----+----+----+----+----+----;
-;	     C	A  V  E  A  T	  P  R	O  G  R  A  M  M  E  R		   ;
-;									   ;
-;
-; system file table
-;
+; System file table. Preserve legacy field offsets for callers such as Windows.
 
 SF		STRUC
 SFLink		DD	?

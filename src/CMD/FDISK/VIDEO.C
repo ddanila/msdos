@@ -123,7 +123,6 @@ END
 /*Called Procedures:    none                                                  */
 /*                                                                            */
 /*                                                                            */
-/*Change History: Created        3/11/88         DRM                          */
 /*                                                                            */
 /*Input: None                                                                 */
 /*                                                                            */

@@ -1,7 +1,4 @@
-; TITLE MSINIT.ASM -- MS-DOS INITIALIZATION CODE
-; AN000 version 4.0 Jan. 1988
-; AN007 PTM 3957 - fake version for IBMCACHE.COM
-; AN008 PTM 4070 - fake version for MS WINDOWS
+; MS-DOS initialization.
 include sysvar.inc
 include doscntry.inc
 include fastopen.inc
@@ -85,29 +82,6 @@ SETFINDPB:
 	SUB	SI,DPBSIZ
 	MOV	WORD PTR ES:[SI.dpb_next_dpb+2],-1
 
-;;	PUSH	ES
-;;	MOV	DI,OFFSET DOSGroup:SYSBUF + 0Fh
-;;	RCR	DI,1
-;;	SHR	DI,1
-;;	SHR	DI,1
-;;	SHR	DI,1
-;;	MOV	AX,ES
-;;	ADD	AX,DI
-;;	MOV	ES,AX
-;;	ASSUME	ES:NOTHING
-;;	XOR	DI,DI
-
-;	MOV	DI,OFFSET DOSGroup:SYSBUF	; Set up one default buffer
-;	MOV	WORD PTR [BUFFHEAD+2],ES
-;	MOV	WORD PTR [BUFFHEAD],DI
-;;	MOV	WORD PTR [Hash_Temp+4],ES   ;LB. intitialize one Hash entry
-;;	MOV	WORD PTR [Hash_Temp+2],DI   ;LB.
-;;	MOV	WORD PTR [Hash_Temp+6],0    ;LB. dirty count =0
-;;	MOV	WORD PTR ES:[DI.buf_ID],00FFH
-;;	MOV	WORD PTR ES:[DI.buf_next],DI  ;;;1/19/88
-;;	MOV	WORD PTR ES:[DI.buf_prev],DI  ;;;1/19/88
-
-;;	POP	ES
 	; SETVER defaults are initialized in the retained TABLE image. There is
 	; no transient-to-resident copy over the discarded DOSINIT workspace.
 

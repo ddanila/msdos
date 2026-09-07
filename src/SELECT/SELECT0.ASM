@@ -8,9 +8,7 @@ SUBTTL	select0.asm
 ;
 ;	SELECT0.ASM : Copyright 1988 Microsoft
 ;
-;	DATE:	 July 4/87
 ;
-;	COMMENTS: Assemble with MASM 3.0 (using the /A option)
 ;
 ;		  Panel flow is defined in the following files:
 ;

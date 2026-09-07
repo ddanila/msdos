@@ -78,14 +78,6 @@
 
 ;    DATA AREAS: control blocks pointed to by input registers.
 
-; NOTES:
-
-;	 To assemble these modules, the alphabetical or sequential
-;	 ordering of segments may be used.
-
-;	 For LINK instructions, refer to the PROLOG of the main module,
-;	 fastopen.asm.
-
 ; COPYRIGHT: "MS DOS FASTOPEN Utility"
 ;	     "Version 4.00 (C)Copyright 1988 Microsoft "
 ;	     "Licensed Material - Property of Microsoft "

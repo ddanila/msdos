@@ -201,9 +201,7 @@ Create_ok:
 ; If we created a volume id on the diskette, set the VOLCHNG_FLAG to logical
 ; drive number to force a Build BPB after Media Check.
 
-;;; FASTOPEN 8/29/86
 	invoke	FastOpen_Delete
-;;; FASTOPEN 8/29/86
 	mov	al,[SATTRIB]
 	test	al,attr_volume_id
 	jz	NoVolLabel

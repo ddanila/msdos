@@ -68,11 +68,7 @@ Procedure IsEof,NEAR
 	Assert	    ISDPB,<ES,BP>,"IsEOF"
 	CMP	ES:[BP.dpb_max_cluster],4096-10 ; is this 16 bit fat?
 	JAE	EOF16			; yes, check for eof there
-;J.K. 8/27/86
-;Modified to accept 0FF0h as an eof. This is to handle the diskfull case
-;of any media that has "F0"(Other) as a MediaByte.
-;Hopely, this does not create any side effect for those who may use any value
-;other than "FF8-FFF" as an Eof for their own file.
+; Accept 0FF0h as EOF for disk-full media with descriptor F0h (other media).
 	cmp	bx,0FF0h
 	je	IsEOF_other
 	CMP	BX,0FF8h		; do the 12 bit compare

@@ -293,12 +293,10 @@ BackSpace:
 	JAE	OLDBAK		;Was a normal char
 	CMP	AL,c_HT
 	JZ	BAKTAB		;Was a tab, fix up users display
-;; 9/27/86 fix for ctrl-U backspace
 	CMP	AL,"U"-"@"      ; ctrl-U is a section symbol not ^U
 	JZ	OLDBAK
 	CMP	AL,"T"-"@"      ; ctrl-T is a paragraphs symbol not ^T
 	JZ	OLDBAK
-;; 9/27/86 fix for ctrl-U backspace
 	CALL	BACKMES 	;Was a control char, zap the '^'
 OLDBAK:
 	CMP	BYTE PTR [INSMODE],0

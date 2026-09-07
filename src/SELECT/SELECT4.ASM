@@ -9,9 +9,7 @@ SUBTTL	SELECT4.asm
 ;
 ;	SELECT4.ASM : Copyright 1988 Microsoft
 ;
-;	DATE:	 August 8/87
 ;
-;	COMMENTS: Assemble with MASM 3.0 (using the /A option)
 ;
 ;		  Panel flow is defined in the following files:
 ;
@@ -187,8 +185,6 @@ GET_PARAMETERS:
 ;
 ;  The SHELL PARAMETERS SCREEN is presented if the user selected to
 ;  install SHELL support and the user wants to view/change parameters.
-;  Note.The view/change parameters condition is not specified in the May 5, 1987
-;  Functional Specification.
 ;  The screen gets the parameters for SHELL.
 ;  Valid keys are ENTER, ESC, F1, F3 and ASCII characters.
 ;  Note.User entered parameter values are not checked for validity.
@@ -224,8 +220,6 @@ SHELL_SCREEN:
 ;
 ;  The FASTOPEN PARAMETERS SCREEN is presented if the user selected to
 ;  install FASTOPEN support and the user wants to view/change the parameters.
-;  Note.The view/change parameters condition is not specified in the May 5, 1987
-;  Functional Specification.
 ;  The screen gets parameters for the FASTOPEN command.
 ;  Valid keys are ENTER, ESC, F1, F3 and ASCII characters.
 ;  Note.User entered parameter values are not checked for validity.
@@ -262,8 +256,6 @@ FASTOPEN_SCREEN:
 ;
 ;  The SHARE PARAMETERS SCREEN is presented if the user selected to
 ;  install SHARE support and the user wants to view/change parameters.
-;  Note.The view/change parameters condition is not specified in the May 5, 1987
-;  Functional Specification.
 ;  The screen gets parameters for the SHARE command.
 ;  Valid keys are ENTER, ESC, F1, F3 and ASCII characters.
 ;  Note.User entered parameter values are not checked for validity.
@@ -301,8 +293,6 @@ SHARE_SCREEN:
 ;
 ;  The GRAPHICS PARAMETERS SCREEN is presented if the user selected to
 ;  install GRAPHICS support and the user wants to view/change parameters.
-;  Note.The view/change parameters condition is not specified in the May 5, 1987
-;  Functional Specification.
 ;  The screen gets parameters for the GRAPHICS command.
 ;  Valid keys are ENTER, ESC, F1, F3 and ASCII characters.
 ;  Note.User entered parameter values are not checked for validity.
@@ -344,8 +334,6 @@ GRAPHICS_SCREEN:
 ;
 ;  The EXPANDED MEMORY PARAMETERS SCREEN is presented if the user selected to
 ;  install expanded memory support and the user wants to view/change parameters.
-;  Note.The view/change parameters condition is not specified in the May 5, 1987
-;  Functional Specification.
 ;  The screen gets parameters for the XMAEM and XMA2EMS commands.
 ;  The expanded memory commands are only supported if memory above 1000000H
 ;  is available.

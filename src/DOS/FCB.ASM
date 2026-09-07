@@ -328,7 +328,6 @@ ENDIF
 ; Get a byte from [SI], convert it to upper case, and compare for delimiter.
 ; ZF set if a delimiter, CY set if a control character (other than TAB).
 ;
-; DOS 3.3 modification for file char upper case.    F.C. 5/29/86
 	procedure   GetLet,NEAR
 	LODSB
   entry GetLet2 			    ;AN000;; called by uCase

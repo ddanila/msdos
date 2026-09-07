@@ -62,18 +62,6 @@
 ;	EXITFL:BYTE	Errorlevel return code.
 ;	MSGNUM_PARSE:WORD Message descriptor for all parse errors.
 ;
-; NOTES:
-;	 This module should be processed with the SALUT preprocessor
-;	 with the re-alignment not requested, as:
-;
-;		SALUT XCOPYPAR,NUL
-;
-;	 To assemble these modules, the alphabetical or sequential
-;	 ordering of segments may be used.
-;
-;	 For LINK instructions, refer to the PROLOG of the main module,
-;	 XCOPY.SAL.
-;
 ;     Label: "The DOS XCOPY Utility"
 ;	     "Version 4.00 (C)Copyright 1988 Microsoft"
 ;	     "Licensed Material - Program Property of Microsoft "

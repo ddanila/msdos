@@ -79,18 +79,6 @@
 ;
 ;    DATA AREAS: control blocks pointed to by input registers.
 ;
-; NOTES:
-;	 This module should be processed with the SALUT preprocessor
-;	 with the re-alignment not requested, as:
-;
-;		SALUT COMPSM,nul,;
-;
-;	 To assemble these modules, the alphabetical or sequential
-;	 ordering of segments may be used.
-;
-;	 For LINK instructions, refer to the PROLOG of the main module,
-;	 COMP1.ASM.
-;
 ; COPYRIGHT: "The DOS COMP Utility"
 ;	     "Version 4.0  (C)Copyright 1988 Micorsoft "
 ;	     "Licensed Material - Property of Microsoft "

@@ -1,19 +1,6 @@
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;
-;   Equates and Strucs.
-;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;------------------------------------------------------------------------------
-;AN001; D425 For OS2 compatibiltiy box, /L option status query     01/14/88 J.K.
-;AN002; D493 New INIT request structure for error message          02/25/88 J.K.
-;AN003; P4934 Change ANSI 2F function number t0 1Ah                05/20/88 F.G.
-;------------------------------------------------------------------------------
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;
-;      DEVICE  Header     DS:[SI]      -- to locate the next CON header
-;      NEXT device header ES:[DI]
-;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; ANSI equates and structures.
+; Device header DS:SI locates the next CON header at ES:DI.
+
 HP      EQU     DS:[SI]                 ;
 NHD     EQU     ES:[DI]                 ;
                                         ;

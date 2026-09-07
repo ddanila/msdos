@@ -175,16 +175,6 @@ setattr:
 	MOV	ES:[DI.dir_date],AX	;Set date
 	MOV	AX,[SI.sf_time]
 	MOV	ES:[DI.dir_time],AX	;Set time
-;; File Tagging
-
-;	MOV	AX,[SI.sf_codepage]
-;	MOV	ES:[DI.dir_codepg],AX	   ;AN000;Set code page
-;	MOV	AX,[SI.sf_extcluster]
-;	MOV	ES:[DI.dir_extcluster],AX  ;AN000;   ;Set XA cluster
-;	MOV	AL,[SI.sf_attr_hi]
-;	MOV	ES:[DI.dir_attr2],AL	   ;AN000;   ;Set high attr
-
-;; File Tagging
 	TEST	ES:[BX.buf_flags],buf_dirty  ;LB. if already dirty
 	JNZ	yesdirty		  ;LB.	  don't increment dirty count
 	invoke	INC_DIRTY_COUNT 	  ;LB.
@@ -193,7 +183,6 @@ yesdirty:
 	SaveReg  <DS,SI>
 	MOV	CX,[SI.sf_firclus]	; do this for Fastopen
 	MOV	AL,[THISDRV]
-;;; 10/1/86  update fastopen cache
 	PUSH	DX
 	MOV	AH,0			; dir entry update
 	MOV	DL,AL			; drive number A=0, B=1,,,
@@ -215,7 +204,6 @@ do_update:
 	invoke	FastOpen_Update 	; invoke fastopen
 	POP	DX
 
-;;; 10/1/86  update fastopen cache
 	invoke	FLUSHBUF		; flush all relevant buffers
 	RestoreReg  <DI,ES>
 	MOV	AL,error_access_denied
@@ -226,11 +214,9 @@ CloseFinish:
 ;
 ; Indicate to the device that the SFT is being closed.
 ;
-;;;; 7/21/86
 	PUSHF				; save flag from DirFromSFT
 	invoke	Dev_Close_SFT
 	POPF
-;;;; 7/21/86
 ;
 ; See if the ref count indicates that we have busied the SFT.  If so, mark the
 ; SFT as being free.  Note that we do NOT need to be in critSFT as we are ONLY

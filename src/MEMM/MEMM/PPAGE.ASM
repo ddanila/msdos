@@ -388,8 +388,6 @@ find_pf_base	endp
 ;									;
 ; calls:exclude_segments						;
 ;									;
-; History:                                                              ;
-;	ISP (isp). Wrote it.				;
 ;***********************************************************************;
 exclude_video_mem   proc    near
 ;
@@ -419,8 +417,6 @@ exclude_video_mem   endp
 ;									;
 ; calls:exclude_segments						;
 ;									;
-; History:                                                              ;
-;	ISP (isp). Wrote it.				;
 ;***********************************************************************;
 exclude_system_ROM  proc    near
 ;
@@ -451,8 +447,6 @@ exclude_system_ROM  endp
 ;									;
 ; returns: none 							;
 ;									;
-; History:								;
-;	ISP (isp).  Wrote it
 ;***********************************************************************;
 exclude_conv_RAM    proc    near
 ;
@@ -484,8 +478,6 @@ exclude_conv_RAM    endp
 ;	AX,BX								;
 ; Calls:                                                                ;
 ; 	nothing								;
-; History:                                                              ;
-;	ISP (isp). modified from ps2emm sources. 	;
 ;-----------------------------------------------------------------------;
 exclude_segments	proc	near
 ifdef UMB_SUBPAGE_DISCOVERY
@@ -538,8 +530,6 @@ exclude_segments	endp
 ;	flags								;
 ; Calls:                                                                ;
 ; 	nothing								;
-; History:                                                              ;
-;	ISP (isp). 8/29/88				;
 ;-----------------------------------------------------------------------;
 is_page_mappable    proc    near
 ;

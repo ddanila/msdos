@@ -239,8 +239,6 @@ Start_Sec_H	dw	0		;AN000; Starting sector number high word.
 					;Used as an input to DISKIO subroutine.
 Saved_Word	dw	0		;AN000;  Tempory saving place for a word.
 
-;---------------------------------------
-;J.K. 6/29/87 For Multi-track
 MULTRK_ON	EQU	10000000B	;User spcified Mutitrack=on, or System turns
 					; it on after handling CONFIG.SYS file as a
 					; default value, if MulTrk_flag = MULTRK_OFF1.
@@ -248,8 +246,6 @@ MULTRK_OFF1	EQU	00000000B	;initial value. No "Multitrack=" command entered.
 MULTRK_OFF2	EQU	00000001B	;User specified Multitrack=off.
 	public	MulTrk_Flag
 MulTrk_Flag	dw	0
-;J.K. 6/29/87 End of Multi-track definition.
-;---------------------------------------------------------------------
 	public EC35_Flag
 EC35_Flag	db	0		; flags for electrically compatible 3.5 inch disk drives (mrw 4/88)
 ;---------------------------------------------------------------------

@@ -18,7 +18,6 @@
 /*                                                                            */
 /*Called Procedures:                                                          */
 /*                                                                            */
-/*Change History: Created        5/30/87         DRM                          */
 /*                                                                            */
 /*Input: None                                                                 */
 /*                                                                            */
@@ -105,7 +104,6 @@ END     /* end parser */                                                /* AN000
 /*                                                                            */
 /*Called Procedures:                                                          */
 /*                                                                            */
-/*Change History: Created        6/15/87         DRM                          */
 /*                                                                            */
 /*Input: None                                                                 */
 /*                                                                            */
@@ -186,7 +184,6 @@ END
 /*                                                                            */
 /*Called Procedures:                                                          */
 /*                                                                            */
-/*Change History: Created        6/18/87         DRM                          */
 /*                                                                            */
 /*Input: None                                                                 */
 /*                                                                            */
@@ -215,7 +212,6 @@ END                                                                     /* AN000
 /*                                                                            */
 /*Called Procedures:                                                          */
 /*                                                                            */
-/*Change History: Created        6/18/87         DRM                          */
 /*                                                                            */
 /*Input: None                                                                 */
 /*                                                                            */

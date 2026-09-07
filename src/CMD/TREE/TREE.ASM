@@ -132,29 +132,8 @@ LISTPARM =	1			;AN000;0=SUPPRESS LIST; 1=ALLOW LIST
 ;    DATA AREAS:
 ;	DTA - defined by the DOS FINDFIRST function.
 
-; NOTES:
-;	 This module should be processed with the SALUT pre-processor
-;	 with the re-alignment not requested, as:
-
-;		SALUT TREE,NUL
-
-;	 To assemble these modules, the sequential or alphabetical
-;	 ordering of segments may be used.
-
-;	 Sample LINK command:
-
-; LINK @TREE.ARF
-
-; Where the TREE.ARF is defined as:
-;	       TREE+
-;	       TREEPAR+
-;	       TREESYSP+
-;	       TREESYSM
-;	       TREE
-
-;	 These modules should be linked in this order.	The load module is
-;	 a COM file.  It should be converted via EXE2BIN to a .COM file.
-
+; Preserve the module order in the link response file: it defines the COM layout.
+;
 ;     Label: The following notice is found in the OBJ code generated from
 ;	     the "TREESYSM.SAL" module:
 

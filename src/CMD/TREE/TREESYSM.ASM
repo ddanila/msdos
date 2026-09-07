@@ -82,18 +82,6 @@
 
 ;    DATA AREAS: control blocks pointed to by input registers.
 
-; NOTES:
-;	 This module should be processed with the SALUT preprocessor
-;	 with the re-alignment not requested, as:
-
-;		SALUT TREESYSM,NUL
-
-;	 To assemble these modules, the alphabetical or sequential
-;	 ordering of segments may be used.
-
-;	 For LINK instructions, refer to the PROLOG of the main module,
-;	 TREE.SAL.
-
 ;     Label: The following notice is found in the OBJ code:
 ;
 ;	     "Version 4.00 (C)Copyright 1988 Microsoft

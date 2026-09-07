@@ -245,7 +245,6 @@ Main_Init endp					;
 ;*****************************************************************************
 ;Description: get info from the psp area
 ;Called Procedures: get_drive
-;Change History: Created	8/7/87	       bgb
 ;Input: none
 ;Output: psp_segment
 ;	 command_line_buffer
@@ -275,7 +274,6 @@ get_psp   endp				;
 ;Routine name: get_drive
 ;*****************************************************************************
 ;Description: get drive letter from reg bl
-;Change History: Created	8/7/87	       bgb
 ;Input: bl = drive num (default=0)
 ;Output: driveletter
 ;	 user_drive
@@ -323,7 +321,6 @@ get_drive endp				;
 ;description: Initialize messages, Parse command line if FAT file system
 ;Called Procedures: Preload_Messages
 ;		   Parse_Command_Line
-;Change History: Created	5/10/87 	MT
 ;Input: PSP command line at 81h and length at 80h
 ;Output: FS_Not_FAT = YES/NO
 ;Psuedocode
@@ -418,7 +415,6 @@ Init_IO endp			      ;
 ;*****************************************************************************
 ;Description: Preload messages using common message retriever routines.
 ;Called Procedures: SysLoadMsg
-;Change History: Created	5/1/87	       MT
 ;Input: Fatal_Error = NO
 ;Output: Fatal_Error = YES/NO
 ;Psuedocode
@@ -441,48 +437,6 @@ $$IF16:
 	ret					;
 Preload_Messages endp				;
 ;*****************************************************************************
-;Routine name: Parse_Drive_Letter
-;*****************************************************************************
-;Description: Copy the command line - then parse looking only for drive
-;		 letter. Ignore errors, because this is only called to get
-;		 the drive letter for non-FAT chkdsk
-;Called Procedures: SysParse
-;Change History: Created	5/12/87 	MT
-;Input: Command line input at 81h
-;Output: None
-;Psuedocode
-;----------
-;	Copy command line to buffer
-;	DO
-;	   Parse buffer line (CALL SysParse) using drive letter only tables
-;	LEAVE end of parse
-;	ENDDO missing operand
-;	ret
-;*****************************************************************************
-;Procedure Parse_Drive_Letter			 ;
-;	Set_Data_Segment			;Set DS,ES to Data segment
-;	mov	cx,PSP_Segment			;Get segment of PSP
-;	mov	ds,cx				;  "  "    "  "
-;	assume	ds:nothing			;
-;	mov	si,Command_Line_Parms		;Point to command line
-;	lea	di,Command_Line_Buffer		;Point to buffer to save to
-;	mov	cx,Command_Line_Length		;Number of bytes to move
-;	rep	movsb				;Copy the entire buffer
-;	Set_Data_Segment			;
-;	lea	si,Command_Line_Buffer		;Pointer to parse line
-;	lea	di,input_table			;Pointer to control table
-;	$DO					;Parse for drive letter
-;	   xor	   dx,dx			;Parse line @SI
-;	   xor	   cx,cx			;Parse table @DI
-;	   call    SysParse			;Go parse
-;	   cmp	   ax,End_Of_Parse		;Check for end of parse
-;	$LEAVE	E				;In other words, no drive letter
-;	   cmp	   ax,Operand_Missing		; exit if positional missing
-;	$ENDDO	E				;Ignore errors!!!
-;	Set_Data_Segment			;
-;	ret					;
-;Parse_Drive_Letter endp			 ;
-;*****************************************************************************
 ;Routine name: Parse_Command_Line
 ;*****************************************************************************
 ;Description: Parse the command line. Check for errors, and display error and
@@ -491,7 +445,6 @@ Preload_Messages endp				;
 ;Called Procedures: Message (macro)
 ;		    SysParse
 ;		    Interpret_Parse
-;Change History: Created	5/1/87	       MT
 ;Input: Fatal_Error = NO
 ;	PSP_Segment
 ;Output: Fatal_Error = YES/NO
@@ -594,7 +547,6 @@ Parse_Command_Line endp 			;
 ;*****************************************************************************
 ;description: Get any switches entered, and dr
 ;Called Procedures: Message (macro)
-;Change History: Created	5/1/87	       MT
 ;Input: DS:DrNum (FCB at 5Ch)
 ;Output: Noisy = ON/OFF
 ;	 DoFix = ON/OFF
@@ -689,7 +641,6 @@ Interpret_Parse endp				;
 ;Called Procedures: Check_Target_Drive
 ;		    Check_For_Network
 ;		    Check_Translate_Drive
-;Change History: Created	5/1/87	       MT
 ;Input: Fatal_Error = NO
 ;Output: Fatal_Error = YES/NO
 ;Psuedocode
@@ -733,7 +684,6 @@ Validate_Target_Drive endp			;
 ;	      drive info. Also get target drive BPB information, and compute
 ;	      the start of the data area
 ;Called Procedures: Message (macro)
-;Change History: Created	5/1/87	       MT
 ;Input: Fatal_Error = NO
 ;Output: BIOSFile = default drive letter
 ;	 DOSFile = default drive letter
@@ -1014,7 +964,6 @@ Calc_Space    endp	       ;
 ;	      invalid drive is the only error it can generate. That condition
 ;	      would not get this far
 ;Called Procedures: Message (macro)
-;Change History: Created	5/1/87	       MT
 ;Input:    Drive_Letter_Buffer.Drive_Number
 ;	   Fatal_Error = NO
 ;Output: Fatal_Error = YES/NO
@@ -1061,7 +1010,6 @@ Check_For_Network endp				;
 ;Description: Do a name translate call on the drive letter to see if it is
 ;	      assigned by SUBST or ASSIGN
 ;Called Procedures: Message (macro)
-;Change History: Created	5/1/87	       MT
 ;Input: Drive_Letter_Buffer.Drive_Number
 ;	   Fatal_Error = NO
 ;Output: Fatal_Error = YES/NO
@@ -1116,7 +1064,6 @@ func60 endp			 ;
 ;Description: Change the interrupt handler for INT 13h to point to the
 ;	      ControlC_Handler routine
 ;Called Procedures: None
-;Change History: Created	4/21/87 	MT
 ;Input: None
 ;Output: None
 ;Psuedocode
@@ -1158,7 +1105,6 @@ hook_Interrupts endp				;
 ;Description: Determine if Append /XA is turned on thru INT 2Fh, and shut
 ;	      off for life of CHKDSK if it is.
 ;Called Procedures: None
-;Change History: Created	5/13/87 	MT
 ;Input: None
 ;Output: APPEND = YES/NO
 ;Psuedocode
@@ -1193,7 +1139,6 @@ Clear_Append_X endp				;
 ;Called Procedures: Main_Routine
 ;		   EXEC_FS_CHKDSK
 ;		   Done
-;Change History: Created	5/8/87	       MT
 ;Input: FS_Not_FAT = Yes/No
 ;Output: None
 ;Psuedocode
@@ -1229,7 +1174,6 @@ CHKDSK_IFS endp 				;
 ;*****************************************************************************
 ;description: If APPEND /XA was on originally, turn it back on
 ;Called Procedures: None
-;Change History: Created	5/13/87 	MT
 ;Input: None
 ;Output: APPEND = YES/NO
 ;Psuedocode
@@ -1266,7 +1210,6 @@ Reset_Append_X endp				;
 ;	      until CX = 0. The routine will exit with CY set if overflow
 ;	      occurs.
 ;Called Procedures: None
-;Change History: Created	7/23/87 	MT
 ;Input: BX:AX = 32 bit number to be multiplied
 ;	CX = 16 bit number to be multiplied. (Must be even number)
 ;Output: BX:AX = output.

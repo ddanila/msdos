@@ -310,26 +310,6 @@ Ldexec_parm		db	80 dup (0)
 
 INSTEXE EXEC0 <0,Ldexec_Line,Ldexec_FCB,Ldexec_FCB>
 
-;AN016; Undo the extended attribute handling
-;EA_QueryList		 label	 byte
-;			 dw	 1	 ;AN008; I need just one EA info.
-;			 db	 02h	 ;AN008; Type is BINARY
-;			 dw	 8000h	 ;AN008; Flag is SYSTEM DEFINED.
-;			 db	 8	 ;AN008; Length of name is 8 bytes
-;			 db	 'FILETYPE' ;AN008; Name is FILETYPE
-;Ext_Attr_List		 dw	 1	 ;AN008; Just 1 Extended attribute List
-;			 db	 2	 ;AN008;EA_TYPE
-;			 dw	 8000h	 ;AN008;FLAG
-;			 db	 0	 ;AN008;Failure reason
-;			 db	 8	 ;AN008;Length of NAME
-;			 dw	 1	 ;AN008;Length of VALUE
-;			 db	 'FILETYPE' ;AN008;Name
-;Ext_Attr_Value 	 db	 0	 ;AN008;Value
-;SIZE_EXT_ATTR_LIST	 equ	 $-Ext_Attr_List
-;
-;;Extended attribute value
-;EA_INSTALLABLE 	 equ	 4	 ;AN008;Value for Installable file
-
 ;------------------------------------------------------------------
 ;J.K. 5/15/87  ;Request header, variables for IFS= command.
 

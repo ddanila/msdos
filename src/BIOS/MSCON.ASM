@@ -8,14 +8,8 @@
 	INCLUDE MSEQU.INC
 	INCLUDE MSMACRO.INC
 
-;*** DOS 3.3 will not support more than 25 rows
-;	INCLUDE DEVSYM.INC	;J.K. 4/29/86 for CON$GENIOCTL support
-;	INCLUDE IOCTL.INC	;J.K. 4/29/86 for CON$GENIOCTL support
-
 	EXTRN EXIT:NEAR 	;MSBIO1
 	EXTRN BUS$EXIT:NEAR	;MSBIO1
-
-;	EXTRN CMDERR:NEAR	;MSBIO1	J.K. 4/29/86
 
 ;DATA
 	EXTRN PTRSAV:DWORD	;MSBIO1
@@ -24,8 +18,6 @@
 	EXTRN KEYRD_Func:Byte	;MSBDATA
 	EXTRN KEYSTS_Func:Byte	;MSBDATA
 
-;	EXTRN SAV_SC_INFO:BYTE	;MSBDATA J.K. 4/29/86
-;	EXTRN SAV_SC_MODE:BYTE	;MSBDATA J.K. 4/29/86
 ;------------------------------------------------------
 ;
 ;	CONSOLE READ ROUTINE
@@ -267,61 +259,6 @@ INTRET:
 	IRET
 	ENDIF
 	ENDIF
-
-;------------------------------------------------------------------------------
-;J.K. 4/29/86 - CONSOLE GENERIC IOCTL SUPPORT FOR DOS 3.3.
-;CON$GENIOCTL supports Get mode information, Set mode information functions.
-;It will only save the value from "Set mode information" and will return
-;the value through "Get mode information".  It is supposed to be set by
-;the MODE.COM and other application program can retrieve information
-;through "Get mode information" call.
-;Initially, there is no valuable informaton until set by MODE command, so
-;any attemp to "Get mode information" at that points will fail. (unknown
-;command with carry set.)
-;At entry:  CS = DS = code
-;	    CS:[PTRSAV] has seg, address of the Request Header saved in
-;	    in Strategy routine.
-;
-;	PUBLIC	CON$GENIOCTL
-;	ASSUME	DS:CODE
-;CON$GENIOCTL:
-;	 les	 di, CS:[PTRSAV]		 ;get the request header
-;	 cmp	 es:[di].MajorFunction, IOC_SC
-;	 je	 Major_SC_OK
-;SC_CMDERR:
-;	 stc
-;	 jmp	 cmderr 			 ;carry is set, exit to cmderr
-;Major_SC_OK:
-;	 mov	 al, es:[di].MinorFunction	 ;save minor function
-;	 les	 di, es:[di].GenericIOCTL_Packet ;pointer of SC_MODE_INFO structure
-;	 mov	 cx, es:[di].SC_INFO_LENGTH	 ;save length
-;	 inc	 di
-;	 inc	 di				 ;ES:DI -> SC_MODE in Info. Packet
-;	 cmp	 cx, SC_INFO_PACKET_LENGTH	 ;currently 9.
-;	 jne	 SC_CMDERR			 ;cannot accept the different packet
-;	 cmp	 al, GET_SC_MODE		 ;minor function = 60h ?
-;	 jne	 SC_SET_MODE_FUNC		 ;no, check if it is "Set mode function"
-;	 cmp	 SAV_SC_MODE, 0 		 ;information set before?
-;	 je	 SC_CMDERR			 ;no, cannot get the info.
-;;SC_GET_MODE_FUNC:				 ;es:di -> SC_MODE in info. packet
-;						 ;cx - length
-;	 mov	 si, offset SAV_SC_INFO
-;	 rep	 movsb		 ;ds:si -> sav_sc_info, es:di -> sc_mode
-;	 jmp	 exit
-;
-;SC_SET_MODE_FUNC:				 ;es:di -> SC_MODE
-;	 cmp	 al, SET_SC_MODE		 ;minor function = 40h ?
-;	 jne	 SC_CMDERR
-;	 mov	 si, offset SAV_SC_INFO
-;	 xchg	 di, si
-;	 push	 es
-;	 push	 ds
-;	 pop	 es
-;	 pop	 ds
-;	 rep	 movsb		 ;ds:si -> sc_mode, es:di -> sav_sc_info
-;	 jmp	 exit
-;
-;J.K. 4/29/86 - End of CONSOLE GENERIC IOCTL SUPPORT FOR DOS 3.3.
 
 CODE	ENDS
 	END

@@ -531,11 +531,8 @@ DIDDLEBACK:
 	BIOS_LOW_READ MOV,AL,<SETTLECURRENT>,DS
 	BIOS_LOW_READ MOV,AH,<MOTORSTARTUP>,DS
 	BIOS_LOW_READ LDS,SI,<DPT>,ES
-;	 MOV	 [SI].DISK_EOT,9	 ;J.K. 4/25/86. Should not change the EOT value
-					;of diskbase to 9.  This cause a problem
-					;with 1.44M diskette in Polaris when the user
-					;issue INT 13 with the default system
-					;diskbase.
+; Preserve DISK_EOT: forcing it to 9 breaks direct INT 13h calls on
+; 1.44-MB drives using the default disk parameter table.
 	mov	[si].DISK_EOT,9 	;J.K. 11/5/86. For compatibility reason, return
 					;back to set it to 9 ( PTM826 ).
 	MOV	[SI].DISK_HEAD_STTL,AL
@@ -1117,9 +1114,7 @@ Skip_Ecc_Check: 			;AN003; Just return back to INT 13h caller.
 ;
 	PUBLIC OK11
 OK11:
-;	 POPF
-;J.K. 8/29/86 Here, it is better reset the system. So, we are going to
-;call Orig13 again
+; Reset the system through Orig13 before retrying.
 
 	xor	ah, ah
 	BIOS_ROM_ORIG13			;reset. Don't care about the result
@@ -1272,19 +1267,8 @@ INTFORMAT:
 INTDONE:
 	BIOS_CHAIN_VECTOR ORIG13,BIOS_SERVICE_ORIG13_OFFSET
 
-;
-; We can't fit the request into the entire block.  Perform the operation on
-; the first block.
-;
-; DoBlock is modified to correctly handle multi-sector disk I/O. -J.K. 4/10/86
-; Old DoBlock had added the number of sectors I/Oed (Ah in Old DoBlock) after
-; the DoInt call to CL.  Observing only the lower 6 bits of CL(=max. 64) can
-; represent a starting sector, if AH was big, then CL would be clobbered.
-; By the way, we still are going to use CL for this purpose since Checkwrap
-; routine will use it as an input.  To prevent CL from being clobbered, a
-; safe number of sectors should be calculated like "63 - # of sectors/track".
-; DoBlock will handle the first block of requested sectors within the
-; boundary of this safe value. - J.K. 2/28/86
+; Process the first block without overflowing CL's six-bit sector field.
+; Checkwrap consumes CL, so limit the advance to 63 - sectors per track.
 
 DoBlock:
 ;Try to get the # of sectors/track from BDS via Rom drive number.
@@ -1341,20 +1325,6 @@ DoBlockDoInt:				;let AH = AL = # of sectors for this shot
 	sub	al, ah			;otherwise, #_sector_to_go = #_of_sector_to_go - safe_#
 	call	Check_Wrap		;get new CX, DH for the next operation.
 	jmp	short DoBlockContinue	;handles next sectors left.
-;End of modificaion of DoBlock	- J.K. 2/28/86
-;The following is the original one.
-;	 PUSH	 AX
-;	 MOV	 AL,AH			 ; get max to operate on
-;	 MOV	 AH,BYTE PTR [BP.oldax+1]; get function
-;	 mov	 dh,byte ptr [BP.olddx+1]	 ; set up head number
-;	 CALL	 DoInt
-;	 JC	 Bad13			 ; something happened, bye!
-;	 POP	 AX
-;	 SUB	 BYTE PTR [BP.oldax],AH  ; decrement by the successful operation
-;	 ADD	 CL,AH			 ; advance sector number
-;	 ADD	 BH,AH			 ; advance DMA address
-;	 ADD	 BH,AH			 ; twice for 512 byte sectors.
-
 ;
 ; THE NEXT REQUEST WILL WRAP THE 64K BOUNDARY.	IF WE ARE WRITING, THEN COPY
 ; THE OFFENDING SECTOR INTO OUR SPACE.

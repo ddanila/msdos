@@ -50,43 +50,8 @@
 ;	(since only numbers are interpreted, you may comment the line with
 ;	non-numeric characters)
 ;
-;=========================================================================
-; Change List
-;
-;	AN000	- ver 4.0 specified changes
-;	AN001	- DCR 377 Modify VDISK Extended Memory allocation technique
-;			  The allocation technique have been modified to
-;			  allocate EM from the top down.  To notify other
-;			  users that EM has been used by VDISK, VDISK
-;			  hooks function 88h, INT 15h.
-;
-;	AN002	- PTM3214 EMS VDISK needed to be modified for two errors.
-;	AC002		  The first related to VDISK returning the
-;			  "Insufficient Memory" message when in fact
-;			  there was enough EMS memory to support the
-;			  requested VDISK.
-;			  The second related to an EMS VDISK hanging when
-;			  a program was invoked from an EMS VDISK with a
-;			  non-standard sector size, i.e.; 128 bytes/sector,
-;			  etc.	This error was caused by the incorrect
-;			  calculation of sectors per EMS page.
-;
-;	AN003	- PTM3276 EMS VDISK causes a "Divide Overflow" message.
-;	AC003		  This is caused by a byte divide that should
-;			  be performed as a word divide.
-;
-;	AN004	- PTM3301 EMS VDISK does not properly adjust the buffer
-;			  size when too much EMS memory is requested.
-;			  The code in UPDATE_AVAIL pertaining to EMS
-;			  space allocation has been modified.
-;
-;	AN005	- DCR474  Convert VDISK to support /E for extended memory
-;			  and /X for expanded memory.
-;
-;	AN006	- PTM4729 Enable VDISK for the INT 2F call to determine
-;			  the reserved EMS page for VDISK and FASTOPEN
-;
-;=========================================================================
+; Extended memory is allocated from the top down. INT 15h/AH=88h is hooked
+; so other extended-memory users see only the remaining memory.
 
 ;Message text for VDISK is in module VDISKMSG.
 .xlist

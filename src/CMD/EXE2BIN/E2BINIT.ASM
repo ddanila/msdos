@@ -1,27 +1,7 @@
 
 Title	E2BINIT(EXE2BIN)
 
-;*****************************************************************************
-;   Loader for EXE files under 86-DOS
-;   VER 1.5
-;	05/21/82   Added rev number
-;   VER 1.6
-;	07/01/82   A little less choosy about size matches
-;   VER 2.0  M.A.U
-;	10/08/82   Modified to use new 2.0 system calls for file i/o
-;   Ver 2.1  M.A.U
-;	10/27/82   Added the DOS version check
-;   Ver 2.2  MZ
-;	8/30/83     Fixed command line parsing
-;   Ver 2.3  EE
-;	10-12-83    More fixes to command line parsing
-;   Ver 2.4  NP
-;	10/17/83    Use Printf for messages
-;   Ver 2.5  MZ     Fix LOCATE sss D: problem
-;	04/09/87    Add PARSER and MESSAGE RETRIEVER
-;   Ver 4.00  DRM
-;*****************************************************************************
-
+; EXE-to-binary loader.
 
 ; Keep EXE2BIN.EXE's retail 5.00 mapping; use the actual native DOS version.
 MSG_TRUE_DOS_VERSION EQU 1
@@ -259,7 +239,6 @@ Main_Init endp
 ;		    Parse_Command_Line
 ;		    Interpret_Parse
 ;
-;Change History: Created	6/22/87 	DM
 ;
 ;Input: PSP command line at 81h and length at 80h
 ;	Fatal_Error  = No
@@ -290,7 +269,6 @@ Init_Input_Output endp
 ;Called Procedures: SysLoadMsg
 ;
 ;
-;Change History: Created	6/22/87 	DM
 ;
 ;Input: Fatal_Error = NO
 ;
@@ -320,7 +298,6 @@ Preload_Messages endp
 ;Called Procedures: Message (macro)
 ;		    Sysparse
 ;
-;Change History: Created	6/22/87 	DM
 ;
 ;Input: Fatal_Error = NO
 ;

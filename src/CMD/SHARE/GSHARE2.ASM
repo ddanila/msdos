@@ -2744,7 +2744,6 @@ $$IF78:
 ;Output:	    AX = error number
 ;		    DH = DOS extended error class
 ;
-;Change History:    Created	   5/01/87	   FG
 ;
 ;******************* END OF SPECIFICATIONS *************************************
 ;******************+ START OF PSEUDOCODE +**************************************

@@ -1,7 +1,6 @@
 ;;****************************************************************************				  ;
 ;;     Assembler MACROS for use with SELECT.								  ;
 ;;     File: MACROS6.INC										  ;
-;;     Latest Change Date: July 27, 1987								  ;
 ;; These macros define powerful assembler verbs neccessary for SELECT.					  ;
 ;; Note: Many of the macros make use of an ASCII-N string for passing					  ;
 ;;	 parameters.  The string is defined below.							  ;

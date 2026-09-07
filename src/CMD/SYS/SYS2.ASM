@@ -335,7 +335,6 @@ $$IF7:
 ;Output:	CF = 0 - DIR entry moved to first available entry
 ;		CF = 1 - Error, not able to free up entry
 ;
-;Change History: Created	7/01/87 	FG
 ;
 ;******************* END OF SPECIFICATIONS *************************************
 ;******************+ START OF PSEUDOCODE +**************************************
@@ -468,7 +467,6 @@ $$IF9:
 ;		fail		message # set
 ;		CF = 1
 ;
-;Change History: Created	7/01/87 	FG
 ;
 ;******************* END OF SPECIFICATIONS *************************************
 ;******************+ START OF PSEUDOCODE +**************************************
@@ -594,7 +592,6 @@ $$SR19:
 ;Output:      CF = 0 - Sectors moved
 ;	      CF = 1 - Message and class in AX
 ;
-;Change History: Created	7/01/87 	FG
 ;
 ;******************* END OF SPECIFICATIONS *************************************
 ;******************+ START OF PSEUDOCODE +**************************************
@@ -701,7 +698,6 @@ $$EN38:
 ;	      CF = 1  -  Cluster not available
 ;
 ;
-;Change History: Created	7/01/87 	FG
 ;
 ;******************* END OF SPECIFICATIONS *************************************
 ;******************+ START OF PSEUDOCODE +**************************************
@@ -886,7 +882,6 @@ $$SR59:
 ;		       AL =-1  - not found & no error
 ;	      CF = 1   - critical error
 ;
-;Change History: Created	7/01/87 	FG
 ;
 ;******************* END OF SPECIFICATIONS *************************************
 ;******************+ START OF PSEUDOCODE +**************************************
@@ -999,7 +994,6 @@ $$IF66:
 ;			     = -1 if cluster not found
 ;		CF = 1 if critical error
 ;
-;Change History: Created	7/01/87 	FG
 ;
 ;******************* END OF SPECIFICATIONS *************************************
 ;******************+ START OF PSEUDOCODE +**************************************
@@ -1179,7 +1173,6 @@ $$IF92:
 ;Output:	CF = 0 - empty cluster found (# in [empty_cluster])
 ;		CF = 1 - no empty clusters (ax = message)
 ;
-;Change History: Created	7/01/87 	FG
 ;
 ;******************* END OF SPECIFICATIONS *************************************
 ;******************+ START OF PSEUDOCODE +**************************************
@@ -1252,7 +1245,6 @@ $$SR97:
 ;Output:	CF = 0	- data transfered
 ;		CF = 1	- error - message in AX
 ;
-;Change History: Created	7/01/87 	FG
 ;
 ;******************* END OF SPECIFICATIONS *************************************
 ;******************+ START OF PSEUDOCODE +**************************************
@@ -1344,7 +1336,6 @@ $$IF102:
 ;		DX - high word of sector
 ;		CX - sectors per cluster
 ;
-;Change History: Created	7/01/87 	FG
 ;
 ;******************* END OF SPECIFICATIONS *************************************
 ;******************+ START OF PSEUDOCODE +**************************************
@@ -1403,7 +1394,6 @@ $$IF102:
 ;		CF = 1	error - ax = message #
 ;
 ;
-;Change History: Created	7/01/87 	FG
 ;
 ;******************* END OF SPECIFICATIONS *************************************
 ;******************+ START OF PSEUDOCODE +**************************************
@@ -1668,7 +1658,6 @@ $$IF106:
 ;			 ax = -1		- SubDir found
 ;			 bx = pointer to current entry
 ;
-;Change History: Created	7/01/87 	FG
 ;
 ;******************* END OF SPECIFICATIONS *************************************
 ;******************+ START OF PSEUDOCODE +**************************************
@@ -2074,7 +2063,6 @@ $$SR140:
 ;Output:	CF = 0	at end of directory
 ;		CF = 1	a read/write error occured
 ;
-;Change History: Created       10/07/87 	FG
 ;
 ;******************* END OF SPECIFICATIONS *************************************
 ;******************+ START OF PSEUDOCODE +**************************************
@@ -2320,7 +2308,6 @@ $$IF185:
 ;		xX destroyed
 ;		ZF set if cluster is free
 ;
-;Change History: Created	7/01/87 	FG
 ;
 ;******************* END OF SPECIFICATIONS *************************************
 ;******************+ START OF PSEUDOCODE +**************************************
@@ -2408,7 +2395,6 @@ $$EN208:
 ;
 ;Output:	bx,dx	destroyed
 ;
-;Change History: Created	7/01/87 	FG
 ;
 ;******************* END OF SPECIFICATIONS *************************************
 ;******************+ START OF PSEUDOCODE +**************************************
@@ -2512,7 +2498,6 @@ $$EN215:
 ;		si ajusted to match
 ;		NB: BX, DX preserved (for UNPACK)
 ;
-;Change History: Created	7/01/87 	FG
 ;
 ;******************* END OF SPECIFICATIONS *************************************
 ;******************+ START OF PSEUDOCODE +**************************************

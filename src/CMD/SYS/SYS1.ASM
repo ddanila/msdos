@@ -329,7 +329,6 @@ CODE			SEGMENT PARA PUBLIC
 ;Ouput: no error - System transfered to target media
 ;	   error - Appropriate error message displayed
 ;
-;Change History: Created	5/01/87 	FG
 ;
 ;******************* END OF SPECIFICATIONS *************************************
 ;******************+ START OF PSEUDOCODE +**************************************
@@ -489,7 +488,6 @@ BEGIN ENDP
 ;Output: no error  - CF = 0	  AX = 0
 ;	    error  - CF = 1	  AX = return code (message #)
 ;
-;Change History: Created	5/01/87 	FG
 ;
 ;******************* END OF SPECIFICATIONS *************************************
 ;******************+ START OF PSEUDOCODE +**************************************
@@ -604,7 +602,6 @@ $$EN3:
 ;Output: no error - CF = 0
 ;	    error - CF = 1	  AX = return code (Parse error + error #)
 ;
-;Change History: Created	5/01/87 	FG
 ;
 ;******************* END OF SPECIFICATIONS *************************************
 ;******************+ START OF PSEUDOCODE +**************************************
@@ -883,7 +880,6 @@ Parse_Ret_Code label byte
 ;Output: no error  - CF = 0	  AX = 0
 ;	    error  - CF = 1	  AX = return code (message #)
 ;
-;Change History: Created	5/01/87 	FG
 ;
 ;******************* END OF SPECIFICATIONS *************************************
 ;******************+ START OF PSEUDOCODE +**************************************
@@ -939,8 +935,6 @@ $$IF40:
 ;Output: no error - CF = 0
 ;	    error - CF = 1	AX = 16d - Can not specify default drive
 ;
-;Change History: Created	5/01/87 	FG
-;Change History: Ax021		2/22/88 	FG
 ;
 ;******************* END OF SPECIFICATIONS *************************************
 ;******************+ START OF PSEUDOCODE +**************************************
@@ -1083,7 +1077,6 @@ $$IF48:
 ;Output: no error - CF = 0
 ;	    error - CF = 1	  AX = 16d - Can not specify default drive
 ;
-;Change History: Created	5/01/87 	FG
 ;
 ;******************* END OF SPECIFICATIONS *************************************
 ;******************+ START OF PSEUDOCODE +**************************************
@@ -1189,7 +1182,6 @@ $$EN50:
 ;Output: no error - CF = 0
 ;	    error - CF = 1	  AX = return code = 7 - Cannot SYS to a Network drive
 ;
-;Change History: Created	5/01/87 	FG
 ;
 ;******************* END OF SPECIFICATIONS *************************************
 ;******************+ START OF PSEUDOCODE +**************************************
@@ -1267,7 +1259,6 @@ $$EN59:
 ;Output: no error - CF = 0
 ;	    error - CF = 1	  AX = return code (message #)
 ;
-;Change History:    Created	   5/01/87	   FG
 ;		    Major change   1/07/88	   FG	Ax019 now makes SYS check
 ;							for the CORRECT version
 ;							of IBMBIO !
@@ -1462,7 +1453,6 @@ $$SR62:
 ;Output: no error - CF = 0
 ;	    error - CF = 1	  AX = return code (DOS error)
 ;
-;Change History:    Created	   5/01/87	   FG
 ;
 ;******************* END OF SPECIFICATIONS *************************************
 ;******************+ START OF PSEUDOCODE +**************************************
@@ -1538,7 +1528,6 @@ $$IF77:
 ;	 nonremovable or error - CF = 1
 ;				 AX = 11d - No system on default drive
 ;
-;Change History:    Created	   5/01/87	   FG
 ;
 ;******************* END OF SPECIFICATIONS *************************************
 ;******************+ START OF PSEUDOCODE +**************************************
@@ -1616,7 +1605,6 @@ $$IF79:
 ;Output: no error - CF = 0
 ;	    error - CF = 1	      AX = DOS extended errors
 ;
-;Change History:    Created	   5/01/87	   FG
 ;
 ;******************* END OF SPECIFICATIONS *************************************
 ;******************+ START OF PSEUDOCODE +**************************************
@@ -1698,7 +1686,6 @@ $$EN87:
 ;Output: no error - CF = 0
 ;	    error - CF = 1
 ;
-;Change History:    Created	   5/01/87	   FG
 ;
 ;******************* END OF SPECIFICATIONS *************************************
 ;******************+ START OF PSEUDOCODE +**************************************
@@ -1886,7 +1873,6 @@ $$EN95:
 ;Output: no error - CF = 0
 ;	    error - CF = 1	  AX = return code (message #)
 ;
-;Change History: Created	5/01/87 	FG
 ;
 ;******************* END OF SPECIFICATIONS *************************************
 ;******************+ START OF PSEUDOCODE +**************************************
@@ -1963,7 +1949,6 @@ $$IF102:
 ;		    CX = 1 - only one substitution
 ;		 DS:SI = sublist for substitution
 ;
-;Change History:    Created	   5/01/87	   FG
 ;
 ;******************* END OF SPECIFICATIONS *************************************
 ;******************+ START OF PSEUDOCODE +**************************************
@@ -2129,7 +2114,6 @@ $$EN104:
 ;Output: no error - CF = 0
 ;	    error - CF = 1	  AX = return code (message #)
 ;
-;Change History: Created	5/01/87 	FG
 ;
 ;******************* END OF SPECIFICATIONS *************************************
 ;******************+ START OF PSEUDOCODE +**************************************
@@ -2203,7 +2187,6 @@ $$EN104:
 ;			  AL = 8 - No room for system on destination disk
 ;			       9 - Incompatible system size
 ;
-;Change History: Created	5/01/87 	FG
 ;
 ;******************* END OF SPECIFICATIONS *************************************
 ;******************+ START OF PSEUDOCODE +**************************************
@@ -2456,7 +2439,6 @@ $$IF129:
 ;			  AH = utility messages
 ;			  AL = 8d - No room for system on destination disk
 ;
-;Change History:    Created	   5/01/87	   FG
 ;
 ;******************* END OF SPECIFICATIONS *************************************
 ;******************+ START OF PSEUDOCODE +**************************************
@@ -2564,7 +2546,6 @@ $$EN140:
 ;
 ;Registers used:    AX	BX  DX
 ;
-;Change History:    Created	   5/01/87	   FG
 ;
 ;******************* END OF SPECIFICATIONS *************************************
 ;******************+ START OF PSEUDOCODE +**************************************
@@ -2705,7 +2686,6 @@ Copy_Menu_Overlay ENDP
 ;Output: no error - CF = 0
 ;	    error - CF = 1	  AX = return code (message #)
 ;
-;Change History: Created	5/01/87 	FG
 ;
 ;******************* END OF SPECIFICATIONS *************************************
 ;******************+ START OF PSEUDOCODE +**************************************
@@ -2857,7 +2837,6 @@ $$IF145:
 ;Output:	    IBMBIO_Handle
 ;		    IBMDOS_Handle
 ;
-;Change History:    Created	   5/01/87	   FG
 ;
 ;******************* END OF SPECIFICATIONS *************************************
 ;******************+ START OF PSEUDOCODE +**************************************
@@ -2935,7 +2914,6 @@ $$IF154:
 ;		    AX = return code
 ;			  AH = extended DOS errors
 ;
-;Change History:    Created	   5/01/87	   FG
 ;
 ;******************* END OF SPECIFICATIONS *************************************
 ;******************+ START OF PSEUDOCODE +**************************************
@@ -3052,7 +3030,6 @@ $$IF169:
 ;Output: no error - CF = 0
 ;	    error - CF = 1
 ;
-;Change History:    Created	   5/01/87	   FG
 ;
 ;******************* END OF SPECIFICATIONS *************************************
 ;******************+ START OF PSEUDOCODE +**************************************
@@ -3173,7 +3150,6 @@ $$IF173:
 ;
 ;Output: no error - CF = 0
 ;
-;Change History:    Created	   5/01/87	   FG
 ;
 ;******************* END OF SPECIFICATIONS *************************************
 ;******************+ START OF PSEUDOCODE +**************************************
@@ -3214,7 +3190,6 @@ $$IF173:
 ;
 ;Output:	    IBMBIOS and IBMDOS closed
 ;
-;Change History:    Created	   5/01/87	   FG
 ;
 ;******************* END OF SPECIFICATIONS *************************************
 ;******************+ START OF PSEUDOCODE +**************************************
@@ -3283,7 +3258,6 @@ $$IF173:
 ;
 ;Output:	    Boot record on destination media is installed.
 ;
-;Change History:    Created	   5/01/87	   FG
 ;
 ;******************* END OF SPECIFICATIONS *************************************
 ;******************+ START OF PSEUDOCODE +**************************************
@@ -3512,7 +3486,6 @@ $$IF190:
 ;Output:	    SI: points to  "FAT12    "
 ;			       or  "FAT16     "
 ;
-;Change History:    Created	   5/01/87	   FG
 ;
 ;******************* END OF SPECIFICATIONS *************************************
 ;******************+ START OF PSEUDOCODE +**************************************
@@ -3607,7 +3580,6 @@ $$EN201:
 ;
 ;Output:	    serial number installed in Boot_Serial
 ;
-;Change History:    Created	   5/01/87	   FG
 ;
 ;******************* END OF SPECIFICATIONS *************************************
 ;******************+ START OF PSEUDOCODE +**************************************
@@ -3657,7 +3629,6 @@ $$EN201:
 ;Output: no error   AX = 0
 ;	    error - AX = error exit code
 ;
-;Change History:    Created	   5/01/87	   FG
 ;
 ;******************* END OF SPECIFICATIONS *************************************
 ;******************+ START OF PSEUDOCODE +**************************************
@@ -3800,7 +3771,6 @@ $$EN212:
 ;
 ;Output:	    AX = error number
 ;
-;Change History:    Created	   5/01/87	   FG
 ;
 ;******************* END OF SPECIFICATIONS *************************************
 ;******************+ START OF PSEUDOCODE +**************************************

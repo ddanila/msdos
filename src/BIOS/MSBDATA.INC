@@ -238,17 +238,6 @@ KEYRD_Func DB	0			;AN000; Default is conventional keyboard read
 	public	KEYSTS_Func
 KEYSTS_Func DB	1			;AN000; Defualt if conventional keyboard status check.
 
-;	 PUBLIC  SAV_SC_INFO		 ;J.K. 4/29/86 FOR CON$GENIOCTL
-;	 PUBLIC  SAV_SC_MODE
-;	 PUBLIC  SAV_SC_COLORS
-;	 PUBLIC  SAV_SC_WIDTH
-;	 PUBLIC  SAV_SC_LENGTH
-;SAV_SC_INFO	 LABEL	 BYTE
-;SAV_SC_MODE	 DB	 0
-;SAV_SC_COLORS	 DW	 0
-;SAV_SC_WIDTH	 DW	 0
-;SAV_SC_LENGTH	 DW	 0		 ;J.K. 4/29/86 FOR CON$GENIOCTL
-
 ;-------------------------------------------------------------
 ;
 ;	P R N - PRINTER DEVICE

@@ -1,7 +1,6 @@
 ;;****************************************************************************
 ;;     Assembler MACROS for use with SELECT.
 ;;     File: MACROS4.INC
-;;     Latest Change Date: July 16, 1987
 ;;
 ;; These macros define powerful assembler verbs neccessary for SELECT.
 ;;

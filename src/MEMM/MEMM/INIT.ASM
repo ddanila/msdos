@@ -2032,9 +2032,7 @@ Apply_User_UMA_Ranges endp
 
 ;-----------------------------------------------------------------------;
 ; htoi									;
-; 									;
 ; Converts a string to an integer.					;
-; 									;
 ; Arguments:								;
 ; 	CS:SI = string							;
 ; 	CX    = length							;
@@ -2046,9 +2044,6 @@ Apply_User_UMA_Ranges endp
 ; 	nothing								;
 ; Calls:								;
 ; 	nothing								;
-; History:								;
-; 									;
-; ISP (isp) 8/24/88 shifted from ps2emm srces		;
 ;-----------------------------------------------------------------------;
 
 

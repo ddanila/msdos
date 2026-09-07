@@ -301,7 +301,6 @@ Get_11_Characters endp				;
 ;
 ;Called Procedures: Check_DBCS_Character
 ;
-;Change History: Created	6/12/87 	MT
 ;
 ;Input: DS:SI = String containing volume label input
 ;
@@ -384,7 +383,6 @@ Change_Blanks endp				;
 ;
 ;Called Procedures: None
 ;
-;Change History: Created	6/12/87 	MT
 ;
 ;Input: DS:SI = ASCIIZ string containing volume label input
 ;
@@ -472,7 +470,6 @@ Skip_Blanks endp				;
 ;
 ;Called Procedures: None
 ;
-;Change History: Created	6/12/87 	MT
 ;
 ;Input: DS:SI = String containing volume label input
 ;
@@ -537,7 +534,6 @@ Copy_FCB_String endp				;
 ;
 ;Called Procedures: Check_DBCS_Character
 ;
-;Change History: Created	6/12/87 	MT
 ;
 ;Input: DS:SI = String containing volume label input
 ;
@@ -608,7 +604,6 @@ Check_DBCS_Overrun endp 			;
 ;
 ;Called Procedures: None
 ;
-;Change History: Created	6/12/87 	MT
 ;
 ;Input: AL = Character to check for DBCS lead character
 ;	DBCS_Vector = YES/NO

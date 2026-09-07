@@ -20,7 +20,6 @@
 /*Called Procedures:    none                                                  */
 /*                                                                            */
 /*                                                                            */
-/*Change History: Created        5/30/87         DRM                          */
 /*                                                                            */
 /*Input: Input                                                                */
 /*                                                                            */
@@ -82,7 +81,6 @@ END                                                                     /* AN000
 /*Called Procedures:                                                           */
 /*                                                                             */
 /*                                                                             */
-/*Change History: Created        5/16/87         DRM                           */
 /*                                                                             */
 /*Input: Cylinders_in                                                          */
 /*                                                                             */
@@ -130,7 +128,6 @@ END                                                                     /* AN000
 /*Called Procedures:                                                           */
 /*                                                                             */
 /*                                                                             */
-/*Change History: Created        5/16/87         DRM                           */
 /*                                                                             */
 /*Input: Cylinders_in                                                          */
 /*                                                                             */
@@ -183,7 +180,6 @@ END                                                                     /* AN000
 /*Called Procedures:    none                                                  */
 /*                                                                            */
 /*                                                                            */
-/*Change History: Created        5/30/87         DRM                          */
 /*                                                                            */
 /*Input: Input                                                                */
 /*                                                                            */
@@ -229,7 +225,6 @@ END                                                                     /* AN000
 /*                                                                             */
 /*                                                                             */
 /*                                                                             */
-/*Change History: Updated        5/31/87         DRM                           */
 /*                                                                             */
 /*Input: drive_value                                                           */
 /*                                                                             */
@@ -274,7 +269,6 @@ END                                                                     /* AN000
 /*                                                                             */
 /*                                                                             */
 /*                                                                             */
-/*Change History: Updated        5/31/87         DRM                           */
 /*                                                                             */
 /*Input: input_value                                                           */
 /*                                                                             */
@@ -327,7 +321,6 @@ END                                                                     /* AN000
 /*                                                                             */
 /*Called Procedures:                                                           */
 /*                                                                             */
-/*Change History: Created        6/01/87         DRM                           */
 /*                                                                             */
 /*Input: input_drive                                                           */
 /*                                                                             */
@@ -374,7 +367,6 @@ END
 /*                                                                             */
 /*Called Procedures:                                                           */
 /*                                                                             */
-/*Change History: Created        6/01/87         DRM                           */
 /*                                                                             */
 /*Input: input_drive                                                           */
 /*                                                                             */
@@ -439,7 +431,6 @@ END                                                                     /* AN000
 /*                                                                             */
 /*Called Procedures:                                                           */
 /*                                                                             */
-/*Change History: Created        2/07/88         DRM                           */
 /*                                                                             */
 /*Input: input_drive                                                           */
 /*                                                                             */

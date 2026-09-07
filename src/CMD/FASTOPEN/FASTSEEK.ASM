@@ -363,7 +363,6 @@ Fk_Open   endp
 ;
 ; ROUTINES REFERENCED:	Find_File_Header, Find_Drive_Header
 ;
-; REVISION HISTORY:  New  (5/87)
 ;
 ; COPYRIGHT:  "MS DOS 4.00 Fastopen Utility"
 ;	      "Version 4.00 (C) Copyright 1988 Microsoft"
@@ -504,7 +503,6 @@ FK_CLOSE   ENDP
 ;
 ; ROUTINES REFERENCED:	Find_File_Header, Find_Drive_Header
 ;
-; REVISION HISTORY:  New  (5/87)
 ;
 ; COPYRIGHT:  "MS DOS 4.00 Fastopen Utility"
 ;	      "Version 4.00 (C) Copyright 1988 Microsoft"
@@ -758,7 +756,6 @@ FK_DELETE   ENDP
 ;
 ; ROUTINES REFERENCED:	Find_File_Header,  Find_Extent, Find_LRU_Header
 ;
-; REVISION HISTORY:  New  (5/87)
 ;
 ;------------------------------------------------------------------------
 
@@ -1213,7 +1210,6 @@ FK_INSERT   ENDP
 ;
 ; ROUTINES REFERENCED: Find_File_Header, Find_Extent, Find_Drive_Header
 ;
-; REVISION HISTORY:  New  (5/87)
 ;
 ; COPYRIGHT:  "MS DOS 4.00 Fastopen Utility"
 ;	      "Version 4.00 (C) Copyright 1988 Microsoft"
@@ -1522,7 +1518,6 @@ FK_LOOKUP   endp
 ;
 ; ROUTINES REFERENCED:	Find_File_Header, Find_Extent
 ;
-; REVISION HISTORY:  New  (5/87)
 ;
 ; COPYRIGHT:  "MS DOS 4.00 Fastopen Utility"
 ;	      "Version 4.00 (C) Copyright 1988 Microsoft"
@@ -1761,7 +1756,6 @@ FK_TRUNCATE	ENDP
 ;
 ; Output:     Buffers are initialized
 ;
-; REVISION HISTORY:  New  (5/87)
 ;
 ; COPYRIGHT:  "MS DOS 4.00 Fastopen Utility"
 ;	      "Version 4.00 (C) Copyright 1988 Microsoft"
@@ -2003,7 +1997,6 @@ FIND_FILE_HEADER    ENDP
 ;
 ;	   If Carry = 1    Extent not found
 ;
-; REVISION HISTORY:  New  (5/87)
 ;---------------------------------------------------------------
 
 FIND_EXTENT	 PROC	 NEAR

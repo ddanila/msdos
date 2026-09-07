@@ -1,11 +1,5 @@
 ; e forproc.sal= @(#)ibmfor.asm 1.28 85/10/15
 	name	OemFormatRoutines
-;
-;******************************************************************************
-;AN001 - ???
-;AN002 - D304 Modify Boot record structure for OS2		  11/09/87 J.K.
-;******************************************************************************
-
 INCLUDE FORCHNG.INC
 debug	equ	0
 ;-------------------------------------------------------------------------------
@@ -692,7 +686,6 @@ CheckSwitches endp
 ;		    720k_Drives
 ;		    Other_Drives
 ;
-;Change History: Created	8/1/87	       MT
 ;
 ;Input: SizeMap
 ;	Fatal_Error = NO
@@ -788,7 +781,6 @@ Size_To_Switch endp
 ;
 ;Called Procedures: Low_Density_Drive
 ;
-;Change History: Created	8/1/87	       MT
 ;
 ;Input: SizeMap
 ;	Fatal_Error = NO
@@ -828,7 +820,6 @@ High_Capacity_Drive endp
 ;
 ;Called Procedures: Low_Density_Drive
 ;
-;Change History: Created	8/1/87	       MT
 ;
 ;Input: SizeMap
 ;	Fatal_Error = NO
@@ -891,7 +882,6 @@ Low_Density_Drive endp
 ;
 ;Called Procedures: None
 ;
-;Change History: Created	8/1/87	       MT
 ;
 ;Input: SizeMap
 ;	Fatal_Error = NO
@@ -924,7 +914,6 @@ Small_Drives endp
 ;
 ;Called Procedures: Small_Drives
 ;
-;Change History: Created	8/1/87	       MT
 ;
 ;Input: SizeMap
 ;	Fatal_Error = NO
@@ -979,7 +968,6 @@ Other_Drives endp
 ;
 ;Called Procedures:  None
 ;
-;Change History: Created	8/23/87  MT
 ;
 ;Input: SizeMap
 ;	Fatal_Error = NO
@@ -1072,7 +1060,6 @@ LastChanceToSaveIt endp
 ;
 ;Called Procedures: Message (macro)
 ;
-;Change History: Created	4/20/87 	MT
 ;
 ;Input: DeviceParameters.DP_BPB
 ;
@@ -1178,7 +1165,6 @@ WriteBootSector endp				;
 ;
 ;Called Procedures: Message (macro)
 ;
-;Change History&gml Created	   4/20/87	   MT
 ;
 ;Input&gml None
 ;
@@ -1442,7 +1428,6 @@ IBMBoot ENDS
 ;		    ReadSector
 ;		    WriteSector
 ;
-;Change History: Created	4/20/87 	MT
 ;
 ;Input: None
 ;
@@ -1583,7 +1568,6 @@ SetPartitionTable endp				;
 ;
 ;Called Procedures: Message (macro)
 ;
-;Change History: Created	3/18/87 	MT
 ;
 ;Input: BX has offset of partition table entry
 ;	fBigFAT = TRUE if 16bit FAT

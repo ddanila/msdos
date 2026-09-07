@@ -534,8 +534,8 @@ ENDIF
 
 MSTAB001E       label byte
 
-; SYS init extended table,   DOS 3.3   F.C. 5/29/86
-;
+; SYSINIT extended table.
+
        PUBLIC   SysInitTable
        I_need   COUNTRY_CDPG,BYTE
        I_need   SYSINITVAR,BYTE
@@ -545,10 +545,8 @@ SysInitTable  label  byte
                dw      0                             ; segment
                dw      OFFSET DOSGROUP:COUNTRY_CDPG  ; pointer to country table
                dw      0                             ; segment of pointer
-; DOS 3.3 F.C. 6/12/86
+; FASTOPEN communications area.
 
-; FASTOPEN communications area DOS 3.3   F.C. 5/29/86
-;
        PUBLIC   FastOpenTable
        PUBLIC   FastTable                            ; a better name
        EXTRN    FastRet:FAR                          ; defined in misc2.asm
@@ -560,7 +558,6 @@ FastOpenTable  label  byte
                dw      0                             ; and will be modified by
                dw      OFFSET DOSGROUP:FastRet       ; FASTxxx when loaded in
                dw      0                             ;
-; DOS 3.3 F.C. 6/12/86
       PUBLIC   FastFlg                  ;AN000; flags
 FastFlg        label  byte              ;AN000; don't change the following order
         I_am   FastOpenFlg,BYTE,<0>
@@ -625,7 +622,6 @@ DATE_FLAG      label  word               ; flag to
 FETCHI_TAG     label  word               ; TAG to make DOS 3.3 work
                dw     0                  ; must be 22642
 ;;; The above  2 words must be adjacent for IBMDOS reasons
-; DOS 3.3 F.C. 6/12/86
       PUBLIC   MSG_EXTERROR              ; for system message addr
 MSG_EXTERROR   label  DWORD
                dd     0                  ; for extended error

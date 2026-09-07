@@ -2209,16 +2209,6 @@ PAGE
 ; Vars:  $P_SorD_Quote(W)
 ;***********************************************************************
 IF	QusSW+CmpxSW			;AN000;(Check if quoted string or complex item is supported)
-;(deleted ;AN025;) $P_Chk_DSQuote proc			   ;
-;(deleted ;AN025;)	   mov	   $P_SorD_Quote,$P_SQuote ; 3/17/87   assume single quote
-;(deleted ;AN025;)	   cmp	   al,$P_DQuote 	   ; 1st char = double quotation ?
-;(deleted ;AN025;)	   jne	   $P_CDSQ00		   ; 3/17/87
-;(deleted ;AN025;)	   mov	   $P_SorD_Quote,al	   ; 3/17/87 set bigning w/ double quote
-;(deleted ;AN025;)	   ret				   ; 3/17/87
-;(deleted ;AN025;) $P_CDSQ00:				   ; 3/17/87
-;(deleted ;AN025;)	   cmp	   al,$P_SQuote 	   ; 1st char = single quotation ?
-;(deleted ;AN025;)	   ret				   ;
-;(deleted ;AN025;) $P_Chk_DSQuote endp			   ;
     PAGE
 ;***********************************************************************
 ; $P_Quoted_Str:
@@ -2242,15 +2232,12 @@ $P_Qus_Loop:
 	call	$P_Chk_EOL
 	je	$P_Qustr_Err0
 
-;(deleted ;AN025;) cmp al,$P_SorD_Quote ;AN000; quotation ?   3/17/87
 	cmp	al,$P_DQuote		;AN025; double quote?
 	jne	$P_Qus00
 
-;(deleted ;AN025;) cmp ah,$P_SorD_Quote ;AN000; contiguous quotation 3/17/87
 	cmp	ah,$P_DQuote		;AN025; double quote?
 	jne	$P_Qus02
 
-;(deleted ;AN025:) mov word ptr psdata_seg:[si],ax ;AN000; 3/17/87
 	mov	byte ptr psdata_seg:[si],al ;AN025; save one of the quotes
 ;(deleted ;AN025:) add si,2
 

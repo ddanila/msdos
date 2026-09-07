@@ -1,16 +1,5 @@
-;XCOPY EQUATES
-;*****************************************************************************
-; REVISION HISTORY: A000 Version 4.00: add PARSER, System Message Handler,
-;			 Remove the BELL char.,turn off APPEND during TREE
-;			 search,Extended Attribute processing, Uppercasing
-;			 and "Out Of Space" during write to standard out.
-;		    A004 PTM0700 9/02/87 Avoid duplicate switches and
-;			 display parm in error.
-;		    A005 DCR0201 9/11/87 Incorperate new format for EXTENDED
-;			 ATTRIBUTES.
-;*****************************************************************************
-;Equates used for flags
-;*** MY_FLAG ****
+; XCOPY flag equates.
+
 	find_first_flag    equ	   01h	   ;set MY_FLAG by "OR"
 	findfile_flag	   equ	   02h
 	no_more_file	   equ	   04h

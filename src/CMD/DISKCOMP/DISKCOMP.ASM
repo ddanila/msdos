@@ -99,30 +99,8 @@
 ;	 DCOMPPAR.SAL - Defines the control blocks that describe the
 ;		DOS Command line parameters.
 
-; NOTES:
-;	 This module should be processed with the SALUT preprocessor
-;	 with the re-alignment not requested, as:
-
-;		SALUT DISKCOMP,NUL
-
-;	 To assemble these modules, the alphabetical or sequential
-;	 ordering of segments may be used.
-
-;	 Sample LINK command:
-
-; LINK @DISKCOMP.ARF
-
-; Where the DISKCOMP.ARF is defined as:
-
-;	 DISKCOMP+
-;	 DCOMPSM+
-;	 DCOMPP+
-;	 DCOMPPAR+
-;	 COMPINIT
-
-;	 These modules must be linked in this order.  The load module is
-;	 a COM file, to be converted to COM with EXE2BIN.
-
+; Preserve the module order in the link response file: it defines the COM layout.
+;
 ; COPYRIGHT: The following notice is found in the OBJ code generated from
 ;	     the "DCOMPSM.SAL" module:
 
@@ -133,15 +111,6 @@
 	IF1				;
 	    %OUT    COMPONENT=DISKCOMP, MODULE=DISKCOMP.SAL
 	ENDIF				;
-;*****************************************************************************
-;									     *
-;			     D I S K C O M P				     *
-;									     *
-;  UPDATE HISTORY: 8-21, 8-22, 8-30, 9-4, 9-20, 9-21, 12-19		     *
-;		   2-15-84, 2-17, 4-29, 6-20,7-24,3-27-85		     *
-;									     *
-;*****************************************************************************
-
 	INCLUDE PATHMAC.INC
 	INCLUDE DCMPMACR.INC		;(FORMERLY CALLED MACRO.DEF)
 	INCLUDE DISKCOMP.EQU		;EQUATES

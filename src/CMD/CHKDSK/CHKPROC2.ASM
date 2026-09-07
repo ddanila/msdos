@@ -387,7 +387,6 @@ Systime:
 ;*****************************************************************************
 ;Description: Check if specified byte is in rANges of DBCS vectors
 ;Called Procedures: None
-;ChANge History: Created	6/12/87 	MT
 ;Input: AL = CharACter to check for DBCS lead charACter
 ;	DBCS_Vector = YES/NO
 ;Output: CY set if DBCS charACter

@@ -99,12 +99,6 @@ fileDeleted = 10h
 
 	Invoke	TestNet
 	JNC	LOCAL_DELETE
-;	invoke	OWN_SHARE2		       ;IFS. IFS owns share ?
-;	JZ	ifsshare		       ;IFS. yes
-;	PUSH	WORD PTR [DMAADD+2]	       ;IFS. save DMAADD
-;	PUSH	WORD PTR [DMAADD]	       ;IFS.
-;	CALL	IFS_SEARCH_FIRST	       ;IFS. do search first
-;	JC	nofiles 		       ;IFS. file not existing
 delete_next_file:			       ;IFS.
 ;	CALL	IFS_REN_DEL_CHECK	       ;IFS. do REN_DEL_CHECK
 ;	JNC	share_okok		       ;IFS. share ok
@@ -254,10 +248,7 @@ yesdirty:
 	JB	DELEXT			; File has invalid FIRCLUS (too small)
 	CMP	BX,ES:[BP.dpb_max_cluster]
 	JA	DELEXT			; File has invalid FIRCLUS (too big)
-;; FastSeek 10/27/86
 	CALL	Delete_FSeek		; delete the fastseek entry
-;; FastSeek 10/27/86
-
 	invoke	RELEASE 		; Free file data
 	JC	No_fileJ
 ; DOS 3.3  FastOpen
@@ -739,16 +730,6 @@ EndProc IFS_SEARCH_FIRST
 	DOSAssume   CS,<DS>,"IFS_REN_DEL_CHECK"
 	ASSUME	ES:NOTHING
 
-;	MOV	AX,WORD PTR [DMAADD+2]	       ;IFS. set up
-;	MOV	WORD PTR [CURBUF+2],AX	       ;IFS. curbuf+2 : bx -> dir entry
-;	MOV	BX,WORD PTR [DMAADD]	       ;IFS.
-;	ADD	BX,21			       ;IFS.
-;	MOV	SI,BX			       ;IFS. curbuf+2:si -> dir_first
-;	ADD	SI,dir_first		       ;IFS.
-;	EnterCrit   critDisk		       ;IFS. enter critical section
-;	CALL	REN_DEL_Check		       ;IFS. share check
-;	LeaveCrit   critDisk		       ;IFS. leave critical section
-;	return
 EndProc IFS_REN_DEL_CHECK
 
 CODE	ENDS

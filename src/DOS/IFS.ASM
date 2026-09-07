@@ -150,40 +150,6 @@ not_stack:			;
 withSS_SP:			;
 	 STI
  ASSUME DS:NOTHING
-;	 OR	 [DOS34_FLAG],Force_I24_Fail
-;	 cmp	 ah,0		 ; call Strategy routine ??
-;	 jne	 dos_chk_ah1	 ; jump if not
-;	 CALL	 STRATEGY	 ; else call strategy routine
-;	 jmp	 dos_exit	 ; then exit
-;Dos_Chk_Ah1:
-;	 cmp	 ah,1		 ; call interrupt routine
-;	 jne	 dos_chk_ah2	 ; jump if not
-;	 CALL	 INTERRUPT	 ; else call interrupt routine
-;	 jmp	 dos_exit	 ; then exit
-;Dos_Chk_Ah2:
-;	 cmp	 ah,4
-;	 jae	 Dos_Chk_Ah8
-;	 mov	 High_Sector,si  ; save HI sector word
-;	 mov	 dx,di		 ; save low sector
-;	 push	 es
-;	 invoke  FIND_DPB	 ; ds:si -> DPB
-;	 mov	 bp,si
-;	 push	 ds
-;	 pop	 es		 ; es:bp -> DPB
-;	 pop	 ds		 ; DS:BX-->Input buffer
-;
-;	 cmp	 ah,2		 ; absolute read ??
-;	 jne	 dos_chk_ah3	 ; jump if not
-;
-;	 invoke  DSKREAD	 ; else do absolute read
-;	 jmp	 dos_exit	 ; then return
-
-;Dos_Chk_Ah3:
-;	 invoke  DSKWRITE	 ; do absolute write
-;	 jmp	 dos_exit	 ; then exit
-
-
-
 Dos_chk_ah32:
 	 cmp	 ah,32
 	 jne	 str_cmp
@@ -252,7 +218,6 @@ ENDPROC   IFS_DOSCALL
 ; *
 ; *	 NOTES:  None
 ; *
-; *	 REVISION HISTORY:  New
 ; *
 ; *************************************************************************
 
@@ -298,7 +263,6 @@ ENDPROC   IFS_DOSCALL
 ; *
 ; *	 NOTES:  None
 ; *
-; *	 REVISION HISTORY:  New
 ; *
 ; *************************************************************************
 
@@ -335,7 +299,6 @@ ENDPROC   IFS_DOSCALL
 ; *
 ; *	 NOTES:  None
 ; *
-; *	 REVISION HISTORY:  New
 ; *
 ; *************************************************************************
 
@@ -368,14 +331,6 @@ chk_al1:				; Active process info ??
 
 
 chk_al2:
-;	cmp    al,2		       ; get CPSW info ??
-;	jne    chk_al3		       ; jump if not
-;	MOV	SI,OFFSET DOSGROUP:COUNTRY_CDPG
-;	MOV	BX,[SI.ccDosCodePage]  ; get dos code page id in BX
-;	MOV	DL,CPSWFLAG	       ; get CP Switch status
-;	jmp	get_info_exit	       ; exit
-
-
 chk_al3:
 ;	cmp    al,3		       ; get CTRL BRK status ??
 ;	jne    chk_al4
@@ -432,16 +387,6 @@ Chk6_Loop:
 	stosb
 	jmp	get_info_exit		; return
 Chk_Al7:
-;	cmp	al,7			; get country information ??
-;	jne	chk_al8 		; no, try next function
-;	mov	al,dl			; AL = info ID
-;	mov	bx,-1			; select active code page
-;	mov	dx,-1			; select active country
-;	mov	cx,-1			; get all
-;	INVOKE	$getExtCntry		; get country info
-;	jmp	SHORT Get_Info_Exit	; exit
-
-
 Chk_Al8:
 	cmp	al,8			; get share retry count ??
 	jne	bad_param		; no, Bad parameter
@@ -489,7 +434,6 @@ ENDPROC   GET_DOS_INFO
 ; *
 ; *	 NOTES:  None
 ; *
-; *	 REVISION HISTORY:  New
 ; *************************************************************************
 
 PROCEDURE  $IFS_IOCTL,NEAR

@@ -184,14 +184,11 @@ BACKPOS:
 	CMP	AL,9
 	JZ	OUTJ		;OUT knows how to expand tabs
 
-;DOS 3.3  7/14/86
 	CMP	AL,"U"-"@"      ; turn ^U to section symbol
 	JZ	CTRLU
 	CMP	AL,"T"-"@"      ; turn ^T to paragraph symbol
 	JZ	CTRLU
 NOT_CTRLU:
-;DOS 3.3  7/14/86
-
 	PUSH	AX
 	MOV	AL,"^"
 	invoke	OUTT		;Print '^' before control chars

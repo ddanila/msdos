@@ -1,19 +1,8 @@
 
 page	,132;
 title	Non-Contiguous IBMBIO Loader (MSLOAD)
-;==============================================================================
-;JK, 1987 -
-;     For DOS 4.00, MSLOAD program has been changed to allow:
-;	  1. 32 bit calculation,
-;	  2. Reading a FAT sector when needed, instead of reading the whole FAT
-;	     sectors at once.  This will make the Boot time faster, and eliminate
-;	     the memory size limitation problem,
-;	  3. Solving the limitation of the file size (29 KB) of IBMBIO.COM,
-;	  4. Adding the boot error message.  Show the same boot error message
-;	     and do the same behavior when the read operation of IBMBIO.COM
-;	     failes as the MSBOOT program, since MSLOAD program is the
-;	     extention of MSBOOT program.
-;
+; Load IO.SYS using 32-bit sector arithmetic and read FAT sectors on demand
+; to bound the boot workspace. Read failures use the same error path as MSBOOT.
 
 IF1
 	%OUT ASSEMBLING: Non-Contiguous IBMBIO Loader (MSLOAD)

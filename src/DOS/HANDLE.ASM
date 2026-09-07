@@ -1,20 +1,6 @@
 TITLE	HANDLE - Handle-related system calls
 NAME	HANDLE
-;
-; Handle related system calls for MSDOS 2.X.  Only top-level system calls
-; are present.	I/O specs are defined in DISPATCH.  The system calls are:
-;
-;   $Close     written
-;   $Commit    written		  DOS 3.3  F.C. 6/4/86
-;   $ExtHandle written		  DOS 3.3  F.C. 6/4/86
-;   $Read      written
-;   Align_Buffer		  DOS 4.00
-;   $Write     written
-;   $LSeek     written
-;   $FileTimes written
-;   $Dup       written
-;   $Dup2      written
-;
+; Top-level handle system calls; I/O contracts are defined in DISPATCH.
 ; Applications such as Multiplan depend on AX after a successful $CLOSE,
 ; even though the documented interface allows AX to be destroyed.
 
@@ -362,14 +348,6 @@ needi24:
 
 IF	BUFFERFLAG
 
-;	int	3
-;	cmp	[BUF_EMS_MODE], -1
-;	jz	dos_call
-;	call	choose_buf_page
-;	jc	ReadError
-;	call	save_user_map
-
-;dos_call:
 ENDIF
 	context DS			; go for DOS addressability
 	CALL	SI			; indirect call to operation
@@ -627,16 +605,6 @@ doXA:
 ;	POP	SI			       ;AN000;;FT. DS:SI -> XA list
 ;	POP	DS
 	JC	getexit 		       ;AN000;;FT. error
-;	CMP	[XA_device],0		       ;AN000;;FT. device ?
-;	JNZ	ftok			       ;AN000;;FT. yes, exit
-;	MOV	AX,4			       ;AN000;;FT. function 4 for ShSU
-;	CMP	[XA_type],4		       ;AN000;;FT. set XA
-;	JNZ	ftok			       ;AN000;;FT. no
-;
-;
-;	LES	DI,[ThisSFT]		       ;AN000;;FT. es:di -> sft
-;	CMP	WORD PTR [SI],0 	       ;AN000;;FT. null list ?
-;	JNZ	do_share		       ;AN000;;FT. no
 	JMP	SHORT ftok		       ;AN000;;FT. return
 getexit:				       ;AN000;;FT.
 	LeaveCrit   critSFT		       ;AN000;;FT. leave critical section
@@ -765,117 +733,6 @@ Procedure   CheckOwner,NEAR
 	stc
 	return
 EndProc CheckOwner
-
-;-------------------------------------------------------------------------
-;	Function name	: 	choose_buf_page
-;	Inputs		:	DMAADD = Xaddr
-;				cx = # of bytes to transfer
-;	Outputs		:	if NC
-;
-;				SAFE_FLAG - 0 ==> page is safe. no need to
-;						  detect collision between
-;						  user & system buffer.
-;				SAFE_FLAG - 1 ==> page is unsafe. Must check
-;						  for collision
-;
-;				CY - error
-;
-;
-;	High Level Alogrithm:
-;
-;	1. If Xaddr. is above the first physical page above 640K
-;	   2. choose that page
-;	   3. set safe flag
-;	4. else
-;	   5. choose highest page above 640K
-;	   6. If 6 or more pages above 640k
-;	      7. Set safe flag				
-;	   8. else
-;	      9. if Xaddr. + # of bytes to transfer does not spill into the
-;	     	 chosen page
-;		 10. set safe flag
-;	      11.else
-;		 12. clear safe flag
-;	      13.endif
-;	   14.endif
-;	15.endif
-;
-;----------------------------------------------------------------------------
-;Procedure 	choose_buf_page,near
-;
-;	assume cs:dosgroup, ds:nothing, es:nothing, ss:dosgroup
-;
-;	push	cx
-;	push	bx
-;	push	dx
-;	push	si
-;	push	ds
-;	push	ax
-;
-;	mov	ax, word ptr [DMAADD+2]
-;	and	ax, 0fc00h  	; page segment of transfer segment
-;
-;	cmp	ax, word ptr [BUF_EMS_FIRST_PAGE]
-;	ja	pick_first
-;	
-;	cmp	[BUF_EMS_NPA640], 6
-;	jae	safe_pick_last
-;
-;	add	cx, word ptr [DMAADD]	; get final offset 
-;	mov	bx, cx
-;
-;	mov	cl, 4
-;	shr	bx, cl		; get # of paragraphs
-;	mov	ax, word ptr [DMAADD+2]	; get initial segment
-;	add	ax, bx		; get final segment
-;
-;	and	ax, 0fc00h
-;	cmp	ax, word ptr [BUF_EMS_LAST_PAGE]
-;	jne	safe_pick_last
-;
-;	mov	[BUF_EMS_SAFE_FLAG], 0
-;	jmp	fin_choose_page
-;
-;safe_pick_last:
-;	mov	[BUF_EMS_SAFE_FLAG], 1
-;	jmp	fin_choose_page
-;
-;;pick_last:
-;;	mov	ax, word ptr [BUF_EMS_LAST_PAGE]
-;;	mov	[BUF_EMS_PFRAME], ax
-;;	mov	ax, word ptr [BUF_EMS_LAST_PAGE+2]
-;;	mov	[BUF_EMS_PAGE_FRAME], ax
-;;	xor	ax, ax
-;;	jmp	fin_choose_page
-;
-;pick_first:
-;	mov	ax, word ptr [BUF_EMS_FIRST_PAGE]
-;	cmp	[BUF_EMS_PFRAME], ax
-;	je	fin_choose_page
-;	mov	word ptr [LASTBUFFER], -1
-;	mov	[BUF_EMS_PFRAME], ax
-;	mov	ax, word ptr [BUF_EMS_FIRST_PAGE+2]
-;	mov	[BUF_EMS_PAGE_FRAME], ax
-;	mov	[BUF_EMS_SAFE_FLAG], 1
-;	call	Setup_EMS_Buffers
-;	jmp	fin_choose_page
-;
-;err_choose_page:
-;	stc
-;
-;fin_choose_page:
-;	clc
-;
-;	pop	ax
-;	pop	ds
-;	pop	si
-;	pop	dx
-;	pop	bx
-;	pop	cx
-;	return
-;
-;EndProc	choose_buf_page	
-;
 
 CODE	ENDS
 END

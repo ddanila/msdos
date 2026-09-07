@@ -1,21 +1,5 @@
 
-;
-;******************************************************************************
-; DOS Interrupts
-;
-; REVISION HISTORY:
-;
-;	   PTM P00 - WAIT & LOCK to WAITP & LOCKF for MASM errors. DRM 4/23/87
-;
-;		    A000 Version 4.00: add PARSER, System Message Handler,
-;			 Remove the BELL char.,turn off APPEND during TREE
-;			 search,Extended Attribute processing, Uppercasing
-;			 and "Out Of Space" during write to standard out.
-;		    A005 DCR0201 9/11/87 Incorperate new format for EXTENDED
-;			 ATTRIBUTES.
-;
-;******************************************************************************
-;
+; DOS interrupt equates.
 
 Terminate		equ	20h
 DOS_Function		equ	21h

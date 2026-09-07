@@ -243,7 +243,6 @@ EndProc CROSSCHK
 ; INIT_FATMAP
 ; description: initialize the fatmap area to all zeros
 ; called from: main-routine
-;Change History: Created    8/31/87	       bgb
 ;Input: segment addr of the fatmap
 ;	number of clusters in the fat (1-65535)
 ;Output: fatmap
@@ -266,7 +265,6 @@ endproc init_fatmap			    ;
 ; CALC_FATMAP_SEG
 ; description: calculate the segment of the fatmap for addressing purposes
 ; called from: main-routine
-;Change History: Created    8/31/87	       bgb
 ;Input: bytes-per-sector
 ;	fatsiz
 ;Output: ram-based fat table

@@ -1,49 +1,6 @@
 page   84,132
-;
-;***************************************************************
-;
-;	86-DOS FORMAT DISK UTILITY
-;
-;	This routine formats a new disk,clears the FAT and DIRECTORY then
-;	optionally copies the SYSTEM and COMMAND.COM to this new disk
-;
-;	SYNTAX: FORMAT	[drive][/switch1][/switch2]...[/switch16]
-;
-;	Regardless of the drive designator , the user will be prompted to
-;	insert the diskette to be formatted.
-;
-;***************************************************************
-
-;	    5/12/82 ARR Mod to ask for volume ID
-;	    5/19/82 ARR Fixed rounding bug in CLUSCAL:
-;   REV 1.5
-;	    Added rev number message
-;	    Added dir attribute to DELALL FCB
-;   REV 2.00
-;	    Redone for 2.0
-;   REV 2.10
-;	    5/1/83 ARR Re-do to transfer system on small memory systems
-;   REV 2.20
-;	    6/17/83 system size re-initialization bug -- mjb001
-;   Rev 2.25
-;	    8/31/83 16-bit fat insertion
-;   Rev 2.26
-;	    11/2/83 MZ fix signed compare problems for bad sectors
-;   Rev 2.27
-;	    11/8/83 EE current directories are always saved and restored
-;   Rev 2.28
-;	    11/9/83 NP Printf and changed to an .EXE file
-;   Rev 2.29
-;	    11/11/83 ARR Fixed ASSIGN detection to use NameTrans call to see
-;			if drive letter remapped. No longer IBM only
-;   Rev 2.30
-;	    11/13/83 ARR SS does NOT = CS, so all use of BP needs CS override
-;   Rev 2.31
-;	    12/27/83 ARR REP STOSB instruction at Clean: changed to be
-;			sure ES = CS.
-
-
-
+; Format a disk, clear its FAT and directory, and optionally copy the system.
+; SS differs from CS: references through BP need an explicit segment override.
 
 code	segment public para 'CODE'
 code	ends
@@ -2981,7 +2938,6 @@ PrintErrorAbort endp
 ;
 ;Called Procedures: None
 ;
-;Change History: Created	7/23/87 	MT
 ;
 ;Input: BX:AX = 32 bit number to be multiplied
 ;	CX = 16 bit number to be multiplied. (Must be even number)

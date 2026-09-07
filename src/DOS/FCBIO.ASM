@@ -1044,15 +1044,6 @@ CheckD: AND	AL,3Fh
 BadSFT: STC
 	return				; carry is clear
 CheckNet:
-;
-;----- In net support -----
-;
-;	MOV	AX,[SI].FCB_net_handle
-;	CMP	AX,WORD PTR ES:[DI].sf_NETID+4
-;	JNZ	BadSFT
-;	MOV	AX,WORD PTR [SI].FCB_netID
-;	CMP	AX,WORD PTR ES:[DI].sf_netid
-;	JNZ	BadSFT
 	MOV	AX,WORD PTR [SI].FCB_netID	  ;AN000;IFS.DOS 4.00
 	CMP	AX,WORD PTR ES:[DI].sf_serial_ID  ;AN000;IFS.DOS 4.00
 	JNZ	BadSFT

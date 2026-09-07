@@ -9,9 +9,7 @@ SUBTTL	SELECT2.asm
 ;
 ;	SELECT2.ASM : Copyright 1988 Microsoft
 ;
-;	DATE:	 August 8/87
 ;
-;	COMMENTS: Assemble with MASM 3.0 (using the -A option)
 ;
 ;		  Panel flow is defined in the following files:
 ;

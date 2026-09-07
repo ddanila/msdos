@@ -1,28 +1,6 @@
 TITLE MISC - Miscellanious routines for MS-DOS
 NAME  MISC
-;
-; Miscellaneous system calls most of which are CAVEAT
-;
-;   $SLEAZEFUNC
-;   $SLEAZEFUNCDL
-;   $GET_INDOS_FLAG
-;   $GET_IN_VARS
-;   $GET_DEFAULT_DPB
-;   $GET_DPB
-;   $DISK_RESET
-;   $SETDPB
-;   $Dup_PDB
-;   $CREATE_PROCESS_DATA_BLOCK
-;   SETMEM
-;   FETCHI_CHECK
-;   $GSetMediaID
-;
-;   Revision  history:
-;
-;	Created: ARR 30 March 1983
-;
-;	A000   version 4.00   Jan. 1988
-;	A001   D490 -- Change IOCTL subfunctions from 63h, 43h to 66h , 46h
+; Miscellaneous system calls, including undocumented DOS interfaces.
 
 .xlist
 ;
@@ -389,8 +367,6 @@ CreateCopy:
 	MOV	DI,SI
 	MOV	CX,80H
 	REP	MOVSW
-; DOS 3.3 7/9/86
-
 	MOV	CX,FilPerProc		; copy handles in case of
 	MOV	DI,PDB_JFN_Table	; Set Handle Count has been issued
 	PUSH	DS
@@ -398,7 +374,6 @@ CreateCopy:
 	REP	MOVSB
 	POP	DS
 
-; DOS 3.3 7/9/86
 	TEST	CreatePDB,0FFh		; Shall we create a process?
 	JZ	Create_PDB_cont 	; nope, old style call
 ;

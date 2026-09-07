@@ -197,11 +197,9 @@ HAVSTART:
 	MOV	CX,AX
 	invoke	SKPCLP
 	JCXZ	DOWRTJ
-;;; 11/5/86 FastSeek
 	MOV	[FSeek_logclus],DX   ; delete EOF (FFFFH)
 	INC	[FSeek_logclus]
 	invoke	FastSeek_Truncate    ;
-;;; 11/5/86 FastSeek
 	invoke	ALLOCATE
 	JNC	DOWRTJ
 
@@ -239,7 +237,6 @@ NOGROW:
 	JC	ACC_ERRWJ
 	MOV	[CLUSNUM],BX
 	MOV	[LASTPOS],DX
-;;; 11/5/86 FastSeek
 	MOV	[FSeek_logclus],AX    ; set up last position
 	SUB	AX,DX		; Last cluster minus current cluster
 	JZ	DOWRT		; If we have last clus, we must have first
@@ -247,14 +244,12 @@ NOGROW:
 	PUSH	CX		; No. of clusters short of first
 	MOV	CX,AX
 
-;;; 11/5/86 FastSeek
 	CMP	[CLUSNUM],0	      ;FS. null file
 	JZ	NULL_FILE	      ;FS. yes
 	MOV	[FSeek_logclus],DX    ;FS. delete EOF (FFFFH)
 	INC	[FSeek_logclus]       ;FS.
 	invoke	FastSeek_Truncate     ;FS.
 NULL_FILE:
-;;; 11/5/86 FastSeek
 	invoke	ALLOCATE
 	POP	AX
 	JC	WRTERR
@@ -263,7 +258,6 @@ NULL_FILE:
 	INC	DX
 	DEC	CX
 	JZ	NOSKIP
-;;; 11/5/86 FastSeek
 	MOV	[FSeek_logclus],DX    ;
 	ADD	[FSeek_logclus],CX    ; set up last position
 	invoke	SKPCLP
@@ -433,10 +427,8 @@ WRTEOF:
 	invoke	FNDCLUS
 SET_ACC_ERRWJ2:
 	JC	SET_ACC_ERRW
-;;; 11/5/86 FastSeek
 	MOV	[FSeek_logclus],DX    ; truncate clusters starting from DX
 	invoke	FastSeek_Truncate
-;;; 11/5/86 FastSeek
 	JCXZ	RELFILE
 	invoke	ALLOCATE
 	JC	WRTERRJ 	     ;;;;;;;;; disk full
@@ -461,8 +453,6 @@ endif
 	transfer ADDREC
 
 WRTERRJ: JMP	 WRTERR
-;;;;;;;;;;;;;;;; 7/18/86
-;;;;;;;;;;;;;;;;;
 RELFILE:
 	MOV	DX,0FFFFH
 	invoke	RELBLKS
@@ -479,12 +469,10 @@ KILLFIL:
 	MOV	ES:[DI.sf_lstclus],BX
 	XCHG	BX,ES:[DI.sf_firclus]
 	POP	ES
-;; 11/5/86 FastSeek
 	invoke	Delete_FSeek   ; delete fastseek entry
 
 	OR	BX,BX
 	JZ	UPDATEJ
-;; 10/23/86 FastOpen update
 	PUSH	ES		; since first cluster # is 0
 	PUSH	BP		; we must delete the old cache entry
 	PUSH	AX
@@ -500,8 +488,6 @@ KILLFIL:
 	POP	AX
 	POP	BP
 	POP	ES
-;; 10/23/86 FastOpen update
-
 	invoke	RELEASE
 	JC	SET_ACC_ERRWJJ
 UpDateJ:

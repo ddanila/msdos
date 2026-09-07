@@ -153,17 +153,7 @@ EndProc FStrCpy
 ; Upper case the letter in AL.	Most chars are non lowercase.
 ;
 Procedure   uCase,NEAR
-;	CMP	AL,'a'
-;	JAE	Maybe
-;	return
-;Maybe:
-;	CMP	AL,'z'
-;	JA	CaseRet
-;	ADD	AL,'A'-'a'
-;CaseRet:
-;;; 10/31/86 let's do file upper case for all DOS file names
 	invoke	GetLet2
-;;; 10/31/86 let's do file upper case for all DOS file names
 	return
 EndProc uCase
 

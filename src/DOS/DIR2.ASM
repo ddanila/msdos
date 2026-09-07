@@ -225,7 +225,6 @@ LOOK_SING:
 	JZ	NO_CURR_D		; then we must crack from root
 	CMP	BX,AX			; is the current directory cluster valid
 
-; DOS 3.3  6/25/86
 	JZ	NO_CURR_D		; no, crack form the root
 	TEST	[FastOpenFlg],FastOpen_Set     ; for fastopen ?
 	JZ	GOT_SEARCH_CLUSTER	       ; no
@@ -261,7 +260,6 @@ GO_Chk_end:					; restore registers
 	POP	ES
 	JNC	GOT_SEARCH_CLUSTER		; crack based on cur dir
 
-; DOS 3.3  6/25/86
 ;
 ; We must cract the path beginning at the root.  Advance pointer to beginning
 ; of path and go crack from root.
@@ -573,22 +571,17 @@ GO_BDEV:
 
 FindFile:
 	ASSUME	ES:NOTHING
-;;;; 7/28/86
 	CMP	BYTE PTR [NAME1],0E5H	; if 1st char = E5
 	JNZ	NOE5			; no
 	MOV	BYTE PTR [NAME1],05H	; change it to 05
 NOE5:
 
-;;;; 7/28/86
 	PUSH	DI			; Start of this element
 	PUSH	ES			; Save ES:BP
 	PUSH	CX			; CL return from NameTrans
-;DOS 3.3 FastOPen 6/12/86 F.C.
-
 	CALL	LookupPath		; call fastopen to get dir entry
 	JNC	DIR_FOUND		; found dir entry
 
-;DOS 3.3 FastOPen 6/12/86 F.C.
 	invoke	FINDENTRY
 DIR_FOUND:
 	POP	CX
@@ -631,8 +624,6 @@ ASSUME	DS:NOTHING
 SetDir:
 	MOV	DX,[SI] 		; Dir_first
 
-;DOS 3.3 FastOPen 6/12/86 F.C.
-
 	PUSH	DS		      ; save [curbuf+2]
 	context DS		      ; set DS Dosgroup
 	TEST	[FastOpenFlg],Lookup_Success   ;
@@ -648,8 +639,6 @@ SetDir:
 DO_NORMAL:
 ASSUME	DS:NOTHING
 	POP	DS			; DS = [curbuf + 2]
-;DOS 3.3 FastOPen 6/12/86 F.C.
-
 	SUB	BX,DI			; Offset into sector of start of entry
 	SUB	SI,DI			; Offset into sector of dir_first
 	PUSH	BX
@@ -683,15 +672,10 @@ SET_THE_BUF:
 	MOV	DI,WORD PTR [CURBUF]
 	ADD	SI,DI			; Get the offsets back
 	ADD	BX,DI
-; DOS 3.3 FasOpen 6/12/86  F.C.
-
 FAST_OPEN_SKIP:
 
 	POP	DI			; Start of next element
 	CALL   InsertPath	     ; insert dir entry info
-
-; DOS 3.3 FasOpen 6/12/86  F.C.
-
 
 	MOV	AL,[DI]
 	OR	AL,AL
@@ -730,11 +714,8 @@ NO_FAST:
 	JMP	SHORT BADPRET
 
 INCRET:
-; DOS 3.3 FasOpen 6/12/86  F.C.
-
 	CALL   InsertPath	     ; insert dir entry info
 
-; DOS 3.3 FasOpen 6/12/86  F.C.
 	INC	AL			; Reset zero
 SETRET:
 	return

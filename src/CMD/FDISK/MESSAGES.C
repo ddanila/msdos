@@ -18,7 +18,6 @@
 /*Called Procedures:    sysloadmsg                                            */
 /*                      display_msg                                           */
 /*                                                                            */
-/*Change History: Created        5/30/87         DRM                          */
 /*                                                                            */
 /*Input: None                                                                 */
 /*                                                                            */
@@ -108,7 +107,6 @@ END
 /*Called Procedures:    sysgetmsg                                             */
 /*                      sysdispmsg                                            */
 /*                                                                            */
-/*Change History: Created        5/11/88         DRM                          */
 /*                                                                            */
 /*Input: None                                                                 */
 /*                                                                            */

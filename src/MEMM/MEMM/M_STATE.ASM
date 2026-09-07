@@ -84,8 +84,6 @@ LAST	segment
 ;	flags								;
 ; Calls:                                                                ;
 ;	estb_a20_state							;
-; History:                                                              ;
-;	ISP (isp).					;
 ;-----------------------------------------------------------------------;
 estb_mach_state proc	near
 ;

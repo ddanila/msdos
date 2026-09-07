@@ -177,13 +177,9 @@ ENDIF
 LOCAL_OPEN:
 	EnterCrit   critDisk
 
-; DOS 3.3 FastOPen 6/16/86
-
 	OR	[FastOpenFlg],FastOpen_Set+Special_Fill_Set   ;  only open can
 	invoke	GetPath
 
-
-; DOS 3.3 FastOPen 6/16/86
 
 	JNC	Open_found
 	JNZ	bad_path
@@ -255,22 +251,6 @@ NormalOpen:
 FillSFT:
 	RestoreReg  <SI,DS>
 open_ok:
-;;; File Tagging DOS 4.00
-;	OR	AH,AH		       ;FT. device ?
-;	JS	NORM0		       ;FT. yes, don't do code page matching
-;	CMP	[CPSWFLAG],0	       ;FT. code page matching on
-;	JZ	NORM0		       ;FT. no
-;	CMP	ES:[BX].dir_CODEPG,0   ;FT. code page 0
-;	JZ	NORM0		       ;FT. yes do nothing
-;	PUSH	AX		       ;FT.
-;	invoke	Get_Global_CdPg        ;FT. get global code page
-;	CMP	ES:[BX].dir_CODEPG,AX  ;FT. equal to global code page
-;	JZ	NORM1		       ;FT. yes
-;	call	Code_Page_Mismatched_Error ;FT.
-;	CMP	AL,0		       ;FT. ignore ?
-;	JZ	NORM1		       ;FT.
-;	POP	AX		       ;FT.
-;	JMP	open_bad_access        ;FT. set carry and return
 NORM1:
 ;	POP	AX		       ;FT.
 NORM0:
@@ -292,7 +272,6 @@ if installed
 else
 	Call	ShSU
 endif
-;; DOS 4.00 10/27/86
 	LES	DI,ThisSFT			   ; if this is a newly
 	CMP	ES:[DI.sf_firclus],0		   ; created file then
 	JZ	no_fastseek			   ; do nothing
@@ -301,8 +280,6 @@ endif
 	MOV	DL,ES:[DI.dpb_drive]		   ; drive #
 	invoke	FastSeek_Open			   ; call fastseek
 no_fastseek:
-
-;; DOS 4.00 10/27/86
 
 	LeaveCrit   critDisk
 
@@ -417,15 +394,6 @@ procedure OWN_SHARE2,NEAR
 	DOSAssume   CS,<DS>,"OWN_SHARE2"
 	ASSUME	ES:NOTHING
 
-;	CMP	WORD PTR [THISCDS],-1	;IFS. UNC ?
-;	JZ	ifs_hasit		;IFS. yes
-;	PUSH	DS			;IFS. save reg
-;	PUSH	SI			;IFS. save reg
-;	LDS	SI,[THISCDS]		;IFS. DS:SI -> ThisCDS
-;	LDS	SI,[SI.curdir_IFS_HDR]	;IFS. ds:si-> IFS header
-;	TEST	[SI.IFS_ATTRIBUTE],IFSUSESHARE	;IFS.
-;	POP	SI			;IFS. retore reg
-;	POP	DS			;IFS. restore reg
 ifs_hasit:
 	return				;IFS. return
 
@@ -440,14 +408,6 @@ procedure SET_THISDPB,NEAR
 	DOSAssume   CS,<DS>,"SET_THISDPB"
 	ASSUME	ES:NOTHING
 
-;	PUSH	DS			;IFS. save reg
-;	PUSH	SI			;IFS. save reg
-;	LDS	SI,[THISCDS]		;IFS. ds:si-> CDS
-;	LDS	SI,[SI.CURDIR_DEVPTR]	;IFS. ds:si-> DPB
-;	MOV	WORD PTR [THISDPB],SI	;IFS. set THISDPB
-;	MOV	WORD PTR [THISDPB+2],DS ;IFS.
-;	POP	SI			;IFS. retore reg
-;	POP	DS			;IFS. restore reg
 	return				;IFS. return
 
 EndProc SET_THISDPB
@@ -462,12 +422,6 @@ procedure IFS_SHARE_CHECK,NEAR
 	ASSUME	ES:NOTHING
 
 
-;	CALL	OWN_SHARE		;IFS. IFS owns share
-;	JZ	IFSSHARE		;IFS. yes
-;	PUSH	AX			;IFS. save mode
-;	CALL	SET_THISDPB		;IFS. set THISDPB for SHARE_VIOLATION
-;	CALL	DO_SHARE_CHECK		;IFS. check share
-;	POP	AX			;IFS. restore mode and share ok
 IFSSHARE:
 	return				;IFS. return
 
@@ -540,20 +494,6 @@ EndProc Check_Access_AX
 procedure Code_Page_Mismatched_Error,NEAR
 	DOSAssume   CS,<DS>,"Code_Page_Mismatched_Error"
 	ASSUME	ES:NOTHING
-
-;	PUSH	DS		       ;FT.
-;	Context DS		       ;FT. ds=cs
-;	MOV	AH,0A9H 	       ;FT. fail,ignore,device,write
-;	MOV	DI,error_I24_gen_failure		 ;FT. set error
-;	MOV	[EXTERR],error_Code_Page_Mismatched	 ;FT.
-;	MOV	[EXTERR_CLASS],errCLASS_NotFnd		 ;FT.
-;	MOV	[EXTERR_ACTION],errACT_Abort		 ;FT.
-;	MOV	[EXTERR_LOCUS],errLOC_Unk		 ;FT.
-;	MOV	word ptr [EXITHOLD + 2],ES		 ;FT. save es:bp
-;	MOV	word ptr [EXITHOLD],BP			 ;FT.
-;	invoke	NET_I24_ENTRY				 ;FT. issue int 24H
-;	POP	DS					 ;FT.
-;	return						 ;FT.
 
 EndProc Code_Page_Mismatched_Error
 CODE	ENDS

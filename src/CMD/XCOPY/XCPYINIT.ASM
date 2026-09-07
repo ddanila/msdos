@@ -46,17 +46,6 @@ TITLE	XCPYINIT - XCOPY INITIALIZATION PROGRAM - Ver. 4.00
 ;    DATA AREAS:
 ;
 ;
-; NOTES: This module should be processed with the SALUT pre-processor
-;	 with the re-alignment not requested, as:
-;
-;		SALUT XCOPY,NUL,;
-;
-;	 To assemble these modules, the sequential
-;	 ordering of segments may be used.
-;
-;	 For LINK instructions:
-;		link  profile ..\lib
-;
 ;     Label: "The DOS XCOPY Utility"
 ;	     "Version 4.00 (C) Copyright 1988 Microsoft"
 ;	     "Licensed Material - Program Property of Microsoft"

@@ -762,7 +762,6 @@ get_fcb  endp			     ;
 ;Output: FAT is changed if a bad sector is found.
 ;	 The file is complete except for the data in the bad sector.
 ;
-;Change History: header created 7-19-87 	BGB
 ;
 ;Psuedocode
 ;----------
@@ -1266,7 +1265,6 @@ endproc Bad_File_Read			    ;
 ;*****************************************************************************
 ; description: fill the fat table in memory with the 'E5' character
 ; called from: main-routine
-;Change History: Created	8/7/87	       bgb
 ;Input: bytes-per-sector
 ;	fatsiz
 ;	maxent

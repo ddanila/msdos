@@ -68,12 +68,6 @@ PAGE
 
 	Invoke	TestNet
 	JNC	Local_Info
-;	invoke	OWN_SHARE2		       ;IFS. IFS owns share ?
-;	JZ	ifsshare		       ;IFS. yes
-;	PUSH	WORD PTR [DMAADD+2]	       ;IFS. save DMAADD
-;	PUSH	WORD PTR [DMAADD]	       ;IFS.
-;	invoke	IFS_SEARCH_FIRST	       ;IFS. do search first
-;	JC	nofiles 		       ;IFS. file not existing
 delete_next_file:			       ;IFS.
 ;	invoke	IFS_REN_DEL_CHECK	       ;IFS. do REN_DEL_CHECK
 ;	JNC	share_okok		       ;IFS. share ok
@@ -240,7 +234,6 @@ set_do:
 	OR	ES:[DI.buf_flags],buf_dirty
 yesdirty:
 	MOV	AL,[THISDRV]
-;;;; 10/1/86 F.C update fastopen cache
 	PUSH	DX
 	PUSH	DI
 	MOV	AH,0		  ; dir entry update
@@ -249,7 +242,6 @@ yesdirty:
 	invoke	FastOpen_Update
 	POP	DI
 	POP	DX
-;;;; 9/11/86 F.C update fastopen cache
 	invoke	FlushBuf
 	JNC	OK_BYE
 	MOV	AX,error_file_not_found

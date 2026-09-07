@@ -1,7 +1,6 @@
 ;***************************************************************************
 ; Subroutines which are called by the macros in MACROS.INC.
 ; File: ROUTINE2.ASM
-; Latest Change Date: August 04, 1987
 ;
 ; This is a stand alone module and is meant to be linked with the calling
 ; program.

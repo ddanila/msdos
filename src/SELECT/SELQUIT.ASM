@@ -9,15 +9,12 @@ SUBTTL	selquit.asm
 ;
 ; SELQUIT.ASM
 ;
-; DATE:    July 6/87
 ;
 ; COMMENTS:
 ;
-;	   This files must be compiled with MASM 3.0 (using /A option)
 ;
 ;	   Copyright 1988 Microsoft
 ;
-;	   ;AN001; Added flag to indicate error processing was in effect.
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 .LFCOND

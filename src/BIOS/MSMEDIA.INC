@@ -455,18 +455,8 @@ READBOOTSEC PROC NEAR
 	 JNE	INVALIDBOOTSEC
 
 
-;J.K. 10/15/86 Don't have to perform the following signature check since
-; we need to check the media byte even with the good signatured diskette.
-;CHECK_SIGNATURE:
-;	  CMP	  WORD PTR CS:[DISKSECTOR+1FEH],0AA55H	 ; SEE IF NON-IBM DISK OR 1.X
-;						   ; MEDIA.
-;	  JZ	  CHECKSINGLESIDED	 ; GO SEE IF SINGLE SIDED MEDIUM. MAY
-;					 ; NEED SOME SPECIAL HANDLING
-;
-; CHECK FOR NON-IBM DISKS WHICH DO NOT HAVE THE SIGNATURE AA55 AT THE
-; END OF THE BOOT SECTOR, BUT STILL HAVE A VALID BOOT SECTOR. THIS IS DONE
-; BY EXAMINING THE MEDIA DESCRIPTOR IN THE BOOT SECTOR.
-;
+; Check the media descriptor even when the boot sector has an AA55 signature.
+; Non-IBM disks can also have a valid BPB without that signature.
 
 Check_bpb_MediaByte:
 

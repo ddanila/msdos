@@ -97,27 +97,6 @@ goodsiz:
 	MOV    CX,2		       ;AN000;FT. FAKE FAKE ...............
 	JMP    set_user_cx	       ;AN000;FT. FAKE FAKE ...............
 
-;	SUB    [SAVE_CX],2	       ;AN000;;FT. minus count size
-;	CMP    [SAVE_SI],-1	       ;AN000;;FT. get all ?
-;	JNZ    getsome		       ;AN000;;FT. no
-;	PUSH   CS		       ;AN000;;FT. ds:si-> EA entry addr
-;	POP    DS		       ;AN000;;FT.
-;	INC    DI		       ;AN000;;FT.
-;	INC    DI		       ;AN000;;FT. es:di -> address after count
-;	MOV    SI,OFFSET DOSGROUP:XA_TABLE  ;AN000;FT.
-;	MOV    CX,XA_COUNT	       ;AN000;;FT. cx= number of EA entries
-;;;;;;
-;getone:
-;	CALL   GET_ONE_EA	       ;AN000;;FT. get EA
-;	JC     setout		       ;AN000;;FT. insufficient memory
-;	INC    DX		       ;AN000;;FT. next EA ID
-;	LOOP   getone		       ;AN000;;FT. next one
-;setout:
-;	CALL   Set_Output	       ;AN000;;FT.
-;	OR     CX,CX		       ;AN000;;FT.
-;	JNZ    errout		       ;AN000;;FT.
-;
-;	JMP    OKexit		       ;AN000;;FT.
 eaname:
 	CMP    [XA_type],3	       ;AN000;;FT. get EA name?`
 	JZ     geteaname	       ;AN000;;FT. yes
@@ -134,72 +113,8 @@ set_user_cx:
 	JMP    OKexit		       ;AN000;;FT. exit
 
 getsome:
-;	LDS    SI,DWORD PTR [SAVE_SI]  ;AN000;;FT.
-;	LODSW			       ;AN000;;FT.
-;	MOV    CX,AX		       ;AN000;;FT. cx=number of query entries
-;	JCXZ   setout		       ;AN000;;FT. yes
-;	STOSW			       ;AN000;;FT. es:di -> EA
-;get_next_EA:
-;	PUSH   DS		       ;AN000;;FT. save ds:si
-;	PUSH   SI		       ;AN000;;FT.	es:di
-;	PUSH   ES		       ;AN000;;FT.
-;	PUSH   DI		       ;AN000;;FT.
-;	CALL   Search_EA	       ;AN000;;FT. search query EA from table
-;	JC     EAnotFound	       ;AN000;;FT. EA not found
-;	PUSH   ES		       ;AN000;;FT.
-;	POP    DS		       ;AN000;;FT.
-;	MOV    SI,DI		       ;AN000;;FT. ds:si -> found EA
-;	POP    DI		       ;AN000;;FT. es:di -> buffer
-;	POP    ES		       ;AN000;;FT.
-;	CALL   GET_ONE_EA	       ;AN000;;FT. copy to buffer
-;	POP    SI		       ;AN000;;FT.
-;	POP    DS		       ;AN000;;FT.
-;	JC     setfinal 	       ;AN000;;FT. memory not enough
-;	MOV    AL,[SI.QEA_NAMELEN]     ;AN000;;FT.
-;	XOR    AH,AH		       ;AN000;;FT.
-;	ADD    AX,QEA_NAME	       ;AN000;;FT.
-;	ADD    SI,AX		       ;AN000;;FT. ds:si -> next query entry
-;testend:
-;	LOOP   get_next_EA	       ;AN000;;FT. do next
-;setfinal:
-;	LDS    SI,DWORD PTR [SAVE_SI]  ;AN000;;FT.
-;	MOV    DX,[SI]		       ;AN000;;FT.
-;	SUB    DX,CX		       ;AN000;;FT. dx= returned count
-;	JMP    setout		       ;AN000;;FT.
-;EAnotFound:
-;	POP    DI		       ;AN000;;FT. restore regs
-;	POP    ES		       ;AN000;;FT.
-;	POP    SI		       ;AN000;;FT.
-;	POP    DS		       ;AN000;;FT.
-;
-;	CALL   COPY_QEA 	       ;AN000;;FT. copy query EA to buffer
-;	JC     setfinal 	       ;AN000;;FT. not enough memory
-;	JMP    testend		       ;AN000;;FT.
 setea:
 	JMP    OKexit		       ;AN000;;FT. FAKE FAKE ..........
-;	LDS    SI,DWORD PTR [SAVE_DI]  ;AN000;;FT.
-;	LODSW			       ;AN000;;FT.
-;	MOV    CX,AX		       ;AN000;;FT. cx=number of query entries
-;	OR     CX,CX		       ;AN000;;FT. cx=0 ?
-;	JZ     OKexit		       ;AN000;;FT. yes
-;set_next:
-;	CALL   Search_EA	       ;AN000;;FT.
-;	JNC    toset		       ;AN000;;FT.
-;set_reason:
-;	CLC			       ;AN000;;FT. clear acrry
-;	MOV    [SI.EA_RC],AL	       ;AN000;;FT. set reason code
-;	DEC    CX		       ;AN000;;FT. end of set ?
-;	JZ     OKexit		       ;AN000;;FT. yes
-
-;	MOV    AL,[SI.EA_NAMELEN]      ;AN000;;FT.
-;	XOR    AH,AH		       ;AN000;;FT.
-;	ADD    AX,[SI.EA_VALLEN]       ;AN000;;FT.
-;	ADD    SI,EA_NAME	       ;AN000;;FT.
-;	ADD    SI,AX		       ;AN000;;FT. es:di -> next EA entry
-;	JMP    set_next 	       ;AN000;;FT.
-;toset:
-;	CALL   SET_ONE_EA	       ;AN000;;FT. set it
-;	JMP    set_reason	       ;AN000;;FT.
  insuff_space:			       ;AN000;;FT.
 ;	MOV    AX,error_not_enough_memory	 ;AN000;FT. insufficient memory err
 ;	STC

@@ -9,9 +9,7 @@ SUBTTL	SELECT8.asm
 ;
 ;	SELECT8.ASM : Copyright 1988 Microsoft
 ;
-;	DATE:	 August 8/87
 ;
-;	COMMENTS: Assemble with MASM 3.0 (using the /A option)
 ;
 ;
 DATA	SEGMENT BYTE PUBLIC 'DATA'

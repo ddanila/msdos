@@ -1109,28 +1109,6 @@ NOT_96TPI:
 	MOV	AL, 2			;2 sec/cluster
 	MOV	BL, 0F9h
 
-;J.K. 12/9/86 THE ABOVE IS A QUICK FIX FOR 3.3 DRIVER.SYS PROB. OLD LOGIC IS COMMENTED OUT.
-;	 mov	 bl,0F0H		 ; assume strange media
-;	 mov	 al,1			 ; AL is sectors/cluster - match 3.3 bio dcl. 6/27/86
-;	 ja	 Got_Correct_Mediad
-;; We check to see if the form factor specified was "other"
-;	 cmp	 byte ptr [di].FormFactor,ffOther
-;	 jz	 Got_Correct_Mediad
-;; We must have 1 or 2 heads (0 is ignored)
-;	 mov	 bl,byte ptr [di].Rmediad
-;	 cmp	 cl,1
-;	 jz	 Got_Correct_Mediad
-;; We must have one head - OK for 48tpi media
-;	 mov	 al,1			 ; AL is sectors/cluster
-;	 mov	 ch,byte ptr [di].FormFactor
-;	 cmp	 ch,ff48tpi
-;	 jz	 Dec_Mediad
-;	 mov	 bl,0F0H
-;	 jmp	 short Got_Correct_Mediad
-;Dec_Mediad:
-;	 dec	 bl			 ; adjust for one head
-;J.K. END OF OLD LOGIC
-
 Got_Correct_Mediad:
 	mov	byte ptr [di].RSecPerClus,al
 	mov	byte ptr [di].Rmediad,bl
