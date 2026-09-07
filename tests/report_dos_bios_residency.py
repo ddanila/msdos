@@ -155,6 +155,26 @@ def bios_core_partition(symbols: dict[str, int]) -> list[tuple[str, int, int, st
     return specs
 
 
+def selected_bios_layout(symbols: dict[str, int], *, retired_clock: bool = False) -> dict[str, int]:
+    """Successful one-hard-disk/CMOS layout, not the inactive fallback tail."""
+    packed = "BIOS_BDS_TEMPLATES_START" in symbols
+    if retired_clock and not packed:
+        raise ValueError("clock retirement requires the packed drive graph")
+    base = rounded(require(symbols, "ENDONEHARD"))
+    day = require(symbols, "EndDaycntToDay") - require(symbols, "Daycnt_to_day")
+    bcd = require(symbols, "EndCMOSClockset") - require(symbols, "Bin_to_bcd")
+    if min(day, bcd) < 0:
+        raise ValueError("clock conversion boundaries are reversed")
+    if retired_clock:
+        day = bcd = 0
+    after_day = base + day
+    clock_end = rounded(after_day + bcd)
+    # A/B plus one hard disk; DOS owns the first two DPBs.
+    graph = 3 * 100 + 33 if packed else 0
+    return dict(base=base, day=day, bcd=bcd, after_day=after_day,
+                clock_end=clock_end, graph=graph, end=rounded(clock_end + graph))
+
+
 def swap_contract(symbols: dict[str, int]) -> dict[str, int]:
     """Linked public SDA extent, following MSINIT's word-rounded lengths.
 
@@ -417,6 +437,7 @@ def main() -> int:
     hma_buffer_end = hma_buffer_base + hma_buffer_bytes
     hma_slack = hma_limit - hma_buffer_end
     bios_bytes = command_bytes = 0
+    retired_clock = False
     if args.boot_manifest:
         manifest = json.loads(args.boot_manifest.read_text())
         if not manifest["early_boot_installer"]:
@@ -427,6 +448,7 @@ def main() -> int:
         if hashlib.sha256(image.read_bytes()).hexdigest() != manifest["sha256"]:
             raise ValueError("boot manifest does not match IO.SYS")
         bios_bytes = manifest["embedded_payload_bytes"]
+        retired_clock = manifest.get("retired_clock_conversion", False)
         if sysbuf + bios_bytes > manifest["reservation_limit"]:
             raise ValueError("boot reservation would fail at the configured ceiling")
     if args.command_map:
@@ -641,26 +663,20 @@ def main() -> int:
         print(f"| {name} | `{value:04X}h` | {rounded(value):,} |")
 
     # The fixed parity image presents one hard disk and a CMOS clock. MSINIT
-    # starts at ENDONEHARD, then independently copies and paragraph-aligns the
-    # two clock helpers. The paired MCB capture provides an external check: this
+    # starts at ENDONEHARD, then copies the clock helpers unless retired and
+    # packs the selected drive graph. The paired capture is an external check: this
     # computed boundary is the BIOS part of the grouped pre-MCB payload.
-    selected_base = rounded(require(bios_symbols, "ENDONEHARD"))
-    selected = selected_base
-    day_size = day_to_day_end - day_to_day
-    bcd_size = bin_to_bcd_end - bin_to_bcd
-    after_day = selected + day_size
-    selected = rounded(after_day + bcd_size)
-    clock_end = selected
-    packed_graph_bytes = 0
-    if "BIOS_BDS_TEMPLATES_START" in bios_symbols:
-        # Fixed comparison: fake/physical A and B plus one hard disk. DOS owns
-        # the first two DPBs; the selected BIOS owns only the third.
-        packed_graph_bytes = 3 * 100 + 33
-        selected = rounded(selected + packed_graph_bytes)
+    selection = selected_bios_layout(bios_symbols, retired_clock=retired_clock)
+    selected_base, selected = selection["base"], selection["end"]
+    day_size, bcd_size = selection["day"], selection["bcd"]
+    after_day, clock_end = selection["after_day"], selection["clock_end"]
+    packed_graph_bytes = selection["graph"]
     if selected > 8160:
         errors.append("selected resident BIOS exceeds the 8,160-byte ceiling")
     print("\n### Fixed comparison selection\n")
     print("QEMU `pc` selects one hard disk, no 96-TPI extension, no legacy AT-ROM fix, a CMOS clock, and no K09 extension.\n")
+    if retired_clock:
+        print("Successful activation retires both low clock helpers; their cold source is not a retained allocation.\n")
     print("| Retained piece | Input boundary | Copied bytes | Output boundary |")
     print("| --- | ---: | ---: | ---: |")
     print(f"| One-hard-disk base (`ENDONEHARD`) | — | {require(bios_symbols, 'ENDONEHARD'):,} | `{selected_base:04X}h` |")

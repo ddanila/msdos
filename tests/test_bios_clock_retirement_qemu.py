@@ -12,6 +12,7 @@ from capture_vc_memory_comparison import capture, image_file, parse_capture
 from test_dos_char_retirement_qemu import install
 from test_command_high_resident_qemu import sha
 from test_umb_subpage_composition import xms_summary
+from report_dos_bios_residency import parse_map, selected_bios_layout
 
 
 def run_clock(image, directory, name="clock", reject=False):
@@ -90,6 +91,9 @@ def main():
         report["xms"] = xms_summary(serial.read_text(encoding="latin-1"))
         report["input_sha256"] = sha(disk)
         report["bios_hma_bytes"] = manifest["embedded_payload_bytes"]
+        _, linked_symbols = parse_map(directory / "msBIO.map")
+        report["bios_low_bytes"] = selected_bios_layout(linked_symbols,
+            retired_clock=manifest["retired_clock_conversion"])["end"]
         report["clock_conversion_pass"] = True
         report["wrong_radix_rejected"] = retired
         reports[name] = report
@@ -97,6 +101,7 @@ def main():
         print(name, report["largest"], report["upper_free"], flush=True)
     control, retired = reports["control"], reports["retired"]
     assert retired["largest"]-control["largest"] == 128
+    assert control["bios_low_bytes"]-retired["bios_low_bytes"] == retired["largest"]-control["largest"]
     assert retired["upper_free"] == control["upper_free"]
     assert retired["xms"] == control["xms"]
     fallback = {}

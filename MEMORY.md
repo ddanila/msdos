@@ -63,6 +63,18 @@ partition is classified below. A routing-only build or a larger diagnostic
 image does not advance this gate. Older layout ledgers below describe their
 named checkpoints; use the figures here for the current candidate.
 
+Use `report_dos_bios_residency.py` with the matching `--boot-manifest`, not
+the map alone: cold clock helpers remain linked but successful activation no
+longer retains them low. The report now accounts for **2,800**, not 2,928 BIOS
+bytes. The whole-source capacity check charges 2,800 BIOS + 288 shell entries/
+stack + 333 shell data against 3,756 HMA bytes, leaving **335 bytes before
+unpriced changes**. This is neither reclaimable memory nor a final placement
+proof; the runtime comparison remains authoritative.
+`out/bios-clock-retirement-kfcz9os1/` repeats the paired boot and checks that
+the calculated BIOS release equals the measured conventional gain; conversion,
+wrong-radix rejection and standalone high/low fallbacks pass. This accounting
+correction changes no resident binary and claims no additional saving.
+
 **Buffer-sharing decision:** do not alias DOS's 512-byte HMA transfer area to
 BIOS `DISKSECTOR` with the current I/O protocol. This is a source-established
 lifetime conflict, not just an untested DMA concern:
@@ -536,6 +548,14 @@ inventory is these shared control interfaces together with the remaining BIOS
 services/state, against the same HMA budget; the formatter move does not complete
 either owner. Broader EXEC/reload error substitutions and nested interruptions
 also remain qualification work.
+
+If the canonical COMSPEC path joins high private state, do not use PSP:80h as
+DOS-facing pathname scratch: `COMMAND2.ASM:INT_2E` saves the pending command
+there before reloading the transient. `TRNSEG:0100h` is a candidate scratch
+owner only during reload, not a general shell buffer. Prove initial-load and
+retry lifetimes, refresh it after a bad read, and preserve both the OPEN path
+and replacement-disk message argument segment. Do not make this 64-byte field
+another standalone milestone; settle it with the complete shell state contract.
 
 **COMSPEC retirement correction:** `TENV.ASM` no longer writes `comspec_print`
 or `cpdrv` in the released low formatter range. `SET COMSPEC` updates only the

@@ -2,7 +2,44 @@
 """Guard the mixed BIOS data budget and its fixed/public layout contracts."""
 import unittest
 
-from report_dos_bios_residency import bios_core_partition
+from report_dos_bios_residency import bios_core_partition, selected_bios_layout
+
+
+class SelectedLayoutTests(unittest.TestCase):
+    def symbols(self, *, packed=True):
+        symbols = dict(ENDONEHARD=0x99C, Daycnt_to_day=0x1800,
+                       EndDaycntToDay=0x1879, Bin_to_bcd=0x1879,
+                       EndCMOSClockset=0x187E)
+        if packed:
+            symbols["BIOS_BDS_TEMPLATES_START"] = 0x2900
+        return symbols
+
+    def test_retired_clock_releases_all_low_helpers_and_packs_graph(self):
+        control = selected_bios_layout(self.symbols())
+        retired = selected_bios_layout(self.symbols(), retired_clock=True)
+        self.assertEqual(control["end"], 2928)
+        self.assertEqual(retired["end"], 2800)
+        self.assertEqual((retired["day"], retired["bcd"]), (0, 0))
+        self.assertEqual(retired["clock_end"], retired["base"])
+        self.assertEqual(retired["graph"], 333)
+
+    def test_old_unpacked_cmos_layout_is_unchanged(self):
+        symbols = self.symbols(packed=False)
+        symbols["ENDONEHARD"] = 8030
+        layout = selected_bios_layout(symbols)
+        self.assertEqual((layout["day"], layout["bcd"], layout["end"]),
+                         (121, 5, 8160))
+        self.assertEqual(layout["graph"], 0)
+
+    def test_retirement_without_graph_packing_is_rejected(self):
+        with self.assertRaisesRegex(ValueError, "packed drive graph"):
+            selected_bios_layout(self.symbols(packed=False), retired_clock=True)
+
+    def test_reversed_source_is_rejected_even_when_retired(self):
+        symbols = self.symbols()
+        symbols["EndCMOSClockset"] = symbols["Bin_to_bcd"] - 1
+        with self.assertRaisesRegex(ValueError, "reversed"):
+            selected_bios_layout(symbols, retired_clock=True)
 
 
 class CorePartitionTests(unittest.TestCase):
