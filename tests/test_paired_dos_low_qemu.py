@@ -38,6 +38,8 @@ def main():
     parser.add_argument("--low-witness", action="store_true",
                         help="use the pinned same-size DOS-low boot-witness variant")
     parser.add_argument("--expect-witness-failure", action="store_true")
+    parser.add_argument("--bios", type=Path,
+                        help="matching BIOS build: also check multiplex and clock fallback services")
     args = parser.parse_args()
     work = Path(tempfile.mkdtemp(prefix="paired-dos-low-", dir=ROOT / "out"))
     print(f"Evidence: {work}", flush=True)
@@ -85,6 +87,31 @@ def main():
                   witness_failed=witness_failed, fcb_passed=fcb_passed, debug_hex=trace.hex())
     (work / "result.json").write_text(json.dumps(result, indent=2) + "\n")
     assert witness_failed if args.expect_witness_failure else passed, result
+    if args.bios and passed:
+        from test_bios_mux_retirement_qemu import probe_image, run_probe
+        from test_bios_clock_retirement_qemu import clock_probe, run_clock
+        io = (args.bios / "IO.SYS").read_bytes()
+        assert image_file(disk, "::IO.SYS") == io, "BIOS build does not match input"
+        manifest = json.loads((args.bios / "low.json").read_text())
+        assert hashlib.sha256(io).hexdigest() == manifest["sha256"]
+        directory = work / "bios"
+        directory.mkdir()
+        (directory / "IO.SYS").write_bytes(io)
+        active = args.mode == "HIGH"
+        result["bios_probes"] = dict(expected_active=active, passed=False)
+        (work / "result.json").write_text(json.dumps(result, indent=2) + "\n")
+        mux_disk = probe_image(disk, directory, manifest, active=active,
+                               retired=manifest.get("retired_mux", False))
+        run_probe(mux_disk, directory, "mux")
+        clock = clock_probe(directory, manifest, active,
+                            manifest.get("retired_clock_conversion", False))
+        clock_disk = directory / "clock.img"
+        shutil.copyfile(disk, clock_disk)
+        install(clock_disk, "CLOCK.COM", clock.read_bytes())
+        install(clock_disk, "AUTOEXEC.BAT", b"@ECHO OFF\r\nCLOCK.COM\r\n")
+        run_clock(clock_disk, directory)
+        result["bios_probes"]["passed"] = True
+        (work / "result.json").write_text(json.dumps(result, indent=2) + "\n")
 
 
 if __name__ == "__main__":

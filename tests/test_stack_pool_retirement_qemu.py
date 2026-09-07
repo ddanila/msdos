@@ -27,7 +27,10 @@ def shape_checks(source, bios, work, controlled=False, async_timer=False, a20_of
     symbols = {k.upper(): v - init for k, v in symbols.items()}
     assert symbols["ENDSTACKCODE"] == 0x259
     config = image_file(source, "::CONFIG.SYS")
-    assert b"DOS=HIGH" in config.upper()
+    modes = re.findall(rb"(?im)^DOS=(HIGH|LOW)(?:,UMB)?\r?$", config)
+    assert len(modes) == 1, "requires one explicit DOS=HIGH/LOW[,UMB] directive"
+    dos_high = modes[0].upper() == b"HIGH"
+    enabled = enabled and dos_high
     results = {}
     # The pinned topology has no 33,280-byte UMB: the maximum pool must fall
     # back intact. The other pools fit without changing configured resources.
@@ -42,7 +45,7 @@ def shape_checks(source, bios, work, controlled=False, async_timer=False, a20_of
         directory = work / name
         directory.mkdir()
         (directory / "stack-defs.inc").write_text(
-            f"%define EXPECT_UPPER {int(upper)}\n%define EXPECT_DOS_HIGH 1\n"
+            f"%define EXPECT_UPPER {int(upper)}\n%define EXPECT_DOS_HIGH {int(dos_high)}\n"
             "%define STACK_SHAPE_TRACE 1\n"
             f"%define STACK_COUNT {count}\n%define STACK_SIZE {size}\n"
             f"%define ENTRY_OFFSET {symbols['INT08']}\n%define OLD_SLOT {symbols['OLD08']}\n"
@@ -77,6 +80,7 @@ def shape_checks(source, bios, work, controlled=False, async_timer=False, a20_of
         passed = passed and debug.count(b"STACK_POOL_ASYNC_TIMER_EMS_PASS") == (2 if async_timer else 0)
         passed = passed and debug.count(b"STACK_POOL_A20_TIMER_PASS") == (2 if a20_off else 0)
         results[name] = dict(count=count, size=size, upper=upper, passed=passed, exit_code=result.returncode,
+            dos_high=dos_high,
             controlled_marker_repair=controlled,
             async_timer=async_timer,
             a20_off=a20_off,

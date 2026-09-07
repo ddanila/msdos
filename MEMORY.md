@@ -148,16 +148,27 @@ This is test-fixture adaptation, **not a production fix or new memory gain**.
 The eventual source-built DOS-low qualification must use an appropriate witness,
 not silently weaken `EMM_BOOTSTRAP_EXPECT_HMA` or change DOS's cache contract.
 
-Paired boot/FCB pass in LOW (`out/paired-dos-low-7c80y8cx/`) and HIGH
-(`out/paired-dos-low-ev8l9ro7/`). Both mismatched witnesses fail at step 10:
+Paired boot/FCB and BIOS multiplex/clock probes pass in LOW
+(`out/paired-dos-low-779s7qyb/`) and HIGH (`out/paired-dos-low-6eu_vs6w/`).
+The BIOS active flag is checked: LOW executes the retained cold services;
+HIGH executes the relocated ones. Both mismatched witnesses fail at step 10:
 `out/paired-dos-low-hmhaa84_/` and `out/paired-dos-low-j814ywdk/`.
-These checks do not establish complete fallback, reset, IRQ/A20 or API qualification.
+
+The same paired DOS-low fixture passes STACKS=9,128 with the **complete pool
+remaining low**, not a reduced resource count (`out/stack-pool-retirement-l9lf3s52/`).
+The probe checks executing DOSGROUP, exact low handler/pool allocation, all nine
+nested entries and A20-off real timer callbacks with four live EMS pages, before
+and after FCB I/O. Wrong timer-owner and omitted-A20-disable controls fail.
+The matched DOS-high run retains its upper pool (`out/stack-pool-retirement-is8gwxv7/`).
+This closes the paired default-pool placement case, not all shapes, failure/reset
+paths, source-built mode-specific fixtures, or the full BIOS/COMMAND state contract.
 
 ```sh
-python3 tests/test_paired_dos_low_qemu.py out/bios-mux-retirement-rr2vha88/input-retired.img --low-witness
-python3 tests/test_paired_dos_low_qemu.py out/bios-mux-retirement-rr2vha88/input-retired.img --mode HIGH
+python3 tests/test_paired_dos_low_qemu.py out/bios-mux-retirement-rr2vha88/input-retired.img --low-witness --bios out/bios-mux-retirement-rr2vha88/retired
+python3 tests/test_paired_dos_low_qemu.py out/bios-mux-retirement-rr2vha88/input-retired.img --mode HIGH --bios out/bios-mux-retirement-rr2vha88/retired
 python3 tests/test_paired_dos_low_qemu.py out/bios-mux-retirement-rr2vha88/input-retired.img --expect-witness-failure
 python3 tests/test_paired_dos_low_qemu.py out/bios-mux-retirement-rr2vha88/input-retired.img --mode HIGH --low-witness --expect-witness-failure
+python3 tests/test_stack_pool_retirement_qemu.py out/paired-dos-low-7c80y8cx/boot.img --shapes-bios out/bios-mux-retirement-rr2vha88/retired --async-timer --a20-off
 ```
 
 #### Retired clock conversion owner
