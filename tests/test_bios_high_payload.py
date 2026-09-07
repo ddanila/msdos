@@ -8,6 +8,24 @@ from build_bios_high_payload import build, offset_fixups, rebase, boot_policy, p
 
 
 class PayloadTests(unittest.TestCase):
+    def test_compact_tracks_preserve_all_63_sector_pairs(self):
+        from build_bios_low_image import build as build_low
+        with tempfile.TemporaryDirectory(prefix="msdos-compact-tracks-") as scratch:
+            tables = []
+            for compact in (False, True):
+                directory = Path(scratch) / str(compact)
+                low = build_low(directory, compact_tracks=compact)
+                symbols = low["symbols"]
+                binary = (directory / "MSBIO.BIN").read_bytes()
+                table = binary[symbols["TRACKTABLE"]:symbols["MEDIATYPE"]]
+                self.assertEqual(len(table), 126 if compact else 252)
+                tables.append(table)
+                # Building against this map must select matching high consumers.
+                high = build(directory / "high", directory)
+                self.assertIn("TRACKTABLE", high["low_bindings"])
+            self.assertEqual(tables[1], b"".join(tables[0][i+2:i+4]
+                                               for i in range(0, 252, 4)))
+
     def test_mux_retirement_keeps_filter_low_and_releases_operation_owner(self):
         from build_bios_low_image import build as build_low
         from build_bios_activation_fixture import write_fixture

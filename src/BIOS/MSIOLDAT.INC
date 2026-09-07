@@ -1,4 +1,5 @@
-; Mutable IOCTL state and ROM/DMA-facing format descriptors must remain low.
+; Mutable IOCTL state stays low. Compact layouts retain R,N pairs here and
+; materialize ROM/DMA-facing C,H,R,N descriptors in DISKSECTOR on demand.
 ; Keep code dispatch tables in MSIOCTL.INC, not in this allocation.
 INCLUDE MSIOLIM.INC
 PUBLIC BIOS_IOCTL_LOW_START, BIOS_IOCTL_LOW_END
@@ -10,6 +11,15 @@ BIOS_IOCTL_LOW_START LABEL BYTE
 ; when BLOCK13's service body runs high. BIOS results use the active stack.
 Prev_DX DW ?
 SECTORSPERTRACK DW	36
+IFDEF BIOS_COMPACT_TRACK_LAYOUT
+TRACKTABLE LABEL BYTE
+track_sector = 1
+REPT 36
+        DB track_sector,2
+track_sector = track_sector + 1
+ENDM
+        DB 2*(MAX_SECTORS_CURR_SUP-36) DUP (0)
+ELSE
 TRACKTABLE	DB	0,0,1,2
 		DB	0,0,2,2
 		DB	0,0,3,2
@@ -47,6 +57,7 @@ TRACKTABLE	DB	0,0,1,2
 		db	0,0,35,2
 		db	0,0,36,2
 		DB	4*MAX_SECTORS_CURR_SUP - ($ - TRACKTABLE) DUP (0)
+ENDIF
 
 ; Current format-media selection and retry state.
 MEDIATYPE	DB	0

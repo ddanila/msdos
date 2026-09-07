@@ -83,8 +83,7 @@ class DataSegmentTests(unittest.TestCase):
             code = line.split(";", 1)[0].strip().upper()
             if code.startswith("BIOS_CALL_HIGH "):
                 calls.append(code.split()[1].split(",")[0])
-        self.assertEqual(sorted(calls), ["MAPERROR", "MAPERROR", "READ_SECTOR",
-                                        "READ_SECTOR", "SETDRIVE", "SETDRIVE"])
+        self.assertEqual(sorted(calls), ["BIOS_MEDIA_CHECK_TIME", "BIOS_MEDIA_GETBP"])
 
     def test_isolated_body_has_no_direct_external_branches(self):
         with tempfile.TemporaryDirectory(prefix="msdos-bios-isolated-") as scratch:
@@ -169,7 +168,7 @@ class DataSegmentTests(unittest.TestCase):
                 self.assertFalse(re.search(r"\bPUSH\s+CS\b", code, re.I), name)
                 if re.search(r"\bBIOS_PUSH_DATA_SEG\b", code):
                     total += 1
-        self.assertEqual(total, 15, "review every added/removed data-segment consumer")
+        self.assertEqual(total, 16, "includes compact format-descriptor materialization")
 
     def test_remaining_cs_operands_have_explicit_code_or_chain_ownership(self):
         expected = {

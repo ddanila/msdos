@@ -62,6 +62,9 @@ def build(output, low_directory=None, *, dispatch=False, characters=False, media
     low_map = low_directory / "msBIO.map"
     _, low_symbols = parse_map(low_map)
     low_symbols = {name.upper(): value for name, value in low_symbols.items()}
+    track_bytes = low_symbols['MEDIATYPE'] - low_symbols['TRACKTABLE']
+    if track_bytes not in (126, 252):
+        raise ValueError("unexpected persistent track layout; cannot select matching high reader")
     slot_targets = dict(SLOT_TARGETS)
     if retire_mux:
         slot_targets["BIOS_LOW_DSKIN_ENTRY"] = (4, "DSK$IN")
@@ -87,7 +90,8 @@ def build(output, low_directory=None, *, dispatch=False, characters=False, media
         listing = scratch / "body.lst"
         body = scratch / "body.obj"
         run([ROOT / "bin/jwasm-masm",
-             f"-I. -I../INC -DBIOS_SERVICE_ISOLATED=1 {'-DBIOS_MEDIA_HIGH=1' if media else ''} -Fl{listing}",
+             f"-I. -I../INC -DBIOS_SERVICE_ISOLATED=1 {'-DBIOS_MEDIA_HIGH=1' if media else ''} "
+             f"{'-DBIOS_COMPACT_TRACK_LAYOUT=1' if track_bytes == 126 else ''} -Fl{listing}",
              f"MSDISK.ASM,{body};"], ROOT / "src/BIOS")
         externals = {}
         objects = [body]

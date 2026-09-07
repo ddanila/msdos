@@ -58,6 +58,7 @@ IOWRITEJUMPTABLE DB	7					;AN012;
 		dw	SetAccessFlag				;AN007;AN012;47h Unpublished function
 ;
 ; TRACKTABLE CONTAINS A 4-TUPLES (C,H,R,N) FOR EACH SECTOR IN A TRACK
+; BIOS_COMPACT_TRACK_LAYOUT instead retains R,N; FORMATRETRY generates C,H.
 ; C = CYLINDER NUMBER, H = HEAD NUMBER, R = SECTOR ID, N = BYTES PER SECTOR
 ;	N	BYTES PER SECTOR
 ;      ---	----------------
@@ -274,8 +275,10 @@ UGLYTRACKLAYOUT:
 	BIOS_PUSH_DATA_SEG
 	POP	ES
 STORESECTORINFO:
+IFNDEF BIOS_COMPACT_TRACK_LAYOUT
 	INC	DI				; SKIP OVER CYLINDER
 	INC	DI				; SKIP OVER HEAD
+ENDIF
 	LODSW					; GET SECTOR ID
 	PUSH	AX				; SAVE IT
 	LODSW					; GET SECTOR SIZE
@@ -474,6 +477,7 @@ NO_SET_DASD:
 	BIOS_LOW_MEM MOV,<BYTE PTR [HDNUM]>,CL,DS
 	MOV	AH,CL
 
+IFNDEF BIOS_COMPACT_TRACK_LAYOUT
 	PUSH	DI					; SAVE PTR TO BDS
 	MOV	DI, OFFSET TRACKTABLE
 	BIOS_PUSH_DATA_SEG
@@ -485,11 +489,38 @@ STORECYLINDERHEAD:
 	INC	DI					; SKIP SECTOR SIZE
 	LOOP	STORECYLINDERHEAD
 	POP	DI					; RESTORE PTR TO BDS
+ENDIF
 
 	MOV	CX, MAXERR			; SET UP RETRY COUNT
 FORMATRETRY:
 	PUSH	CX
+IFDEF BIOS_COMPACT_TRACK_LAYOUT
+        ; Persistent layout is R,N only. Materialize C,H,R,N in the existing
+        ; DMA-safe sector buffer immediately before every format attempt.
+        ; Rebuild after reset/media setup on retries; never alias saved R,N.
+        push ds
+        push si
+        push di
+        BIOS_PUSH_DATA_SEG
+        pop ds
+        push ds
+        pop es
+        mov si,offset TRACKTABLE
+        mov di,offset DISKSECTOR
+        mov cx,ds:SECTORSPERTRACK
+FormatDescriptor:
+        mov al,byte ptr ds:TRKNUM
+        mov ah,ds:HDNUM
+        stosw
+        movsw
+        loop FormatDescriptor
+        pop di
+        pop si
+        pop ds
+        mov bx,offset DISKSECTOR
+ELSE
 	MOV	BX, OFFSET TRACKTABLE
+ENDIF
 	BIOS_PUSH_DATA_SEG
 	POP	ES
 	BIOS_LOW_READ MOV,AX,<SECTORSPERTRACK>,DS
@@ -679,7 +710,9 @@ TRACKIO PROC NEAR
 DPTALREADYSET:
 	MOV	SI, OFFSET TRACKTABLE
 	SHL	AX, 1
+IFNDEF BIOS_COMPACT_TRACK_LAYOUT
 	SHL	AX, 1
+ENDIF
 	ADD	SI, AX
 ;
 ; WE WANT:
@@ -696,8 +729,10 @@ IONEXTSECTOR:
 	PUSH	CX
 	PUSH	DX
 ; SKIP OVER THE CYLINDER AND HEAD IN THE TRACK TABLE
+IFNDEF BIOS_COMPACT_TRACK_LAYOUT
 	INC	SI
 	INC	SI
+ENDIF
 ; GET SECTOR ID FROM TRACK TABLE
 	BIOS_LOW_LODSB
 	BIOS_LOW_MEM MOV,<CURSEC>,AL,DS

@@ -22,6 +22,7 @@ def main():
     parser.add_argument("frozen", type=Path)
     parser.add_argument("--image", type=Path, help="rebuild the paired BIOS loader and compose the candidate")
     parser.add_argument("--measure", action="store_true", help="capture the paired before/after VC and MEM census")
+    parser.add_argument("--compact-tracks", action="store_true", help="retain R,N pairs and materialize firmware format tuples")
     args = parser.parse_args()
     if args.measure and not args.image:
         parser.error("--measure requires --image")
@@ -53,7 +54,7 @@ def main():
             high_cds=True, dispatch=True, characters=True, retire_characters=True,
             pack_headers=True, retire_media=True, pack_drive_graph=True,
             high_stack_pool=True, retire_clock=True, retire_mux=True,
-            paired_provider=build / "EMM386.EXE")
+            paired_provider=build / "EMM386.EXE", compact_tracks=args.compact_tracks)
         disk = work / "input.img"
         shutil.copyfile(args.image, disk)
         install(disk, "IO.SYS", (work / "bios/IO.SYS").read_bytes())
