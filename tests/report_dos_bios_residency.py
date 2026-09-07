@@ -568,10 +568,12 @@ def main() -> int:
     table_start = table_segment.paragraph * 16 + table_segment.offset
     table_end = table_start + table_segment.size
     fcb_high = require(dos_symbols, "FCB001S") >= low_gate
+    dispatch_high = require(dos_symbols, "MAXCALL") >= low_gate
     table_ranges: list[tuple[str, int | str, int | str]] = [
-        ("Version and calendar constants", table_start, "MAXCALL"),
-        ("INT 21 dispatch table", "MAXCALL", "FOO"),
-        ("Internal install-service dispatch", "FOO", "InterChar"),
+        *([("Version and calendar constants", table_start, "InterChar")] if dispatch_high else [
+            ("Version and calendar constants", table_start, "MAXCALL"),
+            ("INT 21 dispatch table", "MAXCALL", "FOO"),
+            ("Internal install-service dispatch", "FOO", "InterChar")]),
         ("Interim-console state and optional banner", "InterChar", "SysInitTable"),
         ("SYSINIT communication table", "SysInitTable", "FastOpenTable"),
         ("FASTOPEN and directory exchange state", "FastOpenTable", "User_SP_2F"),
@@ -615,6 +617,13 @@ def main() -> int:
         ("INT 24 critical-error metadata", "ERR_TABLE_24", "ErrMap24"),
         ("Device-error translation map", "ErrMap24", "ErrMap24End"),
     ]
+    if dispatch_high:
+        high_ranges.extend((
+            ("INT 21 dispatch table and limits", "MAXCALL", "DOS_DISPATCH_TABLE_END"),
+            ("Internal install-service dispatch", "FOO", "DOS_INSTALL_TABLE_END")))
+        if (require(dos_symbols, "DOS_DISPATCH_TABLE_END") - require(dos_symbols, "MAXCALL") != 220
+                or require(dos_symbols, "DOS_INSTALL_TABLE_END") - require(dos_symbols, "FOO") != 115):
+            errors.append("dispatcher retirement must retain both complete tables")
     if "SFT001S" in dos_symbols:
         high_ranges.append(("Initial five-slot system file table", "SFT001S", "SFT001E"))
         if require(dos_symbols, "SFT001E") - require(dos_symbols, "SFT001S") != 301:

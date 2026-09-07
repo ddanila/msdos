@@ -27,13 +27,14 @@ The next delivery must include all four, in the same composed candidate:
 4. Local compatibility qualification of the resulting layout. Boundary probes
    and diagnostic builds are supporting evidence, not memory achievements.
 
-**Latest opt-in composed candidate:** **625,664 conventional / 47,936 free
-UMB / 6,798,336 application XMS bytes**, **6,928 above retail** and **7,728
+**Latest opt-in composed candidate:** **626,000 conventional / 47,936 free
+UMB / 6,798,336 application XMS bytes**, **7,264 above retail** and **8,064
 above the development control**. COMMAND data retirement and startup packing
 recover 336 conventional bytes; the safe manager OFF/AUTO guard costs 32;
 compact BIOS track state then recovers 128, and complete swap-prompt retirement
 recovers 96. Complete shell-stack retirement adds **112**, and retiring private
-BIOS IOCTL state adds **144**. These gains
+BIOS IOCTL state adds **144**. Retiring both complete DOS dispatch tables adds
+**336**, without changing the shared HMA budget. These gains
 enlarge the largest block, not a separate free hole. The combined shell data/stack
 move costs 480 UMB and 204 HMA
 bytes; compact track state adds one HMA byte, the swap prompt adds 120,
@@ -43,6 +44,33 @@ with **3,324 HMA bytes left**. BIOS retains **2,368 low bytes**;
 COMMAND's main low allocation is **432**.
 Functional qualification is incomplete: this is not production promotion or
 completion of BIOS/COMMAND placement.
+
+**Complete DOS dispatch-table retirement:** the 220-byte INT 21h table/limits
+and 115-byte internal-service table now belong to the existing `HIGH_TABLE`
+beside their executing readers. All 165 function words resolve to the same
+named routines; limits and internal table/return pointers explicitly use CS.
+There is no new allocation, copy protocol or retained low table. DOS=LOW keeps
+the same selected code/table owner. Packing reduces the DOS low prefix from
+**5,072 to 4,736 bytes** (4,725 linked); `SYSBUF`, `DOSINIT` and the **40,272-byte
+DOS HMA image remain unchanged**.
+
+Paired evidence: `out/dos-dispatch-retirement-zhq5bamj/results.json` and
+`input.img`, **625,664 -> 626,000 conventional bytes**, unchanged free UMB/XMS.
+The BIOS and shell retain 2,368 and 432 low bytes respectively. SHARE and
+IFSFUNC are relinked against the packed kernel; their private field offsets
+must match. FCB, SHARE and public-structure probes pass in composed HIGH and
+standalone LOW boots. Combined A20-off INT 2Eh/manager requests pass
+(`out/command-upper-int2e-vvc6mz2v/`), as do forced change-line, swap-prompt and
+format-retry tests at both floppy sizes (`out/bios-track-layout-pjgq5q6e/`).
+Destructive pipeline/reload and environment checks pass on the same image
+(`out/dos-dispatch-runtime-7_8q2xqa/`); all 18 DOS unit tests and the matched
+joint residency census pass.
+The repeat run `out/dos-dispatch-retirement-wqdq_jy3/` also verifies matched
+SHARE/IFSFUNC field offsets and reproduces the gain; all 27 HMA-budget tests pass.
+Reproduce with `make dos`, then `test_dos_dispatch_retirement_qemu.py IMAGE
+OLD_KERNEL_MAP`. This retires a complete kernel owner; it does not finish
+BIOS/COMMAND placement, qualify every internal service or establish paired
+provider fallback and 286 compatibility.
 
 **Complete private BIOS IOCTL-state retirement:** `BIOS_RETIRE_IOCTL_STATE`
 moves all 137 bytes (63 R/N pairs, sector count, media/retry flags, saved DPT
@@ -290,7 +318,7 @@ The next joint decision must separate remaining cold initialization from
 mandatory public/DMA/reboot entry contracts, then qualify the retained
 COMMAND PSP/gates and upper-data/stack failure paths. Do not present further
 paragraph-sized changes as completion, or remove compatibility paths merely
-because the selected boot did not execute them. The current 2,384-byte OpenDOS
+because the selected boot did not execute them. The current 2,048-byte OpenDOS
 gap is a whole-system ownership question, not the size of a remaining BIOS
 or COMMAND service body.
 
@@ -529,26 +557,26 @@ python3 tests/test_bios_clock_retirement_qemu.py out/command-high-retirement-wv3
 
 #### Retired low interrupt-stack pool
 
-The current saved VC comparison narrows the OpenDOS lead to **2,384 bytes**,
+The current saved VC comparison narrows the OpenDOS lead to **2,048 bytes**,
 not the 11,936-byte gap in the older reassessment below:
 
 | Accounting boundary | Current packed candidate | OpenDOS 7.01 IDE capture | Local minus OpenDOS |
 | --- | ---: | ---: | ---: |
-| System start to COMMAND start | 13,360 | 10,448 | +2,912 |
+| System start to COMMAND start | 13,024 | 10,448 | +2,576 |
 | COMMAND start to VC start | 784 | 1,312 | -528 |
 | VC start to first free block | 12,720 | 12,720 | 0 |
-| Largest conventional block | 625,664 | 628,048 | -2,384 |
+| Largest conventional block | 626,000 | 628,048 | -2,048 |
 
 These are allocation spans, not individual program MCB sizes. VC hashes and
 the 639 KiB ceiling match; vendor resource semantics and reset qualification
-still differ. Evidence: `out/emm-mode-guard-ezqt_as9/results.json` and
+still differ. Evidence: `out/dos-dispatch-retirement-zhq5bamj/results.json` and
 `out/opendos-disk-boot-evidence/result.json`. This reconciles saved captures,
 not a new vendor run. COMMAND placement still needs qualification and a final
 state contract, but a large shell allocation no longer explains this gap.
 
-The current system span reconciles as **2,368 BIOS + 5,072 DOS prefix + 4,704
+The current system span reconciles as **2,368 BIOS + 4,736 DOS prefix + 4,704
 managers + 512 transfer area + 608 interrupt handlers/control + 96 arena/mark
-bytes = 13,360**. Before pool and clock retirement, the stack subsystem retained 1,840 bytes
+bytes = 13,024**. Before pool and clock retirement, the stack subsystem retained 1,840 bytes
 low and the span was 15,392. A public suballocation probe on that pre-pool image
 confirms the four dynamic owners without unclassified gaps:
 `out/system-owners-gz8p6jrj/`. Its AUTOEXEC runs the probe instead of VC;

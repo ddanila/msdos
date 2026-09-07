@@ -606,8 +606,8 @@ DOS_RELOCATED_GATE_END LABEL BYTE
 	DB	2 DUP (090H)
 
 DispatchDOS:
-	PUSH	FOO			; push return address
-	PUSH	DTab			; push table address
+	PUSH	CS:FOO			; return/table owner follows executing code
+	PUSH	CS:DTab
 	PUSH	AX			; push index
 	PUSH	BP
 	MOV	BP,SP

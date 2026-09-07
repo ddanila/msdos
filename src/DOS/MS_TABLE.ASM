@@ -234,9 +234,8 @@ ErrMap24    Label   BYTE
 Public  ErrMap24End
 ErrMap24End LABEL   BYTE
 
-HIGH_TABLE ENDS
-TABLE SEGMENT BYTE PUBLIC 'TABLE'
-
+; Dispatch readers execute in the selected DOS code segment. Keep the complete
+; tables with that code, not as a second retained low allocation in DOS=HIGH.
         PUBLIC  DISPATCH,MAXCALL,MAXCOM
 
 MAXCALL DB      VAL1
@@ -413,6 +412,8 @@ VAL1    =       ($-DISPATCH)/2 - 1
         short_addr  $Extended_Open                  ; 108    6C   ;AN000;
 ;
 VAL2    =       ($-DISPATCH)/2 - 1
+PUBLIC DOS_DISPATCH_TABLE_END
+DOS_DISPATCH_TABLE_END LABEL BYTE
 
 
         If      Installed
@@ -484,6 +485,11 @@ DOSTable    LABEL   WORD
 DOSTableEnd LABEL   BYTE
 
         ENDIF
+
+PUBLIC DOS_INSTALL_TABLE_END
+DOS_INSTALL_TABLE_END LABEL BYTE
+HIGH_TABLE ENDS
+TABLE SEGMENT BYTE PUBLIC 'TABLE'
 
 ; NOTE WARNING: This declaration of HEADER must be THE LAST thing in this
 ;       module. The reason is so that the data alignments are the same in

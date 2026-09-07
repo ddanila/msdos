@@ -255,7 +255,7 @@ call_entry_stack_ready:
         CLI
         PUSH    AX                      ; Save segment
         PUSH    [User_SP]               ; Stack now ordered as if INT had been used
-        CMP     CL,MAXCALL              ; This entry point doesn't get as many calls
+        CMP     CL,CS:MAXCALL           ; limits follow the executing dispatcher
         JA      BADCALL
         MOV     AH,CL
         JMP     SHORT SavRegs
@@ -275,7 +275,7 @@ entry   COMMAND                         ; Interrupt call entry point (INT 21H)
 NOTOEM:
         ENDIF
 
-        CMP     AH,MAXCOM
+        CMP     AH,CS:MAXCOM
         JA      BadCall
 
 ;
