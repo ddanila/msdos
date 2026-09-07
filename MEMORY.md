@@ -111,6 +111,25 @@ confirms the four dynamic owners without unclassified gaps:
 `out/system-owners-gz8p6jrj/`. Its AUTOEXEC runs the probe instead of VC;
 the conventional-block comparison above remains the VC capture.
 
+**Remaining handler-owner bound:** moving the intact 608-byte handlers/control
+into the existing upper pool would leave **47,808 free UMB bytes**, 80 below
+retail's 47,888. The saved post-reset conventional-memory dump
+`out/bios-descriptors-b6ih5hmt/memory.bin` shows all 14 vectors installed at
+`03BEh`, with no `Int19OLDxx` sentinel left unused. This includes every one of
+the ten 25-byte sharing stubs. `STKINIT.INC` can skip unused vectors on other
+firmware, but that mechanism supplies no removable stubs in this composition.
+
+The guest MEM census (`out/stack-pool-retirement-hmjvgcxp/results.json`) reports
+upper payload allocations of 1,184 (SFT/FCB), 2,304 (CDS), and 1,248 (pool) bytes,
+plus three MCBs: **4,784 bytes**. Even hypothetical byte-tight coalescing with the
+handler needs 891 SFT + 242 FCB + 2,288 CDS + 1,224 pool + 601 handler bytes,
+four 16-byte F/X/L/S marks and one MCB: **5,328 bytes rounded**, an increase of
+544 against only 528 bytes of UMB margin. This optimistic lower bound ignores
+additional alignment and pointer-publication constraints; it is not an
+implemented layout. Coalescing alone cannot meet the gate. Do not replace the
+whole-owner objective with packing machinery or removal of required sharing
+headers; first establish a separate reduction in live upper-resident content.
+
 `BIOS_HIGH_STACK_POOL` now allocates the complete interrupt-stack entry table
 and pool in UMB, leaving its existing handlers/control low. The previous whole-subsystem UMB
 rejection was too coarse: `MSSTACK.INC` already selects the pool through
