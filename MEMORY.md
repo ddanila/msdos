@@ -96,6 +96,50 @@ reads and retries, plus external-driver calls, without retaining another
 Continue the joint BIOS/COMMAND ownership decision rather than substituting
 that small retirement or unrelated qualification probes for the delivery gate.
 
+#### Software-reboot ownership gate
+
+The frozen candidate does not complete an ordinary software `INT 19h` reboot
+with memory managers. A new public-API-only probe creates and flushes a disk
+receipt, invokes `INT 19h` without hooking vectors, then validates/deletes the
+receipt on the second boot. Acceptance requires both boot markers and guest
+exit 33; a timeout is failure, not a second-boot receipt. Inputs containing a
+receipt are rejected before execution.
+
+On the same QEMU 11.1.1 / 486 / 8 MiB IDE profile, with matching CONFIG and
+probe bytes, the results are:
+
+| Configuration | Current candidate | Retail 6.22 |
+| --- | --- | --- |
+| Bare DOS=LOW, no managers | Second boot passes | Second boot passes |
+| HIMEM only, DOS=HIGH | Times out after first marker | Second boot passes |
+| HIMEM + EMM386, DOS=HIGH,UMB | Times out after first marker | Second boot passes |
+
+Each result repeats with and without `CTTY AUX`. Paired evidence without CTTY:
+`out/software-reboot-e5yolxiz/` (candidate), `out/software-reboot-pk8rr7sc/`
+(retail). Substituting retail HIMEM or normal COMMAND in the candidate's
+HIMEM-only case still fails at 40 seconds (`kqo2vj7q` and `hqvtav27`, under
+`out/software-reboot-`). Neither an EMM-only explanation, the diagnostic vector
+checker, nor shell high placement alone explains the failure.
+
+**Bounded experiment, not an accepted fix:** capture pre-installation INT
+15h/2Fh/67h vectors in BIOS initialization and restore them through the reboot
+loop. This makes the HIMEM-only second boot pass (`out/software-reboot-2q3mbkgf/`),
+but the paired case still fails (`o4t2yaei`). Capturing the fourteen hardware
+vectors before CONFIG drivers, instead of replacing those receipts during
+STACKS installation, also fails the paired case (`azwpt8hc`). The latter source
+patch and linked image are retained in `out/bios-boot-irq-vectors-3ifjc3ii/`;
+neither experiment is in production sources. The next diagnostic target is
+the paired manager/firmware handoff and live interrupt owners before the second
+boot overwrites them—not another COMMAND move. Do not equate vector restoration
+or QMP hardware-reset success with software-reboot qualification. No memory
+saving or promotion credit is assigned to these tests.
+
+```sh
+python3 tests/test_software_reboot_qemu.py out/bios-mux-retirement-rr2vha88/input-retired.img
+python3 tests/test_software_reboot_qemu.py out/msdos622-original-vc405.img
+# Add --profile himem-high or --profile bare-low; repeat with --ctty-aux.
+```
+
 #### Retired block-driver multiplex operations
 
 `BIOS_RETIRE_MUX` moves AH=08h operations and BDS insertion into the existing
