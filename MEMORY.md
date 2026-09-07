@@ -59,6 +59,25 @@ that stale call as well as the low prompt storage. A timeout alone does not
 pinpoint the stopped instruction, but the source/link contract is invalid.
 Reproduce the prompt path with `test_bios_track_layout_qemu.py IMAGE --swap-prompt`.
 
+**Change-line boundary correction:** auditing the remaining low call targets
+found that `END96TPI` preceded the added error-mapping adapter and
+`BIOS_CHECKLATCH_RESULT`/`BIOS_CHECKIO_RESULT`. When change-line support was
+selected, STATIC_CONFIGURE therefore excluded callable helpers from its retained
+end. `END96TPI` now follows the complete helper group. In the current linked
+layout this changes `0BDBh -> 0C3Bh`: **96 bytes of required retention for that
+selection**, not a saving. The no-change-line layout still uses `ENDONEHARD`,
+and its guarded/purged calls do not require this group. Do not classify every
+bound low pointer beyond the selected end as an unconditional live call.
+
+The boundary regression checks helper coverage, the following BDS allocation
+boundary, and the actual STATIC_CONFIGURE operand. All 56 BIOS tests pass;
+the default BIOS and the experimental HMA payload remain byte-identical.
+Fresh paired captures in `out/emm-mode-guard-dyrynbs2/` preserve **625,408
+conventional / 48,064 UMB / 6,798,336 application XMS bytes**. This corrects the
+linked ownership contract. Combined swap-prompt/format-retry tests also pass
+at both floppy sizes (`out/bios-track-layout-i1azvmyk/`); full change-line-enabled runtime/error-path
+qualification remains open and is not proved by the selected comparison.
+
 **Compact BIOS track-state checkpoint:** `BIOS_COMPACT_TRACK_LAYOUT` retains
 all 63 sector-ID/size pairs (126 bytes), replacing the 252-byte C/H/R/N table.
 Repeated cylinder/head fields are generated in the existing DMA-safe

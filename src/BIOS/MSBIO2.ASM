@@ -390,6 +390,10 @@ BIOS_RESULT_MAPERROR:
 	BIOS_CALL_HIGH MAPERROR,BIOS_HIGH_MAPERROR,BIOS_HIGH_NEAR_ENTRY
 	RET
 	INCLUDE MSCHKRSL.INC
+	; STATIC_CONFIGURE must retain the complete change-line call closure,
+	; including the mapping adapter and both result helpers above.
+	PUBLIC END96TPI
+END96TPI LABEL BYTE
 	ENDIF
 
 ;*********************************************************************

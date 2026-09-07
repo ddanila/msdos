@@ -8,6 +8,24 @@ from build_bios_high_payload import build, offset_fixups, rebase, boot_policy, p
 
 
 class PayloadTests(unittest.TestCase):
+    def test_change_line_boundary_retains_result_helpers(self):
+        from build_bios_low_image import build as build_low
+        with tempfile.TemporaryDirectory(prefix="msdos-media-boundary-") as scratch:
+            low = build_low(Path(scratch), tail_body=True, dispatch=True, characters=True,
+                retire_characters=True, pack_headers=True, retire_media=True,
+                pack_drive_graph=True, retire_clock=True, retire_mux=True,
+                compact_tracks=True, retire_swap=True)
+            symbols = low["symbols"]
+            self.assertLess(symbols["ENDONEHARD"], symbols["BIOS_CHECKLATCH_RESULT"])
+            self.assertLess(symbols["BIOS_CHECKLATCH_RESULT"], symbols["BIOS_CHECKIO_RESULT"])
+            self.assertLess(symbols["BIOS_CHECKIO_RESULT"], symbols["END96TPI"])
+            self.assertEqual(symbols["END96TPI"], symbols["BDSMS"])
+            # STATIC_CONFIGURE must load this corrected end before testing
+            # the detected change-line capability, not merely export a label.
+            selection = (b"\x50\xb8" + symbols["END96TPI"].to_bytes(2, "little")
+                         + b"\x80\x3e" + symbols["FHAVE96"].to_bytes(2, "little") + b"\x00")
+            self.assertIn(selection, (Path(scratch) / "MSBIO.BIN").read_bytes())
+
     def test_swap_prompt_retires_whole_low_owner_and_uses_high_flush(self):
         from build_bios_low_image import build as build_low
         from report_dos_bios_residency import selected_bios_layout, parse_map
