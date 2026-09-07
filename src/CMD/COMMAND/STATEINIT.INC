@@ -61,11 +61,6 @@ shell_data_restore_policy:
         mov bl,[shell_data_link]
         mov ax,5803h
         int 21h
-        mov ax,[shell_data_allocation]
-        or ax,ax
-        jz shell_data_done
-        cmp ax,0a000h
-        jb shell_data_free
         ; Restore policy before publication, including when no UMB was found.
         mov ax,5800h
         int 21h
@@ -77,6 +72,11 @@ shell_data_restore_policy:
         jc shell_data_free
         cmp al,[shell_data_link]
         jne shell_data_free
+        mov ax,[shell_data_allocation]
+        or ax,ax
+        jz shell_data_done
+        cmp ax,0a000h
+        jb shell_data_free
 
         cli
         mov ax,[shell_data_allocation]
@@ -141,9 +141,44 @@ shell_data_rollback:
         mov [MYDATASEG],ax
         call shell_data_publish
 shell_data_free:
+        cmp word ptr [shell_data_allocation],0
+        je shell_data_recover_policy
         mov es,[shell_data_allocation]
         mov ah,49h
         int 21h
+        jc shell_data_policy_fatal
+        mov word ptr [shell_data_allocation],0
+shell_data_recover_policy:
+        ; One bounded cleanup retry, after abandoning the upper-data move.
+        ; Read back both values: a carry result alone does not describe state.
+        mov bx,[shell_data_strategy]
+        mov ax,5801h
+        int 21h
+        xor bx,bx
+        mov bl,[shell_data_link]
+        mov ax,5803h
+        int 21h
+        mov ax,5800h
+        int 21h
+        jc shell_data_policy_fatal
+        cmp ax,[shell_data_strategy]
+        jne shell_data_policy_fatal
+        mov ax,5802h
+        int 21h
+        jc shell_data_policy_fatal
+        cmp al,[shell_data_link]
+        jne shell_data_policy_fatal
+        jmp short shell_data_done
+shell_data_policy_fatal:
+        ; Global allocator state or temporary-owner cleanup is unconfirmed.
+        ; Do not enter AUTOEXEC with an unknown allocation domain/link state.
+        mov dx,offset resgroup:shell_data_policy_message
+        mov ah,09h
+        int 21h
+shell_data_policy_stop:
+        sti
+        hlt
+        jmp short shell_data_policy_stop
 shell_data_done:
         pop es
         pop ds
@@ -156,6 +191,7 @@ shell_data_done:
         popf
         ret
 relocate_shell_data endp
+shell_data_policy_message db 13,10,'COMMAND memory-policy recovery failed. Restart required.',13,10,'$'
 
 ; AX is the biased data selector. Existing PSP/stack/code identities stay low.
 shell_data_publish proc near

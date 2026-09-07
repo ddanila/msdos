@@ -837,6 +837,32 @@ are recorded. These are injected carry failures, **not actual UMB exhaustion or
 DOS policy-restoration failure tests**. No fault-injection path is added to the
 production shell and no additional memory gain is claimed.
 
+**Policy-restoration correction:** the next injected test exposed an actual
+cleanup defect: rejecting the first UMB-unlink left the link state at 1 rather
+than its original 0, despite a working low shell and no UMB leak
+(`out/command-upper-failure-i91xp2_3/`). `STATEINIT.INC` now verifies restoration
+even when allocation failed, abandons and frees the temporary upper owner on
+a mismatch, and makes one independent cleanup retry. It reads back both policy
+values before returning. If recovery or temporary-owner release remains
+unconfirmed, startup prints an explicit restart-required error and stops before
+AUTOEXEC instead of continuing with unknown global allocator state.
+
+The corrected composition is `out/command-policy-fix-q5e9mvte/input.img`.
+Fresh success/fallback captures and destructive runtime checks pass in
+`out/command-upper-failure-ctl_v79r/` and `...-9z5h4ffp/`; the recovered low
+fallback also passes A20-off INT 2Eh and manager-mode checks in
+`out/command-upper-int2e-aan856g7/`. Rejection of both unlink attempts displays
+the diagnostic and leaves the AUTOEXEC sentinel untouched
+(`out/command-upper-failure-ctl_v79r/fatal/`). Reproduce recovery and persistent rejection with
+`test_command_upper_failure_qemu.py IMAGE --policy-rejection`.
+
+This adds **128 initialization bytes**, not retained HMA/low storage: the
+successful composition remains **625,312 conventional / 48,064 UMB / 6,798,336
+application XMS bytes**, and normal COMMAND is byte-identical. Linked transient
+addresses change with initialization size; existing retained owner sizes do not.
+Other restoration/query/free failures, actual exhaustion, and asynchronous
+interference still need qualification; this is not complete promotion.
+
 **INT 2Eh / PSP follow-up:** `out/command-upper-int2e-ja0iujvb/` checks a pending
 command tail in a separate allocation, internal and child-external commands,
 caller PSP restoration and return to the parent shell's low stack. It verifies
@@ -896,7 +922,7 @@ not a reversal of the shell's 336-byte retirement. Destructive pipelines,
 redirection, child EXEC and environment reload pass on this corrected image.
 
 Remaining before promotion: nested/asynchronous and public-pointer contracts,
-actual exhaustion, policy-restoration failures and 286 coverage. Allocation
+actual exhaustion, remaining policy/query/free failures and 286 coverage. Allocation
 rejection and post-publication shrink rollback now have the bounded tests above. Reconcile
 BIOS placement against the remaining shared HMA budget; neither this measured
 gain nor the fallback pipeline check completes that work.
