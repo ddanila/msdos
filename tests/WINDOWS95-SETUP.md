@@ -25,9 +25,10 @@ uv run --with pycdlib python tests/win95_setup_probe.py \
 control. `--mode fork-smartdrv` loads the runtime cache before normal Setup;
 `--mode skip-scandisk` selects `SETUP /IS` for comparison.
 
-The harness creates a fresh 504 MiB FAT16 disk, stages the ISO, and runs a
-Pentium TCG machine with 32 MiB RAM. It waits for Setup's prompt and compares
-staged source files after the VM stops. Existing installed VMs are not reused.
+The harness stages the ISO in a fresh VM and compares source files after it
+stops. Existing installed VMs are not reused. See the
+[harness](win95_setup_probe.py) for machine configuration; the run report records
+the QEMU command.
 
 Interactive input accepts QEMU monitor commands, `shot` for a screenshot/OCR
 capture, and `finish` to stop and compare files. At Setup's restart prompt,

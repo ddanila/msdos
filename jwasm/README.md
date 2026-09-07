@@ -28,5 +28,4 @@ root:
 ## Validation
 
 `tests/test_toolchain_transforms.py` covers parsing and include lookup. The
-release gate additionally requires reproducible `-j1`, `-j4`, and `-j8` builds
-and the applicable emulator gates; see [ARCHITECTURE.md](../ARCHITECTURE.md).
+release gates are defined in [ARCHITECTURE.md](../ARCHITECTURE.md).

@@ -16,8 +16,8 @@ run DOS programs or proprietary Microsoft tools.
 
 Tool pins and provenance are recorded in [jwasm/README.md](jwasm/README.md) and
 [watcom/README.md](watcom/README.md). The adapters support the historical command
-forms used by this tree; they are not general replacements for Microsoft tools. Keep compatibility transformations
-narrow and covered by focused tests. Experimental image builders under `tests/`
+forms used by this tree; they are not general replacements for Microsoft tools.
+Keep compatibility transformations narrow and covered by focused tests. Experimental image builders under `tests/`
 have separate layout and mutation contracts.
 
 ## Memory architecture

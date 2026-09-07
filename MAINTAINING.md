@@ -2,8 +2,9 @@
 
 Use the release gates in [ARCHITECTURE.md](ARCHITECTURE.md) and keep open work in
 [TODO.md](TODO.md). Markdown should retain scope, rationale, and operational
-constraints; implementation inventories belong in code/tests and completed work
-in Git history.
+constraints. Keep code-derived counts, sizes, limits, inventories, and results
+in code, manifests, or generated reports; link to their source instead of
+copying values here. Completed work belongs in Git history.
 
 ## Preserve source bytes
 
@@ -53,9 +54,9 @@ a bootable image can still corrupt those consumers if linked layouts differ.
 Rebuild them together after changing shared data. See
 [MEMORY.md](MEMORY.md) for relocation constraints.
 
-Read MZ header fields when computing executable load offsets; do not assume a
-512-byte header. Keep compatibility adapters narrow and remove one only after
-its replacement passes the applicable release gates.
+Derive executable load offsets from the MZ header fields. Keep compatibility
+adapters narrow and remove one only after its replacement passes the applicable
+release gates.
 
 ## Repository ownership
 

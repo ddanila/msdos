@@ -29,9 +29,8 @@ manifest proves every retail behavior or hardware combination.
   physical controllers, and hardware timing are not exhaustively validated.
 - ANSI escape sequences, display/printer adapters and code pages, and custom
   DRIVER.SYS geometries have bounded runtime coverage.
-- FDISK supports up to eight BIOS fixed disks; the multi-disk tests exercise
-  through disk 3. Physical storage and removable-media combinations remain
-  outside that scope.
+- FDISK has focused multi-disk coverage. Physical storage and removable-media
+  combinations remain outside that scope.
 - There is no automated differential runner against genuine DOS 5 media or
   maintained physical-hardware lab.
 

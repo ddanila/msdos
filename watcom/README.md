@@ -14,19 +14,12 @@ Project source fork: [`ddanila/open-watcom-v2:custom`](https://github.com/ddanil
 Linux custom build revision: `1e6b2b4d546ac5d60fafbb986d84c615fd4b26d0`.
 
 The macOS arm64 `wlink` is built from custom source revision
-`b0c4a1ec0342ef14e9ff0df02e29a05e8fd0a620`. In addition to the oversized
-real-mode-group compatibility fixes, it permits wrapped negative absolute OMF
-fixups and preserves explicitly sized real-mode stacks. These are required
-respectively by DISKCOMP's `FINE EQU -1` reference and PRINT's 200-byte resident
-stack. Its SHA-256 is
-`cd005b7805c69eac43db0c7278f39ffe0113fdecba21ab8cd3362f15e183c1d7`.
+`b0c4a1ec0342ef14e9ff0df02e29a05e8fd0a620`. Its compatibility fixes support
+oversized real-mode groups, wrapped negative absolute OMF fixups, and explicitly
+sized real-mode stacks required by this tree.
 
 The Linux x86-64 `wcc`, `wlib`, and `wlink` were built together from the custom
 revision by [workflow run 33046977965](https://github.com/ddanila/open-watcom-v2/actions/runs/33046977965).
-Their SHA-256 hashes are respectively
-`eb2ba16f29fce756e000258dd0baa519390416081c66c9da39e2cf6c9000ff7b`,
-`816a07efddc00e43e973bea438bb34added9fa2b86d5a46df9a0e2ff1b9fa17e`,
-and `f6699a32f53abc31888095790a58b9b95a477a38c864296d68872b44309e4721`.
 The remaining macOS tools and both unused OW `wasm` binaries come from the base
 release snapshot; production assembly uses the separately pinned custom JWasm.
 
@@ -49,7 +42,7 @@ Treat a refresh as a toolchain change, not a binary-copy operation:
 2. rebase or update the fork's `custom` branch and build from an exact revision;
 3. extract only the required host tools and copy them into the matching
    `watcom/bin/` directories;
-4. record the base snapshot, custom revisions, workflow provenance, and hashes
-   in this file;
-5. run focused adapter tests, pristine `-j1`/`-j4`/`-j8` builds, `make test`,
-   deployment, and the applicable QEMU and 86Box matrices.
+4. record source revisions and build provenance here; derive binary hashes
+   from the vendored files when needed;
+5. run focused adapter tests and the release gates in
+   [ARCHITECTURE.md](../ARCHITECTURE.md).
