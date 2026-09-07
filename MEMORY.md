@@ -382,6 +382,47 @@ A routing-only build or a larger diagnostic
 image does not advance this gate. Older layout ledgers below describe their
 named checkpoints; use the figures here for the current candidate.
 
+**Joint placement ledger (current composed image):**
+
+| Owner | Retained placement | Decision / remaining gate |
+| --- | --- | --- |
+| COMMAND PSP and startup jump | 256 + 3 low bytes | Keep the process identity and executable entry low |
+| COMMAND 13 entry gates | 104 low bytes | Each restores A20 before its far jump; not a second service body |
+| COMMAND activation flag, A20 restore and DOS-call returns | 1 + 43 + 12 low bytes | Keep below HMA so callbacks can return with A20 off |
+| COMMAND main alignment | 13 low bytes | Total main owner is 432; do not count PSP or gates again |
+| COMMAND complete data/stack | 460 bytes in a 464-byte UMB owner, plus 16-byte MCB | Published together; old low owner released only after the stack switch; preserve rollback |
+| COMMAND catalogs and services | 5,839 HMA bytes | Old service/catalog copies are outside the successful low break |
+| BIOS public headers, VDISK anchor and disk bounce buffer | 219 + 108 + 512 low bytes | Keep public/fixed/DMA contracts; bounce buffer is not boot-only scratch |
+| BIOS initialized BDS/overflow-DPB graph | 333 low bytes | Keep public graph pointers; copied bootstrap graph is already discarded |
+| BIOS remaining entries, state and alignment | 1,196 low bytes | Includes the 266-byte A20-off ROM-return owner and 169-byte lifecycle row; not an independent movable body |
+| BIOS services and installed bindings | 8,081 HMA bytes | Cold fallback disk/character bodies are already outside the successful low break |
+| Shared HMA | DOS 40,288 + BIOS 8,081 + cache 7,988 + COMMAND 5,839 | Leaves 3,308, plus the separately reserved 16-byte safety tail |
+
+COMMAND offsets are verified against `COMMAND1.ASM`, `SHELLGATE.INC`,
+`SHELLLOW.INC`, `STATEINIT.INC` and the matched upper-stack map. Its successful
+placement has **no remaining duplicate service, data or stack owner low**.
+Allocation/shrink rejection must instead retain the coherent low data/stack
+fallback; deleting that path is not successful-layout reclamation.
+
+The current composed kernel/BIOS/manager/shell image passes allocation and
+shrink rejection with exact low/UMB fallback accounting and shell reload/pipes
+(`out/command-upper-failure-r_aoo2de/`), policy restoration and persistent-failure
+stop before AUTOEXEC (`out/command-upper-failure-3gr_i143/`), and A20-off INT 2Eh
+upper-stack ownership across manager modes, with negative controls
+(`out/command-upper-int2e-2epxm8yk/`). Fatal-error reboot also reaches a verified
+second boot with DF set and CTTY AUX (`out/software-reboot-xjk44u66/`). These
+qualify the retained contracts on this composition; they add no memory gain
+and do not establish arbitrary external-hook or hardware compatibility.
+
+BIOS is not yet closed: the mixed state/lifecycle rows still need a final
+reader/lifetime disposition. In particular, `DSK$INIT` remains reachable through
+device command 0 and its retained `SETPTRSAV` gate. `RE_INIT` is different: its
+33-byte installer is called from SYSINIT before driver loading, while the
+installed INT 2F handler and successor storage remain live. Do not remove both
+as one owner or count the 33 bytes as a separate delivery milestone. Likewise,
+`TIM_DRV`, `DPT`, `SPSAV` and `DAYCNT` cross disk/media/clock paths; moving the
+whole mixed row needs those bindings, not just its steady-state disk reader.
+
 Use `report_dos_bios_residency.py` with `--tail-body` and the matching `--boot-manifest`, not
 the map alone: cold helpers remain linked but successful activation no
 longer retains them low. The current shared HMA budget is **3,308 free bytes**.
