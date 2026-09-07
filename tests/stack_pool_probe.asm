@@ -4,6 +4,19 @@ bits 16
 org 100h
 %include "stack-defs.inc"
 start:
+%ifdef EXPECT_DOS_HIGH
+    push ds
+    mov ax,1203h                  ; executing DOSGROUP, no HMA allocation
+    int 2fh
+    mov ax,ds
+    pop ds
+    cmp ax,0ffffh
+%if EXPECT_DOS_HIGH
+    jne fail
+%else
+    je fail
+%endif
+%endif
     mov ah,52h
     int 21h
     mov bp,[es:bx-2]

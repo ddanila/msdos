@@ -19,6 +19,10 @@ AllocateStackPoolUpper PROC NEAR
         push es
         cld
         mov cs:[StackPoolParas],ax
+        ; HMA availability is not DOS-high selection: DOS_HMA_PREPARE may
+        ; acquire HMA even for DOS=LOW. Preserve the explicitly low path.
+        cmp cs:[DosHighRequested],0
+        je StackPoolDone
         cmp cs:[DosUmbRequested],0
         je StackPoolDone
         mov ax,1232h

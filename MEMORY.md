@@ -131,9 +131,28 @@ stack-control pointer selects `CBDEh:0000` with count 9 and size 128.
 
 ```sh
 python3 tests/test_stack_pool_retirement_qemu.py out/bios-graph-retirement-u_62ta5g/input-packed.img
+python3 tests/test_stack_pool_retirement_qemu.py out/stack-pool-retirement-prtihhmq/input-upper.img --fallback-only
 ```
 
-**Still unqualified:** absent-UMB/DOS-low/286 and policy-restoration-failure
+**Standalone fallback:** bare DOS-low, HIMEM DOS-low, HIMEM DOS-high without
+UMBs, and HIMEM/EMM386 DOS-low pass complete low-pool and nine-deep nested
+switch checks before/after FCB I/O (`out/stack-pool-retirement-gmwka9v8/`).
+The probe verifies actual DOSGROUP residency, not just CONFIG.SYS intent.
+These use the deployment managers and an unpaired BIOS; hashes and startup
+settings are retained in the manifest. They do not qualify paired-provider
+DOS-low or a 286 CPU.
+
+This matrix caught a selection bug: AX=1232h prepares/acquires HMA; it is not
+a DOS-high-status query. With DOS-low and UMBs, the original transaction moved
+the pool upper (`out/system-owners-l3w5eglv/` confirms only 608 stack bytes low).
+`STKUPPER.INC` now checks `DosHighRequested` before that callback. The corrected
+standalone matrix retains the complete 1,840-byte low owner where required.
+The corrected composed rerun (`out/stack-pool-retirement-hmjvgcxp/`) repeats
+the nested/I/O and corrupted-back-pointer controls and the exact conventional,
+UMB and XMS totals above, including allocation rejection. Its BIOS high payload
+is byte-identical to the preceding candidate; no new memory gain is claimed.
+
+**Still unqualified:** paired-provider DOS-low, 286 and policy-restoration-failure
 paths, other configured counts/sizes, exhaustion and clobbered-entry recovery,
 A20-off/EMS-remapping stress, and software INT 19h reset. Upper backing must
 remain valid throughout interrupts and provider transitions. The nested probe
