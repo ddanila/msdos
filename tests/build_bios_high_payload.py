@@ -52,7 +52,9 @@ def run(command, cwd):
         raise RuntimeError(result.stdout + result.stderr)
 
 
-def build(output, low_directory=None, *, dispatch=False, characters=False, media=False):
+def build(output, low_directory=None, *, dispatch=False, characters=False, media=False, retire_clock=False):
+    if retire_clock and not characters:
+        raise ValueError("clock retirement requires the complete character owner")
     if characters and not dispatch:
         raise ValueError("complete character group requires far dispatch tables")
     output.mkdir(parents=True, exist_ok=True)
@@ -98,7 +100,7 @@ def build(output, low_directory=None, *, dispatch=False, characters=False, media
         if characters:
             for module in ("MSCON", "MSAUX", "MSLPT", "MSCLOCK", "HIGHCHAR"):
                 char_object, char_listing = scratch / f"{module}.obj", scratch / f"{module}.lst"
-                run([ROOT / "bin/jwasm-masm", f"-I. -I../INC -DBIOS_CHAR_HIGH=1 -Fl{char_listing}",
+                run([ROOT / "bin/jwasm-masm", f"-I. -I../INC -DBIOS_CHAR_HIGH=1 {'-DBIOS_RETIRE_CLOCK=1' if retire_clock else ''} -Fl{char_listing}",
                      f"{module}.ASM,{char_object};"], ROOT / "src/BIOS")
                 objects.append(char_object)
                 listings.append(char_listing)

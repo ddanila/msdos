@@ -113,6 +113,10 @@ def write_fixture(output, low, high):
                 raise ValueError("invalid cold decoder/table range")
             bind_low += [f"mov di,{symbols[start]}", f"mov cx,{symbols[end] - symbols[start]}",
                          f"mov al,{fill}", "rep stosb"]
+    if low.get("retired_clock_conversion"):
+        # No high clock reader may fall back through these released near bodies.
+        for name in ("BINTOBCD", "DAYCNTTODAY"):
+            bind_low.append(f"mov word [es:{symbols[name]}],0ffffh")
     for name, lines in (("defs", [f"{key} equ {value}" for key, value in definitions.items()]),
                         ("preflight", preflight), ("bind-high", bind_high),
                         ("bind-low", bind_low), ("data", data)):

@@ -24,6 +24,14 @@ BIOS_CHAR_GETDX:
         call dword ptr cs:[BIOS_SERVICE_NEAR_CALL_GATE]
         ret
 BIOS_CHAR_BINTOBCD:
+	IFDEF BIOS_RETIRE_CLOCK
+	jmp Bin_to_bcd
+BIOS_CHAR_DAYCNTTODAY:
+	jmp Daycnt_to_day
+	EXTRN daycnt:WORD,month_tab:BYTE
+BIOS_CLOCK_HIGH EQU 1
+	INCLUDE CLOCKCONV.INC
+	ELSE
         push word ptr ds:[BinToBCD]
         call dword ptr cs:[BIOS_SERVICE_NEAR_CALL_GATE]
         ret
@@ -31,5 +39,6 @@ BIOS_CHAR_DAYCNTTODAY:
         push word ptr ds:[DaycntToDay]
         call dword ptr cs:[BIOS_SERVICE_NEAR_CALL_GATE]
         ret
+	ENDIF
 BIOSHIGH ENDS
 END

@@ -15,13 +15,14 @@ COMMAND placement still requires one shared HMA budget; it is not deferred
 by manager-interface progress.
 
 The current **composed retirement candidate** measures
-**624,416 conventional / 48,416 free UMB bytes**: **6,480 above the selected
-development control**, and **5,680 above retail**. The preceding shell retirement
+**624,544 conventional / 48,416 free UMB bytes**: **6,608 above the selected
+development control**, and **5,808 above retail**. The preceding shell retirement
 recovered **2,752 conventional bytes** versus its identical BIOS/provider
 composition with normal COMMAND; the kernel-table retirement adds **256** and
 packing the initialized BIOS drive graph adds **304**. Upper placement of the
 complete interrupt-stack pool adds **1,232**, consuming **1,264 UMB bytes** and
-leaving **528 above retail's free-UMB floor**.
+leaving **528 above retail's free-UMB floor**. Retiring the complete low clock
+conversion owner adds **128 conventional bytes** at a net **109 HMA-byte cost**.
 Application XMS remains **6,798,336 bytes** (5,120 below the development control);
 the shell move adds no UMB or XMS cost. This is an opt-in experimental layout,
 not production promotion.
@@ -53,7 +54,7 @@ python3 tests/test_dos_char_retirement_qemu.py out/command-high-retirement-vj99u
 **Next selection gate:** stop isolated table/paragraph harvesting after this
 completed owner. Resolve the remaining BIOS and COMMAND owners against the
 same shared budget, remove obsolete storage and measure their combined release.
-BIOS retains 2,928 low bytes; COMMAND retains 880. These are allocations, not
+BIOS retains 2,800 low bytes; COMMAND retains 880. These are allocations, not
 promised savings: BIOS request/ROM-return gates, public device/BDS pointers and
 DMA-facing storage need explicit low contracts. In particular, the census's
 545-byte strategy/dispatch row includes retained completion and firmware-return
@@ -84,28 +85,68 @@ reads and retries, plus external-driver calls, without retaining another
 Continue the joint BIOS/COMMAND ownership decision rather than substituting
 that small retirement or unrelated qualification probes for the delivery gate.
 
+#### Retired clock conversion owner
+
+`BIOS_RETIRE_CLOCK` places the complete day-count/BCD conversion in the existing
+high character service. `CLOCKCONV.INC` shares the algorithm with cold MSINIT;
+the high routine explicitly reads low BIOS state through DS and calls its own
+BCD helper. Its two high-to-low bridges are gone. MSINIT no longer copies the
+126-byte conversion owner into the permanent low area; existing drive-graph
+packing releases 128 rounded bytes. Cold pointers select the original init
+code until activation; successful activation poisons both legacy near pointers
+with FFFFh. Rejected activation retains the complete cold tail. Normal IO.SYS
+remains byte-identical; no new runtime gateway or low mirror is introduced.
+
+`out/bios-clock-retirement-tcnhrbbe/` compares byte-matched configurations with
+only IO.SYS changed: **624,416 -> 624,544 conventional**, unchanged **48,416 UMB**
+and **6,798,336 free XMS**. BIOS high usage is **7,853 bytes**. Exact INT 1Ah
+conversion outputs pass for six dates spanning 1980–2099, including leap days
+and the century boundary, plus a time sample. A high-only wrong-BCD-radix
+mutation fails. Inactive reservation-failure fallbacks pass with standalone
+HIMEM in DOS-high and DOS-low; these do not qualify paired-provider DOS-low.
+
+The conversion boundary is deliberately distinct from RTC readback: the frozen
+control supplied the correct day count for 2000-02-29, but firmware readback
+returned 2000-03-29. Correct INT 1Ah inputs pass on that same control; the
+downstream RTC discrepancy remains unqualified, not hidden by changing dates.
+The new test also caught and corrected an implicit CS-relative low-state read
+in the first high conversion build.
+
+The byte-identical final BIOS passes nested stacks/FCB I/O and A20-off real
+timer callbacks with live EMS mappings (`out/stack-pool-retirement-44lem8aj/`).
+Boot–hardware-reset–boot retains BIOS **2,800** and COMMAND **880** bytes with
+valid BDS/DPB graphs (`out/bios-descriptors-m2yat6is/`). Other firmware, 286,
+software INT 19h, full clock coverage and final BIOS/COMMAND placement remain open.
+The broader `test_bios_data_segment.py` suite still has two failures reproduced
+on committed baseline `f8fd120`: stale low-call inventory and missing imports in
+its standalone separate-data build. The clock change does not resolve them.
+
+```sh
+python3 tests/test_bios_clock_retirement_qemu.py out/command-high-retirement-wv3n09ss/input-high.img
+```
+
 #### Retired low interrupt-stack pool
 
-The current saved VC comparison narrows the OpenDOS lead to **3,632 bytes**,
+The current saved VC comparison narrows the OpenDOS lead to **3,504 bytes**,
 not the 11,936-byte gap in the older reassessment below:
 
 | Accounting boundary | Current packed candidate | OpenDOS 7.01 IDE capture | Local minus OpenDOS |
 | --- | ---: | ---: | ---: |
-| System start to COMMAND start | 14,160 | 10,448 | +3,712 |
+| System start to COMMAND start | 14,032 | 10,448 | +3,584 |
 | COMMAND start to VC start | 1,232 | 1,312 | -80 |
 | VC start to first free block | 12,720 | 12,720 | 0 |
-| Largest conventional block | 624,416 | 628,048 | -3,632 |
+| Largest conventional block | 624,544 | 628,048 | -3,504 |
 
 These are allocation spans, not individual program MCB sizes. VC hashes and
 the 639 KiB ceiling match; vendor resource semantics and reset qualification
-still differ. Evidence: `out/stack-pool-retirement-prtihhmq/results.json` and
+still differ. Evidence: `out/bios-clock-retirement-tcnhrbbe/results.json` and
 `out/opendos-disk-boot-evidence/result.json`. This reconciles saved captures,
 not a new vendor run. COMMAND placement still needs qualification and a final
 state contract, but a large shell allocation no longer explains this gap.
 
-The current system span reconciles as **2,928 BIOS + 5,376 DOS prefix + 4,640
+The current system span reconciles as **2,800 BIOS + 5,376 DOS prefix + 4,640
 managers + 512 transfer area + 608 interrupt handlers/control + 96 arena/mark
-bytes = 14,160**. Before this move, the stack subsystem retained 1,840 bytes
+bytes = 14,032**. Before pool and clock retirement, the stack subsystem retained 1,840 bytes
 low and the span was 15,392. A public suballocation probe on that pre-pool image
 confirms the four dynamic owners without unclassified gaps:
 `out/system-owners-gz8p6jrj/`. Its AUTOEXEC runs the probe instead of VC;
@@ -306,7 +347,7 @@ these gates.
 This supersedes the older indivisible-stack destination restriction, not the
 BIOS/COMMAND completion gates. Keep their published pointers, firmware/DMA
 buffers and asynchronous entries valid. Finish the remaining ownership and
-fallback qualification against the same 3,865-byte HMA budget; do not resume
+fallback qualification against the same 3,756-byte HMA budget; do not resume
 isolated shell-byte reductions to explain a system-allocation difference.
 
 #### Packed initialized BIOS drive graph
@@ -444,8 +485,8 @@ READ_DISK_PROC serves transient and other DOS message clients. `HANDLE.ASM`'s
 access contract. Keep file reads and returned text low; private numeric scratch
 remains high. The low stack does not grow. Normal COMMAND remains byte-identical.
 
-The current shared HMA budget is **40,272 DOS + 7,744 BIOS + 7,988 buffers +
-5,635 COMMAND = 61,639 bytes**, leaving **3,865 bytes** at `F0D7h..FFF0h`.
+The current shared HMA budget is **40,272 DOS + 7,853 BIOS + 7,988 buffers +
+5,635 COMMAND = 61,748 bytes**, leaving **3,756 bytes** at `F144h..FFF0h`.
 The shell charge includes its previous 2,447-byte owner, eight binding-fallback
 bytes, the 2,675-byte service, 210-byte pipeline owner and 295-byte formatter;
 do not add those owners again or reuse the preceding HMA remainders.
@@ -476,7 +517,7 @@ python3 tests/test_command_high_resident_qemu.py out/umb-fine-composition-l1byzj
 fault and reset qualification, remaining BIOS mixed state/services and the other
 low owners below. This service retirement does not complete shell code/state
 placement. Next, classify and move eligible state against the remaining shared
-3,865 bytes, preserve the low PSP/stack and published pointer contracts, then
+3,756 bytes, preserve the low PSP/stack and published pointer contracts, then
 measure the next composed gain; do not replace this with more copy-only milestones.
 
 **Remaining shell data ownership:** the current linked ranges below partition
@@ -622,7 +663,7 @@ qualification remains open.
 
 The whole-shell service retirement above supersedes this checkpoint's COMMAND
 code-placement task. Complete state placement, BIOS qualification and mixed low
-owners remain in scope; its current shared budget is the 3,865-byte remainder.
+owners remain in scope; its current shared budget is the 3,756-byte remainder.
 
 Historical BIOS-only reproduction (requires that checkpoint's pinned normal
 COMMAND binary). The current native COMMAND includes the TCOMMAND correction;
