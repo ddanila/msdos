@@ -62,6 +62,8 @@ def write_fixture(output, low, high):
                         for name in ("SETDRIVE", "MAPERROR", "READ_SECTOR", "CHECKSINGLE")})
     if low.get("retired_character_bodies"):
         low_targets["BIOS_HIGH_TIME_TO_TICKS"] = ("TIME_TO_TICKS", 2)
+    if low.get("retired_mux"):
+        low_targets["BIOS_HIGH_MUX_ENTRY"] = ("BIOS_MUX_BODY", 4)
     if low.get("retired_media_bodies"):
         low_targets["BIOS_HIGH_SETPTRSAV_ENTRY"] = ("SETPTRSAV", 4)
         low_targets["BIOS_HIGH_GETBP"] = ("GETBP", 2)

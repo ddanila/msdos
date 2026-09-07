@@ -8,6 +8,30 @@ from build_bios_high_payload import build, offset_fixups, rebase, boot_policy, p
 
 
 class PayloadTests(unittest.TestCase):
+    def test_mux_retirement_keeps_filter_low_and_releases_operation_owner(self):
+        from build_bios_low_image import build as build_low
+        from build_bios_activation_fixture import write_fixture
+        with tempfile.TemporaryDirectory(prefix="msdos-mux-retirement-test-") as scratch:
+            directory = Path(scratch)
+            low = build_low(directory, tail_body=True, dispatch=True, characters=True,
+                            retire_characters=True, pack_headers=True, retire_media=True,
+                            pack_drive_graph=True, retire_clock=True, retire_mux=True)
+            high = build(directory / "high", directory, dispatch=True, characters=True,
+                         media=True, retire_clock=True, retire_mux=True)
+            write_fixture(directory, low, high)
+            symbols = low["symbols"]
+            self.assertLess(symbols["INT2F_DISK"], symbols["ENDONEHARD"])
+            self.assertLess(symbols["BIOS_HIGH_MUX_ENTRY"], symbols["ENDONEHARD"])
+            self.assertLessEqual(symbols["END$"], symbols["BIOS_MUX_BODY"])
+            self.assertLess(symbols["BIOS_MUX_BODY"], symbols["INSTALL_BDS"])
+            self.assertLessEqual(symbols["BIOS_MUX_BODY_END"], symbols["BIOS_SERVICE_END"])
+            self.assertNotIn("INSTALL_BDS", high["low_bindings"])
+            self.assertEqual(high["runtime_slots"]["BIOS_LOW_DSKIN_ENTRY"]["target"], "DSK$IN")
+            self.assertIn("START_BDS", high["low_bindings"])
+            self.assertIn("PTRSAV", high["low_bindings"])
+            self.assertIn(f"mov word [es:{symbols['BIOS_HIGH_MUX_ENTRY'] + 2}],0ffffh",
+                          (directory / "activation-bind-low.inc").read_text())
+
     def test_media_retirement_preserves_boot_patches_and_nonlocal_density_owner(self):
         from build_bios_low_image import build as build_low
         from build_bios_activation_fixture import write_fixture

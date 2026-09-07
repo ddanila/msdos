@@ -52,7 +52,7 @@ def run(command, cwd):
         raise RuntimeError(result.stdout + result.stderr)
 
 
-def build(output, low_directory=None, *, dispatch=False, characters=False, media=False, retire_clock=False):
+def build(output, low_directory=None, *, dispatch=False, characters=False, media=False, retire_clock=False, retire_mux=False):
     if retire_clock and not characters:
         raise ValueError("clock retirement requires the complete character owner")
     if characters and not dispatch:
@@ -63,6 +63,8 @@ def build(output, low_directory=None, *, dispatch=False, characters=False, media
     _, low_symbols = parse_map(low_map)
     low_symbols = {name.upper(): value for name, value in low_symbols.items()}
     slot_targets = dict(SLOT_TARGETS)
+    if retire_mux:
+        slot_targets["BIOS_LOW_DSKIN_ENTRY"] = (4, "DSK$IN")
     if media:
         for name in ("BIOS_LOW_GETBP", "BIOS_LOW_MEDIA_IDS"):
             del slot_targets[name]
@@ -104,6 +106,12 @@ def build(output, low_directory=None, *, dispatch=False, characters=False, media
                      f"{module}.ASM,{char_object};"], ROOT / "src/BIOS")
                 objects.append(char_object)
                 listings.append(char_listing)
+        if retire_mux:
+            mux_object, mux_listing = scratch / "mux.obj", scratch / "mux.lst"
+            run([ROOT / "bin/jwasm-masm", f"-I. -I../INC -DBIOS_MUX_HIGH=1 -Fl{mux_listing}",
+                 f"BIOSMUX.ASM,{mux_object};"], ROOT / "src/BIOS")
+            objects.append(mux_object)
+            listings.append(mux_listing)
         for line in "\n".join(path.read_text(encoding="latin-1") for path in listings).splitlines():
             match = re.match(r"^([\w$]+)\s+(?:\.\s+)*\s*(.*?)\s+External\s*$", line)
             if match:
@@ -114,6 +122,8 @@ def build(output, low_directory=None, *, dispatch=False, characters=False, media
         group_definitions = {"RDEXIT", "BIOS_CHAR_EXIT", "BIOS_CHAR_BUSY", "BIOS_CHAR_CMDERR",
                              "BIOS_CHAR_ERRCNT", "BIOS_CHAR_ERREXIT", "BIOS_CHAR_GETDX",
                              "BIOS_CHAR_BINTOBCD", "BIOS_CHAR_DAYCNTTODAY"} if characters else set()
+        if retire_mux:
+            group_definitions.add("INSTALL_BDS")
         slots = {name: size for name, size in externals.items()
                  if name.startswith(("BIOS_SERVICE_", "BIOS_LOW_", "BIOS_DISPATCH_", "BIOS_CHAR_"))
                  and name not in group_definitions}
