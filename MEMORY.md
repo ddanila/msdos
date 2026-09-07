@@ -413,6 +413,46 @@ evidence of a failed second-boot loader. **General fatal/exception reporting
 still needs its own retained continuation fix**; avoiding this reboot trigger
 does not qualify that path.
 
+**Required complete error-path repair:** the current owner audit narrows this
+to a real-mode lifetime problem, not insufficient HMA capacity. In the pinned
+provider map, `_TEXT:ErrHndlr` is `53E5h`, while retained `_TEXT` ends at
+`IOTrap_Tab=01A2h`. `RetRealHigh` jumps to retained `RetRealResume`, restores
+real-mode segments and executes a near RET. The pending return is
+`ErrHndlr+25h=540Ah`, outside the retained owner. Its keyboard helpers at
+`551Fh`/`5545h` are also outside. Reassembled ERRHNDLR/EKBD objects are
+byte-identical to the pinned objects; listings in
+`out/emm-error-owner-OQjnpM/` establish **277 post-transition dialog/conversion
+bytes + 49 keyboard bytes = 326 bytes**, before gateways, unwind tails and
+alignment. This is an inventory/correctness cost, not a proposed saving.
+
+Relocating only those 326 bytes is insufficient. All three privileged-error
+Continue sites also return into retired code before reaching retained
+`R_CODE:JumpReal`:
+
+| Caller | Remaining caller stack work before `JumpReal` |
+| --- | --- |
+| `VMINST:ExitPIer` | Pop AX and DX |
+| `VMINST:CTRErr` | Pop EAX |
+| `EM386LL:Em386_Err` | Consume two saved words, then restore EDI, ECX and EAX; audit the existing double-POP-BX sequence |
+
+Exception callers in VMTRAP, MAPDMA, protected EMM entry and ELIMTRAP require
+the reboot-only path. The repair must cover both classes and preserve their
+distinct stack shapes; do not make the dialog safe but leave a stale caller
+return. Keep protected fault capture high, give every post-transition consumer
+one retained real-mode owner, and remove obsolete high/low paths together.
+
+There is a second acceptance constraint: `RetRealHigh` disables paging before
+the dialog, whereas normal OFF/AUTO guards preserve paging while UMBs or
+application EMS are live. The composed shell's upper data/stack therefore
+cannot safely be assumed usable after Continue. Define and test resource-safe
+fatal recovery before enabling that choice; do not merely suppress the error,
+skip the faulting instruction, or pretend the normal OFF guard covers it.
+Also audit the dialog's zero PIC-mask writes, BIOS callbacks and NMI policy.
+Required evidence is privileged-fault Continue without live upper owners,
+exception reboot, live-UMB/EMS safety, A20/stack preservation, and a new composed
+memory census charging the retained owner. This repair precedes promotion;
+the 626,000-byte candidate remains unqualified for these error paths.
+
 The corrected composition is `out/software-reboot-fix-wk9s16af/input.img`, with
 matching `bios/` and `MEMM/MEMM/` maps. Ordinary second boot passes in paired
 RAM mode, HIMEM-only HIGH, and bare LOW, both normally and with CTTY AUX plus
