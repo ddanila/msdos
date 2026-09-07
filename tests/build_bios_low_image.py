@@ -13,7 +13,11 @@ from build_bios_high_payload import ROOT, run
 from report_dos_bios_residency import parse_map
 
 
-def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False, scan=False, rebase=False, compact=False, fail_tables=False, high_cds=False, fail_cds=False, cds_cache_case=None, cds_cache_negative=False, dispatch=False, characters=False, retire_characters=False, pack_headers=False, retire_media=False, paired_provider=None, pack_drive_graph=False):
+def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False, scan=False, rebase=False, compact=False, fail_tables=False, high_cds=False, fail_cds=False, cds_cache_case=None, cds_cache_negative=False, dispatch=False, characters=False, retire_characters=False, pack_headers=False, retire_media=False, paired_provider=None, pack_drive_graph=False, high_stack_pool=False, fail_stack_pool=False):
+    if high_stack_pool and not rebase:
+        raise ValueError("upper stack pool requires the development rebased layout")
+    if fail_stack_pool and not high_stack_pool:
+        raise ValueError("stack pool allocation rejection requires upper stack pool")
     if pack_drive_graph and not (tail_body and retire_media):
         raise ValueError("drive graph packing requires the complete retired BIOS layout")
     if paired_provider is not None and not (early and rebase and compact):
@@ -160,6 +164,10 @@ def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False, sca
         options += " -DBIOS_BOOT_REBASE=1"
     if high_cds:
         options += " -DBIOS_HIGH_CDS=1"
+    if high_stack_pool:
+        options += " -DBIOS_HIGH_STACK_POOL=1"
+    if fail_stack_pool:
+        options += " -DBIOS_STACK_POOL_FAIL_ALLOC=1"
     if fail_cds:
         options += " -DBIOS_CDS_FAIL_ALLOC=1"
     if cds_cache_case:
@@ -263,6 +271,7 @@ def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False, sca
         raise ValueError("inactive high import slots must be zero")
     manifest = {"activated": False, "reclaimed_bytes": 0,
                 "packed_drive_graph": pack_drive_graph,
+                "high_stack_pool": high_stack_pool, "fail_stack_pool": fail_stack_pool,
                 "retired_media_bodies": retire_media,
                 "direct_disk_tables": pack_headers,
                 "packed_headers": pack_headers,
@@ -308,6 +317,8 @@ if __name__ == "__main__":
     parser.add_argument("--rebase", action="store_true", help="move and poison the old low DOS prefix")
     parser.add_argument("--compact", action="store_true", help="coalesce the first-HIMEM boot allocation after rebasing")
     parser.add_argument("--high-cds", action="store_true")
+    parser.add_argument("--high-stack-pool", action="store_true")
+    parser.add_argument("--fail-stack-pool", action="store_true")
     parser.add_argument("--fail-cds-allocation", action="store_true")
     parser.add_argument("--cds-cache-case", choices=("first", "last", "past-end", "foreign"))
     parser.add_argument("--cds-cache-negative", action="store_true")
@@ -317,4 +328,5 @@ if __name__ == "__main__":
           pack_drive_graph=args.pack_drive_graph,
           scan=args.scan, rebase=args.rebase, compact=args.compact,
           high_cds=args.high_cds, fail_cds=args.fail_cds_allocation,
+          high_stack_pool=args.high_stack_pool, fail_stack_pool=args.fail_stack_pool,
           cds_cache_case=args.cds_cache_case, cds_cache_negative=args.cds_cache_negative)

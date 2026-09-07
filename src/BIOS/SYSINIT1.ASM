@@ -1807,7 +1807,14 @@ DoInstallStack:
 	MOV	CX, [STACK_COUNT]
 	MUL	CX
 	call	ParaRound			; Convert size to pargraphs
+	IFDEF BIOS_HIGH_STACK_POOL
+	call	AllocateStackPoolUpper		; CF: complete pool selected upper
+	jc	StackPoolAllocated
+	ENDIF
 	ADD	[MEMHI], AX
+	IFDEF BIOS_HIGH_STACK_POOL
+StackPoolAllocated:
+	ENDIF
 	or	[SetDevMarkFlag], FOR_DEVMARK	;AN005;To set the DEVMARK_SIZE for Stack by ROUND routine.
 	INVOKE	ROUND				; Check for memory error before
 						; continuing
@@ -2588,6 +2595,9 @@ DoEMS	endp
 	INCLUDE TABLEUMB.INC
 	IFDEF BIOS_HIGH_CDS
 	INCLUDE CDSUPPER.INC
+	ENDIF
+	IFDEF BIOS_HIGH_STACK_POOL
+	INCLUDE STKUPPER.INC
 	ENDIF
 	ENDIF
 

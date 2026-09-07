@@ -15,11 +15,13 @@ COMMAND placement still requires one shared HMA budget; it is not deferred
 by manager-interface progress.
 
 The current **composed retirement candidate** measures
-**623,184 conventional / 49,680 free UMB bytes**: **5,248 above the selected
-development control**, and **4,448 above retail**. The preceding shell retirement
+**624,416 conventional / 48,416 free UMB bytes**: **6,480 above the selected
+development control**, and **5,680 above retail**. The preceding shell retirement
 recovered **2,752 conventional bytes** versus its identical BIOS/provider
 composition with normal COMMAND; the kernel-table retirement adds **256** and
-packing the initialized BIOS drive graph adds **304**.
+packing the initialized BIOS drive graph adds **304**. Upper placement of the
+complete interrupt-stack pool adds **1,232**, consuming **1,264 UMB bytes** and
+leaving **528 above retail's free-UMB floor**.
 Application XMS remains **6,798,336 bytes** (5,120 below the development control);
 the shell move adds no UMB or XMS cost. This is an opt-in experimental layout,
 not production promotion.
@@ -60,34 +62,35 @@ partition is classified below. A routing-only build or a larger diagnostic
 image does not advance this gate. Older layout ledgers below describe their
 named checkpoints; use the figures here for the current candidate.
 
-#### Next whole allocation: interrupt-stack pool
+#### Retired low interrupt-stack pool
 
-The current saved VC comparison narrows the OpenDOS lead to **4,864 bytes**,
+The current saved VC comparison narrows the OpenDOS lead to **3,632 bytes**,
 not the 11,936-byte gap in the older reassessment below:
 
 | Accounting boundary | Current packed candidate | OpenDOS 7.01 IDE capture | Local minus OpenDOS |
 | --- | ---: | ---: | ---: |
-| System start to COMMAND start | 15,392 | 10,448 | +4,944 |
+| System start to COMMAND start | 14,160 | 10,448 | +3,712 |
 | COMMAND start to VC start | 1,232 | 1,312 | -80 |
 | VC start to first free block | 12,720 | 12,720 | 0 |
-| Largest conventional block | 623,184 | 628,048 | -4,864 |
+| Largest conventional block | 624,416 | 628,048 | -3,632 |
 
 These are allocation spans, not individual program MCB sizes. VC hashes and
 the 639 KiB ceiling match; vendor resource semantics and reset qualification
-still differ. Evidence: `out/bios-graph-retirement-u_62ta5g/results.json` and
+still differ. Evidence: `out/stack-pool-retirement-prtihhmq/results.json` and
 `out/opendos-disk-boot-evidence/result.json`. This reconciles saved captures,
 not a new vendor run. COMMAND placement still needs qualification and a final
 state contract, but a large shell allocation no longer explains this gap.
 
 The current system span reconciles as **2,928 BIOS + 5,376 DOS prefix + 4,640
-managers + 512 transfer area + 1,840 interrupt-stack subsystem + 96 arena/mark
-bytes = 15,392**. A fresh public suballocation probe on the pinned image confirms
-the four dynamic owners without unclassified gaps:
+managers + 512 transfer area + 608 interrupt handlers/control + 96 arena/mark
+bytes = 14,160**. Before this move, the stack subsystem retained 1,840 bytes
+low and the span was 15,392. A public suballocation probe on that pre-pool image
+confirms the four dynamic owners without unclassified gaps:
 `out/system-owners-gz8p6jrj/`. Its AUTOEXEC runs the probe instead of VC;
 the conventional-block comparison above remains the VC capture.
 
-**Selection:** move the complete interrupt-stack entry table and pool to UMB,
-leaving its existing handlers/control low. The previous whole-subsystem UMB
+`BIOS_HIGH_STACK_POOL` now allocates the complete interrupt-stack entry table
+and pool in UMB, leaving its existing handlers/control low. The previous whole-subsystem UMB
 rejection was too coarse: `MSSTACK.INC` already selects the pool through
 `CS:[STACKS+2]`, accesses its eight-byte entries through ES, and switches SS
 to that segment. `STKINIT.INC` initializes the pool through `STACK_ADDR`.
@@ -100,26 +103,43 @@ All nine entries are free and their stack-end back-pointers match. The linked
 and 1,152 stack bytes, rounded to **1,232 bytes**. Existing code and pool are
 already separate segments; this is an allocation-placement change.
 
-Implementation and acceptance:
+`SYSINIT1.ASM:DoInstallStack` calls the disposable `STKUPPER.INC` transaction
+before `StackInit` publishes vectors. It restores UMB-link/allocation policy,
+sets an upper system-owned S allocation, and selects that segment for direct
+initialization. The successful path never advances the low cursor for the pool;
+there is no retained low pool or new runtime transport. Absent UMBs, DOS-low,
+allocation rejection or failed policy restoration select the original low path.
+The 608-byte low handlers/control and their S mark are unchanged.
 
-1. In `SYSINIT1.ASM:DoInstallStack`, allocate the complete rounded pool upper
-   before `StackInit` publishes interrupt vectors. Keep the 608-byte code/control
-   and its low S mark. Allocate an upper system-owned block with its own S mark;
-   do not advance the low cursor for a successful upper pool. There must be no
-   retained low pool or steady-state copying path.
-2. Restore UMB-link/allocation policy before publication. On absent UMBs,
-   DOS-low, rejected allocation or failed policy restoration, retain the existing
-   low allocation path; never publish a partially initialized pool. Preserve
-   configured count/size, exhaustion behavior and the 286/no-EMM path.
-3. Check entries/back-pointers, actual interrupt stack switches, nested distinct
-   stacks, exhaustion/corruption handling and original SS:SP restoration. Exercise
-   A20-off entry, EMS remapping, hardware reset and software INT 19h restoration.
-   Upper backing must stay valid throughout interrupts and provider transitions;
-   merely observing an upper far pointer is not qualification.
-4. Measure the same packed BIOS/high-COMMAND/provider image. The **projection**
-   is +1,232 conventional, -1,264 UMB (pool + S mark + MCB), no HMA/XMS change:
-   **624,416 conventional / 48,416 free UMB**, leaving 528 above retail's UMB floor.
-   Verify marks, ownership and packed low boundary; reject a copy-only result.
+Evidence: `out/stack-pool-retirement-prtihhmq/`. Fresh composed captures measure
+**623,184 -> 624,416 conventional**, **49,680 -> 48,416 UMB** and unchanged
+**6,798,336 application XMS**. The 7,744-byte BIOS high payload and shared HMA
+budget are unchanged. Only IO.SYS changes; startup files, kernel, root/DOS
+COMMAND, managers and VC match the pinned control. Normal IO.SYS and the
+isolated no-pool control remain byte-identical to their pre-change binaries.
+
+The guest checks exact low/upper S and MCB sizes, nine complete pool entries,
+back-pointers and nine distinct nested stacks through the real timer stack
+handler, including original SS:SP and register restoration. These checks pass
+before and after FCB I/O in the control, upper and forced-rejection layouts.
+Rejection reproduces the control's conventional/UMB/XMS totals. A deliberate
+back-pointer corruption produces an explicit negative marker and probe failure;
+this tests detection, not the handler's exhaustion/corruption recovery path.
+`out/bios-descriptors-b6ih5hmt/` boots VC on both sides of hardware reset with
+the same candidate binaries: BIOS remains 2,928, high COMMAND 880, and the low
+stack-control pointer selects `CBDEh:0000` with count 9 and size 128.
+
+```sh
+python3 tests/test_stack_pool_retirement_qemu.py out/bios-graph-retirement-u_62ta5g/input-packed.img
+```
+
+**Still unqualified:** absent-UMB/DOS-low/286 and policy-restoration-failure
+paths, other configured counts/sizes, exhaustion and clobbered-entry recovery,
+A20-off/EMS-remapping stress, and software INT 19h reset. Upper backing must
+remain valid throughout interrupts and provider transitions. The nested probe
+substitutes a successor with IRQs masked; it is not asynchronous IRQ/NMI stress.
+Do not reduce STACKS or other resources, or promote this opt-in layout, to avoid
+these gates.
 
 This supersedes the older indivisible-stack destination restriction, not the
 BIOS/COMMAND completion gates. Keep their published pointers, firmware/DMA
