@@ -159,3 +159,20 @@ and corruption controls. It is separate from default-image startup comparisons.
 The standalone EXEPACK loader regression (`gmake test-exepack-qemu`) uses a
 synthetic compressed MZ and an unrecognized-decoder negative control under
 HIMEM and EMM386. See [the application notes](DOS-APP-SMOKE.md#exepack-compatibility).
+
+## Memory promotion review
+
+The [review record](memory_promotion_review.json) distinguishes default-build
+release gates from the opt-in composition's evidence. A passing default suite
+cannot qualify different composed binaries. The profile audit changes only
+startup configuration and its completion probe on private copies:
+
+```sh
+python3 tests/test_composed_promotion_profiles_qemu.py COMPOSITION_DIR \
+  --record out/promotion-profiles.json
+```
+
+A profile counts as booted only when COMMAND emits the completion marker and
+QEMU exits successfully. The runner returns failure if any profile does not
+boot; recognizing the HMA diagnostic explains the blocker but does not waive it.
+This audit checks startup, not complete HIGH/LOW or pre-386 compatibility.

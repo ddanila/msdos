@@ -73,7 +73,9 @@ build_fault_emm() {
     local output=$2
     local work
     work=$(mktemp -d "${TMPDIR:-/tmp}/msdos-emm386-fault.XXXXXX")
-    mkdir "$work/MEMM"
+    mkdir -p "$work/MEMM" "$work/DEV"
+    cp -R "$ROOT/src/INC" "$work/INC"
+    cp -R "$ROOT/src/DEV/HIMEM" "$work/DEV/HIMEM"
     cp -R "$ROOT/src/MEMM/MEMM" "$work/MEMM/MEMM"
     cp -R "$ROOT/src/MEMM/EMM" "$work/MEMM/EMM"
     find "$work" -type f \( -name '*.OBJ' -o -name '*.LIB' \

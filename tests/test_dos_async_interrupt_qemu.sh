@@ -1,17 +1,18 @@
 #!/bin/bash
 
-set -uo pipefail
+set -euo pipefail
 export LC_ALL=C
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 OUT="$REPO_ROOT/out"
-FLOPPY="$OUT/floppy.img"
+FLOPPY="${FLOPPY_IMAGE:-$OUT/floppy.img}"
+OUT=$(mktemp -d "$OUT/dos-async-interrupt.XXXXXX")
+echo "Artifacts: $OUT"
 MODE=${DOS_ASYNC_MODE:-LOW}
 MODE_LC=$(printf '%s' "$MODE" | tr '[:upper:]' '[:lower:]')
 BOOT_IMG="$OUT/floppy-dos-async-interrupt-$MODE_LC.img"
 PROBE_COM="$OUT/dosasync.com"
 HIMEM="$OUT/dos-async-himem.sys"
-SERIAL_SOCKET="$OUT/dos-async-interrupt-$MODE_LC.sock"
 SERIAL_LOG="$OUT/dos-async-interrupt-$MODE_LC.log"
 QEMU_LOG="$OUT/dos-async-interrupt-$MODE_LC-qemu.log"
 
@@ -46,7 +47,8 @@ fi
     printf 'DOSASYNC.COM\r\n'
 } | mcopy -o -i "$BOOT_IMG" - ::AUTOEXEC.BAT
 
-rm -f "$SERIAL_SOCKET" "$SERIAL_LOG" "$QEMU_LOG"
+SOCKET_DIR=$(mktemp -d /tmp/msdos-async.XXXXXX)
+SERIAL_SOCKET="$SOCKET_DIR/serial.sock"
 timeout 35 qemu-system-i386 \
     -display none \
     -monitor none \
@@ -56,7 +58,13 @@ timeout 35 qemu-system-i386 \
     -device isa-debug-exit,iobase=0xf4,iosize=0x04 \
     >"$QEMU_LOG" 2>&1 &
 qemu_pid=$!
-trap 'kill "$qemu_pid" 2>/dev/null || true; rm -f "$SERIAL_SOCKET"' EXIT
+cleanup() {
+    kill "$qemu_pid" 2>/dev/null || true
+    wait "$qemu_pid" 2>/dev/null || true
+    rm -f "$SERIAL_SOCKET"
+    rmdir "$SOCKET_DIR"
+}
+trap cleanup EXIT
 
 python3 - "$SERIAL_SOCKET" "$SERIAL_LOG" <<'PY'
 import socket
@@ -98,12 +106,12 @@ with open(log_path, "wb") as stream:
 PY
 
 wait "$qemu_pid" 2>/dev/null || true
+cleanup
 trap - EXIT
-rm -f "$SERIAL_SOCKET"
 
 if grep -q 'DOS_ASYNC_INTERRUPT_PASS' "$SERIAL_LOG"; then
     if [[ "$MODE" == LOW ]]; then
-        DOS_ASYNC_MODE=HIGH "$0"
+        DOS_ASYNC_MODE=HIGH "$0" || exit $?
         echo "  PASS: DOS INT 23h Ctrl-Break and INT 28h idle callbacks low and high"
     else
         echo "  PASS: DOS=HIGH asynchronous callbacks"

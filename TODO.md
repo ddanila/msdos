@@ -2,10 +2,11 @@
 
 1. Stabilize and qualify the composed memory implementation before promotion;
    see [MEMORY.md](MEMORY.md). Further memory optimization is deferred.
-   Continue with the promotion review and applicable release gates for matched
-   inputs. Evidence is recorded in [reboot qualification](tests/memory_stabilization_baseline.json),
-   [failure qualification](tests/memory_failure_baseline.json), and
-   [application lifecycle qualification](tests/memory_application_baseline.json).
+   Follow the [promotion review](tests/memory_promotion_review.json): reconcile
+   command-suite and retained-memory budget failures, then build a production
+   composition without diagnostic-only boot requirements, integrate its matched
+   outputs into build/deployment, and qualify that release candidate across
+   HIGH/LOW and pre-386 fallback before enabling it by default.
 2. Implement retail-compatible DriveSpace, including compressed-volume support
    throughout the system. An explicit extended format may follow.
 3. Treat QBASIC/EDIT, AccessDOS, the Microsoft Network Client, and additional

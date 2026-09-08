@@ -41,6 +41,14 @@ additional contexts still require their own checks. The
 records repeated jobs and persisted outputs on the composition and retail DOS,
 with memory accounting between operations. Its application and virtual-media
 scope is narrower than general software or hardware compatibility.
+The [promotion review](tests/memory_promotion_review.json) records the decision
+and separates ordinary-build release gates from composed-image qualification.
+Before enabling the composition by default, separate its production feature
+configuration from diagnostic assertions and qualify the resulting matched
+binaries. In particular, ordinary LOW operation must not require rebuilding the
+provider to remove a HIGH-only test expectation. Reconcile the recorded
+retained-memory budget discrepancies explicitly; do not waive layout gates or
+make further optimization a prerequisite for its own sake.
 
 1. **Identify the candidate and audit existing evidence.** Freeze a matched
    image containing the intended BIOS and COMMAND relocations, paired
