@@ -88,6 +88,33 @@
           "log": "out/fc-dos622-fix/command-suite.log"
         }
       }
+    },
+    {
+      "component": "kvikdos DOS arena accounting",
+      "problem": "Shrink and maximum-allocation reporting each discarded one paragraph. COMMAND changed transient address and its additive checksum missed the displacement.",
+      "change": "Preserve the final arena end on shrink and report usable free-block paragraphs without subtracting another MCB.",
+      "tool_commit": "1b3aa578e1aeb1f1d4bead802c1a636725462140",
+      "validation": {
+        "native_suite": {
+          "command": "FAIL_ON_SKIP=1 bash tests/run_tests.sh",
+          "passed": 450,
+          "failed": 0,
+          "skipped": 0,
+          "log": "out/command-kvikdos-fix/command-suite.log"
+        },
+        "tool_suite": {
+          "command": "gmake -C kvikdos test",
+          "passed": true,
+          "log": "out/command-kvikdos-fix/kvikdos-tests.log"
+        },
+        "regression": {
+          "command": "python3 kvikdos/tests/arena_boundary/run.py",
+          "scope": "Arena conservation and maximum allocation under first, best and last fit, in strict and relaxed modes.",
+          "old_tool_failed": true,
+          "negative_log": "out/command-kvikdos-fix/arena-negative.log"
+        }
+      },
+      "follow_up": "Make COMMAND reload when the transient segment changes even if its additive checksum matches."
     }
   ]
 }

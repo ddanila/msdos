@@ -1245,3 +1245,8 @@ test-qemu-near-call-wrap: deploy
 test-exepack-qemu: deploy
 	python3 tests/test_exepack_qemu.py
 	python3 tests/test_dos_app_smoke_helpers.py
+
+.PHONY: test-kvikdos-arena
+test: test-kvikdos-arena
+test-kvikdos-arena: $(KVIKDOS_SOFT_BIN)
+	python3 kvikdos/tests/arena_boundary/run.py $(KVIKDOS_SOFT_BIN)
