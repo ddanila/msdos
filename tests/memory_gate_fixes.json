@@ -234,6 +234,40 @@
         "Require QEMU diagnostic exit instead of accepting a timeout with partial output.",
         "Name the retained EMM error-state allocation in the ownership report."
       ]
+    },
+    {
+      "component": "EMM386 alter-map-and-call return",
+      "problem": "The ARPL return trap leaves DS aliasing the low gateway code. Saving the register-frame pointer through that alias corrupts instructions; the production layout then changes AL on the following EMS register-set call.",
+      "change": "Select VDMD_GSEL before publishing the frame pointer and restore DGROUP before reading it during map restoration.",
+      "validation": {
+        "probe": "tests/ems40_extended_probe.asm",
+        "old_production_emm_sha256": "1202e65cde61e79af3d943a5818c4fd26cd7b6884d2a147f2c421ffcf603231f",
+        "fixed_production_emm_sha256": "58266b6614594de7a9cfde9eda75e3eb241b9e2e941e67b70645a0f8a197dae6",
+        "old_result": "EMS40_ALTER_CALL_FAIL after callback allocation, on register-set release",
+        "fixed_result": "EMS40_EXTENDED_PASS",
+        "fixed_production_exit_code": 33,
+        "baseline_passed": true,
+        "budgets_passed": true,
+        "logs": {
+          "original_failure": {
+            "path": "out/memory-production-full-test.log",
+            "sha256": "7a09f6f0517cba7459be776a7a7371212606015cf33564a8ed21ac7761fb2d1f"
+          },
+          "fixed_production": {
+            "path": "out/production-ems40-debug/fixed2-serial.log",
+            "sha256": "ceee74410b93fd775e8f0a71420848f56568e5975ef8d8882986ddbccc70582c"
+          },
+          "fixed_baseline": {
+            "path": "out/production-ems40-debug/baseline-test.log",
+            "sha256": "453d2c44578d230ceb4fbd8a4ce0d7fbe2d0c607a2d0574cb40e4b2b8afd1a7a"
+          },
+          "budgets": {
+            "path": "out/production-ems40-debug/budget.log",
+            "sha256": "d423105e6a4ada2b4c89992540a838c64f8561ad35e98f36bbb8deb160d1273c"
+          }
+        }
+      },
+      "scope": "Focused before/after regression and baseline/layout checks. Final matched qualification is recorded separately."
     }
   ]
 }

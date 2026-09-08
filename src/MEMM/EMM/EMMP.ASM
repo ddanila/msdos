@@ -1951,6 +1951,10 @@ _AlterMapAndCall    ENDP
 
 AMC_return_high proc near
 	pushad				; saves all regs
+	; The ARPL trap arrives with DS aliasing the client code segment.
+	; Select the retained data owner before publishing the saved frame.
+	push	VDMD_GSEL
+	pop	ds
 	mov	ax, sp			; saves stack frame address
 	mov	[_regp], ax		; to _regp
 
@@ -1994,9 +1998,9 @@ AMC_return_high proc near
 	push	si
 	push	cx
 	push	bp
-	mov	bp, [_regp]		; setup pushad frame first
 	push	es
-	pop	ds			; DS <-- DGROUP
+	pop	ds			; DS <-- DGROUP before reading its saved frame
+	mov	bp, [_regp]		; setup pushad frame from the retained owner
 	call	MapHandleArray_Entry_2	; map it
 	pop	bp
 	pop	cx

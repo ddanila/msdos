@@ -49,12 +49,13 @@ def check_persistent_failure(directory, source, binary):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("image", type=Path, help="packed upper-data composition")
+    parser.add_argument("--production", action="store_true", help="match a shell built without retired-byte poison")
     parser.add_argument("--policy-rejection", action="store_true",
                         help="compare successful placement with rejected UMB-link restoration")
     args = parser.parse_args()
     work = Path(tempfile.mkdtemp(prefix="command-upper-failure-", dir=ROOT / "out"))
     print(f"Artifacts: {work}", flush=True)
-    command = build(work / "build", True, upper_data=True)
+    command = build(work / "build", True, upper_data=True, poison=not args.production)
     original = command.read_bytes()
     assert original == image_file(args.image, "::COMMAND.COM"), "fresh shell differs from pinned composition"
     assert original == image_file(args.image, "::DOS/COMMAND.COM")
