@@ -36,7 +36,11 @@ Local artifacts and reproduction commands are linked from the records and
 The [failure/ownership qualification](tests/memory_failure_baseline.json)
 records focused fault variants, child cleanup, EMS/UMB isolation, and timer/A20
 checks on that same candidate. Reuse this evidence only for its stated scope;
-additional contexts still require their own checks.
+additional contexts still require their own checks. The
+[application lifecycle qualification](tests/memory_application_baseline.json)
+records repeated jobs and persisted outputs on the composition and retail DOS,
+with memory accounting between operations. Its application and virtual-media
+scope is narrower than general software or hardware compatibility.
 
 1. **Identify the candidate and audit existing evidence.** Freeze a matched
    image containing the intended BIOS and COMMAND relocations, paired

@@ -150,6 +150,12 @@ application validation. The independent near-CALL probe checks the emulator
 workaround needed for reliable comparisons. Both runners have optional Makefile
 targets; external media is not required by the default test suite.
 
+The [composed lifecycle campaign](DOS-APP-SMOKE.md#composed-application-lifecycle-qualification)
+uses the frozen composition directly for repeated application jobs, forced shell
+reloads, pipes, virtual-floppy round trips, and editor save/reopen operations.
+Its [record](memory_application_baseline.json) includes per-cycle memory accounting
+and corruption controls. It is separate from default-image startup comparisons.
+
 The standalone EXEPACK loader regression (`gmake test-exepack-qemu`) uses a
 synthetic compressed MZ and an unrecognized-decoder negative control under
 HIMEM and EMM386. See [the application notes](DOS-APP-SMOKE.md#exepack-compatibility).

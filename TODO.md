@@ -2,10 +2,10 @@
 
 1. Stabilize and qualify the composed memory implementation before promotion;
    see [MEMORY.md](MEMORY.md). Further memory optimization is deferred.
-   Continue with repeated application operations on the frozen candidate;
-   the matched rebuild/reboot pair and focused failure/ownership checks are
-   recorded in [reboot qualification](tests/memory_stabilization_baseline.json)
-   and [failure qualification](tests/memory_failure_baseline.json).
+   Continue with the promotion review and applicable release gates for matched
+   inputs. Evidence is recorded in [reboot qualification](tests/memory_stabilization_baseline.json),
+   [failure qualification](tests/memory_failure_baseline.json), and
+   [application lifecycle qualification](tests/memory_application_baseline.json).
 2. Implement retail-compatible DriveSpace, including compressed-volume support
    throughout the system. An explicit extended format may follow.
 3. Treat QBASIC/EDIT, AccessDOS, the Microsoft Network Client, and additional

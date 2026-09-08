@@ -153,3 +153,41 @@ python3 tests/capture_dos_app_smoke.py \
 
 For a comparison without updating the checked-in record, use
 `gmake test-dos-app-smoke RETAIL_DOS_IMAGE=/path/to/retail-dos622-hdd.img`.
+
+## Composed application lifecycle qualification
+
+Use the separate [lifecycle runner](test_composed_app_lifecycle_qemu.py) for the
+frozen composed image. It verifies the build record and current source hashes,
+then copies the candidate without transferring a default kernel or changing its
+startup configuration. It checks the retail core against the existing retail
+baseline and runs the same application packages and configuration on that copy.
+Cached archives are hash-checked and extracted privately for each campaign.
+
+```sh
+python3 tests/test_composed_app_lifecycle_qemu.py COMPOSITION_DIR \
+  --retail-image /path/to/retail-dos622-hdd.img \
+  --record-baseline tests/memory_application_baseline.json
+```
+
+The jobs repeatedly launch PKZIP and PKUNZIP through 4DOS, validate complete
+archive membership and contents, and compare extracted files byte for byte.
+Binary inputs cross a segment boundary. DOS COPY transfers each extracted binary
+to a virtual floppy and back, overwriting the preceding floppy file explicitly.
+External pipe legs overwrite their largest conventional allocation to force
+COMMAND transient reload; the resulting pipe files and inherited environment
+must survive. Conventional/upper free totals and largest blocks, allocator/link
+policy, and EMS availability must return to the same state after every job.
+
+QEdit repeatedly reopens the same document, inserts a line, corrects a character
+with Backspace, saves, and exits. Each reopen must display the preceding edit;
+each saved checkpoint must contain exactly the accumulated text, and memory
+accounting must still match. Corrupted extracted data, archives, memory snapshots,
+and editor output must be rejected by the host-side oracles.
+
+The [lifecycle record](memory_application_baseline.json) retains executed hashes,
+operations, output hashes, memory snapshots, and controls. The comparison checks
+persisted file contents, not identical application screens or archive timestamps.
+Identical startup text does not equate the managers' automatic EMS sizing;
+resource stability is checked within each system. These jobs do not qualify
+other application features, physical media timing, or removable-media changes.
+The next stabilization step is the promotion review in [MEMORY.md](../MEMORY.md).
