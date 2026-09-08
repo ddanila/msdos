@@ -32,6 +32,9 @@ for artifact in HIMEM.SYS EMM386.EXE MEMMAKER.EXE FC.EXE FIND.EXE; do
         FC.EXE) source_file="$ROOT/src/CMD/FC/FC.EXE" ;;
         FIND.EXE) source_file="$ROOT/src/CMD/FIND/FIND.EXE" ;;
     esac
+    if [[ -n ${MEMORY_CORE_DIR:-} && ( $artifact == HIMEM.SYS || $artifact == EMM386.EXE ) ]]; then
+        source_file="$MEMORY_CORE_DIR/$artifact"
+    fi
     mcopy -o -i "$image" "$source_file" "::$artifact"
 done
 mcopy -o -i "$image" "$work/PRE386.COM" ::PRE386.COM

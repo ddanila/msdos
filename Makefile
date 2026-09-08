@@ -1255,3 +1255,8 @@ test-kvikdos-arena: $(KVIKDOS_SOFT_BIN)
 test: test-command-shift-qemu
 test-command-shift-qemu: deploy
 	python3 tests/test_command_shift_qemu.py
+
+MEMORY_PRODUCTION_DIR ?= $(OUT)/memory-production
+.PHONY: memory-production
+memory-production: build-all
+	python3 tools/build_memory_production.py $(MEMORY_PRODUCTION_DIR)

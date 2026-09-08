@@ -58,12 +58,19 @@ check_86box_286_prerequisites() {
 
 make_86box_286_boot_image() {
     local output=$1 root=$2
+    local bios="$root/src/BIOS/IO.SYS" kernel="$root/src/DOS/MSDOS.SYS"
+    local command="$root/src/CMD/COMMAND/COMMAND.COM"
+    if [[ -n ${MEMORY_CORE_DIR:-} ]]; then
+        bios="$MEMORY_CORE_DIR/IO.SYS"
+        kernel="$MEMORY_CORE_DIR/MSDOS.SYS"
+        command="$MEMORY_CORE_DIR/COMMAND.COM"
+    fi
     local required
     for required in \
         "$root/src/BOOT/MSBOOT.BIN" \
-        "$root/src/BIOS/IO.SYS" \
-        "$root/src/DOS/MSDOS.SYS" \
-        "$root/src/CMD/COMMAND/COMMAND.COM" \
+        "$bios" \
+        "$kernel" \
+        "$command" \
         "$root/src/BIOS/SYSMENU.OVL"; do
         [[ -f $required ]] || {
             echo "ERROR: missing build artifact: $required; run 'make deploy' first" >&2
@@ -78,9 +85,9 @@ make_86box_286_boot_image() {
     "$root/bin/patch-bpb" "$output"
     mformat -i "$output" -k ::
     # IO.SYS must remain the first root entry for this boot sector.
-    mcopy -i "$output" "$root/src/BIOS/IO.SYS" ::IO.SYS
-    mcopy -i "$output" "$root/src/DOS/MSDOS.SYS" ::MSDOS.SYS
-    mcopy -i "$output" "$root/src/CMD/COMMAND/COMMAND.COM" ::COMMAND.COM
+    mcopy -i "$output" "$bios" ::IO.SYS
+    mcopy -i "$output" "$kernel" ::MSDOS.SYS
+    mcopy -i "$output" "$command" ::COMMAND.COM
     mcopy -i "$output" "$root/src/BIOS/SYSMENU.OVL" ::SYSMENU.OVL
     python3 "$root/tests/compact_fat_root.py" "$output"
 }

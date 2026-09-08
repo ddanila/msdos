@@ -154,15 +154,16 @@ def check_entry_mutation(work, high, floppy, env, symbols):
         raise AssertionError("wrong-DS TCOMMAND mutation was not detected")
 
 
-def build(work, high, *, upper_data=False):
+def build(work, high, *, upper_data=False, poison=True):
     if upper_data and not high:
         raise ValueError("upper data requires the complete high shell")
     work.mkdir()
     for path in SOURCE.glob("*.OBJ"):
         shutil.copyfile(path, work / path.name)
     shutil.copyfile(SOURCE / "COMMAND.LNK", work / "COMMAND.LNK")
-    defines = ("-DCOMMAND_RESIDENT_BINDING -DCOMMAND_HIGH_RESIDENT "
-               "-DCOMMAND_HIGH_RESIDENT_POISON") if high else ""
+    defines = "-DCOMMAND_RESIDENT_BINDING -DCOMMAND_HIGH_RESIDENT" if high else ""
+    if high and poison:
+        defines += " -DCOMMAND_HIGH_RESIDENT_POISON"
     if upper_data:
         defines += " -DCOMMAND_UMB_DATA"
     modules = ("COMMAND1", "COMMAND2", "RUCODE", "RDATA", "INIT", "TCMD2B", "TMISC1", "TPIPE", "TDATA", "TCODE", "TENV")

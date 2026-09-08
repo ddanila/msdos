@@ -4,7 +4,6 @@ import argparse
 import hashlib
 import json
 from pathlib import Path
-import re
 import shutil
 import struct
 import subprocess
@@ -14,6 +13,8 @@ from build_bios_low_image import ROOT, build as build_bios
 from build_emm_mode_guard import DEFINES
 from capture_vc_memory_comparison import image_file
 from report_dos_bios_residency import parse_map
+from report_emm386_residency import parse_map as parse_emm_map
+from capture_emm_live_owners import descriptor
 from test_dos_char_retirement_qemu import install
 
 CASES = {
@@ -51,6 +52,8 @@ def main():
     work = Path(tempfile.mkdtemp(prefix='composed-memory-failures-',dir=ROOT/'out'))
     print(f'Artifacts: {work}',flush=True)
     report = dict(schema=1,input_sha256=sha(image),build_record_sha256=sha(source/'build.json'),
+                  runner_sha256=sha(Path(__file__)),
+                  table_probe_sha256=sha(ROOT/'tests/composed_table_owner_probe.asm'),
                   results={},scope='Private fault variants; base image remains unchanged.')
 
     def run(command, **kwargs):
@@ -73,11 +76,12 @@ def main():
             with (directory/'provider-build.log').open('w') as log:
                 # Reconstruct the non-faulted control before changing a define.
                 for define in [None] + ([fault] if fault else []):
-                    flags = DEFINES + (' -D'+define if define else '')
+                    base_flags = ' '.join('-D'+item for item in record['emm_flags']) if 'emm_flags' in record else DEFINES
+                    flags = base_flags + (' -D'+define if define else '')
                     if define == 'DOS_LOW_WITNESS':
                         # Remove only the HIGH-specific boot assertion. The
                         # stack probe independently requires DOS to be LOW.
-                        flags = DEFINES.replace('-DEMM_BOOTSTRAP_EXPECT_HMA', '')
+                        flags = base_flags.replace('-DEMM_BOOTSTRAP_EXPECT_HMA', '')
                     for module in ('INIT','INITTAB'):
                         run([ROOT/'bin/jwasm-masm',
                              f'-Mx -t -DI386 -DNoBugMode -DNOHIMEM {flags} -I. -I../EMM',
@@ -109,9 +113,20 @@ def main():
         run([ROOT/'bin/jwasm-bin',f'-I{ROOT / "src/INC"}',f'-Fo{directory / "layout.bin"}',
              ROOT/'tests/bios_public_layout_masm.asm'],stdout=subprocess.DEVNULL)
         offsets=struct.unpack('<29H',(directory/'layout.bin').read_bytes())
+        _, table_symbols = parse_emm_map(emm.with_suffix('.MAP'))
+        table_symbols = {symbol.name: symbol for symbol in table_symbols}
+        data_paragraph = table_symbols['TableSelector'].paragraph
+        definitions = {'DATA_PARAGRAPH':data_paragraph}
+        for key,symbol in [('TABLE_SELECTOR','TableSelector'),('GDT_SEG','GDT_Seg'),
+                           ('SAVE_MAP','_save_map'),('EMM_BRK','_emm_brk')]:
+            assert table_symbols[symbol].paragraph == data_paragraph
+            definitions[key] = table_symbols[symbol].offset
+        (directory/'table-defs.inc').write_text(''.join(
+            f'%define {key} {value}\n' for key,value in definitions.items()))
         (directory/'layout-defs.inc').write_text(''.join(
             f'%define {key} {offsets[index]}\n' for key,index in [('SFT',1),('CDS',2),('SFLINK',11),('FCB',28)]))
         probes=[('stack_pool_probe.asm','STACKCHK.COM',[]),
+                ('composed_table_owner_probe.asm','TABLECHK.COM',[]),
                 ('composed_layout_probe.asm','LAYOUT.COM',[]),
                 ('composed_ems_accounting_probe.asm','EMSCHECK.COM',['-DEXPECT_NO_UMB'] if no_umb else []),
                 ('int21_fcb_probe.asm','I21FCB.COM',['-DNO_DEBUG_EXIT']),
@@ -125,7 +140,7 @@ def main():
         for asm,target,flags in probes:
             run(['nasm','-f','bin',f'-I{directory}/',*flags,ROOT/'tests'/asm,'-o',directory/target])
             install(disk,target,(directory/target).read_bytes())
-        jobs=['STACKCHK.COM','LAYOUT.COM','EMSCHECK.COM']
+        jobs=['STACKCHK.COM','LAYOUT.COM','TABLECHK.COM','EMSCHECK.COM']
         jobs += ['NOUMB.COM'] if no_umb else ['OWNERS.COM','UMBEMS.COM']
         jobs += ['I21FCB.COM','STACKCHK.COM','QEXIT.COM']
         batch='@ECHO OFF\r\nCTTY AUX\r\n'+''.join(
@@ -168,11 +183,19 @@ def main():
             row['layout_segments']=dict(cds=cds,sft=sft,fcb=fcb)
             free,total,system=struct.unpack('<3H',image_file(disk,'::EMSCOUNT.BIN'))
             row['ems_pages']=dict(free=free,total=total,system_handle_pages=system)
-            matches=list(re.finditer(b'HT',debug))
-            assert len(matches)==1, 'missing or ambiguous table ownership trace'
-            _,physical,size,end,high=struct.unpack_from('<2sI3H',debug,matches[0].start())
+            table_record = image_file(disk,'::TABLES.BIN')
+            assert len(table_record)==16
+            data_segment,start,end,selector=struct.unpack_from('<4H',table_record)
+            owner=descriptor(table_record[8:])
+            assert owner['access'] & 0x80, 'table descriptor is not present'
+            high=int(selector==0xb0)
+            assert selector in (0x40,0xb0), selector
+            physical=owner['base']+start
+            size=owner['size'] if high else end-start
+            assert size>0 and (start==0 if high else owner['base']==data_segment*16)
             assert high==int(not name.startswith('emm-table-')) and bool(physical>=0x100000)==bool(high)
-            row['emm_table_owner']=dict(physical=physical,bytes=size,end=end,high=high)
+            row['emm_table_owner']=dict(physical=physical,bytes=size,end=end,high=high,
+                                       selector=selector,descriptor=owner)
         row['passed']=True
         (work/'results.json').write_text(json.dumps(report,indent=2)+'\n')
         print(f'PASS {name}: {directory}',flush=True)

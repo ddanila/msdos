@@ -620,6 +620,9 @@ ProviderLoaderValid:
         mov ds,dx
         xor bp,bp
         INIT_PHASE 17
+ifdef EMM_BOOTSTRAP_PRODUCTION
+        call BootstrapRelocated
+endif
 ifdef EMM_BOOTSTRAP_STAGE_TEST
         call BootStageRelocated
 endif
@@ -753,6 +756,13 @@ IE_find_error:
 ;  find and allocate logical emm pages
 ;
 IE_alloc:
+ifdef EMM_BOOTSTRAP_PRODUCTION
+        call BootstrapPrepare
+        jnc short BootstrapPrepared
+        or [msg_flag],MEM_ERR_MSG
+        jmp PREPARE_ERROR
+BootstrapPrepared:
+endif
 ifdef EMM_BOOTSTRAP_OWNER_TEST
         call BootOwnerPrepare
 endif
@@ -1105,6 +1115,9 @@ endif
 	xor	ax,ax			; NO errors
 ;
 IE_leave:
+ifdef EMM_BOOTSTRAP_PRODUCTION
+        call BootstrapFinish
+endif
 ifdef EMM_BOOTSTRAP_OWNER_TEST
         call BootOwnerVerify
 endif
@@ -2903,6 +2916,9 @@ b2asc10 endp
 
 ifdef EMM_BOOTSTRAP_OWNER_TEST
         include BOOTXMS.INC
+endif
+ifdef EMM_BOOTSTRAP_PRODUCTION
+        include BOOTPROD.INC
 endif
 LAST	ends				; End of segment
 ;

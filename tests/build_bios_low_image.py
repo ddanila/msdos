@@ -13,7 +13,7 @@ from build_bios_high_payload import ROOT, run
 from report_dos_bios_residency import parse_map
 
 
-def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False, scan=False, rebase=False, compact=False, fail_tables=False, high_cds=False, fail_cds=False, cds_cache_case=None, cds_cache_negative=False, dispatch=False, characters=False, retire_characters=False, pack_headers=False, retire_media=False, paired_provider=None, pack_drive_graph=False, high_stack_pool=False, fail_stack_pool=False, retire_clock=False, retire_mux=False, compact_tracks=False, retire_swap=False, retire_ioctl_state=False):
+def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False, scan=False, rebase=False, compact=False, fail_tables=False, high_cds=False, fail_cds=False, cds_cache_case=None, cds_cache_negative=False, dispatch=False, characters=False, retire_characters=False, pack_headers=False, retire_media=False, paired_provider=None, pack_drive_graph=False, high_stack_pool=False, fail_stack_pool=False, retire_clock=False, retire_mux=False, compact_tracks=False, retire_swap=False, retire_ioctl_state=False, poison=True):
     if retire_ioctl_state and not (tail_body and compact_tracks):
         raise ValueError("IOCTL state retirement requires the cold tail and low materialized DMA descriptors")
     if retire_swap and not (tail_body and characters and retire_characters):
@@ -153,7 +153,9 @@ def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False, sca
         ("BINDINGS", "LOW_CALLS", "DEVICE_ENTRIES", "INTERRUPT_ENTRIES", "RESULT_HELPERS")
         if name != "DEVICE_ENTRIES" or not pack_headers)
     if early:
-        options += f" -I{output} -DBIOS_SERVICE_BOOT=1 -DBIOS_BOOT_POISON=1"
+        options += f" -I{output} -DBIOS_SERVICE_BOOT=1"
+        if poison:
+            options += " -DBIOS_BOOT_POISON=1"
     if paired_provider is not None:
         options += (" -DBIOS_DYNAMIC_STAGING -DBIOS_DEFER_PROVIDER -DPROVIDER_REBASE"
                     " -DBIOS_STAGE_PROVIDER -DBIOS_PROVIDER_DOWN -DBIOS_ADMIN_PROVIDER")

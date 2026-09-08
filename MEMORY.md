@@ -6,8 +6,8 @@ Stabilize the composed memory implementation. Further BIOS/COMMAND relocation,
 HMA/UMB repacking, and EBDA recovery are deferred unless a correctness defect
 requires them. More free conventional memory is not a promotion requirement.
 
-The composed BIOS, shell, and paired-provider layouts are opt-in fixtures under
-`tests/`; they are not all enabled by `make deploy`. Passing a default-image test
+The composed BIOS, shell, and paired-provider layouts have an opt-in production
+builder, `make memory-production`; they are not all enabled by `make deploy`. Passing a default-image test
 does not qualify a composed image. Keep its kernel, BIOS, COMMAND, HIMEM, EMM386,
 shared-layout consumers, maps, and configuration matched.
 
@@ -49,6 +49,13 @@ binaries. In particular, ordinary LOW operation must not require rebuilding the
 provider to remove a HIGH-only test expectation. Retain the [accounted residency bounds](tests/memory_residency_budgets.json)
 and ownership checks when assembling the production configuration. Further
 optimization is not a prerequisite for its own sake.
+
+The [production qualification record](tests/memory_production_baseline.json)
+tracks the composition without boot witnesses or HIGH-only assertions. Its
+bootstrap staging and ownership transfer belong to production initialization;
+the failure tests inspect retained roots and the live table descriptor. Use
+`tools/freeze_memory_production.py` to preserve matched media before testing.
+Default deployment and installation qualification remain promotion work.
 
 1. **Identify the candidate and audit existing evidence.** Freeze a matched
    image containing the intended BIOS and COMMAND relocations, paired
