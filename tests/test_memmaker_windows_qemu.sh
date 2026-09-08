@@ -21,8 +21,8 @@ for version in 31 unknown options; do
     original="$OUT/memmaker-windows-${version}.ini"
     cp "$BASE" "$image"
     mcopy -o -i "$image" "$ROOT/src/CMD/MEMMAKER/MEMMAKER.EXE" ::MEMMAKER.EXE
-    mcopy -o -i "$image" "$ROOT/src/DEV/HIMEM/HIMEM.SYS" ::HIMEM.SYS
-    mcopy -o -i "$image" "$ROOT/src/MEMM/MEMM/EMM386.EXE" ::EMM386.EXE
+    mcopy -o -i "$image" "${MEMORY_CORE_DIR:-$ROOT/src/DEV/HIMEM}/HIMEM.SYS" ::HIMEM.SYS
+    mcopy -o -i "$image" "${MEMORY_CORE_DIR:-$ROOT/src/MEMM/MEMM}/EMM386.EXE" ::EMM386.EXE
     mcopy -o -i "$image" "$QEXIT" ::QEXIT.COM
     mmd -i "$image" ::WINDOWS
     if [[ "$version" == options ]]; then

@@ -31,8 +31,8 @@ nasm -f bin "$ROOT/tests/qemu_exit.asm" -o "$QEXIT"
 nasm -f bin "$ROOT/tests/memmaker_mouse_tsr.asm" -o "$MOUSE"
 mcopy -o -i "$IMAGE" "$ROOT/src/CMD/MEMMAKER/MEMMAKER.EXE" ::MEMMAKER.EXE
 mcopy -o -i "$IMAGE" "$ROOT/src/CMD/SIZER/SIZER.EXE" ::SIZER.EXE
-mcopy -o -i "$IMAGE" "$ROOT/src/DEV/HIMEM/HIMEM.SYS" ::HIMEM.SYS
-mcopy -o -i "$IMAGE" "$ROOT/src/MEMM/MEMM/EMM386.EXE" ::EMM386.EXE
+mcopy -o -i "$IMAGE" "${MEMORY_CORE_DIR:-$ROOT/src/DEV/HIMEM}/HIMEM.SYS" ::HIMEM.SYS
+mcopy -o -i "$IMAGE" "${MEMORY_CORE_DIR:-$ROOT/src/MEMM/MEMM}/EMM386.EXE" ::EMM386.EXE
 mcopy -o -i "$IMAGE" "$QEXIT" ::QEXIT.COM
 mcopy -o -i "$IMAGE" "$MOUSE" ::MOUSE.COM
 mmd -i "$IMAGE" ::WINDOWS

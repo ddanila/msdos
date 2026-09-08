@@ -268,6 +268,43 @@
         }
       },
       "scope": "Focused before/after regression and baseline/layout checks. Final matched qualification is recorded separately."
+    },
+    {
+      "component": "MemMaker optimizer fixture",
+      "problem": "The old mock pair needs more transient UMB space than the composed BIOS leaves available. Selecting the large candidate was correct for that unsuitable fixture.",
+      "change": "Keep the adversarial optimum-vs-first-fit case within an explicitly checked arena range; use the selected managers and require successful guest completion.",
+      "fixture": {
+        "large_resident_paragraphs": 5000,
+        "large_load_paragraphs": 6000,
+        "medium_resident_paragraphs": 3250,
+        "medium_load_paragraphs": 3300,
+        "arena_kib_min": 103,
+        "arena_kib_max": 128,
+        "expected_resident_paragraphs": 6500,
+        "expected_programs_high": 2
+      },
+      "validation": {
+        "passed": true,
+        "logs": {
+          "baseline": {
+            "path": "out/production-memmaker-fixture/baseline.log",
+            "sha256": "168c7f7cecc7d6b75425a920c35d70e723bcf2dab2c1fbacc778ebe6dc541484"
+          },
+          "matched_workflow": {
+            "path": "out/production-memmaker-fixture/matched.log",
+            "sha256": "6dd6730e3578b8c55724ce26510ec58f99dc6d3792a8ab005890b089e906ca17"
+          },
+          "windows": {
+            "path": "out/production-memmaker-fixture/windows.log",
+            "sha256": "0e28deebc66175da904b876d761214c03d5686c01199f428dbbff54202b37764"
+          },
+          "optimizer_exit_check": {
+            "path": "out/production-memmaker-fixture/final-optimizer.log",
+            "sha256": "168c7f7cecc7d6b75425a920c35d70e723bcf2dab2c1fbacc778ebe6dc541484"
+          }
+        }
+      },
+      "scope": "Test data and profile propagation only; the optimizer implementation is unchanged."
     }
   ]
 }
