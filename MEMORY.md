@@ -28,9 +28,11 @@ reports rather than copying them here.
 
 The [retained-image evidence audit](tests/memory_stabilization_audit.json)
 identifies a frozen historical composition and records which existing results
-match it. It is not a current-source promotion candidate: rebuild the matched
-composition before the reboot pair, preserving the audited baseline for
-comparison. Local image and build-artifact locations are recorded in the audit.
+match it. The [composed reboot qualification](tests/memory_stabilization_baseline.json)
+records its rebuilt successor and the diagnostic/control pair. These records
+qualify their exact inputs, not later builds or the entire stabilization plan.
+Local artifacts and reproduction commands are linked from the records and
+[composed memory diagnostics](tests/COVERAGE.md#composed-memory-diagnostics).
 
 1. **Identify the candidate and audit existing evidence.** Freeze a matched
    image containing the intended BIOS and COMMAND relocations, paired

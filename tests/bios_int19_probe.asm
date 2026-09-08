@@ -76,10 +76,34 @@ start:
     ; Sentinel entries must remain unchanged, rather than becoming FFFF:FFFF.
     xor ax,ax
     mov es,ax
+%ifdef EMM_ENTRY19
+    ; Enter through the installed manager, which must leave V86 before the
+    ; saved BIOS chain. Validate that chain rather than bypassing the hook.
+    cmp word [es:19h*4],EMM_ENTRY19
+    jne fail
+    mov ax,[es:19h*4+2]
+    cmp ax,70h
+    jbe fail
+    cmp ax,0a000h
+    jae fail
+    mov es,ax
+%ifdef BAD_EMM_CHAIN
+    inc word [es:EMM_OLD19]
+%endif
+    cmp word [es:EMM_OLD19],ENTRY19
+    jne fail
+    cmp word [es:EMM_OLD19+2],70h
+    jne fail
+    mov si,emm_chain_pass
+    call debug
+    xor ax,ax
+    mov es,ax
+%else
     cmp word [es:19h*4],ENTRY19
     jne fail
     cmp word [es:19h*4+2],70h
     jne fail
+%endif
     mov si,vectors
     mov cx,14
 .snapshot:
@@ -107,6 +131,9 @@ start:
     int 19h
     jmp fail
 restored:
+    smsw ax
+    test al,1                     ; the manager must have left protected mode
+    jnz fail
     xor ax,ax
     mov ds,ax
     mov ax,[cs:original13]
@@ -173,5 +200,6 @@ tag db 'SWBOOT.TAG',0
 magic db 'SWRBOOT!'
 ready db 'BIOS_INT19_READY',13,10,0
 vector_pass db 'BIOS_INT19_VECTORS_PASS',13,10,0
+emm_chain_pass db 'BIOS_INT19_EMM_CHAIN_PASS',13,10,0
 boot_pass db 'BIOS_INT19_SECOND_BOOT_PASS',13,10,0
 failed db 'BIOS_INT19_FAIL',13,10,0

@@ -79,8 +79,39 @@ restoration, then chains through the saved ROM bootstrap entry and requires a
 second boot, stack checks on both boots, and a subsequent FCB operation. It
 temporarily intercepts the saved INT 19h target to inspect the restored vectors;
 use `test_software_reboot_qemu.py` for the unmodified bootstrap-chain control.
-Passing with standalone HIMEM does not qualify the paired-provider and upper
-stack-pool composition. Keep that qualification in [TODO.md](../TODO.md).
+With EMM386 installed, pass `--emm-build EMM_BUILD_DIR` containing its matching
+`EMM386.EXE` and `EMM386.MAP`. The diagnostic validates the installed manager
+hook and its saved BIOS entry, enters through that hook, and requires real mode
+at the restored-vector checkpoint. `--bad-emm-chain` corrupts the saved BIOS
+entry in the private run and must fail before reboot. Passing with standalone
+HIMEM does not qualify the paired-provider and upper stack-pool composition.
+
+To rebuild the composed candidate, run `gmake -B -j4 all` and `gmake deploy`,
+then create a non-faulted paired-provider fixture:
+
+```sh
+python3 tests/capture_emm_init_phases.py out/floppy.img \
+  --common-xms-entry --reclaim-bootstrap --high-tables --fine-umbs --dos-high
+```
+
+Use the printed fixture directory as `PAIRED_DIR` below. `BASE_HDD` is a private
+FAT16 hard-disk baseline with the paired managers under `C:\DOS`, DOS=HIGH,UMB,
+and existing startup/application files. The builder copies it, refreshes its
+existing system tools from the deployed floppy, installs the composed owners,
+checks shared kernel offsets, and adds explicit `STACKS=9,128`. The output
+directory must not exist. Inputs and the deployed image remain unchanged.
+
+```sh
+python3 tests/build_memory_stabilization_image.py BASE_HDD PAIRED_DIR out/memory-candidate
+python3 tests/test_bios_int19_qemu.py out/memory-candidate/candidate.img \
+  out/memory-candidate/bios --emm-build out/memory-candidate/provider/MEMM/MEMM
+python3 tests/test_software_reboot_qemu.py out/memory-candidate/candidate.img --profile existing
+```
+
+Build options, commands, maps, hashes, and provider evidence remain in the
+private output directory. The [qualification record](memory_stabilization_baseline.json)
+retains the tested identities and outcomes. Remaining stabilization work stays
+in [TODO.md](../TODO.md).
 
 ## External DOS applications
 

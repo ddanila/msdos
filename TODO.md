@@ -2,10 +2,9 @@
 
 1. Stabilize and qualify the composed memory implementation before promotion;
    see [MEMORY.md](MEMORY.md). Further memory optimization is deferred.
-   Qualify `test_bios_int19_qemu.py` on the complete paired-provider and upper
-   stack-pool composition, comparing its temporary bootstrap interception with
-   the unmodified `test_software_reboot_qemu.py` control. See
-   [composed memory diagnostics](tests/COVERAGE.md#composed-memory-diagnostics).
+   Continue with failure-path/ownership qualification and repeated application
+   operations on the frozen candidate; the matched rebuild and reboot pair are
+   recorded in [composed reboot qualification](tests/memory_stabilization_baseline.json).
 2. Implement retail-compatible DriveSpace, including compressed-volume support
    throughout the system. An explicit extended format may follow.
 3. Treat QBASIC/EDIT, AccessDOS, the Microsoft Network Client, and additional
