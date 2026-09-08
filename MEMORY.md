@@ -26,6 +26,12 @@ reuse applicable evidence before scheduling additional runs. Track the overall
 open item in [TODO.md](TODO.md), and keep results in manifests or generated
 reports rather than copying them here.
 
+The [retained-image evidence audit](tests/memory_stabilization_audit.json)
+identifies a frozen historical composition and records which existing results
+match it. It is not a current-source promotion candidate: rebuild the matched
+composition before the reboot pair, preserving the audited baseline for
+comparison. Local image and build-artifact locations are recorded in the audit.
+
 1. **Identify the candidate and audit existing evidence.** Freeze a matched
    image containing the intended BIOS and COMMAND relocations, paired
    HIMEM/EMM386 providers, and upper interrupt stack pool. Retain its binaries,

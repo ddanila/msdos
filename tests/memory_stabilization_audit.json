@@ -1,0 +1,268 @@
+{
+  "schema": 1,
+  "audited_at": "2026-09-08T09:58:55.978732+00:00",
+  "source_commit": "dfd75cf3390ae7a6c2261b9cd21530cc29897241",
+  "scope": "Read-only evidence audit and private artifact freeze; no new emulator runs or promotion.",
+  "status": "retained full-composition baseline identified; current-source shipping candidate still requires matched rebuild",
+  "candidate": {
+    "source_image": "out/dos-console-retirement-bgjhrk8e/input.img",
+    "frozen_image": "out/memory-stabilization-audit-20260908/candidate.img",
+    "image_sha256": "a225c8bfbc5b801f7f6d40ec84f155f6606d2fa34459d4d31033c9fb3d74f60d",
+    "files_sha256": {
+      "IO.SYS": "660223e2e6d620e54050fd260f6644b93110eafe2fffde841a7dcf88db5cec59",
+      "MSDOS.SYS": "eb3f0fdc961648c03173fdea66d3d38fcc32d63bb8032435724ea21a68c6be6a",
+      "COMMAND.COM": "4ae0850f148b89b917fd024459d1f24e715ad2f18af2efa10ce92070d63bf105",
+      "DOS/COMMAND.COM": "4ae0850f148b89b917fd024459d1f24e715ad2f18af2efa10ce92070d63bf105",
+      "DOS/HIMEM.SYS": "dc315fa1578cd39277c8404b524878a909f0c65fb544af496c7194e9a95a06e6",
+      "DOS/EMM386.EXE": "4d0fad0e9f9c22de4e47c342face4c359097d84828b93e97bfdb793c701ce058",
+      "DOS/SHARE.EXE": "9118a65ea1873cad8ba45dde3d0a57fdca62908be7cb3cede9bd4a6814c1f865",
+      "DOS/IFSFUNC.EXE": "47ef21726d19c2718d8ebb2312d961b0b251d7ca97c885d1a692c268e7817707",
+      "DOS/FILESYS.EXE": "d400584f16f5269954daf856d5fbdffe054631b206a90607b8dec5066b0dc0de",
+      "CONFIG.SYS": "4897f4fc6efba16be8a5b48f701ff52c75d0b40740c52a7d96b1992ceadd36eb",
+      "AUTOEXEC.BAT": "20aa170cbe2a397160642b24a2f24f199a99f2dd16dd473108b0ef43be1b344c"
+    },
+    "config": "DEVICE=C:\\DOS\\HIMEM.SYS /TESTMEM:ON\r\nDEVICE=C:\\DOS\\EMM386.EXE RAM M5\r\nBUFFERS=15\r\nFILES=20\r\nDOS=HIGH,UMB\r\nLASTDRIVE=Z\r\nFCBS=4,0\r\n",
+    "autoexec": "@ECHO OFF\r\nPATH C:\\DOS;C:\\VC\r\nPROMPT $P$G\r\nCD \\VC\r\nVC.COM\r\n",
+    "bios_options": {
+      "activated": false,
+      "arena_compaction": true,
+      "cds_cache_case": null,
+      "cds_cache_negative": false,
+      "characters": true,
+      "compact_track_layout": true,
+      "direct_disk_tables": true,
+      "dispatch": true,
+      "early_boot_installer": true,
+      "embedded_payload_bytes": 8081,
+      "fail_cds": false,
+      "fail_stack_pool": false,
+      "force_table_allocation_failure": false,
+      "high_cds": true,
+      "high_stack_pool": true,
+      "low_prefix_rebase": true,
+      "packed_drive_graph": true,
+      "packed_headers": true,
+      "paired_provider_sha256": "4d0fad0e9f9c22de4e47c342face4c359097d84828b93e97bfdb793c701ce058",
+      "pointer_census": false,
+      "reclaimed_bytes": 0,
+      "reservation_limit": 65520,
+      "retired_character_bodies": true,
+      "retired_clock_conversion": true,
+      "retired_ioctl_state": true,
+      "retired_media_bodies": true,
+      "retired_mux": true,
+      "retired_swap_prompt": true,
+      "sha256": "660223e2e6d620e54050fd260f6644b93110eafe2fffde841a7dcf88db5cec59",
+      "tail_body": true,
+      "upper_dos_tables": true
+    },
+    "command_options": [
+      "COMMAND_RESIDENT_BINDING",
+      "COMMAND_HIGH_RESIDENT",
+      "COMMAND_HIGH_RESIDENT_POISON",
+      "COMMAND_UMB_DATA"
+    ],
+    "command_options_source": "tests/test_command_high_resident_qemu.py:build(high=True, upper_data=True)",
+    "provider_options_source": "tests/build_emm_mode_guard.py:DEFINES; retained provider INIT.ASM and build artifacts",
+    "himem_options_source": "retained himem-result.json and himem-HIMEM.LST",
+    "origin_build_commit": null,
+    "provenance_limit": "Original composed build commit and complete compiler command transcript are not recorded; retained manifests, listings, objects and maps identify the binary baseline.",
+    "build_origins": {
+      "bios": "out/dos-console-retirement-bgjhrk8e/bios",
+      "command": "out/command-stack-owner-vgos982a/upper",
+      "provider": "out/emm-mode-guard-0cr_f1tq/MEMM",
+      "provider-includes": "out/emm-mode-guard-0cr_f1tq/INC",
+      "himem-source": "out/emm-init-phases-q3jatbct/DEV/HIMEM",
+      "himem-includes": "out/emm-init-phases-q3jatbct/INC"
+    }
+  },
+  "deployed_files_sha256": {
+    "IO.SYS": "451407cd7951396b5a4b720cf42ebe9d3267f705a41c38969c65d67ebe549fa9",
+    "MSDOS.SYS": "199771dfe152be284bd84c1b6d572cc311c8c579c4d7e291ec13cd4bbaa8955d",
+    "COMMAND.COM": "505908b525048f64775fc62932b3ed8e7d230245785f7cd95b87dcd1b7550c58",
+    "DOS/HIMEM.SYS": "45da026e22cda46e34e0f87eff387a8f2434f4d6e72cfe97e8745cf0153ebaa6",
+    "DOS/EMM386.EXE": "6a81db93876add8a83f95a6ee819895e4e98d3571a5c686f9c49ae15c463817f"
+  },
+  "deployed_matches_candidate": {
+    "IO.SYS": false,
+    "MSDOS.SYS": false,
+    "COMMAND.COM": false,
+    "DOS/HIMEM.SYS": false,
+    "DOS/EMM386.EXE": false
+  },
+  "applications": [
+    {
+      "record": "tests/dos_app_smoke_baseline.json",
+      "record_sha256": "a736faabcb1ed9556de0960bbfd16cddce75d3857d0331ba9087379eda790fee",
+      "scope": "startup only, plus one small 4DOS/PKZIP child-process job",
+      "comparisons": 60,
+      "passed": 60,
+      "candidate_matches": {
+        "IO.SYS": false,
+        "MSDOS.SYS": false,
+        "COMMAND.COM": false,
+        "DOS/HIMEM.SYS": false,
+        "DOS/EMM386.EXE": false
+      },
+      "deployed_matches": {
+        "IO.SYS": true,
+        "MSDOS.SYS": true,
+        "COMMAND.COM": true,
+        "DOS/HIMEM.SYS": true,
+        "DOS/EMM386.EXE": true
+      },
+      "profiles": {
+        "low": "DOS=LOW\r\nFILES=30\r\nBUFFERS=15\r\nLASTDRIVE=Z\r\nFCBS=4,0\r\n",
+        "xms": "DEVICE=C:\\DOS\\HIMEM.SYS /TESTMEM:OFF\r\nDOS=HIGH\r\nFILES=30\r\nBUFFERS=15\r\nLASTDRIVE=Z\r\nFCBS=4,0\r\n",
+        "high": "DEVICE=C:\\DOS\\HIMEM.SYS /TESTMEM:OFF\r\nDEVICE=C:\\DOS\\EMM386.EXE 2048 RAM\r\nDOS=HIGH,UMB\r\nFILES=30\r\nBUFFERS=15\r\nLASTDRIVE=Z\r\nFCBS=4,0\r\n"
+      },
+      "disposition": "default-build evidence; not full-composition qualification"
+    },
+    {
+      "record": "tests/dos_app_smoke_batch3_baseline.json",
+      "record_sha256": "73b5bb1cdfefa6099c54c2fa5eef1dbd3f3f9b07612ffe4f580dc4d64ad2f0a9",
+      "scope": "startup only",
+      "comparisons": 30,
+      "passed": 30,
+      "candidate_matches": {
+        "IO.SYS": false,
+        "MSDOS.SYS": false,
+        "COMMAND.COM": false,
+        "DOS/HIMEM.SYS": false,
+        "DOS/EMM386.EXE": false
+      },
+      "deployed_matches": {
+        "IO.SYS": true,
+        "MSDOS.SYS": true,
+        "COMMAND.COM": true,
+        "DOS/HIMEM.SYS": true,
+        "DOS/EMM386.EXE": true
+      },
+      "profiles": {
+        "low": "DOS=LOW\r\nFILES=30\r\nBUFFERS=15\r\nLASTDRIVE=Z\r\nFCBS=4,0\r\n",
+        "xms": "DEVICE=C:\\DOS\\HIMEM.SYS /TESTMEM:OFF\r\nDOS=HIGH\r\nFILES=30\r\nBUFFERS=15\r\nLASTDRIVE=Z\r\nFCBS=4,0\r\n",
+        "high": "DEVICE=C:\\DOS\\HIMEM.SYS /TESTMEM:OFF\r\nDEVICE=C:\\DOS\\EMM386.EXE 2048 RAM\r\nDOS=HIGH,UMB\r\nFILES=30\r\nBUFFERS=15\r\nLASTDRIVE=Z\r\nFCBS=4,0\r\n"
+      },
+      "disposition": "default-build evidence; not full-composition qualification"
+    }
+  ],
+  "exact_input_evidence": [
+    {
+      "record": "out/command-upper-failure-3gr_i143/results.json",
+      "sha256": "110010196c9114ea5f5fc09880a2de8fce9c189f173142b8b8981d2a4afbab1a",
+      "input_matches": true,
+      "passed": null,
+      "cases": [
+        "success",
+        "link-reject"
+      ],
+      "fatal_error": null,
+      "set_df": null,
+      "config": null
+    },
+    {
+      "record": "out/command-upper-failure-r_aoo2de/results.json",
+      "sha256": "92e344efd153b82ccae390decd8bdebc17d2172a60116392e801bf2d41a89ca6",
+      "input_matches": true,
+      "passed": null,
+      "cases": [
+        "success",
+        "allocation-rejected",
+        "shrink-rejected"
+      ],
+      "fatal_error": null,
+      "set_df": null,
+      "config": null
+    },
+    {
+      "record": "out/software-reboot-xjk44u66/result.json",
+      "sha256": "714769a691532fff89ef90619f2bcd5ced41e9dee6c535520cf0e57260a05ead",
+      "input_matches": true,
+      "passed": true,
+      "cases": [],
+      "fatal_error": true,
+      "set_df": true,
+      "config": "DEVICE=C:\\DOS\\HIMEM.SYS /TESTMEM:ON\r\nDEVICE=C:\\DOS\\EMM386.EXE RAM M5\r\nBUFFERS=15\r\nFILES=20\r\nDOS=HIGH,UMB\r\nLASTDRIVE=Z\r\nFCBS=4,0\r\n"
+    }
+  ],
+  "shell_retained_output_checks": [
+    {
+      "record": "command-upper-failure-r_aoo2de",
+      "case": "success",
+      "retained_outputs_rechecked": true
+    },
+    {
+      "record": "command-upper-failure-r_aoo2de",
+      "case": "allocation-rejected",
+      "retained_outputs_rechecked": true
+    },
+    {
+      "record": "command-upper-failure-r_aoo2de",
+      "case": "shrink-rejected",
+      "retained_outputs_rechecked": true
+    },
+    {
+      "record": "command-upper-failure-3gr_i143",
+      "case": "success",
+      "retained_outputs_rechecked": true
+    },
+    {
+      "record": "command-upper-failure-3gr_i143",
+      "case": "link-reject",
+      "retained_outputs_rechecked": true
+    }
+  ],
+  "int19_diagnostics": [
+    {
+      "exit_code": null,
+      "vectors_restored": true,
+      "second_boot": false,
+      "stack_passes": 1,
+      "fcb_pass": false,
+      "input_sha256": "4ff08f4b40ded7563d276e6dd20bdeef7eb52cb8891ceb107eb50a1009493059",
+      "record": "out/bios-int19-peiuq5ni/result.json",
+      "stack_defines": "%define EXPECT_UPPER 1\n%define EXPECT_DOS_HIGH 1\n%define ENTRY_OFFSET 60\n%define OLD_SLOT 56\n",
+      "candidate_input_matches": false
+    },
+    {
+      "exit_code": null,
+      "vectors_restored": true,
+      "second_boot": false,
+      "stack_passes": 1,
+      "fcb_pass": false,
+      "input_sha256": "18b1787b263260dd229d7427c929cbfbab6c8ee8dc822df497dd7831c32111fe",
+      "record": "out/bios-int19-v60hwrnr/result.json",
+      "stack_defines": "%define EXPECT_UPPER 0\n%define EXPECT_DOS_HIGH 1\n%define ENTRY_OFFSET 60\n%define OLD_SLOT 56\n",
+      "candidate_input_matches": false
+    },
+    {
+      "exit_code": 33,
+      "vectors_restored": true,
+      "second_boot": true,
+      "stack_passes": 2,
+      "fcb_pass": true,
+      "input_sha256": "ccc95e04c32b92858b75ac12477c07243faa776ec035a00ccb303a5ab8fe27b4",
+      "record": "out/bios-int19-z9vpsrtp/result.json",
+      "stack_defines": "%define EXPECT_UPPER 0\n%define EXPECT_DOS_HIGH 1\n%define ENTRY_OFFSET 60\n%define OLD_SLOT 56\n",
+      "candidate_input_matches": false
+    }
+  ],
+  "qualification_hardware": {
+    "machine": "pc",
+    "cpu": "486",
+    "ram_mib": 8,
+    "source": "tests/test_software_reboot_qemu.py and retained reboot command",
+    "application_block_chaining": false
+  },
+  "remaining": [
+    "Rebuild the complete candidate against current sources, including paired providers, high/upper COMMAND, BIOS and shared-layout consumers; freeze maps and flags together.",
+    "Set explicit STACKS=9,128 for the reboot qualification image and record its new hash; historical candidate CONFIG.SYS has no explicit STACKS directive.",
+    "Run INT19 diagnostic and unmodified reboot control on that same current matched composition; existing successful INT19 diagnostic expects low stacks and uses a different input.",
+    "Application comparisons must be repeated with composed binaries; all five core identities differ from both recorded default-build campaigns.",
+    "After rebuild, requalify HIGH/LOW, A20, provider publication/relocation failure and EMS/UMB ownership probes; component/earlier-image evidence cannot qualify changed inputs.",
+    "Retained shell EXEC/pipes/reload and allocation/shrink fallback evidence applies to this frozen baseline only.",
+    "Keep DBCS, external hooks, broader exceptions, physical hardware and media/A20 limits explicit."
+  ],
+  "artifact_index": "out/memory-stabilization-audit-20260908/artifact-index.json",
+  "artifact_index_sha256": "4f4de177dc2ea2bcea68e8a65bea77097908df2d36d77b6e5ae1b766b68204f9"
+}
