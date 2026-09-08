@@ -49,6 +49,9 @@ binaries. In particular, ordinary LOW operation must not require rebuilding the
 provider to remove a HIGH-only test expectation. Retain the [accounted residency bounds](tests/memory_residency_budgets.json)
 and ownership checks when assembling the production configuration. Further
 optimization is not a prerequisite for its own sake.
+The [ordinary release checks](tests/memory_ordinary_release_gates.json) retain
+the independently frozen baseline-build evidence; production qualification
+must still match the selected composition.
 
 The [production qualification record](tests/memory_production_baseline.json)
 tracks the composition without boot witnesses or HIGH-only assertions. Its
