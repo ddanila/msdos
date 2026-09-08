@@ -185,6 +185,7 @@ DATARES SEGMENT PUBLIC BYTE
 	PUBLIC	KEEPCOM
 	PUBLIC	BATCHSTEP
 	PUBLIC	SUM
+	PUBLIC	SUMSEG
 	PUBLIC	SUPPRESS
 	PUBLIC	TRANS
 	PUBLIC	TranVarEnd
@@ -492,6 +493,7 @@ Batch_Abort	DB	0			; Indicate if user wants to abort from batch mode.
 COMDRV		DB	?			; DRIVE SPEC TO LOAD AUTOEXEC AND COMMAND
 MEMSIZ		DW	?
 SUM		DW	?
+SUMSEG		DW	?		; Segment whose transient checksum was recorded
 EXTCOM		DB	1			; For init, pretend just did an external
 RETCODE 	DW	?
 LOADHIGH_PENDING DB	0

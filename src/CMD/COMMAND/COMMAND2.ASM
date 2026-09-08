@@ -56,6 +56,7 @@ ENDIF
 	EXTRN	SAVE_PDB:WORD
 	EXTRN	SINGLECOM:WORD
 	EXTRN	SUM:WORD
+	EXTRN	SUMSEG:WORD
 	EXTRN	TRANS:WORD
 	EXTRN	TranVarEnd:BYTE
 	EXTRN	TRANVARS:BYTE
@@ -344,6 +345,9 @@ NOSETVER:
 	JNZ	NOSNG
 	JMP	FATALRET2		; We have finished the single command
 NOSNG:
+	MOV	AX,[TRNSEG]
+	CMP	AX,[SUMSEG]		; An additive checksum cannot detect all shifts
+	JNZ	BOGUS_COM
 	CALL	CHKSUM			; Check the transient
 	CMP	DX,[SUM]
 	JZ	HAVCOM			; Transient OK
@@ -359,6 +363,8 @@ ALSO_BOGUS:
 	CALL	WRONGCOM
 	JMP	SHORT CHKSAME
 HAVCOM:
+	MOV	AX,[TRNSEG]
+	MOV	[SUMSEG],AX		; Bind the valid transient to its current segment
 	MOV	AX,CHAR_OPER SHL 8
 	SHELL_INT	int_command
 	MOV	[RSWITCHAR],DL

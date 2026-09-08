@@ -114,7 +114,98 @@
           "negative_log": "out/command-kvikdos-fix/arena-negative.log"
         }
       },
-      "follow_up": "Make COMMAND reload when the transient segment changes even if its additive checksum matches."
+      "follow_up": "Resolved by the COMMAND segment-bound checksum repair below."
+    },
+    {
+      "component": "COMMAND transient reload",
+      "problem": "The additive checksum can match after the transient segment changes, causing execution with displaced data.",
+      "change": "Bind the recorded checksum to its segment and force a disk reload on a segment change.",
+      "validation": {
+        "qemu": {
+          "command_sha256": "1ddbbb2da237f2a0b50d63459bf13d4a37bbf4705ff8eddf0ceae4e0472826dc",
+          "floppy_sha256": "40d9bf943aec3f560216e2fa8ff8b6805ccc8ad775768b9518097ce3b009c001",
+          "results": {
+            "LOW": {
+              "passed": true,
+              "exit_code": 33,
+              "command": [
+                "qemu-system-i386",
+                "-display",
+                "none",
+                "-monitor",
+                "none",
+                "-cpu",
+                "486",
+                "-m",
+                "8",
+                "-boot",
+                "a",
+                "-serial",
+                "stdio",
+                "-no-reboot",
+                "-nic",
+                "none",
+                "-drive",
+                "if=floppy,format=raw,file=/Users/ddanila/fun/msdos/out/command-shift-exwosgk5/LOW.img",
+                "-device",
+                "isa-debug-exit,iobase=0xf4,iosize=0x04"
+              ]
+            },
+            "HIGH": {
+              "passed": true,
+              "exit_code": 33,
+              "command": [
+                "qemu-system-i386",
+                "-display",
+                "none",
+                "-monitor",
+                "none",
+                "-cpu",
+                "486",
+                "-m",
+                "8",
+                "-boot",
+                "a",
+                "-serial",
+                "stdio",
+                "-no-reboot",
+                "-nic",
+                "none",
+                "-drive",
+                "if=floppy,format=raw,file=/Users/ddanila/fun/msdos/out/command-shift-exwosgk5/HIGH.img",
+                "-device",
+                "isa-debug-exit,iobase=0xf4,iosize=0x04"
+              ]
+            }
+          }
+        },
+        "negative_control": {
+          "artifacts": "out/command-shift-fhgi66ai",
+          "result": "Previous COMMAND produced corrupted output and failed the same allocation-boundary-change probe."
+        },
+        "native_suite": {
+          "passed": 450,
+          "failed": 0,
+          "skipped": 0,
+          "log": "out/command-kvikdos-fix/shell-native-suite.log"
+        },
+        "startup": {
+          "passed": 15,
+          "failed": 0,
+          "log": "out/command-kvikdos-fix/shell-gates.log"
+        },
+        "bindings": {
+          "static_cases_passed": 18,
+          "runtime_gate": "Blocked at previously recorded retained-memory budgets; reconciliation follows."
+        }
+      },
+      "fixture_repair": {
+        "component": "Ctrl+C entry extraction",
+        "change": "Stop ResPipeOff extraction at its return, excluding conditional segment-closing directives.",
+        "positive": "out/command-contc-entry-y2nfjzmd/result.json",
+        "negative": "out/command-kvikdos-fix/contc-negative.log",
+        "wrong_owner_exit": 35
+      }
     }
   ]
 }

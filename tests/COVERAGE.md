@@ -182,3 +182,8 @@ This audit checks startup, not complete HIGH/LOW or pre-386 compatibility.
 [Follow-up evidence](memory_gate_fixes.json) records repairs to failures found
 during the promotion review. `gmake test-fc-qemu` checks FC version boundaries
 and binary/text comparisons on the shipped kernel in LOW and HIGH operation.
+
+`gmake test-command-shift-qemu` changes the maximum allocation available to a
+child COMMAND and requires successful reload and parent resumption in LOW and
+HIGH operation. Its negative control detects a shifted transient despite a
+matching additive checksum.

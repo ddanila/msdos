@@ -26,7 +26,7 @@ def main():
     if len(matches) != 1:
         raise ValueError("expected one complete CONTC decision/owner-selection entry")
     (work / "CONTC_ENTRY.INC").write_text(matches[0] + "\n")
-    pipe = re.findall(r"(?ims)^ResPipeOff:.*?(?=^CODERES\s+ENDS)", source.read_text())
+    pipe = re.findall(r"(?ims)^ResPipeOff:.*?^\s*return\s*$", source.read_text())
     if len(pipe) != 1:
         raise ValueError("expected one complete ResPipeOff procedure")
     (work / "PIPEOFF.INC").write_text(pipe[0] + "\n")
