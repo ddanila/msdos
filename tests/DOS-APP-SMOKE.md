@@ -26,6 +26,8 @@ need separate qualification; this runner tests the supplied deployed floppy.
 
 Python, QEMU, NASM, mtools, and Info-ZIP `unzip` must be installed. The latter
 handles legacy ZIP shrinking/imploding after the same path validation as Python.
+The manifest also supports individual executable downloads and ZIP-wrapped FAT
+floppies; their original download is hash-checked before extraction.
 
 Downloads and extracted application files remain in ignored `.reference/dos-apps`.
 All emulator disks, binary hashes, configuration files, QEMU invocations,
@@ -39,6 +41,9 @@ Use `--program` (repeatable) to select manifest entries, `--profile low`,
 `--seconds` to set the per-boot startup deadline. A matching screen must remain
 recognizable for a short settling period before capture. Explicit manifest
 keystrokes are sent on both systems where a startup prompt needs acknowledgement.
+PC-File uses its documented `/CHARMODE` option on both systems so the same
+text-screen comparison can check its startup interface. CuteMouse is installed
+as a TSR in each private image; mouse motion and clicks are outside this smoke.
 The additional shell/archiver scenario performs one small child-process job and
 checks the produced ZIP's contents and hash.
 
@@ -129,7 +134,8 @@ No DOS kernel or EMM386 change was justified by this finding.
 
 ## Recorded comparison
 
-The compact [application results](dos_app_smoke_baseline.json) retain system and
+The compact [earlier application results](dos_app_smoke_baseline.json) and
+[additional utility batch](dos_app_smoke_batch3_baseline.json) retain system and
 application hashes, the configurations, emulator version, readiness checks,
 comparison results, and screen hashes. The
 [CPU diagnostic results](qemu_near_call_wrap_baseline.json) record the paired

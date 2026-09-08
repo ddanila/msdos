@@ -69,7 +69,7 @@ def unzip(z, directory):
 
 
 def package_files(package, cache):
-    archive = cache / package["file"]
+    archive = cache / package.get("cache_name", package["file"])
     url = "https://archive.org/download/" + package["item"] + "/" + urllib.parse.quote(package["file"])
     if not archive.exists():
         partial = archive.with_suffix(archive.suffix + ".partial")
@@ -83,8 +83,15 @@ def package_files(package, cache):
     if directory.exists():
         shutil.rmtree(directory)
     directory.mkdir()
-    if package["format"] == "floppy":
+    if package["format"] == "file":
+        shutil.copyfile(archive, directory / Path(package["file"]).name)
+    elif package["format"] == "floppy":
         run(["mcopy", "-s", "-i", archive, "::*", directory])
+    elif package["format"] == "zip-floppy":
+        with zipfile.ZipFile(archive) as z, tempfile.TemporaryDirectory(prefix="dosapp-img-") as temporary:
+            disk = Path(temporary) / "disk.img"
+            disk.write_bytes(z.read(package["image_member"]))
+            run(["mcopy", "-s", "-i", disk, "::*", directory])
     else:
         with zipfile.ZipFile(archive) as z:
             if package["format"] == "nested-zip":
@@ -334,7 +341,9 @@ def main():
             "source_commit": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT).decode().strip(),
             "runner_sha256": sha(__file__),
             "manifest_sha256": sha(ROOT / "tests/dos_app_smoke.json"),
-            "scope": "startup only, plus one small 4DOS/PKZIP child-process job",
+            "scope": "startup only" + (", plus small child-process artifact checks"
+                if any(app.get("verify_zip") for app in manifest["programs"]
+                       if not args.program or app["id"] in args.program) else ""),
             "hardware": {"machine": "pc", "cpu": "486", "ram_mib": 8, "rtc": "1995-01-02T12:00:00"},
             "provenance": provenance,
             "profiles": {name: PROFILES[name] for name in args.profile or PROFILES},

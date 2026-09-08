@@ -1,0 +1,1053 @@
+{
+  "schema": 1,
+  "recorded_at": "2026-09-08T08:15:14.494891+00:00",
+  "source_commit": "e4b6dd972a1613dd3aacbaf444acc771dc00aa5e",
+  "runner_sha256": "340392f67985bb1dd498cfcb73ba1f22430be064eedc9d2a7fa20a300bb8d903",
+  "manifest_sha256": "278883d40b465fab274307ae2462f16c7ad5d8c3ac932c526e1a6bee0294c35e",
+  "scope": "startup only",
+  "hardware": {
+    "machine": "pc",
+    "cpu": "486",
+    "ram_mib": 8,
+    "rtc": "1995-01-02T12:00:00"
+  },
+  "provenance": {
+    "qemu_version": "QEMU emulator version 11.1.1",
+    "block_chaining": false,
+    "retail_image_sha256": "2988ae84016b719c8899f680d9e4f693902b989d392aeffac966aebff84cc8f5",
+    "fork_floppy_sha256": "c835e2df32d16a731e9511530817261922f55a7817466ac641305e3c02ba8f49",
+    "packages": {
+      "4dos": {
+        "url": "https://archive.org/download/4DOS5A_ZIP/4DOS5A.ZIP",
+        "sha256": "55a0280faf4e5624d57e0cd499e03763d68559c3db625fda826ba259fe077dc6"
+      },
+      "qedit": {
+        "url": "https://archive.org/download/QEDIT3C_ZIP/QEDIT3C.ZIP",
+        "sha256": "7259cc7b212012beb6e9d17ed22f550f0f181abf8a9bf9392dce9e9d808d1f2c"
+      },
+      "pack": {
+        "url": "https://archive.org/download/compact_202403/COMPACT.zip",
+        "sha256": "1ae5a05d63f5d405944619ab50b1809ad7c39d393157c6965928245cba90bb07"
+      },
+      "nc": {
+        "url": "https://archive.org/download/norton-commander-3.0-for-dos/Norton%20Commander%203.0%20for%20DOS.zip",
+        "sha256": "04596bd980e8d8f91d140ef7dbeeec8a6f38577ea84b5238e486eb3d64f16290"
+      },
+      "dn": {
+        "url": "https://archive.org/download/dosnav151/DosNav.IMA",
+        "sha256": "847e3d5c1a5004cc90a1389fa9a9fad3edcd9a87e05e363269295528f97edfae"
+      },
+      "pkzip": {
+        "url": "https://archive.org/download/PKZ204G_EXE/PKZ204G.EXE",
+        "sha256": "004b48f1cdfe0f31888d213e94ae3997aa5fc02bed8a2d75addaf34ae02d1024"
+      },
+      "4dos6": {
+        "url": "https://archive.org/download/4dos-6.01/4dos601.zip",
+        "sha256": "9e229c8a7da115275fe07d44b2cdbf07b5de9b3c143fba074b0e0aeba1aebb72"
+      },
+      "d86": {
+        "url": "https://archive.org/download/D86V370_ZIP/D86V370.ZIP",
+        "sha256": "b5bce2c5f4612cd75cb1a5e6b9516cbfd1eb419b1199d47f864ebca75f80b3da"
+      },
+      "vde": {
+        "url": "https://archive.org/download/VDE165A_ZIP/VDE165A.ZIP",
+        "sha256": "d596c576b1ea44e89bdf5279c8c9adb7a599868453563e541d6071830faafc59"
+      },
+      "asa57": {
+        "url": "https://archive.org/download/as-easy-as-version-5.7-for-dos/emulation.zip",
+        "sha256": "330e131ee4a295fa19f77e2b5abe36223d150f4abfcb3a15677f12eb9303371f"
+      },
+      "list": {
+        "url": "https://archive.org/download/LIST_zip/LIST.zip",
+        "sha256": "28918d82df403eb0800b4d288c8269bda6e4a73a15d84eb7ebdc0faa7b7fa4b5"
+      },
+      "a86": {
+        "url": "https://archive.org/download/a86-4.01/a86v401.zip",
+        "sha256": "42c52e31ce4b94a1d83a3800e1091a043f51b48f1b8fab6489396ac122f1b111"
+      },
+      "hiew": {
+        "url": "https://archive.org/download/Hiew_1020/hiew_650.zip",
+        "sha256": "1389f6fa0f972ffb7a414763a391b242481e7a2b13aa7c34de59c1f636528f81"
+      },
+      "pcwrite": {
+        "url": "https://archive.org/download/PC-Write_v3-0_zip/PC-Write_v3-0.zip",
+        "sha256": "8bf4263fd86023234a789e437332db371d6ef57f0baf731a7f4ed2b10c37efd5"
+      },
+      "rar": {
+        "url": "https://archive.org/download/the-rar-archiver-version-2.00-dos/The%20RAR%20Archiver%20-%20version%202.00%20%5BDOS%5D.zip",
+        "sha256": "a61c609eb0e3ac3a6f0ea246d9bcb184ba9c1512097fe4138efd98ee3877c661"
+      },
+      "tp": {
+        "url": "https://archive.org/download/borland-turbo-pascal-4.0-german/TPascal4.0.zip",
+        "sha256": "1c09891a3c9d2e8e52ea934e179345d64640f0afae9c3cc77c50bd78cfc294b2"
+      },
+      "pctools": {
+        "url": "https://archive.org/download/central-point-pc-tools-deluxe-v-5.5-disk-2/Central%20Point%20PC%20Tools%20Deluxe%20v5.5%20-%20DISK%201.img",
+        "sha256": "088aa6475d856309693e67b62fe846d67aa142798230c6d8c4551a265329b8b1"
+      },
+      "helppc": {
+        "url": "https://archive.org/download/msdos_shareware_fb_HELPPC/HELPPC.ZIP",
+        "sha256": "636ac802a7bf87aead31f67a8450643d7e9bcff8fe97bdf4e13ea593198b7263"
+      },
+      "fprot": {
+        "url": "https://archive.org/download/FPROTv211/FPROT.zip",
+        "sha256": "68d72e7dc32cf3719a31b72a365b81d8f071cb337018d483bc5e002b39d28a22"
+      },
+      "qb": {
+        "url": "https://archive.org/download/microsoft-quick-basic-2.0/Microsoft%20Quick%20Basic%202.0.zip",
+        "sha256": "f6f712a12574d2ad79d4973854e5515524361698807bda71ccf1cd5a322ba783"
+      },
+      "tasm": {
+        "url": "https://archive.org/download/borland-turbo-assembler-v1.0/Borland%20-%20Turbo%20Assembler%20v1.0%20%281988-08-29%29.zip",
+        "sha256": "bf3e5c62faa510640b41319c479bf620d37342ff963fad57d8b089ba3751c836"
+      },
+      "ted": {
+        "url": "https://archive.org/download/msdos_shareware_fb_TED_II/TED_II.ZIP",
+        "sha256": "6eef5fd74befaed79ee7fa1e90e3b78d4bd9a694fe2421a6a3860710af9e6f04"
+      },
+      "pcfile": {
+        "url": "https://archive.org/download/PCF65_ZIP/PCF65.ZIP",
+        "sha256": "ba4166a6e2f0777e1e3326fd0a82a7fbc12a0a8afd3b3aaafcd8a3695d261c18"
+      },
+      "unzip": {
+        "url": "https://archive.org/download/infozip_msdos/unz600x3.zip",
+        "sha256": "7aa93016f684544b176df97933332932599d8c3198f05de09dc93ac0eb6e9b31"
+      },
+      "pak": {
+        "url": "https://archive.org/download/pak-2.51/pak251/PAK.EXE",
+        "sha256": "6e7c9a11db5705d64b5d31cbe90445f1c6158ffa7fb24cdb5f9667c6dc520def"
+      },
+      "arc": {
+        "url": "https://archive.org/download/arc-6.02/arc602/ARC.EXE",
+        "sha256": "c53906ec5d3e6ac9c94c9738c78f8377f4d17370cc7ce20d12eff7ce1f615a51"
+      },
+      "ctmouse": {
+        "url": "https://archive.org/download/cutemouse-floppy-img/CutemouseFloppy.vfd",
+        "sha256": "550c4082e06567e2079fb90acca711186b02e13dc5cae7b05984613c4f2617e1"
+      }
+    },
+    "systems": {
+      "stock": {
+        "IO.SYS": "e443d6fb7303cd341d59a260262ae2aa20029a54d8e8daac83c1d4efa9042d75",
+        "MSDOS.SYS": "6db133420bf04ddbafe310a720fab934db3e7dc9f5a53fc6692d5a01cbbc0d4e",
+        "COMMAND.COM": "65fa71b0a34e91feffc31297fb5e24d40767c72fb513e46aaac721bda7836110",
+        "DOS/HIMEM.SYS": "615b656d0d094a31cb10ab56ab31273062c535d819e8208d412ad5d022847c93",
+        "DOS/EMM386.EXE": "d4a011769db9415402d7be129fffb762fa7d174096bcc921aa5ce85734072635"
+      },
+      "fork": {
+        "IO.SYS": "451407cd7951396b5a4b720cf42ebe9d3267f705a41c38969c65d67ebe549fa9",
+        "MSDOS.SYS": "199771dfe152be284bd84c1b6d572cc311c8c579c4d7e291ec13cd4bbaa8955d",
+        "COMMAND.COM": "505908b525048f64775fc62932b3ed8e7d230245785f7cd95b87dcd1b7550c58",
+        "DOS/HIMEM.SYS": "45da026e22cda46e34e0f87eff387a8f2434f4d6e72cfe97e8745cf0153ebaa6",
+        "DOS/EMM386.EXE": "6a81db93876add8a83f95a6ee819895e4e98d3571a5c686f9c49ae15c463817f"
+      }
+    }
+  },
+  "profiles": {
+    "low": "DOS=LOW\r\nFILES=30\r\nBUFFERS=15\r\nLASTDRIVE=Z\r\nFCBS=4,0\r\n",
+    "xms": "DEVICE=C:\\DOS\\HIMEM.SYS /TESTMEM:OFF\r\nDOS=HIGH\r\nFILES=30\r\nBUFFERS=15\r\nLASTDRIVE=Z\r\nFCBS=4,0\r\n",
+    "high": "DEVICE=C:\\DOS\\HIMEM.SYS /TESTMEM:OFF\r\nDEVICE=C:\\DOS\\EMM386.EXE 2048 RAM\r\nDOS=HIGH,UMB\r\nFILES=30\r\nBUFFERS=15\r\nLASTDRIVE=Z\r\nFCBS=4,0\r\n"
+  },
+  "results": [
+    {
+      "program": "helppc",
+      "profile": "low",
+      "passed": true,
+      "text_identical": true,
+      "normalized_text_identical": true,
+      "attributes_identical": true,
+      "captures": {
+        "stock": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 9129984,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "425135e4101838c0c9bdbb3d4fd665fdf397a66f758c8e61e9e3e0be063eeab9",
+          "executable_sha256": "74660096ac44c7d76a30e8128d8f39e8c97dad783da89af87340735ab48df479",
+          "screen_sha256": "e5710b6679ca68b36390bb041eccf722e1b7068f8bf14a1491e84e9a2c4e1876"
+        },
+        "fork": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 9136128,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "425135e4101838c0c9bdbb3d4fd665fdf397a66f758c8e61e9e3e0be063eeab9",
+          "executable_sha256": "74660096ac44c7d76a30e8128d8f39e8c97dad783da89af87340735ab48df479",
+          "screen_sha256": "e5710b6679ca68b36390bb041eccf722e1b7068f8bf14a1491e84e9a2c4e1876"
+        }
+      }
+    },
+    {
+      "program": "helppc",
+      "profile": "xms",
+      "passed": true,
+      "text_identical": true,
+      "normalized_text_identical": true,
+      "attributes_identical": true,
+      "captures": {
+        "stock": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 9129984,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "425135e4101838c0c9bdbb3d4fd665fdf397a66f758c8e61e9e3e0be063eeab9",
+          "executable_sha256": "74660096ac44c7d76a30e8128d8f39e8c97dad783da89af87340735ab48df479",
+          "screen_sha256": "e5710b6679ca68b36390bb041eccf722e1b7068f8bf14a1491e84e9a2c4e1876"
+        },
+        "fork": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 9136128,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "425135e4101838c0c9bdbb3d4fd665fdf397a66f758c8e61e9e3e0be063eeab9",
+          "executable_sha256": "74660096ac44c7d76a30e8128d8f39e8c97dad783da89af87340735ab48df479",
+          "screen_sha256": "e5710b6679ca68b36390bb041eccf722e1b7068f8bf14a1491e84e9a2c4e1876"
+        }
+      }
+    },
+    {
+      "program": "helppc",
+      "profile": "high",
+      "passed": true,
+      "text_identical": true,
+      "normalized_text_identical": true,
+      "attributes_identical": true,
+      "captures": {
+        "stock": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 9129984,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "425135e4101838c0c9bdbb3d4fd665fdf397a66f758c8e61e9e3e0be063eeab9",
+          "executable_sha256": "74660096ac44c7d76a30e8128d8f39e8c97dad783da89af87340735ab48df479",
+          "screen_sha256": "e5710b6679ca68b36390bb041eccf722e1b7068f8bf14a1491e84e9a2c4e1876"
+        },
+        "fork": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 9136128,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "425135e4101838c0c9bdbb3d4fd665fdf397a66f758c8e61e9e3e0be063eeab9",
+          "executable_sha256": "74660096ac44c7d76a30e8128d8f39e8c97dad783da89af87340735ab48df479",
+          "screen_sha256": "e5710b6679ca68b36390bb041eccf722e1b7068f8bf14a1491e84e9a2c4e1876"
+        }
+      }
+    },
+    {
+      "program": "fprot",
+      "profile": "low",
+      "passed": true,
+      "text_identical": true,
+      "normalized_text_identical": true,
+      "attributes_identical": true,
+      "captures": {
+        "stock": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 9129984,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "53030c9cc6985265a21c1e3cb73cb08f2fa83e15dd8c5d6c80f40e301ca74c07",
+          "executable_sha256": "2626523ac6964d0e6362a49a5c9cf873556a8250ccdb31a6b295c7c0aee8936b",
+          "screen_sha256": "35489a92fa77a8855d6bc0019fe6770d55d33b0781cc2d6dca4f4ab58693aaa2"
+        },
+        "fork": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 9136128,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "53030c9cc6985265a21c1e3cb73cb08f2fa83e15dd8c5d6c80f40e301ca74c07",
+          "executable_sha256": "2626523ac6964d0e6362a49a5c9cf873556a8250ccdb31a6b295c7c0aee8936b",
+          "screen_sha256": "35489a92fa77a8855d6bc0019fe6770d55d33b0781cc2d6dca4f4ab58693aaa2"
+        }
+      }
+    },
+    {
+      "program": "fprot",
+      "profile": "xms",
+      "passed": true,
+      "text_identical": true,
+      "normalized_text_identical": true,
+      "attributes_identical": true,
+      "captures": {
+        "stock": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 9129984,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "53030c9cc6985265a21c1e3cb73cb08f2fa83e15dd8c5d6c80f40e301ca74c07",
+          "executable_sha256": "2626523ac6964d0e6362a49a5c9cf873556a8250ccdb31a6b295c7c0aee8936b",
+          "screen_sha256": "35489a92fa77a8855d6bc0019fe6770d55d33b0781cc2d6dca4f4ab58693aaa2"
+        },
+        "fork": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 9136128,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "53030c9cc6985265a21c1e3cb73cb08f2fa83e15dd8c5d6c80f40e301ca74c07",
+          "executable_sha256": "2626523ac6964d0e6362a49a5c9cf873556a8250ccdb31a6b295c7c0aee8936b",
+          "screen_sha256": "35489a92fa77a8855d6bc0019fe6770d55d33b0781cc2d6dca4f4ab58693aaa2"
+        }
+      }
+    },
+    {
+      "program": "fprot",
+      "profile": "high",
+      "passed": true,
+      "text_identical": true,
+      "normalized_text_identical": true,
+      "attributes_identical": true,
+      "captures": {
+        "stock": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 9129984,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "53030c9cc6985265a21c1e3cb73cb08f2fa83e15dd8c5d6c80f40e301ca74c07",
+          "executable_sha256": "2626523ac6964d0e6362a49a5c9cf873556a8250ccdb31a6b295c7c0aee8936b",
+          "screen_sha256": "35489a92fa77a8855d6bc0019fe6770d55d33b0781cc2d6dca4f4ab58693aaa2"
+        },
+        "fork": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 9136128,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "53030c9cc6985265a21c1e3cb73cb08f2fa83e15dd8c5d6c80f40e301ca74c07",
+          "executable_sha256": "2626523ac6964d0e6362a49a5c9cf873556a8250ccdb31a6b295c7c0aee8936b",
+          "screen_sha256": "35489a92fa77a8855d6bc0019fe6770d55d33b0781cc2d6dca4f4ab58693aaa2"
+        }
+      }
+    },
+    {
+      "program": "qb",
+      "profile": "low",
+      "passed": true,
+      "text_identical": true,
+      "normalized_text_identical": true,
+      "attributes_identical": true,
+      "captures": {
+        "stock": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 9129984,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "97f4446f9458d353bcd878c8692fae9d5fa0415a5ec9429449ca9e57f1b71051",
+          "executable_sha256": "dbbbb4ab63ca49698418bb711dc530598c6ad011ae015c4e41c7f9402196154e",
+          "screen_sha256": "0ff5bff4cd2b9bea4db2a91aa47cad2b850947959a370b0badffb9df33f865a3"
+        },
+        "fork": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 9136128,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "97f4446f9458d353bcd878c8692fae9d5fa0415a5ec9429449ca9e57f1b71051",
+          "executable_sha256": "dbbbb4ab63ca49698418bb711dc530598c6ad011ae015c4e41c7f9402196154e",
+          "screen_sha256": "0ff5bff4cd2b9bea4db2a91aa47cad2b850947959a370b0badffb9df33f865a3"
+        }
+      }
+    },
+    {
+      "program": "qb",
+      "profile": "xms",
+      "passed": true,
+      "text_identical": true,
+      "normalized_text_identical": true,
+      "attributes_identical": true,
+      "captures": {
+        "stock": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 9129984,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "97f4446f9458d353bcd878c8692fae9d5fa0415a5ec9429449ca9e57f1b71051",
+          "executable_sha256": "dbbbb4ab63ca49698418bb711dc530598c6ad011ae015c4e41c7f9402196154e",
+          "screen_sha256": "0ff5bff4cd2b9bea4db2a91aa47cad2b850947959a370b0badffb9df33f865a3"
+        },
+        "fork": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 9136128,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "97f4446f9458d353bcd878c8692fae9d5fa0415a5ec9429449ca9e57f1b71051",
+          "executable_sha256": "dbbbb4ab63ca49698418bb711dc530598c6ad011ae015c4e41c7f9402196154e",
+          "screen_sha256": "0ff5bff4cd2b9bea4db2a91aa47cad2b850947959a370b0badffb9df33f865a3"
+        }
+      }
+    },
+    {
+      "program": "qb",
+      "profile": "high",
+      "passed": true,
+      "text_identical": true,
+      "normalized_text_identical": true,
+      "attributes_identical": true,
+      "captures": {
+        "stock": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 9129984,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "97f4446f9458d353bcd878c8692fae9d5fa0415a5ec9429449ca9e57f1b71051",
+          "executable_sha256": "dbbbb4ab63ca49698418bb711dc530598c6ad011ae015c4e41c7f9402196154e",
+          "screen_sha256": "0ff5bff4cd2b9bea4db2a91aa47cad2b850947959a370b0badffb9df33f865a3"
+        },
+        "fork": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 9136128,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "97f4446f9458d353bcd878c8692fae9d5fa0415a5ec9429449ca9e57f1b71051",
+          "executable_sha256": "dbbbb4ab63ca49698418bb711dc530598c6ad011ae015c4e41c7f9402196154e",
+          "screen_sha256": "0ff5bff4cd2b9bea4db2a91aa47cad2b850947959a370b0badffb9df33f865a3"
+        }
+      }
+    },
+    {
+      "program": "tasm",
+      "profile": "low",
+      "passed": true,
+      "text_identical": true,
+      "normalized_text_identical": true,
+      "attributes_identical": true,
+      "captures": {
+        "stock": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 9129984,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "d28fe05a27ee94493d97354e92bd74f1ce84648ad0bfb8f744b038c40db4f5b6",
+          "executable_sha256": "754b70821e4bac4997f398e3bdcee0f046a42cc3dad89cfbe0138f67d5b6142b",
+          "screen_sha256": "03f1d2655b855f9b2e8bca76fd349ca80539acb29a7153ed7fe79f5f75f8c777"
+        },
+        "fork": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 9136128,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "d28fe05a27ee94493d97354e92bd74f1ce84648ad0bfb8f744b038c40db4f5b6",
+          "executable_sha256": "754b70821e4bac4997f398e3bdcee0f046a42cc3dad89cfbe0138f67d5b6142b",
+          "screen_sha256": "03f1d2655b855f9b2e8bca76fd349ca80539acb29a7153ed7fe79f5f75f8c777"
+        }
+      }
+    },
+    {
+      "program": "tasm",
+      "profile": "xms",
+      "passed": true,
+      "text_identical": true,
+      "normalized_text_identical": true,
+      "attributes_identical": true,
+      "captures": {
+        "stock": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 9129984,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "d28fe05a27ee94493d97354e92bd74f1ce84648ad0bfb8f744b038c40db4f5b6",
+          "executable_sha256": "754b70821e4bac4997f398e3bdcee0f046a42cc3dad89cfbe0138f67d5b6142b",
+          "screen_sha256": "03f1d2655b855f9b2e8bca76fd349ca80539acb29a7153ed7fe79f5f75f8c777"
+        },
+        "fork": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 9136128,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "d28fe05a27ee94493d97354e92bd74f1ce84648ad0bfb8f744b038c40db4f5b6",
+          "executable_sha256": "754b70821e4bac4997f398e3bdcee0f046a42cc3dad89cfbe0138f67d5b6142b",
+          "screen_sha256": "03f1d2655b855f9b2e8bca76fd349ca80539acb29a7153ed7fe79f5f75f8c777"
+        }
+      }
+    },
+    {
+      "program": "tasm",
+      "profile": "high",
+      "passed": true,
+      "text_identical": true,
+      "normalized_text_identical": true,
+      "attributes_identical": true,
+      "captures": {
+        "stock": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 9129984,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "d28fe05a27ee94493d97354e92bd74f1ce84648ad0bfb8f744b038c40db4f5b6",
+          "executable_sha256": "754b70821e4bac4997f398e3bdcee0f046a42cc3dad89cfbe0138f67d5b6142b",
+          "screen_sha256": "03f1d2655b855f9b2e8bca76fd349ca80539acb29a7153ed7fe79f5f75f8c777"
+        },
+        "fork": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 9136128,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "d28fe05a27ee94493d97354e92bd74f1ce84648ad0bfb8f744b038c40db4f5b6",
+          "executable_sha256": "754b70821e4bac4997f398e3bdcee0f046a42cc3dad89cfbe0138f67d5b6142b",
+          "screen_sha256": "03f1d2655b855f9b2e8bca76fd349ca80539acb29a7153ed7fe79f5f75f8c777"
+        }
+      }
+    },
+    {
+      "program": "ted",
+      "profile": "low",
+      "passed": true,
+      "text_identical": true,
+      "normalized_text_identical": true,
+      "attributes_identical": true,
+      "captures": {
+        "stock": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 9129984,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "8b750944d5ea8f57e4ee2d4f59b3c3489cb53ffaa1ba0a3344f207381ea19795",
+          "executable_sha256": "f40e49f78753a455f4d08ff33e7986ac714daafdf2d545288700e510e1a95e2f",
+          "screen_sha256": "552acaa041b86d384fca53d2e43d3f7ef18c08ab21c18b10ba5c79932d235af0"
+        },
+        "fork": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 9136128,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "8b750944d5ea8f57e4ee2d4f59b3c3489cb53ffaa1ba0a3344f207381ea19795",
+          "executable_sha256": "f40e49f78753a455f4d08ff33e7986ac714daafdf2d545288700e510e1a95e2f",
+          "screen_sha256": "552acaa041b86d384fca53d2e43d3f7ef18c08ab21c18b10ba5c79932d235af0"
+        }
+      }
+    },
+    {
+      "program": "ted",
+      "profile": "xms",
+      "passed": true,
+      "text_identical": true,
+      "normalized_text_identical": true,
+      "attributes_identical": true,
+      "captures": {
+        "stock": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 9129984,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "8b750944d5ea8f57e4ee2d4f59b3c3489cb53ffaa1ba0a3344f207381ea19795",
+          "executable_sha256": "f40e49f78753a455f4d08ff33e7986ac714daafdf2d545288700e510e1a95e2f",
+          "screen_sha256": "552acaa041b86d384fca53d2e43d3f7ef18c08ab21c18b10ba5c79932d235af0"
+        },
+        "fork": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 9136128,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "8b750944d5ea8f57e4ee2d4f59b3c3489cb53ffaa1ba0a3344f207381ea19795",
+          "executable_sha256": "f40e49f78753a455f4d08ff33e7986ac714daafdf2d545288700e510e1a95e2f",
+          "screen_sha256": "552acaa041b86d384fca53d2e43d3f7ef18c08ab21c18b10ba5c79932d235af0"
+        }
+      }
+    },
+    {
+      "program": "ted",
+      "profile": "high",
+      "passed": true,
+      "text_identical": true,
+      "normalized_text_identical": true,
+      "attributes_identical": true,
+      "captures": {
+        "stock": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 9129984,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "8b750944d5ea8f57e4ee2d4f59b3c3489cb53ffaa1ba0a3344f207381ea19795",
+          "executable_sha256": "f40e49f78753a455f4d08ff33e7986ac714daafdf2d545288700e510e1a95e2f",
+          "screen_sha256": "552acaa041b86d384fca53d2e43d3f7ef18c08ab21c18b10ba5c79932d235af0"
+        },
+        "fork": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 9136128,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "8b750944d5ea8f57e4ee2d4f59b3c3489cb53ffaa1ba0a3344f207381ea19795",
+          "executable_sha256": "f40e49f78753a455f4d08ff33e7986ac714daafdf2d545288700e510e1a95e2f",
+          "screen_sha256": "552acaa041b86d384fca53d2e43d3f7ef18c08ab21c18b10ba5c79932d235af0"
+        }
+      }
+    },
+    {
+      "program": "pcfile",
+      "profile": "low",
+      "passed": true,
+      "text_identical": true,
+      "normalized_text_identical": true,
+      "attributes_identical": true,
+      "captures": {
+        "stock": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 9129984,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "e45d20dbee274082c815f1278c5d7245112cabbffa4bd2568d447fe35232baf9",
+          "executable_sha256": "df97e743c5aba22e4d4765aef212744f2ee2b7085357e299a30d9439b5caf5ad",
+          "screen_sha256": "99c177611327f4e5eac6fbf9251e5a812f6213542962761ed39acfc151082243"
+        },
+        "fork": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 9136128,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "e45d20dbee274082c815f1278c5d7245112cabbffa4bd2568d447fe35232baf9",
+          "executable_sha256": "df97e743c5aba22e4d4765aef212744f2ee2b7085357e299a30d9439b5caf5ad",
+          "screen_sha256": "99c177611327f4e5eac6fbf9251e5a812f6213542962761ed39acfc151082243"
+        }
+      }
+    },
+    {
+      "program": "pcfile",
+      "profile": "xms",
+      "passed": true,
+      "text_identical": true,
+      "normalized_text_identical": true,
+      "attributes_identical": true,
+      "captures": {
+        "stock": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 9129984,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "e45d20dbee274082c815f1278c5d7245112cabbffa4bd2568d447fe35232baf9",
+          "executable_sha256": "df97e743c5aba22e4d4765aef212744f2ee2b7085357e299a30d9439b5caf5ad",
+          "screen_sha256": "99c177611327f4e5eac6fbf9251e5a812f6213542962761ed39acfc151082243"
+        },
+        "fork": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 9136128,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "e45d20dbee274082c815f1278c5d7245112cabbffa4bd2568d447fe35232baf9",
+          "executable_sha256": "df97e743c5aba22e4d4765aef212744f2ee2b7085357e299a30d9439b5caf5ad",
+          "screen_sha256": "99c177611327f4e5eac6fbf9251e5a812f6213542962761ed39acfc151082243"
+        }
+      }
+    },
+    {
+      "program": "pcfile",
+      "profile": "high",
+      "passed": true,
+      "text_identical": true,
+      "normalized_text_identical": true,
+      "attributes_identical": true,
+      "captures": {
+        "stock": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 9129984,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "e45d20dbee274082c815f1278c5d7245112cabbffa4bd2568d447fe35232baf9",
+          "executable_sha256": "df97e743c5aba22e4d4765aef212744f2ee2b7085357e299a30d9439b5caf5ad",
+          "screen_sha256": "99c177611327f4e5eac6fbf9251e5a812f6213542962761ed39acfc151082243"
+        },
+        "fork": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 9136128,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "e45d20dbee274082c815f1278c5d7245112cabbffa4bd2568d447fe35232baf9",
+          "executable_sha256": "df97e743c5aba22e4d4765aef212744f2ee2b7085357e299a30d9439b5caf5ad",
+          "screen_sha256": "99c177611327f4e5eac6fbf9251e5a812f6213542962761ed39acfc151082243"
+        }
+      }
+    },
+    {
+      "program": "unzip",
+      "profile": "low",
+      "passed": true,
+      "text_identical": true,
+      "normalized_text_identical": true,
+      "attributes_identical": true,
+      "captures": {
+        "stock": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 9129984,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "d28fe05a27ee94493d97354e92bd74f1ce84648ad0bfb8f744b038c40db4f5b6",
+          "executable_sha256": "c3d2eb5322ed896f34efde8b1a7e4bb2ce0d9f26c28fc14c6d5ad7db75f6f3fb",
+          "screen_sha256": "e624e4d1c8c3f0ec23e640934396894df4e4b5d9244f344024216ed0d59a7b37"
+        },
+        "fork": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 9136128,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "d28fe05a27ee94493d97354e92bd74f1ce84648ad0bfb8f744b038c40db4f5b6",
+          "executable_sha256": "c3d2eb5322ed896f34efde8b1a7e4bb2ce0d9f26c28fc14c6d5ad7db75f6f3fb",
+          "screen_sha256": "e624e4d1c8c3f0ec23e640934396894df4e4b5d9244f344024216ed0d59a7b37"
+        }
+      }
+    },
+    {
+      "program": "unzip",
+      "profile": "xms",
+      "passed": true,
+      "text_identical": true,
+      "normalized_text_identical": true,
+      "attributes_identical": true,
+      "captures": {
+        "stock": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 9129984,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "d28fe05a27ee94493d97354e92bd74f1ce84648ad0bfb8f744b038c40db4f5b6",
+          "executable_sha256": "c3d2eb5322ed896f34efde8b1a7e4bb2ce0d9f26c28fc14c6d5ad7db75f6f3fb",
+          "screen_sha256": "e624e4d1c8c3f0ec23e640934396894df4e4b5d9244f344024216ed0d59a7b37"
+        },
+        "fork": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 9136128,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "d28fe05a27ee94493d97354e92bd74f1ce84648ad0bfb8f744b038c40db4f5b6",
+          "executable_sha256": "c3d2eb5322ed896f34efde8b1a7e4bb2ce0d9f26c28fc14c6d5ad7db75f6f3fb",
+          "screen_sha256": "e624e4d1c8c3f0ec23e640934396894df4e4b5d9244f344024216ed0d59a7b37"
+        }
+      }
+    },
+    {
+      "program": "unzip",
+      "profile": "high",
+      "passed": true,
+      "text_identical": true,
+      "normalized_text_identical": true,
+      "attributes_identical": true,
+      "captures": {
+        "stock": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 9129984,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "d28fe05a27ee94493d97354e92bd74f1ce84648ad0bfb8f744b038c40db4f5b6",
+          "executable_sha256": "c3d2eb5322ed896f34efde8b1a7e4bb2ce0d9f26c28fc14c6d5ad7db75f6f3fb",
+          "screen_sha256": "e624e4d1c8c3f0ec23e640934396894df4e4b5d9244f344024216ed0d59a7b37"
+        },
+        "fork": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 9136128,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "d28fe05a27ee94493d97354e92bd74f1ce84648ad0bfb8f744b038c40db4f5b6",
+          "executable_sha256": "c3d2eb5322ed896f34efde8b1a7e4bb2ce0d9f26c28fc14c6d5ad7db75f6f3fb",
+          "screen_sha256": "e624e4d1c8c3f0ec23e640934396894df4e4b5d9244f344024216ed0d59a7b37"
+        }
+      }
+    },
+    {
+      "program": "pak",
+      "profile": "low",
+      "passed": true,
+      "text_identical": true,
+      "normalized_text_identical": true,
+      "attributes_identical": true,
+      "captures": {
+        "stock": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 9129984,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "d28fe05a27ee94493d97354e92bd74f1ce84648ad0bfb8f744b038c40db4f5b6",
+          "executable_sha256": "6e7c9a11db5705d64b5d31cbe90445f1c6158ffa7fb24cdb5f9667c6dc520def",
+          "screen_sha256": "ae2d369ec5868dff74ce91158fc8edc5cd2ce08239bd6dbfe05f22a5043b2176"
+        },
+        "fork": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 9136128,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "d28fe05a27ee94493d97354e92bd74f1ce84648ad0bfb8f744b038c40db4f5b6",
+          "executable_sha256": "6e7c9a11db5705d64b5d31cbe90445f1c6158ffa7fb24cdb5f9667c6dc520def",
+          "screen_sha256": "ae2d369ec5868dff74ce91158fc8edc5cd2ce08239bd6dbfe05f22a5043b2176"
+        }
+      }
+    },
+    {
+      "program": "pak",
+      "profile": "xms",
+      "passed": true,
+      "text_identical": true,
+      "normalized_text_identical": true,
+      "attributes_identical": true,
+      "captures": {
+        "stock": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 9129984,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "d28fe05a27ee94493d97354e92bd74f1ce84648ad0bfb8f744b038c40db4f5b6",
+          "executable_sha256": "6e7c9a11db5705d64b5d31cbe90445f1c6158ffa7fb24cdb5f9667c6dc520def",
+          "screen_sha256": "ae2d369ec5868dff74ce91158fc8edc5cd2ce08239bd6dbfe05f22a5043b2176"
+        },
+        "fork": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 9136128,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "d28fe05a27ee94493d97354e92bd74f1ce84648ad0bfb8f744b038c40db4f5b6",
+          "executable_sha256": "6e7c9a11db5705d64b5d31cbe90445f1c6158ffa7fb24cdb5f9667c6dc520def",
+          "screen_sha256": "ae2d369ec5868dff74ce91158fc8edc5cd2ce08239bd6dbfe05f22a5043b2176"
+        }
+      }
+    },
+    {
+      "program": "pak",
+      "profile": "high",
+      "passed": true,
+      "text_identical": true,
+      "normalized_text_identical": true,
+      "attributes_identical": true,
+      "captures": {
+        "stock": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 9129984,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "d28fe05a27ee94493d97354e92bd74f1ce84648ad0bfb8f744b038c40db4f5b6",
+          "executable_sha256": "6e7c9a11db5705d64b5d31cbe90445f1c6158ffa7fb24cdb5f9667c6dc520def",
+          "screen_sha256": "ae2d369ec5868dff74ce91158fc8edc5cd2ce08239bd6dbfe05f22a5043b2176"
+        },
+        "fork": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 9136128,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "d28fe05a27ee94493d97354e92bd74f1ce84648ad0bfb8f744b038c40db4f5b6",
+          "executable_sha256": "6e7c9a11db5705d64b5d31cbe90445f1c6158ffa7fb24cdb5f9667c6dc520def",
+          "screen_sha256": "ae2d369ec5868dff74ce91158fc8edc5cd2ce08239bd6dbfe05f22a5043b2176"
+        }
+      }
+    },
+    {
+      "program": "arc",
+      "profile": "low",
+      "passed": true,
+      "text_identical": true,
+      "normalized_text_identical": true,
+      "attributes_identical": true,
+      "captures": {
+        "stock": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 9129984,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "d28fe05a27ee94493d97354e92bd74f1ce84648ad0bfb8f744b038c40db4f5b6",
+          "executable_sha256": "c53906ec5d3e6ac9c94c9738c78f8377f4d17370cc7ce20d12eff7ce1f615a51",
+          "screen_sha256": "d686ec5c23c69b67395b28b30185e4980d9c580439839c0e8cecd226f496ee54"
+        },
+        "fork": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 9136128,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "d28fe05a27ee94493d97354e92bd74f1ce84648ad0bfb8f744b038c40db4f5b6",
+          "executable_sha256": "c53906ec5d3e6ac9c94c9738c78f8377f4d17370cc7ce20d12eff7ce1f615a51",
+          "screen_sha256": "d686ec5c23c69b67395b28b30185e4980d9c580439839c0e8cecd226f496ee54"
+        }
+      }
+    },
+    {
+      "program": "arc",
+      "profile": "xms",
+      "passed": true,
+      "text_identical": true,
+      "normalized_text_identical": true,
+      "attributes_identical": true,
+      "captures": {
+        "stock": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 9129984,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "d28fe05a27ee94493d97354e92bd74f1ce84648ad0bfb8f744b038c40db4f5b6",
+          "executable_sha256": "c53906ec5d3e6ac9c94c9738c78f8377f4d17370cc7ce20d12eff7ce1f615a51",
+          "screen_sha256": "d686ec5c23c69b67395b28b30185e4980d9c580439839c0e8cecd226f496ee54"
+        },
+        "fork": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 9136128,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "d28fe05a27ee94493d97354e92bd74f1ce84648ad0bfb8f744b038c40db4f5b6",
+          "executable_sha256": "c53906ec5d3e6ac9c94c9738c78f8377f4d17370cc7ce20d12eff7ce1f615a51",
+          "screen_sha256": "d686ec5c23c69b67395b28b30185e4980d9c580439839c0e8cecd226f496ee54"
+        }
+      }
+    },
+    {
+      "program": "arc",
+      "profile": "high",
+      "passed": true,
+      "text_identical": true,
+      "normalized_text_identical": true,
+      "attributes_identical": true,
+      "captures": {
+        "stock": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 9129984,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "d28fe05a27ee94493d97354e92bd74f1ce84648ad0bfb8f744b038c40db4f5b6",
+          "executable_sha256": "c53906ec5d3e6ac9c94c9738c78f8377f4d17370cc7ce20d12eff7ce1f615a51",
+          "screen_sha256": "d686ec5c23c69b67395b28b30185e4980d9c580439839c0e8cecd226f496ee54"
+        },
+        "fork": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 9136128,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "d28fe05a27ee94493d97354e92bd74f1ce84648ad0bfb8f744b038c40db4f5b6",
+          "executable_sha256": "c53906ec5d3e6ac9c94c9738c78f8377f4d17370cc7ce20d12eff7ce1f615a51",
+          "screen_sha256": "d686ec5c23c69b67395b28b30185e4980d9c580439839c0e8cecd226f496ee54"
+        }
+      }
+    },
+    {
+      "program": "ctmouse",
+      "profile": "low",
+      "passed": true,
+      "text_identical": true,
+      "normalized_text_identical": true,
+      "attributes_identical": true,
+      "captures": {
+        "stock": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 9129984,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "d28fe05a27ee94493d97354e92bd74f1ce84648ad0bfb8f744b038c40db4f5b6",
+          "executable_sha256": "822cf550c9e19a22785722d2306aa08ede10ff20bfe931d5a81a15f77c5f363e",
+          "screen_sha256": "e91bee8b57122270f4dc3b096e6f8cbf7e62e424535043f908071646f21910a6"
+        },
+        "fork": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 9136128,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "d28fe05a27ee94493d97354e92bd74f1ce84648ad0bfb8f744b038c40db4f5b6",
+          "executable_sha256": "822cf550c9e19a22785722d2306aa08ede10ff20bfe931d5a81a15f77c5f363e",
+          "screen_sha256": "e91bee8b57122270f4dc3b096e6f8cbf7e62e424535043f908071646f21910a6"
+        }
+      }
+    },
+    {
+      "program": "ctmouse",
+      "profile": "xms",
+      "passed": true,
+      "text_identical": true,
+      "normalized_text_identical": true,
+      "attributes_identical": true,
+      "captures": {
+        "stock": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 9129984,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "d28fe05a27ee94493d97354e92bd74f1ce84648ad0bfb8f744b038c40db4f5b6",
+          "executable_sha256": "822cf550c9e19a22785722d2306aa08ede10ff20bfe931d5a81a15f77c5f363e",
+          "screen_sha256": "e91bee8b57122270f4dc3b096e6f8cbf7e62e424535043f908071646f21910a6"
+        },
+        "fork": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 9136128,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "d28fe05a27ee94493d97354e92bd74f1ce84648ad0bfb8f744b038c40db4f5b6",
+          "executable_sha256": "822cf550c9e19a22785722d2306aa08ede10ff20bfe931d5a81a15f77c5f363e",
+          "screen_sha256": "e91bee8b57122270f4dc3b096e6f8cbf7e62e424535043f908071646f21910a6"
+        }
+      }
+    },
+    {
+      "program": "ctmouse",
+      "profile": "high",
+      "passed": true,
+      "text_identical": true,
+      "normalized_text_identical": true,
+      "attributes_identical": true,
+      "captures": {
+        "stock": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 9129984,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "d28fe05a27ee94493d97354e92bd74f1ce84648ad0bfb8f744b038c40db4f5b6",
+          "executable_sha256": "822cf550c9e19a22785722d2306aa08ede10ff20bfe931d5a81a15f77c5f363e",
+          "screen_sha256": "e91bee8b57122270f4dc3b096e6f8cbf7e62e424535043f908071646f21910a6"
+        },
+        "fork": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 9136128,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "d28fe05a27ee94493d97354e92bd74f1ce84648ad0bfb8f744b038c40db4f5b6",
+          "executable_sha256": "822cf550c9e19a22785722d2306aa08ede10ff20bfe931d5a81a15f77c5f363e",
+          "screen_sha256": "e91bee8b57122270f4dc3b096e6f8cbf7e62e424535043f908071646f21910a6"
+        }
+      }
+    }
+  ]
+}

@@ -131,6 +131,84 @@
       "file": "Central Point PC Tools Deluxe v5.5 - DISK 1.img",
       "format": "floppy",
       "sha256": "088aa6475d856309693e67b62fe846d67aa142798230c6d8c4551a265329b8b1"
+    },
+    {
+      "id": "helppc",
+      "item": "msdos_shareware_fb_HELPPC",
+      "file": "HELPPC.ZIP",
+      "format": "zip",
+      "sha256": "636ac802a7bf87aead31f67a8450643d7e9bcff8fe97bdf4e13ea593198b7263"
+    },
+    {
+      "id": "fprot",
+      "item": "FPROTv211",
+      "file": "FPROT.zip",
+      "format": "zip",
+      "sha256": "68d72e7dc32cf3719a31b72a365b81d8f071cb337018d483bc5e002b39d28a22",
+      "subdir": "FPROT"
+    },
+    {
+      "id": "qb",
+      "item": "microsoft-quick-basic-2.0",
+      "file": "Microsoft Quick Basic 2.0.zip",
+      "format": "zip-floppy",
+      "sha256": "f6f712a12574d2ad79d4973854e5515524361698807bda71ccf1cd5a322ba783",
+      "image_member": "disk1.img"
+    },
+    {
+      "id": "tasm",
+      "item": "borland-turbo-assembler-v1.0",
+      "file": "Borland - Turbo Assembler v1.0 (1988-08-29).zip",
+      "format": "zip-floppy",
+      "sha256": "bf3e5c62faa510640b41319c479bf620d37342ff963fad57d8b089ba3751c836",
+      "image_member": "Borland - Turbo Assembler v1.0 - Disk 1 of 1 - Installation.img"
+    },
+    {
+      "id": "ted",
+      "item": "msdos_shareware_fb_TED_II",
+      "file": "TED_II.ZIP",
+      "format": "zip",
+      "sha256": "6eef5fd74befaed79ee7fa1e90e3b78d4bd9a694fe2421a6a3860710af9e6f04"
+    },
+    {
+      "id": "pcfile",
+      "item": "PCF65_ZIP",
+      "file": "PCF65.ZIP",
+      "format": "zip",
+      "sha256": "ba4166a6e2f0777e1e3326fd0a82a7fbc12a0a8afd3b3aaafcd8a3695d261c18"
+    },
+    {
+      "id": "unzip",
+      "item": "infozip_msdos",
+      "file": "unz600x3.zip",
+      "format": "zip",
+      "sha256": "7aa93016f684544b176df97933332932599d8c3198f05de09dc93ac0eb6e9b31"
+    },
+    {
+      "id": "pak",
+      "item": "pak-2.51",
+      "file": "pak251/PAK.EXE",
+      "cache_name": "pak251.exe",
+      "format": "file",
+      "sha256": "6e7c9a11db5705d64b5d31cbe90445f1c6158ffa7fb24cdb5f9667c6dc520def"
+    },
+    {
+      "id": "arc",
+      "item": "arc-6.02",
+      "file": "arc602/ARC.EXE",
+      "cache_name": "arc602.exe",
+      "format": "file",
+      "sha256": "c53906ec5d3e6ac9c94c9738c78f8377f4d17370cc7ce20d12eff7ce1f615a51"
+    },
+    {
+      "id": "ctmouse",
+      "item": "cutemouse-floppy-img",
+      "file": "CutemouseFloppy.vfd",
+      "format": "floppy",
+      "sha256": "550c4082e06567e2079fb90acca711186b02e13dc5cae7b05984613c4f2617e1",
+      "exclude": [
+        "Screenshot 2026-04-07 183942.png"
+      ]
     }
   ],
   "programs": [
@@ -385,6 +463,138 @@
         "File List 1",
         "F10Menu",
         "=bytes Free"
+      ]
+    },
+    {
+      "id": "helppc",
+      "name": "HelpPC 2.0",
+      "package": "helppc",
+      "command": "HELPPC.COM",
+      "features": "indexed reference browser, file handles and seek/read",
+      "expect": [
+        "HelpPC 2.0",
+        "Main Topic Menu",
+        "Tables and Formats used by DOS & BIOS"
+      ]
+    },
+    {
+      "id": "fprot",
+      "name": "F-PROT 2.11",
+      "package": "fprot",
+      "command": "F-PROT.EXE",
+      "features": "antivirus startup, allocation, signature/resource loading and console",
+      "expect": [
+        "Shareware version 2.11",
+        "Configure",
+        "Quit"
+      ],
+      "actions": [
+        {
+          "after": "This version of the program is rather old.",
+          "keys": "ret"
+        },
+        {
+          "after": "The virus information file is rather old",
+          "keys": "ret"
+        }
+      ]
+    },
+    {
+      "id": "qb",
+      "name": "QuickBASIC 2.0",
+      "package": "qb",
+      "command": "QB2.EXE",
+      "features": "compiler/editor startup, allocation and console",
+      "expect": [
+        "File  Edit  View  Search  Run"
+      ],
+      "actions": [
+        {
+          "after": "Press Esc to make this box go away.",
+          "keys": "esc"
+        }
+      ]
+    },
+    {
+      "id": "tasm",
+      "name": "Turbo Assembler 1.0",
+      "package": "tasm",
+      "command": "TASM.EXE",
+      "features": "assembler startup, executable loading and console",
+      "expect": [
+        "Turbo Assembler  Version 1.0",
+        "Syntax:  TASM",
+        "APP_RETURN_tasm"
+      ]
+    },
+    {
+      "id": "ted",
+      "name": "TED II",
+      "package": "ted",
+      "command": "TED2.COM SAMPLE.TXT",
+      "features": "editor, allocation and file read",
+      "expect": [
+        "DOS application startup comparison",
+        "F1Help F2Exit F3Print"
+      ]
+    },
+    {
+      "id": "pcfile",
+      "name": "PC-File 6.5",
+      "package": "pcfile",
+      "command": "PCF.EXE /CHARMODE",
+      "features": "database startup, overlays, allocation and resource loading",
+      "expect": [
+        "PC-File",
+        "File  Edit  Views  Search  Print  Utilities  Tools  Macros",
+        "Copyright (C) ButtonWare 1984-1992"
+      ]
+    },
+    {
+      "id": "unzip",
+      "name": "Info-ZIP UnZip 6.0",
+      "package": "unzip",
+      "command": "UNZIP.EXE",
+      "features": "extractor startup, executable loading and console",
+      "expect": [
+        "UnZip 6.00",
+        "Usage: unzip",
+        "APP_RETURN_unzip"
+      ]
+    },
+    {
+      "id": "pak",
+      "name": "PAK 2.51",
+      "package": "pak",
+      "command": "PAK.EXE",
+      "features": "archiver startup, allocation and console",
+      "expect": [
+        "Pak 2.51",
+        "Syntax for PAK is:",
+        "Press ENTER to continue:"
+      ]
+    },
+    {
+      "id": "arc",
+      "name": "ARC 6.02",
+      "package": "arc",
+      "command": "ARC.EXE",
+      "features": "archiver startup, allocation and console",
+      "expect": [
+        "ARC - Archive utility, Version 6.02",
+        "Hit \"ENTER\" to continue. . ."
+      ]
+    },
+    {
+      "id": "ctmouse",
+      "name": "CuteMouse 2.1 beta4",
+      "package": "ctmouse",
+      "command": "CTMOUSE.EXE",
+      "features": "mouse driver startup, interrupt vectors, DOS allocation and TSR residency",
+      "expect": [
+        "CuteMouse v2.1 beta4",
+        "Installed at PS/2 port",
+        "APP_RETURN_ctmouse"
       ]
     }
   ]
