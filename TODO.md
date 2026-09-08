@@ -6,11 +6,9 @@
    stack-pool composition, comparing its temporary bootstrap interception with
    the unmodified `test_software_reboot_qemu.py` control. See
    [composed memory diagnostics](tests/COVERAGE.md#composed-memory-diagnostics).
-2. Add missing `EGA.SYS` deletion-mutation evidence to
-   `tests/oracle_mutation_coverage.json`; the strict verifier currently rejects it.
-3. Implement retail-compatible DriveSpace, including compressed-volume support
+2. Implement retail-compatible DriveSpace, including compressed-volume support
    throughout the system. An explicit extended format may follow.
-4. Treat QBASIC/EDIT, AccessDOS, the Microsoft Network Client, and additional
+3. Treat QBASIC/EDIT, AccessDOS, the Microsoft Network Client, and additional
    DOS 6 locale packs as independent epics.
 
 [DOS622_GAPS.md](DOS622_GAPS.md) defines product scope and non-goals;

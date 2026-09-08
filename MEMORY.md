@@ -18,6 +18,51 @@ external drivers and hooks, broader exception contexts, and hardware-specific
 media/A20 behavior remain validation gaps. Scope these explicitly; a focused
 passing probe does not establish full compatibility.
 
+## Stabilization subplan
+
+The objective is to qualify one composed memory configuration for promotion
+into the normal build. Start with the evidence audit and reboot checks below;
+reuse applicable evidence before scheduling additional runs. Track the overall
+open item in [TODO.md](TODO.md), and keep results in manifests or generated
+reports rather than copying them here.
+
+1. **Identify the candidate and audit existing evidence.** Freeze a matched
+   image containing the intended BIOS and COMMAND relocations, paired
+   HIMEM/EMM386 providers, and upper interrupt stack pool. Retain its binaries,
+   hashes, maps, build options, and startup configuration. Compare these with
+   the recorded [application comparisons](tests/DOS-APP-SMOKE.md) and focused
+   memory tests. Reuse results only where the tested inputs and scope match;
+   distinguish default-deployment results from composed-image qualification.
+2. **Complete the reboot pair.** Run
+   [test_bios_int19_qemu.py](tests/test_bios_int19_qemu.py) on the complete
+   paired-provider and upper stack-pool composition, then run
+   [test_software_reboot_qemu.py](tests/test_software_reboot_qemu.py) with the
+   existing configuration on the same frozen base image as the unmodified
+   bootstrap-chain control. Require the diagnostic's second boot, stack checks
+   on both boots, and subsequent FCB operation, plus successful reboot through
+   the control. Keep each run's mutations private; see
+   [composed memory diagnostics](tests/COVERAGE.md#composed-memory-diagnostics).
+3. **Qualify failure paths and memory ownership.** Use existing focused probes
+   where applicable and add fixtures for concrete gaps. Exercise HIGH/LOW
+   operation, allocation and publication failures, partial relocation, and
+   usable low fallback. Check A20-off entry and return, interrupt handling,
+   EMS mapping changes while UMB clients remain live, and process cleanup.
+   Assert preserved ownership and data as well as successful execution.
+4. **Qualify repeated application operations.** On the candidate image, cover
+   child EXEC/exit cycles, COMMAND reload, pipes, disk/media I/O, and console
+   editing. Reuse matching existing coverage and extend application scenarios
+   where startup comparisons leave lifecycle behavior untested. Record the
+   actual operations and assertions so startup success is not mistaken for
+   full application qualification.
+5. **Review promotion against the recorded scope.** Require the applicable
+   [release gates](ARCHITECTURE.md#reproducibility-and-validation) and the checks
+   above to pass for matched inputs, with discrepancies resolved or explicitly
+   scoped. Record the decision on enabling the composition by default and
+   retain reproducible qualification commands. Keep DBCS, external hooks,
+   unusual hardware, and other untested contexts explicit; exhaustive coverage
+   of every DOS program and machine is not the completion criterion. Further
+   memory optimization remains deferred.
+
 ## Ownership constraints
 
 - UMB storage ownership is independent of the public arena link state. Process
