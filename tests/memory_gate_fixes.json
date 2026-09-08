@@ -1,0 +1,93 @@
+{
+  "review": "memory_promotion_review.json",
+  "fixes": [
+    {
+      "component": "FC",
+      "problem": "Upper DOS version guard rejected the shipped DOS 6.22 kernel.",
+      "change": "Accept versions through 6.22, retaining the existing lower bound.",
+      "validation": {
+        "gate": "gmake -j1 test-fc-qemu",
+        "version_boundary_cases": [
+          "3.9 rejected",
+          "3.10 accepted",
+          "5.0 accepted",
+          "6.0 accepted",
+          "6.22 accepted",
+          "6.23 rejected"
+        ],
+        "qemu": {
+          "floppy_sha256": "195b157ceef11490411b5f6234783954db0cef4e780303143ad696852debe0ef",
+          "fc_sha256": "ae87328044d6e402306e157082d0fd0d02bc6245b1b493aa848ee1887fc3244e",
+          "results": {
+            "LOW": {
+              "passed": true,
+              "exit_code": 33,
+              "command": [
+                "qemu-system-i386",
+                "-display",
+                "none",
+                "-monitor",
+                "none",
+                "-cpu",
+                "486",
+                "-m",
+                "8",
+                "-boot",
+                "a",
+                "-serial",
+                "stdio",
+                "-no-reboot",
+                "-nic",
+                "none",
+                "-drive",
+                "if=floppy,format=raw,file=/Users/ddanila/fun/msdos/out/fc-qemu-ra0obqtu/LOW.img",
+                "-device",
+                "isa-debug-exit,iobase=0xf4,iosize=0x04"
+              ],
+              "log_sha256": "4c3e077790644a1480d5245736bf18bfbdeaec274c92a0238062c4799588ca1e"
+            },
+            "HIGH": {
+              "passed": true,
+              "exit_code": 33,
+              "command": [
+                "qemu-system-i386",
+                "-display",
+                "none",
+                "-monitor",
+                "none",
+                "-cpu",
+                "486",
+                "-m",
+                "8",
+                "-boot",
+                "a",
+                "-serial",
+                "stdio",
+                "-no-reboot",
+                "-nic",
+                "none",
+                "-drive",
+                "if=floppy,format=raw,file=/Users/ddanila/fun/msdos/out/fc-qemu-ra0obqtu/HIGH.img",
+                "-device",
+                "isa-debug-exit,iobase=0xf4,iosize=0x04"
+              ],
+              "log_sha256": "4c3e077790644a1480d5245736bf18bfbdeaec274c92a0238062c4799588ca1e"
+            }
+          }
+        },
+        "negative_control": {
+          "binary": "out/fc-dos622-fix/FC-before.EXE",
+          "artifacts": "out/fc-qemu-c8f44ka7",
+          "result": "Old binary rejected DOS 6.22 and failed the gate."
+        },
+        "native_suite": {
+          "passed": 351,
+          "failed": 102,
+          "skipped": 0,
+          "remaining_failures": "COMMAND.COM",
+          "log": "out/fc-dos622-fix/command-suite.log"
+        }
+      }
+    }
+  ]
+}

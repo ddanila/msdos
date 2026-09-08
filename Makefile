@@ -522,6 +522,12 @@ test-help-ui-qemu: deploy
 test-expand: deploy $(KVIKDOS_SOFT_BIN)
 	bash tests/test_expand.sh
 
+.PHONY: test-fc-qemu
+test: test-fc-qemu
+test-fc-qemu: deploy $(KVIKDOS_SOFT_BIN)
+	python3 tests/test_fc_version.py
+	python3 tests/test_fc_qemu.py
+
 test-choice: $(CHOICE_OUT) $(KVIKDOS_SOFT_BIN)
 	bash tests/test_choice.sh
 

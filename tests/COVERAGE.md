@@ -176,3 +176,9 @@ A profile counts as booted only when COMMAND emits the completion marker and
 QEMU exits successfully. The runner returns failure if any profile does not
 boot; recognizing the HMA diagnostic explains the blocker but does not waive it.
 This audit checks startup, not complete HIGH/LOW or pre-386 compatibility.
+
+## Promotion gate repairs
+
+[Follow-up evidence](memory_gate_fixes.json) records repairs to failures found
+during the promotion review. `gmake test-fc-qemu` checks FC version boundaries
+and binary/text comparisons on the shipped kernel in LOW and HIGH operation.

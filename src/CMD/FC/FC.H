@@ -7,7 +7,7 @@ struct lineType {
 #define word  unsigned short
 
 #define LOWVERSION   0x0300 + 10
-#define HIGHVERSION  0x0500 + 00
+#define HIGHVERSION  0x0600 + 22
 
 #include <ctype.h>
 #define ISSPACE(c)     isspace((unsigned char)(c))
