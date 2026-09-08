@@ -46,9 +46,9 @@ and separates ordinary-build release gates from composed-image qualification.
 Before enabling the composition by default, separate its production feature
 configuration from diagnostic assertions and qualify the resulting matched
 binaries. In particular, ordinary LOW operation must not require rebuilding the
-provider to remove a HIGH-only test expectation. Reconcile the recorded
-retained-memory budget discrepancies explicitly; do not waive layout gates or
-make further optimization a prerequisite for its own sake.
+provider to remove a HIGH-only test expectation. Retain the [accounted residency bounds](tests/memory_residency_budgets.json)
+and ownership checks when assembling the production configuration. Further
+optimization is not a prerequisite for its own sake.
 
 1. **Identify the candidate and audit existing evidence.** Freeze a matched
    image containing the intended BIOS and COMMAND relocations, paired

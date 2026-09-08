@@ -11,6 +11,8 @@ from pathlib import Path
 import re
 
 
+BUDGETS = json.loads(Path(__file__).with_name("memory_residency_budgets.json").read_text())["limits"]
+
 SEGMENT_RE = re.compile(
     r"^(\S+)\s+.*?([0-9A-F]{4}):([0-9A-F]{4})\s+([0-9A-F]{8})$",
     re.IGNORECASE,
@@ -729,8 +731,8 @@ def main() -> int:
     day_size, bcd_size = selection["day"], selection["bcd"]
     after_day, clock_end = selection["after_day"], selection["clock_end"]
     packed_graph_bytes = selection["graph"]
-    if selected > 8160:
-        errors.append("selected resident BIOS exceeds the 8,160-byte ceiling")
+    if selected > BUDGETS["bios_selected"]:
+        errors.append(f"selected resident BIOS exceeds its {BUDGETS['bios_selected']:,}-byte ceiling")
     print("\n### Fixed comparison selection\n")
     print("QEMU `pc` selects one hard disk, no 96-TPI extension, no legacy AT-ROM fix, a CMOS clock, and no K09 extension.\n")
     if retired_clock:

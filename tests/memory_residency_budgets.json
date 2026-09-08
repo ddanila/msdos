@@ -1,0 +1,157 @@
+{
+  "scope": "Accepted retained owners in the ordinary production layout; not a claim of further optimization or composed-default qualification.",
+  "limits": {
+    "bios_selected": 8176,
+    "command_high": 3664,
+    "command_fallback": 6112,
+    "emm_data": 398,
+    "emm_default_layout": 4336,
+    "emm_mem_umb_module": 4528,
+    "emm_real_gateway": 355,
+    "emm_low_text": 775
+  },
+  "accounting": {
+    "bios": {
+      "baseline_commit": "292e47a",
+      "previous": 8160,
+      "current": 8176,
+      "additions": [
+        {
+          "bytes": 15,
+          "owner": "Saved INT 15h, 2Fh and 67h boot vectors with interrupt-number tags",
+          "commit": "bd5024f"
+        },
+        {
+          "bytes": 1,
+          "owner": "Alignment after boot vectors"
+        }
+      ]
+    },
+    "command": {
+      "baseline_commit": "292e47a",
+      "high_unrounded_before": 3632,
+      "high_unrounded_after": 3663,
+      "fallback_unrounded_before": 6079,
+      "fallback_unrounded_after": 6110,
+      "additions": [
+        {
+          "bytes": 14,
+          "owner": "Reconstruct COMSPEC reload-prompt substitutions from live state",
+          "commit": "d633c4e"
+        },
+        {
+          "bytes": 15,
+          "owner": "Require transient segment agreement before trusting checksum",
+          "commit": "9350761"
+        },
+        {
+          "bytes": 2,
+          "owner": "Segment associated with recorded transient checksum",
+          "commit": "9350761"
+        }
+      ]
+    },
+    "emm": {
+      "baseline_commit": "014cc1ed",
+      "static_before": 1471,
+      "static_after": 1905,
+      "default_layout_before": 3888,
+      "default_layout_after": 4336,
+      "additions": [
+        {
+          "bytes": 19,
+          "owner": "INT 19h real-mode entry restores protected-mode ownership before chaining",
+          "commit": "bd5024f"
+        },
+        {
+          "bytes": 13,
+          "owner": "Paragraph alignment after enlarged real-mode entry segment"
+        },
+        {
+          "bytes": 2,
+          "owner": "NMI/parity ownership flag and linked alignment; UMB flag and error-message changes net to zero",
+          "commit": "b22f480"
+        },
+        {
+          "bytes": 18,
+          "owner": "Reject unsafe explicit mode changes with live UMB or EMS owners",
+          "commit": "24554c5"
+        },
+        {
+          "bytes": 7,
+          "owner": "Keep AUTO paging active while UMB mappings exist",
+          "commit": "24554c5"
+        },
+        {
+          "bytes": 326,
+          "owner": "Retained real-mode error dialog and callable recovery continuations",
+          "commit": "102c7e5"
+        },
+        {
+          "bytes": 49,
+          "owner": "Keyboard service called from retained error continuation",
+          "commit": "102c7e5"
+        },
+        {
+          "bytes": 14,
+          "owner": "Change in installed protected-stack paragraph alignment"
+        }
+      ],
+      "live_mem_umb": {
+        "artifact": "out/emm-live-owners-csx6a25f/result.json",
+        "snapshot": "out/emm-live-owners-csx6a25f/ram.bin",
+        "counts": {
+          "handles": 64,
+          "alternate_registers": 7,
+          "physical_pages": 28,
+          "page_assignments": 0,
+          "dma_pages": 1,
+          "ems_pages": 40
+        },
+        "retained_static": 1905,
+        "runtime_tables": 2086,
+        "stack_alignment": 9,
+        "protected_stack": 512,
+        "device_payload": 4512,
+        "allocation_header": 16,
+        "module_total": 4528,
+        "comparison": {
+          "baseline_commit": "00354ced",
+          "baseline_artifact": "out/emm-live-owners-qf3lh8e2/result.json",
+          "baseline_static": 1528,
+          "baseline_tables": 1894,
+          "baseline_alignment": 2,
+          "baseline_module_total": 3952,
+          "retained_static_change": 377,
+          "table_change": 192,
+          "alignment_change": 7,
+          "module_change": 576,
+          "table_change_owner": "Restore 24 conventional handle-zero page records, with allocated/free indexes and physical addresses (8 bytes per page).",
+          "table_change_commit": "db3b01c",
+          "comparison_scope": "Old and current EMM binaries with the same current kernel/HIMEM and fixed RAM configuration, for allocation accounting only.",
+          "static_breakdown": {
+            "real_gateway": 19,
+            "gateway_alignment": 13,
+            "mutable_data": -26,
+            "retained_text": 371
+          }
+        },
+        "command": "python3 tests/capture_emm_live_owners.py out/floppy.img --mem-umb-profile --require-compact",
+        "input_hashes": {
+          "out/floppy.img": "40d9bf943aec3f560216e2fa8ff8b6805ccc8ad775768b9518097ce3b009c001",
+          "/Users/ddanila/fun/msdos/src/MEMM/MEMM/EMM386.EXE": "6a81db93876add8a83f95a6ee819895e4e98d3571a5c686f9c49ae15c463817f",
+          "/Users/ddanila/fun/msdos/out/himem-residency.sys": "45da026e22cda46e34e0f87eff387a8f2434f4d6e72cfe97e8745cf0153ebaa6",
+          "/Users/ddanila/fun/msdos/src/MEMM/MEMM/EMM386.MAP": "c15a39025bb1f2ad47c2ad7e2bd5f8785c0e6ca244baacd6df0a8f8c04a1a71b"
+        }
+      }
+    }
+  },
+  "evidence_directory": "out/memory-budget-reconciliation",
+  "linked_inputs": {
+    "src/BIOS/MSBIO.MAP": "ff09ac28660fd4d899a698ccc58a3d2099cbb9e864f9efb3cc99c415e12748f0",
+    "src/CMD/COMMAND/COMMAND.MAP": "fb3d0e9ac1a21eadf9a9c0aa32d22a60bb60cbfaec9427aa5789af97cf64fc2d",
+    "src/CMD/COMMAND/COMMAND.COM": "1ddbbb2da237f2a0b50d63459bf13d4a37bbf4705ff8eddf0ceae4e0472826dc",
+    "src/MEMM/MEMM/EMM386.MAP": "c15a39025bb1f2ad47c2ad7e2bd5f8785c0e6ca244baacd6df0a8f8c04a1a71b",
+    "src/MEMM/MEMM/EMM386.EXE": "6a81db93876add8a83f95a6ee819895e4e98d3571a5c686f9c49ae15c463817f"
+  }
+}

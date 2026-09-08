@@ -2,9 +2,9 @@
 
 1. Stabilize and qualify the composed memory implementation before promotion;
    see [MEMORY.md](MEMORY.md). Further memory optimization is deferred.
-   Follow the [promotion review](tests/memory_promotion_review.json): reconcile
-   command-suite and retained-memory budget failures, then build a production
-   composition without diagnostic-only boot requirements, integrate its matched
+   Follow the [promotion review](tests/memory_promotion_review.json) and
+   [gate repairs](tests/memory_gate_fixes.json): build a production composition
+   without diagnostic-only boot requirements, integrate its matched
    outputs into build/deployment, and qualify that release candidate across
    HIGH/LOW and pre-386 fallback before enabling it by default.
 2. Implement retail-compatible DriveSpace, including compressed-volume support

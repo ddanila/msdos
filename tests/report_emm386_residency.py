@@ -4,11 +4,14 @@
 from __future__ import annotations
 
 import argparse
+import json
 from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
 import re
 
+
+BUDGETS = json.loads(Path(__file__).with_name("memory_residency_budgets.json").read_text())["limits"]
 
 SEGMENT_RE = re.compile(
     r"^(\S+)\s+.*?([0-9A-F]{4}):([0-9A-F]{4})\s+([0-9A-F]{8})$",
@@ -270,8 +273,8 @@ def main() -> int:
     by_name = {segment.name: segment for segment in segments}
     if args.check and by_name["GDT"].size > 176:
         raise ValueError("production GDT retains unused legacy descriptors")
-    if args.check and by_name["_DATA"].size > 396:
-        raise ValueError("EMM386 retained mutable data exceeds 396 bytes")
+    if args.check and by_name["_DATA"].size > BUDGETS["emm_data"]:
+        raise ValueError(f"EMM386 retained mutable data exceeds {BUDGETS['emm_data']} bytes")
     symbol_by_name = {symbol.name: symbol for symbol in symbols}
     if args.check:
         dma_pages = symbol_by_name.get("DMA_Pages")
@@ -312,8 +315,8 @@ def main() -> int:
             raise ValueError("derived or shared EMM386 state is retained separately")
     text = by_name["_TEXT"]
     r_code = by_name["R_CODE"]
-    if args.check and r_code.size > 336:
-        raise ValueError("EMM386 retained R_CODE gateway exceeds 336 bytes")
+    if args.check and r_code.size > BUDGETS["emm_real_gateway"]:
+        raise ValueError(f"EMM386 retained R_CODE gateway exceeds {BUDGETS['emm_real_gateway']} bytes")
     segment_categories = {
         by_name["GDT"].paragraph: "retained descriptor state",
         by_name["_DATA"].paragraph: "retained mutable runtime data",
@@ -331,8 +334,8 @@ def main() -> int:
     low_text_size = split - text.offset
     if low_text_size < 0 or low_text_size > text.size:
         raise ValueError("IOTrap_Tab falls outside the linked _TEXT segment")
-    if args.check and low_text_size > 404:
-        raise ValueError("EMM386 retained _TEXT gateway exceeds 404 bytes")
+    if args.check and low_text_size > BUDGETS["emm_low_text"]:
+        raise ValueError(f"EMM386 retained _TEXT gateway exceeds {BUDGETS['emm_low_text']} bytes")
     if args.check:
         for name in (
             "EMM_pEntry",
@@ -545,6 +548,17 @@ def main() -> int:
         Range(symbol_offset(symbols, "DMARegSav", data_segment), symbol_offset(symbols, "MB_Stat", data_segment), "DMA snapshot and page metadata"),
         Range(symbol_offset(symbols, "MB_Stat", data_segment), by_name["_DATA"].size, "move-block status and padding"),
     ]
+    if "GPsavERR" in symbol_by_name:
+        error_start = symbol_offset(symbols, "GPsavERR", data_segment) - 2
+        error_end = symbol_offset(symbols, "KbdComd", data_segment)
+        previous = data_ranges[2]
+        if not previous.start <= error_start < error_end <= previous.end:
+            raise ValueError("retained error state is outside its low data owner")
+        data_ranges[2:3] = [
+            Range(previous.start, error_start, "EMS/error-state alignment"),
+            Range(error_start, error_end, "error dialog IRQ masks and saved fault record"),
+            Range(error_end, previous.end, "A20 and OEM transition state and alignment"),
+        ]
     print_ranges("Retained `_DATA` ownership", data_ranges)
 
     runtime_ranges: list[Range] = []
@@ -601,9 +615,9 @@ def main() -> int:
             args.dma_pages,
         )
         == (64, 7, 64, 6, 0, 1)
-        and runtime_ranges[-1].end > 3888
+        and runtime_ranges[-1].end > BUDGETS["emm_default_layout"]
     ):
-        raise ValueError("default EMM386 retained-layout end exceeds 3,888 bytes")
+        raise ValueError(f"default EMM386 retained-layout end exceeds {BUDGETS['emm_default_layout']:,} bytes")
     print_ranges("Selected installed tail", runtime_ranges)
     dma_page_label = "DMA page" if args.dma_pages == 1 else "DMA pages"
     print(

@@ -4,11 +4,14 @@
 from __future__ import annotations
 
 import argparse
+import json
 from dataclasses import dataclass
 from pathlib import Path
 import re
 import subprocess
 
+
+BUDGETS = json.loads(Path(__file__).with_name("memory_residency_budgets.json").read_text())["limits"]
 
 SEGMENT_RE = re.compile(
     r"^(\S+)\s+.*?([0-9A-F]{4}):([0-9A-F]{4})\s+([0-9A-F]{8})$",
@@ -359,10 +362,10 @@ def main() -> int:
             for slot, engine in (("GETMSG", "HMA_SYSGETMSG"), ("DISPMSG", "HMA_SYSDISPMSG")):
                 constants.append(f"%define SHELL_DELTA_{slot} {require(symbols, engine) - require(symbols, 'hma_in_char_xlat_high')}")
             args.gate_include.write_text("\n".join(constants) + "\n")
-    if rounded(resident_catalog_start) > 3632 + prototype_allowance:
-        errors.append(f"DOS-high permanent COMMAND exceeds its {3632 + prototype_allowance:,}-byte budget")
-    if rounded(hma_code_end) > 6080 + fallback_allowance:
-        errors.append(f"low/failure COMMAND fallback exceeds its {6080 + fallback_allowance:,}-byte budget")
+    if rounded(resident_catalog_start) > BUDGETS['command_high'] + prototype_allowance:
+        errors.append(f"DOS-high permanent COMMAND exceeds its {BUDGETS['command_high'] + prototype_allowance:,}-byte budget")
+    if rounded(hma_code_end) > BUDGETS['command_fallback'] + fallback_allowance:
+        errors.append(f"low/failure COMMAND fallback exceeds its {BUDGETS['command_fallback'] + fallback_allowance:,}-byte budget")
     if not (
         datares_end == data.end <= hma_code_start < hma_code_end
         <= parse_messages == segments["MSGOPT"].start

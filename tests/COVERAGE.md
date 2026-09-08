@@ -187,3 +187,8 @@ and binary/text comparisons on the shipped kernel in LOW and HIGH operation.
 child COMMAND and requires successful reload and parent resumption in LOW and
 HIGH operation. Its negative control detects a shifted transient despite a
 matching additive checksum.
+
+[Residency budgets](memory_residency_budgets.json) retain explicit owner accounting
+for the ordinary build. BIOS, COMMAND, and EMM386 reports and the MEM UMB gate
+consume the same limits. Reproduce the live fixed-profile census with
+`python3 tests/capture_emm_live_owners.py out/floppy.img --mem-umb-profile --require-compact`.

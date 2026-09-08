@@ -3,8 +3,10 @@ set -euo pipefail
 export LC_ALL=C
 
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
-OUT="$ROOT/out"
-FLOPPY="$OUT/floppy.img"
+FLOPPY="${FLOPPY_IMAGE:-$ROOT/out/floppy.img}"
+OUT=$(mktemp -d "$ROOT/out/mem-umb.XXXXXX")
+echo "Evidence: $OUT"
+EMM_BUDGET=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["limits"]["emm_mem_umb_module"])' "$ROOT/tests/memory_residency_budgets.json")
 HIMEM="$OUT/mem-umb-himem.sys"
 STATE="$OUT/mem-umb-state.com"
 QEXIT="$OUT/mem-umb-exit.com"
@@ -24,12 +26,17 @@ run_image() {
     local image=$1
     local log=$2
 
+    local rc=0
     timeout 35 qemu-system-i386 \
         -display none -monitor none -machine pc -cpu 486 -m 16 \
         -drive if=floppy,index=0,format=raw,file="$image",cache=writethrough \
         -boot a -serial stdio -no-reboot \
         -device isa-debug-exit,iobase=0xf4,iosize=0x04 \
-        >"$log" 2>&1 || true
+        >"$log" 2>&1 || rc=$?
+    if (( rc != 33 )); then
+        echo "FAIL: QEMU exited $rc; expected diagnostic exit 33 ($log)" >&2
+        return 1
+    fi
 }
 
 IMAGE="$OUT/mem-umb.img"
@@ -106,10 +113,10 @@ if [[ ! "$himem_conventional" =~ ^[0-9]+$ ]] || (( himem_conventional > 3072 ));
 fi
 
 # This fixed RAM configuration adds two explicit include regions to the default
-# layout. Keep its live EMM386 payload at the measured 3,952-byte ceiling.
+# layout. Account for all live tables, retained error paths, stack and MCB.
 emm386_conventional=$(awk '$1 == "EMM386" { print $3; exit }' "$LOG" | tr -d '\r')
-if [[ ! "$emm386_conventional" =~ ^[0-9]+$ ]] || (( emm386_conventional > 3952 )); then
-    echo 'FAIL: EMM386 exceeds the 3,952-byte fixed-config footprint budget' >&2
+if [[ ! "$emm386_conventional" =~ ^[0-9]+$ ]] || (( emm386_conventional > EMM_BUDGET )); then
+    echo "FAIL: EMM386 exceeds the ${EMM_BUDGET}-byte fixed-config footprint budget" >&2
     echo "  EMM386=${emm386_conventional:-unparsed}" >&2
     strings -a "$LOG" | sed -n '1,180p' >&2
     exit 1

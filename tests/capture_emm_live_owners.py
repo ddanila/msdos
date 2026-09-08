@@ -177,7 +177,11 @@ def main():
                         help="isolate initial-mode effects on table and stack placement")
     parser.add_argument("--require-compact", action="store_true",
                         help="reject more than paragraph padding between tables and stack")
+    parser.add_argument("--mem-umb-profile", action="store_true",
+                        help="use the MEM UMB gate's default EMS capacity and include regions")
     args = parser.parse_args()
+    if args.mem_umb_profile and (args.himem_handles != 32 or args.mode != "RAM"):
+        parser.error("the MEM UMB profile requires RAM and the default HIMEM handle count")
     subprocess.run(["make", "memm", "test-himem-residency"], cwd=ROOT, check=True,
                    stdout=subprocess.DEVNULL)
     work = Path(tempfile.mkdtemp(prefix="emm-live-owners-", dir=ROOT / "out"))
@@ -196,7 +200,9 @@ def main():
     install(emm, "EMM386.EXE")
     install(himem, "HIMEM.SYS")
     install(probe, "OWNERS.COM")
-    config = startup_config(args.himem_handles, args.mode)
+    config = (b"DEVICE=HIMEM.SYS\r\n"
+              b"DEVICE=EMM386.EXE RAM M5 I=CC00-CFFF I=E400-E7FF\r\nDOS=HIGH,UMB\r\n"
+              if args.mem_umb_profile else startup_config(args.himem_handles, args.mode))
     install("-", "CONFIG.SYS", config)
     install("-", "AUTOEXEC.BAT", b"@ECHO OFF\r\nCTTY AUX\r\nOWNERS.COM\r\n")
     qmp_path = work / "qmp"
@@ -247,7 +253,7 @@ def main():
     result["copy_window_candidates"] = copy_window_candidates(ram, result["cr3"])
     if args.require_compact and result["table_to_stack_gap"] >= 16:
         raise ValueError("table-to-stack gap exceeds compact paragraph alignment")
-    if result["ems_pool_bytes"] != 1048576:
+    if result["ems_pool_bytes"] != (262144 if args.mem_umb_profile else 1048576):
         raise ValueError(f"fixed profile was not installed: {result}")
     result["inputs"] = {str(path): hashlib.sha256(path.read_bytes()).hexdigest()
                         for path in (args.image, emm, himem, ROOT / "src/MEMM/MEMM/EMM386.MAP")}

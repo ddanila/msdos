@@ -196,7 +196,7 @@
         },
         "bindings": {
           "static_cases_passed": 18,
-          "runtime_gate": "Blocked at previously recorded retained-memory budgets; reconciliation follows."
+          "runtime_gate": "Passed after explicit retained-owner budget reconciliation."
         }
       },
       "fixture_repair": {
@@ -206,6 +206,34 @@
         "negative": "out/command-kvikdos-fix/contc-negative.log",
         "wrong_owner_exit": 35
       }
+    },
+    {
+      "component": "Retained-memory release budgets",
+      "accounting": "memory_residency_budgets.json",
+      "change": "Retain measured safety-critical owners under shared explicit bounds; preserve layout, ownership and over-budget failures.",
+      "validation": {
+        "layout_gates": [
+          "test-dos-bios-residency",
+          "test-command-residency",
+          "test-emm-relocation-budget"
+        ],
+        "runtime_gates": [
+          "test-mem-umb-qemu",
+          "test-command-resident-binding-qemu"
+        ],
+        "passed": true,
+        "logs": [
+          "out/memory-budget-reconciliation/reconciled-gates.log",
+          "out/memory-budget-reconciliation/reconciled-gates-retry.log"
+        ],
+        "scope_note": "The first invocation passed BIOS/COMMAND and exposed additional EMM sub-budgets; the retry passed EMM and runtime gates.",
+        "budget_negative": "out/memory-budget-reconciliation/budget-negative.log"
+      },
+      "fixture_repairs": [
+        "Use private MEM UMB media/logs and honor FLOPPY_IMAGE.",
+        "Require QEMU diagnostic exit instead of accepting a timeout with partial output.",
+        "Name the retained EMM error-state allocation in the ownership report."
+      ]
     }
   ]
 }
