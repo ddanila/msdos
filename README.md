@@ -4,8 +4,9 @@ This repository builds a DOS 6.22-compatible system from maintained sources in
 `src/`. It uses custom JWasm and Open Watcom on Linux and macOS. The production
 build is native and open source; runtime tests use emulators.
 
-Composed memory layouts are experimental and require separate qualification
-from the default deployment. See [TODO.md](TODO.md) for priorities and
+The default build selects the composed memory profile. Its qualification and
+ownership constraints are recorded in [MEMORY.md](MEMORY.md).
+See [TODO.md](TODO.md) for priorities and
 [DOS622_GAPS.md](DOS622_GAPS.md) for compatibility scope and limitations.
 
 ## Requirements
@@ -46,6 +47,10 @@ See [tests/COVERAGE.md](tests/COVERAGE.md) for test scope and
 [EMULATION.md](EMULATION.md) for additional emulator gates. Known blockers are
 listed in [TODO.md](TODO.md). `make distribution` builds the installation disk
 set under `out/distribution/`.
+
+The selected memory core is built under `out/memory-production/files/` and used
+consistently by deployment and installation media. Use
+`make MEMORY_PROFILE=baseline all deploy distribution` for the baseline layout.
 
 The deployed floppy is written to `out/floppy.img`. Boot it interactively with:
 

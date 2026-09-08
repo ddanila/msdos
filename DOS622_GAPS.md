@@ -9,8 +9,8 @@ compatibility requirements. Reference material is listed in
 The build, [distribution inventory](distribution/files.json), and
 [test manifests](tests/COVERAGE.md) describe shipped features and their coverage.
 Commands, drivers, setup/recovery, Help, and memory services exist, but their
-presence does not establish complete retail parity. Memory composition is
-under stabilization; see [MEMORY.md](MEMORY.md). Inherited validation limits
+presence does not establish complete retail parity. Memory composition's
+qualification scope is recorded in [MEMORY.md](MEMORY.md). Inherited validation limits
 are in [DOS5_GAPS.md](DOS5_GAPS.md).
 
 ## Separate epics

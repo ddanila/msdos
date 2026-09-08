@@ -42,9 +42,9 @@ are retained under `out/86box-286-failures/`.
 
 ## Limits
 
-The default 286 suite does not qualify opt-in composed memory layouts.
-Retest those with matched images and their own success/fallback probes; see
-[MEMORY.md](MEMORY.md).
+Keep 286 evidence matched to the selected memory core. Baseline runs do not
+qualify a different composition; use its own success/fallback probes. The
+production fallback evidence is linked from [MEMORY.md](MEMORY.md).
 
 A DOSBox-X stall alone does not establish a product defect; compare a real-BIOS
 backend. Emulators do not prove every chipset, A20 controller, physical storage

@@ -2,16 +2,16 @@
 
 ## Current priority
 
-Stabilize the composed memory implementation. Further BIOS/COMMAND relocation,
+Maintain the matched production memory profile. Further BIOS/COMMAND relocation,
 HMA/UMB repacking, and EBDA recovery are deferred unless a correctness defect
 requires them. More free conventional memory is not a promotion requirement.
 
-The composed BIOS, shell, and paired-provider layouts have an opt-in production
-builder, `make memory-production`; they are not all enabled by `make deploy`. Passing a default-image test
-does not qualify a composed image. Keep its kernel, BIOS, COMMAND, HIMEM, EMM386,
-shared-layout consumers, maps, and configuration matched.
+`make all`, `make deploy`, and `make distribution` select the production core
+under `out/memory-production/files/`. `MEMORY_PROFILE=baseline` restores the
+baseline layout. Keep the kernel, BIOS, COMMAND, HIMEM, EMM386, shared-layout
+consumers, maps, and configuration matched.
 
-Before promotion, qualify HIGH/LOW operation, allocation and publication
+Before promoting a changed composition, qualify HIGH/LOW operation, allocation and publication
 failures, A20-off entry/return, interrupts, disk/media I/O, console editing,
 shell reload/EXEC/pipes, and software reboot on that same composition. DBCS,
 external drivers and hooks, broader exception contexts, and hardware-specific
@@ -20,50 +20,30 @@ passing probe does not establish full compatibility.
 
 ## Stabilization subplan
 
-The objective is to qualify one composed memory configuration for promotion
-into the normal build. Start with the evidence audit and reboot checks below;
-reuse applicable evidence before scheduling additional runs. Track the overall
-open item in [TODO.md](TODO.md), and keep results in manifests or generated
-reports rather than copying them here.
+The [current promotion review](tests/memory_promotion_review.json) records the
+decision and links the [matched release evidence](tests/memory_production_release.json).
+Use the subplan below for subsequent changes. Audit existing evidence before
+scheduling runs, and keep results in manifests or generated reports rather
+than copying them here.
 
-The [retained-image evidence audit](tests/memory_stabilization_audit.json)
-identifies a frozen historical composition and records which existing results
-match it. The [composed reboot qualification](tests/memory_stabilization_baseline.json)
-records its rebuilt successor and the diagnostic/control pair. These records
-qualify their exact inputs, not later builds or the entire stabilization plan.
-Local artifacts and reproduction commands are linked from the records and
-[composed memory diagnostics](tests/COVERAGE.md#composed-memory-diagnostics).
-The [failure/ownership qualification](tests/memory_failure_baseline.json)
-records focused fault variants, child cleanup, EMS/UMB isolation, and timer/A20
-checks on that same candidate. Reuse this evidence only for its stated scope;
-additional contexts still require their own checks. The
-[application lifecycle qualification](tests/memory_application_baseline.json)
-records repeated jobs and persisted outputs on the composition and retail DOS,
-with memory accounting between operations. Its application and virtual-media
-scope is narrower than general software or hardware compatibility.
-The [promotion review](tests/memory_promotion_review.json) records the decision
-and separates ordinary-build release gates from composed-image qualification.
-Before enabling the composition by default, separate its production feature
-configuration from diagnostic assertions and qualify the resulting matched
-binaries. In particular, ordinary LOW operation must not require rebuilding the
-provider to remove a HIGH-only test expectation. Retain the [accounted residency bounds](tests/memory_residency_budgets.json)
-and ownership checks when assembling the production configuration. Further
-optimization is not a prerequisite for its own sake.
-The [ordinary release checks](tests/memory_ordinary_release_gates.json) retain
-the independently frozen baseline-build evidence; production qualification
-must still match the selected composition.
+The historical [image audit](tests/memory_stabilization_audit.json),
+[reboot qualification](tests/memory_stabilization_baseline.json),
+[failure qualification](tests/memory_failure_baseline.json), and
+[application qualification](tests/memory_application_baseline.json) apply to
+their recorded inputs. The [initial production qualification](tests/memory_production_baseline.json),
+[deployment qualification](tests/memory_deployment_baseline.json), and
+[ordinary release checks](tests/memory_ordinary_release_gates.json) retain
+intermediate evidence. They do not substitute for a changed composition's
+qualification.
 
-The [production qualification record](tests/memory_production_baseline.json)
-tracks the composition without boot witnesses or HIGH-only assertions. Its
-bootstrap staging and ownership transfer belong to production initialization;
-the failure tests inspect retained roots and the live table descriptor. Use
-`tools/freeze_memory_production.py` to preserve matched media before testing.
-Select it for deployment with `make MEMORY_PROFILE=production deploy
-distribution`; `MEMORY_PROFILE=baseline` restores the ordinary core. Both
-media paths use the same hash-checked selection. The
-[deployment qualification](tests/memory_deployment_baseline.json) records
-installation and profile-switch checks. Default promotion still requires the
-remaining platform and release checks.
+Production bootstrap staging and ownership transfer belong to initialization,
+independently of diagnostic witnesses. Ordinary LOW operation must work with
+the same binaries as HIGH operation. Retain the
+[accounted residency bounds](tests/memory_residency_budgets.json) and live-owner
+checks; further optimization is not a prerequisite for its own sake.
+Use `tools/freeze_memory_production.py` to preserve matched media before testing.
+See [composed memory diagnostics](tests/COVERAGE.md#composed-memory-diagnostics)
+for focused reproduction commands.
 
 1. **Identify the candidate and audit existing evidence.** Freeze a matched
    image containing the intended BIOS and COMMAND relocations, paired

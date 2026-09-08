@@ -163,9 +163,9 @@ HIMEM and EMM386. See [the application notes](DOS-APP-SMOKE.md#exepack-compatibi
 
 ## Memory promotion review
 
-The [review record](memory_promotion_review.json) distinguishes default-build
-release gates from the opt-in composition's evidence. A passing default suite
-cannot qualify different composed binaries. The profile audit changes only
+The [review record](memory_promotion_review.json) links the matched production
+release evidence and retains the scope of historical baseline checks. A passing
+suite cannot qualify different composed binaries. The profile audit changes only
 startup configuration and its completion probe on private copies:
 
 ```sh

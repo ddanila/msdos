@@ -958,13 +958,15 @@ FLOPPY      := $(OUT)/floppy.img
 BOOT_BIN    := $(SRC)/BOOT/MSBOOT.BIN
 BOOT_OFF    := 31744
 
-MEMORY_PROFILE ?= baseline
+MEMORY_PROFILE ?= production
 MEMORY_PRODUCTION_DIR ?= $(OUT)/memory-production
 ifneq ($(filter $(MEMORY_PROFILE),baseline production),$(MEMORY_PROFILE))
 $(error MEMORY_PROFILE must be baseline or production)
 endif
 ifeq ($(MEMORY_PROFILE),production)
 export MEMORY_CORE_DIR := $(MEMORY_PRODUCTION_DIR)/files
+else
+unexport MEMORY_CORE_DIR
 endif
 
 IO_SYS      := $(SRC)/BIOS/IO.SYS
@@ -1068,7 +1070,8 @@ EMM386_EXE := $(MEMORY_CORE_DIR)/EMM386.EXE
 $(IO_SYS) $(MSDOS_SYS) $(COMMAND_COM) $(HIMEM_SYS) $(EMM386_EXE) &: memory-production
 	@test -f $@
 
-minimal-floppy: memory-production
+all minimal-floppy: memory-production
+deploy: memory-production
 endif
 
 .PHONY: force-memory-profile
@@ -1197,7 +1200,7 @@ $(FLOPPY): $(OUT)/memory-profile $(BOOT_BIN) $(IO_SYS) $(MSDOS_SYS) $(SYSMENU_OV
 	mcopy -i $@ $(HIMEM_SYS) ::HIMEM.SYS
 	mcopy -i $@ $(EMM386_EXE) ::EMM386.EXE
 
-deploy:
+deploy: build-all
 	# A single jobserver-aware submake prevents parallel image and build paths
 	# from racing on their shared generated message and include files.
 	+$(MAKE) $(FLOPPY)

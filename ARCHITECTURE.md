@@ -23,8 +23,10 @@ have separate layout and mutation contracts.
 ## Memory architecture
 
 DOS conventional/UMB allocation and the HIMEM/EMM386 memory services share an
-ownership model. The opt-in composed BIOS, COMMAND, and paired-provider layouts
-are under stabilization and need separate qualification from the default image.
+ownership model. The default composed BIOS, COMMAND, and paired-provider core
+is built under `out/memory-production/files/`. `MEMORY_PROFILE=baseline` selects
+the baseline artifacts under `src/`. Keep qualification matched to the selected
+core; diagnostic variants have separate scope.
 [MEMORY.md](MEMORY.md) records ownership and promotion constraints.
 
 ## Reproducibility and validation
