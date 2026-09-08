@@ -113,6 +113,33 @@ private output directory. The [qualification record](memory_stabilization_baseli
 retains the tested identities and outcomes. Remaining stabilization work stays
 in [TODO.md](../TODO.md).
 
+The composed failure/ownership campaign uses private variants of that frozen
+build, reconstructing the original provider and BIOS before introducing faults:
+
+```sh
+python3 tests/test_composed_memory_failures_qemu.py out/memory-candidate
+python3 tests/test_command_upper_failure_qemu.py out/memory-candidate/candidate.img
+python3 tests/test_command_upper_failure_qemu.py out/memory-candidate/candidate.img --policy-rejection
+python3 tests/test_stack_pool_retirement_qemu.py out/memory-candidate/candidate.img \
+  --shapes-bios out/memory-candidate/bios --async-timer --a20-off
+```
+
+The first runner accepts repeated `--case` selections. It checks BIOS table,
+CDS and stack allocation fallback; EMM table allocation/partial-copy fallback;
+and UMB rollback after mapping and before publication. Runtime assertions check
+actual table/stack locations, EMS exhaustion and release, patterned UMB storage
+during EMS remapping, and file operations. Child cleanup compares both the
+largest free upper block and total free UMB space across repeated exits, with
+the public arena alternately linked and unlinked. A deliberately retained child
+must trigger the accounting failure, rather than merely fail a startup check.
+
+The DOS=LOW variant removes the provider's HIGH-only diagnostic assertion and
+independently verifies low kernel/stack operation. Its CDS and file tables may
+still occupy UMBs. EMS rollback accounting excludes pages held by system handle
+zero; it requires all other pages to be available, then exhausts and releases
+them. The [failure qualification record](memory_failure_baseline.json) gives
+the exact scope, input identities, positive results and negative controls.
+
 ## External DOS applications
 
 The [DOS application startup comparison](DOS-APP-SMOKE.md) uses pinned archive.org

@@ -33,6 +33,10 @@ records its rebuilt successor and the diagnostic/control pair. These records
 qualify their exact inputs, not later builds or the entire stabilization plan.
 Local artifacts and reproduction commands are linked from the records and
 [composed memory diagnostics](tests/COVERAGE.md#composed-memory-diagnostics).
+The [failure/ownership qualification](tests/memory_failure_baseline.json)
+records focused fault variants, child cleanup, EMS/UMB isolation, and timer/A20
+checks on that same candidate. Reuse this evidence only for its stated scope;
+additional contexts still require their own checks.
 
 1. **Identify the candidate and audit existing evidence.** Freeze a matched
    image containing the intended BIOS and COMMAND relocations, paired

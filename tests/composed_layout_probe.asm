@@ -1,0 +1,43 @@
+bits 16
+org 100h
+%include "layout-defs.inc"
+    mov ah,52h
+    int 21h
+    push es
+    push bx
+    les si,[es:bx+CDS]
+    mov [values],es
+    pop bx
+    pop es
+    push es
+    push bx
+    les si,[es:bx+SFT]
+    les si,[es:si+SFLINK]
+    mov [values+2],es
+    pop bx
+    pop es
+    les si,[es:bx+FCB]
+    mov [values+4],es
+    mov dx,name
+    xor cx,cx
+    mov ah,3ch
+    int 21h
+    jc fail
+    mov bx,ax
+    mov dx,values
+    mov cx,6
+    mov ah,40h
+    int 21h
+    jc fail
+    cmp ax,6
+    jne fail
+    mov ah,3eh
+    int 21h
+    jc fail
+    mov ax,4c00h
+    int 21h
+fail:
+    mov ax,4c01h
+    int 21h
+values times 3 dw 0
+name db 'LAYOUT.BIN',0

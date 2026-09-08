@@ -1,0 +1,541 @@
+{
+  "schema": 1,
+  "recorded_at": "2026-09-08T14:19:00.332736+00:00",
+  "source_commit": "6e1d57588d5c2843ac965f1305add8db148116d3",
+  "scope": "Focused failure-path and ownership campaign on private variants of the frozen composed image; no OS changes or promotion.",
+  "passed": true,
+  "candidate": {
+    "image": "out/memory-stabilization-current-20260908/composition2/candidate.img",
+    "sha256": "711697675b0682da04fc71fba96e00c2e28ffca657844eede890e33122a1db8e",
+    "build_record": "out/memory-stabilization-current-20260908/composition2/build.json",
+    "build_record_sha256": "b7cd526812bf2da31650d641f0abaaa80419e42385abe32e173d5c3d3f163ce4",
+    "reboot_record": "tests/memory_stabilization_baseline.json",
+    "reboot_record_sha256": "cce83ebc7f16a9abb975f3212daa938d4ae8366d9d23d24279ac771075f46b4f"
+  },
+  "hardware": {
+    "machine": "pc",
+    "cpu": "486",
+    "ram_mib": 8,
+    "qemu_version": "QEMU emulator version 11.1.1"
+  },
+  "composed_cases": {
+    "control": {
+      "passed": true,
+      "exit_code": 33,
+      "fault": null,
+      "bios_overrides": {},
+      "bios_sha256": "83d89b007b8921d4e786e9eaeb0b08512653ae7ade6f00b7f589d7a7d353a6dc",
+      "emm_sha256": "4d0fad0e9f9c22de4e47c342face4c359097d84828b93e97bfdb793c701ce058",
+      "stack_passes": 2,
+      "negative_control": false,
+      "layout_segments": {
+        "cds": 52045,
+        "sft": 51970,
+        "fcb": 52027
+      },
+      "ems_pages": {
+        "free": 12,
+        "total": 40,
+        "system_handle_pages": 24
+      },
+      "emm_table_owner": {
+        "physical": 1443748,
+        "bytes": 2086,
+        "end": 860,
+        "high": 1
+      },
+      "artifacts": "out/composed-memory-failures-e0rrmp54/control",
+      "record": "out/composed-memory-failures-e0rrmp54/results.json",
+      "record_sha256": "a66ea1ff8d3fc216ae4cfa65f8c5fa264044173fa9bb859f52cf7c3bb1f01e71",
+      "serial_sha256": "ae16daf55901b648b2479058daa19b1f94becd897cb60173d27ef919ea90d8e8",
+      "debug_sha256": "79041e5f47ab66e266eb0282ff3b7b2aedbccf2b93a47bfbc33bc5bda7ec57ff",
+      "final_image_sha256": "e346f03147a54358b382b2a0d5f628ec4b11f113e8748cacdad6c1e0de495e74",
+      "probe_sha256": {
+        "EMSCHECK.COM": "66a9efeac7040a9c03baab422d9ddec29e5bdfc0ce63d15d09ba234b9b5a3268",
+        "I21FCB.COM": "b15acb2cf80b55bb0d9db08fb294ca2c171ad0889f05afdd715e8b8f5dbf29e0",
+        "LAYOUT.COM": "7f960af7f6fd60229db1df7107bffaec33459e8c6d1e1b8aa90bb911c42bfd5d",
+        "OWNCHILD.COM": "3cedd3f0c7af539d2fc05b001ccbd8312fdd9f07a737b18706b5c26a6767a2a4",
+        "OWNERS.COM": "accc2987930764a02e029bbad3c2259e3c26482b42589e8d7c5feebcf2396d57",
+        "QEXIT.COM": "1fbb1c10e8c323f10af6f7cf1674ec8148f0bfe0bdfa5912d2835a41c2f0103c",
+        "STACKCHK.COM": "204db44ca648abc3b46dc3e7a335c513f5e1b30301dd8feefde3e7d21399133f",
+        "UMBEMS.COM": "f8f989d09926cbf2bebbbd5f4a7b4eb30bb215fc1ab1346c173b1ce23123c86e"
+      },
+      "config": "DEVICE=C:\\DOS\\HIMEM.SYS /TESTMEM:ON\r\nDEVICE=C:\\DOS\\EMM386.EXE RAM M5\r\nBUFFERS=15\r\nFILES=20\r\nDOS=HIGH,UMB\r\nLASTDRIVE=Z\r\nFCBS=4,0\r\nSTACKS=9,128\r\n"
+    },
+    "bios-tables": {
+      "passed": true,
+      "exit_code": 33,
+      "fault": null,
+      "bios_overrides": {
+        "fail_tables": true
+      },
+      "bios_sha256": "153f52583b5e479de16dd3a4e1d5cfd4f4d5563e740e0fcaf13f335136b0bfcc",
+      "emm_sha256": "4d0fad0e9f9c22de4e47c342face4c359097d84828b93e97bfdb793c701ce058",
+      "stack_passes": 2,
+      "negative_control": false,
+      "layout_segments": {
+        "cds": 51970,
+        "sft": 861,
+        "fcb": 918
+      },
+      "ems_pages": {
+        "free": 12,
+        "total": 40,
+        "system_handle_pages": 24
+      },
+      "emm_table_owner": {
+        "physical": 1443748,
+        "bytes": 2086,
+        "end": 860,
+        "high": 1
+      },
+      "artifacts": "out/composed-memory-failures-e0rrmp54/bios-tables",
+      "record": "out/composed-memory-failures-e0rrmp54/results.json",
+      "record_sha256": "a66ea1ff8d3fc216ae4cfa65f8c5fa264044173fa9bb859f52cf7c3bb1f01e71",
+      "serial_sha256": "ae16daf55901b648b2479058daa19b1f94becd897cb60173d27ef919ea90d8e8",
+      "debug_sha256": "79041e5f47ab66e266eb0282ff3b7b2aedbccf2b93a47bfbc33bc5bda7ec57ff",
+      "final_image_sha256": "0046b98906460f3bc9d16011d687ad2231c10b4a839a28620d6bd4627cb02cd6",
+      "probe_sha256": {
+        "EMSCHECK.COM": "66a9efeac7040a9c03baab422d9ddec29e5bdfc0ce63d15d09ba234b9b5a3268",
+        "I21FCB.COM": "b15acb2cf80b55bb0d9db08fb294ca2c171ad0889f05afdd715e8b8f5dbf29e0",
+        "LAYOUT.COM": "7f960af7f6fd60229db1df7107bffaec33459e8c6d1e1b8aa90bb911c42bfd5d",
+        "OWNCHILD.COM": "3cedd3f0c7af539d2fc05b001ccbd8312fdd9f07a737b18706b5c26a6767a2a4",
+        "OWNERS.COM": "accc2987930764a02e029bbad3c2259e3c26482b42589e8d7c5feebcf2396d57",
+        "QEXIT.COM": "1fbb1c10e8c323f10af6f7cf1674ec8148f0bfe0bdfa5912d2835a41c2f0103c",
+        "STACKCHK.COM": "204db44ca648abc3b46dc3e7a335c513f5e1b30301dd8feefde3e7d21399133f",
+        "UMBEMS.COM": "f8f989d09926cbf2bebbbd5f4a7b4eb30bb215fc1ab1346c173b1ce23123c86e"
+      },
+      "config": "DEVICE=C:\\DOS\\HIMEM.SYS /TESTMEM:ON\r\nDEVICE=C:\\DOS\\EMM386.EXE RAM M5\r\nBUFFERS=15\r\nFILES=20\r\nDOS=HIGH,UMB\r\nLASTDRIVE=Z\r\nFCBS=4,0\r\nSTACKS=9,128\r\n"
+    },
+    "bios-cds": {
+      "passed": true,
+      "exit_code": 33,
+      "fault": null,
+      "bios_overrides": {
+        "fail_cds": true
+      },
+      "bios_sha256": "8c4f15a5663bc8d709a3130e327bc8d2c0a120592771d4069e174191b701e4e9",
+      "emm_sha256": "4d0fad0e9f9c22de4e47c342face4c359097d84828b93e97bfdb793c701ce058",
+      "stack_passes": 2,
+      "negative_control": false,
+      "layout_segments": {
+        "cds": 894,
+        "sft": 51970,
+        "fcb": 52027
+      },
+      "ems_pages": {
+        "free": 12,
+        "total": 40,
+        "system_handle_pages": 24
+      },
+      "emm_table_owner": {
+        "physical": 1443748,
+        "bytes": 2086,
+        "end": 860,
+        "high": 1
+      },
+      "artifacts": "out/composed-memory-failures-e0rrmp54/bios-cds",
+      "record": "out/composed-memory-failures-e0rrmp54/results.json",
+      "record_sha256": "a66ea1ff8d3fc216ae4cfa65f8c5fa264044173fa9bb859f52cf7c3bb1f01e71",
+      "serial_sha256": "ae16daf55901b648b2479058daa19b1f94becd897cb60173d27ef919ea90d8e8",
+      "debug_sha256": "79041e5f47ab66e266eb0282ff3b7b2aedbccf2b93a47bfbc33bc5bda7ec57ff",
+      "final_image_sha256": "ba4c8213a2e7faca1f1974eb593cc8c7eba5d0b49c78741a1b835596b807f1ec",
+      "probe_sha256": {
+        "EMSCHECK.COM": "66a9efeac7040a9c03baab422d9ddec29e5bdfc0ce63d15d09ba234b9b5a3268",
+        "I21FCB.COM": "b15acb2cf80b55bb0d9db08fb294ca2c171ad0889f05afdd715e8b8f5dbf29e0",
+        "LAYOUT.COM": "7f960af7f6fd60229db1df7107bffaec33459e8c6d1e1b8aa90bb911c42bfd5d",
+        "OWNCHILD.COM": "3cedd3f0c7af539d2fc05b001ccbd8312fdd9f07a737b18706b5c26a6767a2a4",
+        "OWNERS.COM": "accc2987930764a02e029bbad3c2259e3c26482b42589e8d7c5feebcf2396d57",
+        "QEXIT.COM": "1fbb1c10e8c323f10af6f7cf1674ec8148f0bfe0bdfa5912d2835a41c2f0103c",
+        "STACKCHK.COM": "204db44ca648abc3b46dc3e7a335c513f5e1b30301dd8feefde3e7d21399133f",
+        "UMBEMS.COM": "f8f989d09926cbf2bebbbd5f4a7b4eb30bb215fc1ab1346c173b1ce23123c86e"
+      },
+      "config": "DEVICE=C:\\DOS\\HIMEM.SYS /TESTMEM:ON\r\nDEVICE=C:\\DOS\\EMM386.EXE RAM M5\r\nBUFFERS=15\r\nFILES=20\r\nDOS=HIGH,UMB\r\nLASTDRIVE=Z\r\nFCBS=4,0\r\nSTACKS=9,128\r\n"
+    },
+    "bios-stacks": {
+      "passed": true,
+      "exit_code": 33,
+      "fault": null,
+      "bios_overrides": {
+        "fail_stack_pool": true
+      },
+      "bios_sha256": "e3f889fa4d0575e3805195a5248f7c96b2f2973a3afc36b178fb53f9373892ec",
+      "emm_sha256": "4d0fad0e9f9c22de4e47c342face4c359097d84828b93e97bfdb793c701ce058",
+      "stack_passes": 2,
+      "negative_control": false,
+      "layout_segments": {
+        "cds": 52045,
+        "sft": 51970,
+        "fcb": 52027
+      },
+      "ems_pages": {
+        "free": 12,
+        "total": 40,
+        "system_handle_pages": 24
+      },
+      "emm_table_owner": {
+        "physical": 1443748,
+        "bytes": 2086,
+        "end": 860,
+        "high": 1
+      },
+      "artifacts": "out/composed-memory-failures-e0rrmp54/bios-stacks",
+      "record": "out/composed-memory-failures-e0rrmp54/results.json",
+      "record_sha256": "a66ea1ff8d3fc216ae4cfa65f8c5fa264044173fa9bb859f52cf7c3bb1f01e71",
+      "serial_sha256": "ae16daf55901b648b2479058daa19b1f94becd897cb60173d27ef919ea90d8e8",
+      "debug_sha256": "79041e5f47ab66e266eb0282ff3b7b2aedbccf2b93a47bfbc33bc5bda7ec57ff",
+      "final_image_sha256": "108c2c4183a60e1ced2b4380fb8204ef75dae4173313515e62e6ac009cf90eb7",
+      "probe_sha256": {
+        "EMSCHECK.COM": "66a9efeac7040a9c03baab422d9ddec29e5bdfc0ce63d15d09ba234b9b5a3268",
+        "I21FCB.COM": "b15acb2cf80b55bb0d9db08fb294ca2c171ad0889f05afdd715e8b8f5dbf29e0",
+        "LAYOUT.COM": "7f960af7f6fd60229db1df7107bffaec33459e8c6d1e1b8aa90bb911c42bfd5d",
+        "OWNCHILD.COM": "3cedd3f0c7af539d2fc05b001ccbd8312fdd9f07a737b18706b5c26a6767a2a4",
+        "OWNERS.COM": "accc2987930764a02e029bbad3c2259e3c26482b42589e8d7c5feebcf2396d57",
+        "QEXIT.COM": "1fbb1c10e8c323f10af6f7cf1674ec8148f0bfe0bdfa5912d2835a41c2f0103c",
+        "STACKCHK.COM": "3ec6b93156aaebcd3f7ecbfa83617564c9ed1d9b37c46c51408d1d628e058345",
+        "UMBEMS.COM": "f8f989d09926cbf2bebbbd5f4a7b4eb30bb215fc1ab1346c173b1ce23123c86e"
+      },
+      "config": "DEVICE=C:\\DOS\\HIMEM.SYS /TESTMEM:ON\r\nDEVICE=C:\\DOS\\EMM386.EXE RAM M5\r\nBUFFERS=15\r\nFILES=20\r\nDOS=HIGH,UMB\r\nLASTDRIVE=Z\r\nFCBS=4,0\r\nSTACKS=9,128\r\n"
+    },
+    "emm-table-allocation": {
+      "passed": true,
+      "exit_code": 33,
+      "fault": "EMM_TABLE_ALLOC_FAIL",
+      "bios_overrides": {},
+      "bios_sha256": "fcf38993c947b3363b3076a5b432ac0c38e0831fbdab85e29219eb6893dc3785",
+      "emm_sha256": "0b76d3cb7952e02c710850f38766cf233d1422ceb6b41d8baf043aa428f6eef8",
+      "stack_passes": 2,
+      "negative_control": false,
+      "layout_segments": {
+        "cds": 52045,
+        "sft": 51970,
+        "fcb": 52027
+      },
+      "ems_pages": {
+        "free": 12,
+        "total": 40,
+        "system_handle_pages": 24
+      },
+      "emm_table_owner": {
+        "physical": 13239,
+        "bytes": 2086,
+        "end": 990,
+        "high": 0
+      },
+      "artifacts": "out/composed-memory-failures-e0rrmp54/emm-table-allocation",
+      "record": "out/composed-memory-failures-e0rrmp54/results.json",
+      "record_sha256": "a66ea1ff8d3fc216ae4cfa65f8c5fa264044173fa9bb859f52cf7c3bb1f01e71",
+      "serial_sha256": "ae16daf55901b648b2479058daa19b1f94becd897cb60173d27ef919ea90d8e8",
+      "debug_sha256": "0dc9acb6cae55280eb5e6453cc54af4163820ea5df9e53a163c48ec79ff31edb",
+      "final_image_sha256": "9207c937ef2e082f3187d77a2414cfea1f098b3a9a64ebe9a2b91fb2199fff8f",
+      "probe_sha256": {
+        "EMSCHECK.COM": "66a9efeac7040a9c03baab422d9ddec29e5bdfc0ce63d15d09ba234b9b5a3268",
+        "I21FCB.COM": "b15acb2cf80b55bb0d9db08fb294ca2c171ad0889f05afdd715e8b8f5dbf29e0",
+        "LAYOUT.COM": "7f960af7f6fd60229db1df7107bffaec33459e8c6d1e1b8aa90bb911c42bfd5d",
+        "OWNCHILD.COM": "3cedd3f0c7af539d2fc05b001ccbd8312fdd9f07a737b18706b5c26a6767a2a4",
+        "OWNERS.COM": "accc2987930764a02e029bbad3c2259e3c26482b42589e8d7c5feebcf2396d57",
+        "QEXIT.COM": "1fbb1c10e8c323f10af6f7cf1674ec8148f0bfe0bdfa5912d2835a41c2f0103c",
+        "STACKCHK.COM": "204db44ca648abc3b46dc3e7a335c513f5e1b30301dd8feefde3e7d21399133f",
+        "UMBEMS.COM": "f8f989d09926cbf2bebbbd5f4a7b4eb30bb215fc1ab1346c173b1ce23123c86e"
+      },
+      "config": "DEVICE=C:\\DOS\\HIMEM.SYS /TESTMEM:ON\r\nDEVICE=C:\\DOS\\EMM386.EXE RAM M5\r\nBUFFERS=15\r\nFILES=20\r\nDOS=HIGH,UMB\r\nLASTDRIVE=Z\r\nFCBS=4,0\r\nSTACKS=9,128\r\n"
+    },
+    "emm-table-copy": {
+      "passed": true,
+      "exit_code": 33,
+      "fault": "EMM_TABLE_COPY_FAIL",
+      "bios_overrides": {},
+      "bios_sha256": "61036924b9c1db784db3446a59b142b1fdaf47cfd6ba5892ac72fa6e58e3260a",
+      "emm_sha256": "3fdaf5c743a2b0e966dae04ad284e20a4428bfd0cbcbecbec518701fb059636c",
+      "stack_passes": 2,
+      "negative_control": false,
+      "layout_segments": {
+        "cds": 52045,
+        "sft": 51970,
+        "fcb": 52027
+      },
+      "ems_pages": {
+        "free": 12,
+        "total": 40,
+        "system_handle_pages": 24
+      },
+      "emm_table_owner": {
+        "physical": 13239,
+        "bytes": 2086,
+        "end": 990,
+        "high": 0
+      },
+      "artifacts": "out/composed-memory-failures-e0rrmp54/emm-table-copy",
+      "record": "out/composed-memory-failures-e0rrmp54/results.json",
+      "record_sha256": "a66ea1ff8d3fc216ae4cfa65f8c5fa264044173fa9bb859f52cf7c3bb1f01e71",
+      "serial_sha256": "ae16daf55901b648b2479058daa19b1f94becd897cb60173d27ef919ea90d8e8",
+      "debug_sha256": "f65020c31ead7d202410127b6d544fe6c5b9b6ecbd284afcdd3bb222ffe20100",
+      "final_image_sha256": "29cca75163c5e5cc39858742af59942262f1530f1d913729ea3f17034416ae0c",
+      "probe_sha256": {
+        "EMSCHECK.COM": "66a9efeac7040a9c03baab422d9ddec29e5bdfc0ce63d15d09ba234b9b5a3268",
+        "I21FCB.COM": "b15acb2cf80b55bb0d9db08fb294ca2c171ad0889f05afdd715e8b8f5dbf29e0",
+        "LAYOUT.COM": "7f960af7f6fd60229db1df7107bffaec33459e8c6d1e1b8aa90bb911c42bfd5d",
+        "OWNCHILD.COM": "3cedd3f0c7af539d2fc05b001ccbd8312fdd9f07a737b18706b5c26a6767a2a4",
+        "OWNERS.COM": "accc2987930764a02e029bbad3c2259e3c26482b42589e8d7c5feebcf2396d57",
+        "QEXIT.COM": "1fbb1c10e8c323f10af6f7cf1674ec8148f0bfe0bdfa5912d2835a41c2f0103c",
+        "STACKCHK.COM": "204db44ca648abc3b46dc3e7a335c513f5e1b30301dd8feefde3e7d21399133f",
+        "UMBEMS.COM": "f8f989d09926cbf2bebbbd5f4a7b4eb30bb215fc1ab1346c173b1ce23123c86e"
+      },
+      "config": "DEVICE=C:\\DOS\\HIMEM.SYS /TESTMEM:ON\r\nDEVICE=C:\\DOS\\EMM386.EXE RAM M5\r\nBUFFERS=15\r\nFILES=20\r\nDOS=HIGH,UMB\r\nLASTDRIVE=Z\r\nFCBS=4,0\r\nSTACKS=9,128\r\n"
+    },
+    "umb-after-map": {
+      "passed": true,
+      "exit_code": 33,
+      "fault": "UMB_TEST_FAIL_AFTER_MAP=1",
+      "bios_overrides": {},
+      "bios_sha256": "83d89b007b8921d4e786e9eaeb0b08512653ae7ade6f00b7f589d7a7d353a6dc",
+      "emm_sha256": "f35cfb1ea36b945f5aa2096793c2ed17275a7f4a8974d0f6aa2cd0106d6eadf7",
+      "stack_passes": 2,
+      "negative_control": false,
+      "layout_segments": {
+        "cds": 968,
+        "sft": 861,
+        "fcb": 918
+      },
+      "ems_pages": {
+        "free": 16,
+        "total": 40,
+        "system_handle_pages": 24
+      },
+      "emm_table_owner": {
+        "physical": 1443748,
+        "bytes": 2086,
+        "end": 860,
+        "high": 1
+      },
+      "artifacts": "out/composed-memory-failures-ebl50fdk/umb-after-map",
+      "record": "out/composed-memory-failures-ebl50fdk/results.json",
+      "record_sha256": "dd9033645c30585d82d0dcdbebca01ee4d44d99bd014d5df52cb6b6275fcdf22",
+      "serial_sha256": "5a3f3c6b3b7298c12bf76e00a44f7d2d47b3b011a48d8bb44f51c41e6350f27b",
+      "debug_sha256": "07e58d4ac089cd0aa3cfca251d7ff49427783e6b63b0fd253e84863a21e198f2",
+      "final_image_sha256": "919afb4ed072fdf32a6472b5cbf86f4dd25542743bc3902b810d0a4c6496e646",
+      "probe_sha256": {
+        "EMSCHECK.COM": "dd17dbe3ca3bb475add14155bba9a49cee07c85f2f28eb0ad2cbc3dc2f8a0357",
+        "I21FCB.COM": "b15acb2cf80b55bb0d9db08fb294ca2c171ad0889f05afdd715e8b8f5dbf29e0",
+        "LAYOUT.COM": "7f960af7f6fd60229db1df7107bffaec33459e8c6d1e1b8aa90bb911c42bfd5d",
+        "NOUMB.COM": "e37ab5f80ce833c526c1c966dd9352461bb1667ee99dfec452fa247a0d4d00f5",
+        "QEXIT.COM": "1fbb1c10e8c323f10af6f7cf1674ec8148f0bfe0bdfa5912d2835a41c2f0103c",
+        "STACKCHK.COM": "3ec6b93156aaebcd3f7ecbfa83617564c9ed1d9b37c46c51408d1d628e058345"
+      },
+      "config": "DEVICE=C:\\DOS\\HIMEM.SYS /TESTMEM:ON\r\nDEVICE=C:\\DOS\\EMM386.EXE RAM M5\r\nBUFFERS=15\r\nFILES=20\r\nDOS=HIGH,UMB\r\nLASTDRIVE=Z\r\nFCBS=4,0\r\nSTACKS=9,128\r\n"
+    },
+    "umb-before-publish": {
+      "passed": true,
+      "exit_code": 33,
+      "fault": "UMB_TEST_FAIL_BEFORE_PUBLISH",
+      "bios_overrides": {},
+      "bios_sha256": "83d89b007b8921d4e786e9eaeb0b08512653ae7ade6f00b7f589d7a7d353a6dc",
+      "emm_sha256": "e3828a27167d4dd6c12abe7e2978142e3f894a769096c900d4d51e006ffaa31e",
+      "stack_passes": 2,
+      "negative_control": false,
+      "layout_segments": {
+        "cds": 968,
+        "sft": 861,
+        "fcb": 918
+      },
+      "ems_pages": {
+        "free": 16,
+        "total": 40,
+        "system_handle_pages": 24
+      },
+      "emm_table_owner": {
+        "physical": 1443748,
+        "bytes": 2086,
+        "end": 860,
+        "high": 1
+      },
+      "artifacts": "out/composed-memory-failures-ebl50fdk/umb-before-publish",
+      "record": "out/composed-memory-failures-ebl50fdk/results.json",
+      "record_sha256": "dd9033645c30585d82d0dcdbebca01ee4d44d99bd014d5df52cb6b6275fcdf22",
+      "serial_sha256": "5a3f3c6b3b7298c12bf76e00a44f7d2d47b3b011a48d8bb44f51c41e6350f27b",
+      "debug_sha256": "07e58d4ac089cd0aa3cfca251d7ff49427783e6b63b0fd253e84863a21e198f2",
+      "final_image_sha256": "278e95e795a53246b2568add181d9cb9eb169cff6b9e9709981a8c3e2fa512e5",
+      "probe_sha256": {
+        "EMSCHECK.COM": "dd17dbe3ca3bb475add14155bba9a49cee07c85f2f28eb0ad2cbc3dc2f8a0357",
+        "I21FCB.COM": "b15acb2cf80b55bb0d9db08fb294ca2c171ad0889f05afdd715e8b8f5dbf29e0",
+        "LAYOUT.COM": "7f960af7f6fd60229db1df7107bffaec33459e8c6d1e1b8aa90bb911c42bfd5d",
+        "NOUMB.COM": "e37ab5f80ce833c526c1c966dd9352461bb1667ee99dfec452fa247a0d4d00f5",
+        "QEXIT.COM": "1fbb1c10e8c323f10af6f7cf1674ec8148f0bfe0bdfa5912d2835a41c2f0103c",
+        "STACKCHK.COM": "3ec6b93156aaebcd3f7ecbfa83617564c9ed1d9b37c46c51408d1d628e058345"
+      },
+      "config": "DEVICE=C:\\DOS\\HIMEM.SYS /TESTMEM:ON\r\nDEVICE=C:\\DOS\\EMM386.EXE RAM M5\r\nBUFFERS=15\r\nFILES=20\r\nDOS=HIGH,UMB\r\nLASTDRIVE=Z\r\nFCBS=4,0\r\nSTACKS=9,128\r\n"
+    },
+    "dos-low": {
+      "passed": true,
+      "exit_code": 33,
+      "fault": "DOS_LOW_WITNESS",
+      "bios_overrides": {},
+      "bios_sha256": "50fb5b6d80829074e3e4c0986dc2bd76068a0b687920dc6d7b840503666f4147",
+      "emm_sha256": "ecfcf9de0404e8ad5b9e11990cc98d32b3b89509ab05c29d1f124a029ce7e7f5",
+      "stack_passes": 2,
+      "negative_control": false,
+      "layout_segments": {
+        "cds": 52045,
+        "sft": 51970,
+        "fcb": 52027
+      },
+      "ems_pages": {
+        "free": 12,
+        "total": 40,
+        "system_handle_pages": 24
+      },
+      "emm_table_owner": {
+        "physical": 1443748,
+        "bytes": 2086,
+        "end": 4019,
+        "high": 1
+      },
+      "artifacts": "out/composed-memory-failures-w0gp0w6d/dos-low",
+      "record": "out/composed-memory-failures-w0gp0w6d/results.json",
+      "record_sha256": "8902759f3a0fff3dff788cf73fcdc974e9c3a8aefd1f2c88182384e0dc1bc8b7",
+      "serial_sha256": "ae16daf55901b648b2479058daa19b1f94becd897cb60173d27ef919ea90d8e8",
+      "debug_sha256": "c4bce13cab14111e735340d59a4627392fabac13fda79a37ac854397244d4eda",
+      "final_image_sha256": "1281bc1eb836d994b4f5a7258b61c7b71a7c48b34d92708e03899e90b78e1b91",
+      "probe_sha256": {
+        "EMSCHECK.COM": "66a9efeac7040a9c03baab422d9ddec29e5bdfc0ce63d15d09ba234b9b5a3268",
+        "I21FCB.COM": "b15acb2cf80b55bb0d9db08fb294ca2c171ad0889f05afdd715e8b8f5dbf29e0",
+        "LAYOUT.COM": "7f960af7f6fd60229db1df7107bffaec33459e8c6d1e1b8aa90bb911c42bfd5d",
+        "OWNCHILD.COM": "3cedd3f0c7af539d2fc05b001ccbd8312fdd9f07a737b18706b5c26a6767a2a4",
+        "OWNERS.COM": "accc2987930764a02e029bbad3c2259e3c26482b42589e8d7c5feebcf2396d57",
+        "QEXIT.COM": "1fbb1c10e8c323f10af6f7cf1674ec8148f0bfe0bdfa5912d2835a41c2f0103c",
+        "STACKCHK.COM": "a447a12d702e9d722a9aae038bdc3393b8e5317e4885a3f4a04f84d38fd7ed00",
+        "UMBEMS.COM": "f8f989d09926cbf2bebbbd5f4a7b4eb30bb215fc1ab1346c173b1ce23123c86e"
+      },
+      "config": "DEVICE=C:\\DOS\\HIMEM.SYS /TESTMEM:ON\r\nDEVICE=C:\\DOS\\EMM386.EXE RAM M5\r\nBUFFERS=15\r\nFILES=20\r\nDOS=LOW,UMB\r\nLASTDRIVE=Z\r\nFCBS=4,0\r\nSTACKS=9,128\r\n"
+    },
+    "retained-child": {
+      "passed": true,
+      "exit_code": 35,
+      "fault": null,
+      "bios_overrides": {},
+      "bios_sha256": "83d89b007b8921d4e786e9eaeb0b08512653ae7ade6f00b7f589d7a7d353a6dc",
+      "emm_sha256": "4d0fad0e9f9c22de4e47c342face4c359097d84828b93e97bfdb793c701ce058",
+      "stack_passes": 1,
+      "negative_control": true,
+      "artifacts": "out/composed-memory-failures-w0gp0w6d/retained-child",
+      "record": "out/composed-memory-failures-w0gp0w6d/results.json",
+      "record_sha256": "8902759f3a0fff3dff788cf73fcdc974e9c3a8aefd1f2c88182384e0dc1bc8b7",
+      "serial_sha256": "ed49d60bfa75d2494a27d787914781f1075fec1da710ee369fdb04872dc8fe73",
+      "debug_sha256": "5b86badc4f58fec381d5a47803df4916f335d028142ca44ff4c2a50d8985b701",
+      "final_image_sha256": "191c336b1e3be27d093ef59938e94725d783e32843f6af394b50c8a9b43b95a2",
+      "probe_sha256": {
+        "EMSCHECK.COM": "66a9efeac7040a9c03baab422d9ddec29e5bdfc0ce63d15d09ba234b9b5a3268",
+        "I21FCB.COM": "b15acb2cf80b55bb0d9db08fb294ca2c171ad0889f05afdd715e8b8f5dbf29e0",
+        "LAYOUT.COM": "7f960af7f6fd60229db1df7107bffaec33459e8c6d1e1b8aa90bb911c42bfd5d",
+        "OWNCHILD.COM": "36e96768c7511163f3f52035ec525e2d6d099a580127d84b5aadb536884b170c",
+        "OWNERS.COM": "accc2987930764a02e029bbad3c2259e3c26482b42589e8d7c5feebcf2396d57",
+        "QEXIT.COM": "1fbb1c10e8c323f10af6f7cf1674ec8148f0bfe0bdfa5912d2835a41c2f0103c",
+        "STACKCHK.COM": "204db44ca648abc3b46dc3e7a335c513f5e1b30301dd8feefde3e7d21399133f",
+        "UMBEMS.COM": "f8f989d09926cbf2bebbbd5f4a7b4eb30bb215fc1ab1346c173b1ce23123c86e"
+      },
+      "config": "DEVICE=C:\\DOS\\HIMEM.SYS /TESTMEM:ON\r\nDEVICE=C:\\DOS\\EMM386.EXE RAM M5\r\nBUFFERS=15\r\nFILES=20\r\nDOS=HIGH,UMB\r\nLASTDRIVE=Z\r\nFCBS=4,0\r\nSTACKS=9,128\r\n"
+    }
+  },
+  "shell": {
+    "allocation_and_shrink": {
+      "record": "out/command-upper-failure-lj8djcw7/results.json",
+      "sha256": "b6855c7603f77a54a15a235ef441613bc708b035e4ee3b8bc38384639aa0cd07",
+      "cases": [
+        "success",
+        "allocation-rejected",
+        "shrink-rejected"
+      ],
+      "passed": true,
+      "persistent_rejection": null,
+      "fallback_bytes": 880,
+      "low_bytes": 432,
+      "upper_bytes": 464
+    },
+    "policy": {
+      "record": "out/command-upper-failure-sy2dqxx4/results.json",
+      "sha256": "b6a32f6ca8ce2a3b1a2e9c03802ff7f1637e21ce8e193ebe18c6bac758909cd8",
+      "cases": [
+        "success",
+        "link-reject"
+      ],
+      "passed": true,
+      "persistent_rejection": {
+        "passed": true,
+        "mutation_offsets": [
+          11841,
+          12058
+        ],
+        "command_sha256": "c2ec339d28d58f168de68b9450308042a002774609d5b5517b4847f6a8b51c6d",
+        "autoexec_ran": false
+      },
+      "fallback_bytes": 880,
+      "low_bytes": 432,
+      "upper_bytes": 464
+    }
+  },
+  "timer_a20": {
+    "record": "out/stack-pool-retirement-2t5uq4bi/shapes.json",
+    "sha256": "793891bf29510b3a49ee185505e76eed54e7ed569c0f369484d7e93de19b8d89",
+    "result": {
+      "count": 9,
+      "size": 128,
+      "upper": true,
+      "passed": true,
+      "exit_code": 33,
+      "dos_high": true,
+      "controlled_marker_repair": false,
+      "async_timer": true,
+      "a20_off": true,
+      "ems_pages": 4,
+      "pool_bytes": 1232,
+      "nested_visits": 9,
+      "image_sha256": "9b898314f706d2e5978060c54447a58d4bdd14ba38525e9287b7f7d2e041da15",
+      "wrong_timer_owner_rejected": true,
+      "missing_a20_disable_rejected": true
+    }
+  },
+  "contracts": [
+    "BIOS CDS, SFT/FCB and interrupt stack allocation refusal leaves the respective owner low and callable.",
+    "EMM table allocation refusal and partial destination copy leave table roots low, with EMS and filesystem services usable.",
+    "UMB failure after mapping and before publication exposes no public UMB arena and returns all non-system EMS pages.",
+    "EMS exhaustion is refused; releasing the full allocation restores free-page counts. System handle zero is accounted separately.",
+    "Patterned parent-owned UMB data survives 64 rounds of EMS remapping across all four frame slots.",
+    "Sixteen child EXEC/exit cycles alternate linked and unlinked arena exit. Largest and total free UMB space return exactly, with parent data and EMS counts preserved.",
+    "A retained-child negative control must fail specifically on memory accounting, rather than on its exit type.",
+    "DOS=LOW is verified independently after removing the provider HIGH-only diagnostic expectation; UMB table placement is independent of kernel/stack placement.",
+    "Shell upper allocation/shrink rejection and recoverable link-policy rejection preserve fallback allocation, UMB reclamation, XMS counts and policy through pipes/reload.",
+    "Persistent shell policy rejection stops before AUTOEXEC.",
+    "Real timer callbacks with A20 off and EMS remapping preserve the upper stack owner; wrong-owner and missing-A20-disable controls are rejected."
+  ],
+  "code_sha256": {
+    "tests/test_composed_memory_failures_qemu.py": "f16b90e824aca14a81864b2ac2350b52cc5668b8cf1dc250970289b86ea620b1",
+    "tests/composed_memory_owner_probe.asm": "00d2acbc1735991caed94b5c9331dd9607adb4172adcdba441ddd5eee41f19c6",
+    "tests/composed_owner_child.asm": "807c0a253f7cacee051ba6cbd16152085d00e9166808b16c67031c5c9fa07693",
+    "tests/composed_ems_accounting_probe.asm": "3c5b2c47c958810b1a27f4e804ddb0fdc0d6984dda96ef72522bed581d24bbdd",
+    "tests/composed_layout_probe.asm": "e9194fc8067d4e38c5d0e008c5ae156d6534eeb4780b3889d2419867f6f129ae",
+    "tests/test_command_upper_failure_qemu.py": "a9607eb65ca8e81f619795a180519ecca67dd7cea5361b6a872688b7fe079e89",
+    "tests/test_command_upper_data_qemu.py": "1380151e15ad2ab0646b0574050cabcbde6ed2330bf2727640b993cfb91c60ca",
+    "tests/test_stack_pool_retirement_qemu.py": "8bc1aa40e633a6416a2174a4b2c3feacb491d1dc86bfbdb41941d3277825ba1a",
+    "tests/stack_pool_probe.asm": "468d70369f78be9e94318a48b2395fbb559e41593bb1122ed050e2182afc1c9d",
+    "tests/umb_ems_isolation_probe.asm": "5187ad2de5650809046ba3fc3fcba6ce0a9e840ef4c372f6b1a4ff05266b55e3",
+    "tests/umb_provider_absence_probe.asm": "49f40becb0c9baa5aaf761f83f1c634258e9589ca74e6afc4f8d0587b938746a",
+    "tests/int21_fcb_probe.asm": "fb81150864bc47c7baf8f28469822396e63ce74b44f7a855967e70b7903a5b49",
+    "tests/bios_public_layout_masm.asm": "6abccf495a9ea02e02d6412a4ada775141f0a021ce570cd2b1b9fc756d006a5c",
+    "tests/build_bios_low_image.py": "53d26d720218a990a000f071e711bd353fa4ec433091163380463baa18297957",
+    "tests/build_emm_mode_guard.py": "93377894fa6ae07045703efa352e64d861a4e72e455c874acaa2bb1cb4394276"
+  },
+  "artifact_index": "out/memory-failure-qualification-20260908/artifact-index.json",
+  "artifact_index_sha256": "112b95d11f22637406f34fe6e8a0fa20c1154666ffd8241f48516c42bcb21f5a",
+  "reproduction": [
+    "python3 tests/test_composed_memory_failures_qemu.py COMPOSITION_DIR",
+    "python3 tests/test_command_upper_failure_qemu.py COMPOSITION_DIR/candidate.img",
+    "python3 tests/test_command_upper_failure_qemu.py COMPOSITION_DIR/candidate.img --policy-rejection",
+    "python3 tests/test_stack_pool_retirement_qemu.py COMPOSITION_DIR/candidate.img --shapes-bios COMPOSITION_DIR/bios --async-timer --a20-off"
+  ],
+  "remaining": [
+    "Repeated real-application operations and comparisons using the composed binaries.",
+    "Broader service-receipt/allocator handoff fault combinations and A20/exception contexts beyond the listed cases are not qualified by this campaign.",
+    "DBCS, external hooks, physical hardware and device timing retain their documented limits.",
+    "Applicable release gates and a separate promotion decision."
+  ]
+}
