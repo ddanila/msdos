@@ -6,7 +6,7 @@ REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 SRC="$REPO_ROOT/src"
 OUT="$REPO_ROOT/out"
 FLOPPY="${FLOPPY_IMAGE:-$OUT/floppy.img}"
-COMMAND_COM="$SRC/CMD/COMMAND/COMMAND.COM"
+COMMAND_COM="${MEMORY_CORE_DIR:-$SRC/CMD/COMMAND}/COMMAND.COM"
 SYS_BASE="$OUT/floppy-sys-base.img"
 
 SYS_BOOT="$OUT/floppy-sys-boot.img"

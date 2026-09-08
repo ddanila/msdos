@@ -5,6 +5,7 @@ export LC_ALL=C MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 OUT="$ROOT/out"
+EXPECTED_EMM="${MEMORY_CORE_DIR:-$ROOT/src/MEMM/MEMM}/EMM386.EXE"
 DISK1="$OUT/distribution/disk1.img"
 DISK2="$OUT/distribution/disk2.img"
 FLOPPY_IMAGE="$OUT/setup-boot.img"
@@ -118,7 +119,7 @@ else
 fi
 
 if cmp -s "$ROOT/src/CMD/SORT/SORT.EXE" <(mtype -i "$HDD@@$PART_OFFSET" ::DOS/SORT.EXE 2>/dev/null) \
-    && cmp -s "$ROOT/src/MEMM/MEMM/EMM386.EXE" <(mtype -i "$HDD@@$PART_OFFSET" ::DOS/EMM386.EXE 2>/dev/null); then
+    && cmp -s "$EXPECTED_EMM" <(mtype -i "$HDD@@$PART_OFFSET" ::DOS/EMM386.EXE 2>/dev/null); then
     ok "SETUP expands representative command and driver payloads byte-exactly"
 else
     fail "SETUP expanded payload mismatch"

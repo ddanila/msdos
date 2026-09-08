@@ -9,10 +9,14 @@ import json
 import struct
 import subprocess
 import tempfile
+import sys
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0,str(ROOT/'tools'))
+from memory_release import selected_core
+CORE = selected_core()
 BUILD = ROOT / "tools" / "build_distribution.py"
 FILES = json.loads((ROOT / "distribution" / "files.json").read_text())
 spec = importlib.util.spec_from_file_location("szdd", ROOT / "tools" / "szdd.py")
@@ -68,12 +72,12 @@ files1, files2 = root_files(disk1), root_files(disk2)
 assert list(files1)[:2] == ["IO.SYS", "MSDOS.SYS"]
 assert "PACKING.LST" in files1 and files1["PACKING.LST"] == files2["PACKING.LST"]
 for relative, destination in FILES["boot"]:
-    assert files1[destination] == (ROOT / relative).read_bytes()
+    assert files1[destination] == (CORE[destination] if destination in CORE else (ROOT / relative).read_bytes())
 for relative, destination in FILES["compressed"]:
     stem, dot, extension = destination.partition(".")
     packed_name = stem + "." + extension[:-1] + "_" if dot else stem[:-1] + "_"
     decoded, missing = szdd.decode(files2[packed_name])
-    assert decoded == (ROOT / relative).read_bytes()
+    assert decoded == (CORE[destination] if destination in CORE else (ROOT / relative).read_bytes())
     assert chr(missing) == destination[-1]
 print(
     f"distribution media passed: {len(files1)} boot files, {len(files2) - 1} compressed files; "

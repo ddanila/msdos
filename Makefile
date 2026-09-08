@@ -958,6 +958,15 @@ FLOPPY      := $(OUT)/floppy.img
 BOOT_BIN    := $(SRC)/BOOT/MSBOOT.BIN
 BOOT_OFF    := 31744
 
+MEMORY_PROFILE ?= baseline
+MEMORY_PRODUCTION_DIR ?= $(OUT)/memory-production
+ifneq ($(filter $(MEMORY_PROFILE),baseline production),$(MEMORY_PROFILE))
+$(error MEMORY_PROFILE must be baseline or production)
+endif
+ifeq ($(MEMORY_PROFILE),production)
+export MEMORY_CORE_DIR := $(MEMORY_PRODUCTION_DIR)/files
+endif
+
 IO_SYS      := $(SRC)/BIOS/IO.SYS
 MSDOS_SYS   := $(SRC)/DOS/MSDOS.SYS
 SYSMENU_OVL := $(SRC)/BIOS/SYSMENU.OVL
@@ -1050,7 +1059,24 @@ EGA_SYS      := $(SRC)/DEV/EGA/EGA.SYS
 HIMEM_SYS    := $(SRC)/DEV/HIMEM/HIMEM.SYS
 EMM386_EXE   := $(MEMM_DIR)/EMM386.EXE
 
-$(FLOPPY): $(BOOT_BIN) $(IO_SYS) $(MSDOS_SYS) $(SYSMENU_OVL) $(COMMAND_COM) $(SYS_COM) $(FORMAT_COM) $(EXPAND_COM) $(SETUP_EXE) $(CHKDSK_COM) $(DEBUG_COM) $(MEM_EXE) $(FDISK_EXE) \
+ifeq ($(MEMORY_PROFILE),production)
+IO_SYS := $(MEMORY_CORE_DIR)/IO.SYS
+MSDOS_SYS := $(MEMORY_CORE_DIR)/MSDOS.SYS
+COMMAND_COM := $(MEMORY_CORE_DIR)/COMMAND.COM
+HIMEM_SYS := $(MEMORY_CORE_DIR)/HIMEM.SYS
+EMM386_EXE := $(MEMORY_CORE_DIR)/EMM386.EXE
+$(IO_SYS) $(MSDOS_SYS) $(COMMAND_COM) $(HIMEM_SYS) $(EMM386_EXE) &: memory-production
+	@test -f $@
+
+minimal-floppy: memory-production
+endif
+
+.PHONY: force-memory-profile
+$(OUT)/memory-profile: force-memory-profile
+	mkdir -p $(OUT)
+	@test "$$(cat $@ 2>/dev/null)" = "$(MEMORY_PROFILE)" || echo "$(MEMORY_PROFILE)" > $@
+
+$(FLOPPY): $(OUT)/memory-profile $(BOOT_BIN) $(IO_SYS) $(MSDOS_SYS) $(SYSMENU_OVL) $(COMMAND_COM) $(SYS_COM) $(FORMAT_COM) $(EXPAND_COM) $(SETUP_EXE) $(CHKDSK_COM) $(DEBUG_COM) $(MEM_EXE) $(FDISK_EXE) \
            $(MORE_COM) $(SORT_EXE) $(LABEL_COM) $(FIND_EXE) $(TREE_COM) $(COMP_COM) \
            $(ATTRIB_EXE) $(EDLIN_COM) $(FC_EXE) \
            $(NLSFUNC_EXE) $(ASSIGN_COM) $(XCOPY_EXE) $(DISKCOMP_COM) $(DISKCOPY_COM) $(SETVER_COM) $(SETVER_EXE) $(DOSKEY_COM) \
@@ -1256,7 +1282,6 @@ test: test-command-shift-qemu
 test-command-shift-qemu: deploy
 	python3 tests/test_command_shift_qemu.py
 
-MEMORY_PRODUCTION_DIR ?= $(OUT)/memory-production
 .PHONY: memory-production
 memory-production: build-all
 	python3 tools/build_memory_production.py $(MEMORY_PRODUCTION_DIR)

@@ -1,0 +1,102 @@
+{
+  "schema": 1,
+  "scope": "Opt-in production deployment, deterministic compressed media, SYS and SETUP; default promotion pending.",
+  "default_profile": "baseline",
+  "production_core_sha256": {
+    "IO.SYS": "793169a292df40bb117eb487136a0d8e7f4334ca223e8206bf53f33141f24715",
+    "MSDOS.SYS": "199771dfe152be284bd84c1b6d572cc311c8c579c4d7e291ec13cd4bbaa8955d",
+    "COMMAND.COM": "f60f680336572c2c1375fbeae7f54b074ac6e365f35638a62822572bece584ba",
+    "HIMEM.SYS": "340cbfd1f0e835755adce99d80c607f8edeb48ea2b20a6a142402a25434f8d13",
+    "EMM386.EXE": "1202e65cde61e79af3d943a5818c4fd26cd7b6884d2a147f2c421ffcf603231f"
+  },
+  "results": {
+    "deployment_and_distribution": {
+      "log": "out/memory-production-deployment.log",
+      "log_sha256": "66bcc1200afacb06f892952ea3d8c783c7df82a4db10328c3b8d5ee625daea56",
+      "passed": true,
+      "summary": [
+        "distribution media passed: 10 boot files, 78 compressed files; disk hashes 90f008838125 149ed87adcd1"
+      ]
+    },
+    "setup": {
+      "log": "out/memory-production-candidate2/setup.log",
+      "log_sha256": "0c44059451a109738650a8d87adea40c77b49f8f68cd0cea80cea514ae121293",
+      "passed": true,
+      "summary": [
+        "PASS: SETUP completes its guided fresh-install and Disk 2 workflow",
+        "PASS: SETUP installs every manifest file in the root or DOS directory",
+        "PASS: fresh SETUP preserves unrelated target files",
+        "PASS: fresh SETUP applies mixed memory, cache, and protection choices",
+        "PASS: SETUP expands representative command and driver payloads byte-exactly",
+        "PASS: upgrade SETUP detects the installed tree and preserves startup files byte-exactly",
+        "PASS: upgrade preserves an exact rollback tree and installs UNINSTAL",
+        "PASS: UNINSTAL restores the previous DOS tree and root system bytes exactly",
+        "PASS: SETUP produces a bootable fixed disk with a working command interpreter",
+        "Results: 9 passed, 0 failed"
+      ]
+    },
+    "setup_floppy": {
+      "log": "out/memory-production-candidate2/setup-floppy.log",
+      "log_sha256": "dc5f399a7643a0af63412ce2072f7e4e9f5c964cd3351e382bd5c98d284c085c",
+      "passed": true,
+      "summary": [
+        "SETUP /F bootable recovery disk and explicit /E exclusion contracts passed"
+      ]
+    },
+    "sys_fixed_disk": {
+      "log": "out/memory-production-candidate2/sys-hdd.log",
+      "log_sha256": "a5ab9a658f382515d074665b5eca14a8744413f84f9a2a49a79ee87284436968",
+      "passed": true,
+      "summary": [
+        "PASS: SYS transfers to the SMALL FAT16 fixed disk",
+        "PASS: SYS SMALL transfer preserves user files and configuration",
+        "PASS: SYS SMALL installs exact current IO.SYS and MSDOS.SYS images",
+        "PASS: SYS-created SMALL fixed disk boots DOS 6.22",
+        "PASS: SYS SMALL preserves hidden-sector and total-sector BPB geometry",
+        "PASS: SYS transfers to the LARGE_UPGRADE FAT16 fixed disk",
+        "PASS: SYS LARGE_UPGRADE transfer preserves user files and configuration",
+        "PASS: SYS LARGE_UPGRADE installs exact current IO.SYS and MSDOS.SYS images",
+        "PASS: SYS-created LARGE_UPGRADE fixed disk boots DOS 6.22",
+        "PASS: SYS LARGE_UPGRADE preserves hidden-sector and total-sector BPB geometry",
+        "Results: 10 passed, 0 failed"
+      ]
+    }
+  },
+  "profile_round_trip": {
+    "baseline": {
+      "IO.SYS": "451407cd7951396b5a4b720cf42ebe9d3267f705a41c38969c65d67ebe549fa9",
+      "MSDOS.SYS": "199771dfe152be284bd84c1b6d572cc311c8c579c4d7e291ec13cd4bbaa8955d",
+      "COMMAND.COM": "1ddbbb2da237f2a0b50d63459bf13d4a37bbf4705ff8eddf0ceae4e0472826dc",
+      "HIMEM.SYS": "45da026e22cda46e34e0f87eff387a8f2434f4d6e72cfe97e8745cf0153ebaa6",
+      "EMM386.EXE": "6a81db93876add8a83f95a6ee819895e4e98d3571a5c686f9c49ae15c463817f"
+    },
+    "production": {
+      "IO.SYS": "793169a292df40bb117eb487136a0d8e7f4334ca223e8206bf53f33141f24715",
+      "MSDOS.SYS": "199771dfe152be284bd84c1b6d572cc311c8c579c4d7e291ec13cd4bbaa8955d",
+      "COMMAND.COM": "f60f680336572c2c1375fbeae7f54b074ac6e365f35638a62822572bece584ba",
+      "HIMEM.SYS": "340cbfd1f0e835755adce99d80c607f8edeb48ea2b20a6a142402a25434f8d13",
+      "EMM386.EXE": "1202e65cde61e79af3d943a5818c4fd26cd7b6884d2a147f2c421ffcf603231f"
+    }
+  },
+  "distribution_manifest": {
+    "disks": [
+      {
+        "file": "disk1.img",
+        "sha256": "90f008838125ed6ed7635c98556fd7011c9b462ca0fdb0c72c9a57c5de916dce"
+      },
+      {
+        "file": "disk2.img",
+        "sha256": "149ed87adcd14721e99ac31f9730c5a577dabf9ddf72d2fc8d317bb2f4905de4"
+      }
+    ],
+    "files": 86,
+    "memory_core_sha256": {
+      "COMMAND.COM": "f60f680336572c2c1375fbeae7f54b074ac6e365f35638a62822572bece584ba",
+      "EMM386.EXE": "1202e65cde61e79af3d943a5818c4fd26cd7b6884d2a147f2c421ffcf603231f",
+      "HIMEM.SYS": "340cbfd1f0e835755adce99d80c607f8edeb48ea2b20a6a142402a25434f8d13",
+      "IO.SYS": "793169a292df40bb117eb487136a0d8e7f4334ca223e8206bf53f33141f24715",
+      "MSDOS.SYS": "199771dfe152be284bd84c1b6d572cc311c8c579c4d7e291ec13cd4bbaa8955d"
+    },
+    "schema": 1
+  }
+}

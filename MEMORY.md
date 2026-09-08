@@ -55,7 +55,12 @@ tracks the composition without boot witnesses or HIGH-only assertions. Its
 bootstrap staging and ownership transfer belong to production initialization;
 the failure tests inspect retained roots and the live table descriptor. Use
 `tools/freeze_memory_production.py` to preserve matched media before testing.
-Default deployment and installation qualification remain promotion work.
+Select it for deployment with `make MEMORY_PROFILE=production deploy
+distribution`; `MEMORY_PROFILE=baseline` restores the ordinary core. Both
+media paths use the same hash-checked selection. The
+[deployment qualification](tests/memory_deployment_baseline.json) records
+installation and profile-switch checks. Default promotion still requires the
+remaining platform and release checks.
 
 1. **Identify the candidate and audit existing evidence.** Freeze a matched
    image containing the intended BIOS and COMMAND relocations, paired

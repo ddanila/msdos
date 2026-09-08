@@ -10,6 +10,7 @@ import json
 import struct
 from dataclasses import dataclass
 from pathlib import Path
+from memory_release import selected_core
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -132,6 +133,7 @@ def main() -> None:
     parser.add_argument("--manifest", type=Path, default=ROOT / "distribution" / "files.json")
     parser.add_argument("--output", type=Path, default=ROOT / "out" / "distribution")
     args = parser.parse_args()
+    core = selected_core()
     manifest = json.loads(args.manifest.read_text())
     if manifest.get("schema") != 1:
         raise SystemExit("unsupported distribution manifest")
@@ -147,7 +149,7 @@ def main() -> None:
         if destination in destinations:
             raise ValueError(f"duplicate destination {destination}")
         destinations.add(destination)
-        data = (ROOT / relative).read_bytes()
+        data = core[destination] if destination in core else (ROOT / relative).read_bytes()
         attributes = 0x07 if destination in {"IO.SYS", "MSDOS.SYS"} else 0x20
         boot_files.append(MediaFile(destination, data, attributes))
         packing.append((1, destination, destination, len(data), hashlib.sha256(data).hexdigest()))
@@ -157,7 +159,7 @@ def main() -> None:
         if destination in destinations:
             raise ValueError(f"duplicate destination {destination}")
         destinations.add(destination)
-        data = (ROOT / relative).read_bytes()
+        data = core[destination] if destination in core else (ROOT / relative).read_bytes()
         media_name, missing = compressed_name(destination)
         packed = szdd.encode(data, missing)
         compressed_files.append(MediaFile(media_name, packed))
@@ -187,6 +189,7 @@ def main() -> None:
             {"file": "disk2.img", "sha256": hashlib.sha256(disk2).hexdigest()},
         ],
         "files": len(packing),
+        "memory_core_sha256": {name:hashlib.sha256(data).hexdigest() for name,data in sorted(core.items())},
     }
     (args.output / "manifest.json").write_text(
         json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="ascii"

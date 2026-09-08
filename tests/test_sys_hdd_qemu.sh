@@ -6,6 +6,9 @@ export LC_ALL=C MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 OUT="$ROOT/out"
 BASE="$OUT/floppy.img"
+EXPECTED_IO="${MEMORY_CORE_DIR:-$ROOT/src/BIOS}/IO.SYS"
+EXPECTED_DOS="${MEMORY_CORE_DIR:-$ROOT/src/DOS}/MSDOS.SYS"
+EXPECTED_COMMAND="${MEMORY_CORE_DIR:-$ROOT/src/CMD/COMMAND}/COMMAND.COM"
 EXIT_COM="$OUT/sys-hdd-qexit.com"
 MBR_IMAGE="$ROOT/src/CMD/FDISK/FDBOOT.BIN"
 PART_OFFSET=32256
@@ -108,14 +111,14 @@ run_case() {
         fail "SYS $name transfer damaged existing files"
     fi
 
-    if cmp -s "$ROOT/src/BIOS/IO.SYS" <(mtype -i "$disk@@$PART_OFFSET" ::IO.SYS 2>/dev/null) \
-        && cmp -s "$ROOT/src/DOS/MSDOS.SYS" <(mtype -i "$disk@@$PART_OFFSET" ::MSDOS.SYS 2>/dev/null); then
+    if cmp -s "$EXPECTED_IO" <(mtype -i "$disk@@$PART_OFFSET" ::IO.SYS 2>/dev/null) \
+        && cmp -s "$EXPECTED_DOS" <(mtype -i "$disk@@$PART_OFFSET" ::MSDOS.SYS 2>/dev/null); then
         ok "SYS $name installs exact current IO.SYS and MSDOS.SYS images"
     else
         fail "SYS $name did not replace the system files exactly"
     fi
 
-    mcopy -o -i "$disk@@$PART_OFFSET" "$ROOT/src/CMD/COMMAND/COMMAND.COM" ::COMMAND.COM
+    mcopy -o -i "$disk@@$PART_OFFSET" "$EXPECTED_COMMAND" ::COMMAND.COM
     mcopy -o -i "$disk@@$PART_OFFSET" "$EXIT_COM" ::QEXIT.COM
     {
         printf '@ECHO OFF\r\n'
