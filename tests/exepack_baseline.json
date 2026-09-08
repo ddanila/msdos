@@ -1,0 +1,60 @@
+{
+  "schema": 1,
+  "qemu_version": "QEMU emulator version 11.1.1",
+  "block_chaining": false,
+  "files": {
+    "src/DOS/EXEC.ASM": "48c64107629869d0d14776275ae767e2719aefee7a2d7a47d497e840d678a946",
+    "tests/exepack_low_probe.asm": "933aefcf4d2a38829f86cf359be885b110e101aed6fb87ebb2ff40ceb5095f9c",
+    "tests/test_exepack_qemu.py": "d5a775bca2948a5cb823183a082e732310cf8a423f45fe93983253d340954e41"
+  },
+  "runs": [
+    {
+      "stage": "before",
+      "msdos_sys_sha256": "eb3f0fdc961648c03173fdea66d3d38fcc32d63bb8032435724ea21a68c6be6a",
+      "profiles": {
+        "xms": {
+          "positive_pass": false,
+          "positive_corrupt": true,
+          "unrecognized_corrupt": true,
+          "completed": true,
+          "log_sha256": "448a022d9231113a36c53827616e7dc994ce69e6f7ffee8e2e8f1338136a3af4"
+        },
+        "ems": {
+          "positive_pass": false,
+          "positive_corrupt": true,
+          "unrecognized_corrupt": true,
+          "completed": true,
+          "log_sha256": "448a022d9231113a36c53827616e7dc994ce69e6f7ffee8e2e8f1338136a3af4"
+        }
+      }
+    },
+    {
+      "stage": "after",
+      "msdos_sys_sha256": "199771dfe152be284bd84c1b6d572cc311c8c579c4d7e291ec13cd4bbaa8955d",
+      "profiles": {
+        "xms": {
+          "positive_pass": true,
+          "positive_corrupt": false,
+          "unrecognized_corrupt": true,
+          "completed": true,
+          "log_sha256": "bbaf6a84f52d47f03c09673191393523badc0c56a2a63f88c74896090a347514"
+        },
+        "ems": {
+          "positive_pass": true,
+          "positive_corrupt": false,
+          "unrecognized_corrupt": true,
+          "completed": true,
+          "log_sha256": "bbaf6a84f52d47f03c09673191393523badc0c56a2a63f88c74896090a347514"
+        }
+      }
+    }
+  ],
+  "load_only_control": {
+    "function": "INT 21h/AX=4B01h",
+    "application": "PC Shell R5.5",
+    "profile": "HIMEM + DOS=HIGH",
+    "entry_bytes": 512,
+    "stock_entry_sha256": "e50e09b70ae8608eb616042e8d0d97a5867a12521f8dc151686eee6daf09ec7e",
+    "fork_entry_sha256": "e50e09b70ae8608eb616042e8d0d97a5867a12521f8dc151686eee6daf09ec7e"
+  }
+}

@@ -52,6 +52,85 @@
       "file": "4dos601.zip",
       "format": "zip",
       "sha256": "9e229c8a7da115275fe07d44b2cdbf07b5de9b3c143fba074b0e0aeba1aebb72"
+    },
+    {
+      "id": "d86",
+      "item": "D86V370_ZIP",
+      "file": "D86V370.ZIP",
+      "format": "zip",
+      "sha256": "b5bce2c5f4612cd75cb1a5e6b9516cbfd1eb419b1199d47f864ebca75f80b3da",
+      "subdir": ""
+    },
+    {
+      "id": "vde",
+      "item": "VDE165A_ZIP",
+      "file": "VDE165A.ZIP",
+      "format": "zip",
+      "sha256": "d596c576b1ea44e89bdf5279c8c9adb7a599868453563e541d6071830faafc59",
+      "subdir": ""
+    },
+    {
+      "id": "asa57",
+      "item": "as-easy-as-version-5.7-for-dos",
+      "file": "emulation.zip",
+      "format": "zip",
+      "sha256": "330e131ee4a295fa19f77e2b5abe36223d150f4abfcb3a15677f12eb9303371f",
+      "subdir": "ASEASY"
+    },
+    {
+      "id": "list",
+      "item": "LIST_zip",
+      "file": "LIST.zip",
+      "format": "zip",
+      "sha256": "28918d82df403eb0800b4d288c8269bda6e4a73a15d84eb7ebdc0faa7b7fa4b5",
+      "subdir": ""
+    },
+    {
+      "id": "a86",
+      "item": "a86-4.01",
+      "file": "a86v401.zip",
+      "format": "zip",
+      "sha256": "42c52e31ce4b94a1d83a3800e1091a043f51b48f1b8fab6489396ac122f1b111",
+      "subdir": ""
+    },
+    {
+      "id": "hiew",
+      "item": "Hiew_1020",
+      "file": "hiew_650.zip",
+      "format": "zip",
+      "sha256": "1389f6fa0f972ffb7a414763a391b242481e7a2b13aa7c34de59c1f636528f81",
+      "subdir": ""
+    },
+    {
+      "id": "pcwrite",
+      "item": "PC-Write_v3-0_zip",
+      "file": "PC-Write_v3-0.zip",
+      "format": "zip",
+      "sha256": "8bf4263fd86023234a789e437332db371d6ef57f0baf731a7f4ed2b10c37efd5",
+      "subdir": "Disk 1"
+    },
+    {
+      "id": "rar",
+      "item": "the-rar-archiver-version-2.00-dos",
+      "file": "The RAR Archiver - version 2.00 [DOS].zip",
+      "format": "zip",
+      "sha256": "a61c609eb0e3ac3a6f0ea246d9bcb184ba9c1512097fe4138efd98ee3877c661",
+      "subdir": "RAR"
+    },
+    {
+      "id": "tp",
+      "item": "borland-turbo-pascal-4.0-german",
+      "file": "TPascal4.0.zip",
+      "format": "zip",
+      "sha256": "1c09891a3c9d2e8e52ea934e179345d64640f0afae9c3cc77c50bd78cfc294b2",
+      "subdir": "Disk1"
+    },
+    {
+      "id": "pctools",
+      "item": "central-point-pc-tools-deluxe-v-5.5-disk-2",
+      "file": "Central Point PC Tools Deluxe v5.5 - DISK 1.img",
+      "format": "floppy",
+      "sha256": "088aa6475d856309693e67b62fe846d67aa142798230c6d8c4551a265329b8b1"
     }
   ],
   "programs": [
@@ -174,6 +253,138 @@
           "after": "Press any key to exit to the 4DOS prompt",
           "keys": "ret"
         }
+      ]
+    },
+    {
+      "id": "d86",
+      "name": "D86 3.70",
+      "package": "d86",
+      "command": "D86.COM",
+      "features": "debugger, allocation, interrupt vectors and console",
+      "expect": [
+        "D86 debugger, V3.70",
+        "BP 0000",
+        "IP 0100"
+      ],
+      "actions": [
+        {
+          "after": "D86 debugger, V3.70",
+          "keys": "x+o+r+spc+b+p+comma+b+p+ret"
+        }
+      ]
+    },
+    {
+      "id": "vde",
+      "name": "VDE 1.65a",
+      "package": "vde",
+      "command": "VDE.COM SAMPLE.TXT",
+      "features": "editor, allocation and file read",
+      "expect": [
+        "DOS application startup comparison"
+      ],
+      "actions": [
+        {
+          "after": "Press [Esc] to continue",
+          "keys": "esc"
+        }
+      ]
+    },
+    {
+      "id": "asa57",
+      "name": "AS-EASY-AS 5.7",
+      "package": "asa57",
+      "command": "ASEASY.EXE",
+      "features": "spreadsheet, allocation and resource loading",
+      "expect": [
+        "READY!",
+        "F10:Graph"
+      ]
+    },
+    {
+      "id": "list",
+      "name": "LIST 1.0 (Systems Design & Implementation)",
+      "package": "list",
+      "command": "LIST.COM",
+      "features": "print formatter startup, directory and console services",
+      "expect": [
+        "File(s) to Print",
+        "End-print"
+      ]
+    },
+    {
+      "id": "a86",
+      "name": "A86 4.01",
+      "package": "a86",
+      "command": "A86.COM",
+      "features": "assembler startup, allocation and console",
+      "expect": [
+        "A86 macro assembler, V4.01",
+        "Invocation syntax: A86",
+        "APP_RETURN_a86"
+      ]
+    },
+    {
+      "id": "hiew",
+      "name": "HIEW 6.50",
+      "package": "hiew",
+      "command": "HIEW.EXE SAMPLE.TXT",
+      "features": "hex viewer, file handles and seek/read",
+      "expect": [
+        "Hiew 6.50",
+        "DOS application startup comparison",
+        "10Quit"
+      ]
+    },
+    {
+      "id": "pcwrite",
+      "name": "PC-Write 3.01",
+      "package": "pcwrite",
+      "command": "ED.EXE SAMPLE.TXT",
+      "features": "editor, allocation and file/resource read",
+      "expect": [
+        "DOS application startup comparison"
+      ],
+      "actions": [
+        {
+          "after": "Press Esc if no backup",
+          "keys": "esc"
+        }
+      ]
+    },
+    {
+      "id": "rar",
+      "name": "RAR 2.00",
+      "package": "rar",
+      "command": "RAR.EXE",
+      "features": "archiver, memory and directory services",
+      "expect": [
+        "Version 2.00 shareware",
+        "Add to solid archive    Enabled",
+        "10Quit"
+      ]
+    },
+    {
+      "id": "tp",
+      "name": "Turbo Pascal 4.0",
+      "package": "tp",
+      "command": "TURBO.EXE",
+      "features": "IDE, allocation and resource loading",
+      "expect": [
+        "Turbo Pascal",
+        "Version 4.0",
+        "F10-Main menu"
+      ]
+    },
+    {
+      "id": "pctools",
+      "name": "PC Tools Deluxe 5.5",
+      "package": "pctools",
+      "command": "PCSHELL.EXE",
+      "features": "file manager, overlays, allocation and directory enumeration",
+      "expect": [
+        "File List 1",
+        "F10Menu",
+        "=bytes Free"
       ]
     }
   ]

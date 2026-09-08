@@ -563,7 +563,138 @@ exec_get_addr:
 	JMP	exec_read_reloc
 
 exec_set_PDBJ:
+	; EXEPACK's old backwards decoder can normalize a low pointer to
+	; Fxxx:FFFx, relying on A20 wrap. DOS in the HMA cannot provide that
+	; alias. Repair only the complete recognized decoder, in the loaded
+	; image; the file and its size/entry/relocation layout stay unchanged.
+	TEST	BYTE PTR exec_func,exec_func_overlay
+	JNZ	exec_exepack_done
+	PUSH	DS
+	PUSH	ES
+	PUSH	AX
+	PUSH	CX
+	PUSH	SI
+	PUSH	DI
+	PUSH	ES
+	POP	DS
+	CMP	exec_init_IP,12h
+	JNE	exec_exepack_restore
+	CMP	exec_rel_fac,1000h
+	JAE	exec_exepack_restore
+	LES	DI,DWORD PTR exec_init_IP
+	MOV	AX,ES
+	SUB	AX,exec_rel_fac
+	JC	exec_exepack_restore
+	MOV	AX,ES
+	ADD	AX,10			; 12h + 8Ch bytes fit in 10 paras
+	JC	exec_exepack_restore
+	CMP	AX,exec_dma		; do not inspect beyond the loaded image
+	JA	exec_exepack_restore
+	PUSH	CS
+	POP	DS
+	MOV	SI,OFFSET DOSGROUP:exec_exepack_signature
+	MOV	CX,exec_exepack_signature_end-exec_exepack_signature
+	CLD
+	REPE	CMPSB
+	JNE	exec_exepack_restore
+	MOV	DI,12h+26h
+	MOV	SI,OFFSET DOSGROUP:exec_exepack_patch
+	MOV	CX,exec_exepack_patch_end-exec_exepack_patch
+	REP	MOVSB
+exec_exepack_restore:
+	POP	DI
+	POP	SI
+	POP	CX
+	POP	AX
+	POP	ES
+	POP	DS
+exec_exepack_done:
 	JMP	exec_set_PDB
+
+; Signature spans entry setup and the entire affected decoder. Similar
+; programs, other EXEPACK variants and overlays must not be rewritten.
+exec_exepack_signature LABEL BYTE
+	DB 08Ch,0C0h,005h,010h,000h,00Eh,01Fh,0A3h,004h,000h,003h,006h,00Ch,000h,08Eh,0C0h
+	DB 08Bh,00Eh,006h,000h,08Bh,0F9h,04Fh,08Bh,0F7h,0FDh,0F3h,0A4h,08Bh,016h,00Eh,000h
+	DB 050h,0B8h,038h,000h,050h,0CBh,08Ch,0C3h,08Ch,0D8h,02Bh,0C2h,08Eh,0D8h,08Eh,0C0h
+	DB 0BFh,00Fh,000h,0B9h,010h,000h,0B0h,0FFh,0F3h,0AEh,047h,08Bh,0F7h,08Bh,0C3h,02Bh
+	DB 0C2h,08Eh,0C0h,0BFh,00Fh,000h,0B1h,004h,08Bh,0C6h,0F7h,0D0h,0D3h,0E8h,074h,009h
+	DB 08Ch,0DAh,02Bh,0D0h,08Eh,0DAh,083h,0CEh,0F0h,08Bh,0C7h,0F7h,0D0h,0D3h,0E8h,074h
+	DB 009h,08Ch,0C2h,02Bh,0D0h,08Eh,0C2h,083h,0CFh,0F0h,0ACh,08Ah,0D0h,04Eh,0ADh,08Bh
+	DB 0C8h,046h,08Ah,0C2h,024h,0FEh,03Ch,0B0h,075h,006h,0ACh,0F3h,0AAh,0EBh,007h,090h
+	DB 03Ch,0B2h,075h,06Bh,0F3h,0A4h,08Ah,0C2h,0A8h,001h,074h,0BAh
+exec_exepack_signature_end LABEL BYTE
+
+; Relocatable replacement for entry+26h..8Bh. Normalize each backwards
+; source/destination pointer, clamping the segment at zero on underflow
+; and keeping the residual physical address in its offset. This preserves
+; all memory references with A20 enabled and needs no DOS/XMS callback.
+exec_exepack_patch LABEL BYTE
+	PUSH	ES
+	MOV	AX,DS
+	SUB	AX,DX
+	MOV	DS,AX
+	MOV	ES,AX
+	MOV	DI,15
+	PUSH	DI
+	MOV	CX,16
+	MOV	AL,0FFh
+	REPE	SCASB
+	INC	DI
+	MOV	SI,DI
+	POP	DI
+	POP	AX
+	SUB	AX,DX
+	MOV	ES,AX
+exec_exepack_record:
+	MOV	CX,0204h		; two pointers, shift by four
+exec_exepack_pointer:
+	MOV	AX,SI
+	NOT	AX
+	SHR	AX,CL
+	JZ	exec_exepack_exchange
+	MOV	DX,DS
+	OR	SI,0FFF0h
+	SUB	DX,AX
+	JNC	exec_exepack_segment
+	NEG	DX
+	SHL	DX,CL
+	SUB	SI,DX
+	XOR	DX,DX
+exec_exepack_segment:
+	MOV	DS,DX
+exec_exepack_exchange:
+	XCHG	SI,DI
+	PUSH	DS
+	PUSH	ES
+	POP	DS
+	POP	ES
+	DEC	CH
+	JNZ	exec_exepack_pointer
+	LODSB
+	XCHG	AX,DX
+	DEC	SI
+	LODSW
+	MOV	CX,AX
+	INC	SI
+	MOV	AL,DL
+	AND	AL,0FEh
+	CMP	AL,0B0h
+	JNE	exec_exepack_literal
+	LODSB
+	REP	STOSB
+	JMP	SHORT exec_exepack_next
+exec_exepack_literal:
+	CMP	AL,0B2h
+	DB	75h			; JNE original error path at entry+EFh
+	DB	0EFh-(($-exec_exepack_patch)+26h+1)
+	REP	MOVSB
+exec_exepack_next:
+	XCHG	AX,DX
+	TEST	AL,1
+	JZ	exec_exepack_record
+	DB	(8Ch-26h)-($-exec_exepack_patch) DUP (90h)
+exec_exepack_patch_end LABEL BYTE
 
 exec_no_memj:
 	JMP	exec_no_mem

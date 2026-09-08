@@ -1,9 +1,9 @@
 {
   "schema": 1,
-  "recorded_at": "2026-09-07T20:24:04.044511+00:00",
-  "source_commit": "0846d011bfe5a56b8126b1ae4a21553bf9fa964f",
-  "runner_sha256": "86c939fe567fb6da7ed898de5b8433b0c061cd6e64c387dc323bc9a4ffb98553",
-  "manifest_sha256": "b39fec0c46ee173b710bb8e48cce9991953bd6ebd46cb15a056d5d015fe02a87",
+  "recorded_at": "2026-09-08T07:53:57.823168+00:00",
+  "source_commit": "7bf67ce9d072d1f5bab58e0a1ffc88bec39fd86b",
+  "runner_sha256": "dfe5eae426d73b6577712bb35fad0154dc764984f7189c80b2111c1db53faf76",
+  "manifest_sha256": "a857225316d9413974654d30d5d1bbb5881d1a12f37714d5c3961f7ea805ce41",
   "scope": "startup only, plus one small 4DOS/PKZIP child-process job",
   "hardware": {
     "machine": "pc",
@@ -15,7 +15,7 @@
     "qemu_version": "QEMU emulator version 11.1.1",
     "block_chaining": false,
     "retail_image_sha256": "2988ae84016b719c8899f680d9e4f693902b989d392aeffac966aebff84cc8f5",
-    "fork_floppy_sha256": "bf9612fb4b40d58f9b43ddf3f631060b77358190882600c7821ed79a03889efe",
+    "fork_floppy_sha256": "c835e2df32d16a731e9511530817261922f55a7817466ac641305e3c02ba8f49",
     "packages": {
       "4dos": {
         "url": "https://archive.org/download/4DOS5A_ZIP/4DOS5A.ZIP",
@@ -44,6 +44,46 @@
       "4dos6": {
         "url": "https://archive.org/download/4dos-6.01/4dos601.zip",
         "sha256": "9e229c8a7da115275fe07d44b2cdbf07b5de9b3c143fba074b0e0aeba1aebb72"
+      },
+      "d86": {
+        "url": "https://archive.org/download/D86V370_ZIP/D86V370.ZIP",
+        "sha256": "b5bce2c5f4612cd75cb1a5e6b9516cbfd1eb419b1199d47f864ebca75f80b3da"
+      },
+      "vde": {
+        "url": "https://archive.org/download/VDE165A_ZIP/VDE165A.ZIP",
+        "sha256": "d596c576b1ea44e89bdf5279c8c9adb7a599868453563e541d6071830faafc59"
+      },
+      "asa57": {
+        "url": "https://archive.org/download/as-easy-as-version-5.7-for-dos/emulation.zip",
+        "sha256": "330e131ee4a295fa19f77e2b5abe36223d150f4abfcb3a15677f12eb9303371f"
+      },
+      "list": {
+        "url": "https://archive.org/download/LIST_zip/LIST.zip",
+        "sha256": "28918d82df403eb0800b4d288c8269bda6e4a73a15d84eb7ebdc0faa7b7fa4b5"
+      },
+      "a86": {
+        "url": "https://archive.org/download/a86-4.01/a86v401.zip",
+        "sha256": "42c52e31ce4b94a1d83a3800e1091a043f51b48f1b8fab6489396ac122f1b111"
+      },
+      "hiew": {
+        "url": "https://archive.org/download/Hiew_1020/hiew_650.zip",
+        "sha256": "1389f6fa0f972ffb7a414763a391b242481e7a2b13aa7c34de59c1f636528f81"
+      },
+      "pcwrite": {
+        "url": "https://archive.org/download/PC-Write_v3-0_zip/PC-Write_v3-0.zip",
+        "sha256": "8bf4263fd86023234a789e437332db371d6ef57f0baf731a7f4ed2b10c37efd5"
+      },
+      "rar": {
+        "url": "https://archive.org/download/the-rar-archiver-version-2.00-dos/The%20RAR%20Archiver%20-%20version%202.00%20%5BDOS%5D.zip",
+        "sha256": "a61c609eb0e3ac3a6f0ea246d9bcb184ba9c1512097fe4138efd98ee3877c661"
+      },
+      "tp": {
+        "url": "https://archive.org/download/borland-turbo-pascal-4.0-german/TPascal4.0.zip",
+        "sha256": "1c09891a3c9d2e8e52ea934e179345d64640f0afae9c3cc77c50bd78cfc294b2"
+      },
+      "pctools": {
+        "url": "https://archive.org/download/central-point-pc-tools-deluxe-v-5.5-disk-2/Central%20Point%20PC%20Tools%20Deluxe%20v5.5%20-%20DISK%201.img",
+        "sha256": "088aa6475d856309693e67b62fe846d67aa142798230c6d8c4551a265329b8b1"
       }
     },
     "systems": {
@@ -55,8 +95,8 @@
         "DOS/EMM386.EXE": "d4a011769db9415402d7be129fffb762fa7d174096bcc921aa5ce85734072635"
       },
       "fork": {
-        "IO.SYS": "82719e2fe88f13eb01cd633cd37410ab82186828ce193dd33407bdd2a1569b8a",
-        "MSDOS.SYS": "eb3f0fdc961648c03173fdea66d3d38fcc32d63bb8032435724ea21a68c6be6a",
+        "IO.SYS": "451407cd7951396b5a4b720cf42ebe9d3267f705a41c38969c65d67ebe549fa9",
+        "MSDOS.SYS": "199771dfe152be284bd84c1b6d572cc311c8c579c4d7e291ec13cd4bbaa8955d",
         "COMMAND.COM": "505908b525048f64775fc62932b3ed8e7d230245785f7cd95b87dcd1b7550c58",
         "DOS/HIMEM.SYS": "45da026e22cda46e34e0f87eff387a8f2434f4d6e72cfe97e8745cf0153ebaa6",
         "DOS/EMM386.EXE": "6a81db93876add8a83f95a6ee819895e4e98d3571a5c686f9c49ae15c463817f"
@@ -66,7 +106,7 @@
   "profiles": {
     "low": "DOS=LOW\r\nFILES=30\r\nBUFFERS=15\r\nLASTDRIVE=Z\r\nFCBS=4,0\r\n",
     "xms": "DEVICE=C:\\DOS\\HIMEM.SYS /TESTMEM:OFF\r\nDOS=HIGH\r\nFILES=30\r\nBUFFERS=15\r\nLASTDRIVE=Z\r\nFCBS=4,0\r\n",
-    "high": "DEVICE=C:\\DOS\\HIMEM.SYS /TESTMEM:OFF\r\nDEVICE=C:\\DOS\\EMM386.EXE RAM\r\nDOS=HIGH,UMB\r\nFILES=30\r\nBUFFERS=15\r\nLASTDRIVE=Z\r\nFCBS=4,0\r\n"
+    "high": "DEVICE=C:\\DOS\\HIMEM.SYS /TESTMEM:OFF\r\nDEVICE=C:\\DOS\\EMM386.EXE 2048 RAM\r\nDOS=HIGH,UMB\r\nFILES=30\r\nBUFFERS=15\r\nLASTDRIVE=Z\r\nFCBS=4,0\r\n"
   },
   "results": [
     {
@@ -81,7 +121,7 @@
           "artifacts_valid": true,
           "artifact_sha256": null,
           "ready": true,
-          "free_bytes": 18266112,
+          "free_bytes": 14059520,
           "disk_free_valid": true,
           "video_attributes_sha256": "d28fe05a27ee94493d97354e92bd74f1ce84648ad0bfb8f744b038c40db4f5b6",
           "executable_sha256": "f2e690f5e22df15a4295f84ad5b45f1ddeee647652d6a6e99761ac32d766de12",
@@ -91,7 +131,7 @@
           "artifacts_valid": true,
           "artifact_sha256": null,
           "ready": true,
-          "free_bytes": 18272256,
+          "free_bytes": 14065664,
           "disk_free_valid": true,
           "video_attributes_sha256": "d28fe05a27ee94493d97354e92bd74f1ce84648ad0bfb8f744b038c40db4f5b6",
           "executable_sha256": "f2e690f5e22df15a4295f84ad5b45f1ddeee647652d6a6e99761ac32d766de12",
@@ -111,7 +151,7 @@
           "artifacts_valid": true,
           "artifact_sha256": null,
           "ready": true,
-          "free_bytes": 18399232,
+          "free_bytes": 14192640,
           "disk_free_valid": true,
           "video_attributes_sha256": "d28fe05a27ee94493d97354e92bd74f1ce84648ad0bfb8f744b038c40db4f5b6",
           "executable_sha256": "f2e690f5e22df15a4295f84ad5b45f1ddeee647652d6a6e99761ac32d766de12",
@@ -121,7 +161,7 @@
           "artifacts_valid": true,
           "artifact_sha256": null,
           "ready": true,
-          "free_bytes": 18405376,
+          "free_bytes": 14198784,
           "disk_free_valid": true,
           "video_attributes_sha256": "d28fe05a27ee94493d97354e92bd74f1ce84648ad0bfb8f744b038c40db4f5b6",
           "executable_sha256": "f2e690f5e22df15a4295f84ad5b45f1ddeee647652d6a6e99761ac32d766de12",
@@ -141,7 +181,7 @@
           "artifacts_valid": true,
           "artifact_sha256": null,
           "ready": true,
-          "free_bytes": 18399232,
+          "free_bytes": 14192640,
           "disk_free_valid": true,
           "video_attributes_sha256": "d28fe05a27ee94493d97354e92bd74f1ce84648ad0bfb8f744b038c40db4f5b6",
           "executable_sha256": "f2e690f5e22df15a4295f84ad5b45f1ddeee647652d6a6e99761ac32d766de12",
@@ -151,7 +191,7 @@
           "artifacts_valid": true,
           "artifact_sha256": null,
           "ready": true,
-          "free_bytes": 18405376,
+          "free_bytes": 14198784,
           "disk_free_valid": true,
           "video_attributes_sha256": "d28fe05a27ee94493d97354e92bd74f1ce84648ad0bfb8f744b038c40db4f5b6",
           "executable_sha256": "f2e690f5e22df15a4295f84ad5b45f1ddeee647652d6a6e99761ac32d766de12",
@@ -171,7 +211,7 @@
           "artifacts_valid": true,
           "artifact_sha256": null,
           "ready": true,
-          "free_bytes": 18399232,
+          "free_bytes": 14192640,
           "disk_free_valid": true,
           "video_attributes_sha256": "a957a8ec5e078ae91d3b6f687246013470d95be053557beb90cfcdbde4f05bfb",
           "executable_sha256": "7fa3abab4b3dd8386b55b79f552c31030eaae8f6e55568b7c9d17292bacd7a7d",
@@ -181,11 +221,11 @@
           "artifacts_valid": true,
           "artifact_sha256": null,
           "ready": true,
-          "free_bytes": 18405376,
+          "free_bytes": 14198784,
           "disk_free_valid": true,
           "video_attributes_sha256": "a957a8ec5e078ae91d3b6f687246013470d95be053557beb90cfcdbde4f05bfb",
           "executable_sha256": "7fa3abab4b3dd8386b55b79f552c31030eaae8f6e55568b7c9d17292bacd7a7d",
-          "screen_sha256": "6bd2bdb5ed859bfbfcb5766e4bfa13d7ccc01bdc4056d8e4ee8ce26559a7bda3"
+          "screen_sha256": "70d2d45277e58230f4e035406f639886e959845b1aa8da7551ee0060f1aefe2c"
         }
       }
     },
@@ -201,7 +241,7 @@
           "artifacts_valid": true,
           "artifact_sha256": null,
           "ready": true,
-          "free_bytes": 18399232,
+          "free_bytes": 14192640,
           "disk_free_valid": true,
           "video_attributes_sha256": "a957a8ec5e078ae91d3b6f687246013470d95be053557beb90cfcdbde4f05bfb",
           "executable_sha256": "7fa3abab4b3dd8386b55b79f552c31030eaae8f6e55568b7c9d17292bacd7a7d",
@@ -211,7 +251,7 @@
           "artifacts_valid": true,
           "artifact_sha256": null,
           "ready": true,
-          "free_bytes": 18405376,
+          "free_bytes": 14198784,
           "disk_free_valid": true,
           "video_attributes_sha256": "a957a8ec5e078ae91d3b6f687246013470d95be053557beb90cfcdbde4f05bfb",
           "executable_sha256": "7fa3abab4b3dd8386b55b79f552c31030eaae8f6e55568b7c9d17292bacd7a7d",
@@ -231,7 +271,7 @@
           "artifacts_valid": true,
           "artifact_sha256": null,
           "ready": true,
-          "free_bytes": 18399232,
+          "free_bytes": 14192640,
           "disk_free_valid": true,
           "video_attributes_sha256": "a957a8ec5e078ae91d3b6f687246013470d95be053557beb90cfcdbde4f05bfb",
           "executable_sha256": "7fa3abab4b3dd8386b55b79f552c31030eaae8f6e55568b7c9d17292bacd7a7d",
@@ -241,7 +281,7 @@
           "artifacts_valid": true,
           "artifact_sha256": null,
           "ready": true,
-          "free_bytes": 18405376,
+          "free_bytes": 14198784,
           "disk_free_valid": true,
           "video_attributes_sha256": "a957a8ec5e078ae91d3b6f687246013470d95be053557beb90cfcdbde4f05bfb",
           "executable_sha256": "7fa3abab4b3dd8386b55b79f552c31030eaae8f6e55568b7c9d17292bacd7a7d",
@@ -261,21 +301,21 @@
           "artifacts_valid": true,
           "artifact_sha256": null,
           "ready": true,
-          "free_bytes": 18399232,
+          "free_bytes": 14192640,
           "disk_free_valid": true,
           "video_attributes_sha256": "50888a4947d752be80757b9fe3addd4a41bea6410ef41230cc3ee3d43d7c9c79",
           "executable_sha256": "d0b9dfa5b58d1bfe161811dc2fc036c1189de7857749b6a9e5083a0221784b5c",
-          "screen_sha256": "7643c70d363beb28e9a5001ee070d4eb169115af63877c050dd5d82793152173"
+          "screen_sha256": "f847554e1faaf8d4ce141b2c1c991138309ca29402e36844bb9b8d68221c4915"
         },
         "fork": {
           "artifacts_valid": true,
           "artifact_sha256": null,
           "ready": true,
-          "free_bytes": 18405376,
+          "free_bytes": 14198784,
           "disk_free_valid": true,
           "video_attributes_sha256": "50888a4947d752be80757b9fe3addd4a41bea6410ef41230cc3ee3d43d7c9c79",
           "executable_sha256": "d0b9dfa5b58d1bfe161811dc2fc036c1189de7857749b6a9e5083a0221784b5c",
-          "screen_sha256": "7643c70d363beb28e9a5001ee070d4eb169115af63877c050dd5d82793152173"
+          "screen_sha256": "f847554e1faaf8d4ce141b2c1c991138309ca29402e36844bb9b8d68221c4915"
         }
       }
     },
@@ -291,21 +331,21 @@
           "artifacts_valid": true,
           "artifact_sha256": null,
           "ready": true,
-          "free_bytes": 18399232,
+          "free_bytes": 14192640,
           "disk_free_valid": true,
           "video_attributes_sha256": "50888a4947d752be80757b9fe3addd4a41bea6410ef41230cc3ee3d43d7c9c79",
           "executable_sha256": "d0b9dfa5b58d1bfe161811dc2fc036c1189de7857749b6a9e5083a0221784b5c",
-          "screen_sha256": "7643c70d363beb28e9a5001ee070d4eb169115af63877c050dd5d82793152173"
+          "screen_sha256": "f847554e1faaf8d4ce141b2c1c991138309ca29402e36844bb9b8d68221c4915"
         },
         "fork": {
           "artifacts_valid": true,
           "artifact_sha256": null,
           "ready": true,
-          "free_bytes": 18405376,
+          "free_bytes": 14198784,
           "disk_free_valid": true,
           "video_attributes_sha256": "50888a4947d752be80757b9fe3addd4a41bea6410ef41230cc3ee3d43d7c9c79",
           "executable_sha256": "d0b9dfa5b58d1bfe161811dc2fc036c1189de7857749b6a9e5083a0221784b5c",
-          "screen_sha256": "7643c70d363beb28e9a5001ee070d4eb169115af63877c050dd5d82793152173"
+          "screen_sha256": "f847554e1faaf8d4ce141b2c1c991138309ca29402e36844bb9b8d68221c4915"
         }
       }
     },
@@ -321,21 +361,21 @@
           "artifacts_valid": true,
           "artifact_sha256": null,
           "ready": true,
-          "free_bytes": 18399232,
+          "free_bytes": 14192640,
           "disk_free_valid": true,
           "video_attributes_sha256": "50888a4947d752be80757b9fe3addd4a41bea6410ef41230cc3ee3d43d7c9c79",
           "executable_sha256": "d0b9dfa5b58d1bfe161811dc2fc036c1189de7857749b6a9e5083a0221784b5c",
-          "screen_sha256": "7643c70d363beb28e9a5001ee070d4eb169115af63877c050dd5d82793152173"
+          "screen_sha256": "f847554e1faaf8d4ce141b2c1c991138309ca29402e36844bb9b8d68221c4915"
         },
         "fork": {
           "artifacts_valid": true,
           "artifact_sha256": null,
           "ready": true,
-          "free_bytes": 18405376,
+          "free_bytes": 14198784,
           "disk_free_valid": true,
           "video_attributes_sha256": "50888a4947d752be80757b9fe3addd4a41bea6410ef41230cc3ee3d43d7c9c79",
           "executable_sha256": "d0b9dfa5b58d1bfe161811dc2fc036c1189de7857749b6a9e5083a0221784b5c",
-          "screen_sha256": "7643c70d363beb28e9a5001ee070d4eb169115af63877c050dd5d82793152173"
+          "screen_sha256": "f847554e1faaf8d4ce141b2c1c991138309ca29402e36844bb9b8d68221c4915"
         }
       }
     },
@@ -351,21 +391,21 @@
           "artifacts_valid": true,
           "artifact_sha256": null,
           "ready": true,
-          "free_bytes": 18399232,
+          "free_bytes": 14192640,
           "disk_free_valid": true,
           "video_attributes_sha256": "84df5abc3b5bd52765c1a6ed5220159b74a7161c04f5966498fe7e777eb58dac",
           "executable_sha256": "ae0863550ec07f21c5cf8d208373a5022b868133e6f644757b1623cd8f7e9905",
-          "screen_sha256": "8ae7e52fa575df278fd10fbc4f96936c8fd4a4d8c144344b812e5816a3e9d1f2"
+          "screen_sha256": "71126a1c4903ea160c2d8ba1bc3519f0d2bc7d52941c9e850a0f4d9c5b1cadf3"
         },
         "fork": {
           "artifacts_valid": true,
           "artifact_sha256": null,
           "ready": true,
-          "free_bytes": 18405376,
+          "free_bytes": 14198784,
           "disk_free_valid": true,
           "video_attributes_sha256": "84df5abc3b5bd52765c1a6ed5220159b74a7161c04f5966498fe7e777eb58dac",
           "executable_sha256": "ae0863550ec07f21c5cf8d208373a5022b868133e6f644757b1623cd8f7e9905",
-          "screen_sha256": "4e176c004a4e9cbcb65e4227bfac9b9a73a5b5bf49ed495fd9b3ce316fa30a3a"
+          "screen_sha256": "243049af03bca5a593803a68f39a4917442f6e56a05d202fbbb6c45bccda129b"
         }
       }
     },
@@ -381,21 +421,21 @@
           "artifacts_valid": true,
           "artifact_sha256": null,
           "ready": true,
-          "free_bytes": 18399232,
+          "free_bytes": 14192640,
           "disk_free_valid": true,
           "video_attributes_sha256": "84df5abc3b5bd52765c1a6ed5220159b74a7161c04f5966498fe7e777eb58dac",
           "executable_sha256": "ae0863550ec07f21c5cf8d208373a5022b868133e6f644757b1623cd8f7e9905",
-          "screen_sha256": "8ae7e52fa575df278fd10fbc4f96936c8fd4a4d8c144344b812e5816a3e9d1f2"
+          "screen_sha256": "71126a1c4903ea160c2d8ba1bc3519f0d2bc7d52941c9e850a0f4d9c5b1cadf3"
         },
         "fork": {
           "artifacts_valid": true,
           "artifact_sha256": null,
           "ready": true,
-          "free_bytes": 18405376,
+          "free_bytes": 14198784,
           "disk_free_valid": true,
           "video_attributes_sha256": "84df5abc3b5bd52765c1a6ed5220159b74a7161c04f5966498fe7e777eb58dac",
           "executable_sha256": "ae0863550ec07f21c5cf8d208373a5022b868133e6f644757b1623cd8f7e9905",
-          "screen_sha256": "4e176c004a4e9cbcb65e4227bfac9b9a73a5b5bf49ed495fd9b3ce316fa30a3a"
+          "screen_sha256": "243049af03bca5a593803a68f39a4917442f6e56a05d202fbbb6c45bccda129b"
         }
       }
     },
@@ -411,21 +451,21 @@
           "artifacts_valid": true,
           "artifact_sha256": null,
           "ready": true,
-          "free_bytes": 18399232,
+          "free_bytes": 14192640,
           "disk_free_valid": true,
           "video_attributes_sha256": "84df5abc3b5bd52765c1a6ed5220159b74a7161c04f5966498fe7e777eb58dac",
           "executable_sha256": "ae0863550ec07f21c5cf8d208373a5022b868133e6f644757b1623cd8f7e9905",
-          "screen_sha256": "8ae7e52fa575df278fd10fbc4f96936c8fd4a4d8c144344b812e5816a3e9d1f2"
+          "screen_sha256": "71126a1c4903ea160c2d8ba1bc3519f0d2bc7d52941c9e850a0f4d9c5b1cadf3"
         },
         "fork": {
           "artifacts_valid": true,
           "artifact_sha256": null,
           "ready": true,
-          "free_bytes": 18405376,
+          "free_bytes": 14198784,
           "disk_free_valid": true,
           "video_attributes_sha256": "84df5abc3b5bd52765c1a6ed5220159b74a7161c04f5966498fe7e777eb58dac",
           "executable_sha256": "ae0863550ec07f21c5cf8d208373a5022b868133e6f644757b1623cd8f7e9905",
-          "screen_sha256": "4e176c004a4e9cbcb65e4227bfac9b9a73a5b5bf49ed495fd9b3ce316fa30a3a"
+          "screen_sha256": "243049af03bca5a593803a68f39a4917442f6e56a05d202fbbb6c45bccda129b"
         }
       }
     },
@@ -441,7 +481,7 @@
           "artifacts_valid": true,
           "artifact_sha256": null,
           "ready": true,
-          "free_bytes": 18399232,
+          "free_bytes": 14192640,
           "disk_free_valid": true,
           "video_attributes_sha256": "d28fe05a27ee94493d97354e92bd74f1ce84648ad0bfb8f744b038c40db4f5b6",
           "executable_sha256": "900149dcbadcec47e4dd3ca658f1adaf10ae9548e469f372b2e3174b9696d2a5",
@@ -451,7 +491,7 @@
           "artifacts_valid": true,
           "artifact_sha256": null,
           "ready": true,
-          "free_bytes": 18405376,
+          "free_bytes": 14198784,
           "disk_free_valid": true,
           "video_attributes_sha256": "d28fe05a27ee94493d97354e92bd74f1ce84648ad0bfb8f744b038c40db4f5b6",
           "executable_sha256": "900149dcbadcec47e4dd3ca658f1adaf10ae9548e469f372b2e3174b9696d2a5",
@@ -471,7 +511,7 @@
           "artifacts_valid": true,
           "artifact_sha256": null,
           "ready": true,
-          "free_bytes": 18399232,
+          "free_bytes": 14192640,
           "disk_free_valid": true,
           "video_attributes_sha256": "d28fe05a27ee94493d97354e92bd74f1ce84648ad0bfb8f744b038c40db4f5b6",
           "executable_sha256": "900149dcbadcec47e4dd3ca658f1adaf10ae9548e469f372b2e3174b9696d2a5",
@@ -481,7 +521,7 @@
           "artifacts_valid": true,
           "artifact_sha256": null,
           "ready": true,
-          "free_bytes": 18405376,
+          "free_bytes": 14198784,
           "disk_free_valid": true,
           "video_attributes_sha256": "d28fe05a27ee94493d97354e92bd74f1ce84648ad0bfb8f744b038c40db4f5b6",
           "executable_sha256": "900149dcbadcec47e4dd3ca658f1adaf10ae9548e469f372b2e3174b9696d2a5",
@@ -501,7 +541,7 @@
           "artifacts_valid": true,
           "artifact_sha256": null,
           "ready": true,
-          "free_bytes": 18399232,
+          "free_bytes": 14192640,
           "disk_free_valid": true,
           "video_attributes_sha256": "d28fe05a27ee94493d97354e92bd74f1ce84648ad0bfb8f744b038c40db4f5b6",
           "executable_sha256": "900149dcbadcec47e4dd3ca658f1adaf10ae9548e469f372b2e3174b9696d2a5",
@@ -511,7 +551,7 @@
           "artifacts_valid": true,
           "artifact_sha256": null,
           "ready": true,
-          "free_bytes": 18405376,
+          "free_bytes": 14198784,
           "disk_free_valid": true,
           "video_attributes_sha256": "d28fe05a27ee94493d97354e92bd74f1ce84648ad0bfb8f744b038c40db4f5b6",
           "executable_sha256": "900149dcbadcec47e4dd3ca658f1adaf10ae9548e469f372b2e3174b9696d2a5",
@@ -531,7 +571,7 @@
           "artifacts_valid": true,
           "artifact_sha256": null,
           "ready": true,
-          "free_bytes": 18399232,
+          "free_bytes": 14192640,
           "disk_free_valid": true,
           "video_attributes_sha256": "d28fe05a27ee94493d97354e92bd74f1ce84648ad0bfb8f744b038c40db4f5b6",
           "executable_sha256": "86ababf4a792be25d3a3f6ea515ab5cc680e41c5560a5e01f55471d42b56ebf9",
@@ -541,7 +581,7 @@
           "artifacts_valid": true,
           "artifact_sha256": null,
           "ready": true,
-          "free_bytes": 18405376,
+          "free_bytes": 14198784,
           "disk_free_valid": true,
           "video_attributes_sha256": "d28fe05a27ee94493d97354e92bd74f1ce84648ad0bfb8f744b038c40db4f5b6",
           "executable_sha256": "86ababf4a792be25d3a3f6ea515ab5cc680e41c5560a5e01f55471d42b56ebf9",
@@ -561,7 +601,7 @@
           "artifacts_valid": true,
           "artifact_sha256": null,
           "ready": true,
-          "free_bytes": 18399232,
+          "free_bytes": 14192640,
           "disk_free_valid": true,
           "video_attributes_sha256": "d28fe05a27ee94493d97354e92bd74f1ce84648ad0bfb8f744b038c40db4f5b6",
           "executable_sha256": "86ababf4a792be25d3a3f6ea515ab5cc680e41c5560a5e01f55471d42b56ebf9",
@@ -571,7 +611,7 @@
           "artifacts_valid": true,
           "artifact_sha256": null,
           "ready": true,
-          "free_bytes": 18405376,
+          "free_bytes": 14198784,
           "disk_free_valid": true,
           "video_attributes_sha256": "d28fe05a27ee94493d97354e92bd74f1ce84648ad0bfb8f744b038c40db4f5b6",
           "executable_sha256": "86ababf4a792be25d3a3f6ea515ab5cc680e41c5560a5e01f55471d42b56ebf9",
@@ -591,7 +631,7 @@
           "artifacts_valid": true,
           "artifact_sha256": null,
           "ready": true,
-          "free_bytes": 18399232,
+          "free_bytes": 14192640,
           "disk_free_valid": true,
           "video_attributes_sha256": "d28fe05a27ee94493d97354e92bd74f1ce84648ad0bfb8f744b038c40db4f5b6",
           "executable_sha256": "86ababf4a792be25d3a3f6ea515ab5cc680e41c5560a5e01f55471d42b56ebf9",
@@ -601,7 +641,7 @@
           "artifacts_valid": true,
           "artifact_sha256": null,
           "ready": true,
-          "free_bytes": 18405376,
+          "free_bytes": 14198784,
           "disk_free_valid": true,
           "video_attributes_sha256": "d28fe05a27ee94493d97354e92bd74f1ce84648ad0bfb8f744b038c40db4f5b6",
           "executable_sha256": "86ababf4a792be25d3a3f6ea515ab5cc680e41c5560a5e01f55471d42b56ebf9",
@@ -621,7 +661,7 @@
           "artifacts_valid": true,
           "artifact_sha256": null,
           "ready": true,
-          "free_bytes": 18399232,
+          "free_bytes": 14192640,
           "disk_free_valid": true,
           "video_attributes_sha256": "d28fe05a27ee94493d97354e92bd74f1ce84648ad0bfb8f744b038c40db4f5b6",
           "executable_sha256": "a4dbc6af69dbb06d3b1917e963861789ddc11c0ae1c1c056e55c64f869eef56f",
@@ -631,7 +671,7 @@
           "artifacts_valid": true,
           "artifact_sha256": null,
           "ready": true,
-          "free_bytes": 18405376,
+          "free_bytes": 14198784,
           "disk_free_valid": true,
           "video_attributes_sha256": "d28fe05a27ee94493d97354e92bd74f1ce84648ad0bfb8f744b038c40db4f5b6",
           "executable_sha256": "a4dbc6af69dbb06d3b1917e963861789ddc11c0ae1c1c056e55c64f869eef56f",
@@ -651,7 +691,7 @@
           "artifacts_valid": true,
           "artifact_sha256": null,
           "ready": true,
-          "free_bytes": 18399232,
+          "free_bytes": 14192640,
           "disk_free_valid": true,
           "video_attributes_sha256": "d28fe05a27ee94493d97354e92bd74f1ce84648ad0bfb8f744b038c40db4f5b6",
           "executable_sha256": "a4dbc6af69dbb06d3b1917e963861789ddc11c0ae1c1c056e55c64f869eef56f",
@@ -661,7 +701,7 @@
           "artifacts_valid": true,
           "artifact_sha256": null,
           "ready": true,
-          "free_bytes": 18405376,
+          "free_bytes": 14198784,
           "disk_free_valid": true,
           "video_attributes_sha256": "d28fe05a27ee94493d97354e92bd74f1ce84648ad0bfb8f744b038c40db4f5b6",
           "executable_sha256": "a4dbc6af69dbb06d3b1917e963861789ddc11c0ae1c1c056e55c64f869eef56f",
@@ -681,7 +721,7 @@
           "artifacts_valid": true,
           "artifact_sha256": null,
           "ready": true,
-          "free_bytes": 18399232,
+          "free_bytes": 14192640,
           "disk_free_valid": true,
           "video_attributes_sha256": "d28fe05a27ee94493d97354e92bd74f1ce84648ad0bfb8f744b038c40db4f5b6",
           "executable_sha256": "a4dbc6af69dbb06d3b1917e963861789ddc11c0ae1c1c056e55c64f869eef56f",
@@ -691,7 +731,7 @@
           "artifacts_valid": true,
           "artifact_sha256": null,
           "ready": true,
-          "free_bytes": 18405376,
+          "free_bytes": 14198784,
           "disk_free_valid": true,
           "video_attributes_sha256": "d28fe05a27ee94493d97354e92bd74f1ce84648ad0bfb8f744b038c40db4f5b6",
           "executable_sha256": "a4dbc6af69dbb06d3b1917e963861789ddc11c0ae1c1c056e55c64f869eef56f",
@@ -711,7 +751,7 @@
           "artifacts_valid": true,
           "artifact_sha256": null,
           "ready": true,
-          "free_bytes": 18399232,
+          "free_bytes": 14192640,
           "disk_free_valid": true,
           "video_attributes_sha256": "d28fe05a27ee94493d97354e92bd74f1ce84648ad0bfb8f744b038c40db4f5b6",
           "executable_sha256": "43f7967879ff7fe4640bdc322da0236d6620a5bc85d7b751d416d94c64db3cca",
@@ -721,7 +761,7 @@
           "artifacts_valid": true,
           "artifact_sha256": null,
           "ready": true,
-          "free_bytes": 18405376,
+          "free_bytes": 14198784,
           "disk_free_valid": true,
           "video_attributes_sha256": "d28fe05a27ee94493d97354e92bd74f1ce84648ad0bfb8f744b038c40db4f5b6",
           "executable_sha256": "43f7967879ff7fe4640bdc322da0236d6620a5bc85d7b751d416d94c64db3cca",
@@ -741,7 +781,7 @@
           "artifacts_valid": true,
           "artifact_sha256": null,
           "ready": true,
-          "free_bytes": 18399232,
+          "free_bytes": 14192640,
           "disk_free_valid": true,
           "video_attributes_sha256": "d28fe05a27ee94493d97354e92bd74f1ce84648ad0bfb8f744b038c40db4f5b6",
           "executable_sha256": "43f7967879ff7fe4640bdc322da0236d6620a5bc85d7b751d416d94c64db3cca",
@@ -751,7 +791,7 @@
           "artifacts_valid": true,
           "artifact_sha256": null,
           "ready": true,
-          "free_bytes": 18405376,
+          "free_bytes": 14198784,
           "disk_free_valid": true,
           "video_attributes_sha256": "d28fe05a27ee94493d97354e92bd74f1ce84648ad0bfb8f744b038c40db4f5b6",
           "executable_sha256": "43f7967879ff7fe4640bdc322da0236d6620a5bc85d7b751d416d94c64db3cca",
@@ -771,7 +811,7 @@
           "artifacts_valid": true,
           "artifact_sha256": null,
           "ready": true,
-          "free_bytes": 18399232,
+          "free_bytes": 14192640,
           "disk_free_valid": true,
           "video_attributes_sha256": "d28fe05a27ee94493d97354e92bd74f1ce84648ad0bfb8f744b038c40db4f5b6",
           "executable_sha256": "43f7967879ff7fe4640bdc322da0236d6620a5bc85d7b751d416d94c64db3cca",
@@ -781,7 +821,7 @@
           "artifacts_valid": true,
           "artifact_sha256": null,
           "ready": true,
-          "free_bytes": 18405376,
+          "free_bytes": 14198784,
           "disk_free_valid": true,
           "video_attributes_sha256": "d28fe05a27ee94493d97354e92bd74f1ce84648ad0bfb8f744b038c40db4f5b6",
           "executable_sha256": "43f7967879ff7fe4640bdc322da0236d6620a5bc85d7b751d416d94c64db3cca",
@@ -799,9 +839,9 @@
       "captures": {
         "stock": {
           "artifacts_valid": true,
-          "artifact_sha256": "d08785b1071b087adef6a1accaba0971885beecbb52d5718d0ba159866b1e791",
+          "artifact_sha256": "9304af55f92f9a4508d0ba928fba6e493a8e5092e3d4ec721bab46bb2c535028",
           "ready": true,
-          "free_bytes": 18397184,
+          "free_bytes": 14190592,
           "disk_free_valid": true,
           "video_attributes_sha256": "d28fe05a27ee94493d97354e92bd74f1ce84648ad0bfb8f744b038c40db4f5b6",
           "executable_sha256": "f2e690f5e22df15a4295f84ad5b45f1ddeee647652d6a6e99761ac32d766de12",
@@ -809,9 +849,9 @@
         },
         "fork": {
           "artifacts_valid": true,
-          "artifact_sha256": "d08785b1071b087adef6a1accaba0971885beecbb52d5718d0ba159866b1e791",
+          "artifact_sha256": "9304af55f92f9a4508d0ba928fba6e493a8e5092e3d4ec721bab46bb2c535028",
           "ready": true,
-          "free_bytes": 18403328,
+          "free_bytes": 14196736,
           "disk_free_valid": true,
           "video_attributes_sha256": "d28fe05a27ee94493d97354e92bd74f1ce84648ad0bfb8f744b038c40db4f5b6",
           "executable_sha256": "f2e690f5e22df15a4295f84ad5b45f1ddeee647652d6a6e99761ac32d766de12",
@@ -829,9 +869,9 @@
       "captures": {
         "stock": {
           "artifacts_valid": true,
-          "artifact_sha256": "d08785b1071b087adef6a1accaba0971885beecbb52d5718d0ba159866b1e791",
+          "artifact_sha256": "9304af55f92f9a4508d0ba928fba6e493a8e5092e3d4ec721bab46bb2c535028",
           "ready": true,
-          "free_bytes": 18397184,
+          "free_bytes": 14190592,
           "disk_free_valid": true,
           "video_attributes_sha256": "d28fe05a27ee94493d97354e92bd74f1ce84648ad0bfb8f744b038c40db4f5b6",
           "executable_sha256": "f2e690f5e22df15a4295f84ad5b45f1ddeee647652d6a6e99761ac32d766de12",
@@ -839,9 +879,9 @@
         },
         "fork": {
           "artifacts_valid": true,
-          "artifact_sha256": "d08785b1071b087adef6a1accaba0971885beecbb52d5718d0ba159866b1e791",
+          "artifact_sha256": "9304af55f92f9a4508d0ba928fba6e493a8e5092e3d4ec721bab46bb2c535028",
           "ready": true,
-          "free_bytes": 18403328,
+          "free_bytes": 14196736,
           "disk_free_valid": true,
           "video_attributes_sha256": "d28fe05a27ee94493d97354e92bd74f1ce84648ad0bfb8f744b038c40db4f5b6",
           "executable_sha256": "f2e690f5e22df15a4295f84ad5b45f1ddeee647652d6a6e99761ac32d766de12",
@@ -859,9 +899,9 @@
       "captures": {
         "stock": {
           "artifacts_valid": true,
-          "artifact_sha256": "d08785b1071b087adef6a1accaba0971885beecbb52d5718d0ba159866b1e791",
+          "artifact_sha256": "9304af55f92f9a4508d0ba928fba6e493a8e5092e3d4ec721bab46bb2c535028",
           "ready": true,
-          "free_bytes": 18397184,
+          "free_bytes": 14190592,
           "disk_free_valid": true,
           "video_attributes_sha256": "d28fe05a27ee94493d97354e92bd74f1ce84648ad0bfb8f744b038c40db4f5b6",
           "executable_sha256": "f2e690f5e22df15a4295f84ad5b45f1ddeee647652d6a6e99761ac32d766de12",
@@ -869,9 +909,9 @@
         },
         "fork": {
           "artifacts_valid": true,
-          "artifact_sha256": "d08785b1071b087adef6a1accaba0971885beecbb52d5718d0ba159866b1e791",
+          "artifact_sha256": "9304af55f92f9a4508d0ba928fba6e493a8e5092e3d4ec721bab46bb2c535028",
           "ready": true,
-          "free_bytes": 18403328,
+          "free_bytes": 14196736,
           "disk_free_valid": true,
           "video_attributes_sha256": "d28fe05a27ee94493d97354e92bd74f1ce84648ad0bfb8f744b038c40db4f5b6",
           "executable_sha256": "f2e690f5e22df15a4295f84ad5b45f1ddeee647652d6a6e99761ac32d766de12",
@@ -891,7 +931,7 @@
           "artifacts_valid": true,
           "artifact_sha256": null,
           "ready": true,
-          "free_bytes": 18196480,
+          "free_bytes": 13989888,
           "disk_free_valid": true,
           "video_attributes_sha256": "d28fe05a27ee94493d97354e92bd74f1ce84648ad0bfb8f744b038c40db4f5b6",
           "executable_sha256": "ad01136f37bc5e9a19f9568c223712009eb1d46cf2326ad81f3ef8ac0f342102",
@@ -901,7 +941,7 @@
           "artifacts_valid": true,
           "artifact_sha256": null,
           "ready": true,
-          "free_bytes": 18202624,
+          "free_bytes": 13996032,
           "disk_free_valid": true,
           "video_attributes_sha256": "d28fe05a27ee94493d97354e92bd74f1ce84648ad0bfb8f744b038c40db4f5b6",
           "executable_sha256": "ad01136f37bc5e9a19f9568c223712009eb1d46cf2326ad81f3ef8ac0f342102",
@@ -921,7 +961,7 @@
           "artifacts_valid": true,
           "artifact_sha256": null,
           "ready": true,
-          "free_bytes": 18399232,
+          "free_bytes": 14192640,
           "disk_free_valid": true,
           "video_attributes_sha256": "d28fe05a27ee94493d97354e92bd74f1ce84648ad0bfb8f744b038c40db4f5b6",
           "executable_sha256": "ad01136f37bc5e9a19f9568c223712009eb1d46cf2326ad81f3ef8ac0f342102",
@@ -931,7 +971,7 @@
           "artifacts_valid": true,
           "artifact_sha256": null,
           "ready": true,
-          "free_bytes": 18405376,
+          "free_bytes": 14198784,
           "disk_free_valid": true,
           "video_attributes_sha256": "d28fe05a27ee94493d97354e92bd74f1ce84648ad0bfb8f744b038c40db4f5b6",
           "executable_sha256": "ad01136f37bc5e9a19f9568c223712009eb1d46cf2326ad81f3ef8ac0f342102",
@@ -951,7 +991,7 @@
           "artifacts_valid": true,
           "artifact_sha256": null,
           "ready": true,
-          "free_bytes": 18399232,
+          "free_bytes": 14192640,
           "disk_free_valid": true,
           "video_attributes_sha256": "d28fe05a27ee94493d97354e92bd74f1ce84648ad0bfb8f744b038c40db4f5b6",
           "executable_sha256": "ad01136f37bc5e9a19f9568c223712009eb1d46cf2326ad81f3ef8ac0f342102",
@@ -961,11 +1001,911 @@
           "artifacts_valid": true,
           "artifact_sha256": null,
           "ready": true,
-          "free_bytes": 18405376,
+          "free_bytes": 14198784,
           "disk_free_valid": true,
           "video_attributes_sha256": "d28fe05a27ee94493d97354e92bd74f1ce84648ad0bfb8f744b038c40db4f5b6",
           "executable_sha256": "ad01136f37bc5e9a19f9568c223712009eb1d46cf2326ad81f3ef8ac0f342102",
           "screen_sha256": "b2a560c3c23d7b14253de27cc9821645ee3e9076fd7dcfc3a3eff24717871604"
+        }
+      }
+    },
+    {
+      "program": "d86",
+      "profile": "low",
+      "passed": true,
+      "text_identical": false,
+      "normalized_text_identical": true,
+      "attributes_identical": true,
+      "captures": {
+        "stock": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 14192640,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "b69fcbddd87e9a95073f2faf18ef850985251b650e94c406637885b4781f1296",
+          "executable_sha256": "23302cc7837a064a17aa8fb7e0ce6af88960ded70504a3afff0bb1688836b351",
+          "screen_sha256": "d1d220919a099399f9eaab3b55ce63a0b4b3115d5e2225e2cba1cf221a222e24"
+        },
+        "fork": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 14198784,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "b69fcbddd87e9a95073f2faf18ef850985251b650e94c406637885b4781f1296",
+          "executable_sha256": "23302cc7837a064a17aa8fb7e0ce6af88960ded70504a3afff0bb1688836b351",
+          "screen_sha256": "b8042794d256505363089568a558e57893f133db9cdfbd4501a74e0640ecc0f1"
+        }
+      }
+    },
+    {
+      "program": "d86",
+      "profile": "xms",
+      "passed": true,
+      "text_identical": false,
+      "normalized_text_identical": true,
+      "attributes_identical": true,
+      "captures": {
+        "stock": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 14192640,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "b69fcbddd87e9a95073f2faf18ef850985251b650e94c406637885b4781f1296",
+          "executable_sha256": "23302cc7837a064a17aa8fb7e0ce6af88960ded70504a3afff0bb1688836b351",
+          "screen_sha256": "040cf7298f11c7a0250d8e7eb3d257219ac37a044b0fbda6bcdfcce978c42f43"
+        },
+        "fork": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 14198784,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "b69fcbddd87e9a95073f2faf18ef850985251b650e94c406637885b4781f1296",
+          "executable_sha256": "23302cc7837a064a17aa8fb7e0ce6af88960ded70504a3afff0bb1688836b351",
+          "screen_sha256": "cade28159775ec83ad9a7e6a955f0dca64ea15371e752d1aa97fc53d0b1909cb"
+        }
+      }
+    },
+    {
+      "program": "d86",
+      "profile": "high",
+      "passed": true,
+      "text_identical": false,
+      "normalized_text_identical": true,
+      "attributes_identical": true,
+      "captures": {
+        "stock": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 14192640,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "b69fcbddd87e9a95073f2faf18ef850985251b650e94c406637885b4781f1296",
+          "executable_sha256": "23302cc7837a064a17aa8fb7e0ce6af88960ded70504a3afff0bb1688836b351",
+          "screen_sha256": "c6cc7db15e4fca6c1e909deccf26a379a069cd2e262e987e0ec43269dcae852c"
+        },
+        "fork": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 14198784,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "b69fcbddd87e9a95073f2faf18ef850985251b650e94c406637885b4781f1296",
+          "executable_sha256": "23302cc7837a064a17aa8fb7e0ce6af88960ded70504a3afff0bb1688836b351",
+          "screen_sha256": "0920c329bc24c5a33143d51abb0c555d79e0fd9f889dc40dd0e315b2c54feb91"
+        }
+      }
+    },
+    {
+      "program": "vde",
+      "profile": "low",
+      "passed": true,
+      "text_identical": true,
+      "normalized_text_identical": true,
+      "attributes_identical": true,
+      "captures": {
+        "stock": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 14192640,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "a3fabd9e73451030d3569adbae434d83bb2025c0245b8cb26cd5b880f2c67206",
+          "executable_sha256": "f8fd85bae713c6a462f035a0710e3f8fd7f0a68de607747ffe3c6d213aa41368",
+          "screen_sha256": "3a2c73e1dba78d71b5d77ff890956684396a756c1aee694bc8f1623a63d65efe"
+        },
+        "fork": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 14198784,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "a3fabd9e73451030d3569adbae434d83bb2025c0245b8cb26cd5b880f2c67206",
+          "executable_sha256": "f8fd85bae713c6a462f035a0710e3f8fd7f0a68de607747ffe3c6d213aa41368",
+          "screen_sha256": "3a2c73e1dba78d71b5d77ff890956684396a756c1aee694bc8f1623a63d65efe"
+        }
+      }
+    },
+    {
+      "program": "vde",
+      "profile": "xms",
+      "passed": true,
+      "text_identical": true,
+      "normalized_text_identical": true,
+      "attributes_identical": true,
+      "captures": {
+        "stock": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 14192640,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "a3fabd9e73451030d3569adbae434d83bb2025c0245b8cb26cd5b880f2c67206",
+          "executable_sha256": "f8fd85bae713c6a462f035a0710e3f8fd7f0a68de607747ffe3c6d213aa41368",
+          "screen_sha256": "3a2c73e1dba78d71b5d77ff890956684396a756c1aee694bc8f1623a63d65efe"
+        },
+        "fork": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 14198784,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "a3fabd9e73451030d3569adbae434d83bb2025c0245b8cb26cd5b880f2c67206",
+          "executable_sha256": "f8fd85bae713c6a462f035a0710e3f8fd7f0a68de607747ffe3c6d213aa41368",
+          "screen_sha256": "3a2c73e1dba78d71b5d77ff890956684396a756c1aee694bc8f1623a63d65efe"
+        }
+      }
+    },
+    {
+      "program": "vde",
+      "profile": "high",
+      "passed": true,
+      "text_identical": true,
+      "normalized_text_identical": true,
+      "attributes_identical": true,
+      "captures": {
+        "stock": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 14192640,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "a3fabd9e73451030d3569adbae434d83bb2025c0245b8cb26cd5b880f2c67206",
+          "executable_sha256": "f8fd85bae713c6a462f035a0710e3f8fd7f0a68de607747ffe3c6d213aa41368",
+          "screen_sha256": "3a2c73e1dba78d71b5d77ff890956684396a756c1aee694bc8f1623a63d65efe"
+        },
+        "fork": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 14198784,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "a3fabd9e73451030d3569adbae434d83bb2025c0245b8cb26cd5b880f2c67206",
+          "executable_sha256": "f8fd85bae713c6a462f035a0710e3f8fd7f0a68de607747ffe3c6d213aa41368",
+          "screen_sha256": "3a2c73e1dba78d71b5d77ff890956684396a756c1aee694bc8f1623a63d65efe"
+        }
+      }
+    },
+    {
+      "program": "asa57",
+      "profile": "low",
+      "passed": true,
+      "text_identical": false,
+      "normalized_text_identical": true,
+      "attributes_identical": true,
+      "captures": {
+        "stock": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 14192640,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "3871d55e4241cd02380f8d632d4d01b7e1610125f30360723bbad739d4e3c4ad",
+          "executable_sha256": "ffd7f2122ff3d37ebfc19fcf79fdf8c5f3a46eef3ea8229e93ba57fa2311cb52",
+          "screen_sha256": "0f3c597fde3f460019929ffceb139ed04aff73ae706ba00bde0eb7dd5318b122"
+        },
+        "fork": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 14198784,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "3871d55e4241cd02380f8d632d4d01b7e1610125f30360723bbad739d4e3c4ad",
+          "executable_sha256": "ffd7f2122ff3d37ebfc19fcf79fdf8c5f3a46eef3ea8229e93ba57fa2311cb52",
+          "screen_sha256": "3d394adac8dd0f86e6d67a91decf71b8c77d45c491a8bea84890f20311d5a17a"
+        }
+      }
+    },
+    {
+      "program": "asa57",
+      "profile": "xms",
+      "passed": true,
+      "text_identical": false,
+      "normalized_text_identical": true,
+      "attributes_identical": true,
+      "captures": {
+        "stock": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 14192640,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "3871d55e4241cd02380f8d632d4d01b7e1610125f30360723bbad739d4e3c4ad",
+          "executable_sha256": "ffd7f2122ff3d37ebfc19fcf79fdf8c5f3a46eef3ea8229e93ba57fa2311cb52",
+          "screen_sha256": "6e9e388a69892f2e13474fc0462fc9a258b08cf067a4230d9d5ee43967e332a6"
+        },
+        "fork": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 14198784,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "3871d55e4241cd02380f8d632d4d01b7e1610125f30360723bbad739d4e3c4ad",
+          "executable_sha256": "ffd7f2122ff3d37ebfc19fcf79fdf8c5f3a46eef3ea8229e93ba57fa2311cb52",
+          "screen_sha256": "61163e54135383c7812587ab67f819e7ae3dc4e071f43010fb0b0b79100d2452"
+        }
+      }
+    },
+    {
+      "program": "asa57",
+      "profile": "high",
+      "passed": true,
+      "text_identical": false,
+      "normalized_text_identical": true,
+      "attributes_identical": true,
+      "captures": {
+        "stock": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 14192640,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "3871d55e4241cd02380f8d632d4d01b7e1610125f30360723bbad739d4e3c4ad",
+          "executable_sha256": "ffd7f2122ff3d37ebfc19fcf79fdf8c5f3a46eef3ea8229e93ba57fa2311cb52",
+          "screen_sha256": "7a69d00415ce5999f10390d757486891af69427bbe269d6eb988ade2b1fb5766"
+        },
+        "fork": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 14198784,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "3871d55e4241cd02380f8d632d4d01b7e1610125f30360723bbad739d4e3c4ad",
+          "executable_sha256": "ffd7f2122ff3d37ebfc19fcf79fdf8c5f3a46eef3ea8229e93ba57fa2311cb52",
+          "screen_sha256": "9d999881fcb886df98403261ee55015c5f445296ac1dc7c233a1bf0a130bba33"
+        }
+      }
+    },
+    {
+      "program": "list",
+      "profile": "low",
+      "passed": true,
+      "text_identical": true,
+      "normalized_text_identical": true,
+      "attributes_identical": true,
+      "captures": {
+        "stock": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 14192640,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "216075ceaff5880ed57b13884828c647da3e635b0da565717dc74b06d6d31e57",
+          "executable_sha256": "6b1cc90e247554f7f6f608b09700b8764e0c777e4640d42b84bcf869e0c34209",
+          "screen_sha256": "5e5f0e6b88e3343de4dd0dc91d8ad4a41ca740dd7d463058e5a299098ab5d720"
+        },
+        "fork": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 14198784,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "216075ceaff5880ed57b13884828c647da3e635b0da565717dc74b06d6d31e57",
+          "executable_sha256": "6b1cc90e247554f7f6f608b09700b8764e0c777e4640d42b84bcf869e0c34209",
+          "screen_sha256": "5e5f0e6b88e3343de4dd0dc91d8ad4a41ca740dd7d463058e5a299098ab5d720"
+        }
+      }
+    },
+    {
+      "program": "list",
+      "profile": "xms",
+      "passed": true,
+      "text_identical": true,
+      "normalized_text_identical": true,
+      "attributes_identical": true,
+      "captures": {
+        "stock": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 14192640,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "216075ceaff5880ed57b13884828c647da3e635b0da565717dc74b06d6d31e57",
+          "executable_sha256": "6b1cc90e247554f7f6f608b09700b8764e0c777e4640d42b84bcf869e0c34209",
+          "screen_sha256": "5e5f0e6b88e3343de4dd0dc91d8ad4a41ca740dd7d463058e5a299098ab5d720"
+        },
+        "fork": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 14198784,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "216075ceaff5880ed57b13884828c647da3e635b0da565717dc74b06d6d31e57",
+          "executable_sha256": "6b1cc90e247554f7f6f608b09700b8764e0c777e4640d42b84bcf869e0c34209",
+          "screen_sha256": "5e5f0e6b88e3343de4dd0dc91d8ad4a41ca740dd7d463058e5a299098ab5d720"
+        }
+      }
+    },
+    {
+      "program": "list",
+      "profile": "high",
+      "passed": true,
+      "text_identical": true,
+      "normalized_text_identical": true,
+      "attributes_identical": true,
+      "captures": {
+        "stock": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 14192640,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "216075ceaff5880ed57b13884828c647da3e635b0da565717dc74b06d6d31e57",
+          "executable_sha256": "6b1cc90e247554f7f6f608b09700b8764e0c777e4640d42b84bcf869e0c34209",
+          "screen_sha256": "5e5f0e6b88e3343de4dd0dc91d8ad4a41ca740dd7d463058e5a299098ab5d720"
+        },
+        "fork": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 14198784,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "216075ceaff5880ed57b13884828c647da3e635b0da565717dc74b06d6d31e57",
+          "executable_sha256": "6b1cc90e247554f7f6f608b09700b8764e0c777e4640d42b84bcf869e0c34209",
+          "screen_sha256": "5e5f0e6b88e3343de4dd0dc91d8ad4a41ca740dd7d463058e5a299098ab5d720"
+        }
+      }
+    },
+    {
+      "program": "a86",
+      "profile": "low",
+      "passed": true,
+      "text_identical": true,
+      "normalized_text_identical": true,
+      "attributes_identical": true,
+      "captures": {
+        "stock": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 14192640,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "d28fe05a27ee94493d97354e92bd74f1ce84648ad0bfb8f744b038c40db4f5b6",
+          "executable_sha256": "611d61b8f3d136b8d619e9b9811245a1e94a7239953f15bccc92c569c260a0e8",
+          "screen_sha256": "aa6f445ca15d3c2da4b2ddcdcc1d1a35845da09bfeff2124b3689f688a9607ff"
+        },
+        "fork": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 14198784,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "d28fe05a27ee94493d97354e92bd74f1ce84648ad0bfb8f744b038c40db4f5b6",
+          "executable_sha256": "611d61b8f3d136b8d619e9b9811245a1e94a7239953f15bccc92c569c260a0e8",
+          "screen_sha256": "aa6f445ca15d3c2da4b2ddcdcc1d1a35845da09bfeff2124b3689f688a9607ff"
+        }
+      }
+    },
+    {
+      "program": "a86",
+      "profile": "xms",
+      "passed": true,
+      "text_identical": true,
+      "normalized_text_identical": true,
+      "attributes_identical": true,
+      "captures": {
+        "stock": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 14192640,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "d28fe05a27ee94493d97354e92bd74f1ce84648ad0bfb8f744b038c40db4f5b6",
+          "executable_sha256": "611d61b8f3d136b8d619e9b9811245a1e94a7239953f15bccc92c569c260a0e8",
+          "screen_sha256": "aa6f445ca15d3c2da4b2ddcdcc1d1a35845da09bfeff2124b3689f688a9607ff"
+        },
+        "fork": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 14198784,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "d28fe05a27ee94493d97354e92bd74f1ce84648ad0bfb8f744b038c40db4f5b6",
+          "executable_sha256": "611d61b8f3d136b8d619e9b9811245a1e94a7239953f15bccc92c569c260a0e8",
+          "screen_sha256": "aa6f445ca15d3c2da4b2ddcdcc1d1a35845da09bfeff2124b3689f688a9607ff"
+        }
+      }
+    },
+    {
+      "program": "a86",
+      "profile": "high",
+      "passed": true,
+      "text_identical": true,
+      "normalized_text_identical": true,
+      "attributes_identical": true,
+      "captures": {
+        "stock": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 14192640,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "d28fe05a27ee94493d97354e92bd74f1ce84648ad0bfb8f744b038c40db4f5b6",
+          "executable_sha256": "611d61b8f3d136b8d619e9b9811245a1e94a7239953f15bccc92c569c260a0e8",
+          "screen_sha256": "aa6f445ca15d3c2da4b2ddcdcc1d1a35845da09bfeff2124b3689f688a9607ff"
+        },
+        "fork": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 14198784,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "d28fe05a27ee94493d97354e92bd74f1ce84648ad0bfb8f744b038c40db4f5b6",
+          "executable_sha256": "611d61b8f3d136b8d619e9b9811245a1e94a7239953f15bccc92c569c260a0e8",
+          "screen_sha256": "aa6f445ca15d3c2da4b2ddcdcc1d1a35845da09bfeff2124b3689f688a9607ff"
+        }
+      }
+    },
+    {
+      "program": "hiew",
+      "profile": "low",
+      "passed": true,
+      "text_identical": true,
+      "normalized_text_identical": true,
+      "attributes_identical": true,
+      "captures": {
+        "stock": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 14192640,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "c039854722bbd2a18b556aa1f16d54e78e7426a08c0b1cced42bba12cc61ccac",
+          "executable_sha256": "251c84cc1332d4504ab3fcfcee2608da3ebff35b1a981622ad7ba4ad82e981b1",
+          "screen_sha256": "15ffeca0b1819019cd5a5c6efde13d008e2d4701e008a9e92ef7f7f86a354306"
+        },
+        "fork": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 14198784,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "c039854722bbd2a18b556aa1f16d54e78e7426a08c0b1cced42bba12cc61ccac",
+          "executable_sha256": "251c84cc1332d4504ab3fcfcee2608da3ebff35b1a981622ad7ba4ad82e981b1",
+          "screen_sha256": "15ffeca0b1819019cd5a5c6efde13d008e2d4701e008a9e92ef7f7f86a354306"
+        }
+      }
+    },
+    {
+      "program": "hiew",
+      "profile": "xms",
+      "passed": true,
+      "text_identical": true,
+      "normalized_text_identical": true,
+      "attributes_identical": true,
+      "captures": {
+        "stock": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 14192640,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "c039854722bbd2a18b556aa1f16d54e78e7426a08c0b1cced42bba12cc61ccac",
+          "executable_sha256": "251c84cc1332d4504ab3fcfcee2608da3ebff35b1a981622ad7ba4ad82e981b1",
+          "screen_sha256": "15ffeca0b1819019cd5a5c6efde13d008e2d4701e008a9e92ef7f7f86a354306"
+        },
+        "fork": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 14198784,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "c039854722bbd2a18b556aa1f16d54e78e7426a08c0b1cced42bba12cc61ccac",
+          "executable_sha256": "251c84cc1332d4504ab3fcfcee2608da3ebff35b1a981622ad7ba4ad82e981b1",
+          "screen_sha256": "15ffeca0b1819019cd5a5c6efde13d008e2d4701e008a9e92ef7f7f86a354306"
+        }
+      }
+    },
+    {
+      "program": "hiew",
+      "profile": "high",
+      "passed": true,
+      "text_identical": true,
+      "normalized_text_identical": true,
+      "attributes_identical": true,
+      "captures": {
+        "stock": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 14192640,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "c039854722bbd2a18b556aa1f16d54e78e7426a08c0b1cced42bba12cc61ccac",
+          "executable_sha256": "251c84cc1332d4504ab3fcfcee2608da3ebff35b1a981622ad7ba4ad82e981b1",
+          "screen_sha256": "15ffeca0b1819019cd5a5c6efde13d008e2d4701e008a9e92ef7f7f86a354306"
+        },
+        "fork": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 14198784,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "c039854722bbd2a18b556aa1f16d54e78e7426a08c0b1cced42bba12cc61ccac",
+          "executable_sha256": "251c84cc1332d4504ab3fcfcee2608da3ebff35b1a981622ad7ba4ad82e981b1",
+          "screen_sha256": "15ffeca0b1819019cd5a5c6efde13d008e2d4701e008a9e92ef7f7f86a354306"
+        }
+      }
+    },
+    {
+      "program": "pcwrite",
+      "profile": "low",
+      "passed": true,
+      "text_identical": true,
+      "normalized_text_identical": true,
+      "attributes_identical": true,
+      "captures": {
+        "stock": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 14192640,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "a4174bfc1b7ba42d7ccdac6dbed5c8b6101f84a9430e370f0eed34cf757cc17f",
+          "executable_sha256": "f1b635aef6de3cd4b5e6ee08a24685de96297dd1ee77bb5904341d5475b33b6c",
+          "screen_sha256": "508f5b311748d26695e7c8d62678f8a2bfe4ce0918a3854de9ba84cbd193e4ea"
+        },
+        "fork": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 14198784,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "a4174bfc1b7ba42d7ccdac6dbed5c8b6101f84a9430e370f0eed34cf757cc17f",
+          "executable_sha256": "f1b635aef6de3cd4b5e6ee08a24685de96297dd1ee77bb5904341d5475b33b6c",
+          "screen_sha256": "508f5b311748d26695e7c8d62678f8a2bfe4ce0918a3854de9ba84cbd193e4ea"
+        }
+      }
+    },
+    {
+      "program": "pcwrite",
+      "profile": "xms",
+      "passed": true,
+      "text_identical": true,
+      "normalized_text_identical": true,
+      "attributes_identical": true,
+      "captures": {
+        "stock": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 14192640,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "a4174bfc1b7ba42d7ccdac6dbed5c8b6101f84a9430e370f0eed34cf757cc17f",
+          "executable_sha256": "f1b635aef6de3cd4b5e6ee08a24685de96297dd1ee77bb5904341d5475b33b6c",
+          "screen_sha256": "508f5b311748d26695e7c8d62678f8a2bfe4ce0918a3854de9ba84cbd193e4ea"
+        },
+        "fork": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 14198784,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "a4174bfc1b7ba42d7ccdac6dbed5c8b6101f84a9430e370f0eed34cf757cc17f",
+          "executable_sha256": "f1b635aef6de3cd4b5e6ee08a24685de96297dd1ee77bb5904341d5475b33b6c",
+          "screen_sha256": "508f5b311748d26695e7c8d62678f8a2bfe4ce0918a3854de9ba84cbd193e4ea"
+        }
+      }
+    },
+    {
+      "program": "pcwrite",
+      "profile": "high",
+      "passed": true,
+      "text_identical": true,
+      "normalized_text_identical": true,
+      "attributes_identical": true,
+      "captures": {
+        "stock": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 14192640,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "a4174bfc1b7ba42d7ccdac6dbed5c8b6101f84a9430e370f0eed34cf757cc17f",
+          "executable_sha256": "f1b635aef6de3cd4b5e6ee08a24685de96297dd1ee77bb5904341d5475b33b6c",
+          "screen_sha256": "508f5b311748d26695e7c8d62678f8a2bfe4ce0918a3854de9ba84cbd193e4ea"
+        },
+        "fork": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 14198784,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "a4174bfc1b7ba42d7ccdac6dbed5c8b6101f84a9430e370f0eed34cf757cc17f",
+          "executable_sha256": "f1b635aef6de3cd4b5e6ee08a24685de96297dd1ee77bb5904341d5475b33b6c",
+          "screen_sha256": "508f5b311748d26695e7c8d62678f8a2bfe4ce0918a3854de9ba84cbd193e4ea"
+        }
+      }
+    },
+    {
+      "program": "rar",
+      "profile": "low",
+      "passed": true,
+      "text_identical": false,
+      "normalized_text_identical": true,
+      "attributes_identical": true,
+      "captures": {
+        "stock": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 14192640,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "f89393d330577aefde2819b044f4e30d4c8d87c5ba03a278174dabe8ca7f0e59",
+          "executable_sha256": "f924470acb12fed615862e23999d1fad084127370bfa3aa25049ba7b9e700a01",
+          "screen_sha256": "e4cccd2d9269beea8c85d4b645adaf4047cff0138d8b6bc1e90fcf6ccd791834"
+        },
+        "fork": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 14198784,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "f89393d330577aefde2819b044f4e30d4c8d87c5ba03a278174dabe8ca7f0e59",
+          "executable_sha256": "f924470acb12fed615862e23999d1fad084127370bfa3aa25049ba7b9e700a01",
+          "screen_sha256": "f4aea27974cf785036e41c4de62f4376b2b7d43d29c5a5fb043c20d025b8a2a2"
+        }
+      }
+    },
+    {
+      "program": "rar",
+      "profile": "xms",
+      "passed": true,
+      "text_identical": false,
+      "normalized_text_identical": true,
+      "attributes_identical": true,
+      "captures": {
+        "stock": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 14192640,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "f89393d330577aefde2819b044f4e30d4c8d87c5ba03a278174dabe8ca7f0e59",
+          "executable_sha256": "f924470acb12fed615862e23999d1fad084127370bfa3aa25049ba7b9e700a01",
+          "screen_sha256": "042db0a3c44ebf46785c473d2d9914bed15bf73838b20033d285063414001cae"
+        },
+        "fork": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 14198784,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "f89393d330577aefde2819b044f4e30d4c8d87c5ba03a278174dabe8ca7f0e59",
+          "executable_sha256": "f924470acb12fed615862e23999d1fad084127370bfa3aa25049ba7b9e700a01",
+          "screen_sha256": "d4edc110f2c279c962c690ac65116ab59023b2c295b12e4e7a5dd5f35edf9f88"
+        }
+      }
+    },
+    {
+      "program": "rar",
+      "profile": "high",
+      "passed": true,
+      "text_identical": false,
+      "normalized_text_identical": true,
+      "attributes_identical": true,
+      "captures": {
+        "stock": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 14192640,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "f89393d330577aefde2819b044f4e30d4c8d87c5ba03a278174dabe8ca7f0e59",
+          "executable_sha256": "f924470acb12fed615862e23999d1fad084127370bfa3aa25049ba7b9e700a01",
+          "screen_sha256": "a35b2cfc3675a987c1a4903c8a4f37e7714108b1d709aa5d0857fa7f27c674d8"
+        },
+        "fork": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 14198784,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "f89393d330577aefde2819b044f4e30d4c8d87c5ba03a278174dabe8ca7f0e59",
+          "executable_sha256": "f924470acb12fed615862e23999d1fad084127370bfa3aa25049ba7b9e700a01",
+          "screen_sha256": "3a091697c7a0dcef457bb6b33436b6acf8fad0720239a07959d3e24ea93d3bab"
+        }
+      }
+    },
+    {
+      "program": "tp",
+      "profile": "low",
+      "passed": true,
+      "text_identical": true,
+      "normalized_text_identical": true,
+      "attributes_identical": true,
+      "captures": {
+        "stock": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 14192640,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "5d517a902e3984d7fa6c6889da398e2559b4a448b8fc8877a99961fbe00607d0",
+          "executable_sha256": "c7877cc1f42eaeb4df9da4bfb6bfb9e109675a2de39c7bce3cb5eea0b40dbb34",
+          "screen_sha256": "66619847a044bfe9246b0ebc17ee292c97da56a976e51dca6708c6a1943214ff"
+        },
+        "fork": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 14198784,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "5d517a902e3984d7fa6c6889da398e2559b4a448b8fc8877a99961fbe00607d0",
+          "executable_sha256": "c7877cc1f42eaeb4df9da4bfb6bfb9e109675a2de39c7bce3cb5eea0b40dbb34",
+          "screen_sha256": "66619847a044bfe9246b0ebc17ee292c97da56a976e51dca6708c6a1943214ff"
+        }
+      }
+    },
+    {
+      "program": "tp",
+      "profile": "xms",
+      "passed": true,
+      "text_identical": true,
+      "normalized_text_identical": true,
+      "attributes_identical": true,
+      "captures": {
+        "stock": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 14192640,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "5d517a902e3984d7fa6c6889da398e2559b4a448b8fc8877a99961fbe00607d0",
+          "executable_sha256": "c7877cc1f42eaeb4df9da4bfb6bfb9e109675a2de39c7bce3cb5eea0b40dbb34",
+          "screen_sha256": "66619847a044bfe9246b0ebc17ee292c97da56a976e51dca6708c6a1943214ff"
+        },
+        "fork": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 14198784,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "5d517a902e3984d7fa6c6889da398e2559b4a448b8fc8877a99961fbe00607d0",
+          "executable_sha256": "c7877cc1f42eaeb4df9da4bfb6bfb9e109675a2de39c7bce3cb5eea0b40dbb34",
+          "screen_sha256": "66619847a044bfe9246b0ebc17ee292c97da56a976e51dca6708c6a1943214ff"
+        }
+      }
+    },
+    {
+      "program": "tp",
+      "profile": "high",
+      "passed": true,
+      "text_identical": true,
+      "normalized_text_identical": true,
+      "attributes_identical": true,
+      "captures": {
+        "stock": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 14192640,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "5d517a902e3984d7fa6c6889da398e2559b4a448b8fc8877a99961fbe00607d0",
+          "executable_sha256": "c7877cc1f42eaeb4df9da4bfb6bfb9e109675a2de39c7bce3cb5eea0b40dbb34",
+          "screen_sha256": "66619847a044bfe9246b0ebc17ee292c97da56a976e51dca6708c6a1943214ff"
+        },
+        "fork": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 14198784,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "5d517a902e3984d7fa6c6889da398e2559b4a448b8fc8877a99961fbe00607d0",
+          "executable_sha256": "c7877cc1f42eaeb4df9da4bfb6bfb9e109675a2de39c7bce3cb5eea0b40dbb34",
+          "screen_sha256": "66619847a044bfe9246b0ebc17ee292c97da56a976e51dca6708c6a1943214ff"
+        }
+      }
+    },
+    {
+      "program": "pctools",
+      "profile": "low",
+      "passed": true,
+      "text_identical": false,
+      "normalized_text_identical": true,
+      "attributes_identical": true,
+      "captures": {
+        "stock": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 14190592,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "045c3e46a76d7be48b914d9ed7443bd213dca6227822bbae2d0dcee9f3ea3995",
+          "executable_sha256": "5516fd6aa55f151d11545fe2fb49e06ec50ad8a0fb02ad833e6211ddf02bf7fb",
+          "screen_sha256": "b591896d1c2a526ab447ee626b9ea6925ca8def5dead2d36634e226d1a84bcf8"
+        },
+        "fork": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 14196736,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "045c3e46a76d7be48b914d9ed7443bd213dca6227822bbae2d0dcee9f3ea3995",
+          "executable_sha256": "5516fd6aa55f151d11545fe2fb49e06ec50ad8a0fb02ad833e6211ddf02bf7fb",
+          "screen_sha256": "745adc0c87e8c72c3cf1665200bb46423ff41fa633a427feca9bf7080928f291"
+        }
+      }
+    },
+    {
+      "program": "pctools",
+      "profile": "xms",
+      "passed": true,
+      "text_identical": false,
+      "normalized_text_identical": true,
+      "attributes_identical": true,
+      "captures": {
+        "stock": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 14190592,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "045c3e46a76d7be48b914d9ed7443bd213dca6227822bbae2d0dcee9f3ea3995",
+          "executable_sha256": "5516fd6aa55f151d11545fe2fb49e06ec50ad8a0fb02ad833e6211ddf02bf7fb",
+          "screen_sha256": "b591896d1c2a526ab447ee626b9ea6925ca8def5dead2d36634e226d1a84bcf8"
+        },
+        "fork": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 14196736,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "045c3e46a76d7be48b914d9ed7443bd213dca6227822bbae2d0dcee9f3ea3995",
+          "executable_sha256": "5516fd6aa55f151d11545fe2fb49e06ec50ad8a0fb02ad833e6211ddf02bf7fb",
+          "screen_sha256": "745adc0c87e8c72c3cf1665200bb46423ff41fa633a427feca9bf7080928f291"
+        }
+      }
+    },
+    {
+      "program": "pctools",
+      "profile": "high",
+      "passed": true,
+      "text_identical": false,
+      "normalized_text_identical": true,
+      "attributes_identical": true,
+      "captures": {
+        "stock": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 14190592,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "045c3e46a76d7be48b914d9ed7443bd213dca6227822bbae2d0dcee9f3ea3995",
+          "executable_sha256": "5516fd6aa55f151d11545fe2fb49e06ec50ad8a0fb02ad833e6211ddf02bf7fb",
+          "screen_sha256": "b591896d1c2a526ab447ee626b9ea6925ca8def5dead2d36634e226d1a84bcf8"
+        },
+        "fork": {
+          "artifacts_valid": true,
+          "artifact_sha256": null,
+          "ready": true,
+          "free_bytes": 14196736,
+          "disk_free_valid": true,
+          "video_attributes_sha256": "045c3e46a76d7be48b914d9ed7443bd213dca6227822bbae2d0dcee9f3ea3995",
+          "executable_sha256": "5516fd6aa55f151d11545fe2fb49e06ec50ad8a0fb02ad833e6211ddf02bf7fb",
+          "screen_sha256": "745adc0c87e8c72c3cf1665200bb46423ff41fa633a427feca9bf7080928f291"
         }
       }
     }

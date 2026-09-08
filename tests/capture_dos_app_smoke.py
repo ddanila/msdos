@@ -31,7 +31,7 @@ ENV = dict(os.environ, MTOOLS_SKIP_CHECK="1", MTOOLS_NO_VFAT="1")
 PROFILES = {
     "low": "DOS=LOW\r\nFILES=30\r\nBUFFERS=15\r\nLASTDRIVE=Z\r\nFCBS=4,0\r\n",
     "xms": "DEVICE=C:\\DOS\\HIMEM.SYS /TESTMEM:OFF\r\nDOS=HIGH\r\nFILES=30\r\nBUFFERS=15\r\nLASTDRIVE=Z\r\nFCBS=4,0\r\n",
-    "high": "DEVICE=C:\\DOS\\HIMEM.SYS /TESTMEM:OFF\r\nDEVICE=C:\\DOS\\EMM386.EXE RAM\r\nDOS=HIGH,UMB\r\nFILES=30\r\nBUFFERS=15\r\nLASTDRIVE=Z\r\nFCBS=4,0\r\n",
+    "high": "DEVICE=C:\\DOS\\HIMEM.SYS /TESTMEM:OFF\r\nDEVICE=C:\\DOS\\EMM386.EXE 2048 RAM\r\nDOS=HIGH,UMB\r\nFILES=30\r\nBUFFERS=15\r\nLASTDRIVE=Z\r\nFCBS=4,0\r\n",
 }
 
 
@@ -54,6 +54,17 @@ def unzip(z, directory):
         target = (directory / member.filename).resolve()
         if not target.is_relative_to(directory.resolve()):
             raise ValueError(f"unsafe archive member: {member.filename}")
+        if member.create_system == 3 and (member.external_attr >> 16) & 0o170000 == 0o120000:
+            raise ValueError(f"archive symlink: {member.filename}")
+    if any(m.compress_type not in (0, 8, 12, 14) for m in z.infolist()):
+        # Historical ZIP shrinking/imploding is supported by Info-ZIP, but
+        # not Python's zipfile. Keep the same path checks for both extractors.
+        with tempfile.TemporaryDirectory(prefix="dosapp-zip-") as temporary:
+            archive = Path(temporary) / "legacy.zip"
+            z.fp.seek(0)
+            archive.write_bytes(z.fp.read())
+            run(["unzip", "-oq", archive, "-d", directory])
+        return
     z.extractall(directory)
 
 
@@ -189,6 +200,8 @@ def capture(base, program, profile, label, output, seconds):
     free_match = re.search(r"([0-9 ][0-9 ]*) bytes free", disk_free)
     free_bytes = int(free_match.group(1).replace(" ", "")) if free_match else None
     displayed_free = [int(n.replace(",", "")) for n in re.findall(r"([0-9,]+) free bytes on drive C:", screen)]
+    if program["id"] == "pctools":
+        displayed_free.extend(int(n) for n in re.findall(r"(\d+)=bytes Free", screen))
     disk_free_valid = all(n == free_bytes for n in displayed_free)
     artifacts_valid = True
     artifact_sha256 = None
@@ -210,6 +223,23 @@ def capture(base, program, profile, label, output, seconds):
 
 
 def normalize(program, screen):
+    if program == "d86":
+        # Empty debuggee segments are allocated by DOS, so their addresses
+        # vary with kernel size. Preserve relationships to CS; BP is explicitly
+        # initialized by the manifest instead of masking an undefined value.
+        match = re.search(r"\bCS ([0-9A-F]{4})", screen)
+        if match:
+            segment = int(match.group(1), 16)
+            screen = re.sub(r"\b(CS|DS|ES|SS|DX) ([0-9A-F]{4})",
+                lambda m: f"{m[1]} <CS{(int(m[2], 16) - segment):+d}>", screen)
+    if program == "asa57":
+        screen = re.sub(r"(V57 Free:100%\[)\d+k\]", r"\1<MEM>k]", screen)
+        screen = re.sub(r"\d{2}:\d{2}:\d{2} [ap]m(?=\s*$)", "<CLOCK>", screen)
+    if program == "pctools":
+        screen = re.sub(r"\d+(?==bytes Free)", "<FREE>", screen)
+        screen = re.sub(r"\d{2}:\d{2}[ap]m", "<CLOCK>", screen)
+    if program == "rar":
+        screen = re.sub(r"(Memory in use +)\d+ Kb", r"\1<MEM> Kb", screen)
     if program == "qedit":
         screen = re.sub(r"(?m)^(L 1 +C 1 +IA +)\d+k", r"\1<MEM>k", screen)
     if program == "dn":
@@ -289,9 +319,9 @@ def main():
                 (output / "results.json").write_text(json.dumps(results, indent=2) + "\n")
                 print(program["id"], profile, "PASS" if passed else "FAIL (review required)", "identical text" if not diff else "raw text differs", flush=True)
     report = ["# DOS application startup comparison", "", "QEMU pc / 486 / 8 MiB, fixed RTC, private FAT16 images; same app files and CONFIG.SYS per pair.", "",
-              "LOW: conventional DOS; XMS: HIMEM + DOS=HIGH; HIGH: HIMEM + EMM386 RAM + DOS=HIGH,UMB.", "",
+              "LOW: conventional DOS; XMS: HIMEM + DOS=HIGH; HIGH: HIMEM + EMM386 2048 RAM + DOS=HIGH,UMB.", "",
               "Startup smoke tests only. Candidate features in the manifest are selection rationale, not measured INT 21h coverage.", "",
-              "Only QEdit's free-memory field and DOS Navigator's clock / independently verified free disk space are normalized.", "",
+              "Normalization covers documented memory/address fields, clocks, and independently verified free disk space; see tests/DOS-APP-SMOKE.md.", "",
               "| Program | Profile | Ready stock/fork | Raw text equal | Normalized text equal | Attributes equal | Result |",
               "| --- | --- | --- | --- | --- | --- | --- |"]
     for r in results:

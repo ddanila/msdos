@@ -91,3 +91,7 @@ lists selection rationale; it does not claim measured interrupt coverage or deep
 application validation. The independent near-CALL probe checks the emulator
 workaround needed for reliable comparisons. Both runners have optional Makefile
 targets; external media is not required by the default test suite.
+
+The standalone EXEPACK loader regression (`gmake test-exepack-qemu`) uses a
+synthetic compressed MZ and an unrecognized-decoder negative control under
+HIMEM and EMM386. See [the application notes](DOS-APP-SMOKE.md#exepack-compatibility).
