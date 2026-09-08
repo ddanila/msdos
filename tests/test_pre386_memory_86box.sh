@@ -80,6 +80,9 @@ write_config | mcopy -o -i "$image" - ::CONFIG.REF
     printf 'GOTO WAIT\r\n'
 } | mcopy -o -i "$image" - ::AUTOEXEC.BAT
 
+# The complete production core plus repeated utility loads exceeds three
+# minutes on the cycle-counted 8 MHz floppy configuration. Keep all result
+# assertions; allow the actual startup and fallback operations to finish.
 run_86box_286 "$image" 86BOX_PRE386_MEMORY_PASS \
-    86BOX_PRE386_MEMORY_PRODUCT_FAIL "${BOX86_TIMEOUT:-180}" "$ROOT" >/dev/null
+    86BOX_PRE386_MEMORY_PRODUCT_FAIL "${BOX86_TIMEOUT:-360}" "$ROOT" >/dev/null
 echo '  PASS: EMM386 rejection and DEVICEHIGH/LOADHIGH/MemMaker 286 fallback'

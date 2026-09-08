@@ -1782,6 +1782,107 @@
           "dos_app_smoke.json": "278883d40b465fab274307ae2462f16c7ad5d8c3ac932c526e1a6bee0294c35e"
         }
       }
+    },
+    "provider_cancel": {
+      "path": "out/composed-provider-cancel-ej5zgkx6/results.json",
+      "sha256": "3300789e7eca1577ee4c21f2d039f51d618500d348e164cda471ba0bcf16cd4a",
+      "result": {
+        "input_sha256": "7eac3b8b27cfec415dac037dd6d3eaccbbb9147e55e785b44e8b06feacbd21ec",
+        "runner_sha256": "2a3943eb107744c00f4c7c3462c738d955bdce57c86733e0ac84ae8ce593ce5a",
+        "results": {
+          "himem-only": {
+            "command": [
+              "qemu-system-i386",
+              "-machine",
+              "pc",
+              "-cpu",
+              "486",
+              "-m",
+              "8",
+              "-display",
+              "none",
+              "-monitor",
+              "none",
+              "-serial",
+              "stdio",
+              "-no-reboot",
+              "-boot",
+              "c",
+              "-debugcon",
+              "file:/Users/ddanila/fun/msdos/out/composed-provider-cancel-ej5zgkx6/himem-only/debug.log",
+              "-device",
+              "isa-debug-exit,iobase=0xf4,iosize=0x04",
+              "-drive",
+              "if=ide,format=raw,file=/Users/ddanila/fun/msdos/out/composed-provider-cancel-ej5zgkx6/himem-only/boot.img,cache=writethrough"
+            ],
+            "config": "DEVICE=C:\\DOS\\HIMEM.SYS /TESTMEM:ON\r\nBUFFERS=15\r\nFILES=20\r\nDOS=HIGH,UMB\r\nLASTDRIVE=Z\r\nFCBS=4,0\r\nSTACKS=9,128\r\n",
+            "exit_code": 33,
+            "xms_largest_kib": 6976,
+            "xms_total_kib": 6976,
+            "bios_sha256": "793169a292df40bb117eb487136a0d8e7f4334ca223e8206bf53f33141f24715",
+            "serial_sha256": "139e1928f644e033c890fb2f80f6a53b2b721cb505584b0b54557f6302324254",
+            "passed": true
+          },
+          "cancel": {
+            "command": [
+              "qemu-system-i386",
+              "-machine",
+              "pc",
+              "-cpu",
+              "486",
+              "-m",
+              "8",
+              "-display",
+              "none",
+              "-monitor",
+              "none",
+              "-serial",
+              "stdio",
+              "-no-reboot",
+              "-boot",
+              "c",
+              "-debugcon",
+              "file:/Users/ddanila/fun/msdos/out/composed-provider-cancel-ej5zgkx6/cancel/debug.log",
+              "-device",
+              "isa-debug-exit,iobase=0xf4,iosize=0x04",
+              "-drive",
+              "if=ide,format=raw,file=/Users/ddanila/fun/msdos/out/composed-provider-cancel-ej5zgkx6/cancel/boot.img,cache=writethrough"
+            ],
+            "config": "DEVICE=C:\\DOS\\HIMEM.SYS /TESTMEM:ON\r\nDEVICE=C:\\DOS\\EMM386.EXE RAM M5\r\nBUFFERS=15\r\nFILES=20\r\nDOS=HIGH,UMB\r\nLASTDRIVE=Z\r\nFCBS=4,0\r\nSTACKS=9,128\r\n",
+            "exit_code": 33,
+            "xms_largest_kib": 6976,
+            "xms_total_kib": 6976,
+            "bios_sha256": "44dc01e4e91101acc989b102e285e892f9ba5e1f3b22dc5b5216a51d7220b090",
+            "serial_sha256": "139e1928f644e033c890fb2f80f6a53b2b721cb505584b0b54557f6302324254",
+            "passed": true
+          }
+        },
+        "restored_exact_xms_capacity": true
+      }
+    },
+    "pre386_fallback": {
+      "path": "out/memory-production-candidate2/pre386-extended.log",
+      "sha256": "79783746ab07a26a6659804b7439cd9be231cb7ee9f4c3bdc936635cc2b61b8b",
+      "passed": true,
+      "timeout_seconds": 360,
+      "approximate_elapsed_seconds": 215.95,
+      "command": "MEMORY_CORE_DIR=\"$PWD/out/memory-production/files\" BOX86_TIMEOUT=360 FAIL_ON_SKIP=1 bash tests/test_pre386_memory_86box.sh",
+      "scope": "8 MHz IBM AT: EMM386 rejection, DEVICEHIGH/LOADHIGH/MemMaker fallback with matched production core.",
+      "initial_attempt": {
+        "timeout_seconds": 180,
+        "outcome": "timed out during startup; no product failure marker",
+        "log": "out/memory-production-candidate2/pre386.log"
+      }
+    },
+    "pre386_isolation": {
+      "path": "out/production-286-isolation/run.log",
+      "profiles": [
+        "bare",
+        "himem-low",
+        "himem-high"
+      ],
+      "passed": true,
+      "scope": "DOS boot only; the complete fallback probe is recorded separately"
     }
   }
 }

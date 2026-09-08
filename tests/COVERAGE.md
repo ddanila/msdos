@@ -118,6 +118,7 @@ build, reconstructing the original provider and BIOS before introducing faults:
 
 ```sh
 python3 tests/test_composed_memory_failures_qemu.py out/memory-candidate
+python3 tests/test_composed_provider_cancel_qemu.py out/memory-candidate
 python3 tests/test_command_upper_failure_qemu.py out/memory-candidate/candidate.img
 python3 tests/test_command_upper_failure_qemu.py out/memory-candidate/candidate.img --policy-rejection
 python3 tests/test_stack_pool_retirement_qemu.py out/memory-candidate/candidate.img \

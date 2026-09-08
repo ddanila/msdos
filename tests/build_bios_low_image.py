@@ -13,7 +13,9 @@ from build_bios_high_payload import ROOT, run
 from report_dos_bios_residency import parse_map
 
 
-def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False, scan=False, rebase=False, compact=False, fail_tables=False, high_cds=False, fail_cds=False, cds_cache_case=None, cds_cache_negative=False, dispatch=False, characters=False, retire_characters=False, pack_headers=False, retire_media=False, paired_provider=None, pack_drive_graph=False, high_stack_pool=False, fail_stack_pool=False, retire_clock=False, retire_mux=False, compact_tracks=False, retire_swap=False, retire_ioctl_state=False, poison=True):
+def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False, scan=False, rebase=False, compact=False, fail_tables=False, high_cds=False, fail_cds=False, cds_cache_case=None, cds_cache_negative=False, dispatch=False, characters=False, retire_characters=False, pack_headers=False, retire_media=False, paired_provider=None, pack_drive_graph=False, high_stack_pool=False, fail_stack_pool=False, retire_clock=False, retire_mux=False, compact_tracks=False, retire_swap=False, retire_ioctl_state=False, poison=True, provider_cancel=False):
+    if provider_cancel and paired_provider is None:
+        raise ValueError("provider cancellation requires a paired provider")
     if retire_ioctl_state and not (tail_body and compact_tracks):
         raise ValueError("IOCTL state retirement requires the cold tail and low materialized DMA descriptors")
     if retire_swap and not (tail_body and characters and retire_characters):
@@ -159,6 +161,8 @@ def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False, sca
     if paired_provider is not None:
         options += (" -DBIOS_DYNAMIC_STAGING -DBIOS_DEFER_PROVIDER -DPROVIDER_REBASE"
                     " -DBIOS_STAGE_PROVIDER -DBIOS_PROVIDER_DOWN -DBIOS_ADMIN_PROVIDER")
+    if provider_cancel:
+        options += " -DBIOS_PROVIDER_CANCEL"
     if tail_body:
         options += " -DBIOS_SERVICE_TAIL_BODY=1"
     if dispatch:
@@ -315,7 +319,7 @@ def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False, sca
     data = binary.read_bytes()
     if not slot_words or any(data[offset:offset + 2] != b"\0\0" for offset in slot_words):
         raise ValueError("inactive high import slots must be zero")
-    manifest = {"activated": False, "reclaimed_bytes": 0,
+    manifest = {"provider_cancel": provider_cancel, "activated": False, "reclaimed_bytes": 0,
                 "packed_drive_graph": pack_drive_graph,
                 "high_stack_pool": high_stack_pool, "fail_stack_pool": fail_stack_pool,
                 "retired_media_bodies": retire_media,
