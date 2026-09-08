@@ -4,6 +4,7 @@ import argparse
 import hashlib
 import json
 from pathlib import Path
+import platform
 import shutil
 import subprocess
 import sys
@@ -32,6 +33,21 @@ BIOS_OPTIONS = dict(early=True, tail_body=True, rebase=True, compact=True,
 def sha(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
+def build_inputs():
+    # These generated inputs are reused by the component linkers. Source-only
+    # hashing would miss a rebuilt kernel/object or a replaced native tool.
+    result = {}
+    for directory in ('MEMM','INC','DEV/HIMEM','BIOS','DOS','CMD/COMMAND'):
+        for path in (ROOT/'src'/directory).rglob('*'):
+            if path.is_file() and path.suffix.upper() in {'.OBJ','.LIB','.INC','.LNK','.SYS','.COM','.BIN'}:
+                result[str(path.relative_to(ROOT))] = sha(path)
+    host = {('Darwin','arm64'):'macos-arm64',('Linux','x86_64'):'linux-x64'}[
+        (platform.system(),platform.machine())]
+    paths = [ROOT/'jwasm'/host/'jwasm',*(ROOT/'watcom/bin'/host/name for name in ('wcc','wlib','wlink'))]
+    for path in paths:
+        result[str(path.relative_to(ROOT))] = sha(path)
+    return result
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('output', type=Path, help='new output directory; build ordinary artifacts first')
@@ -41,22 +57,22 @@ def main():
                                       'Makefile','jwasm','watcom'],cwd=ROOT).decode().split('\0')
     inputs = {name:sha(ROOT/name) for name in tracked if name and (ROOT/name).is_file()}
     inputs[str(Path(__file__).relative_to(ROOT))] = sha(Path(__file__))
+    generated_inputs = build_inputs()
     replace = output.exists()
     if replace:
         previous = json.loads((output/'build.json').read_text())
         if previous.get('kind') != 'memory-production-build':
             raise ValueError('output is not an owned production build directory')
-        if previous.get('source_hashes') == inputs and all(
-                sha(output/'files'/name)==value for name,value in previous['sha256'].items()):
+        if previous.get('source_hashes') == inputs and previous.get('build_inputs') == generated_inputs and all(
+                (output/'files'/name).is_file() and sha(output/'files'/name)==value
+                for name,value in previous['sha256'].items()):
             print(f'Production build is current: {output}',flush=True)
             return
         allowed = {'provider','bios','command','files','build.log','commands.json','build.json'}
         if set(p.name for p in output.iterdir()) - allowed:
             raise ValueError('output contains qualification artifacts; preserve it and use a new directory')
-        work = Path(tempfile.mkdtemp(prefix=output.name+'-',dir=output.parent))
-    else:
-        work = output
-        work.mkdir(parents=True, exist_ok=False)
+    output.parent.mkdir(parents=True,exist_ok=True)
+    work = Path(tempfile.mkdtemp(prefix=output.name+'-',dir=output.parent))
     print(f'Production build: {work}', flush=True)
     shutil.copytree(ROOT/'src/MEMM',work/'provider/MEMM')
     shutil.copytree(ROOT/'src/INC',work/'provider/INC')
@@ -87,7 +103,7 @@ def main():
     (work/'files').mkdir()
     for name,path in files.items():
         shutil.copyfile(path,work/'files'/name)
-    record = dict(kind='memory-production-build',source_hashes=inputs,emm_flags=EMM_FLAGS,himem_flags=HIMEM_FLAGS,bios_options=BIOS_OPTIONS,
+    record = dict(kind='memory-production-build',source_hashes=inputs,build_inputs=generated_inputs,emm_flags=EMM_FLAGS,himem_flags=HIMEM_FLAGS,bios_options=BIOS_OPTIONS,
                   command_options=dict(high=True,upper_data=True,poison=False),
                   sha256={name:sha(path) for name,path in files.items()},qualified=False)
     assert bios['paired_provider_sha256']==record['sha256']['EMM386.EXE']
@@ -101,6 +117,8 @@ def main():
             backup.rename(output)
             raise
         shutil.rmtree(backup)
+    else:
+        work.rename(output)
 
 if __name__=='__main__':
     main()
