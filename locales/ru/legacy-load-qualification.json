@@ -1,0 +1,888 @@
+{
+  "schema_version": 1,
+  "status": "legacy-rejections-and-reloads-passed",
+  "scope": "AT-84 and XT-83 rejected-load state preservation and RU/GR/RU reloads through BIOS and DOS input; initial country/CP866 checks. No display/font or full NLS transition qualification.",
+  "core_changed": false,
+  "booted_core_files": [
+    "IO.SYS",
+    "MSDOS.SYS",
+    "COMMAND.COM"
+  ],
+  "backend_records": [
+    "at84-qualification.json",
+    "xt83-qualification.json"
+  ],
+  "runs": [
+    {
+      "machine": "at84",
+      "private_artifacts": "out/ru-legacy-keyboard-q7hakqy1",
+      "command": "MEMORY_CORE_DIR=out/memory-production/files python3 tests/test_ru_legacy_keyboard_86box.py --suite lifecycle --machine at84 --emulator out/ru-86box-vnc-bs283qnk/build/src/86Box --roms \"$BOX86_ROMS\" --qt-platform offscreen",
+      "emulator_sha256": "fb1fecce1e36891ce9b4c99ec4e807bcbe648f3f816934b341e467d31ada9eef",
+      "core_sha256": {
+        "EMM386.EXE": "58266b6614594de7a9cfde9eda75e3eb241b9e2e941e67b70645a0f8a197dae6",
+        "MSDOS.SYS": "1475174f50c8c349bedd7cd4a0be88bce055f2e411b7454b5f68fffbff269b62",
+        "IO.SYS": "793169a292df40bb117eb487136a0d8e7f4334ca223e8206bf53f33141f24715",
+        "COMMAND.COM": "f60f680336572c2c1375fbeae7f54b074ac6e365f35638a62822572bece584ba",
+        "HIMEM.SYS": "340cbfd1f0e835755adce99d80c607f8edeb48ea2b20a6a142402a25434f8d13"
+      },
+      "cases": [
+        {
+          "input": "bios",
+          "emulator_exit": 0,
+          "reads": 25,
+          "probe_passes": 9,
+          "type_passes": 9,
+          "guest_files_sha256": {
+            "KEYB.COM": "ce547d39a18851ed9e9403486c50aa0730935647e80c8c88e6e1fd514f2eb647",
+            "KEYBRD2.SYS": "f6c776c95ec4b8bda1d72e93233995d76155a2d558283d7ce215def8f23a159e",
+            "KEYBOARD.SYS": "57571a4b10040dd0645998d0ccb8caa6e02be904ded253c9c81d542750ae4d9d",
+            "BADSIG.SYS": "78e39c3430a2e27ab3094ac84790a3e342df19ee28eeac9a8aaba6cb5519a70a",
+            "SHORT.SYS": "a5337f4ebf7b1d19cf074b355fb632bcd12b512e14e3072d7811f3efef623597",
+            "AUTOEXEC.BAT": "480269f56e615decf59f2a6c130f6d06489bc28fcaf64637eea9e3acc3e6022c"
+          },
+          "serial_log": {
+            "path": "review/legacy-load-at84-bios.log",
+            "sha256": "d307aee106168078c964f2e86dc70d68747ddce0c9ddfb2be0732f6264cf2a9f"
+          },
+          "startup_configuration": {
+            "path": "review/legacy-load-at84-bios.cfg",
+            "sha256": "04fc259a69de497046ae6ceda8e50d189c09d1fd8ff337589e2088e0e3adb1fe"
+          }
+        },
+        {
+          "input": "dos",
+          "emulator_exit": 0,
+          "reads": 25,
+          "probe_passes": 9,
+          "type_passes": 9,
+          "guest_files_sha256": {
+            "KEYB.COM": "ce547d39a18851ed9e9403486c50aa0730935647e80c8c88e6e1fd514f2eb647",
+            "KEYBRD2.SYS": "f6c776c95ec4b8bda1d72e93233995d76155a2d558283d7ce215def8f23a159e",
+            "KEYBOARD.SYS": "57571a4b10040dd0645998d0ccb8caa6e02be904ded253c9c81d542750ae4d9d",
+            "BADSIG.SYS": "78e39c3430a2e27ab3094ac84790a3e342df19ee28eeac9a8aaba6cb5519a70a",
+            "SHORT.SYS": "a5337f4ebf7b1d19cf074b355fb632bcd12b512e14e3072d7811f3efef623597",
+            "AUTOEXEC.BAT": "480269f56e615decf59f2a6c130f6d06489bc28fcaf64637eea9e3acc3e6022c"
+          },
+          "serial_log": {
+            "path": "review/legacy-load-at84-dos.log",
+            "sha256": "c6dd1170f170a4c88da575a174f07e77b4251868bff05bd357dbd65ac01b153c"
+          },
+          "startup_configuration": {
+            "path": "review/legacy-load-at84-dos.cfg",
+            "sha256": "04fc259a69de497046ae6ceda8e50d189c09d1fd8ff337589e2088e0e3adb1fe"
+          }
+        }
+      ]
+    },
+    {
+      "machine": "xt83",
+      "private_artifacts": "out/ru-legacy-keyboard-lu2pkr7o",
+      "command": "MEMORY_CORE_DIR=out/memory-production/files python3 tests/test_ru_legacy_keyboard_86box.py --suite lifecycle --machine xt83 --emulator out/ru-86box-vnc-bs283qnk/build/src/86Box --roms \"$BOX86_ROMS\" --qt-platform offscreen",
+      "emulator_sha256": "fb1fecce1e36891ce9b4c99ec4e807bcbe648f3f816934b341e467d31ada9eef",
+      "core_sha256": {
+        "COMMAND.COM": "f60f680336572c2c1375fbeae7f54b074ac6e365f35638a62822572bece584ba",
+        "EMM386.EXE": "58266b6614594de7a9cfde9eda75e3eb241b9e2e941e67b70645a0f8a197dae6",
+        "IO.SYS": "793169a292df40bb117eb487136a0d8e7f4334ca223e8206bf53f33141f24715",
+        "MSDOS.SYS": "1475174f50c8c349bedd7cd4a0be88bce055f2e411b7454b5f68fffbff269b62",
+        "HIMEM.SYS": "340cbfd1f0e835755adce99d80c607f8edeb48ea2b20a6a142402a25434f8d13"
+      },
+      "cases": [
+        {
+          "input": "bios",
+          "emulator_exit": 0,
+          "reads": 25,
+          "probe_passes": 9,
+          "type_passes": 9,
+          "guest_files_sha256": {
+            "KEYB.COM": "ce547d39a18851ed9e9403486c50aa0730935647e80c8c88e6e1fd514f2eb647",
+            "KEYBRD2.SYS": "f6c776c95ec4b8bda1d72e93233995d76155a2d558283d7ce215def8f23a159e",
+            "KEYBOARD.SYS": "57571a4b10040dd0645998d0ccb8caa6e02be904ded253c9c81d542750ae4d9d",
+            "BADSIG.SYS": "78e39c3430a2e27ab3094ac84790a3e342df19ee28eeac9a8aaba6cb5519a70a",
+            "SHORT.SYS": "a5337f4ebf7b1d19cf074b355fb632bcd12b512e14e3072d7811f3efef623597",
+            "AUTOEXEC.BAT": "480269f56e615decf59f2a6c130f6d06489bc28fcaf64637eea9e3acc3e6022c"
+          },
+          "serial_log": {
+            "path": "review/legacy-load-xt83-bios.log",
+            "sha256": "3184cd35e64ee12c0351b443b9c340853ac41a20ae8f0869756efa9058e5717f"
+          },
+          "startup_configuration": {
+            "path": "review/legacy-load-xt83-bios.cfg",
+            "sha256": "66deeb5664ee6eb477124da608b6aeb2fdd928e4455346bbcc1c25ff5672a074"
+          }
+        },
+        {
+          "input": "dos",
+          "emulator_exit": 0,
+          "reads": 25,
+          "probe_passes": 9,
+          "type_passes": 9,
+          "guest_files_sha256": {
+            "KEYB.COM": "ce547d39a18851ed9e9403486c50aa0730935647e80c8c88e6e1fd514f2eb647",
+            "KEYBRD2.SYS": "f6c776c95ec4b8bda1d72e93233995d76155a2d558283d7ce215def8f23a159e",
+            "KEYBOARD.SYS": "57571a4b10040dd0645998d0ccb8caa6e02be904ded253c9c81d542750ae4d9d",
+            "BADSIG.SYS": "78e39c3430a2e27ab3094ac84790a3e342df19ee28eeac9a8aaba6cb5519a70a",
+            "SHORT.SYS": "a5337f4ebf7b1d19cf074b355fb632bcd12b512e14e3072d7811f3efef623597",
+            "AUTOEXEC.BAT": "480269f56e615decf59f2a6c130f6d06489bc28fcaf64637eea9e3acc3e6022c"
+          },
+          "serial_log": {
+            "path": "review/legacy-load-xt83-dos.log",
+            "sha256": "5b0b14cf0e562369fa69b8ddbe995c4802ad34741f178568856d870b2e3297e4"
+          },
+          "startup_configuration": {
+            "path": "review/legacy-load-xt83-dos.cfg",
+            "sha256": "66deeb5664ee6eb477124da608b6aeb2fdd928e4455346bbcc1c25ff5672a074"
+          }
+        }
+      ]
+    }
+  ],
+  "inputs": {
+    "tests/test_ru_legacy_keyboard_86box.py": {
+      "sha256": "42adf77bc18aba56deb7c50e12b2d4cda5d64795bd1fede9dee6cd90b9efe595",
+      "size": 14279
+    },
+    "tests/ru_legacy_keyboard_type.asm": {
+      "sha256": "c6b45554e36fadd48c18c2c5bda95dc0a8f5f62d4ef8921524ce979ab687c54b",
+      "size": 465
+    },
+    "tests/ru_keyboard_probe.asm": {
+      "sha256": "45a08f7aa12b9fc0d0036ec62c0740f2394071da28ab5cc1c106f03744c3be64",
+      "size": 1924
+    },
+    "tests/86box/ibmxt-ru.cfg": {
+      "sha256": "66deeb5664ee6eb477124da608b6aeb2fdd928e4455346bbcc1c25ff5672a074",
+      "size": 637
+    },
+    "tests/86box/ibmat-286.cfg": {
+      "sha256": "b040850330e6ae7077cffe0fed626d911a56bb1fff8103d365013ee56d08821a",
+      "size": 667
+    }
+  },
+  "remaining": [
+    "Full real-BIOS 286 display/NLS matrix.",
+    "Shell/editor/pipes, Cyrillic filesystem persistence, full release and pristine reproducibility."
+  ],
+  "physical_steps": [
+    {
+      "name": "initial Latin",
+      "keys": [
+        [
+          "q",
+          true
+        ],
+        [
+          "q",
+          false
+        ]
+      ],
+      "bios_ax": 4209
+    },
+    {
+      "name": "initial Russian",
+      "keys": [
+        [
+          "alt",
+          true
+        ],
+        [
+          "shift_r",
+          true
+        ],
+        [
+          "shift_r",
+          false
+        ],
+        [
+          "alt",
+          false
+        ],
+        [
+          "q",
+          true
+        ],
+        [
+          "q",
+          false
+        ]
+      ],
+      "bios_ax": 169
+    },
+    {
+      "name": "missing preserved Russian",
+      "keys": [
+        [
+          "q",
+          true
+        ],
+        [
+          "q",
+          false
+        ]
+      ],
+      "bios_ax": 169
+    },
+    {
+      "name": "missing Latin",
+      "keys": [
+        [
+          "alt",
+          true
+        ],
+        [
+          "shift",
+          true
+        ],
+        [
+          "shift",
+          false
+        ],
+        [
+          "alt",
+          false
+        ],
+        [
+          "q",
+          true
+        ],
+        [
+          "q",
+          false
+        ]
+      ],
+      "bios_ax": 4209
+    },
+    {
+      "name": "missing Russian",
+      "keys": [
+        [
+          "alt",
+          true
+        ],
+        [
+          "shift_r",
+          true
+        ],
+        [
+          "shift_r",
+          false
+        ],
+        [
+          "alt",
+          false
+        ],
+        [
+          "q",
+          true
+        ],
+        [
+          "q",
+          false
+        ]
+      ],
+      "bios_ax": 169
+    },
+    {
+      "name": "bad signature preserved Russian",
+      "keys": [
+        [
+          "q",
+          true
+        ],
+        [
+          "q",
+          false
+        ]
+      ],
+      "bios_ax": 169
+    },
+    {
+      "name": "bad signature Latin",
+      "keys": [
+        [
+          "alt",
+          true
+        ],
+        [
+          "shift",
+          true
+        ],
+        [
+          "shift",
+          false
+        ],
+        [
+          "alt",
+          false
+        ],
+        [
+          "q",
+          true
+        ],
+        [
+          "q",
+          false
+        ]
+      ],
+      "bios_ax": 4209
+    },
+    {
+      "name": "bad signature Russian",
+      "keys": [
+        [
+          "alt",
+          true
+        ],
+        [
+          "shift_r",
+          true
+        ],
+        [
+          "shift_r",
+          false
+        ],
+        [
+          "alt",
+          false
+        ],
+        [
+          "q",
+          true
+        ],
+        [
+          "q",
+          false
+        ]
+      ],
+      "bios_ax": 169
+    },
+    {
+      "name": "short header preserved Russian",
+      "keys": [
+        [
+          "q",
+          true
+        ],
+        [
+          "q",
+          false
+        ]
+      ],
+      "bios_ax": 169
+    },
+    {
+      "name": "short header Latin",
+      "keys": [
+        [
+          "alt",
+          true
+        ],
+        [
+          "shift",
+          true
+        ],
+        [
+          "shift",
+          false
+        ],
+        [
+          "alt",
+          false
+        ],
+        [
+          "q",
+          true
+        ],
+        [
+          "q",
+          false
+        ]
+      ],
+      "bios_ax": 4209
+    },
+    {
+      "name": "short header Russian",
+      "keys": [
+        [
+          "alt",
+          true
+        ],
+        [
+          "shift_r",
+          true
+        ],
+        [
+          "shift_r",
+          false
+        ],
+        [
+          "alt",
+          false
+        ],
+        [
+          "q",
+          true
+        ],
+        [
+          "q",
+          false
+        ]
+      ],
+      "bios_ax": 169
+    },
+    {
+      "name": "unsupported page preserved Russian",
+      "keys": [
+        [
+          "q",
+          true
+        ],
+        [
+          "q",
+          false
+        ]
+      ],
+      "bios_ax": 169
+    },
+    {
+      "name": "unsupported page Latin",
+      "keys": [
+        [
+          "alt",
+          true
+        ],
+        [
+          "shift",
+          true
+        ],
+        [
+          "shift",
+          false
+        ],
+        [
+          "alt",
+          false
+        ],
+        [
+          "q",
+          true
+        ],
+        [
+          "q",
+          false
+        ]
+      ],
+      "bios_ax": 4209
+    },
+    {
+      "name": "unsupported page Russian",
+      "keys": [
+        [
+          "alt",
+          true
+        ],
+        [
+          "shift_r",
+          true
+        ],
+        [
+          "shift_r",
+          false
+        ],
+        [
+          "alt",
+          false
+        ],
+        [
+          "q",
+          true
+        ],
+        [
+          "q",
+          false
+        ]
+      ],
+      "bios_ax": 169
+    },
+    {
+      "name": "unsupported ID preserved Russian",
+      "keys": [
+        [
+          "q",
+          true
+        ],
+        [
+          "q",
+          false
+        ]
+      ],
+      "bios_ax": 169
+    },
+    {
+      "name": "unsupported ID Latin",
+      "keys": [
+        [
+          "alt",
+          true
+        ],
+        [
+          "shift",
+          true
+        ],
+        [
+          "shift",
+          false
+        ],
+        [
+          "alt",
+          false
+        ],
+        [
+          "q",
+          true
+        ],
+        [
+          "q",
+          false
+        ]
+      ],
+      "bios_ax": 4209
+    },
+    {
+      "name": "unsupported ID Russian",
+      "keys": [
+        [
+          "alt",
+          true
+        ],
+        [
+          "shift_r",
+          true
+        ],
+        [
+          "shift_r",
+          false
+        ],
+        [
+          "alt",
+          false
+        ],
+        [
+          "q",
+          true
+        ],
+        [
+          "q",
+          false
+        ]
+      ],
+      "bios_ax": 169
+    },
+    {
+      "name": "unsupported layout preserved Russian",
+      "keys": [
+        [
+          "q",
+          true
+        ],
+        [
+          "q",
+          false
+        ]
+      ],
+      "bios_ax": 169
+    },
+    {
+      "name": "unsupported layout Latin",
+      "keys": [
+        [
+          "alt",
+          true
+        ],
+        [
+          "shift",
+          true
+        ],
+        [
+          "shift",
+          false
+        ],
+        [
+          "alt",
+          false
+        ],
+        [
+          "q",
+          true
+        ],
+        [
+          "q",
+          false
+        ]
+      ],
+      "bios_ax": 4209
+    },
+    {
+      "name": "unsupported layout Russian",
+      "keys": [
+        [
+          "alt",
+          true
+        ],
+        [
+          "shift_r",
+          true
+        ],
+        [
+          "shift_r",
+          false
+        ],
+        [
+          "alt",
+          false
+        ],
+        [
+          "q",
+          true
+        ],
+        [
+          "q",
+          false
+        ]
+      ],
+      "bios_ax": 169
+    },
+    {
+      "name": "German y becomes z",
+      "keys": [
+        [
+          "y",
+          true
+        ],
+        [
+          "y",
+          false
+        ]
+      ],
+      "bios_ax": 5498
+    },
+    {
+      "name": "German z becomes y",
+      "keys": [
+        [
+          "z",
+          true
+        ],
+        [
+          "z",
+          false
+        ]
+      ],
+      "bios_ax": 11385
+    },
+    {
+      "name": "reloaded RU initial Latin",
+      "keys": [
+        [
+          "q",
+          true
+        ],
+        [
+          "q",
+          false
+        ]
+      ],
+      "bios_ax": 4209
+    },
+    {
+      "name": "reloaded RU Russian",
+      "keys": [
+        [
+          "alt",
+          true
+        ],
+        [
+          "shift_r",
+          true
+        ],
+        [
+          "shift_r",
+          false
+        ],
+        [
+          "alt",
+          false
+        ],
+        [
+          "q",
+          true
+        ],
+        [
+          "q",
+          false
+        ]
+      ],
+      "bios_ax": 169
+    },
+    {
+      "name": "reloaded RU Latin",
+      "keys": [
+        [
+          "alt",
+          true
+        ],
+        [
+          "shift",
+          true
+        ],
+        [
+          "shift",
+          false
+        ],
+        [
+          "alt",
+          false
+        ],
+        [
+          "q",
+          true
+        ],
+        [
+          "q",
+          false
+        ]
+      ],
+      "bios_ax": 4209
+    }
+  ],
+  "actions": [
+    [
+      "P866.COM",
+      false
+    ],
+    [
+      "NLSFUNC",
+      false
+    ],
+    [
+      "MODE CON CP PREPARE=((866) EGA866.CPI)",
+      false
+    ],
+    [
+      "MODE CON CP SELECT=866",
+      false
+    ],
+    [
+      "KEYB RU,866,KEYBRD2.SYS /ID:441",
+      false
+    ],
+    [
+      "TYPECHK.COM",
+      false
+    ],
+    [
+      "CPCHK.COM",
+      false
+    ],
+    [
+      "L0.COM",
+      false
+    ],
+    [
+      "KEYB RU,866,MISSING.SYS",
+      true
+    ],
+    [
+      "TYPECHK.COM",
+      false
+    ],
+    [
+      "L1.COM",
+      false
+    ],
+    [
+      "KEYB RU,866,BADSIG.SYS",
+      true
+    ],
+    [
+      "TYPECHK.COM",
+      false
+    ],
+    [
+      "L2.COM",
+      false
+    ],
+    [
+      "KEYB RU,866,SHORT.SYS",
+      true
+    ],
+    [
+      "TYPECHK.COM",
+      false
+    ],
+    [
+      "L3.COM",
+      false
+    ],
+    [
+      "KEYB RU,855,KEYBRD2.SYS",
+      true
+    ],
+    [
+      "TYPECHK.COM",
+      false
+    ],
+    [
+      "L4.COM",
+      false
+    ],
+    [
+      "KEYB RU,866,KEYBRD2.SYS /ID:999",
+      true
+    ],
+    [
+      "TYPECHK.COM",
+      false
+    ],
+    [
+      "L5.COM",
+      false
+    ],
+    [
+      "KEYB ZZ,866,KEYBRD2.SYS",
+      true
+    ],
+    [
+      "TYPECHK.COM",
+      false
+    ],
+    [
+      "L6.COM",
+      false
+    ],
+    [
+      "KEYB GR,437,KEYBOARD.SYS",
+      false
+    ],
+    [
+      "TYPECHK.COM",
+      false
+    ],
+    [
+      "L7.COM",
+      false
+    ],
+    [
+      "KEYB RU,866,KEYBRD2.SYS /ID:441",
+      false
+    ],
+    [
+      "TYPECHK.COM",
+      false
+    ],
+    [
+      "L8.COM",
+      false
+    ]
+  ],
+  "display_scope": "Only CP866 is prepared for initial locale checks. KEYB can warn about CON pages during GR/RU reloads while returning success; input bytes and resident keyboard type, rather than display behavior, determine this gate."
+}

@@ -279,3 +279,11 @@ core on the IBM XT BIOS and an 8088 with the PC/XT keyboard controller. The
 guest asserts KEYB's XT type before running the same independent input oracle.
 This adds BIOS and DOS input coverage; it does not establish XT font rendering
 or replace the remaining 286 display/NLS and end-to-end release gates.
+
+The [legacy load-state qualification](../locales/ru/legacy-load-qualification.json)
+selects `--suite lifecycle` with either legacy machine. Each BIOS/DOS run
+requires errors for missing, bad-signature and truncated files, unsupported
+page, ID and layout; verifies preserved Russian input and both language
+shortcuts after every rejection; and checks German and reloaded Russian
+physical input. Resident keyboard type, released modifiers, empty queues,
+all phase markers and a guest-requested successful exit are required.

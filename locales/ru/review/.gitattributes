@@ -17,3 +17,6 @@ at84-*.log -text -whitespace
 
 # Preserve raw XT-83 backend diagnostics and DOS serial bytes.
 xt83-*.log -text -whitespace
+
+# Preserve raw legacy reload/rejection serial captures.
+legacy-load-*.log -text -whitespace

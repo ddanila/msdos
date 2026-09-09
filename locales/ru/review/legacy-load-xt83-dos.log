@@ -1,0 +1,133 @@
+Drive A: /Users/ddanila/fun/msdos/out/ru-legacy-keyboard-lu2pkr7o/dos/test.img
+#
+# 86Box v7.0 logfile, created 2026/09/09 20:36:44
+#
+# Emulator path: /Users/ddanila/fun/msdos/out/ru-86box-vnc-bs283qnk/build/src/
+# Global configuration file: /Users/ddanila/fun/msdos/out/ru-legacy-keyboard-lu2pkr7o/dos/global.cfg
+# VM: dos
+#
+# Configuration file: /Users/ddanila/fun/msdos/out/ru-legacy-keyboard-lu2pkr7o/dos/86box.cfg
+#
+
+# Userfiles path: /Users/ddanila/fun/msdos/out/ru-legacy-keyboard-lu2pkr7o/dos/
+# ROM path: /Users/ddanila/Library/Application Support/net.86box.86Box/roms/
+# ROM path: /Users/ddanila/fun/msdos/out/ru-legacy-keyboard-lu2pkr7o/dos/roms/
+# ROM path: /Users/ddanila/fun/msdos/out/ru-86box-vnc-bs283qnk/build/src/roms/
+# ROM path: /Users/ddanila/Library/Application Support/net.86Box.86Box/roms/
+# ROM path: /Users/ddanila/Library/Application Support/86Box/roms/
+# ROM path: /Library/Application Support/net.86Box.86Box/roms/
+# ROM path: /Library/Application Support/86Box/roms/
+# Asset path: /Users/ddanila/fun/msdos/out/ru-legacy-keyboard-lu2pkr7o/dos/assets/
+# Asset path: /Users/ddanila/fun/msdos/out/ru-86box-vnc-bs283qnk/build/src/assets/
+# Asset path: /Users/ddanila/Library/Application Support/net.86Box.86Box/assets/
+# Asset path: /Users/ddanila/Library/Application Support/86Box/assets/
+# Asset path: /Library/Application Support/net.86Box.86Box/assets/
+# Asset path: /Library/Application Support/86Box/assets/
+Qt: version 6.11.2, platform "offscreen"
+Translations loaded.
+Failed to find Qt translations!
+Qt translations loaded.
+Translations loaded.
+Failed to find Qt translations!
+Qt translations loaded.
+qt.qpa.fonts: Populating font family aliases took 40 ms. Replace uses of missing font family "Sans Serif" with one that exists to avoid this cost. 
+This plugin does not support createPlatformVulkanInstance
+QVulkanInstance: Failed to initialize Vulkan
+09/09/2026 20:36:44 Listening for VNC connections on TCP port 5900
+09/09/2026 20:36:44 Listening for VNC connections on TCP6 port 5900
+This plugin does not support propagateSizeHints()
+This plugin does not support propagateSizeHints()
+09/09/2026 20:36:44   0 other clients
+
+RUN P866.COM
+RU_COUNTRY_PASS
+RUN NLSFUNC
+RUN MODE CON CP PREPARE=((866) EGA866.CPI)
+
+MODE prepare code page function completed
+RUN MODE CON CP SELECT=866
+
+MODE select code page function completed
+RUN KEYB RU,866,KEYBRD2.SYS /ID:441
+One or more CON code pages invalid for given keyboard code
+RUN TYPECHK.COM
+RU_XT83_TYPE_PASS
+RUN CPCHK.COM
+RU_CODEPAGE_PASS
+RUN L0.COM
+RU_KEY_READY 0000
+RU_KEY_READY 0001
+RU_KEY_PASS
+RUN KEYB RU,866,MISSING.SYS
+Bad or missing Keyboard Definition File
+RUN TYPECHK.COM
+RU_XT83_TYPE_PASS
+RUN L1.COM
+RU_KEY_READY 0002
+RU_KEY_READY 0003
+RU_KEY_READY 0004
+RU_KEY_PASS
+RUN KEYB RU,866,BADSIG.SYS
+Bad or missing Keyboard Definition File
+RUN TYPECHK.COM
+RU_XT83_TYPE_PASS
+RUN L2.COM
+RU_KEY_READY 0005
+RU_KEY_READY 0006
+RU_KEY_READY 0007
+RU_KEY_PASS
+RUN KEYB RU,866,SHORT.SYS
+Bad or missing Keyboard Definition File
+RUN TYPECHK.COM
+RU_XT83_TYPE_PASS
+RUN L3.COM
+RU_KEY_READY 0008
+RU_KEY_READY 0009
+RU_KEY_READY 000A
+RU_KEY_PASS
+RUN KEYB RU,855,KEYBRD2.SYS
+Invalid code page specified
+RUN TYPECHK.COM
+RU_XT83_TYPE_PASS
+RUN L4.COM
+RU_KEY_READY 000B
+RU_KEY_READY 000C
+RU_KEY_READY 000D
+RU_KEY_PASS
+RUN KEYB RU,866,KEYBRD2.SYS /ID:999
+Invalid keyboard ID specified
+RUN TYPECHK.COM
+RU_XT83_TYPE_PASS
+RUN L5.COM
+RU_KEY_READY 000E
+RU_KEY_READY 000F
+RU_KEY_READY 0010
+RU_KEY_PASS
+RUN KEYB ZZ,866,KEYBRD2.SYS
+Invalid keyboard code specified
+RUN TYPECHK.COM
+RU_XT83_TYPE_PASS
+RUN L6.COM
+RU_KEY_READY 0011
+RU_KEY_READY 0012
+RU_KEY_READY 0013
+RU_KEY_PASS
+RUN KEYB GR,437,KEYBOARD.SYS
+Code page specified is inconsistent with the selected code page
+One or more CON code pages invalid for given keyboard code
+RUN TYPECHK.COM
+RU_XT83_TYPE_PASS
+RUN L7.COM
+RU_KEY_READY 0014
+RU_KEY_READY 0015
+RU_KEY_PASS
+RUN KEYB RU,866,KEYBRD2.SYS /ID:441
+One or more CON code pages invalid for given keyboard code
+RUN TYPECHK.COM
+RU_XT83_TYPE_PASS
+RUN L8.COM
+RU_KEY_READY 0016
+RU_KEY_READY 0017
+RU_KEY_READY 0018
+RU_KEY_PASS
+RU_LEGACY_KEY_DONE

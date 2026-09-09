@@ -104,6 +104,49 @@ class VNCKeyboard:
             self.socket=None
 
 
+def prepare_lifecycle(case, kind, put):
+    """Probe resident state across rejected loads and RU/GR/RU reloads."""
+    cases=[]
+    actions=[]
+    phase_count=0
+    def tap(*keys):
+        return [(key,True) for key in keys]+[(key,False) for key in reversed(keys)]
+    def phase(label, values):
+        nonlocal phase_count
+        start=len(cases)
+        cases.extend({'name':label+' '+name,'keys':keys,'bios_ax':value}
+                     for name,keys,value in values)
+        (case/'expected.bin').write_bytes(b''.join(struct.pack('<H',s['bios_ax']) for s in cases[start:]))
+        name=f'L{phase_count}.COM'
+        subprocess.run(['nasm','-f','bin',f'-DSTART_INDEX={start}',
+                        *(['-DDOS_INPUT'] if kind=='dos' else []),
+                        str(ROOT/'tests/ru_keyboard_probe.asm'),'-o',str(case/name)],cwd=case,check=True)
+        put(name,(case/name).read_bytes())
+        actions.append((name,False))
+        phase_count+=1
+    latin=('Latin',tap('alt','shift')+tap('q'),0x1071)
+    russian=('Russian',tap('alt','shift_r')+tap('q'),0xa9)
+    phase('initial', [('Latin',tap('q'),0x1071),russian])
+    library=(ROOT/'src/DEV/KEYBOARD/KEYBRD2.SYS').read_bytes()
+    put('BADSIG.SYS',bytes([0])+library[1:])
+    put('SHORT.SYS',library[:20])
+    rejected=[('missing','KEYB RU,866,MISSING.SYS'),
+              ('bad signature','KEYB RU,866,BADSIG.SYS'),
+              ('short header','KEYB RU,866,SHORT.SYS'),
+              ('unsupported page','KEYB RU,855,KEYBRD2.SYS'),
+              ('unsupported ID','KEYB RU,866,KEYBRD2.SYS /ID:999'),
+              ('unsupported layout','KEYB ZZ,866,KEYBRD2.SYS')]
+    for label,command in rejected:
+        actions.extend([(command,True),('TYPECHK.COM',False)])
+        phase(label,[('preserved Russian',tap('q'),0xa9),latin,russian])
+    put('KEYBOARD.SYS',(ROOT/'src/DEV/KEYBOARD/KEYBOARD.SYS').read_bytes())
+    actions.extend([('KEYB GR,437,KEYBOARD.SYS',False),('TYPECHK.COM',False)])
+    phase('German',[('y becomes z',tap('y'),0x157a),('z becomes y',tap('z'),0x2c79)])
+    actions.extend([('KEYB RU,866,KEYBRD2.SYS /ID:441',False),('TYPECHK.COM',False)])
+    phase('reloaded RU',[('initial Latin',tap('q'),0x1071),russian,latin])
+    return cases,actions,phase_count
+
+
 def run_case(work, args, core, kind):
     case=work/kind
     case.mkdir()
@@ -145,9 +188,16 @@ def run_case(work, args, core, kind):
     put('CONFIG.SYS',b'COUNTRY=007,866,COUNTRY.SYS\r\nDOS=LOW\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(1,3))\r\nNUMLOCK=ON\r\n')
     actions=['P866.COM','NLSFUNC','MODE CON CP PREPARE=((866) EGA866.CPI)','MODE CON CP SELECT=866',
              'KEYB RU,866,KEYBRD2.SYS /ID:441','TYPECHK.COM','CPCHK.COM','PROBE.COM']
+    actions=[(action,False) for action in actions]
+    probe_passes=type_passes=1
+    if args.suite=='lifecycle':
+        cases,extra,probe_passes=prepare_lifecycle(case,kind,put)
+        actions=actions[:-1]+extra
+        type_passes=9
     batch=['@ECHO OFF','CTTY AUX']
-    for action in actions:
-        batch += ['ECHO RUN '+action,action,'IF ERRORLEVEL 1 GOTO FAIL']
+    for action,rejected in actions:
+        batch += ['ECHO RUN '+action,action,
+                  'IF '+('NOT ' if rejected else '')+'ERRORLEVEL 1 GOTO FAIL']
     batch += ['ECHO RU_LEGACY_KEY_DONE','BXEXIT.COM',':FAIL','ECHO RU_LEGACY_KEY_FAIL','BXEXIT.COM FAIL']
     put('AUTOEXEC.BAT',('\r\n'.join(batch)+'\r\n').encode())
     config=(ROOT/'tests/86box/ibmat-286.cfg').read_text().replace('qt_software','vnc')
@@ -198,11 +248,14 @@ def run_case(work, args, core, kind):
                 proc.wait()
     data=log.read_bytes()
     assert status==0 and b'RU_LEGACY_KEY_DONE' in data and b'FAIL' not in data,log
-    for marker in (b'RU_COUNTRY_PASS',b'RU_CODEPAGE_PASS',f'RU_{args.machine.upper()}_TYPE_PASS'.encode(),b'RU_KEY_PASS'):
-        assert data.count(marker)==1,(marker,log)
+    for marker,count in [(b'RU_COUNTRY_PASS',1),(b'RU_CODEPAGE_PASS',1),
+                         (f'RU_{args.machine.upper()}_TYPE_PASS'.encode(),type_passes),
+                         (b'RU_KEY_PASS',probe_passes)]:
+        assert data.count(marker)==count,(marker,log)
     assert data.count(b'RU_KEY_READY')==len(cases)
     print(f'PASS: {args.machine.upper()} {kind}, {len(cases)} physical reads',flush=True)
-    return {'input':kind,'emulator_exit':status,'reads':len(cases),'steps':cases,
+    return {'input':kind,'emulator_exit':status,'reads':len(cases),'steps':cases,'probe_passes':probe_passes,'type_passes':type_passes,
+            'actions':actions,
             'log':str(log.relative_to(work)),'log_sha256':hashlib.sha256(data).hexdigest(),
             'config_sha256':hashlib.sha256(config.encode()).hexdigest()}
 
@@ -213,6 +266,7 @@ def main():
     parser.add_argument('--roms',type=Path,required=True)
     parser.add_argument('--qt-platform')
     parser.add_argument('--machine',choices=('at84','xt83'),default='at84')
+    parser.add_argument('--suite',choices=('physical','lifecycle'),default='physical')
     parser.add_argument('--input',choices=('bios','dos'),action='append')
     args=parser.parse_args()
     core=selected_core()
@@ -220,7 +274,7 @@ def main():
         parser.error('MEMORY_CORE_DIR must select the production core')
     work=Path(tempfile.mkdtemp(prefix='ru-legacy-keyboard-',dir=ROOT/'out'))
     print(f'Russian legacy keyboard artifacts: {work}',flush=True)
-    report={'status':'running','machine':args.machine,'core_sha256':{name:hashlib.sha256(data).hexdigest() for name,data in core.items()},
+    report={'status':'running','machine':args.machine,'suite':args.suite,'core_sha256':{name:hashlib.sha256(data).hexdigest() for name,data in core.items()},
             'emulator_sha256':hashlib.sha256(args.emulator.read_bytes()).hexdigest(),'cases':[]}
     def save():
         (work/'results.json').write_text(json.dumps(report,indent=2)+'\n')

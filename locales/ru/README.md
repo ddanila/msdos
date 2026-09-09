@@ -207,3 +207,10 @@ resident XT keyboard type. The 8088 executes the same BIOS/DOS input matrix
 as the AT-84 case. Startup configurations are retained before 86Box writes
 runtime settings. XT font rendering, legacy reload/rejection cases and the
 remaining Russian release gates are outside this input qualification.
+
+[Legacy load-state qualification](legacy-load-qualification.json) adds
+`--suite lifecycle` to the legacy runner for either `--machine at84` or
+`--machine xt83`. The default runs both BIOS and DOS reads. It verifies
+rejected-file/layout/page/ID loads preserve Russian input and working
+shortcuts, followed by German and Russian reloads. The record retains the
+commands, input expectations, raw logs, startup configurations and hashes.

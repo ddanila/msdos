@@ -159,8 +159,10 @@ checks. The [AT-84 input qualification](locales/ru/at84-qualification.json)
 extends this to the alphabet, punctuation, controls, keypad and applicable
 modifier precedence through BIOS and DOS reads. The matching
 [XT-83 qualification](locales/ru/xt83-qualification.json) exercises the same
-input oracle on an 8088 with IBM XT BIOS. Legacy reload/rejection cases and
-the full 286 locale matrix remain open.
+input oracle on an 8088 with IBM XT BIOS. The
+[legacy load-state qualification](locales/ru/legacy-load-qualification.json)
+checks rejected loads and RU/GR/RU reloads on both machines through BIOS and
+DOS input. The full 286 locale matrix and end-to-end/release gates remain open.
 
 Existing implementation and test entry points:
 
