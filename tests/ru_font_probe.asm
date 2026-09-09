@@ -156,14 +156,20 @@ org 100h
     mov di, 2 * 80 * 23
     mov si, border_bottom
     call text_line
+%ifdef BOX86
+    call box_snapshot
+    jc fail
+%endif
     mov dx, ready
     mov ah, 9
     int 21h
+%ifndef BOX86
     ; The host captures the screen, then sends a real keyboard Enter.
     xor ah, ah
     int 16h
     cmp al, 13
     jne fail
+%endif
     mov dx, passed
     mov ah, 9
     int 21h
@@ -184,10 +190,15 @@ fail:
     mov dx, failed
     mov ah, 9
     int 21h
+%ifdef BOX86
+    mov ax,4c01h
+    int 21h
+%else
     mov dx, 0f4h
     mov ax, 11h
     out dx, ax
     jmp $
+%endif
 
 seq4 db 0
 gc4 db 0
@@ -203,4 +214,8 @@ ready db 'RU_FONT_READY',13,10,'$'
 passed db 'RU_FONT_PASS',13,10,'$'
 failed db 'RU_FONT_FAIL',13,10,'$'
 font_buffer times 8192 db 0
+%endif
+
+%ifdef BOX86
+%include "86box_snapshot.inc"
 %endif

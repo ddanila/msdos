@@ -237,3 +237,25 @@ was refreshing icons. The retained patch flushes host stdio and uses
 `_Exit()` for this test-only exit path; guest DOS writes are flushed by
 `BXEXIT.COM` before the request. Exact success and failure statuses are
 rechecked, and the DOS production core is unchanged.
+
+[286 display qualification](display-286-qualification.json) records actual
+VGA plane bytes and rendered screens from the real-BIOS IBM AT. Run:
+
+```sh
+MEMORY_CORE_DIR=out/memory-production/files \
+  python3 tests/test_ru_display_86box.py \
+  --emulator /path/to/86Box --roms /path/to/roms --jobs 2
+```
+
+Use `--qt-platform offscreen` with a supporting backend and `--case 866-16`
+for a focused case. The default runs the full display matrix. Each image is
+private. The guest exports BGR pixels through the Unit Tester snapshot API
+before exiting; the host saves PNG captures and checks all eight-dot grid
+pixels as well as loaded font bytes. The BOX86 option replaces the QEMU
+probe's host-capture/Enter pause with this guest capture. Keyboard input is
+qualified separately. The patched exit backend is recorded above.
+
+The display record also retains a private Unit Tester capture fix: its
+symmetric-border assumption cropped the 14-row screen at the wrong vertical
+origin. The patch uses the primary SVGA renderer's actual crop origin,
+including line doubling. The pixel oracle remains unchanged.

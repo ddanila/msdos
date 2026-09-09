@@ -1,0 +1,50 @@
+Drive A: /Users/ddanila/fun/msdos/out/ru-display-286-78aue1u6/865-16/test.img
+#
+# 86Box v7.0 logfile, created 2026/09/09 21:12:57
+#
+# Emulator path: /Users/ddanila/fun/msdos/out/ru-86box-vnc-bs283qnk/build/src/
+# Global configuration file: /Users/ddanila/fun/msdos/out/ru-display-286-78aue1u6/865-16/global.cfg
+# VM: 865-16
+#
+# Configuration file: /Users/ddanila/fun/msdos/out/ru-display-286-78aue1u6/865-16/86box.cfg
+#
+
+# Userfiles path: /Users/ddanila/fun/msdos/out/ru-display-286-78aue1u6/865-16/
+# ROM path: /Users/ddanila/Library/Application Support/net.86box.86Box/roms/
+# ROM path: /Users/ddanila/fun/msdos/out/ru-display-286-78aue1u6/865-16/roms/
+# ROM path: /Users/ddanila/fun/msdos/out/ru-86box-vnc-bs283qnk/build/src/roms/
+# ROM path: /Users/ddanila/Library/Application Support/net.86Box.86Box/roms/
+# ROM path: /Users/ddanila/Library/Application Support/86Box/roms/
+# ROM path: /Library/Application Support/net.86Box.86Box/roms/
+# ROM path: /Library/Application Support/86Box/roms/
+# Asset path: /Users/ddanila/fun/msdos/out/ru-display-286-78aue1u6/865-16/assets/
+# Asset path: /Users/ddanila/fun/msdos/out/ru-86box-vnc-bs283qnk/build/src/assets/
+# Asset path: /Users/ddanila/Library/Application Support/net.86Box.86Box/assets/
+# Asset path: /Users/ddanila/Library/Application Support/86Box/assets/
+# Asset path: /Library/Application Support/net.86Box.86Box/assets/
+# Asset path: /Library/Application Support/86Box/assets/
+Qt: version 6.11.2, platform "offscreen"
+Translations loaded.
+Failed to find Qt translations!
+Qt translations loaded.
+Translations loaded.
+Failed to find Qt translations!
+Qt translations loaded.
+qt.qpa.fonts: Populating font family aliases took 40 ms. Replace uses of missing font family "Sans Serif" with one that exists to avoid this cost. 
+This plugin does not support createPlatformVulkanInstance
+QVulkanInstance: Failed to initialize Vulkan
+This plugin does not support propagateSizeHints()
+This plugin does not support propagateSizeHints()
+
+RUN NLSFUNC
+RUN MODE CON CP PREPARE=((865) TEST.CPI)
+
+MODE prepare code page function completed
+RUN SETH.COM
+RUN MODE CON CP SELECT=865
+
+MODE select code page function completed
+RUN PROBE.COM
+RU_FONT_READY
+RU_FONT_PASS
+RU_DISPLAY_DONE

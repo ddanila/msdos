@@ -1,0 +1,469 @@
+{
+  "status": "real-bios-286-display-matrix-passed",
+  "core_sha256": {
+    "EMM386.EXE": "58266b6614594de7a9cfde9eda75e3eb241b9e2e941e67b70645a0f8a197dae6",
+    "MSDOS.SYS": "1475174f50c8c349bedd7cd4a0be88bce055f2e411b7454b5f68fffbff269b62",
+    "HIMEM.SYS": "340cbfd1f0e835755adce99d80c607f8edeb48ea2b20a6a142402a25434f8d13",
+    "IO.SYS": "793169a292df40bb117eb487136a0d8e7f4334ca223e8206bf53f33141f24715",
+    "COMMAND.COM": "f60f680336572c2c1375fbeae7f54b074ac6e365f35638a62822572bece584ba"
+  },
+  "emulator_sha256": "307ef966f67fbb64b1f61d4d48bb2b3bb5554bcd6fc17746b908f2809bf0205c",
+  "cases": [
+    {
+      "name": "866-14",
+      "page": 866,
+      "height": 14,
+      "negative_control": false,
+      "mismatched_slots": [],
+      "emulator_exit": 0,
+      "screen_size": [
+        720,
+        392
+      ],
+      "font_plane_sha256": "d4285fd65cbb4aa83656c95f7e180d784df273dd51fcffa1c7c8fa614310bd1f",
+      "screen_sha256": "05c774fb0215f18e6e4c9b3748867f23dc0566033b1e68e43a6de6732f81cfc2",
+      "cpi_sha256": "efa06cb267a370fab3db71fb85f73711b750ec04498b40b6cc6a4a2be2e3d7ad",
+      "config_sha256": "bc1ff341a3eb659a0d55fd6036f680cec32fd069304c2e2562e39e4a8497c669",
+      "font_plane": {
+        "path": "review/display-286-866-14-font.bin",
+        "sha256": "d4285fd65cbb4aa83656c95f7e180d784df273dd51fcffa1c7c8fa614310bd1f"
+      },
+      "screen": {
+        "path": "review/display-286-866-14.png",
+        "sha256": "05c774fb0215f18e6e4c9b3748867f23dc0566033b1e68e43a6de6732f81cfc2"
+      },
+      "serial_log": {
+        "path": "review/display-286-866-14.log",
+        "sha256": "1e1af0eaf3d7c32b7206f2c589451524a472995ce89196f18e5f68d37db3783f"
+      },
+      "configuration": {
+        "path": "review/display-286-866-14.cfg",
+        "sha256": "bc1ff341a3eb659a0d55fd6036f680cec32fd069304c2e2562e39e4a8497c669"
+      },
+      "rendered_grid_pixels_checked": 32256,
+      "ninth_column_line_graphics_checked": true,
+      "guest_files_sha256": {
+        "COUNTRY.SYS": "dcad40266140a3155a44323bc3f3876ea70e1aa779175cf6ab18b532b36037c3",
+        "DISPLAY.SYS": "0ebd3bfad4e87d79e05219c02ea71ce4e94f9e11b432efdf652a022488d9ac08",
+        "MODE.COM": "c385aad5697fcec3a9113f58b983b978a7f969e99b153ebd496b12dab0e3767d",
+        "NLSFUNC.EXE": "bc2a0c9b0900bcac03a6cfe072ea56ea01bd2333b1d1bf8f810f28e668340e67",
+        "PROBE.COM": "fa8fb6b90fd9e5fe7a26f692128442a3e62aacf78a0b4216c2adf16846db364e",
+        "SETH.COM": "ce12d017e77661c7b52497132d58c370986dc02cbfd04ad97d0fc98449235071",
+        "TEST.CPI": "efa06cb267a370fab3db71fb85f73711b750ec04498b40b6cc6a4a2be2e3d7ad",
+        "AUTOEXEC.BAT": "e6982e4d590a27c4696a776f6be53163950bbbd55d3b2920d601cb193c00fe07"
+      }
+    },
+    {
+      "name": "866-8",
+      "page": 866,
+      "height": 8,
+      "negative_control": false,
+      "mismatched_slots": [],
+      "emulator_exit": 0,
+      "screen_size": [
+        720,
+        400
+      ],
+      "font_plane_sha256": "d0f94f1f3d31ff8eef231dca8cf6c778c0dca1ffd33d5cfd662bc09d86a6ee57",
+      "screen_sha256": "d4cd4314e3284c54156a6bae955789d920c6950581e8c09190c12d8633328161",
+      "cpi_sha256": "efa06cb267a370fab3db71fb85f73711b750ec04498b40b6cc6a4a2be2e3d7ad",
+      "config_sha256": "bc1ff341a3eb659a0d55fd6036f680cec32fd069304c2e2562e39e4a8497c669",
+      "font_plane": {
+        "path": "review/display-286-866-8-font.bin",
+        "sha256": "d0f94f1f3d31ff8eef231dca8cf6c778c0dca1ffd33d5cfd662bc09d86a6ee57"
+      },
+      "screen": {
+        "path": "review/display-286-866-8.png",
+        "sha256": "d4cd4314e3284c54156a6bae955789d920c6950581e8c09190c12d8633328161"
+      },
+      "serial_log": {
+        "path": "review/display-286-866-8.log",
+        "sha256": "93e21cbc7c86308769aa6f3475bc5718a009ba60bb9c5bbd7fae8e7789d1fec4"
+      },
+      "configuration": {
+        "path": "review/display-286-866-8.cfg",
+        "sha256": "bc1ff341a3eb659a0d55fd6036f680cec32fd069304c2e2562e39e4a8497c669"
+      },
+      "rendered_grid_pixels_checked": 18432,
+      "ninth_column_line_graphics_checked": true,
+      "guest_files_sha256": {
+        "COUNTRY.SYS": "dcad40266140a3155a44323bc3f3876ea70e1aa779175cf6ab18b532b36037c3",
+        "DISPLAY.SYS": "0ebd3bfad4e87d79e05219c02ea71ce4e94f9e11b432efdf652a022488d9ac08",
+        "MODE.COM": "c385aad5697fcec3a9113f58b983b978a7f969e99b153ebd496b12dab0e3767d",
+        "NLSFUNC.EXE": "bc2a0c9b0900bcac03a6cfe072ea56ea01bd2333b1d1bf8f810f28e668340e67",
+        "PROBE.COM": "3e42b0e458e71f098cae1514477597443090b2fa0dd90dc7bc500b8ea4efe691",
+        "SETH.COM": "32eec8ce619db20fe2a2c4343a83d79150dc8aee49f4a79a7a1e06ff058335a9",
+        "TEST.CPI": "efa06cb267a370fab3db71fb85f73711b750ec04498b40b6cc6a4a2be2e3d7ad",
+        "AUTOEXEC.BAT": "e6982e4d590a27c4696a776f6be53163950bbbd55d3b2920d601cb193c00fe07"
+      }
+    },
+    {
+      "name": "866-16",
+      "page": 866,
+      "height": 16,
+      "negative_control": false,
+      "mismatched_slots": [],
+      "emulator_exit": 0,
+      "screen_size": [
+        720,
+        400
+      ],
+      "font_plane_sha256": "fa1c87db74cad6b69c5a4bf1e7bb6fc625e31e4a92956dbf741c6eefa3f640d5",
+      "screen_sha256": "664f041542faab21bfb9296b206639da7639c1bd13500ec44913225ab290b8a4",
+      "cpi_sha256": "efa06cb267a370fab3db71fb85f73711b750ec04498b40b6cc6a4a2be2e3d7ad",
+      "config_sha256": "bc1ff341a3eb659a0d55fd6036f680cec32fd069304c2e2562e39e4a8497c669",
+      "font_plane": {
+        "path": "review/display-286-866-16-font.bin",
+        "sha256": "fa1c87db74cad6b69c5a4bf1e7bb6fc625e31e4a92956dbf741c6eefa3f640d5"
+      },
+      "screen": {
+        "path": "review/display-286-866-16.png",
+        "sha256": "664f041542faab21bfb9296b206639da7639c1bd13500ec44913225ab290b8a4"
+      },
+      "serial_log": {
+        "path": "review/display-286-866-16.log",
+        "sha256": "0849eb569601f77bdd009deba7b4e146ffd26ff560c8a90402a4be8dd2198aba"
+      },
+      "configuration": {
+        "path": "review/display-286-866-16.cfg",
+        "sha256": "bc1ff341a3eb659a0d55fd6036f680cec32fd069304c2e2562e39e4a8497c669"
+      },
+      "rendered_grid_pixels_checked": 36864,
+      "ninth_column_line_graphics_checked": true,
+      "guest_files_sha256": {
+        "COUNTRY.SYS": "dcad40266140a3155a44323bc3f3876ea70e1aa779175cf6ab18b532b36037c3",
+        "DISPLAY.SYS": "0ebd3bfad4e87d79e05219c02ea71ce4e94f9e11b432efdf652a022488d9ac08",
+        "MODE.COM": "c385aad5697fcec3a9113f58b983b978a7f969e99b153ebd496b12dab0e3767d",
+        "NLSFUNC.EXE": "bc2a0c9b0900bcac03a6cfe072ea56ea01bd2333b1d1bf8f810f28e668340e67",
+        "PROBE.COM": "311ec1ab241612e1e3329eb6f7769dbb6e24296f7111ac94853c74d197ab2c58",
+        "SETH.COM": "9223dfc5a6432f872b7124c6526015d21f2c0581b97717e048d311c878c071ee",
+        "TEST.CPI": "efa06cb267a370fab3db71fb85f73711b750ec04498b40b6cc6a4a2be2e3d7ad",
+        "AUTOEXEC.BAT": "e6982e4d590a27c4696a776f6be53163950bbbd55d3b2920d601cb193c00fe07"
+      }
+    },
+    {
+      "name": "437-16",
+      "page": 437,
+      "height": 16,
+      "negative_control": false,
+      "mismatched_slots": [],
+      "emulator_exit": 0,
+      "screen_size": [
+        720,
+        400
+      ],
+      "font_plane_sha256": "ca6a892ed0bf2d5d8038bd2ce2315bcfae30f53523f53ebfcd640c845cb6b0da",
+      "screen_sha256": "18a9db0bec3a87124ae13d1068a48bdd65774e32cc1550b122fc97707c52a5fd",
+      "cpi_sha256": "e62143d403dba21dd9f3c606769b90923038e542098fdb57de36eaf9e986a4b0",
+      "config_sha256": "bc1ff341a3eb659a0d55fd6036f680cec32fd069304c2e2562e39e4a8497c669",
+      "font_plane": {
+        "path": "review/display-286-437-16-font.bin",
+        "sha256": "ca6a892ed0bf2d5d8038bd2ce2315bcfae30f53523f53ebfcd640c845cb6b0da"
+      },
+      "screen": {
+        "path": "review/display-286-437-16.png",
+        "sha256": "18a9db0bec3a87124ae13d1068a48bdd65774e32cc1550b122fc97707c52a5fd"
+      },
+      "serial_log": {
+        "path": "review/display-286-437-16.log",
+        "sha256": "0aaec7a470d9716004731886b72677fab8f1427ead3cbec9b0bc2474976e83d6"
+      },
+      "configuration": {
+        "path": "review/display-286-437-16.cfg",
+        "sha256": "bc1ff341a3eb659a0d55fd6036f680cec32fd069304c2e2562e39e4a8497c669"
+      },
+      "rendered_grid_pixels_checked": 36864,
+      "ninth_column_line_graphics_checked": true,
+      "guest_files_sha256": {
+        "COUNTRY.SYS": "dcad40266140a3155a44323bc3f3876ea70e1aa779175cf6ab18b532b36037c3",
+        "DISPLAY.SYS": "0ebd3bfad4e87d79e05219c02ea71ce4e94f9e11b432efdf652a022488d9ac08",
+        "MODE.COM": "c385aad5697fcec3a9113f58b983b978a7f969e99b153ebd496b12dab0e3767d",
+        "NLSFUNC.EXE": "bc2a0c9b0900bcac03a6cfe072ea56ea01bd2333b1d1bf8f810f28e668340e67",
+        "PROBE.COM": "3057766c5f8fdbfbbbfad2429cbe981bed6fe3fa8932982ec718031ff87419c1",
+        "SETH.COM": "9223dfc5a6432f872b7124c6526015d21f2c0581b97717e048d311c878c071ee",
+        "TEST.CPI": "e62143d403dba21dd9f3c606769b90923038e542098fdb57de36eaf9e986a4b0",
+        "AUTOEXEC.BAT": "f276ebde36c5f00f5b1639de711212612bc7d20b90f86ad0566da02c84194e95"
+      }
+    },
+    {
+      "name": "850-16",
+      "page": 850,
+      "height": 16,
+      "negative_control": false,
+      "mismatched_slots": [],
+      "emulator_exit": 0,
+      "screen_size": [
+        720,
+        400
+      ],
+      "font_plane_sha256": "28a38a163e62a6e56218d4bc72d5f6eda1cbc4972cd386fb1f0cae0828c88491",
+      "screen_sha256": "0db39e100f81a5c5396d085937378562f416b31cdebc48f48e0f49fb71945165",
+      "cpi_sha256": "e62143d403dba21dd9f3c606769b90923038e542098fdb57de36eaf9e986a4b0",
+      "config_sha256": "bc1ff341a3eb659a0d55fd6036f680cec32fd069304c2e2562e39e4a8497c669",
+      "font_plane": {
+        "path": "review/display-286-850-16-font.bin",
+        "sha256": "28a38a163e62a6e56218d4bc72d5f6eda1cbc4972cd386fb1f0cae0828c88491"
+      },
+      "screen": {
+        "path": "review/display-286-850-16.png",
+        "sha256": "0db39e100f81a5c5396d085937378562f416b31cdebc48f48e0f49fb71945165"
+      },
+      "serial_log": {
+        "path": "review/display-286-850-16.log",
+        "sha256": "28a2f68e566ceaf0ec2ee414d2f8006568225b0ba2f87e7f88f43992c7453043"
+      },
+      "configuration": {
+        "path": "review/display-286-850-16.cfg",
+        "sha256": "bc1ff341a3eb659a0d55fd6036f680cec32fd069304c2e2562e39e4a8497c669"
+      },
+      "rendered_grid_pixels_checked": 36864,
+      "ninth_column_line_graphics_checked": true,
+      "guest_files_sha256": {
+        "COUNTRY.SYS": "dcad40266140a3155a44323bc3f3876ea70e1aa779175cf6ab18b532b36037c3",
+        "DISPLAY.SYS": "0ebd3bfad4e87d79e05219c02ea71ce4e94f9e11b432efdf652a022488d9ac08",
+        "MODE.COM": "c385aad5697fcec3a9113f58b983b978a7f969e99b153ebd496b12dab0e3767d",
+        "NLSFUNC.EXE": "bc2a0c9b0900bcac03a6cfe072ea56ea01bd2333b1d1bf8f810f28e668340e67",
+        "PROBE.COM": "c832b317d7df784bba9f1f2c55d5df1f4d2dd25f7abd6913983e9235f9967772",
+        "SETH.COM": "9223dfc5a6432f872b7124c6526015d21f2c0581b97717e048d311c878c071ee",
+        "TEST.CPI": "e62143d403dba21dd9f3c606769b90923038e542098fdb57de36eaf9e986a4b0",
+        "AUTOEXEC.BAT": "8c0fe46b39b486702288e14bcf774b8f8f77a5a4b10d4090e9e04b4f5273f0e6"
+      }
+    },
+    {
+      "name": "860-16",
+      "page": 860,
+      "height": 16,
+      "negative_control": false,
+      "mismatched_slots": [],
+      "emulator_exit": 0,
+      "screen_size": [
+        720,
+        400
+      ],
+      "font_plane_sha256": "4da2c55886eaf29c76875b93c0792fa4edbabd1cd386615e4135ce3a8c142e69",
+      "screen_sha256": "61f3dde00bf708db8c6ecc940f088ee6232d237f9040dcd0c47c67985b3d4fc3",
+      "cpi_sha256": "e62143d403dba21dd9f3c606769b90923038e542098fdb57de36eaf9e986a4b0",
+      "config_sha256": "bc1ff341a3eb659a0d55fd6036f680cec32fd069304c2e2562e39e4a8497c669",
+      "font_plane": {
+        "path": "review/display-286-860-16-font.bin",
+        "sha256": "4da2c55886eaf29c76875b93c0792fa4edbabd1cd386615e4135ce3a8c142e69"
+      },
+      "screen": {
+        "path": "review/display-286-860-16.png",
+        "sha256": "61f3dde00bf708db8c6ecc940f088ee6232d237f9040dcd0c47c67985b3d4fc3"
+      },
+      "serial_log": {
+        "path": "review/display-286-860-16.log",
+        "sha256": "8a8f176e8f659b2ca2108bdcfff70f022f3751e9f8f9258b498dbc5e406106d7"
+      },
+      "configuration": {
+        "path": "review/display-286-860-16.cfg",
+        "sha256": "bc1ff341a3eb659a0d55fd6036f680cec32fd069304c2e2562e39e4a8497c669"
+      },
+      "rendered_grid_pixels_checked": 36864,
+      "ninth_column_line_graphics_checked": true,
+      "guest_files_sha256": {
+        "COUNTRY.SYS": "dcad40266140a3155a44323bc3f3876ea70e1aa779175cf6ab18b532b36037c3",
+        "DISPLAY.SYS": "0ebd3bfad4e87d79e05219c02ea71ce4e94f9e11b432efdf652a022488d9ac08",
+        "MODE.COM": "c385aad5697fcec3a9113f58b983b978a7f969e99b153ebd496b12dab0e3767d",
+        "NLSFUNC.EXE": "bc2a0c9b0900bcac03a6cfe072ea56ea01bd2333b1d1bf8f810f28e668340e67",
+        "PROBE.COM": "cb491decb0465b2703cbc7860214a51ee2e2a50007138665621b92356f9c08a9",
+        "SETH.COM": "9223dfc5a6432f872b7124c6526015d21f2c0581b97717e048d311c878c071ee",
+        "TEST.CPI": "e62143d403dba21dd9f3c606769b90923038e542098fdb57de36eaf9e986a4b0",
+        "AUTOEXEC.BAT": "cdf9c817b462b4851afadfc75fbcb0f16b39bf75a366c853171ac284506c9b71"
+      }
+    },
+    {
+      "name": "863-16",
+      "page": 863,
+      "height": 16,
+      "negative_control": false,
+      "mismatched_slots": [],
+      "emulator_exit": 0,
+      "screen_size": [
+        720,
+        400
+      ],
+      "font_plane_sha256": "8451bb1f06264cd012cef09d37d4046c32a60413405f4398744437acfa899d44",
+      "screen_sha256": "aacf22e056d3b97524aa43b44efb527a0bc90d49eadd791b165430a569f3dbfe",
+      "cpi_sha256": "e62143d403dba21dd9f3c606769b90923038e542098fdb57de36eaf9e986a4b0",
+      "config_sha256": "bc1ff341a3eb659a0d55fd6036f680cec32fd069304c2e2562e39e4a8497c669",
+      "font_plane": {
+        "path": "review/display-286-863-16-font.bin",
+        "sha256": "8451bb1f06264cd012cef09d37d4046c32a60413405f4398744437acfa899d44"
+      },
+      "screen": {
+        "path": "review/display-286-863-16.png",
+        "sha256": "aacf22e056d3b97524aa43b44efb527a0bc90d49eadd791b165430a569f3dbfe"
+      },
+      "serial_log": {
+        "path": "review/display-286-863-16.log",
+        "sha256": "3a8911f56a16c1b19716be3dbc8e97cc22734682fc20b218cb8ba174bfe3065f"
+      },
+      "configuration": {
+        "path": "review/display-286-863-16.cfg",
+        "sha256": "bc1ff341a3eb659a0d55fd6036f680cec32fd069304c2e2562e39e4a8497c669"
+      },
+      "rendered_grid_pixels_checked": 36864,
+      "ninth_column_line_graphics_checked": true,
+      "guest_files_sha256": {
+        "COUNTRY.SYS": "dcad40266140a3155a44323bc3f3876ea70e1aa779175cf6ab18b532b36037c3",
+        "DISPLAY.SYS": "0ebd3bfad4e87d79e05219c02ea71ce4e94f9e11b432efdf652a022488d9ac08",
+        "MODE.COM": "c385aad5697fcec3a9113f58b983b978a7f969e99b153ebd496b12dab0e3767d",
+        "NLSFUNC.EXE": "bc2a0c9b0900bcac03a6cfe072ea56ea01bd2333b1d1bf8f810f28e668340e67",
+        "PROBE.COM": "08a941849ab50db68f449cf46ecffa3d757e18a18b5b64bd88f02033f7521fff",
+        "SETH.COM": "9223dfc5a6432f872b7124c6526015d21f2c0581b97717e048d311c878c071ee",
+        "TEST.CPI": "e62143d403dba21dd9f3c606769b90923038e542098fdb57de36eaf9e986a4b0",
+        "AUTOEXEC.BAT": "87a59ed86f33466ecb1b685da744adb055c484a5ca61693bda59129ee436c970"
+      }
+    },
+    {
+      "name": "865-16",
+      "page": 865,
+      "height": 16,
+      "negative_control": false,
+      "mismatched_slots": [],
+      "emulator_exit": 0,
+      "screen_size": [
+        720,
+        400
+      ],
+      "font_plane_sha256": "2ed1fc6720a0c49606f7b53377056a68cbd1df387d8027523563130c470b0925",
+      "screen_sha256": "38d6e17926974395f1f0df6fa64bb94ce6deeda99c97a4e8d7d78b6aeb9a5080",
+      "cpi_sha256": "e62143d403dba21dd9f3c606769b90923038e542098fdb57de36eaf9e986a4b0",
+      "config_sha256": "bc1ff341a3eb659a0d55fd6036f680cec32fd069304c2e2562e39e4a8497c669",
+      "font_plane": {
+        "path": "review/display-286-865-16-font.bin",
+        "sha256": "2ed1fc6720a0c49606f7b53377056a68cbd1df387d8027523563130c470b0925"
+      },
+      "screen": {
+        "path": "review/display-286-865-16.png",
+        "sha256": "38d6e17926974395f1f0df6fa64bb94ce6deeda99c97a4e8d7d78b6aeb9a5080"
+      },
+      "serial_log": {
+        "path": "review/display-286-865-16.log",
+        "sha256": "7c8fe57d0150c50453cf1a5f01c6866871fdb23a97bf8d2f23f1ee799b0bac28"
+      },
+      "configuration": {
+        "path": "review/display-286-865-16.cfg",
+        "sha256": "bc1ff341a3eb659a0d55fd6036f680cec32fd069304c2e2562e39e4a8497c669"
+      },
+      "rendered_grid_pixels_checked": 36864,
+      "ninth_column_line_graphics_checked": true,
+      "guest_files_sha256": {
+        "COUNTRY.SYS": "dcad40266140a3155a44323bc3f3876ea70e1aa779175cf6ab18b532b36037c3",
+        "DISPLAY.SYS": "0ebd3bfad4e87d79e05219c02ea71ce4e94f9e11b432efdf652a022488d9ac08",
+        "MODE.COM": "c385aad5697fcec3a9113f58b983b978a7f969e99b153ebd496b12dab0e3767d",
+        "NLSFUNC.EXE": "bc2a0c9b0900bcac03a6cfe072ea56ea01bd2333b1d1bf8f810f28e668340e67",
+        "PROBE.COM": "cad818c934ca0230d8196ca7cc6f3a381a503a3496b409e26801380fa88cc0c8",
+        "SETH.COM": "9223dfc5a6432f872b7124c6526015d21f2c0581b97717e048d311c878c071ee",
+        "TEST.CPI": "e62143d403dba21dd9f3c606769b90923038e542098fdb57de36eaf9e986a4b0",
+        "AUTOEXEC.BAT": "4937e393d3cb17002864b600c49fcd09a61d31ffdb6491e9724d956cb93e90c9"
+      }
+    },
+    {
+      "name": "866-16-corrupt",
+      "page": 866,
+      "height": 16,
+      "negative_control": true,
+      "mismatched_slots": [
+        241
+      ],
+      "emulator_exit": 0,
+      "screen_size": [
+        720,
+        400
+      ],
+      "font_plane_sha256": "07d6637f8d8d1636459d9436b0ec3249b8e66fbe8ae7f804ba6ab00c52ae6001",
+      "screen_sha256": "b8a5b745cf7b0fe5ec80cf8d924e8a5291dc713ea6fc45c050fbc5eb65c311b9",
+      "cpi_sha256": "2cd38ef819cf5606f9189987effffc448f1bd9360f0aff51545eb2248f0980a1",
+      "config_sha256": "bc1ff341a3eb659a0d55fd6036f680cec32fd069304c2e2562e39e4a8497c669",
+      "font_plane": {
+        "path": "review/display-286-866-16-corrupt-font.bin",
+        "sha256": "07d6637f8d8d1636459d9436b0ec3249b8e66fbe8ae7f804ba6ab00c52ae6001"
+      },
+      "screen": {
+        "path": "review/display-286-866-16-corrupt.png",
+        "sha256": "b8a5b745cf7b0fe5ec80cf8d924e8a5291dc713ea6fc45c050fbc5eb65c311b9"
+      },
+      "serial_log": {
+        "path": "review/display-286-866-16-corrupt.log",
+        "sha256": "64682db43198a360263ff7efdecfa2825e4bb8684f6ac76067c36c9a12c047d6"
+      },
+      "configuration": {
+        "path": "review/display-286-866-16-corrupt.cfg",
+        "sha256": "bc1ff341a3eb659a0d55fd6036f680cec32fd069304c2e2562e39e4a8497c669"
+      },
+      "rendered_grid_pixels_checked": 36864,
+      "ninth_column_line_graphics_checked": true,
+      "guest_files_sha256": {
+        "COUNTRY.SYS": "dcad40266140a3155a44323bc3f3876ea70e1aa779175cf6ab18b532b36037c3",
+        "DISPLAY.SYS": "0ebd3bfad4e87d79e05219c02ea71ce4e94f9e11b432efdf652a022488d9ac08",
+        "MODE.COM": "c385aad5697fcec3a9113f58b983b978a7f969e99b153ebd496b12dab0e3767d",
+        "NLSFUNC.EXE": "bc2a0c9b0900bcac03a6cfe072ea56ea01bd2333b1d1bf8f810f28e668340e67",
+        "PROBE.COM": "311ec1ab241612e1e3329eb6f7769dbb6e24296f7111ac94853c74d197ab2c58",
+        "SETH.COM": "9223dfc5a6432f872b7124c6526015d21f2c0581b97717e048d311c878c071ee",
+        "TEST.CPI": "2cd38ef819cf5606f9189987effffc448f1bd9360f0aff51545eb2248f0980a1",
+        "AUTOEXEC.BAT": "e6982e4d590a27c4696a776f6be53163950bbbd55d3b2920d601cb193c00fe07"
+      }
+    }
+  ],
+  "schema_version": 1,
+  "core_changed": false,
+  "scope": "DOS=LOW on real IBM AT BIOS and 8 MHz 286. Actual VGA plane and Unit Tester rendered-screen captures; all CP866 heights, old-page regression and yo-slot negative control.",
+  "booted_core_files": [
+    "IO.SYS",
+    "MSDOS.SYS",
+    "COMMAND.COM"
+  ],
+  "backend_record": "backend-exit-qualification.json",
+  "private_artifacts": "out/ru-display-286-78aue1u6",
+  "command": "MEMORY_CORE_DIR=out/memory-production/files python3 tests/test_ru_display_86box.py --jobs 2 --emulator out/ru-86box-vnc-bs283qnk/build/src/86Box --roms \"$BOX86_ROMS\" --qt-platform offscreen",
+  "inputs": {
+    "tests/test_ru_display_86box.py": {
+      "sha256": "3f8b464c6f9d8e3233fb7ae93c3b79269242719bef814b4d2d1c921591c3bf04",
+      "size": 8110
+    },
+    "tests/ru_font_probe.asm": {
+      "sha256": "15df11688d00e41291ec822ffe45b351f9c3684951637537613c7e1259bee881",
+      "size": 3851
+    },
+    "tests/86box_snapshot.inc": {
+      "sha256": "5580e3ff3924d137144669c1fe472cfd7a53eb03148eb87b6124ce55eebbac13",
+      "size": 1891
+    },
+    "tests/test_ru_display_qemu.py": {
+      "sha256": "f4eb5bc0debdf317cdd7020632c5385561eea6885dd298dc090e30eeaf91c94e",
+      "size": 7499
+    },
+    "tests/test_ru_cpi.py": {
+      "sha256": "92850d568b00f635d4c26a541055202512c0c06ac73784e8a20be4e1a2ed35d5",
+      "size": 4786
+    },
+    "tests/86box_exit.asm": {
+      "sha256": "df10886fcf0a3fd37b97f9b280488c35b8265de8a306765b33fb11290dc6e82b",
+      "size": 755
+    }
+  },
+  "remaining": [
+    "Shell/editor/pipes, Cyrillic filesystem persistence, full release and pristine reproducibility."
+  ],
+  "capture_backend_fix": {
+    "patch": {
+      "path": "review/86box-unittester-snapshot.patch",
+      "sha256": "60b42b400088c6fb76f8ca669b67a97466ce38cf2b804f634f353da1783e52cc"
+    },
+    "applies_after": "review/86box-unittester-exit.patch",
+    "before_screen": {
+      "path": "review/display-286-before-crop-14.png",
+      "sha256": "85483bb0fc7c043774c909bbf9b8568bd14ccc9adc0379e16c77c13bb0006552"
+    },
+    "observation": "The old Unit Tester assumed symmetric overscan, shifting the 14-row captured grid up four pixels. svga_doblit uses svga->y_add and left_overscan instead. The patch uses that origin for the primary SVGA monitor and accounts for vertical line doubling. The host pixel oracle is unchanged.",
+    "scope": "Primary SVGA capture origin only; no DOS core or font data changes."
+  },
+  "qemu_probe_regression": {
+    "before_sha256": "f3f1c3edeca154129600a6ceb1b8dc6c6075ec4135bb1ba3503de232bc92d252",
+    "after_sha256": "f3f1c3edeca154129600a6ceb1b8dc6c6075ec4135bb1ba3503de232bc92d252",
+    "byte_identical": true
+  }
+}

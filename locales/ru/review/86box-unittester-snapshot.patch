@@ -1,0 +1,29 @@
+--- a/src/device/unittester.c
++++ b/src/device/unittester.c
+@@ -28,6 +28,9 @@
+ #include <86box/plat.h>
+ #include <86box/unittester.h>
+ #include <86box/video.h>
++#include <86box/mem.h>
++#include <86box/timer.h>
++#include <86box/vid_svga.h>
+ 
+ enum fsm1_value {
+     UT_FSM1_WAIT_8,
+@@ -327,6 +330,16 @@
+                         unittester.snap_overscan_height = m->mon_ysize + m->mon_overscan_y;
+                         unittester.snap_img_xoffs       = (m->mon_overscan_x >> 1);
+                         unittester.snap_img_yoffs       = (m->mon_overscan_y >> 1);
++                        /* Match the primary SVGA renderer's asymmetric crop origin. */
++                        const svga_t *svga = svga_get_pri();
++                        if (svga && svga->monitor_index == (unittester.snap_monitor - 1)) {
++                            unittester.snap_img_xoffs = svga->left_overscan;
++                            unittester.snap_img_yoffs = svga->y_add;
++                            if (svga->vertical_linedbl) {
++                                unittester.snap_img_yoffs *= 2;
++                                unittester.snap_overscan_height += m->mon_overscan_y;
++                            }
++                        }
+                         /* Take snapshot */
+                         for (size_t y = 0; y < unittester.snap_overscan_height; y++) {
+                             for (size_t x = 0; x < unittester.snap_overscan_width; x++) {

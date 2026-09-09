@@ -301,3 +301,12 @@ The [backend exit record](../locales/ru/backend-exit-qualification.json)
 retains the Qt crash stack and private Unit Tester exit patch used by the
 286 country run. It separately verifies guest-requested statuses zero and
 one; a DOS completion marker alone never makes a host crash pass.
+
+The [286 display qualification](../locales/ru/display-286-qualification.json)
+runs `tests/test_ru_display_86box.py` against real IBM AT BIOS. The BOX86
+probe option exports the loaded VGA plane and a Unit Tester screen snapshot
+before guest completion; it does not synthesize a screen from font data.
+The host compares all glyph slots to the font oracle and every grid pixel
+to the loaded bitmap, including VGA ninth-column line-graphics replication. CP866 height variants, preserved old pages
+and the wrong-yo-slot control require exact completion and status zero.
+The default QEMU probe remains byte-identical with BOX86 undefined.

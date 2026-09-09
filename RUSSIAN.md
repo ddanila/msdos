@@ -164,8 +164,10 @@ input oracle on an 8088 with IBM XT BIOS. The
 checks rejected loads and RU/GR/RU reloads on both machines through BIOS and
 DOS input. The [286 country qualification](locales/ru/country-286-qualification.json)
 covers CONFIG selection, code-page transitions, rejection and case-table
-corruption against independent DOS reference bytes. The 286 display matrix
-and end-to-end/release gates remain open.
+corruption against independent DOS reference bytes. The
+[286 display qualification](locales/ru/display-286-qualification.json) covers
+loaded font-plane bytes and rendered grid pixels at all CP866 heights, old
+pages and the wrong-glyph control. End-to-end/release gates remain open.
 
 Existing implementation and test entry points:
 

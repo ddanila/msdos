@@ -24,3 +24,7 @@ legacy-load-*.log -text -whitespace
 # Preserve raw IBM AT country/NLS qualification logs.
 country-286-*.log -text -whitespace
 86box-unittester-exit.patch -text -whitespace
+
+# Preserve raw IBM AT font qualification captures.
+display-286-*.log -text -whitespace
+86box-unittester-snapshot.patch -text -whitespace
