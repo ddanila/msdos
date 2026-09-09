@@ -1,0 +1,367 @@
+{
+  "status": "cyrillic-filesystem-and-collation-passed",
+  "core_sha256": {
+    "IO.SYS": "793169a292df40bb117eb487136a0d8e7f4334ca223e8206bf53f33141f24715",
+    "MSDOS.SYS": "1475174f50c8c349bedd7cd4a0be88bce055f2e411b7454b5f68fffbff269b62",
+    "COMMAND.COM": "6742b5889141a9c61d41e336445014d8055c19758febf4263f4f8ebe3c2f2c29",
+    "HIMEM.SYS": "340cbfd1f0e835755adce99d80c607f8edeb48ea2b20a6a142402a25434f8d13",
+    "EMM386.EXE": "58266b6614594de7a9cfde9eda75e3eb241b9e2e941e67b70645a0f8a197dae6"
+  },
+  "cases": [
+    {
+      "profile": "high",
+      "phases": [
+        {
+          "phase": "create",
+          "emulator_exit": 33,
+          "files_hex": {
+            "LOOKUP.TXT": "a4a0adadeba520f0f10d0a",
+            "RENAMED.TXT": "a4a0adadeba520f0f10d0a",
+            "NESTED.TXT": "a4a0adadeba520f0f10d0a",
+            "ORDER.TXT": "802e5458540d0a812e5458540d0a852e5458540d0af02e5458540d0af086888a2e5458540d0a928591922e5458540d0a92859192312e5458540d0a9285919231322e5458540d0a92859192322e5458540d0a952e5458540d0a9f2e5458540d0a",
+            "ONE.TXT": "9f2e5458540d0a802e5458540d0af02e5458540d0a852e5458540d0a812e5458540d0a952e5458540d0a",
+            "WILD.TXT": "928591922e5458540d0a92859192312e5458540d0a92859192322e5458540d0a",
+            "REVERSE.TXT": "9f2e5458540d0a952e5458540d0a92859192322e5458540d0a9285919231322e5458540d0a92859192312e5458540d0a928591922e5458540d0af086888a2e5458540d0af02e5458540d0a852e5458540d0a812e5458540d0a802e5458540d0a",
+            "EXTORD.TXT": "4558542e800d0a4558542e850d0a4558542ef00d0a848e8a938c858d922e9291920d0a4558542e9f0d0a"
+          },
+          "log_sha256": "31959443ce9a5485f8c399a8005d543ec6cc202346452b0bdee1a05b4c5fa7d7",
+          "image_sha256": "d2fa5270c8cf6c5cc6f79842dbd54201fb3b043c5d4a4b077aae63a1904c5713",
+          "serial_log": {
+            "path": "review/files-high-create.log",
+            "sha256": "31959443ce9a5485f8c399a8005d543ec6cc202346452b0bdee1a05b4c5fa7d7"
+          }
+        },
+        {
+          "phase": "reboot",
+          "emulator_exit": 33,
+          "files_hex": {
+            "REBOOT.TXT": "a4a0adadeba520f0f10d0a",
+            "REBNEST.TXT": "a4a0adadeba520f0f10d0a",
+            "REORDER.TXT": "802e5458540d0a812e5458540d0a852e5458540d0af02e5458540d0af086888a2e5458540d0a928591922e5458540d0a92859192312e5458540d0a9285919231322e5458540d0a92859192322e5458540d0a952e5458540d0a9f2e5458540d0a"
+          },
+          "log_sha256": "79b20116378a6889aa79e87bc1630281ffbcec9d2245684f84206306243295fb",
+          "image_sha256": "6bd769e84358b45077912002e41f4c3639cdc1f03cb3a3fc2eb22bf1326f91c4",
+          "serial_log": {
+            "path": "review/files-high-reboot.log",
+            "sha256": "79b20116378a6889aa79e87bc1630281ffbcec9d2245684f84206306243295fb"
+          }
+        }
+      ],
+      "create_commands": [
+        "MD \u043f\u0430\u043f\u043a\u0430",
+        "CD \u041f\u0410\u041f\u041a\u0410",
+        "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0451\u0436\u0438\u043a.txt",
+        "TYPE \u0401\u0416\u0418\u041a.TXT > A:\\LOOKUP.TXT",
+        "COPY \u0451\u0436\u0438\u043a.txt \u043a\u043e\u043f\u0438\u044f.dat >NUL",
+        "REN \u041a\u041e\u041f\u0418\u042f.DAT \u043d\u043e\u0432\u043e\u0435.dat",
+        "TYPE \u041d\u041e\u0412\u041e\u0415.DAT > A:\\RENAMED.TXT",
+        "DEL \u041d\u041e\u0412\u041e\u0415.DAT",
+        "MD \u0432\u043b\u043e\u0436\u0435\u043d",
+        "COPY \u0401\u0416\u0418\u041a.TXT \u0432\u043b\u043e\u0436\u0435\u043d\\\u0434\u043e\u043a\u0443\u043c\u0435\u043d\u0442.\u0442\u0441\u0442 >NUL",
+        "TYPE \u0412\u041b\u041e\u0416\u0415\u041d\\\u0414\u041e\u041a\u0423\u041c\u0415\u041d\u0422.\u0422\u0421\u0422 > A:\\NESTED.TXT",
+        "MD \u0432\u0440\u0435\u043c",
+        "RD \u0412\u0420\u0415\u041c",
+        "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0432\u043b\u043e\u0436\u0435\u043d\\ext.\u044f",
+        "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0432\u043b\u043e\u0436\u0435\u043d\\ext.\u0430",
+        "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0432\u043b\u043e\u0436\u0435\u043d\\ext.\u0451",
+        "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0432\u043b\u043e\u0436\u0435\u043d\\ext.\u0435",
+        "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u044f.txt",
+        "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0430.txt",
+        "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0451.txt",
+        "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0435.txt",
+        "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0431.txt",
+        "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0445.txt",
+        "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0442\u0435\u0441\u0442.txt",
+        "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0442\u0435\u0441\u04421.txt",
+        "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0442\u0435\u0441\u04422.txt",
+        "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0442\u0435\u0441\u044212.txt",
+        "DIR /B /A:-D /O:E \u0432\u043b\u043e\u0436\u0435\u043d\\*.* > A:\\EXTORD.TXT",
+        "DIR /B /O:-N *.TXT > A:\\REVERSE.TXT",
+        "DIR /B /O:N *.TXT > A:\\ORDER.TXT",
+        "DIR /B ?.TXT > A:\\ONE.TXT",
+        "DIR /B \u0442\u0435\u0441\u0442?.TXT > A:\\WILD.TXT",
+        "CD \\",
+        "ECHO CREATED>STAGE.TAG"
+      ],
+      "reboot_commands": [
+        "CD \u041f\u0410\u041f\u041a\u0410",
+        "TYPE \u0401\u0416\u0418\u041a.TXT > A:\\REBOOT.TXT",
+        "TYPE \u0412\u041b\u041e\u0416\u0415\u041d\\\u0414\u041e\u041a\u0423\u041c\u0415\u041d\u0422.\u0422\u0421\u0422 > A:\\REBNEST.TXT",
+        "DIR /B /O:N *.TXT > A:\\REORDER.TXT",
+        "DEL \u0412\u041b\u041e\u0416\u0415\u041d\\\u0414\u041e\u041a\u0423\u041c\u0415\u041d\u0422.\u0422\u0421\u0422",
+        "DEL \u0412\u041b\u041e\u0416\u0415\u041d\\EXT.*",
+        "RD \u0412\u041b\u041e\u0416\u0415\u041d",
+        "DEL *.TXT",
+        "CD \\",
+        "RD \u041f\u0410\u041f\u041a\u0410"
+      ],
+      "directory_sha256": "58e72ccfa1e1190bb77245298972f4aba8db858d564905544149031f55e75622",
+      "nested_sha256": "adcf5becbcbe552b74298f8418104a94ea8733fd2dc0bed5374b263599b6cb7b",
+      "expected_order_hex": "802e5458540d0a812e5458540d0a852e5458540d0af02e5458540d0af086888a2e5458540d0a928591922e5458540d0a92859192312e5458540d0a9285919231322e5458540d0a92859192322e5458540d0a952e5458540d0a9f2e5458540d0a",
+      "raw_directory": {
+        "path": "review/files-high-directory.bin",
+        "sha256": "58e72ccfa1e1190bb77245298972f4aba8db858d564905544149031f55e75622"
+      },
+      "raw_nested_directory": {
+        "path": "review/files-high-nested.bin",
+        "sha256": "adcf5becbcbe552b74298f8418104a94ea8733fd2dc0bed5374b263599b6cb7b"
+      },
+      "output_files": {
+        "ORDER.TXT": {
+          "path": "review/files-high-order.txt.bin",
+          "sha256": "90f603cfb747657570b5cec9b6a3a92bcda22f50b740d11facdaca4b214c3cbb"
+        },
+        "REORDER.TXT": {
+          "path": "review/files-high-reorder.txt.bin",
+          "sha256": "90f603cfb747657570b5cec9b6a3a92bcda22f50b740d11facdaca4b214c3cbb"
+        },
+        "REVERSE.TXT": {
+          "path": "review/files-high-reverse.txt.bin",
+          "sha256": "d571c7c07a0ce8831e015df9def70aabf8f0860b641cee7a69f890fa814a112e"
+        },
+        "EXTORD.TXT": {
+          "path": "review/files-high-extord.txt.bin",
+          "sha256": "0466c1405ec84f213f9bc292268fa90f7bcbe04f545e2257d969d65b5a7c39fd"
+        },
+        "ONE.TXT": {
+          "path": "review/files-high-one.txt.bin",
+          "sha256": "0e26aa0a08e9b4d862cee93d32ed6c56c77cecdaf583b23f97a00b702ccfa391"
+        },
+        "WILD.TXT": {
+          "path": "review/files-high-wild.txt.bin",
+          "sha256": "57952ad76c5a1857af8f2f7c37844aea4229754c792b9cc6a469ac5680de63f0"
+        }
+      }
+    },
+    {
+      "profile": "low",
+      "phases": [
+        {
+          "phase": "create",
+          "emulator_exit": 33,
+          "files_hex": {
+            "LOOKUP.TXT": "a4a0adadeba520f0f10d0a",
+            "RENAMED.TXT": "a4a0adadeba520f0f10d0a",
+            "NESTED.TXT": "a4a0adadeba520f0f10d0a",
+            "ORDER.TXT": "802e5458540d0a812e5458540d0a852e5458540d0af02e5458540d0af086888a2e5458540d0a928591922e5458540d0a92859192312e5458540d0a9285919231322e5458540d0a92859192322e5458540d0a952e5458540d0a9f2e5458540d0a",
+            "ONE.TXT": "9f2e5458540d0a802e5458540d0af02e5458540d0a852e5458540d0a812e5458540d0a952e5458540d0a",
+            "WILD.TXT": "928591922e5458540d0a92859192312e5458540d0a92859192322e5458540d0a",
+            "REVERSE.TXT": "9f2e5458540d0a952e5458540d0a92859192322e5458540d0a9285919231322e5458540d0a92859192312e5458540d0a928591922e5458540d0af086888a2e5458540d0af02e5458540d0a852e5458540d0a812e5458540d0a802e5458540d0a",
+            "EXTORD.TXT": "4558542e800d0a4558542e850d0a4558542ef00d0a848e8a938c858d922e9291920d0a4558542e9f0d0a"
+          },
+          "log_sha256": "e60f93b4361530626cc9fe2e95ba1808aaf07c3a7540197ff8d339ba9ee46242",
+          "image_sha256": "50bacbad665573f6c18f45cfb39ec4fc5c07416752ef13166cb2132c6757c487",
+          "serial_log": {
+            "path": "review/files-low-create.log",
+            "sha256": "e60f93b4361530626cc9fe2e95ba1808aaf07c3a7540197ff8d339ba9ee46242"
+          }
+        },
+        {
+          "phase": "reboot",
+          "emulator_exit": 33,
+          "files_hex": {
+            "REBOOT.TXT": "a4a0adadeba520f0f10d0a",
+            "REBNEST.TXT": "a4a0adadeba520f0f10d0a",
+            "REORDER.TXT": "802e5458540d0a812e5458540d0a852e5458540d0af02e5458540d0af086888a2e5458540d0a928591922e5458540d0a92859192312e5458540d0a9285919231322e5458540d0a92859192322e5458540d0a952e5458540d0a9f2e5458540d0a"
+          },
+          "log_sha256": "4945b4c808de45445504951b70c5c5d1ff359efc06b115e4c9f037ca4a1c9e33",
+          "image_sha256": "4344031f909c154a67300cda9c150cf0b8784761b310047663ee5ad08cb4c7d3",
+          "serial_log": {
+            "path": "review/files-low-reboot.log",
+            "sha256": "4945b4c808de45445504951b70c5c5d1ff359efc06b115e4c9f037ca4a1c9e33"
+          }
+        }
+      ],
+      "create_commands": [
+        "MD \u043f\u0430\u043f\u043a\u0430",
+        "CD \u041f\u0410\u041f\u041a\u0410",
+        "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0451\u0436\u0438\u043a.txt",
+        "TYPE \u0401\u0416\u0418\u041a.TXT > A:\\LOOKUP.TXT",
+        "COPY \u0451\u0436\u0438\u043a.txt \u043a\u043e\u043f\u0438\u044f.dat >NUL",
+        "REN \u041a\u041e\u041f\u0418\u042f.DAT \u043d\u043e\u0432\u043e\u0435.dat",
+        "TYPE \u041d\u041e\u0412\u041e\u0415.DAT > A:\\RENAMED.TXT",
+        "DEL \u041d\u041e\u0412\u041e\u0415.DAT",
+        "MD \u0432\u043b\u043e\u0436\u0435\u043d",
+        "COPY \u0401\u0416\u0418\u041a.TXT \u0432\u043b\u043e\u0436\u0435\u043d\\\u0434\u043e\u043a\u0443\u043c\u0435\u043d\u0442.\u0442\u0441\u0442 >NUL",
+        "TYPE \u0412\u041b\u041e\u0416\u0415\u041d\\\u0414\u041e\u041a\u0423\u041c\u0415\u041d\u0422.\u0422\u0421\u0422 > A:\\NESTED.TXT",
+        "MD \u0432\u0440\u0435\u043c",
+        "RD \u0412\u0420\u0415\u041c",
+        "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0432\u043b\u043e\u0436\u0435\u043d\\ext.\u044f",
+        "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0432\u043b\u043e\u0436\u0435\u043d\\ext.\u0430",
+        "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0432\u043b\u043e\u0436\u0435\u043d\\ext.\u0451",
+        "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0432\u043b\u043e\u0436\u0435\u043d\\ext.\u0435",
+        "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u044f.txt",
+        "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0430.txt",
+        "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0451.txt",
+        "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0435.txt",
+        "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0431.txt",
+        "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0445.txt",
+        "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0442\u0435\u0441\u0442.txt",
+        "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0442\u0435\u0441\u04421.txt",
+        "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0442\u0435\u0441\u04422.txt",
+        "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0442\u0435\u0441\u044212.txt",
+        "DIR /B /A:-D /O:E \u0432\u043b\u043e\u0436\u0435\u043d\\*.* > A:\\EXTORD.TXT",
+        "DIR /B /O:-N *.TXT > A:\\REVERSE.TXT",
+        "DIR /B /O:N *.TXT > A:\\ORDER.TXT",
+        "DIR /B ?.TXT > A:\\ONE.TXT",
+        "DIR /B \u0442\u0435\u0441\u0442?.TXT > A:\\WILD.TXT",
+        "CD \\",
+        "ECHO CREATED>STAGE.TAG"
+      ],
+      "reboot_commands": [
+        "CD \u041f\u0410\u041f\u041a\u0410",
+        "TYPE \u0401\u0416\u0418\u041a.TXT > A:\\REBOOT.TXT",
+        "TYPE \u0412\u041b\u041e\u0416\u0415\u041d\\\u0414\u041e\u041a\u0423\u041c\u0415\u041d\u0422.\u0422\u0421\u0422 > A:\\REBNEST.TXT",
+        "DIR /B /O:N *.TXT > A:\\REORDER.TXT",
+        "DEL \u0412\u041b\u041e\u0416\u0415\u041d\\\u0414\u041e\u041a\u0423\u041c\u0415\u041d\u0422.\u0422\u0421\u0422",
+        "DEL \u0412\u041b\u041e\u0416\u0415\u041d\\EXT.*",
+        "RD \u0412\u041b\u041e\u0416\u0415\u041d",
+        "DEL *.TXT",
+        "CD \\",
+        "RD \u041f\u0410\u041f\u041a\u0410"
+      ],
+      "directory_sha256": "a8b0a33459621eba85c5fef94969d4969e67753142951b55b61cf794d7782a66",
+      "nested_sha256": "2f98951e7b85b5176db85e280ce3d7cdbb0e6eccc8510a62e6f87a05862006a5",
+      "expected_order_hex": "802e5458540d0a812e5458540d0a852e5458540d0af02e5458540d0af086888a2e5458540d0a928591922e5458540d0a92859192312e5458540d0a9285919231322e5458540d0a92859192322e5458540d0a952e5458540d0a9f2e5458540d0a",
+      "raw_directory": {
+        "path": "review/files-low-directory.bin",
+        "sha256": "a8b0a33459621eba85c5fef94969d4969e67753142951b55b61cf794d7782a66"
+      },
+      "raw_nested_directory": {
+        "path": "review/files-low-nested.bin",
+        "sha256": "2f98951e7b85b5176db85e280ce3d7cdbb0e6eccc8510a62e6f87a05862006a5"
+      },
+      "output_files": {
+        "ORDER.TXT": {
+          "path": "review/files-low-order.txt.bin",
+          "sha256": "90f603cfb747657570b5cec9b6a3a92bcda22f50b740d11facdaca4b214c3cbb"
+        },
+        "REORDER.TXT": {
+          "path": "review/files-low-reorder.txt.bin",
+          "sha256": "90f603cfb747657570b5cec9b6a3a92bcda22f50b740d11facdaca4b214c3cbb"
+        },
+        "REVERSE.TXT": {
+          "path": "review/files-low-reverse.txt.bin",
+          "sha256": "d571c7c07a0ce8831e015df9def70aabf8f0860b641cee7a69f890fa814a112e"
+        },
+        "EXTORD.TXT": {
+          "path": "review/files-low-extord.txt.bin",
+          "sha256": "0466c1405ec84f213f9bc292268fa90f7bcbe04f545e2257d969d65b5a7c39fd"
+        },
+        "ONE.TXT": {
+          "path": "review/files-low-one.txt.bin",
+          "sha256": "0e26aa0a08e9b4d862cee93d32ed6c56c77cecdaf583b23f97a00b702ccfa391"
+        },
+        "WILD.TXT": {
+          "path": "review/files-low-wild.txt.bin",
+          "sha256": "57952ad76c5a1857af8f2f7c37844aea4229754c792b9cc6a469ac5680de63f0"
+        }
+      }
+    }
+  ],
+  "schema_version": 1,
+  "scope": "QEMU HIGH/UMB and LOW Cyrillic file operations, nested directories, wildcard enumeration, DOS collation and fresh-boot persistence, with raw FAT and content checks.",
+  "private_artifacts": "out/ru-files-prn3qn6_",
+  "command": "MEMORY_CORE_DIR=out/memory-production/files python3 tests/test_ru_files_qemu.py",
+  "before_core_sha256": {
+    "IO.SYS": "793169a292df40bb117eb487136a0d8e7f4334ca223e8206bf53f33141f24715",
+    "MSDOS.SYS": "1475174f50c8c349bedd7cd4a0be88bce055f2e411b7454b5f68fffbff269b62",
+    "COMMAND.COM": "f60f680336572c2c1375fbeae7f54b074ac6e365f35638a62822572bece584ba",
+    "HIMEM.SYS": "340cbfd1f0e835755adce99d80c607f8edeb48ea2b20a6a142402a25434f8d13",
+    "EMM386.EXE": "58266b6614594de7a9cfde9eda75e3eb241b9e2e941e67b70645a0f8a197dae6"
+  },
+  "changed_core_files": [
+    "COMMAND.COM"
+  ],
+  "fix": "DIR name and extension comparisons use active INT 21h AX=6506h weights. Initialize identity weights as fallback when NLS is unavailable; reload weights at every DIR invocation.",
+  "oracle": "dos622-reference.json country_records.866.objects.6, plus explicit CP866 uppercase 8.3 names and padded-field wildcard expectations.",
+  "remaining": [
+    "Real-BIOS end-to-end workflows.",
+    "Full release and pristine reproducibility on the changed COMMAND core."
+  ],
+  "inputs": {
+    "src/CMD/COMMAND/DIR5EXT.ASM": {
+      "sha256": "0001d108198053d4318fe2fc82466954fec1b9b78dc54b41a7152c9fd7da7305",
+      "size": 25321
+    },
+    "tests/test_ru_files_qemu.py": {
+      "sha256": "d9a787911be8629810462a94ddd604d9647dde9c713294f09bc668ae64f1246a",
+      "size": 9574
+    },
+    "tests/test_ru_text_qemu.py": {
+      "sha256": "9f469482c06f84704417621b7f52ffe90f47753e751010d733c1fa23d2d02c04",
+      "size": 8086
+    },
+    "locales/ru/dos622-reference.json": {
+      "sha256": "f1b81253030de6bcbee4db96d11b7ac71b57984b568e07a310aff03159add63b",
+      "size": 16005
+    }
+  },
+  "before_order": {
+    "path": "review/files-before-order.bin",
+    "sha256": "5663f848170268532e784d2139bdedb011d94f47057e6e77647af5729420e7aa"
+  },
+  "regressions": {
+    "command-before": {
+      "path": "review/files-command-before.log",
+      "sha256": "7cef3ca740acb9e518198d03a8d17324bc113d188b933a2df373ac12e0c9b392"
+    },
+    "command-after": {
+      "path": "review/files-command-after.log",
+      "sha256": "cf89deba84f7e0d1c3c8f009902739915ad87df39f7269d5e66bec4652aaf1d0"
+    },
+    "kvik-nls-before": {
+      "path": "review/files-kvik-nls-before.log",
+      "sha256": "226a78def2accddbe79eea21bfd6cf12719e533ab4bbbca8df81bb5d364634b7"
+    },
+    "kvik-nls-after": {
+      "path": "review/files-kvik-nls-after.log",
+      "sha256": "0c6aae77b521750321a63713d1918eef3790a0d9a3bef95a4f054e34f71b42f6"
+    },
+    "kvik-suite": {
+      "path": "review/files-kvik-suite.log",
+      "sha256": "1e907d18b1062f8c7f40ea505fbdd7260849d760c7cb0f4584118bbca6f0de98"
+    },
+    "text": {
+      "path": "review/files-text.log",
+      "sha256": "1518926fb986e6ae8c545dd1c6e55adc7d4ed592e7573615baff74098ca75e7b"
+    }
+  },
+  "kvikdos_fix": {
+    "commit": "c14785b6bef89060ac9254be4c0ea64d8360b17e",
+    "branch": "custom",
+    "source": "https://github.com/ddanila/kvikdos",
+    "explanation": "Move the identity NLS table out of the BIOS data area and relocate following private stubs/environment. Cursor/video BDA writes previously changed collating weights and caused three DIR regressions.",
+    "tests": "make -C kvikdos test; tests/nls_collation/run.py checks all weights after a BIOS cursor update in both modes."
+  },
+  "matched_text_cases": [
+    {
+      "profile": "high",
+      "emulator_exit": 33,
+      "files_hex": {
+        "SHELL.TXT": "8fe0a8a2a5e220aca8e020f0f120444f530d0a",
+        "EDIT.TXT": "8fe0a8a2a5e220aca8e020f0f120444f530d0a92a5aae1e20d0a1a",
+        "COPY.TXT": "8fe0a8a2a5e220aca8e020f0f120444f530d0a92a5aae1e20d0a",
+        "PIPE.TXT": "92a5aae1e20d0a"
+      },
+      "serial_log": {
+        "path": "review/files-text-high.log",
+        "sha256": "e2be54e448e21acde447d1288b4d8de95f5476b0a2e49acabed42490dbc86f50"
+      }
+    },
+    {
+      "profile": "low",
+      "emulator_exit": 33,
+      "files_hex": {
+        "SHELL.TXT": "8fe0a8a2a5e220aca8e020f0f120444f530d0a",
+        "EDIT.TXT": "8fe0a8a2a5e220aca8e020f0f120444f530d0a92a5aae1e20d0a1a",
+        "COPY.TXT": "8fe0a8a2a5e220aca8e020f0f120444f530d0a92a5aae1e20d0a",
+        "PIPE.TXT": "92a5aae1e20d0a"
+      },
+      "serial_log": {
+        "path": "review/files-text-low.log",
+        "sha256": "fb46bded5420e4dc2ef25d9176f4cb041a9b541f66a846845ef00edfa11b6540"
+      }
+    }
+  ]
+}

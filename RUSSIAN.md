@@ -170,8 +170,11 @@ loaded font-plane bytes and rendered grid pixels at all CP866 heights, old
 pages and the wrong-glyph control. The
 [text workflow qualification](locales/ru/text-qualification.json) covers
 physical shell/EDLIN input, editing, save/reopen, redirection and pipes on
-HIGH/UMB and LOW. Cyrillic filesystem persistence, remaining real-BIOS
-end-to-end coverage and release/reproducibility gates remain open.
+HIGH/UMB and LOW. The [filesystem qualification](locales/ru/filesystem-qualification.json)
+adds Cyrillic file/directory operations and fresh-boot persistence. It fixes
+DIR name/extension ordering to use active DOS collation and records the changed
+COMMAND core. Real-BIOS end-to-end coverage and full release/reproducibility
+qualification of that core remain open.
 
 Existing implementation and test entry points:
 

@@ -318,3 +318,15 @@ edits text in EDLIN, saves and reopens it, and exercises TYPE redirection and
 a FIND pipe. Exact CP866 files, fresh-screen text, screenshots, runtime
 profile evidence and guest completion/status are required. Real-BIOS
 end-to-end and Cyrillic directory persistence coverage remain open.
+
+The [Russian filesystem qualification](../locales/ru/filesystem-qualification.json)
+runs `tests/test_ru_files_qemu.py` on HIGH/UMB and LOW. CP866 batch commands
+exercise alternate-case paths, copy/rename/delete, Cyrillic 8.3 extensions,
+nested directories, padded-field wildcards, collation ordering and reverse
+ordering. A guest marker selects verification on a fresh boot of the same
+image, with no host edits between boots. The host parses FAT directory bytes,
+checks file contents and verifies final removal. The test exposed raw-byte
+DIR sorting; COMMAND now caches active DOS weights for name/extension keys.
+The record includes existing command regressions, a kvikdos NLS/BDA isolation
+fix and matched text-workflow evidence. Full release qualification of the
+changed COMMAND core remains required.

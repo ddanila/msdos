@@ -176,9 +176,62 @@ dir_recursive_drive DB 0
 dir_recursive_current DW 0
 dir_recursive_pattern DB 13 DUP(0)
 dircmd_text DB 'DIRCMD=',0
+dir_collate_info DB 5 DUP(0)
+dir_collate_weights DB 256 DUP(0)
+
+; Cache the active DOS collating weights for name/extension comparisons.
+; Keep byte ordering if a host DOS does not provide this NLS function.
+dir_load_collation:
+	push ax
+	push bx
+	push cx
+	push dx
+	push si
+	push di
+	push ds
+	push es
+	push ds
+	pop es
+	cld
+	mov di,OFFSET TRANGROUP:dir_collate_weights
+	xor ax,ax
+	mov cx,256
+dir_collate_identity:
+	stosb
+	inc al
+	loop dir_collate_identity
+	mov ax,6506h
+	mov bx,-1
+	mov dx,-1
+	mov cx,5
+	mov di,OFFSET TRANGROUP:dir_collate_info
+	int int_command
+	jc dir_collate_done
+	cmp cx,5
+	jne dir_collate_done
+	cmp byte ptr dir_collate_info,6
+	jne dir_collate_done
+	lds si,dword ptr dir_collate_info+1
+	cmp word ptr [si],256
+	jne dir_collate_done
+	add si,2
+	mov di,OFFSET TRANGROUP:dir_collate_weights
+	mov cx,256
+	rep movsb
+dir_collate_done:
+	pop es
+	pop ds
+	pop di
+	pop si
+	pop dx
+	pop cx
+	pop bx
+	pop ax
+	ret
 
 ; Return SI at DIRCMD's copied value, or at the PSP command tail if unset.
 dir_prepare:
+	call dir_load_collation
 	mov dir_sort_selected,0
 	mov dir_recursive_selected,0
 	mov dir_sort_key_count,0
@@ -600,6 +653,17 @@ dir_sort_compare_ext:
 dir_sort_compare_bytes:
 	mov dl,es:[si]
 	mov dh,es:[di]
+	push ax
+	push bx
+	xor ax,ax
+	mov al,dl
+	mov bx,ax
+	mov dl,cs:[dir_collate_weights+bx]
+	mov al,dh
+	mov bx,ax
+	mov dh,cs:[dir_collate_weights+bx]
+	pop bx
+	pop ax
 	cmp dl,dh
 	jne dir_sort_compare_bytes_diff
 	inc si

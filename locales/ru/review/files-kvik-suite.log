@@ -1,0 +1,55 @@
+make: Entering directory '/Users/ddanila/fun/msdos/kvikdos'
+--- strict mode (default) ---
+=== guest.com ===
+kvikdos[pid=59824]: dos terminate int=0x20 ah=0x09 al=0 cs=0100 ip=0002
+PASS
+=== cat.com ===
+kvikdos[pid=59828]: dos terminate int=0x20 ah=0x00 al=0 cs=0100 ip=0002
+PASS
+=== printenv.com ===
+PASS
+=== malloct.com ===
+kvikdos[pid=59834]: dos terminate int=0x20 ah=0x09 al=0 cs=0100 ip=0002
+PASS
+=== allocpreserve.com ===
+kvikdos[pid=59837]: dos terminate int=0x21 ah=0x4c al=0 cs=0100 ip=0147
+PASS
+=== a20wrap.com ===
+kvikdos[pid=59840]: dos terminate int=0x20 ah=0x09 al=0 cs=0100 ip=0002
+PASS
+=== vidtest.com ===
+kvikdos[pid=59843]: dos terminate int=0x21 ah=0x4c al=0 cs=0100 ip=0153
+PASS
+=== findfirst.com ===
+kvikdos[pid=59846]: dos terminate int=0x20 ah=0x09 al=0 cs=0100 ip=0002
+PASS
+--- azzy mode (--azzy) ---
+=== guest.com --azzy ===
+kvikdos[pid=59850]: dos terminate int=0x20 ah=0x09 al=0 cs=0100 ip=0002
+PASS
+=== cat.com --azzy ===
+kvikdos[pid=59854]: dos terminate int=0x20 ah=0x00 al=0 cs=0100 ip=0002
+PASS
+=== malloct.com --azzy ===
+kvikdos[pid=59857]: dos terminate int=0x20 ah=0x09 al=0 cs=0100 ip=0002
+PASS
+=== allocpreserve.com --azzy ===
+kvikdos[pid=59860]: dos terminate int=0x21 ah=0x4c al=0 cs=0100 ip=0147
+PASS
+=== a20wrap.com --azzy ===
+kvikdos[pid=59863]: dos terminate int=0x20 ah=0x09 al=0 cs=0100 ip=0002
+PASS
+=== vidtest.com --azzy ===
+kvikdos[pid=59866]: dos terminate int=0x21 ah=0x4c al=0 cs=0100 ip=0153
+PASS
+=== findfirst.com --azzy ===
+kvikdos[pid=59869]: dos terminate int=0x20 ah=0x09 al=0 cs=0100 ip=0002
+PASS
+python3 tests/arena_boundary/run.py ./kvikdos
+PASS KVIKDOS_AZZY=0
+PASS KVIKDOS_AZZY=1
+python3 tests/nls_collation/run.py ./kvikdos
+PASS: NLS table independent of BIOS data []
+PASS: NLS table independent of BIOS data ['--azzy']
+All tests passed.
+make: Leaving directory '/Users/ddanila/fun/msdos/kvikdos'

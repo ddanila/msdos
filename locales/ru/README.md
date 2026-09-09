@@ -270,3 +270,15 @@ EDLIN's DOS EOF byte is required in its saved file; TYPE omits it, and FIND
 outputs the selected Russian line through a pipe. This is text-content
 coverage; Cyrillic filename persistence and real-BIOS end-to-end work remain
 separate gates.
+
+[Filesystem qualification](filesystem-qualification.json) covers CP866
+filenames and nested directories on HIGH/UMB and LOW, including alternate-case
+lookup, file copy/rename/delete, directory removal, wildcard enumeration,
+name/extension collation and persistence across a fresh boot. Run
+`MEMORY_CORE_DIR=out/memory-production/files python3 tests/test_ru_files_qemu.py`
+after deploying the matching core. Raw FAT entries and DOS output bytes are
+retained. The test found that DIR sorted by byte value; name and extension
+comparison now use the active DOS collation table, placing Yo after Ie.
+The changed COMMAND hash, matched regressions and kvikdos NLS table relocation
+are recorded. Real-BIOS end-to-end and full release/reproducibility checks
+remain open.

@@ -31,3 +31,6 @@ display-286-*.log -text -whitespace
 
 # Preserve raw physical text-workflow serial captures.
 text-*.log -text -whitespace
+
+# Preserve filesystem and collation regression evidence byte-for-byte.
+files-*.log -text -whitespace

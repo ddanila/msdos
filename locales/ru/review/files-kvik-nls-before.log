@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "/Users/ddanila/fun/msdos/kvikdos/tests/nls_collation/run.py", line 14, in <module>
+    assert result.returncode==0 and b'NLS_COLLATION_PASS' in result.stdout,result
+AssertionError: CompletedProcess(args=[PosixPath('/Users/ddanila/fun/msdos/kvikdos/kvikdos-soft'), PosixPath('/var/folders/s1/jvvnpwf50tjbhq2t_dzzxssm0000gn/T/kvikdos-nls-z294ksmm/CHECK.COM')], returncode=1, stdout=b'NLS_COLLATION_FAIL\r\n', stderr=b'kvikdos[pid=59800]: dos terminate int=0x21 ah=0x4c al=1 cs=0100 ip=015b\n')

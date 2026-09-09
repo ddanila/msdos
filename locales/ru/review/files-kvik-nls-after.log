@@ -1,0 +1,2 @@
+PASS: NLS table independent of BIOS data []
+PASS: NLS table independent of BIOS data ['--azzy']
