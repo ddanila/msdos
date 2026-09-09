@@ -1,2 +1,6 @@
 # Preserve DOS serial captures byte-for-byte for the qualification hashes.
 *.log -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+
+# Installer console echo can emit repeated CR bytes before LF. Keep the
+# raw captures (and their recorded hashes) instead of normalizing them.
+install-*.log -text -whitespace
