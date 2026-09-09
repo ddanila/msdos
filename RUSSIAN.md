@@ -175,8 +175,10 @@ adds Cyrillic file/directory operations and fresh-boot persistence. It fixes
 DIR name/extension ordering to use active DOS collation and records the changed
 COMMAND core. The [286 filesystem qualification](locales/ru/filesystem-286-qualification.json)
 adds the same batch-driven checks and fresh-boot persistence on IBM AT BIOS.
-Real-BIOS physical text workflows and full release/reproducibility
-qualification of that core remain open.
+The [286 text qualification](locales/ru/text-286-qualification.json) adds
+physical shell/EDLIN editing, save/reopen, redirection and pipes, with rendered
+CP866 glyph checks and exact saved bytes. The filesystem scope audit and full
+release/reproducibility qualification of that core remain open.
 
 Existing implementation and test entry points:
 

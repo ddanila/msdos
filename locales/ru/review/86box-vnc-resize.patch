@@ -1,0 +1,30 @@
+--- a/src/vnc.c
++++ b/src/vnc.c
+@@ -181,6 +181,8 @@
+         return;
+     }
+ 
++    vnc_resize(w, h);
++
+     for (int row = 0; row < h; ++row)
+         video_copy(&(((uint8_t *) rfb->frameBuffer)[row * 2048 * sizeof(uint32_t)]), &(buffer32->line[y + row][x]), w * sizeof(uint32_t));
+ 
+@@ -284,8 +286,8 @@
+     if ((x != rfb->width || y != rfb->height) && x > 160 && y > 0) {
+         vnc_log("VNC: updating resolution: %dx%d\n", x, y);
+ 
+-        allowedX = (rfb->width < x) ? rfb->width : x;
+-        allowedY = (rfb->width < y) ? rfb->width : y;
++        allowedX = x;
++        allowedY = y;
+ 
+         rfb->width  = x;
+         rfb->height = y;
+@@ -296,6 +298,7 @@
+             cl->newFBSizePending = 1;
+             UNLOCK(cl->updateMutex);
+         }
++        rfbReleaseClientIterator(iterator);
+     }
+ }
+ 

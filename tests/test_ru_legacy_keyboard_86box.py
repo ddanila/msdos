@@ -77,6 +77,8 @@ class VNCKeyboard:
             assert self.receive(4)==b'\0'*4
             self.socket.sendall(b'\x01')
             header=self.receive(24)
+            self.width,self.height=struct.unpack('>HH',header[:4])
+            self.pixel_format=header[4:20]
             self.title=self.receive(struct.unpack('>I',header[20:24])[0]).decode(errors='replace')
         except BaseException:
             self.close()

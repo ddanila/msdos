@@ -35,3 +35,7 @@ text-*.log -text -whitespace
 # Preserve filesystem and collation regression evidence byte-for-byte.
 files-*.log -text -whitespace
 files-*.bin -text -diff -whitespace
+
+# Preserve VNC capture correction and raw CP866 editor output.
+86box-vnc-resize.patch -text -whitespace
+text-286-*.bin -text -diff -whitespace

@@ -316,8 +316,7 @@ The [Russian text workflow](../locales/ru/text-qualification.json) runs
 physical JCUKEN/Latin keys, corrects a shell line with Backspace, creates and
 edits text in EDLIN, saves and reopens it, and exercises TYPE redirection and
 a FIND pipe. Exact CP866 files, fresh-screen text, screenshots, runtime
-profile evidence and guest completion/status are required. Real-BIOS
-physical text workflow coverage remains open.
+profile evidence and guest completion/status are required.
 
 The [Russian filesystem qualification](../locales/ru/filesystem-qualification.json)
 runs `tests/test_ru_files_qemu.py` on HIGH/UMB and LOW. CP866 batch commands
@@ -337,3 +336,11 @@ It creates a private boot image from the selected core and requires guest
 completion, exact backend exit status, raw FAT names and file bytes on both
 boots. Commands arrive from a CP866 batch file; this gate does not exercise
 physical keyboard input or rendered Cyrillic text.
+
+The [286 text qualification](../locales/ru/text-286-qualification.json) runs
+the same physical shell/editor workflow through VNC on IBM AT BIOS and an
+AT-84 keyboard. Captures compare actual rendered glyph masks with CP866 font
+rows; saved files require exact bytes. The runner waits for editor prompts and
+for an empty shell prompt on the last occupied row around checkpoints, so
+floppy I/O cannot overflow the BIOS key buffer. The record includes the VNC
+resize correction, retained timing diagnostics and QEMU profile regressions.
