@@ -199,3 +199,11 @@ MEMORY_CORE_DIR=out/memory-production/files \
 local port 5900 and uses private images. Unavailable right Alt/Ctrl events
 are excluded, and navigation uses the old physical keypad. Legacy reload
 and rejection checks and XT-83 input remain open.
+
+[XT-83 input qualification](xt83-qualification.json) uses the same command
+with `--machine xt83`. The runner reformats its private template to 360 KiB
+for the IBM XT BIOS, verifies the selected boot-core bytes, and asserts the
+resident XT keyboard type. The 8088 executes the same BIOS/DOS input matrix
+as the AT-84 case. Startup configurations are retained before 86Box writes
+runtime settings. XT font rendering, legacy reload/rejection cases and the
+remaining Russian release gates are outside this input qualification.

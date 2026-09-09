@@ -14,3 +14,6 @@ cpu8086-*.log -text -whitespace
 
 # Preserve raw AT-84 backend diagnostics and DOS serial bytes.
 at84-*.log -text -whitespace
+
+# Preserve raw XT-83 backend diagnostics and DOS serial bytes.
+xt83-*.log -text -whitespace

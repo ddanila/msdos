@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Physical RU input through an emulated AT 84-key keyboard and real IBM BIOS."""
+"""Physical RU input through AT 84-key or XT 83-key keyboards and real IBM BIOS."""
 import argparse
 import hashlib
 import json
@@ -110,6 +110,17 @@ def run_case(work, args, core, kind):
     image=case/'test.img'
     subprocess.run(['bash','-c','source "$1/tests/86box_286_lib.sh"\nmake_86box_286_boot_image "$2" "$1"',
                     'bash',str(ROOT),str(image)],check=True,stdout=subprocess.DEVNULL)
+    if args.machine=='xt83':
+        # Reformat the private template for the XT BIOS's 360 KiB geometry.
+        boot=case/'boot.bin'
+        boot.write_bytes(image.read_bytes()[:512])
+        initial={name:subprocess.check_output(['mtype','-i',str(image),'::'+name])
+                 for name in ('IO.SYS','MSDOS.SYS','COMMAND.COM','SYSMENU.OVL')}
+        image.unlink()
+        subprocess.run(['mformat','-C','-f','360','-B',str(boot),'-i',str(image),'::'],check=True)
+        for name,data in initial.items():
+            subprocess.run(['mcopy','-i',str(image),'-','::'+name],input=data,check=True)
+        subprocess.run(['python3',str(ROOT/'tests/compact_fat_root.py'),str(image)],check=True)
     def put(name,data):
         subprocess.run(['mcopy','-o','-i',str(image),'-','::'+name],input=data,check=True)
     def copy(name,path):
@@ -123,7 +134,7 @@ def run_case(work, args, core, kind):
     subprocess.run(['nasm','-f','bin',*(['-DDOS_INPUT'] if kind=='dos' else []),
                     str(ROOT/'tests/ru_keyboard_probe.asm'),'-o',str(case/'PROBE.COM')],cwd=case,check=True)
     for source,target in [('86box_exit.asm','BXEXIT.COM'),('ru_legacy_keyboard_type.asm','TYPECHK.COM')]:
-        subprocess.run(['nasm','-f','bin',str(ROOT/'tests'/source),'-o',str(case/target)],check=True)
+        subprocess.run(['nasm','-f','bin',*(['-DXT83'] if args.machine=='xt83' else []),str(ROOT/'tests'/source),'-o',str(case/target)],check=True)
     for name in ('P866.COM','CPCHK.COM','PROBE.COM','BXEXIT.COM','TYPECHK.COM'):
         copy(name,case/name)
     for source,name in [('DEV/COUNTRY/COUNTRY.SYS','COUNTRY.SYS'),('CMD/KEYB/KEYB.COM','KEYB.COM'),
@@ -143,10 +154,14 @@ def run_case(work, args, core, kind):
     config=config.replace('gfxcard = cga','gfxcard = vga').replace('size = 2048','size = 512')
     config=config.replace('[Other peripherals]','[Other peripherals]\nunittester_enabled = 1')
     config+='\n[AT Keyboard]\nkeys = 1\n'
+    if args.machine=='xt83':
+        config=(ROOT/'tests/86box/ibmxt-ru.cfg').read_text()
+    (case/'startup.cfg').write_text(config)
     (case/'86box.cfg').write_text(config)
     shutil.copyfile(ROOT/'tests/86box/global.cfg',case/'global.cfg')
-    subprocess.run(['python3',str(ROOT/'tests/seed_86box_ibmat_nvram.py'),str(case/'nvr/ibm5170_111585.nvr'),
-                    '--display','vga','--extended-kib','512'],check=True)
+    if args.machine=='at84':
+        subprocess.run(['python3',str(ROOT/'tests/seed_86box_ibmat_nvram.py'),str(case/'nvr/ibm5170_111585.nvr'),
+                        '--display','vga','--extended-kib','512'],check=True)
     # Refuse to connect to an unrelated server already using the backend port.
     with socket.socket() as check:
         # A previous case can leave TIME_WAIT sockets after a clean exit.
@@ -183,10 +198,10 @@ def run_case(work, args, core, kind):
                 proc.wait()
     data=log.read_bytes()
     assert status==0 and b'RU_LEGACY_KEY_DONE' in data and b'FAIL' not in data,log
-    for marker in (b'RU_COUNTRY_PASS',b'RU_CODEPAGE_PASS',b'RU_AT84_TYPE_PASS',b'RU_KEY_PASS'):
+    for marker in (b'RU_COUNTRY_PASS',b'RU_CODEPAGE_PASS',f'RU_{args.machine.upper()}_TYPE_PASS'.encode(),b'RU_KEY_PASS'):
         assert data.count(marker)==1,(marker,log)
     assert data.count(b'RU_KEY_READY')==len(cases)
-    print(f'PASS: AT-84 {kind}, {len(cases)} physical reads',flush=True)
+    print(f'PASS: {args.machine.upper()} {kind}, {len(cases)} physical reads',flush=True)
     return {'input':kind,'emulator_exit':status,'reads':len(cases),'steps':cases,
             'log':str(log.relative_to(work)),'log_sha256':hashlib.sha256(data).hexdigest(),
             'config_sha256':hashlib.sha256(config.encode()).hexdigest()}
@@ -197,6 +212,7 @@ def main():
     parser.add_argument('--emulator',type=Path,required=True,help='VNC-enabled 86Box with loopback-only listeners')
     parser.add_argument('--roms',type=Path,required=True)
     parser.add_argument('--qt-platform')
+    parser.add_argument('--machine',choices=('at84','xt83'),default='at84')
     parser.add_argument('--input',choices=('bios','dos'),action='append')
     args=parser.parse_args()
     core=selected_core()
@@ -204,7 +220,7 @@ def main():
         parser.error('MEMORY_CORE_DIR must select the production core')
     work=Path(tempfile.mkdtemp(prefix='ru-legacy-keyboard-',dir=ROOT/'out'))
     print(f'Russian legacy keyboard artifacts: {work}',flush=True)
-    report={'status':'running','core_sha256':{name:hashlib.sha256(data).hexdigest() for name,data in core.items()},
+    report={'status':'running','machine':args.machine,'core_sha256':{name:hashlib.sha256(data).hexdigest() for name,data in core.items()},
             'emulator_sha256':hashlib.sha256(args.emulator.read_bytes()).hexdigest(),'cases':[]}
     def save():
         (work/'results.json').write_text(json.dumps(report,indent=2)+'\n')

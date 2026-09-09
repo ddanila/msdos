@@ -272,3 +272,10 @@ cases are excluded. Guest completion, exact process status, released modifier
 bits and an empty input queue are required. The retained record includes the
 actual event matrix and backend/core hashes. XT-83 input, legacy reload and
 rejection cases, and the complete 286 display/NLS matrix remain open.
+
+The [XT-83 input qualification](../locales/ru/xt83-qualification.json) selects
+`--machine xt83` in the same runner. A private 360 KiB image boots the selected
+core on the IBM XT BIOS and an 8088 with the PC/XT keyboard controller. The
+guest asserts KEYB's XT type before running the same independent input oracle.
+This adds BIOS and DOS input coverage; it does not establish XT font rendering
+or replace the remaining 286 display/NLS and end-to-end release gates.
