@@ -130,8 +130,12 @@ Pinned inputs, selected compatibility tables and complete font coverage live in
 are implemented; [display qualification](locales/ru/display-qualification.json)
 records actual VGA bytes, screenshots and corruption detection.
 [Country qualification](locales/ru/country-qualification.json) covers the new
-country records, DOS/NLSFUNC APIs, CHCP transitions and rejection tests. Russian
-keyboard implementation is next. The manifest keeps the keyboard modifier and
+country records, DOS/NLSFUNC APIs, CHCP transitions and rejection tests. The
+separate RU keyboard library and
+[table gate](locales/ru/keyboard-qualification.json) are implemented; the first
+physical-key probe exposes missing initial-Latin behavior in resident KEYB.
+Resident modifier support and full physical-input qualification are next.
+The manifest keeps the keyboard modifier and
 variant checks visible, and installation/end-to-end gates remain open.
 
 Existing implementation and test entry points:

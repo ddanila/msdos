@@ -112,3 +112,14 @@ Keyboard implementation, modifier/keyboard-variant guest checks, installation
 and end-to-end qualification remain open. The complete scope and acceptance
 gates remain in [RUSSIAN.md](../../RUSSIAN.md). The current build does not yet ship
 an installable Russian pack or change the English default boot.
+
+The optional RU-only `src/DEV/KEYBOARD/KEYBRD2.SYS` is built from
+[KDFRU.ASM](../../src/DEV/KEYBOARD/KDFRU.ASM) using the existing KEYB macros.
+`make test-ru-keyboard-records` checks its directory, allocation boundaries and
+all translation states against the independent reference, with corruption
+controls. Existing KEYBOARD.SYS is unchanged.
+[Keyboard qualification](keyboard-qualification.json) records the table gate
+and a physical QEMU key probe that exposes the missing initial-Latin behavior.
+The library requests the Russian mode features, but the resident KEYB handler
+still needs their implementation and full physical-input qualification.
+This is a development artifact and is not yet included in installation media.

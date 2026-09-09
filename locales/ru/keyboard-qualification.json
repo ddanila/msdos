@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "status": "tables-qualified-resident-behavior-pending",
+  "inputs": {
+    "src/DEV/KEYBOARD/KDFRU.ASM": {
+      "sha256": "1e0369cdbd21597b31b4dcc22b870f6c8d287ad893c28b79670c04ff5bc054ff",
+      "size": 3663
+    },
+    "src/DEV/KEYBOARD/KEYBRD2.SYS": {
+      "sha256": "3adb6c2072a00a1b8f491d4f0611906e74c967f2810f8a4a889acbaa1dfeac46",
+      "size": 363
+    },
+    "src/CMD/KEYB/KEYB.COM": {
+      "sha256": "fb52a5b34815d15db5cd5a7b1323b6062e835f8f6db237fd31e86a37b02ec91b",
+      "size": 14988
+    },
+    "src/DEV/KEYBOARD/KEYBOARD.SYS": {
+      "sha256": "57571a4b10040dd0645998d0ccb8caa6e02be904ded253c9c81d542750ae4d9d",
+      "size": 33872
+    },
+    "locales/ru/dos622-reference.json": {
+      "sha256": "f1b81253030de6bcbee4db96d11b7ac71b57984b568e07a310aff03159add63b",
+      "size": 16005
+    }
+  },
+  "commands": [
+    "make test-ru-keyboard-records test-keyboard-records test-ru-contract"
+  ],
+  "host_results": {
+    "ru_record_tests": 4,
+    "reference_tests": 4,
+    "existing_keyboard_records": "PASS",
+    "wrong_yo_translation": "detected",
+    "invalid_pointer": "detected",
+    "truncated_record": "detected"
+  },
+  "initial_physical_probe": {
+    "status": "known-contract-failure-before-resident-changes",
+    "config": "COUNTRY=007,866,COUNTRY.SYS",
+    "load": "KEYB RU,866,KEYBRD2.SYS /ID:441",
+    "transport": "QEMU QMP send-key qcode q; guest INT 16h AH=00h; serial used only for result output",
+    "expected_bios_ax": "1071",
+    "actual_bios_ax": "00a9",
+    "guest_completion": "RU_KEY_DONE",
+    "emulator_exit": 33,
+    "log": "review/keyboard-before-initial-latin.log",
+    "log_sha256": "4fe86a4e5c88fa2c805549fee9a7c8195e151557f9c35693929c93136ef86b33",
+    "private_artifacts": "out/ru-keyboard-initial-brev3pjb"
+  },
+  "remaining": [
+    "Implement and qualify initial Latin and Alt+Left/Right Shift selections in the resident handler.",
+    "Physical-key BIOS/DOS matrix: all letters, punctuation, Shift/Caps, third shift, control/navigation/keypad, key release and keyboard variants.",
+    "Physical wrong-key negative control and existing-layout transitions.",
+    "Installation and complete end-to-end locale qualification as recorded in RUSSIAN.md."
+  ]
+}

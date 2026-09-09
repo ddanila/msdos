@@ -208,3 +208,11 @@ matching additive checksum.
 for the ordinary build. BIOS, COMMAND, and EMM386 reports and the MEM UMB gate
 consume the same limits. Reproduce the live fixed-profile census with
 `python3 tests/capture_emm_live_owners.py out/floppy.img --mem-umb-profile --require-compact`.
+
+The Russian keyboard table gate, `make test-ru-keyboard-records`, checks the
+separate RU library against the independently captured DOS reference and
+rejects wrong translations and malformed records.
+[Keyboard qualification](../locales/ru/keyboard-qualification.json) records its
+results and the initial physical-input failure. Resident mode switching and
+the complete physical BIOS/DOS input gate remain open in
+[RUSSIAN.md](../RUSSIAN.md).
