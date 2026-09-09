@@ -42,6 +42,10 @@ both windows between changing CR0 and the far jump. These are software
 injections through the real interrupt gates, not asynchronous hardware timing
 coverage. `--production` uses the production driver's build flags;
 `--a20-backend bios|kbc` forces fallback A20 methods, and repeatable `--case`
-arguments select focused cases. `make test-himem-qemu` runs both full driver
-variants and the focused A20 fallback cases. Ordinary driver installation and
+arguments select focused cases. `make test-himem-testmem-qemu` runs both full
+driver variants and the focused A20 fallback cases; it is also a prerequisite
+of `make test-himem-qemu`. Ordinary driver installation and
 the 286 path remain covered by the existing HIMEM option and platform tests.
+
+Recorded measurements and validation scope are retained in the
+[qualification manifest](himem_boot_qualification.json).

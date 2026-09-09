@@ -1,0 +1,201 @@
+{
+  "source_commit": "5a4fd98846df3f68146f864d3fdbfdc4ee0fc7b4",
+  "scope": "Focused HIMEM initialization correctness and startup performance qualification; not a full system release qualification.",
+  "reference": {
+    "name": "Original Microsoft MS-DOS 6.22",
+    "media_source": "https://archive.org/details/MSDOS-622-Floppy",
+    "media_committed": false
+  },
+  "objective": {
+    "maximum_test_time_ratio": 1.1,
+    "observed_ratios": {
+      "high": 0.176871480698742,
+      "high-umb": 0.17796203711069664
+    },
+    "passed": true
+  },
+  "measurement": {
+    "definition": "Host elapsed time from instrumented MBR to first AUTOEXEC application. Memory test cost is median(default test)-median(TESTMEM:OFF).",
+    "cpu": "486",
+    "memory_mib": 16,
+    "accelerator": "single-thread QEMU TCG, block chaining disabled",
+    "repetitions_per_case": 9,
+    "discarded_warmups_per_case": 1,
+    "parallel_emulators_during_timing": false
+  },
+  "benchmarks": {
+    "high": {
+      "provenance": {
+        "fork": {
+          "source": "/home/ddanila/fun/msdos/out/boot-speed-20260909/fork-base.img",
+          "sha256": "fd18b186cbd87eed5d70b0252134e4494a56f87675b78df14ab9361bd9d6b2dc",
+          "installed": {
+            "IO.SYS": "793169a292df40bb117eb487136a0d8e7f4334ca223e8206bf53f33141f24715",
+            "MSDOS.SYS": "1475174f50c8c349bedd7cd4a0be88bce055f2e411b7454b5f68fffbff269b62",
+            "COMMAND.COM": "6742b5889141a9c61d41e336445014d8055c19758febf4263f4f8ebe3c2f2c29",
+            "HIMEM.SYS": "d5ea7b0e775c2eb6eb2b7dab42eb7471a7a84bfb32cf2021215d4ed6f8a7850a",
+            "EMM386.EXE": "30618919795c46fcab2fc2d52aa2526ef406cb540548837dca147f9d7a18a684"
+          }
+        },
+        "microsoft": {
+          "source": "/home/ddanila/fun/msdos/out/boot-speed-20260909/microsoft-base.img",
+          "sha256": "fd79cbb472f386507e029fa719d1e95701e5ab13709683767647bcfea287cb46",
+          "installed": {
+            "IO.SYS": "e443d6fb7303cd341d59a260262ae2aa20029a54d8e8daac83c1d4efa9042d75",
+            "MSDOS.SYS": "6db133420bf04ddbafe310a720fab934db3e7dc9f5a53fc6692d5a01cbbc0d4e",
+            "COMMAND.COM": "65fa71b0a34e91feffc31297fb5e24d40767c72fb513e46aaac721bda7836110",
+            "HIMEM.SYS": "615b656d0d094a31cb10ab56ab31273062c535d819e8208d412ad5d022847c93",
+            "EMM386.EXE": "d4a011769db9415402d7be129fffb762fa7d174096bcc921aa5ce85734072635"
+          }
+        }
+      },
+      "summary": {
+        "fork": {
+          "on": 1.1687407330000497,
+          "off": 1.1281019859998196,
+          "test_seconds": 0.04063874700023007
+        },
+        "microsoft": {
+          "on": 2.353730775999793,
+          "off": 2.1239665040002365,
+          "test_seconds": 0.2297642719995565
+        }
+      },
+      "test_ratio": 0.176871480698742,
+      "mode": "high",
+      "memory_mib": 16,
+      "repeats": 9,
+      "qemu": "QEMU emulator version 10.2.1 (Debian 1:10.2.1+ds-1ubuntu3.2)"
+    },
+    "high-umb": {
+      "provenance": {
+        "fork": {
+          "source": "/home/ddanila/fun/msdos/out/boot-speed-20260909/fork-base.img",
+          "sha256": "fd18b186cbd87eed5d70b0252134e4494a56f87675b78df14ab9361bd9d6b2dc",
+          "installed": {
+            "IO.SYS": "793169a292df40bb117eb487136a0d8e7f4334ca223e8206bf53f33141f24715",
+            "MSDOS.SYS": "1475174f50c8c349bedd7cd4a0be88bce055f2e411b7454b5f68fffbff269b62",
+            "COMMAND.COM": "6742b5889141a9c61d41e336445014d8055c19758febf4263f4f8ebe3c2f2c29",
+            "HIMEM.SYS": "d5ea7b0e775c2eb6eb2b7dab42eb7471a7a84bfb32cf2021215d4ed6f8a7850a",
+            "EMM386.EXE": "30618919795c46fcab2fc2d52aa2526ef406cb540548837dca147f9d7a18a684"
+          }
+        },
+        "microsoft": {
+          "source": "/home/ddanila/fun/msdos/out/boot-speed-20260909/microsoft-base.img",
+          "sha256": "fd79cbb472f386507e029fa719d1e95701e5ab13709683767647bcfea287cb46",
+          "installed": {
+            "IO.SYS": "e443d6fb7303cd341d59a260262ae2aa20029a54d8e8daac83c1d4efa9042d75",
+            "MSDOS.SYS": "6db133420bf04ddbafe310a720fab934db3e7dc9f5a53fc6692d5a01cbbc0d4e",
+            "COMMAND.COM": "65fa71b0a34e91feffc31297fb5e24d40767c72fb513e46aaac721bda7836110",
+            "HIMEM.SYS": "615b656d0d094a31cb10ab56ab31273062c535d819e8208d412ad5d022847c93",
+            "EMM386.EXE": "d4a011769db9415402d7be129fffb762fa7d174096bcc921aa5ce85734072635"
+          }
+        }
+      },
+      "summary": {
+        "fork": {
+          "on": 3.17037308900035,
+          "off": 3.13019278199954,
+          "test_seconds": 0.04018030700080999
+        },
+        "microsoft": {
+          "on": 2.4253099030001977,
+          "off": 2.1995296879995294,
+          "test_seconds": 0.22578021500066825
+        }
+      },
+      "test_ratio": 0.17796203711069664,
+      "mode": "high-umb",
+      "memory_mib": 16,
+      "repeats": 9,
+      "qemu": "QEMU emulator version 10.2.1 (Debian 1:10.2.1+ds-1ubuntu3.2)"
+    }
+  },
+  "residency": {
+    "baseline_resident_end": 3105,
+    "production_resident_end": 5972,
+    "resident_bytes_identical": true,
+    "baseline_before_size": 6723,
+    "baseline_after_size": 7280,
+    "production_before_size": 9590,
+    "production_after_size": 10147
+  },
+  "production_low_high": {
+    "LOW": {
+      "exit": 33,
+      "log": "/home/ddanila/fun/msdos/out/himem-speed-work/production-LOW.log",
+      "himem_sha256": "d5ea7b0e775c2eb6eb2b7dab42eb7471a7a84bfb32cf2021215d4ed6f8a7850a"
+    },
+    "HIGH": {
+      "exit": 33,
+      "log": "/home/ddanila/fun/msdos/out/himem-speed-work/production-HIGH.log",
+      "himem_sha256": "d5ea7b0e775c2eb6eb2b7dab42eb7471a7a84bfb32cf2021215d4ed6f8a7850a"
+    }
+  },
+  "checks": [
+    {
+      "command": "make -j4 deploy test-himem-residency",
+      "log": "out/himem-speed-work/final-build.log",
+      "passed": true
+    },
+    {
+      "command": "python3 tests/test_himem_testmem_qemu.py",
+      "log": "out/himem-speed-work/baseline-state-final.log",
+      "passed": true
+    },
+    {
+      "command": "python3 tests/test_himem_testmem_qemu.py --production",
+      "log": "out/himem-speed-work/state-final.log",
+      "passed": true
+    },
+    {
+      "command": "python3 tests/test_himem_testmem_qemu.py --production --a20-backend bios --case partial-tail --case nmi-phase-2 --case nmi-phase-4",
+      "log": "out/himem-speed-work/state-tests-bios.log",
+      "passed": true
+    },
+    {
+      "command": "python3 tests/test_himem_testmem_qemu.py --production --a20-backend kbc --case partial-tail --case nmi-phase-2 --case nmi-phase-4",
+      "log": "out/himem-speed-work/kbc-fixed.log",
+      "passed": true
+    },
+    {
+      "command": "bash tests/test_himem_options_qemu.sh",
+      "log": "out/himem-speed-work/options-final.log",
+      "passed": true
+    },
+    {
+      "command": "bash tests/test_himem_xms3_qemu.sh",
+      "log": "out/himem-speed-work/xms3.log",
+      "passed": true
+    },
+    {
+      "command": "bash tests/test_himem_move_boundary_qemu.sh",
+      "log": "out/himem-speed-work/move-boundary.log",
+      "passed": true
+    },
+    {
+      "command": "FLOPPY_IMAGE=out/himem-speed-work/baseline-himem-floppy.img bash tests/test_himem_qemu.sh",
+      "composition": "Private image with baseline IO.SYS, MSDOS.SYS, COMMAND.COM and candidate HIMEM.SYS.",
+      "log": "out/himem-speed-work/integration-baseline-core.log",
+      "passed": true
+    },
+    {
+      "command": "bash tests/test_himem_286_dosbox.sh",
+      "log": "out/himem-speed-work/286-final.log",
+      "passed": true
+    },
+    {
+      "command": "bash out/himem-speed-work/test-286-default.sh",
+      "variation": "Existing 286 test with default memory test enabled, 20000 cycles, 45-second emulator limit.",
+      "log": "out/himem-speed-work/286-default-test.log",
+      "passed": true
+    }
+  ],
+  "limitations": [
+    "QEMU host timings are not physical 386/486 measurements.",
+    "Vector-2 tests inject software interrupts at deterministic transition points; asynchronous hardware NMI timing is not qualified.",
+    "86Box real-BIOS 286 acceptance was unavailable; DOSBox-X 286 coverage is listed separately.",
+    "The legacy HIMEM integration suite assumes baseline A20 and unclaimed HMA state and fails those assertions on the production core. The original pre-change production HIMEM reproduces the A20 mismatch. Its full passing result uses baseline core binaries; production uses the linked-state, XMS and explicit LOW/HIGH checks listed here.",
+    "Total HIGH,UMB boot remains slower than Microsoft even though the HIMEM memory-test objective passes."
+  ]
+}

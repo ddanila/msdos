@@ -926,8 +926,11 @@ test-config-dos-qemu: deploy
 test-xms-umb-transaction-qemu: deploy
 	bash tests/test_xms_umb_transaction_qemu.sh
 
-test-himem-qemu: deploy
+test-himem-qemu: deploy test-himem-testmem-qemu
 	bash tests/test_himem_qemu.sh
+
+.PHONY: test-himem-testmem-qemu
+test-himem-testmem-qemu: deploy
 	python3 tests/test_himem_testmem_qemu.py
 	python3 tests/test_himem_testmem_qemu.py --production
 	python3 tests/test_himem_testmem_qemu.py --production --a20-backend bios --case partial-tail --case nmi-phase-2 --case nmi-phase-4
