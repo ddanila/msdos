@@ -364,3 +364,8 @@ uses a frozen candidate containing the current production kernel and COMMAND.
 It repeats the composed failure matrix and reboot/application/cancellation/A20
 campaign, including COMMAND fallback and startup profiles. Ordinary baseline
 map-sensitive gates are separate from this composed-core evidence.
+
+The [Russian acceptance audit](../locales/ru/acceptance-audit.json) maps every
+implementation-plan bullet to its retained evidence. It distinguishes focused
+component results from current-core and full-release claims and remains open
+until the final runtime qualification is complete.

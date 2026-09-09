@@ -302,3 +302,7 @@ full-suite, baseline and hardware release gates remain open.
 completion gate. It records a repaired KEYBRD2 runtime-manifest omission and
 the validation of wired Python test evidence. Full release completion is
 not yet claimed.
+
+[Acceptance audit](acceptance-audit.json) maps each implementation-plan bullet
+to retained evidence and keeps final-core and release limitations explicit.
+It is a completion checklist, not a declaration that the remaining gates pass.

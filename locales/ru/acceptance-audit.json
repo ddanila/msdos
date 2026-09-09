@@ -1,0 +1,539 @@
+{
+  "schema_version": 1,
+  "status": "completion-not-yet-proven",
+  "scope": "Requirement-by-requirement index of RUSSIAN.md implementation bullets. Focused evidence is not a blanket final-core or release claim.",
+  "requirements": [
+    {
+      "id": "1.1",
+      "section": 1,
+      "requirement": "Add a locale manifest for CP866 with the published Unicode mapping, provenance, source revisions/hashes, and any applicable notices. Keep all build inputs local so normal builds require no downloads.",
+      "evidence": [
+        {
+          "path": "manifest.json",
+          "sha256": "ad4538a046fa01d2359e4e059173f0de13c9298ff610c5c7607e63f86facb165"
+        },
+        {
+          "path": "review/font-audit.json",
+          "sha256": "25ab069eb45523756c3d37175441fe8ba00831c6e15768457912826effda2d79"
+        },
+        {
+          "path": "upstream/cozette/LICENSE",
+          "sha256": "5d7f0dad37ceef2dc1e9c23e85fbf18629c4eaffe9a919fa4f5b618b46766d23"
+        },
+        {
+          "path": "upstream/512_8/LICENSE",
+          "sha256": "6b0382b16279f26ff69014300541967a356a666eb0b91b422f6862f6b7dad17e"
+        }
+      ],
+      "assessment": "focused-evidence-recorded"
+    },
+    {
+      "id": "1.2",
+      "section": 1,
+      "requirement": "Resolve the Russian country identifier, period-appropriate date/time, currency and number formats, filename rules, case conversion, and collation from public DOS references. Record uncertainties explicitly; modern Russian locale defaults are not an automatic DOS oracle.",
+      "evidence": [
+        {
+          "path": "manifest.json",
+          "sha256": "ad4538a046fa01d2359e4e059173f0de13c9298ff610c5c7607e63f86facb165"
+        },
+        {
+          "path": "dos622-reference.json",
+          "sha256": "f1b81253030de6bcbee4db96d11b7ac71b57984b568e07a310aff03159add63b"
+        },
+        {
+          "path": "country-qualification.json",
+          "sha256": "7e805c6caa97fd6befa1d801b74bc4e81a6bb7454896b8fa17b81998eff01c21"
+        }
+      ],
+      "assessment": "focused-evidence-recorded"
+    },
+    {
+      "id": "1.3",
+      "section": 1,
+      "requirement": "Specify a standard Russian JCUKEN layout, Latin mode, toggle shortcuts, Shift/Caps Lock behavior, punctuation, control keys, and supported PC keyboard variants. Verify historical identifiers and shortcuts before encoding them; phonetic and typewriter layouts are deferred.",
+      "evidence": [
+        {
+          "path": "manifest.json",
+          "sha256": "ad4538a046fa01d2359e4e059173f0de13c9298ff610c5c7607e63f86facb165"
+        },
+        {
+          "path": "dos622-reference.json",
+          "sha256": "f1b81253030de6bcbee4db96d11b7ac71b57984b568e07a310aff03159add63b"
+        },
+        {
+          "path": "modifier-qualification.json",
+          "sha256": "fe4b1b5841a94f65ffc5b58e240bebf1da99efa2a7d63af34175d99a0169387c"
+        },
+        {
+          "path": "at84-qualification.json",
+          "sha256": "ed548fd3b5885910d0cb6b58cf9784d3d54046b5c75a4f467e3f913d874004cd"
+        },
+        {
+          "path": "xt83-qualification.json",
+          "sha256": "9fa289b37f6a8d5e2efa7eeaa307797ba74cbf81242d8ade3c8d3f2189f19384"
+        }
+      ],
+      "assessment": "focused-evidence-recorded"
+    },
+    {
+      "id": "1.4",
+      "section": 1,
+      "requirement": "Evaluate MIT-licensed Cozette for the taller screen fonts. Check every CP866 slot, including Yo/yo, the other encoded Cyrillic letters, symbols, DOS graphical control slots, and box drawing. Select a source for the short font as well; Cozette's native cell cannot simply be cropped into it. Original bitmap additions can be MIT-licensed. The public-domain 512_8 font is an alternative if broader permissive licensing is acceptable, not a font to relabel as MIT.",
+      "evidence": [
+        {
+          "path": "manifest.json",
+          "sha256": "ad4538a046fa01d2359e4e059173f0de13c9298ff610c5c7607e63f86facb165"
+        },
+        {
+          "path": "review/font-audit.json",
+          "sha256": "25ab069eb45523756c3d37175441fe8ba00831c6e15768457912826effda2d79"
+        },
+        {
+          "path": "font-edits.json",
+          "sha256": "9b0cea93392f389a57f6e6532a2de80b61e718691058d602e3c014a575a33ee2"
+        },
+        {
+          "path": "display-qualification.json",
+          "sha256": "f70b2422498d6e1c249902c7681e37348da323f0870c9d93eb127937038cf3be"
+        }
+      ],
+      "assessment": "focused-evidence-recorded"
+    },
+    {
+      "id": "1.5",
+      "section": 1,
+      "requirement": "Exit: a populated manifest, resolved behavioral tables, complete glyph coverage audit, and a contact sheet for each intended font height. Any deliberate compatibility differences are named before implementation.",
+      "evidence": [
+        {
+          "path": "manifest.json",
+          "sha256": "ad4538a046fa01d2359e4e059173f0de13c9298ff610c5c7607e63f86facb165"
+        },
+        {
+          "path": "review/font-audit.json",
+          "sha256": "25ab069eb45523756c3d37175441fe8ba00831c6e15768457912826effda2d79"
+        },
+        {
+          "path": "display-qualification.json",
+          "sha256": "f70b2422498d6e1c249902c7681e37348da323f0870c9d93eb127937038cf3be"
+        }
+      ],
+      "assessment": "focused-evidence-recorded"
+    },
+    {
+      "id": "2.1",
+      "section": 2,
+      "requirement": "Add reproducible conversion/packing tools and local bitmap inputs for the EGA/VGA font heights used by the existing CPI format. Preserve source attribution and record original glyph edits separately.",
+      "evidence": [
+        {
+          "path": "font-edits.json",
+          "sha256": "9b0cea93392f389a57f6e6532a2de80b61e718691058d602e3c014a575a33ee2"
+        },
+        {
+          "path": "reproducibility-qualification.json",
+          "sha256": "48dbadd4613a66373c526cf5696b48abc55ca828aac5e79411cb78f60cb75c71"
+        }
+      ],
+      "assessment": "focused-evidence-recorded"
+    },
+    {
+      "id": "2.2",
+      "section": 2,
+      "requirement": "Build EGA866.CPI through `mk/dev.mk`; retain the existing CPI header and font-loading contracts rather than inventing a new format.",
+      "evidence": [
+        {
+          "path": "display-qualification.json",
+          "sha256": "f70b2422498d6e1c249902c7681e37348da323f0870c9d93eb127937038cf3be"
+        },
+        {
+          "path": "reproducibility-qualification.json",
+          "sha256": "48dbadd4613a66373c526cf5696b48abc55ca828aac5e79411cb78f60cb75c71"
+        }
+      ],
+      "assessment": "focused-evidence-recorded"
+    },
+    {
+      "id": "2.3",
+      "section": 2,
+      "requirement": "Add structural tests for offsets, sizes, character ordering, and complete glyph coverage. Compare representative glyphs to independently recorded expected rows, not only the generator's own output.",
+      "evidence": [
+        {
+          "path": "display-qualification.json",
+          "sha256": "f70b2422498d6e1c249902c7681e37348da323f0870c9d93eb127937038cf3be"
+        },
+        {
+          "path": "review/font-audit.json",
+          "sha256": "25ab069eb45523756c3d37175441fe8ba00831c6e15768457912826effda2d79"
+        }
+      ],
+      "assessment": "focused-evidence-recorded"
+    },
+    {
+      "id": "2.4",
+      "section": 2,
+      "requirement": "In a private QEMU image, load DISPLAY and prepare/select CP866 with MODE. Verify the active page and actual VGA font-plane bytes. Render Russian text, pseudographics, shading and mixed Latin/Cyrillic at each supported height; retain screenshots for visual acceptance.",
+      "evidence": [
+        {
+          "path": "profile-qualification.json",
+          "sha256": "dc1508de08619a7081ced86dc284a03b504fe76574ea212cc89a1d2a3d8fa31b"
+        },
+        {
+          "path": "display-qualification.json",
+          "sha256": "f70b2422498d6e1c249902c7681e37348da323f0870c9d93eb127937038cf3be"
+        },
+        {
+          "path": "display-286-qualification.json",
+          "sha256": "def46655200ca190ccc12ff18e3747144261a217af13538277631fca4302f7f5"
+        }
+      ],
+      "assessment": "focused-evidence-recorded"
+    },
+    {
+      "id": "2.5",
+      "section": 2,
+      "requirement": "Exit: CP866 loads, readable text and continuous borders are demonstrated, and existing EGA.CPI pages still load correctly. Serial text alone cannot establish font correctness.",
+      "evidence": [
+        {
+          "path": "profile-qualification.json",
+          "sha256": "dc1508de08619a7081ced86dc284a03b504fe76574ea212cc89a1d2a3d8fa31b"
+        },
+        {
+          "path": "display-286-qualification.json",
+          "sha256": "def46655200ca190ccc12ff18e3747144261a217af13538277631fca4302f7f5"
+        }
+      ],
+      "assessment": "focused-evidence-recorded"
+    },
+    {
+      "id": "3.1",
+      "section": 3,
+      "requirement": "Extend `src/DEV/COUNTRY/MKCNTRY.ASM` and its includes using the manifest's Russian country and CP866 records. Derive character and filename uppercase tables explicitly, including the non-contiguous Cyrillic ranges and Yo. Do not equate Unicode byte mappings with DOS collation rules.",
+      "evidence": [
+        {
+          "path": "country-qualification.json",
+          "sha256": "7e805c6caa97fd6befa1d801b74bc4e81a6bb7454896b8fa17b81998eff01c21"
+        },
+        {
+          "path": "dos622-reference.json",
+          "sha256": "f1b81253030de6bcbee4db96d11b7ac71b57984b568e07a310aff03159add63b"
+        }
+      ],
+      "assessment": "focused-evidence-recorded"
+    },
+    {
+      "id": "3.2",
+      "section": 3,
+      "requirement": "Extend country-record validation without replacing the existing historical assertions. Add guest probes for CONFIG.SYS country loading and the DOS country, extended-country, uppercase and code-page APIs.",
+      "evidence": [
+        {
+          "path": "country-qualification.json",
+          "sha256": "7e805c6caa97fd6befa1d801b74bc4e81a6bb7454896b8fa17b81998eff01c21"
+        },
+        {
+          "path": "country-286-qualification.json",
+          "sha256": "9d4784d8efeba0eb70d831a7662c8e112e0b98e65d91137f6e00b6020895bfea"
+        }
+      ],
+      "assessment": "focused-evidence-recorded"
+    },
+    {
+      "id": "3.3",
+      "section": 3,
+      "requirement": "Exercise NLSFUNC/CHCP transitions supported by the selected country records. Verify rejected combinations report failure and leave the previous usable state intact.",
+      "evidence": [
+        {
+          "path": "profile-qualification.json",
+          "sha256": "dc1508de08619a7081ced86dc284a03b504fe76574ea212cc89a1d2a3d8fa31b"
+        },
+        {
+          "path": "country-286-qualification.json",
+          "sha256": "9d4784d8efeba0eb70d831a7662c8e112e0b98e65d91137f6e00b6020895bfea"
+        }
+      ],
+      "assessment": "focused-evidence-recorded"
+    },
+    {
+      "id": "3.4",
+      "section": 3,
+      "requirement": "Exit: reported settings and conversion/collation behavior match the independent expectations; existing country records pass their regressions.",
+      "evidence": [
+        {
+          "path": "country-qualification.json",
+          "sha256": "7e805c6caa97fd6befa1d801b74bc4e81a6bb7454896b8fa17b81998eff01c21"
+        },
+        {
+          "path": "profile-qualification.json",
+          "sha256": "dc1508de08619a7081ced86dc284a03b504fe76574ea212cc89a1d2a3d8fa31b"
+        }
+      ],
+      "assessment": "focused-evidence-recorded"
+    },
+    {
+      "id": "4.1",
+      "section": 4,
+      "requirement": "Add RU translation logic/data and a supplemental keyboard-library build under `src/DEV/KEYBOARD/`, using the existing macros and KEYB loader.",
+      "evidence": [
+        {
+          "path": "keyboard-qualification.json",
+          "sha256": "27df461184672c0bf92e2124a93f5215ae39fe0920b84d86a9662cf621e28a7e"
+        },
+        {
+          "path": "reproducibility-qualification.json",
+          "sha256": "48dbadd4613a66373c526cf5696b48abc55ca828aac5e79411cb78f60cb75c71"
+        }
+      ],
+      "assessment": "focused-evidence-recorded"
+    },
+    {
+      "id": "4.2",
+      "section": 4,
+      "requirement": "Test loading via `KEYB RU,866,...`, status reporting, Latin/Russian switching, lowercase/uppercase, Yo, punctuation, modifiers, held-key release, and ordinary navigation/control keys.",
+      "evidence": [
+        {
+          "path": "keyboard-qualification.json",
+          "sha256": "27df461184672c0bf92e2124a93f5215ae39fe0920b84d86a9662cf621e28a7e"
+        },
+        {
+          "path": "modifier-qualification.json",
+          "sha256": "fe4b1b5841a94f65ffc5b58e240bebf1da99efa2a7d63af34175d99a0169387c"
+        },
+        {
+          "path": "legacy-load-qualification.json",
+          "sha256": "f35b3d2e3a4b756c9702d5ed94248f21c7c277f544312f8ae44be1d4ec04ab40"
+        }
+      ],
+      "assessment": "focused-evidence-recorded"
+    },
+    {
+      "id": "4.3",
+      "section": 4,
+      "requirement": "Inject keyboard scan codes through QEMU and capture BIOS/DOS input bytes; a successful KEYB command or injected serial string is insufficient. Use an independently specified key-to-byte oracle.",
+      "evidence": [
+        {
+          "path": "keyboard-qualification.json",
+          "sha256": "27df461184672c0bf92e2124a93f5215ae39fe0920b84d86a9662cf621e28a7e"
+        },
+        {
+          "path": "at84-qualification.json",
+          "sha256": "ed548fd3b5885910d0cb6b58cf9784d3d54046b5c75a4f467e3f913d874004cd"
+        },
+        {
+          "path": "xt83-qualification.json",
+          "sha256": "9fa289b37f6a8d5e2efa7eeaa307797ba74cbf81242d8ade3c8d3f2189f19384"
+        }
+      ],
+      "assessment": "focused-evidence-recorded"
+    },
+    {
+      "id": "4.4",
+      "section": 4,
+      "requirement": "Exit: typed bytes match CP866 expectations, toggles do not leave modifiers stuck, and switching back to existing layouts passes regression checks.",
+      "evidence": [
+        {
+          "path": "modifier-qualification.json",
+          "sha256": "fe4b1b5841a94f65ffc5b58e240bebf1da99efa2a7d63af34175d99a0169387c"
+        },
+        {
+          "path": "legacy-load-qualification.json",
+          "sha256": "f35b3d2e3a4b756c9702d5ed94248f21c7c277f544312f8ae44be1d4ec04ab40"
+        }
+      ],
+      "assessment": "focused-evidence-recorded"
+    },
+    {
+      "id": "5.1",
+      "section": 5,
+      "requirement": "Add the files to `distribution/files.json`, Makefile artifact/deployment lists and clean rules. Verify disk capacity and installed paths.",
+      "evidence": [
+        {
+          "path": "packaging-qualification.json",
+          "sha256": "22470c1e3c19e36fea2b4eb0fea83a0bf8fe8610b8823f2a1eac37ffd3191f59"
+        },
+        {
+          "path": "installation-qualification.json",
+          "sha256": "87240407200704808386e756c7b482bf419338c1e9b715b3ca36215fb762184a"
+        }
+      ],
+      "assessment": "focused-evidence-recorded"
+    },
+    {
+      "id": "5.2",
+      "section": 5,
+      "requirement": "Provide a tested CONFIG.SYS/AUTOEXEC.BAT recipe for COUNTRY, DISPLAY, NLSFUNC, MODE and KEYB, with the exact order established by guest tests. Include the recipe and required attribution in installed documentation. Keep initial boot in the existing English configuration.",
+      "evidence": [
+        {
+          "path": "RUSSIAN.TXT",
+          "sha256": "ff21c6217a1298d543ac96f384c8128e584e367e7643a71ef437c934e5bac4f5"
+        },
+        {
+          "path": "installation-qualification.json",
+          "sha256": "87240407200704808386e756c7b482bf419338c1e9b715b3ca36215fb762184a"
+        }
+      ],
+      "assessment": "focused-evidence-recorded"
+    },
+    {
+      "id": "5.3",
+      "section": 5,
+      "requirement": "Test installation and upgrade copying, then boot an installed disk using the recipe. Verify file hashes and active country/code page/layout.",
+      "evidence": [
+        {
+          "path": "installation-qualification.json",
+          "sha256": "87240407200704808386e756c7b482bf419338c1e9b715b3ca36215fb762184a"
+        }
+      ],
+      "assessment": "focused-evidence-recorded"
+    },
+    {
+      "id": "5.4",
+      "section": 5,
+      "requirement": "Exit: a user can enable Russian from the shipped files without downloading additional data or substituting third-party drivers.",
+      "evidence": [
+        {
+          "path": "RUSSIAN.TXT",
+          "sha256": "ff21c6217a1298d543ac96f384c8128e584e367e7643a71ef437c934e5bac4f5"
+        },
+        {
+          "path": "packaging-qualification.json",
+          "sha256": "22470c1e3c19e36fea2b4eb0fea83a0bf8fe8610b8823f2a1eac37ffd3191f59"
+        },
+        {
+          "path": "installation-qualification.json",
+          "sha256": "87240407200704808386e756c7b482bf419338c1e9b715b3ca36215fb762184a"
+        }
+      ],
+      "assessment": "focused-evidence-recorded"
+    },
+    {
+      "id": "6.1",
+      "section": 6,
+      "requirement": "Type, edit, save and reload Russian text using the existing shell/editor; compare file bytes and screen output. Include pipes and redirection.",
+      "evidence": [
+        {
+          "path": "text-qualification.json",
+          "sha256": "beecd8d0b72d75d323182319b3f1c134c9c45312be36d2ab26702f50cb67bd3b"
+        },
+        {
+          "path": "text-286-qualification.json",
+          "sha256": "075bf7ac6fe275ce36d49440908da15a579017e19c850b97a74f90c916541bcd"
+        },
+        {
+          "path": "filesystem-qualification.json",
+          "sha256": "52b3ba04dcfa2144e819cf4a2098baeec6e7e0f7b2184232df487d3906ba279e"
+        }
+      ],
+      "assessment": "focused-evidence-recorded"
+    },
+    {
+      "id": "6.2",
+      "section": 6,
+      "requirement": "Create, find with alternate case, rename, copy and delete Cyrillic 8.3 filenames and directories. Exercise wildcard matching and ordering using the defined DOS rules; verify persisted directory bytes after reboot.",
+      "evidence": [
+        {
+          "path": "filesystem-qualification.json",
+          "sha256": "52b3ba04dcfa2144e819cf4a2098baeec6e7e0f7b2184232df487d3906ba279e"
+        },
+        {
+          "path": "filesystem-286-qualification.json",
+          "sha256": "0bea5a5a6deaf338a5fb1572befc10f86b48ae890b4346d12b325d82c010ca4e"
+        },
+        {
+          "path": "directory-qualification.json",
+          "sha256": "af2e0edc6ec814ff87c390dde9d5eb77f96b1e6d3adfe30db06498db5b2fa9c3"
+        }
+      ],
+      "assessment": "focused-evidence-recorded"
+    },
+    {
+      "id": "6.3",
+      "section": 6,
+      "requirement": "Run the focused locale suite on the default composed HIGH/UMB profile, LOW/fallback configurations and a real-BIOS 286 backend. Keep media private and require guest completion plus successful emulator exit. Test missing or malformed locale resources and unsupported page/layout selections.",
+      "evidence": [
+        {
+          "path": "profile-qualification.json",
+          "sha256": "dc1508de08619a7081ced86dc284a03b504fe76574ea212cc89a1d2a3d8fa31b"
+        },
+        {
+          "path": "country-286-qualification.json",
+          "sha256": "9d4784d8efeba0eb70d831a7662c8e112e0b98e65d91137f6e00b6020895bfea"
+        },
+        {
+          "path": "display-286-qualification.json",
+          "sha256": "def46655200ca190ccc12ff18e3747144261a217af13538277631fca4302f7f5"
+        },
+        {
+          "path": "legacy-load-qualification.json",
+          "sha256": "f35b3d2e3a4b756c9702d5ed94248f21c7c277f544312f8ae44be1d4ec04ab40"
+        },
+        {
+          "path": "release-qualification.json",
+          "sha256": "8427af2c2a00dbb67f06a360a0122329e4384ec42fb29173f7d88f85507d1537"
+        }
+      ],
+      "assessment": "pending-release-completion",
+      "qualification_limit": "Real-BIOS country/display and older keyboard records predate the final COMMAND collation change. Their tested locale component bytes are unchanged; this is historical component evidence, not a claim that those exact runs used the final core."
+    },
+    {
+      "id": "6.4",
+      "section": 6,
+      "requirement": "Add negative controls for a wrong glyph slot, key translation and case table entry so the new tests demonstrate that they detect corruption.",
+      "evidence": [
+        {
+          "path": "display-qualification.json",
+          "sha256": "f70b2422498d6e1c249902c7681e37348da323f0870c9d93eb127937038cf3be"
+        },
+        {
+          "path": "keyboard-qualification.json",
+          "sha256": "27df461184672c0bf92e2124a93f5215ae39fe0920b84d86a9662cf621e28a7e"
+        },
+        {
+          "path": "country-286-qualification.json",
+          "sha256": "9d4784d8efeba0eb70d831a7662c8e112e0b98e65d91137f6e00b6020895bfea"
+        }
+      ],
+      "assessment": "focused-evidence-recorded"
+    },
+    {
+      "id": "6.5",
+      "section": 6,
+      "requirement": "Run relevant existing country/keyboard/display and installation tests, the full release suite, and pristine serial/parallel reproducibility checks. Investigate any changed memory-core bytes before reusing memory evidence.",
+      "evidence": [
+        {
+          "path": "reproducibility-qualification.json",
+          "sha256": "48dbadd4613a66373c526cf5696b48abc55ca828aac5e79411cb78f60cb75c71"
+        },
+        {
+          "path": "memory-requalification.json",
+          "sha256": "5758d7d86a90912db72dc0cd1a5145165c7a4876bbb8453f756c31604d581f71"
+        },
+        {
+          "path": "release-qualification.json",
+          "sha256": "8427af2c2a00dbb67f06a360a0122329e4384ec42fb29173f7d88f85507d1537"
+        }
+      ],
+      "assessment": "pending-release-completion",
+      "qualification_limit": "Pristine builds and the composed memory campaign passed. Full suite and ordinary-build memory/hardware matrices remain active."
+    },
+    {
+      "id": "6.6",
+      "section": 6,
+      "requirement": "Record selected artifact hashes, commands, results and remaining scope in a locale qualification JSON file linked from tests/COVERAGE.md. Close only the Russian increment; other locale packs remain separate open work.",
+      "evidence": [
+        {
+          "path": "release-qualification.json",
+          "sha256": "8427af2c2a00dbb67f06a360a0122329e4384ec42fb29173f7d88f85507d1537"
+        }
+      ],
+      "assessment": "pending-release-completion"
+    }
+  ],
+  "retained_evidence_integrity": {
+    "scope": "Explicit review/path plus sha256 objects in retained qualification JSON files",
+    "checked": 221,
+    "failures": []
+  },
+  "remaining": [
+    "Obtain terminal results from the full release suite, baseline memory matrix and baseline 286 acceptance.",
+    "Resolve the scope of historical real-BIOS locale evidence against the final core before closing acceptance.",
+    "Refresh this audit with final runtime evidence and only then close the Russian item."
+  ]
+}
