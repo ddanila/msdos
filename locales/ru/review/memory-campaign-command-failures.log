@@ -1,0 +1,16 @@
+Artifacts: /Users/ddanila/fun/msdos/out/command-upper-failure-ew_echko
+screen_expect: 2 rules, connecting to /Users/ddanila/fun/msdos/out/command-upper-failure-ew_echko/success/success.qmp
+  rule[0] matched: 1Help
+  rule[1] matched: Memory Info
+screen_expect: all 2 rules matched.
+success: PASS
+screen_expect: 2 rules, connecting to /Users/ddanila/fun/msdos/out/command-upper-failure-ew_echko/allocation-rejected/allocation-rejected.qmp
+  rule[0] matched: 1Help
+  rule[1] matched: Memory Info
+screen_expect: all 2 rules matched.
+allocation-rejected: PASS
+screen_expect: 2 rules, connecting to /Users/ddanila/fun/msdos/out/command-upper-failure-ew_echko/shrink-rejected/shrink-rejected.qmp
+  rule[0] matched: 1Help
+  rule[1] matched: Memory Info
+screen_expect: all 2 rules matched.
+shrink-rejected: PASS

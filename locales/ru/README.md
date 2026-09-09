@@ -294,4 +294,6 @@ parallel builds. Full runtime release qualification remains open.
 [Memory requalification](memory-requalification.json) reruns the composed
 allocation/relocation failure matrix with the changed kernel and COMMAND.
 The record distinguishes deliberate fault variants from the selected core.
-Reboot/application and remaining release matrices are still in progress.
+The matched reboot, application lifecycle, cancellation, asynchronous A20,
+COMMAND failure/policy and startup-profile campaign also passes. Remaining
+full-suite, baseline and hardware release gates remain open.

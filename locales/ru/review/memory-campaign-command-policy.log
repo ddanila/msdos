@@ -1,0 +1,15 @@
+Artifacts: /Users/ddanila/fun/msdos/out/command-upper-failure-jaf7az_q
+screen_expect: 2 rules, connecting to /Users/ddanila/fun/msdos/out/command-upper-failure-jaf7az_q/success/success.qmp
+  rule[0] matched: 1Help
+  rule[1] matched: Memory Info
+screen_expect: all 2 rules matched.
+success: PASS
+screen_expect: 2 rules, connecting to /Users/ddanila/fun/msdos/out/command-upper-failure-jaf7az_q/link-reject/link-reject.qmp
+  rule[0] matched: 1Help
+  rule[1] matched: Memory Info
+screen_expect: all 2 rules matched.
+link-reject: PASS
+screen_expect: 1 rules, connecting to /Users/ddanila/fun/msdos/out/command-upper-failure-jaf7az_q/fatal/qmp
+  rule[0] matched: COMMAND memory-policy recovery failed. Restart required.
+screen_expect: all 1 rules matched.
+persistent rejection: explicit stop before AUTOEXEC: PASS

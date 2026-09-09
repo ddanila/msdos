@@ -358,3 +358,9 @@ core from independent detached worktrees at serial and parallel job counts.
 The tool binaries, commands and complete logs are retained. Both the ordinary
 and composed outputs also match the active release artifacts. This evidence
 does not replace the full runtime release suite.
+
+[Russian memory requalification](../locales/ru/memory-requalification.json)
+uses a frozen candidate containing the current production kernel and COMMAND.
+It repeats the composed failure matrix and reboot/application/cancellation/A20
+campaign, including COMMAND fallback and startup profiles. Ordinary baseline
+map-sensitive gates are separate from this composed-core evidence.

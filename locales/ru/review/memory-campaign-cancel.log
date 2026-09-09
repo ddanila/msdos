@@ -1,0 +1,11 @@
+Artifacts: /Users/ddanila/fun/msdos/out/composed-provider-cancel-31msekxf
+Linked inactive development BIOS: /Users/ddanila/fun/msdos/out/composed-provider-cancel-31msekxf/himem-only/bios/IO.SYS
+Linked 8081 bytes (6073 service bytes); 36 unbound runtime slots; 367 checked offset fixups.
+Linked 8081 bytes (6073 service bytes); 36 unbound runtime slots; 367 checked offset fixups.
+Linked early-installer development BIOS: /Users/ddanila/fun/msdos/out/composed-provider-cancel-31msekxf/himem-only/bios/IO.SYS
+himem-only PASS
+Linked inactive development BIOS: /Users/ddanila/fun/msdos/out/composed-provider-cancel-31msekxf/cancel/bios/IO.SYS
+Linked 8081 bytes (6073 service bytes); 36 unbound runtime slots; 367 checked offset fixups.
+Linked 8081 bytes (6073 service bytes); 36 unbound runtime slots; 367 checked offset fixups.
+Linked early-installer development BIOS: /Users/ddanila/fun/msdos/out/composed-provider-cancel-31msekxf/cancel/bios/IO.SYS
+cancel PASS

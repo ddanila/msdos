@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "status": "matched-memory-failure-matrix-passed-release-pending",
+  "status": "matched-memory-campaign-passed-release-pending",
   "core_sha256": {
     "IO.SYS": "793169a292df40bb117eb487136a0d8e7f4334ca223e8206bf53f33141f24715",
     "MSDOS.SYS": "1475174f50c8c349bedd7cd4a0be88bce055f2e411b7454b5f68fffbff269b62",
@@ -692,7 +692,184 @@
   },
   "remaining": [
     "Full FAIL_ON_SKIP=1 make test run.",
-    "Matched reboot, applications, cancellation, A20, COMMAND fallback and startup-profile campaign.",
-    "Applicable additional hardware and memory release matrices."
-  ]
+    "Ordinary baseline memory/kernel release matrix.",
+    "Real-BIOS pre-386 fallback and applicable hardware acceptance."
+  ],
+  "campaign": {
+    "status": "passed",
+    "core_sha256": {
+      "IO.SYS": "793169a292df40bb117eb487136a0d8e7f4334ca223e8206bf53f33141f24715",
+      "MSDOS.SYS": "1475174f50c8c349bedd7cd4a0be88bce055f2e411b7454b5f68fffbff269b62",
+      "COMMAND.COM": "6742b5889141a9c61d41e336445014d8055c19758febf4263f4f8ebe3c2f2c29",
+      "HIMEM.SYS": "340cbfd1f0e835755adce99d80c607f8edeb48ea2b20a6a142402a25434f8d13",
+      "EMM386.EXE": "58266b6614594de7a9cfde9eda75e3eb241b9e2e941e67b70645a0f8a197dae6"
+    },
+    "steps": [
+      {
+        "name": "reboot",
+        "command": [
+          "python3",
+          "tests/test_bios_int19_qemu.py",
+          "/Users/ddanila/fun/msdos/out/ru-memory-candidate/candidate.img",
+          "/Users/ddanila/fun/msdos/out/ru-memory-candidate/bios",
+          "--emm-build",
+          "/Users/ddanila/fun/msdos/out/ru-memory-candidate/provider/MEMM/MEMM"
+        ],
+        "started": 1788981400.563926,
+        "exit_code": 0,
+        "finished": 1788981422.261151,
+        "log": "out/ru-memory-campaign/reboot.log",
+        "log_sha256": "0b9ad7f6a6677381cb77b64aff2e045dbccecf7887dbc3bf537bbc35e6fc7a89",
+        "retained_log": {
+          "path": "review/memory-campaign-reboot.log",
+          "sha256": "0b9ad7f6a6677381cb77b64aff2e045dbccecf7887dbc3bf537bbc35e6fc7a89"
+        }
+      },
+      {
+        "name": "software-reboot",
+        "command": [
+          "python3",
+          "tests/test_software_reboot_qemu.py",
+          "/Users/ddanila/fun/msdos/out/ru-memory-candidate/candidate.img",
+          "--profile",
+          "existing",
+          "--ctty-aux"
+        ],
+        "started": 1788981422.261506,
+        "exit_code": 0,
+        "finished": 1788981443.9407659,
+        "log": "out/ru-memory-campaign/software-reboot.log",
+        "log_sha256": "7dcb40cee9e781a0677e7fcad9d430db35845b51c1a7b8055d23b3b8bf4465d9",
+        "retained_log": {
+          "path": "review/memory-campaign-software-reboot.log",
+          "sha256": "7dcb40cee9e781a0677e7fcad9d430db35845b51c1a7b8055d23b3b8bf4465d9"
+        }
+      },
+      {
+        "name": "applications",
+        "command": [
+          "python3",
+          "tests/test_composed_app_lifecycle_qemu.py",
+          "/Users/ddanila/fun/msdos/out/ru-memory-candidate",
+          "--retail-image",
+          "out/dos-app-pctools-fixed/stock-base.img",
+          "--record-baseline",
+          "/Users/ddanila/fun/msdos/out/ru-memory-campaign/applications.json"
+        ],
+        "started": 1788981443.941264,
+        "exit_code": 0,
+        "finished": 1788981505.497223,
+        "log": "out/ru-memory-campaign/applications.log",
+        "log_sha256": "84d0be0f69e3e6e9c01629030d06f087ad622252bbd0fd835ba15707a41b4495",
+        "retained_log": {
+          "path": "review/memory-campaign-applications.log",
+          "sha256": "84d0be0f69e3e6e9c01629030d06f087ad622252bbd0fd835ba15707a41b4495"
+        }
+      },
+      {
+        "name": "cancel",
+        "command": [
+          "python3",
+          "tests/test_composed_provider_cancel_qemu.py",
+          "/Users/ddanila/fun/msdos/out/ru-memory-candidate"
+        ],
+        "started": 1788981505.497636,
+        "exit_code": 0,
+        "finished": 1788981530.788607,
+        "log": "out/ru-memory-campaign/cancel.log",
+        "log_sha256": "2c67a7a6e927bdc16fe9ea727e1a98391e251a94b228eaef19487529f17dc39b",
+        "retained_log": {
+          "path": "review/memory-campaign-cancel.log",
+          "sha256": "2c67a7a6e927bdc16fe9ea727e1a98391e251a94b228eaef19487529f17dc39b"
+        }
+      },
+      {
+        "name": "async-a20",
+        "command": [
+          "python3",
+          "tests/test_stack_pool_retirement_qemu.py",
+          "/Users/ddanila/fun/msdos/out/ru-memory-candidate/candidate.img",
+          "--shapes-bios",
+          "/Users/ddanila/fun/msdos/out/ru-memory-candidate/bios",
+          "--async-timer",
+          "--a20-off"
+        ],
+        "started": 1788981530.7890072,
+        "exit_code": 0,
+        "finished": 1788981566.370194,
+        "log": "out/ru-memory-campaign/async-a20.log",
+        "log_sha256": "8d7ecc39797464860808cf4f851da321f01bb9163fe72d21de3c6ece5486e7b3",
+        "retained_log": {
+          "path": "review/memory-campaign-async-a20.log",
+          "sha256": "8d7ecc39797464860808cf4f851da321f01bb9163fe72d21de3c6ece5486e7b3"
+        }
+      },
+      {
+        "name": "command-failures",
+        "command": [
+          "python3",
+          "tests/test_command_upper_failure_qemu.py",
+          "/Users/ddanila/fun/msdos/out/ru-memory-candidate/candidate.img",
+          "--production"
+        ],
+        "started": 1788981566.370637,
+        "exit_code": 0,
+        "finished": 1788981650.0062022,
+        "log": "out/ru-memory-campaign/command-failures.log",
+        "log_sha256": "35961e7d57be1899cf8174fc606f4e06b2b1e643798f5e4d19ab8b10d3570a57",
+        "retained_log": {
+          "path": "review/memory-campaign-command-failures.log",
+          "sha256": "35961e7d57be1899cf8174fc606f4e06b2b1e643798f5e4d19ab8b10d3570a57"
+        }
+      },
+      {
+        "name": "command-policy",
+        "command": [
+          "python3",
+          "tests/test_command_upper_failure_qemu.py",
+          "/Users/ddanila/fun/msdos/out/ru-memory-candidate/candidate.img",
+          "--production",
+          "--policy-rejection"
+        ],
+        "started": 1788981650.0066319,
+        "exit_code": 0,
+        "finished": 1788981718.976723,
+        "log": "out/ru-memory-campaign/command-policy.log",
+        "log_sha256": "32e2119616d5195c0c31395f0e0d644050d977efc0c259b1a019f8a8bb86bc01",
+        "retained_log": {
+          "path": "review/memory-campaign-command-policy.log",
+          "sha256": "32e2119616d5195c0c31395f0e0d644050d977efc0c259b1a019f8a8bb86bc01"
+        }
+      },
+      {
+        "name": "profiles",
+        "command": [
+          "python3",
+          "tests/test_composed_promotion_profiles_qemu.py",
+          "/Users/ddanila/fun/msdos/out/ru-memory-candidate",
+          "--record",
+          "/Users/ddanila/fun/msdos/out/ru-memory-campaign/profiles.json"
+        ],
+        "started": 1788981718.977165,
+        "exit_code": 0,
+        "finished": 1788981754.296604,
+        "log": "out/ru-memory-campaign/profiles.log",
+        "log_sha256": "ac97532ff8bdd78d1015ef11fe673068cc523583e09fa1f6a6294438831f4f6a",
+        "retained_log": {
+          "path": "review/memory-campaign-profiles.log",
+          "sha256": "ac97532ff8bdd78d1015ef11fe673068cc523583e09fa1f6a6294438831f4f6a"
+        }
+      }
+    ],
+    "reports": {
+      "applications": {
+        "path": "review/memory-campaign-applications.json",
+        "sha256": "636a9f29e845d8f3661b94ffe9ed00766d2bba0272d723a21d7dd83cf299a257"
+      },
+      "profiles": {
+        "path": "review/memory-campaign-profiles.json",
+        "sha256": "1e697c47422a8bd06c15b134388c23ae2153b10c2774bc925e45f9104c021e65"
+      }
+    }
+  }
 }
