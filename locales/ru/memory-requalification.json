@@ -691,9 +691,9 @@
     "sha256": "2e3a04be4e184b1f6754a44ce869ab2b217aa1631210c01c36fee2e9981ce80a"
   },
   "remaining": [
-    "Full FAIL_ON_SKIP=1 make test run.",
+    "Full FAIL_ON_SKIP=1 make -k test run.",
     "Ordinary baseline memory/kernel release matrix.",
-    "Real-BIOS pre-386 fallback and applicable hardware acceptance."
+    "Ordinary baseline real-BIOS 286 acceptance."
   ],
   "campaign": {
     "status": "passed",
@@ -870,6 +870,16 @@
         "path": "review/memory-campaign-profiles.json",
         "sha256": "1e697c47422a8bd06c15b134388c23ae2153b10c2774bc925e45f9104c021e65"
       }
+    }
+  },
+  "pre386_fallback": {
+    "command": "MEMORY_CORE_DIR=out/memory-production/files BOX86_BIN=out/ru-86box-vnc-bs283qnk/build/src/86Box QT_QPA_PLATFORM=offscreen FAIL_ON_SKIP=1 bash tests/test_pre386_memory_86box.sh",
+    "exit_code": 0,
+    "scope": "Matched production core on IBM AT BIOS: EMM386 rejection, DEVICEHIGH/LOADHIGH fallback, MemMaker refusal and unchanged startup files. This legacy harness validates guest markers and the persisted result file, then stops the backend; it does not test guest-triggered emulator exit.",
+    "backend_provenance": "text-286-qualification.json",
+    "log": {
+      "path": "review/memory-pre386.log",
+      "sha256": "79783746ab07a26a6659804b7439cd9be231cb7ee9f4c3bdc936635cc2b61b8b"
     }
   }
 }
