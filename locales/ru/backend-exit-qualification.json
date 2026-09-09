@@ -1,0 +1,188 @@
+{
+  "emulator": "/Users/ddanila/fun/msdos/out/ru-86box-vnc-bs283qnk/build/src/86Box",
+  "emulator_sha256": "f1cfac636fe05e968c81574b74a3585ca26440208902aafb8de11a38f4ace557",
+  "core_sha256": {
+    "IO.SYS": "793169a292df40bb117eb487136a0d8e7f4334ca223e8206bf53f33141f24715",
+    "MSDOS.SYS": "1475174f50c8c349bedd7cd4a0be88bce055f2e411b7454b5f68fffbff269b62",
+    "HIMEM.SYS": "340cbfd1f0e835755adce99d80c607f8edeb48ea2b20a6a142402a25434f8d13",
+    "COMMAND.COM": "f60f680336572c2c1375fbeae7f54b074ac6e365f35638a62822572bece584ba",
+    "EMM386.EXE": "58266b6614594de7a9cfde9eda75e3eb241b9e2e941e67b70645a0f8a197dae6"
+  },
+  "status": "passed",
+  "cases": [
+    {
+      "expected_status": 0,
+      "exit_status": 0,
+      "log_sha256": "2c4cac3105877799486bbc633b5e15adb0b5c29a1a9e0bb966c8831eef6bcec4",
+      "serial_log": {
+        "path": "review/86box-exit-fixed-0.log",
+        "sha256": "2c4cac3105877799486bbc633b5e15adb0b5c29a1a9e0bb966c8831eef6bcec4"
+      }
+    },
+    {
+      "expected_status": 1,
+      "exit_status": 1,
+      "log_sha256": "9c4082b40a46ff4198dcd185c8005a12bedcfb9bf33059cdb9d15bbab58bbd47",
+      "serial_log": {
+        "path": "review/86box-exit-fixed-1.log",
+        "sha256": "9c4082b40a46ff4198dcd185c8005a12bedcfb9bf33059cdb9d15bbab58bbd47"
+      }
+    }
+  ],
+  "schema_version": 1,
+  "core_changed": false,
+  "scope": "Private backend Unit Tester exit path only; guest still flushes DOS writes before requesting an exact status.",
+  "previous_emulator_sha256": "fb1fecce1e36891ce9b4c99ec4e807bcbe648f3f816934b341e467d31ada9eef",
+  "previous_backend_record": "legacy-backend-qualification.json",
+  "private_artifacts": "out/86box-exit-_wp54k0y",
+  "patch": {
+    "path": "review/86box-unittester-exit.patch",
+    "sha256": "85e8841895895ebc8f719b44986ee25ca0ee28f987a6c6d7d6824be52509c0dd"
+  },
+  "change": "Flush host stdio and use _Exit for the emulation-thread Unit Tester exit, avoiding global Qt destructor teardown while the UI thread is active.",
+  "before_observation": "CP437 guest country probe and completion marker passed, but the process crashed in Qt status-icon refresh. The strict runner rejected the process result.",
+  "before_log": {
+    "path": "review/86box-exit-before-qt-crash.log",
+    "sha256": "b03eced843477365802acae6477eee1714849b668fdfec3dd66821ba9fdb7e61"
+  },
+  "crash": {
+    "exception": {
+      "codes": "0x0000000000000001, 0x0000000000000070",
+      "rawCodes": [
+        1,
+        112
+      ],
+      "type": "EXC_BAD_ACCESS",
+      "signal": "SIGSEGV",
+      "subtype": "KERN_INVALID_ADDRESS at 0x0000000000000070"
+    },
+    "triggered_thread_frames": [
+      {
+        "imageOffset": 353548,
+        "symbol": "<deduplicated_symbol>",
+        "symbolLocation": 16,
+        "imageIndex": 12
+      },
+      {
+        "imageOffset": 348436,
+        "symbol": "QPMCache::object(QString const&) const",
+        "symbolLocation": 24,
+        "imageIndex": 12
+      },
+      {
+        "imageOffset": 350304,
+        "symbol": "QPixmapCache::find(QString const&, QPixmap*)",
+        "symbolLocation": 88,
+        "imageIndex": 12
+      },
+      {
+        "imageOffset": 74920,
+        "symbol": "QPixmapIconEngine::scaledPixmap(QSize const&, QIcon::Mode, QIcon::State, double)",
+        "symbolLocation": 1152,
+        "imageIndex": 12
+      },
+      {
+        "imageOffset": 82408,
+        "symbol": "QIcon::pixmap(QSize const&, double, QIcon::Mode, QIcon::State) const",
+        "symbolLocation": 160,
+        "imageIndex": 12
+      },
+      {
+        "imageOffset": 1253260,
+        "symbol": "QLabel::setPixmap(QPixmap const&)",
+        "symbolLocation": 200,
+        "imageIndex": 9
+      },
+      {
+        "imageOffset": 7736208,
+        "symbol": "MachineStatus::refreshIcons()",
+        "symbolLocation": 252,
+        "imageIndex": 0
+      },
+      {
+        "imageOffset": 896708,
+        "symbol": "QTimer::timerEvent(QTimerEvent*)",
+        "symbolLocation": 136,
+        "imageIndex": 13
+      },
+      {
+        "imageOffset": 806076,
+        "symbol": "QObject::event(QEvent*)",
+        "symbolLocation": 664,
+        "imageIndex": 13
+      },
+      {
+        "imageOffset": 48448,
+        "symbol": "QApplicationPrivate::notify_helper(QObject*, QEvent*)",
+        "symbolLocation": 252,
+        "imageIndex": 9
+      },
+      {
+        "imageOffset": 52480,
+        "symbol": "QApplication::notify(QObject*, QEvent*)",
+        "symbolLocation": 504,
+        "imageIndex": 9
+      },
+      {
+        "imageOffset": 563760,
+        "symbol": "QCoreApplication::notifyInternal2(QObject*, QEvent*)",
+        "symbolLocation": 164,
+        "imageIndex": 13
+      },
+      {
+        "imageOffset": 1949380,
+        "symbol": "QTimerInfoList::activateTimers()",
+        "symbolLocation": 572,
+        "imageIndex": 13
+      },
+      {
+        "imageOffset": 2704764,
+        "symbol": "idleTimerSourceDispatch(_GSource*, int (*)(void*), void*)",
+        "symbolLocation": 36,
+        "imageIndex": 13
+      },
+      {
+        "imageOffset": 202080,
+        "symbol": "g_main_context_dispatch_unlocked",
+        "symbolLocation": 240,
+        "imageIndex": 16
+      },
+      {
+        "imageOffset": 202868,
+        "symbol": "g_main_context_iterate_unlocked",
+        "symbolLocation": 484,
+        "imageIndex": 16
+      },
+      {
+        "imageOffset": 202964,
+        "symbol": "g_main_context_iteration",
+        "symbolLocation": 60,
+        "imageIndex": 16
+      },
+      {
+        "imageOffset": 2702596,
+        "symbol": "QEventDispatcherGlib::processEvents(QFlags<QEventLoop::ProcessEventsFlag>)",
+        "symbolLocation": 92,
+        "imageIndex": 13
+      },
+      {
+        "imageOffset": 595384,
+        "symbol": "QEventLoop::exec(QFlags<QEventLoop::ProcessEventsFlag>)",
+        "symbolLocation": 452,
+        "imageIndex": 13
+      },
+      {
+        "imageOffset": 565344,
+        "symbol": "QCoreApplication::exec()",
+        "symbolLocation": 220,
+        "imageIndex": 13
+      },
+      {
+        "imageOffset": 7554216,
+        "symbol": "main",
+        "symbolLocation": 5732,
+        "imageIndex": 0
+      }
+    ]
+  }
+}

@@ -287,3 +287,17 @@ page, ID and layout; verifies preserved Russian input and both language
 shortcuts after every rejection; and checks German and reloaded Russian
 physical input. Resident keyboard type, released modifiers, empty queues,
 all phase markers and a guest-requested successful exit are required.
+
+The [286 country qualification](../locales/ru/country-286-qualification.json)
+runs `tests/test_ru_country_86box.py` on the IBM AT BIOS with the selected
+production core and DOS=LOW. It covers explicit and default CONFIG country
+pages, CHCP transitions, external-page queries, rejected selections and a
+corrupted case-table control. Positive cases require every expected probe
+marker and guest-requested status zero; corruption must fail at the expected
+case-table stage with guest-requested status one. This does not qualify the
+286 font plane or replace the remaining end-to-end and release gates.
+
+The [backend exit record](../locales/ru/backend-exit-qualification.json)
+retains the Qt crash stack and private Unit Tester exit patch used by the
+286 country run. It separately verifies guest-requested statuses zero and
+one; a DOS completion marker alone never makes a host crash pass.

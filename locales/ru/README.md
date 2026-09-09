@@ -214,3 +214,26 @@ remaining Russian release gates are outside this input qualification.
 rejected-file/layout/page/ID loads preserve Russian input and working
 shortcuts, followed by German and Russian reloads. The record retains the
 commands, input expectations, raw logs, startup configurations and hashes.
+
+[286 country qualification](country-286-qualification.json) applies the
+independent DOS reference probes to real IBM AT BIOS. Run after building
+the production core:
+
+```sh
+MEMORY_CORE_DIR=out/memory-production/files \
+  python3 tests/test_ru_country_86box.py \
+  --emulator /path/to/86Box --roms /path/to/roms
+```
+
+Use `--qt-platform offscreen` when supported by the selected backend.
+`--case transitions` selects a focused case; the default runs every case.
+The runner uses private media, verifies boot-core bytes and checks exact
+guest-requested exit statuses, including the deliberate case-table failure.
+
+[Backend exit qualification](backend-exit-qualification.json) records a
+private 86Box Unit Tester fix discovered during the country run. Calling
+`exit()` from the CPU thread could destroy Qt globals while the UI thread
+was refreshing icons. The retained patch flushes host stdio and uses
+`_Exit()` for this test-only exit path; guest DOS writes are flushed by
+`BXEXIT.COM` before the request. Exact success and failure statuses are
+rechecked, and the DOS production core is unchanged.

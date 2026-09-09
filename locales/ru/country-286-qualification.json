@@ -1,0 +1,281 @@
+{
+  "status": "real-bios-286-country-matrix-passed",
+  "core_sha256": {
+    "HIMEM.SYS": "340cbfd1f0e835755adce99d80c607f8edeb48ea2b20a6a142402a25434f8d13",
+    "COMMAND.COM": "f60f680336572c2c1375fbeae7f54b074ac6e365f35638a62822572bece584ba",
+    "EMM386.EXE": "58266b6614594de7a9cfde9eda75e3eb241b9e2e941e67b70645a0f8a197dae6",
+    "IO.SYS": "793169a292df40bb117eb487136a0d8e7f4334ca223e8206bf53f33141f24715",
+    "MSDOS.SYS": "1475174f50c8c349bedd7cd4a0be88bce055f2e411b7454b5f68fffbff269b62"
+  },
+  "emulator_sha256": "f1cfac636fe05e968c81574b74a3585ca26440208902aafb8de11a38f4ace557",
+  "cases": [
+    {
+      "name": "config-866",
+      "negative_control": false,
+      "emulator_exit": 0,
+      "config_sys": "COUNTRY=007,866,COUNTRY.SYS\r\nDOS=LOW\r\n",
+      "actions": [
+        "P866.COM"
+      ],
+      "markers": {
+        "RU_COUNTRY_PASS": 1,
+        "RU_QUERY_PASS": 0,
+        "RU_CODEPAGE_PASS": 0,
+        "RU_REJECTION_PASS": 0
+      },
+      "country_sha256": "dcad40266140a3155a44323bc3f3876ea70e1aa779175cf6ab18b532b36037c3",
+      "config_sha256": "bc1ff341a3eb659a0d55fd6036f680cec32fd069304c2e2562e39e4a8497c669",
+      "serial_log": {
+        "path": "review/country-286-config-866.log",
+        "sha256": "96bc82e0877c6aca01509d1f8a0796c477d4e11a4327c12d4055ed7367c840c3"
+      },
+      "startup_configuration": {
+        "path": "review/country-286-config-866.cfg",
+        "sha256": "bc1ff341a3eb659a0d55fd6036f680cec32fd069304c2e2562e39e4a8497c669"
+      },
+      "guest_files_sha256": {
+        "COUNTRY.SYS": "dcad40266140a3155a44323bc3f3876ea70e1aa779175cf6ab18b532b36037c3",
+        "EGA866.CPI": "efa06cb267a370fab3db71fb85f73711b750ec04498b40b6cc6a4a2be2e3d7ad",
+        "EGA.CPI": "e62143d403dba21dd9f3c606769b90923038e542098fdb57de36eaf9e986a4b0",
+        "DISPLAY.SYS": "0ebd3bfad4e87d79e05219c02ea71ce4e94f9e11b432efdf652a022488d9ac08",
+        "MODE.COM": "c385aad5697fcec3a9113f58b983b978a7f969e99b153ebd496b12dab0e3767d",
+        "NLSFUNC.EXE": "bc2a0c9b0900bcac03a6cfe072ea56ea01bd2333b1d1bf8f810f28e668340e67",
+        "AUTOEXEC.BAT": "a6f8f3a702e0a442cc294ecbf66658e7685780ee1f7324c9a84f7517c8410704"
+      }
+    },
+    {
+      "name": "config-437",
+      "negative_control": false,
+      "emulator_exit": 0,
+      "config_sys": "COUNTRY=007,437,COUNTRY.SYS\r\nDOS=LOW\r\n",
+      "actions": [
+        "P437.COM"
+      ],
+      "markers": {
+        "RU_COUNTRY_PASS": 1,
+        "RU_QUERY_PASS": 0,
+        "RU_CODEPAGE_PASS": 0,
+        "RU_REJECTION_PASS": 0
+      },
+      "country_sha256": "dcad40266140a3155a44323bc3f3876ea70e1aa779175cf6ab18b532b36037c3",
+      "config_sha256": "bc1ff341a3eb659a0d55fd6036f680cec32fd069304c2e2562e39e4a8497c669",
+      "serial_log": {
+        "path": "review/country-286-config-437.log",
+        "sha256": "818c3bde71095a49ebda14a9ceb4f81d9a7ce0c3cf4c23d8a363c46947007d54"
+      },
+      "startup_configuration": {
+        "path": "review/country-286-config-437.cfg",
+        "sha256": "bc1ff341a3eb659a0d55fd6036f680cec32fd069304c2e2562e39e4a8497c669"
+      },
+      "guest_files_sha256": {
+        "COUNTRY.SYS": "dcad40266140a3155a44323bc3f3876ea70e1aa779175cf6ab18b532b36037c3",
+        "EGA866.CPI": "efa06cb267a370fab3db71fb85f73711b750ec04498b40b6cc6a4a2be2e3d7ad",
+        "EGA.CPI": "e62143d403dba21dd9f3c606769b90923038e542098fdb57de36eaf9e986a4b0",
+        "DISPLAY.SYS": "0ebd3bfad4e87d79e05219c02ea71ce4e94f9e11b432efdf652a022488d9ac08",
+        "MODE.COM": "c385aad5697fcec3a9113f58b983b978a7f969e99b153ebd496b12dab0e3767d",
+        "NLSFUNC.EXE": "bc2a0c9b0900bcac03a6cfe072ea56ea01bd2333b1d1bf8f810f28e668340e67",
+        "AUTOEXEC.BAT": "01e3cb334d6f916e6789429f27efb5e2f939e21544ad53a56b34938db16873df"
+      }
+    },
+    {
+      "name": "config-850",
+      "negative_control": false,
+      "emulator_exit": 0,
+      "config_sys": "COUNTRY=007,850,COUNTRY.SYS\r\nDOS=LOW\r\n",
+      "actions": [
+        "P850.COM"
+      ],
+      "markers": {
+        "RU_COUNTRY_PASS": 1,
+        "RU_QUERY_PASS": 0,
+        "RU_CODEPAGE_PASS": 0,
+        "RU_REJECTION_PASS": 0
+      },
+      "country_sha256": "dcad40266140a3155a44323bc3f3876ea70e1aa779175cf6ab18b532b36037c3",
+      "config_sha256": "bc1ff341a3eb659a0d55fd6036f680cec32fd069304c2e2562e39e4a8497c669",
+      "serial_log": {
+        "path": "review/country-286-config-850.log",
+        "sha256": "2e60f1b4908eaa91c655192deafae0933472f06527ec17175cee389748e07d35"
+      },
+      "startup_configuration": {
+        "path": "review/country-286-config-850.cfg",
+        "sha256": "bc1ff341a3eb659a0d55fd6036f680cec32fd069304c2e2562e39e4a8497c669"
+      },
+      "guest_files_sha256": {
+        "COUNTRY.SYS": "dcad40266140a3155a44323bc3f3876ea70e1aa779175cf6ab18b532b36037c3",
+        "EGA866.CPI": "efa06cb267a370fab3db71fb85f73711b750ec04498b40b6cc6a4a2be2e3d7ad",
+        "EGA.CPI": "e62143d403dba21dd9f3c606769b90923038e542098fdb57de36eaf9e986a4b0",
+        "DISPLAY.SYS": "0ebd3bfad4e87d79e05219c02ea71ce4e94f9e11b432efdf652a022488d9ac08",
+        "MODE.COM": "c385aad5697fcec3a9113f58b983b978a7f969e99b153ebd496b12dab0e3767d",
+        "NLSFUNC.EXE": "bc2a0c9b0900bcac03a6cfe072ea56ea01bd2333b1d1bf8f810f28e668340e67",
+        "AUTOEXEC.BAT": "ab8ed42abe89994f1ba6e10ceaacd108278e7b8d83315cf2a611e614cd2c83cf"
+      }
+    },
+    {
+      "name": "config-default",
+      "negative_control": false,
+      "emulator_exit": 0,
+      "config_sys": "COUNTRY=007,,COUNTRY.SYS\r\nDOS=LOW\r\n",
+      "actions": [
+        "P866.COM"
+      ],
+      "markers": {
+        "RU_COUNTRY_PASS": 1,
+        "RU_QUERY_PASS": 0,
+        "RU_CODEPAGE_PASS": 0,
+        "RU_REJECTION_PASS": 0
+      },
+      "country_sha256": "dcad40266140a3155a44323bc3f3876ea70e1aa779175cf6ab18b532b36037c3",
+      "config_sha256": "bc1ff341a3eb659a0d55fd6036f680cec32fd069304c2e2562e39e4a8497c669",
+      "serial_log": {
+        "path": "review/country-286-config-default.log",
+        "sha256": "e6a6bd7605b7c772df63bf99f106b217705d9cc2558f59f1c084c9c043397672"
+      },
+      "startup_configuration": {
+        "path": "review/country-286-config-default.cfg",
+        "sha256": "bc1ff341a3eb659a0d55fd6036f680cec32fd069304c2e2562e39e4a8497c669"
+      },
+      "guest_files_sha256": {
+        "COUNTRY.SYS": "dcad40266140a3155a44323bc3f3876ea70e1aa779175cf6ab18b532b36037c3",
+        "EGA866.CPI": "efa06cb267a370fab3db71fb85f73711b750ec04498b40b6cc6a4a2be2e3d7ad",
+        "EGA.CPI": "e62143d403dba21dd9f3c606769b90923038e542098fdb57de36eaf9e986a4b0",
+        "DISPLAY.SYS": "0ebd3bfad4e87d79e05219c02ea71ce4e94f9e11b432efdf652a022488d9ac08",
+        "MODE.COM": "c385aad5697fcec3a9113f58b983b978a7f969e99b153ebd496b12dab0e3767d",
+        "NLSFUNC.EXE": "bc2a0c9b0900bcac03a6cfe072ea56ea01bd2333b1d1bf8f810f28e668340e67",
+        "AUTOEXEC.BAT": "a6f8f3a702e0a442cc294ecbf66658e7685780ee1f7324c9a84f7517c8410704"
+      }
+    },
+    {
+      "name": "transitions",
+      "negative_control": false,
+      "emulator_exit": 0,
+      "config_sys": "COUNTRY=007,866,COUNTRY.SYS\r\nDOS=LOW\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+      "actions": [
+        "P866.COM",
+        "NLSFUNC",
+        "MODE CON CP PREPARE=((866) EGA866.CPI)",
+        "MODE CON CP PREPARE=((,437,850) EGA.CPI)",
+        "CHCP 866",
+        "CPCHK.COM",
+        "P866.COM",
+        "Q850.COM",
+        "CHCP 437",
+        "CPCHK.COM",
+        "P437.COM",
+        "Q866.COM",
+        "CHCP 850",
+        "CPCHK.COM",
+        "P850.COM",
+        "Q866.COM",
+        "CHCP 866",
+        "CPCHK.COM",
+        "P866.COM",
+        "Q850.COM",
+        "REJECT.COM",
+        "CPCHK.COM",
+        "P866.COM"
+      ],
+      "markers": {
+        "RU_COUNTRY_PASS": 6,
+        "RU_QUERY_PASS": 4,
+        "RU_CODEPAGE_PASS": 5,
+        "RU_REJECTION_PASS": 1
+      },
+      "country_sha256": "dcad40266140a3155a44323bc3f3876ea70e1aa779175cf6ab18b532b36037c3",
+      "config_sha256": "bc1ff341a3eb659a0d55fd6036f680cec32fd069304c2e2562e39e4a8497c669",
+      "serial_log": {
+        "path": "review/country-286-transitions.log",
+        "sha256": "ae545f1af1d2795bb6d2de38efee91014c598ac5fe76e1ca040439725c394fff"
+      },
+      "startup_configuration": {
+        "path": "review/country-286-transitions.cfg",
+        "sha256": "bc1ff341a3eb659a0d55fd6036f680cec32fd069304c2e2562e39e4a8497c669"
+      },
+      "guest_files_sha256": {
+        "COUNTRY.SYS": "dcad40266140a3155a44323bc3f3876ea70e1aa779175cf6ab18b532b36037c3",
+        "EGA866.CPI": "efa06cb267a370fab3db71fb85f73711b750ec04498b40b6cc6a4a2be2e3d7ad",
+        "EGA.CPI": "e62143d403dba21dd9f3c606769b90923038e542098fdb57de36eaf9e986a4b0",
+        "DISPLAY.SYS": "0ebd3bfad4e87d79e05219c02ea71ce4e94f9e11b432efdf652a022488d9ac08",
+        "MODE.COM": "c385aad5697fcec3a9113f58b983b978a7f969e99b153ebd496b12dab0e3767d",
+        "NLSFUNC.EXE": "bc2a0c9b0900bcac03a6cfe072ea56ea01bd2333b1d1bf8f810f28e668340e67",
+        "AUTOEXEC.BAT": "832f0c23b57c7c27a44948db7532ee2f2bacc3739d6267bbf2bae438d4feb34d"
+      }
+    },
+    {
+      "name": "wrong-case",
+      "negative_control": true,
+      "emulator_exit": 1,
+      "config_sys": "COUNTRY=007,866,COUNTRY.SYS\r\nDOS=LOW\r\n",
+      "actions": [
+        "P866.COM"
+      ],
+      "markers": {},
+      "country_sha256": "d0f317fa862c36d3512caf280da53d67c82f622f54a2a76520fa2b519acc58d5",
+      "config_sha256": "bc1ff341a3eb659a0d55fd6036f680cec32fd069304c2e2562e39e4a8497c669",
+      "serial_log": {
+        "path": "review/country-286-wrong-case.log",
+        "sha256": "7d87ea25df72d70c9079e5056d717bfc9bfffab0ab882be2d825f41267e2be82"
+      },
+      "startup_configuration": {
+        "path": "review/country-286-wrong-case.cfg",
+        "sha256": "bc1ff341a3eb659a0d55fd6036f680cec32fd069304c2e2562e39e4a8497c669"
+      },
+      "guest_files_sha256": {
+        "COUNTRY.SYS": "d0f317fa862c36d3512caf280da53d67c82f622f54a2a76520fa2b519acc58d5",
+        "EGA866.CPI": "efa06cb267a370fab3db71fb85f73711b750ec04498b40b6cc6a4a2be2e3d7ad",
+        "EGA.CPI": "e62143d403dba21dd9f3c606769b90923038e542098fdb57de36eaf9e986a4b0",
+        "DISPLAY.SYS": "0ebd3bfad4e87d79e05219c02ea71ce4e94f9e11b432efdf652a022488d9ac08",
+        "MODE.COM": "c385aad5697fcec3a9113f58b983b978a7f969e99b153ebd496b12dab0e3767d",
+        "NLSFUNC.EXE": "bc2a0c9b0900bcac03a6cfe072ea56ea01bd2333b1d1bf8f810f28e668340e67",
+        "AUTOEXEC.BAT": "a6f8f3a702e0a442cc294ecbf66658e7685780ee1f7324c9a84f7517c8410704"
+      }
+    }
+  ],
+  "schema_version": 1,
+  "core_changed": false,
+  "scope": "DOS=LOW on IBM AT 8 MHz 286, real 1985 BIOS, VGA configured, 640 KiB conventional and 512 KiB extended memory. CONFIG selection, NLS APIs, CHCP transitions/rejections and case-table negative control; no font-plane qualification.",
+  "booted_core_files": [
+    "IO.SYS",
+    "MSDOS.SYS",
+    "COMMAND.COM"
+  ],
+  "private_artifacts": "out/ru-country-286-lfyz3pma",
+  "command": "MEMORY_CORE_DIR=out/memory-production/files python3 tests/test_ru_country_86box.py --emulator out/ru-86box-vnc-bs283qnk/build/src/86Box --roms \"$BOX86_ROMS\" --qt-platform offscreen",
+  "oracle": "dos622-reference.json",
+  "backend_record": "legacy-backend-qualification.json",
+  "backend_exit_fix": "backend-exit-qualification.json",
+  "inputs": {
+    "tests/test_ru_country_86box.py": {
+      "sha256": "cfd04ba02b15ba6cf6cfa2eb26d49f33a525490de05f967fc1948bb1b4342c4f",
+      "size": 6811
+    },
+    "tests/test_ru_country_qemu.py": {
+      "sha256": "2adb3132fbbedbd8a2e0d1bb7a1d8c8f49966ff0515ccf45d55f155a92a0fcda",
+      "size": 7072
+    },
+    "tests/ru_country_probe.asm": {
+      "sha256": "7c342565bed55137d1186713006753bedd5cffbf573503d966986e0cd53604f8",
+      "size": 4489
+    },
+    "tests/ru_country_reject.asm": {
+      "sha256": "82a901896ec835ad5c56217333d96dbf9f2aa47dd95da0f8f30ff112e389053a",
+      "size": 765
+    },
+    "tests/ru_codepage_probe.asm": {
+      "sha256": "6802ddb382fe13d508d677991d974ba0f946c3e75ef3f8f5e3845904ec1bffa9",
+      "size": 389
+    },
+    "tests/86box_exit.asm": {
+      "sha256": "df10886fcf0a3fd37b97f9b280488c35b8265de8a306765b33fb11290dc6e82b",
+      "size": 755
+    },
+    "locales/ru/dos622-reference.json": {
+      "sha256": "f1b81253030de6bcbee4db96d11b7ac71b57984b568e07a310aff03159add63b",
+      "size": 16005
+    }
+  },
+  "remaining": [
+    "Real-BIOS 286 display/font-plane matrix.",
+    "Shell/editor/pipes, Cyrillic filesystem persistence, full release and pristine reproducibility."
+  ]
+}

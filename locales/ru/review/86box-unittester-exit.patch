@@ -1,0 +1,15 @@
+diff --git a/src/device/unittester.c b/src/device/unittester.c
+index 48486ef..55e743e 100644
+--- a/src/device/unittester.c
++++ b/src/device/unittester.c
+@@ -292,7 +292,9 @@ unittester_write(uint16_t port, uint8_t val, UNUSED(void *priv))
+ 
+                         /* Exit somewhat quickly! */
+                         unittester_log("[UT] Exit enabled, exiting with code %02X\n", unittester.exit_code);
+-                        exit(unittester.exit_code);
++                        /* The CPU thread must not destroy Qt globals used by the UI thread. */
++                        fflush(NULL);
++                        _Exit(unittester.exit_code);
+ 
+                     } else {
+                         /* No - report successful command completion and continue program execution */

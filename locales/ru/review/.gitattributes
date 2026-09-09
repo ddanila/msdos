@@ -20,3 +20,7 @@ xt83-*.log -text -whitespace
 
 # Preserve raw legacy reload/rejection serial captures.
 legacy-load-*.log -text -whitespace
+
+# Preserve raw IBM AT country/NLS qualification logs.
+country-286-*.log -text -whitespace
+86box-unittester-exit.patch -text -whitespace

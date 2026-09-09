@@ -162,7 +162,10 @@ modifier precedence through BIOS and DOS reads. The matching
 input oracle on an 8088 with IBM XT BIOS. The
 [legacy load-state qualification](locales/ru/legacy-load-qualification.json)
 checks rejected loads and RU/GR/RU reloads on both machines through BIOS and
-DOS input. The full 286 locale matrix and end-to-end/release gates remain open.
+DOS input. The [286 country qualification](locales/ru/country-286-qualification.json)
+covers CONFIG selection, code-page transitions, rejection and case-table
+corruption against independent DOS reference bytes. The 286 display matrix
+and end-to-end/release gates remain open.
 
 Existing implementation and test entry points:
 
