@@ -217,8 +217,8 @@ results and before/after physical-input evidence. `make test-ru-keyboard-qemu`
 checks enhanced-keyboard BIOS/DOS bytes, mode selections, case, punctuation,
 third shift, controls, navigation, keypad and released modifiers. It detects
 a wrong Yo byte and verifies typed RU/GR/RU reloads. Older keyboard variants
-and complete locale qualification remain open in
-[RUSSIAN.md](../RUSSIAN.md).
+have separate records below; [RUSSIAN.md](../RUSSIAN.md) links the completed
+locale qualification.
 
 [Modifier qualification](../locales/ru/modifier-qualification.json) extends the
 physical keyboard gate with BIOS/DOS checks of Caps punctuation, both Shifts,
@@ -236,8 +236,8 @@ preservation, then boots the installed recipe in HIGH/UMB and LOW profiles.
 It requires emulator exit plus country, code-page and physical-key completion;
 the HIGH case proves HMA residency and a usable UMB allocation. See
 [installation qualification](../locales/ru/installation-qualification.json).
-The profile gate below covers display planes; real-BIOS 286/end-to-end gates
-remain open in the plan.
+The profile gate below covers display planes; real-BIOS and end-to-end
+evidence is linked below.
 
 [RU packaging qualification](../locales/ru/packaging-qualification.json) records
 disk hashes, available capacity and deployed optional-file hashes.
@@ -247,7 +247,7 @@ actual VGA font bytes and the NLS transition/rejection matrix on production
 HIGH/UMB and LOW. `make test-ru-profiles-qemu`, included in `make test`, detects
 the former generic-IOCTL segment error when preparing three DISPLAY pages.
 The report retains its instruction trace and successful corrected-core runs.
-The changed kernel still requires full release qualification.
+The changed kernel has passed the [full release suite](../locales/ru/release-qualification.json).
 
 The [legacy backend bootstrap](../locales/ru/legacy-backend-qualification.json)
 records `tests/test_86box_guest_exit.py` with a selected production core. It
@@ -270,15 +270,15 @@ independent Russian byte oracle through BIOS and DOS input. Separate enhanced
 navigation keys become physical keypad events; unavailable right Alt/Ctrl
 cases are excluded. Guest completion, exact process status, released modifier
 bits and an empty input queue are required. The retained record includes the
-actual event matrix and backend/core hashes. XT-83 input, legacy reload and
-rejection cases, and the complete 286 display/NLS matrix remain open.
+actual event matrix and backend/core hashes. Separate records below cover XT-83 input, legacy reload/rejection and the
+286 display/NLS matrix.
 
 The [XT-83 input qualification](../locales/ru/xt83-qualification.json) selects
 `--machine xt83` in the same runner. A private 360 KiB image boots the selected
 core on the IBM XT BIOS and an 8088 with the PC/XT keyboard controller. The
 guest asserts KEYB's XT type before running the same independent input oracle.
 This adds BIOS and DOS input coverage; it does not establish XT font rendering
-or replace the remaining 286 display/NLS and end-to-end release gates.
+or replace the separate 286 display/NLS and end-to-end release gates.
 
 The [legacy load-state qualification](../locales/ru/legacy-load-qualification.json)
 selects `--suite lifecycle` with either legacy machine. Each BIOS/DOS run
@@ -295,7 +295,7 @@ pages, CHCP transitions, external-page queries, rejected selections and a
 corrupted case-table control. Positive cases require every expected probe
 marker and guest-requested status zero; corruption must fail at the expected
 case-table stage with guest-requested status one. This does not qualify the
-286 font plane or replace the remaining end-to-end and release gates.
+286 font plane or replace the separate end-to-end and release gates.
 
 The [backend exit record](../locales/ru/backend-exit-qualification.json)
 retains the Qt crash stack and private Unit Tester exit patch used by the
@@ -328,7 +328,7 @@ checks file contents and verifies final removal. The test exposed raw-byte
 DIR sorting; COMMAND now caches active DOS weights for name/extension keys.
 The record includes existing command regressions, a kvikdos NLS/BDA isolation
 fix and matched text-workflow evidence. Full release qualification of the
-changed COMMAND core remains required.
+changed COMMAND core is recorded in the [release report](../locales/ru/release-qualification.json).
 
 The [286 filesystem qualification](../locales/ru/filesystem-286-qualification.json)
 uses the same runner with `--emulator` and `--roms` on IBM AT BIOS and DOS LOW.
@@ -367,5 +367,6 @@ map-sensitive gates are separate from this composed-core evidence.
 
 The [Russian acceptance audit](../locales/ru/acceptance-audit.json) maps every
 implementation-plan bullet to its retained evidence. It distinguishes focused
-component results from current-core and full-release claims and remains open
-until the final runtime qualification is complete.
+component results from current-core and full-release claims. The
+[release record](../locales/ru/release-qualification.json) retains the successful
+full suite and selected artifact hashes; the audit closes the Russian scope.

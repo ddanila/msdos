@@ -2,7 +2,7 @@
   "schema_version": 1,
   "locale": "ru",
   "code_page": 866,
-  "status": "focused-locale-and-reproducibility-qualified-full-runtime-release-pending",
+  "status": "russian-increment-qualified",
   "sources": [
     {
       "path": "upstream/CP866.TXT",
@@ -602,9 +602,7 @@
       "status": "VGA-plane-and-screen-verified"
     }
   },
-  "unresolved": [
-    "Full release suite and applicable runtime matrices on the changed kernel and COMMAND core."
-  ],
+  "unresolved": [],
   "behavior": {
     "reference": "dos622-reference.json",
     "public_reference": {
@@ -750,6 +748,10 @@
     "display_286": "display-286-qualification.json",
     "text_286": "text-286-qualification.json",
     "directories": "directory-qualification.json",
-    "reproducibility": "reproducibility-qualification.json"
+    "reproducibility": "reproducibility-qualification.json",
+    "release": "release-qualification.json",
+    "final_core": "final-core-qualification.json",
+    "memory": "memory-requalification.json",
+    "acceptance": "acceptance-audit.json"
   }
 }

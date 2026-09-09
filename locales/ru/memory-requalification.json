@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "status": "matched-memory-campaign-passed-release-pending",
+  "status": "matched-memory-campaign-passed",
   "core_sha256": {
     "IO.SYS": "793169a292df40bb117eb487136a0d8e7f4334ca223e8206bf53f33141f24715",
     "MSDOS.SYS": "1475174f50c8c349bedd7cd4a0be88bce055f2e411b7454b5f68fffbff269b62",
@@ -690,9 +690,7 @@
     "path": "review/memory-freeze.log",
     "sha256": "2e3a04be4e184b1f6754a44ce869ab2b217aa1631210c01c36fee2e9981ce80a"
   },
-  "remaining": [
-    "Full FAIL_ON_SKIP=1 make -k test run."
-  ],
+  "remaining": [],
   "campaign": {
     "status": "passed",
     "core_sha256": {
@@ -881,5 +879,6 @@
     }
   },
   "baseline_286_record": "release-qualification.json",
-  "baseline_memory_record": "release-qualification.json"
+  "baseline_memory_record": "release-qualification.json",
+  "release_record": "release-qualification.json"
 }

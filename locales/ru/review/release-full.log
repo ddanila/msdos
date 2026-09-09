@@ -1,0 +1,1917 @@
+python3 tools/gen_dos_copy_size.py /Users/ddanila/fun/msdos/src/DOS/MSDOS.SYS /Users/ddanila/fun/msdos/src/BIOS/DOSCOPY.INC
+python3 tools/build_memory_production.py /Users/ddanila/fun/msdos/out/memory-production
+Production build: /Users/ddanila/fun/msdos/out/memory-production-0m8gj8wq
+Linked inactive development BIOS: /Users/ddanila/fun/msdos/out/memory-production-0m8gj8wq/bios/IO.SYS
+Linked 8081 bytes (6073 service bytes); 36 unbound runtime slots; 367 checked offset fixups.
+Linked 8081 bytes (6073 service bytes); 36 unbound runtime slots; 367 checked offset fixups.
+Linked early-installer development BIOS: /Users/ddanila/fun/msdos/out/memory-production-0m8gj8wq/bios/IO.SYS
+# A single jobserver-aware submake prevents parallel image and build paths
+# from racing on their shared generated message and include files.
+make /Users/ddanila/fun/msdos/out/floppy.img
+make[1]: Entering directory '/Users/ddanila/fun/msdos'
+mkdir -p /Users/ddanila/fun/msdos/out
+python3 tools/gen_dos_copy_size.py /Users/ddanila/fun/msdos/src/DOS/MSDOS.SYS /Users/ddanila/fun/msdos/src/BIOS/DOSCOPY.INC
+python3 tools/build_memory_production.py /Users/ddanila/fun/msdos/out/memory-production
+Production build is current: /Users/ddanila/fun/msdos/out/memory-production
+mkdir -p /Users/ddanila/fun/msdos/out
+# The complete developer image needs room for test probes and the growing
+# DOS 6.22 tool set.  The minimal-floppy target remains a 1.44 MB image.
+dd if=/dev/zero of=/Users/ddanila/fun/msdos/out/floppy.img bs=512 count=5760 status=none
+dd if=/Users/ddanila/fun/msdos/src/BOOT/MSBOOT.BIN of=/Users/ddanila/fun/msdos/out/floppy.img bs=1 skip=31744 count=512 conv=notrunc status=none
+/Users/ddanila/fun/msdos/bin/patch-bpb /Users/ddanila/fun/msdos/out/floppy.img
+mformat -i /Users/ddanila/fun/msdos/out/floppy.img -k ::
+# IO.SYS must be the first root-directory entry because the boot sector assumes it.
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/out/memory-production/files/IO.SYS ::IO.SYS
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/out/memory-production/files/MSDOS.SYS ::MSDOS.SYS
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/out/memory-production/files/COMMAND.COM ::COMMAND.COM
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/BIOS/SYSMENU.OVL ::SYSMENU.OVL
+# mtools 4.0.49 broke mattrib's -i handling, so expose the image through MTOOLSRC.
+echo 'drive a: file="/Users/ddanila/fun/msdos/out/floppy.img"' > /Users/ddanila/fun/msdos/out/.mtoolsrc
+MTOOLSRC=/Users/ddanila/fun/msdos/out/.mtoolsrc mattrib +h +s +r a:/IO.SYS
+MTOOLSRC=/Users/ddanila/fun/msdos/out/.mtoolsrc mattrib +h +s +r a:/MSDOS.SYS
+MTOOLSRC=/Users/ddanila/fun/msdos/out/.mtoolsrc mattrib +h +s +r a:/SYSMENU.OVL
+rm -f /Users/ddanila/fun/msdos/out/.mtoolsrc
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/CMD/SYS/SYS.COM ::SYS.COM
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/CMD/FORMAT/FORMAT.COM ::FORMAT.COM
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/CMD/EXPAND/EXPAND.EXE ::EXPAND.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/CMD/SETUP/SETUP.EXE ::SETUP.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/CMD/CHKDSK/CHKDSK.COM ::CHKDSK.COM
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/CMD/DEBUG/DEBUG.COM ::DEBUG.COM
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/CMD/MEM/MEM.EXE ::MEM.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/CMD/FDISK/FDISK.EXE ::FDISK.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/CMD/MORE/MORE.COM ::MORE.COM
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/CMD/SORT/SORT.EXE ::SORT.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/CMD/LABEL/LABEL.COM ::LABEL.COM
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/CMD/FIND/FIND.EXE ::FIND.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/CMD/TREE/TREE.COM ::TREE.COM
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/CMD/COMP/COMP.COM ::COMP.COM
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/CMD/ATTRIB/ATTRIB.EXE ::ATTRIB.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/CMD/EDLIN/EDLIN.COM ::EDLIN.COM
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/CMD/FC/FC.EXE ::FC.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/CMD/NLSFUNC/NLSFUNC.EXE ::NLSFUNC.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/CMD/ASSIGN/ASSIGN.COM ::ASSIGN.COM
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/CMD/XCOPY/XCOPY.EXE ::XCOPY.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/CMD/DISKCOMP/DISKCOMP.COM ::DISKCOMP.COM
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/CMD/DISKCOPY/DISKCOPY.COM ::DISKCOPY.COM
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/CMD/SETVER/SETVER.COM ::SETVER.COM
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/CMD/SETVER/SETVER.EXE ::SETVER.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/CMD/DOSKEY/DOSKEY.COM ::DOSKEY.COM
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/CMD/HELP/HELP.COM ::HELP.COM
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/CMD/HELP/FASTHELP.COM ::FASTHELP.COM
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/CMD/HELP/HELP.HLP ::HELP.HLP
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/CMD/MIRROR/MIRROR.COM ::MIRROR.COM
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/CMD/UNDELETE/UNDELETE.COM ::UNDELETE.COM
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/CMD/UNFORMAT/UNFORMAT.COM ::UNFORMAT.COM
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/CMD/CHOICE/CHOICE.COM ::CHOICE.COM
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/CMD/LOADFIX/LOADFIX.COM ::LOADFIX.COM
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/CMD/DELTREE/DELTREE.EXE ::DELTREE.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/CMD/DEFRAG/DEFRAG.EXE ::DEFRAG.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/CMD/MOVE/MOVE.EXE ::MOVE.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/CMD/MSD/MSD.EXE ::MSD.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/CMD/SCANDISK/SCANDISK.EXE ::SCANDISK.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/CMD/SCANDISK/SCANDISK.INI ::SCANDISK.INI
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/CMD/MEMMAKER/MEMMAKER.EXE ::MEMMAKER.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/CMD/SIZER/SIZER.EXE ::SIZER.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/CMD/POWER/POWER.EXE ::POWER.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/CMD/MSCDEX/MSCDEX.EXE ::MSCDEX.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/CMD/INTERLNK/INTERLNK.EXE ::INTERLNK.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/CMD/INTERSVR/INTERSVR.EXE ::INTERSVR.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/CMD/APPEND/APPEND.EXE ::APPEND.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/CMD/RECOVER/RECOVER.COM ::RECOVER.COM
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/CMD/FASTOPEN/FASTOPEN.EXE ::FASTOPEN.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/CMD/PRINT/PRINT.COM ::PRINT.COM
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/CMD/FILESYS/FILESYS.EXE ::FILESYS.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/CMD/REPLACE/REPLACE.EXE ::REPLACE.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/CMD/JOIN/JOIN.EXE ::JOIN.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/CMD/SUBST/SUBST.EXE ::SUBST.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/CMD/BACKUP/BACKUP.COM ::BACKUP.COM
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/CMD/RESTORE/RESTORE.COM ::RESTORE.COM
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/CMD/GRAFTABL/GRAFTABL.COM ::GRAFTABL.COM
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/CMD/KEYB/KEYB.COM ::KEYB.COM
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/DEV/KEYBOARD/KEYBOARD.SYS ::KEYBOARD.SYS
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/CMD/SHARE/SHARE.EXE ::SHARE.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/CMD/EXE2BIN/EXE2BIN.EXE ::EXE2BIN.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/CMD/GRAPHICS/GRAPHICS.COM ::GRAPHICS.COM
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/CMD/GRAPHICS/GRAPHICS.PRO ::GRAPHICS.PRO
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/CMD/IFSFUNC/IFSFUNC.EXE ::IFSFUNC.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/CMD/MODE/MODE.COM ::MODE.COM
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/DEV/ANSI/ANSI.SYS ::ANSI.SYS
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/DEV/RAMDRIVE/RAMDRIVE.SYS ::RAMDRIVE.SYS
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/DEV/VDISK/VDISK.SYS ::VDISK.SYS
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/DEV/DISPLAY/DISPLAY.SYS ::DISPLAY.SYS
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/DEV/COUNTRY/COUNTRY.SYS ::COUNTRY.SYS
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/DEV/PRINTER/PRINTER.SYS ::PRINTER.SYS
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/DEV/PRINTER/4201/4201.CPI ::4201.CPI
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/DEV/PRINTER/4208/4208.CPI ::4208.CPI
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/DEV/PRINTER/5202/5202.CPI ::5202.CPI
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/DEV/SMARTDRV/SMARTDRV.EXE ::SMARTDRV.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/DEV/SMARTDRV/FLUSH13.EXE ::FLUSH13.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/DEV/DRIVER/DRIVER.SYS ::DRIVER.SYS
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/DEV/XMA2EMS/XMA2EMS.SYS ::XMA2EMS.SYS
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/DEV/XMAEM/XMAEM.SYS ::XMAEM.SYS
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/SELECT/SELECT.COM ::SELECT.COM
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/SELECT/SELECT.EXE ::SELECT.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/SELECT/SELECT.DAT ::SELECT.DAT
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/SELECT/SELECT.HLP ::SELECT.HLP
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/DEV/DISPLAY/EGA/EGA866.CPI ::EGA866.CPI
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/DEV/KEYBOARD/KEYBRD2.SYS ::KEYBRD2.SYS
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/locales/ru/RUSSIAN.TXT ::RUSSIAN.TXT
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/locales/ru/upstream/512_8/LICENSE ::RUFONT1.TXT
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/locales/ru/upstream/cozette/LICENSE ::RUFONT2.TXT
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/DEV/DISPLAY/EGA/EGA.CPI ::EGA.CPI
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/DEV/DISPLAY/LCD/LCD.CPI ::LCD.CPI
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/src/DEV/EGA/EGA.SYS ::EGA.SYS
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/out/memory-production/files/HIMEM.SYS ::HIMEM.SYS
+mcopy -i /Users/ddanila/fun/msdos/out/floppy.img /Users/ddanila/fun/msdos/out/memory-production/files/EMM386.EXE ::EMM386.EXE
+make[1]: Leaving directory '/Users/ddanila/fun/msdos'
+python3 tests/test_ru_profiles_qemu.py
+Russian profile artifacts: /Users/ddanila/fun/msdos/out/ru-profiles-8t_fibgb
+PASS: 866 / 8x16 VGA bytes and guest completion
+PASS: 866 / 8x14 VGA bytes and guest completion
+PASS: 866 / 8x8 VGA bytes and guest completion
+PASS: 437 / 8x16 VGA bytes and guest completion
+PASS: 850 / 8x16 VGA bytes and guest completion
+PASS: 860 / 8x16 VGA bytes and guest completion
+PASS: 863 / 8x16 VGA bytes and guest completion
+PASS: 865 / 8x16 VGA bytes and guest completion
+PASS: 866 / 8x16 wrong-slot control detected
+PASS: transitions
+PASS: wrong-case
+PASS: 866 / 8x16 VGA bytes and guest completion
+PASS: 866 / 8x14 VGA bytes and guest completion
+PASS: 866 / 8x8 VGA bytes and guest completion
+PASS: 437 / 8x16 VGA bytes and guest completion
+PASS: 850 / 8x16 VGA bytes and guest completion
+PASS: 860 / 8x16 VGA bytes and guest completion
+PASS: 863 / 8x16 VGA bytes and guest completion
+PASS: 865 / 8x16 VGA bytes and guest completion
+PASS: 866 / 8x16 wrong-slot control detected
+PASS: transitions
+PASS: wrong-case
+python3 tests/test_ru_install_qemu.py
+Russian installation artifacts: /Users/ddanila/fun/msdos/out/ru-install-9pfkaeba
+PASS: fresh
+PASS: upgrade
+PASS: installed-recipe-high
+PASS: installed-recipe-low
+python3 tests/test_ru_keyboard_qemu.py
+Russian keyboard artifacts: /Users/ddanila/fun/msdos/out/ru-keyboard-l5gmg_oc
+PASS: physical
+PASS: dos-input
+PASS: wrong-yo
+PASS: reload-existing
+PASS: documented-recipe
+PASS: modifier-edges
+PASS: modifier-edges-dos
+PASS: reject-missing
+PASS: reject-bad-signature
+PASS: reject-short-header
+PASS: reject-unsupported-page
+PASS: reject-unsupported-id
+PASS: reject-unsupported-layout
+python3 tests/test_ru_keyboard_records.py
+....
+----------------------------------------------------------------------
+Ran 4 tests in 0.002s
+
+OK
+python3 tests/test_ru_country_records.py
+....
+----------------------------------------------------------------------
+Ran 4 tests in 0.003s
+
+OK
+python3 tests/test_ru_country_qemu.py
+Russian country artifacts: /Users/ddanila/fun/msdos/out/ru-country-528bia09
+PASS: config-866
+PASS: config-437
+PASS: config-850
+PASS: config-default
+PASS: transitions
+PASS: wrong-case
+python3 tests/test_ru_font_sources.py
+......
+----------------------------------------------------------------------
+Ran 6 tests in 0.279s
+
+OK
+python3 tests/test_ru_contract.py
+....
+----------------------------------------------------------------------
+Ran 4 tests in 0.001s
+
+OK
+python3 tests/test_ru_cpi.py
+....
+----------------------------------------------------------------------
+Ran 4 tests in 0.289s
+
+OK
+python3 tests/test_ru_display_qemu.py
+Russian display artifacts: /Users/ddanila/fun/msdos/out/ru-display-sjo2v0_v
+PASS: 866 / 8x16 VGA bytes and guest completion
+PASS: 866 / 8x14 VGA bytes and guest completion
+PASS: 866 / 8x8 VGA bytes and guest completion
+PASS: 437 / 8x16 VGA bytes and guest completion
+PASS: 850 / 8x16 VGA bytes and guest completion
+PASS: 860 / 8x16 VGA bytes and guest completion
+PASS: 863 / 8x16 VGA bytes and guest completion
+PASS: 865 / 8x16 VGA bytes and guest completion
+PASS: 866 / 8x16 wrong-slot control detected
+bash tests/test_native_build_tools.sh
+native DBOF and BUILDIDX parity tests passed
+native EXE2BIN parity tests passed (31 production cases)
+native NOSRVBLD and MENUBLD parity tests passed (12 outputs)
+native CONVERT parity tests passed (8 production cases)
+native BUILDMSG parity tests passed (43 cases, 204 outputs)
+native ASC2HLP and COMPRESS parity tests passed (2 production outputs)
+native MKCNTRY parity test passed
+toolchain compatibility transform tests passed
+kernel entry and relocated-tail layout tests passed
+native WLIB case-folding and reproducibility tests passed
+native WCC case-insensitive include test passed
+python3 tests/test_keyboard_records.py
+DOS 5 BR/PL/CZ/SL/YU/HU keyboard records: PASS
+python3 tests/test_country_records.py
+DOS 5 BR/YU/CZ/PL/HU country records: PASS
+python3 tests/test_szdd_tool.py
+SZDD host codec passed 5 deterministic round trips; sample sha256=822c4c2f36d5b04c6d3477c5569a2fd95c096ed07dd7cdcef6b49f72ac51c029
+python3 tests/test_capture_drdos_memory.py
+..........................
+----------------------------------------------------------------------
+Ran 26 tests in 0.027s
+
+OK
+python3 tests/test_opendos_sda.py
+....
+----------------------------------------------------------------------
+Ran 4 tests in 0.000s
+
+OK
+python3 tests/test_uma_topology.py
+....
+----------------------------------------------------------------------
+Ran 4 tests in 0.006s
+
+OK
+python3 tests/test_distribution.py
+Built 2 deterministic installation disks with 91 files
+Built 2 deterministic installation disks with 91 files
+distribution media passed: 10 boot files, 83 compressed files; disk hashes b7a230e234c0 13302657dfeb
+bash tests/test_expand.sh
+=== EXPAND DOS 5 tests ===
+  PASS: EXPAND /? reports the positional DOS 5 syntax
+  PASS: single-source expansion to an explicit filename is byte-exact
+  PASS: streaming expansion handles output larger than 64 KiB
+  PASS: SZDD dictionary back-references decode exactly
+  PASS: DOS EXPAND decodes the deterministic host encoder output byte-exactly
+  PASS: multiple sources expand into a directory with restored extensions
+  PASS: wildcards are rejected without creating output
+  PASS: multiple sources reject a filename destination
+  PASS: invalid headers fail without leaving an output file
+  PASS: truncated streams remove their partial output
+  PASS: missing parameters return a clear error
+  PASS: real DOS recognizes a plain directory destination and expands byte-exactly
+Results: 12 passed, 0 failed
+bash tests/test_choice.sh
+  PASS: CHOICE prompt, redirected input, case sensitivity, timeout, and validation
+bash tests/test_loadfix_qemu.sh
+  PASS: LOADFIX placement, argument forwarding, and child status propagation
+python3 tests/test_exepack_qemu.py
+Evidence: /Users/ddanila/fun/msdos/out/exepack-x7ynhc2y
+xms PASS: decoder and signature-miss controls
+ems PASS: decoder and signature-miss controls
+python3 tests/test_dos_app_smoke_helpers.py
+....
+----------------------------------------------------------------------
+Ran 4 tests in 0.002s
+
+OK
+bash tests/test_deltree_qemu.sh
+  PASS: DELTREE recursion, attributes, prompts, multiple targets, and wildcards
+bash tests/test_move_qemu.sh
+  PASS: MOVE files, directories, overwrite policy, and cross-drive transfers
+bash tests/test_scandisk_qemu.sh
+  PASS: /CHECKONLY detects corruption and returns failure
+  PASS: multiple explicit drives and /MONO use one ordered scan
+  PASS: physical floppy reads reset and retry after a transient BIOS failure
+  PASS: /FRAGMENT follows the named file's physical FAT chain
+  PASS: mismatched FAT mirrors are detected
+  PASS: directory metadata validation detects dot-parent and size corruption
+  PASS: invalid names, duplicates, attributes, and timestamps are detected
+  PASS: misplaced labels and invalid starting clusters are detected
+  PASS: SCANDISK.INI LfnCheck and LabelCheck policies are active
+  PASS: SCANDISK.INI NumPasses controls repeated surface verification
+  PASS: occupied-cluster surface fault is detected
+  PASS: /CUSTOM converts orphan chains to FILEnnnn.CHK files
+  PASS: repair succeeds and a second /CHECKONLY scan is clean
+  PASS: /SURFACE completes non-destructive read/write verification of free space
+  PASS: recovered chain payload is byte-exact
+  PASS: name repairs preserve both formerly ambiguous file payloads
+  PASS: the chain orphaned by an invalid start is recovered byte-exactly
+  PASS: referenced file data is preserved
+  PASS: occupied data was relocated and its old cluster marked bad
+  PASS: all FAT copies match after repair
+  PASS: directory dot entries and size were repaired exactly
+  PASS: DOS batch completed
+  PASS: /CUSTOM applies automatic policies, surface passes, Undo=Never, and log overwrite
+Testing Undo-disk creation and reverse-order restoration...
+  PASS: automatic repair creates a separate Undo disk record
+  PASS: /UNDO refuses stale metadata after the target changes
+  PASS: /UNDO restores every changed target-sector byte
+Results: 26 passed, 0 failed
+bash tests/test_scandisk_errors_qemu.sh
+  PASS: ScanDisk sustained-read abort and exhausted-write refusal contracts
+bash tests/test_scandisk_interactive_qemu.sh
+  PASS: ScanDisk full-screen mouse start and current-drive scan
+bash tests/test_scandisk_fat16_qemu.sh
+  PASS: FAT16 detection, automatic repair, and clean rescan complete
+  PASS: FAT16 referenced data is preserved
+  PASS: FAT16 orphan payload is byte-exact
+Results: 3 passed, 0 failed
+bash tests/test_defrag_qemu.sh
+  PASS: /U relocates the fragmented FAT12 file
+  PASS: relocated payload is byte-exact
+  PASS: /F preserves compacted singleton data
+  PASS: chains are contiguous, free space is packed, and /SN order is physical
+  PASS: all /U and /F transaction boundaries preserve data and remain ScanDisk-recoverable
+Results: 5 passed, 0 failed
+bash tests/test_defrag_errors_qemu.sh
+  PASS: DEFRAG rejects divergent metadata with errorlevel 7 and no writes
+  PASS: DEFRAG rejects lost metadata with errorlevel 7 and no writes
+  PASS: DEFRAG rejects invalid-chain metadata with errorlevel 7 and no writes
+  PASS: DEFRAG rejects full metadata with errorlevel 2 and no writes
+  PASS: DEFRAG rejects invalid-boot metadata with errorlevel 4 and no writes
+  PASS: DEFRAG rejects directory-limit metadata with errorlevel 9 and no writes
+  PASS: DEFRAG rejects physical-read metadata with errorlevel 5 and no writes
+  PASS: DEFRAG rejects physical-write metadata with errorlevel 6 and no writes
+bash tests/test_defrag_interactive_qemu.sh
+  PASS: Defrag mouse/keyboard selection, configuration, maps, and progress
+bash tests/test_defrag_fat16_qemu.sh
+  PASS: FAT16 root, nested, and hidden files are byte-exact and contiguous
+  PASS: /B reboot completed and returned through AUTOEXEC.BAT
+bash tests/test_mem_dos6_qemu.sh
+  PASS: MEM matches the DOS 6.22 summary, /C, /D, /F, and /M structure
+bash tests/test_memmaker_qemu.sh
+  PASS: Custom optimization completes /SESSION and boots optimized TSR placement
+  PASS: CONFIG.SYS honors the Custom driver-high choice
+  PASS: CONFIG.SYS uses the retail MemMaker leading-entry order
+  PASS: AUTOEXEC.BAT loads the eligible TSR high and removes session plumbing
+  PASS: MEMMAKER.STS records measurements, /W policy, and Custom choices
+  PASS: measurement handoff is removed after the final pass
+  PASS: Windows SYSTEM.INI backup is byte-exact
+  PASS: Windows 3.0 base compatibility settings are written
+  PASS: startup-file backups are byte-exact
+  PASS: /UNDO restores all startup files byte-for-byte
+Results: 10 passed, 0 failed
+bash tests/test_memmaker_optimizer_qemu.sh
+  PASS: MemMaker exact optimizer selects 6500 paragraphs over the 5000-paragraph first fit
+bash tests/test_memmaker_rollback_qemu.sh
+  PASS: MemMaker rolls all startup files back at every commit boundary
+bash tests/test_smartdrv_reboot_qemu.sh
+  PASS: SMARTDrive flushes dirty fixed-disk data across INT 19h reboot
+bash tests/test_power_qemu.sh
+  PASS: POWER device, retail status, controller modes, and idle action
+  PASS: POWER matches the retail missing-driver diagnostic and errorlevel
+  PASS: POWER connects, enables, disables, re-enables, and idles through APM
+bash tests/test_power_api_qemu.sh
+  PASS: POWER matches the DOS 6.22 INT 2Fh 54xx API identity and core calls
+bash tests/test_mscdex_qemu.sh
+  PASS: MSCDEX DOS files, ISO/media APIs, EMS maps, and /S sharing state
+bash tests/test_interlnk_qemu.sh
+  PASS: Interlnk redirects disks and printers while reconnecting through sustained serial faults
+  PASS: Interlnk remains installed offline and /NOPRINTER suppresses its printer hook
+  PASS: Interlnk bare /LPT installs the scanning parallel transport
+  PASS: Interlnk accepts an explicit parallel I/O address
+  PASS: Interlnk /AUTO declines installation without a server
+  PASS: Interlnk /DRIVES:0 installs a printer-only resident client
+  PASS: Interlnk DEVICE prefers UMB placement and /LOW keeps it conventional
+  PASS: Interserver bare-port scanning, explicit address, F1 status, and Alt+F4 shutdown
+bash tests/test_intersvr_rcopy_qemu.sh
+  PASS: Interserver /RCOPY bootstraps byte-exact Interlnk files
+python3 tools/build_distribution.py
+Built 2 deterministic installation disks with 91 files
+bash tests/test_setup_qemu.sh
+=== SETUP guided installation tests ===
+  PASS: SETUP completes its guided fresh-install and Disk 2 workflow
+  PASS: SETUP installs every manifest file in the root or DOS directory
+  PASS: fresh SETUP preserves unrelated target files
+  PASS: fresh SETUP applies mixed memory, cache, and protection choices
+  PASS: SETUP expands representative command and driver payloads byte-exactly
+  PASS: upgrade SETUP detects the installed tree and preserves startup files byte-exactly
+  PASS: upgrade preserves an exact rollback tree and installs UNINSTAL
+  PASS: UNINSTAL restores the previous DOS tree and root system bytes exactly
+  PASS: SETUP produces a bootable fixed disk with a working command interpreter
+Results: 9 passed, 0 failed
+bash tests/test_setup_floppy_qemu.sh
+SETUP /F bootable recovery disk and explicit /E exclusion contracts passed
+bash tests/test_ega_qemu.sh
+EGA test artifacts: /Users/ddanila/fun/msdos/out/ega-qemu.17RmVb
+EGA.SYS API passed multiplex, BIOS-shadow, RIL access, and defaults contracts
+bash tests/test_help_ui_qemu.sh
+HELP full-screen search, links, mouse, and screen-restore contracts passed
+bash tests/test_himem_options_qemu.sh
+screen_expect: 2 rules, connecting to /Users/ddanila/fun/msdos/out/himem-verbose-qmp.sock
+  rule[0] matched: HIMEM: DOS 6 extended-memory manager installed
+  rule[1] matched: Press any key
+screen_expect: all 2 rules matched.
+HIMEM documented option semantics and rejection boundaries passed
+bash tests/test_himem_xms3_qemu.sh
+  PASS: HIMEM XMS 3.0 identity and 32-bit memory APIs
+bash tests/test_himem_move_boundary_qemu.sh
+PASS: XMS moves crossing 64 KiB with DOS=LOW
+PASS: XMS moves crossing 64 KiB with DOS=HIGH
+python3 tests/test_emm_table_ownership.py
+.....
+----------------------------------------------------------------------
+Ran 5 tests in 0.026s
+
+OK
+bash tests/test_ems40_extended_qemu.sh
+  PASS: LIM EMS 4.0 extended lifecycle and OS/E contracts
+bash tests/test_emm386_address_phases_qemu.sh
+  PASS: EMM386 boots across RAM address phases and all DOS-high manager modes
+bash tests/test_internal_structures_qemu.sh
+  PASS: observable PSP, MCB, LoL, DPB, CDS, SFT, SDA, device-chain, and split high-DOS DPB layouts
+bash tests/test_supplemental_locale_qemu.sh
+  PASS: LCD code-page preparation and selection
+  PASS: 4208 code-page preparation and selection
+  PASS: 5202 code-page preparation and selection
+python3 tests/test_vc_memory_comparison.py
+..
+----------------------------------------------------------------------
+Ran 2 tests in 0.002s
+
+OK
+python3 tests/test_dos_copy_size.py
+....
+----------------------------------------------------------------------
+Ran 4 tests in 0.000s
+
+OK
+python3 tests/test_dos_prefix_references.py
+......
+----------------------------------------------------------------------
+Ran 6 tests in 0.000s
+
+OK
+python3 tests/test_system_owners.py
+................
+----------------------------------------------------------------------
+Ran 16 tests in 0.001s
+
+OK
+python3 tests/test_hma_layout_budget.py
+...........................
+----------------------------------------------------------------------
+Ran 27 tests in 0.001s
+
+OK
+python3 tests/test_bios_character_partition.py
+....
+----------------------------------------------------------------------
+Ran 4 tests in 0.000s
+
+OK
+python3 tests/test_bios_core_partition.py
+..........
+----------------------------------------------------------------------
+Ran 10 tests in 0.000s
+
+OK
+python3 tests/test_bios_dispatch.py
+....
+----------------------------------------------------------------------
+Ran 4 tests in 0.117s
+
+OK
+python3 tests/test_dos_swap_contract.py
+.....
+----------------------------------------------------------------------
+Ran 5 tests in 0.000s
+
+OK
+python3 tests/report_dos_bios_residency.py --check \
+	src/DOS/MSDOS.MAP src/BIOS/msBIO.map
+# DOS and BIOS residency census
+
+## DOS high
+
+| Range | Linked bytes | Paragraph allocation | Lifetime |
+| --- | ---: | ---: | --- |
+| Low entry/gateway prefix | 4,467 | 4,480 | retained low |
+| HMA image after offset 0010h | 40,608 | — | copied to `FFFF:0010` |
+| LAST | 1,147 | — | discarded initialization |
+
+### Low-prefix composition
+
+| Segment | Bytes below boundary | Role |
+| --- | ---: | --- |
+| START | 3 | loader entry |
+| CONSTANTS | 512 | resident constants |
+| DATA | 1,783 | resident mutable data |
+| TABLE | 2,011 | resident dispatch/data tables |
+| CODE | 157 | low entry, driver, and interrupt gateway code |
+| Inter-segment alignment | 1 | linker padding |
+| **Total** | **4,467** | `DOS_LOW_GATE_END` |
+
+### Retained CONSTANTS ownership
+
+| Range | Bytes | Owner |
+| ---: | ---: | --- |
+| `0004h..0014h` | 16 | Reserved DOSGROUP/HMA origin |
+| `0014h..0036h` | 34 | Nucleus identity, retry, and arena state |
+| `0036h..007Dh` | 71 | SYSINIT pointers and resident device state |
+| `007Dh..00A0h` | 35 | Buffer and EMS initialization state |
+| `00A0h..00DCh` | 60 | SHARE compatibility dispatch |
+| `00DCh..00DCh` | 0 | Initial SFT low image (retired when zero) |
+| `00DCh..00DEh` | 2 | Console cursor positions |
+| `00DEh..00F5h` | 23 | Global flags and network name |
+| `00F5h..0100h` | 11 | Critical-section patch table |
+| `0100h..013Ah` | 58 | Process, error, allocation, and calendar state |
+| `013Ah..015Ch` | 34 | Device request packet |
+| `015Ch..0188h` | 44 | Disk I/O and status packet |
+| `0188h..01FFh` | 119 | UMB allocator and lock state |
+| `01FFh..0200h` | 1 | Contribution alignment |
+| `0200h..0204h` | 4 | DOS message identity fields |
+| **Total** | **512** | `CONSTANTS` |
+
+### Fixed HMA ownership
+
+Selected `15` buffers with 512-byte sectors.
+
+| Range | Offset | Bytes | Owner/lifetime |
+| --- | ---: | ---: | --- |
+| DOS high image | `0010h..9EB0h` | 40,608 | DOS; entire high-mode lifetime |
+| Hash plus buffer slots | `9EB0h..BDE4h` | 7,988 | DOS cache; entire high-mode lifetime |
+| Available DOS-owned high storage | `BDE4h..FFF0h` | 16,908 | unassigned, but not available through XMS |
+| HMA safety tail | `FFF0h..10000h` | 16 | deliberately unused |
+
+The table above excludes BIOS boot reservations and COMMAND. It is not the post-shell destination budget.
+
+### Retained DATA ownership
+
+| Range | Bytes | Owner |
+| ---: | ---: | --- |
+| `0204h..046Eh` | 618 | Core file/disk workspace |
+| `046Eh..05EEh` | 384 | Auxiliary stack storage / rename workspace alias |
+| `05EEh..076Eh` | 384 | Disk stack storage |
+| `076Eh..08EEh` | 384 | I/O stack storage |
+| `08EEh..08FAh` | 12 | Resident I/O and fast-seek state |
+| `08FAh..08FBh` | 1 | Required swap-rounding byte |
+| **Total** | **1,783** | `DATA` |
+
+### Public swappable-data address contract
+
+INT 21h/5D06h exposes `0100h..08FAh`: 2,042 bytes, including 26 always-swapped bytes. The 5D0Bh table separately describes 2,016 in-DOS bytes.
+The nested `046Eh..08EEh` range is 1,152 bytes of internal stack storage; RENAMEDMA aliases its first stack. Do not add these sizes to DATA, count rename storage twice, or confuse these stacks with CONFIG.SYS STACKS. Moving this owner needs public-pointer and SS/data-context qualification; the census proves no low-memory saving.
+
+### Retained TABLE ownership
+
+| Range | Bytes | Owner |
+| ---: | ---: | --- |
+| `08FBh..0911h` | 22 | Version and calendar constants |
+| `0911h..0914h` | 3 | Interim-console state and optional banner |
+| `0914h..091Ch` | 8 | SYSINIT communication table |
+| `091Ch..0955h` | 57 | FASTOPEN and directory exchange state |
+| `0955h..0980h` | 43 | INT 2F and configuration temporaries |
+| `0980h..09B6h` | 54 | Extended-error and cache metadata |
+| `09B6h..0ACFh` | 281 | Swap and fake-version state |
+| `0ACFh..0D4Fh` | 640 | Authoritative low SETVER table |
+| `0D4Fh..0D4Fh` | 0 | SETVER contribution alignment |
+| `0D4Fh..0D7Eh` | 47 | Absolute-disk map and HMA driver trampoline |
+| `0D7Eh..1099h` | 795 | Country, case-folding, and DOS messages |
+| `1099h..10A1h` | 8 | Create-mode lookup table |
+| `10A1h..10B3h` | 18 | Device-character lookup table |
+| `10B3h..10BBh` | 8 | EXEC launch pointers |
+| `10BBh..10D6h` | 27 | Server-call dispatch table |
+| **Total** | **2,011** | `TABLE` |
+
+### Relocated tables
+
+| Range | Bytes | Owner |
+| ---: | ---: | --- |
+| `9898h..99C5h` | 301 | Initial five-slot system file table |
+| `99C5h..9AC8h` | 259 | Private console editing/input workspace |
+| `9AC8h..9B7Bh` | 179 | INT 21 allowed-error map |
+| `9B7Bh..9BFBh` | 128 | INT 21 extended-error metadata |
+| `9BFBh..9C4Bh` | 80 | INT 24 critical-error metadata |
+| `9C4Bh..9C5Bh` | 16 | Device-error translation map |
+| `9C5Bh..9D37h` | 220 | INT 21 dispatch table and limits |
+| `9D37h..9DAAh` | 115 | Internal install-service dispatch |
+| `9DAAh..9EAAh` | 256 | FCB character-class table |
+| **Total** | **1,554** | copied to HMA; retained for DOS=LOW |
+
+### Retained CODE ownership
+
+| Range | Bytes | Owner |
+| ---: | ---: | --- |
+| `10D6h..111Ch` | 70 | HMA driver request entry |
+| `111Ch..1168h` | 76 | Low DPB pointer workspace |
+| `1168h..1173h` | 11 | HMA driver/XMS and null-device tail |
+| **Total** | **157** | retained `CODE` |
+
+### Relocated DOS gateways
+
+| Range | Bytes | Owner |
+| ---: | ---: | --- |
+| `1173h..12F6h` | 387 | Absolute-disk gateway |
+| `12F6h..13C2h` | 204 | System/FCB return and error gateway |
+| `13C2h..1404h` | 66 | INT 2F gateway |
+| **Total** | **657** | copied to HMA; retained for DOS=LOW |
+
+### Relocated system-call dispatcher
+
+| Range | Bytes | Lifetime |
+| ---: | ---: | --- |
+| `17CBh..1AF3h` | 808 | copied to HMA; retained only for DOS=LOW |
+
+## BIOS
+
+Linked `CODE` capacity: 15,667 bytes. 
+Discardable `SYSINITSEG`: 20,413 bytes.
+
+| Selectable boundary | Offset | Rounded bytes |
+| --- | ---: | ---: |
+| ENDFLOPPY | `1F07h` | 7,952 |
+| ENDONEHARD | `1F6Eh` | 8,048 |
+| ENDTWOHARD | `1FD2h` | 8,160 |
+| END96TPI | `22B6h` | 8,896 |
+| ENDATROM | `2CF0h` | 11,504 |
+| ENDK09 | `2F53h` | 12,128 |
+
+### Fixed comparison selection
+
+QEMU `pc` selects one hard disk, no 96-TPI extension, no legacy AT-ROM fix, a CMOS clock, and no K09 extension.
+
+| Retained piece | Input boundary | Copied bytes | Output boundary |
+| --- | ---: | ---: | ---: |
+| One-hard-disk base (`ENDONEHARD`) | — | 8,046 | `1F70h` |
+| `Daycnt_to_day` | `1F70h` | 121 | `1FE9h` |
+| `Bin_to_bcd` | `1FE9h` | 5 | `1FF0h` |
+| **Selected resident BIOS** | — | — | **8,176 bytes** |
+
+### Selected resident BIOS ownership
+
+| Source range | Bytes | Owner |
+| ---: | ---: | --- |
+| `0000h..0003h` | 3 | Loader entry |
+| `0003h..062Ah` | 1,575 | Core BIOS data and device headers |
+| `062Ah..0731h` | 263 | Low IOCTL state and format descriptors |
+| `0731h..082Ah` | 249 | Strategy and request dispatch |
+| `082Ah..0902h` | 216 | Console services |
+| `0902h..0998h` | 150 | Auxiliary-device services |
+| `0998h..0A60h` | 200 | Printer services |
+| `0A60h..0B6Eh` | 270 | Clock services and state |
+| `0B6Eh..0B9Bh` | 45 | Disk media state and constants |
+| `0B9Bh..0E8Ah` | 751 | Media-change and BPB services |
+| `0E8Ah..1167h` | 733 | Sector and low-level disk I/O |
+| `1167h..15ACh` | 1,093 | Disk transfer and error paths |
+| `15ACh..1C84h` | 1,752 | Generic disk IOCTL and INT 2F services |
+| `1C84h..1D9Ch` | 280 | BIOS model and saved-vector state |
+| `1D9Ch..1F01h` | 357 | Reboot, block-driver multiplex and disk lifecycle services |
+| `1F01h..1F07h` | 6 | Clock swap state |
+| `1F07h..1F6Eh` | 103 | First hard-disk descriptor |
+| relocated `Daycnt_to_day` | 121 | CMOS day conversion |
+| relocated `Bin_to_bcd` | 5 | CMOS BCD conversion |
+| loader paragraph alignment | 4 | static and relocated-piece padding |
+| **Total** | **8,176** | selected resident BIOS |
+
+### Core BIOS data placement partition
+
+| Owner | Range | Bytes | Placement contract |
+| --- | --- | ---: | --- |
+| Device dispatch tables and alignment | `0003h..00B0h` | 173 | bind with complete dispatch; fixed-prefix hole if moved alone |
+| Saved INT 13 vectors and request scratch | `00B0h..00C3h` | 19 | retain low interface initially |
+| Padding to fixed VDISK offset | `00C3h..0100h` | 61 | packing capacity, not released bytes |
+| VDISK compatibility reservation | `0100h..016Ch` | 108 | fixed low address |
+| AUX device index and binding | `016Ch..016Eh` | 2 | retain with GETDX contract |
+| Device headers and embedded control state | `016Eh..0248h` | 218 | public real-mode pointers |
+| INT 2F chain and BDS-list roots | `0248h..0250h` | 8 | public/interrupt-facing anchors |
+| Disk/format request state | `0250h..026Fh` | 31 | rebind with complete disk service |
+| Disk error translation tables | `026Fh..0281h` | 18 | private service data; rebind readers |
+| Sector alignment | `0281h..0284h` | 3 | packing only |
+| Firmware sector/bounce buffer | `0284h..0484h` | 512 | retain DMA-safe storage; not boot-only scratch |
+| Four linked floppy BDS records | `0484h..0614h` | 400 | preserve public links and BPB pointers |
+| Media template and character/clock state | `0614h..062Ah` | 22 | mixed constants and mutable service bindings |
+| **Total** | | **1,575** | nested in the core BIOS row above |
+
+The VDISK anchor remains at 0100h. Moving earlier tables alone leaves
+a hole; savings require repacking retained owners and lowering the final
+resident break. Firmware/DMA storage is not interchangeable with HMA or
+extended-backed UMB merely because CPU far pointers can address it.
+
+### Character-service placement partition
+
+| Owner | Range | Bytes | Initial placement decision |
+| --- | --- | ---: | --- |
+| Console body | `082Ah..08FBh` | 209 | service candidate |
+| Break interrupt and IRET | `08FBh..0902h` | 7 | retain low initially |
+| Serial body | `0902h..0998h` | 150 | service candidate |
+| Printer body | `0998h..0A60h` | 200 | service candidate |
+| Clock state and near bindings | `0A60h..0A73h` | 19 | retain low initially |
+| Clock body | `0A73h..0B6Eh` | 251 | service candidate |
+| First disk state byte | `0B6Eh..0B6Fh` | 1 | outside character owner |
+
+Service-body inventory: 810 bytes before gateways.
+Shared low dispatch/exit code, CMOS helpers, ROM/A20 return gates and
+device state are separate. These bodies are not position-independent;
+their existing near calls and CS-relative state need explicit bindings.
+
+### Bulk-placement design budget (not achieved savings)
+
+| Candidate | Current bytes | Unproved prerequisite |
+| --- | ---: | --- |
+| BIOS_SERVICE_START..BIOS_SERVICE_END | 3,578 | split CS-relative low data, near control flow, and ROM-return gates |
+| Entire DOS low prefix | 4,480 | subtract mandatory public anchors, stacks, and entry gates |
+| Initial DOS-owned HMA tail | 16,908 | subtract COMMAND and every other reservation before choosing destinations |
+
+The candidate sizes are inventories, not guaranteed gains or a sum to
+subtract from VC's gap. The HMA tail is capacity, not conventional
+memory; copied low allocations must be released and coalesced. Dynamic
+SYSINIT allocations require the runtime census, not this linker map.
+python3 tests/test_command_layout_envelope.py
+......
+----------------------------------------------------------------------
+Ran 6 tests in 0.000s
+
+OK
+python3 tests/report_command_residency.py --check \
+	src/CMD/COMMAND/COMMAND.MAP src/CMD/COMMAND/COMMAND.COM
+# COMMAND residency census
+
+## Default resident image
+
+| Range | Offset | Bytes | Owner/lifetime |
+| --- | ---: | ---: | --- |
+| PSP and command tail | `0000h..0100h` | 256 | DOS process ABI; resident |
+| Resident code | `0100h..0AB0h` | 2,480 | EXEC/reload, INT 22h/23h/24h/2Eh, messages; resident |
+| Resident stack | `0AB0h..0B2Dh` | 125 | asynchronous and reload paths; resident |
+| Mutable shell state | `0B2Dh..0D61h` | 564 | batch, pipe, environment, EXEC, reload; resident |
+| Resident message runtime data | `0D61h..0E4Fh` | 238 | mutable formatter and far class pointers |
+| Utility-message catalogs | `0E4Fh..1175h` | 806 | HMA for permanent DOS-high shell; low fallback otherwise |
+| Critical-error messages | `1175h..1350h` | 475 | same HMA payload; low fallback otherwise |
+| **DOS-high permanent break** | `0000h..0E4Fh` | **3,663** | **3,664 paragraph-rounded** |
+| Low/failure fallback break | `0000h..17DEh` | 6,110 | 6,112 paragraph-rounded |
+
+## Whole-code relocation bound
+
+Moving all 2,480 remaining resident service bytes, while retaining the PSP, stack and all mutable state, leaves at least 1,184 paragraph-rounded low bytes. The optimistic release is at most 2,480 bytes before new gateways, bindings or stacks.
+This assumes packed low storage with no retained code hole. Separate environment/batch allocations are unchanged; existing high catalogs and code earn no additional credit. This is not a linked relocated implementation or a measured saving.
+
+## Permanent low ownership
+
+| Range | Offset | Bytes | Required lifetime |
+| --- | ---: | ---: | --- |
+| Entry, EXEC, reload, and interrupt paths | `0100h..06F5h` | 1,525 | survives transient overwrite and asynchronous entry |
+| Resident error and message services | `06F5h..0AB0h` | 955 | batch abort, INT 24h, and message display |
+| Resident stack | `0AB0h..0B2Dh` | 125 | nested asynchronous and reload paths |
+| Message substitutions and critical-error state | `0B2Dh..0BE0h` | 179 | mutable formatter inputs and INT 24h state |
+| Shell, batch, and load-high control state | `0BE0h..0C95h` | 181 | persistent interpreter control state |
+| Pipe path and hand-off state | `0C95h..0D39h` | 164 | survives both sides of pipeline EXEC/reload |
+| EXEC, environment, and transient-image state | `0D39h..0D61h` | 40 | reload and child-shell bookkeeping |
+| Mutable message runtime | `0D61h..0E4Fh` | 238 | formatter workspace and five far class slots |
+
+## Resident error and message services
+
+| Range | Offset | Bytes | Required lifetime |
+| --- | ---: | ---: | --- |
+| Batch-termination prompt | `06F5h..0712h` | 29 | resident caller after transient teardown |
+| Critical-error handler | `0712h..0998h` | 646 | installed INT 24h target; asynchronous DOS and redirector entry |
+| CR/LF entry | `0998h..099Bh` | 3 | shared resident display entry |
+| Resident message-print wrapper | `099Bh..09D4h` | 57 | resident fatal, batch, EXEC, and critical-error callers |
+| DBCS test gateway | `09D4h..09E6h` | 18 | low/failure entry; permanent root body is in HMA |
+| Message-pointer reset | `09E6h..09F6h` | 16 | child and fatal-exit cleanup |
+| Disk-backed message callback | `09F6h..0AA4h` | 174 | registered DOS callback and INT 24h disk-error path |
+| GET-message gateway | `0AA4h..0AAAh` | 6 | near fallback; patched to far call only in permanent root |
+| DISPLAY-message gateway | `0AAAh..0AB0h` | 6 | near fallback; patched to far call only in permanent root |
+
+## Optional and discardable ranges
+
+| Range | Offset | Bytes | Lifetime |
+| --- | ---: | ---: | --- |
+| Relocatable resident code | `1350h..17DEh` | 1,166 | HMA for permanent DOS-high shell; low fallback otherwise |
+| Parse-error catalog | `17DEh..190Dh` | 303 | resident only with `/MSG` |
+| Extended-error catalog | `190Dh..1BC6h` | 697 | resident only with `/MSG` |
+| Batch arena header | `1BD0h..1BE0h` | 16 | runtime allocation template |
+| Initial batch block | `1BE0h..1C1Fh` | 63 | runtime allocation template |
+| Environment arena header | `1C20h..1C30h` | 16 | runtime allocation template |
+| Initial environment | `1C30h..1CD0h` | 160 | moved to its own allocation |
+| Initialization | `1CD0h..2BF9h` | 3,881 | discarded after startup |
+| Reloadable transient | `2C00h..EB85h` | 49,029 | overwritable and reloaded after EXEC |
+
+`/MSG` retains all catalogs and raises the DOS-high permanent break by 3,456 bytes to 7,120 paragraph-rounded bytes.
+The largest disk-loaded catalog record is 40 bytes; COMMAND's checked message workspace is 48 bytes.
+python3 tests/test_himem_ownership.py
+...
+----------------------------------------------------------------------
+Ran 3 tests in 0.002s
+
+OK
+mkdir -p /Users/ddanila/fun/msdos/out
+/Users/ddanila/fun/msdos/bin/jwasm-bin -q -bin -Sa -Fl=/Users/ddanila/fun/msdos/out/himem-residency.lst \
+	-Fo/Users/ddanila/fun/msdos/out/himem-residency.sys /Users/ddanila/fun/msdos/src/DEV/HIMEM/HIMEM.ASM
+python3 tests/report_himem_residency.py --check \
+	/Users/ddanila/fun/msdos/out/himem-residency.lst /Users/ddanila/fun/msdos/out/himem-residency.sys
+# HIMEM residency census
+
+Selected `/NUMHANDLES=32`; maximum is 128.
+
+| Range | Offset | Bytes | Lifetime |
+| --- | ---: | ---: | --- |
+| Fixed resident code and state | `0000h..091Fh` | 2,335 | resident |
+| UMB count and records | `091Fh..09A1h` | 130 | resident |
+| Selected handle records | `09A1h..0A41h` | 160 | option-sized resident |
+| Unselected handle capacity | `0A41h..0C21h` | 480 | discarded |
+| Initialization tail | `0C21h..1A43h` | 3,618 | discarded |
+| **Installed allocation** | — | **2,640** | paragraph-rounded |
+
+## Service ownership (not a relocation budget)
+
+| Owner | Range | Bytes |
+| --- | --- | ---: |
+| Device/vector entries, private peer and low state | `0000h..0196h` | 406 |
+| XMS dispatcher, common returns and version/extended entry points | `0196h..02D4h` | 318 |
+| HMA ownership and A20 control | `02D4h..0423h` | 335 |
+| EMB allocation/lock/reallocation services | `0423h..0562h` | 319 |
+| XMS move validation and dispatch | `0562h..05E0h` | 126 |
+| UMB allocator and coalescing | `05E0h..06F5h` | 277 |
+| Move address resolution and BIOS-copy backend | `06F5h..0814h` | 287 |
+| Handle and free-space helpers | `0814h..091Fh` | 267 |
+
+All these services currently use one real-mode CS/DS image. Moving
+a service requires explicit entry, state and return ownership; A20
+recovery cannot depend on code which requires A20 already enabled.
+The BIOS-copy backend and caller stack are separate transition gates.
+
+The move-backend range contains 48 bytes
+of BIOS-facing descriptor data at `07E4h..0814h`;
+this is nested in the inventory above, not additional code or savings.
+The first split retains these descriptors and the 130-byte
+UMB table low for the private register/unregister entry points.
+
+## Coordinated-provider conversion boundaries
+
+Existing linked bytes, not the size or low release of a new provider.
+
+| Original owner | Range | Bytes | Required binding/change |
+| --- | --- | ---: | --- |
+| Public/device/private-peer entries and bootstrap state | `0000h..0196h` | 406 | low interface redesign |
+| Dispatch, common returns, XMS 2/3 adapters | `0196h..02D4h` | 318 | split caller frame from backend |
+| HMA ownership | `02D4h..0318h` | 68 | one authoritative bootstrap/high binding |
+| A20 policy and physical/BIOS backends | `0318h..0423h` | 267 | low transition binding |
+| EMB services including reallocating copy | `0423h..0562h` | 319 | high data and copy binding |
+| Move descriptor validation | `0562h..05E0h` | 126 | real-pointer translation |
+| UMB services | `05E0h..06F5h` | 277 | shared peer/API data binding |
+| Move address resolution | `06F5h..0757h` | 98 | high handle-data binding |
+| BIOS copy and descriptor construction | `0757h..07D6h` | 127 | replace on coordinated 386 path |
+| Physical-address helper and alignment | `07D6h..07E4h` | 14 | high service helper |
+| Firmware descriptor data | `07E4h..0814h` | 48 | standalone BIOS backend only |
+| Handle and free-space helpers | `0814h..091Fh` | 267 | high allocator-data binding |
+
+Selected handles and UMB records are the separate data owners above.
+Reallocation calls the copy backend too; replacing only public Move
+leaves the allocator dependent on BIOS. Low gates, protected copy code,
+selectors and transition frames still require their own linked budget.
+python3 tests/test_batch_oracles.py
+Serial batch oracle isolation: 194 CTTY AUX batches protected
+python3 tests/test_oracle_mutation_coverage.py --require-complete
+Runtime component oracle mutations: 82
+  killed: 82
+  justified exclusions: 0
+  uncovered: 0
+python3 tests/test_coverage_manifest.py --require-complete
+INT 21h dispatch entries: 109
+  contract tested: 104
+  behavior observed: 0
+  justified exclusions: 5
+  uncovered: 0
+python3 tests/test_int21_error_coverage.py --require-complete
+INT 21h allowed error contracts: 110
+  contract tested: 94
+  justified exclusions: 16
+  uncovered: 0
+python3 tests/test_runtime_coverage_manifest.py --require-complete
+Shipped runtime components: 82
+  contract tested: 82
+  behavior observed: 0
+  uncovered: 0
+SELECT.EXE modes: 2
+  contract tested: 2
+  behavior observed: 0
+  uncovered: 0
+CONFIG.SYS directives: 27
+  contract tested: 27
+  behavior observed: 0
+  uncovered: 0
+python3 tests/test_command_coverage.py --require-complete
+COMMAND.COM traceability entries: 45
+  internal commands: 37
+  startup switches: 8
+  contract tested: 45
+  behavior observed: 0
+  uncovered: 0
+  operational switches: COPY=/-Y,/A,/B,/V,/Y DEL=/P DIR=/A,/B,/L,/O,/P,/S,/W ERASE=/P
+  startup surface: /C /D /E /F /K /MSG /P /Y
+python3 tests/test_utility_parser_coverage.py --require-complete
+Standalone utility parser switches: 200
+  utilities: 37
+  contract tested: 200
+  behavior observed: 0
+  uncovered: 0
+python3 tests/test_program_interface_coverage.py --require-complete
+Shipped executable interfaces: 64
+  source-derived switch grammars: 37
+  COMMAND.COM grammar: 1
+  SELECT.EXE mode grammar: 1
+  specialized interfaces: 25
+  unaccounted: 0
+python3 tests/test_debug_command_coverage.py --require-complete
+DEBUG interactive commands: 20
+  EMS subcommands: 4
+  contract tested: 24
+  uncovered: 0
+python3 tests/test_help_coverage.py --require-complete
+Shipped executable help surfaces: 64
+  /? behavior tested: 58
+  source-justified no-help interfaces: 6
+  indexed HELP database topics: 137
+  unaccounted: 0
+python3 tests/test_dos_interrupt_coverage.py --require-complete
+DOS interrupt surfaces: 11
+  contract tested: 11
+  behavior observed: 0
+  justified exclusions: 0
+  uncovered: 0
+python3 tests/test_internal_structure_coverage.py --require-complete
+Observable DOS structures: 8
+  contract tested: 8
+  uncovered: 0
+python3 tests/test_ems40_coverage.py --require-complete
+LIM EMS 4.0 functions: 30
+  contract tested: 30
+  uncovered: 0
+python3 tests/test_device_request_coverage.py --require-complete
+Device request surfaces: 142
+  contract tested: 94
+  justified exclusions: 48
+  uncovered: 0
+python3 tests/test_emm_relocation_budget.py
+.........
+----------------------------------------------------------------------
+Ran 9 tests in 0.000s
+
+OK
+python3 tests/test_emm_live_owners.py
+..........
+----------------------------------------------------------------------
+Ran 10 tests in 0.003s
+
+OK
+python3 tests/report_emm386_residency.py --check src/MEMM/MEMM/EMM386.MAP
+# EMM386 residency census
+
+Map: `src/MEMM/MEMM/EMM386.MAP`
+
+## Locked-XMS relocation tail (source model)
+
+| Reservation or consumer | Bytes |
+| --- | ---: |
+| MEMREQ reservation, separate from EMS pool | 77,824 |
+| InitTab PAGESEG-through-LAST_start plus alignment | 42,032 |
+| RelocateText copy plus alignment | 18,739 |
+| Unconsumed reservation after both requests | 17,053 |
+
+Assumes the compiled NOHIMEM XMS path and both successful requests.
+Unused reservation is locked capacity, not a live VDATA copy or a saving.
+Validate selector ownership and runtime bounds before consuming it.
+
+| Segment | Link address | Linked bytes | Lifetime |
+| --- | ---: | ---: | --- |
+| R_CODE | `0000:0000` | 355 | retained real-mode gateway |
+| GDT | `0017:0000` | 176 | retained descriptor state |
+| LDT | `0022:0000` | 0 | empty |
+| _DATA | `0022:0000` | 398 | retained mutable runtime data |
+| CONST | `003A:000E` | 177 | retained runtime data |
+| CONST2 | `0046:0000` | 0 | retained runtime data |
+| CONST | `0046:0000` | 0 | retained runtime data |
+| _BSS | `0046:0000` | 10 | retained mutable runtime data |
+| _TEXT | `0046:000A` | 18,717 | split retained/relocated code |
+| VDATA | `04D8:0008` | 49,152 | dynamic data compacted into low _TEXT suffix |
+| PAGESEG | `10D9:0000` | 28,672 | relocated to locked XMS |
+| IDT | `17D9:0000` | 960 | relocated to locked XMS |
+| TSS | `1815:0000` | 8,297 | relocated to locked XMS |
+| LAST | `1A1C:0000` | 8,785 | discarded initialization state |
+| STACK | `1C42:0000` | 1,024 | discarded initialization stack |
+
+## Retained static low-image layout
+
+| Range | Bytes | Owner |
+| ---: | ---: | --- |
+| `0000h..0163h` | 355 | R_CODE real-mode gateway |
+| `0163h..0170h` | 13 | anonymous alignment gap |
+| `0170h..0220h` | 176 | GDT descriptor state |
+| `0220h..03AEh` | 398 | DGROUP mutable data |
+| `03AEh..045Fh` | 177 | DGROUP constants |
+| `045Fh..0460h` | 1 | anonymous alignment gap |
+| `0460h..046Ah` | 10 | DGROUP BSS |
+| `046Ah..0771h` | 775 | retained/dual-mode _TEXT prefix |
+| **Total** | **1,905** | — |
+
+The full-depth linked initialization stack follows the discardable LAST segment and is outside the installed allocation. After VDATA compaction, the installed image places a separate 512-byte protected stack after the selected runtime-sized data.
+
+## Retained `_TEXT` ranges by linked module
+
+| Range | Bytes | Owner |
+| ---: | ---: | --- |
+| `0000h..006Fh` | 111 | anonymous _TEXT prefix |
+| `006Fh..00E5h` | 118 | emm.obj(emm.obj) |
+| `00E5h..00FFh` | 26 | retreal.obj(retreal.obj) |
+| `00FFh..0245h` | 326 | errhndlr.obj(errhndlr.obj) |
+| `0245h..0276h` | 49 | ekbd.obj(ekbd.obj) |
+| `0276h..028Eh` | 24 | rrtrap.obj(rrtrap.obj) |
+| `028Eh..02BAh` | 44 | a20trap.obj(a20trap.obj) |
+| `02BAh..0307h` | 77 | util.obj(util.obj) |
+| **Total** | **775** | — |
+
+## Retained `_DATA` ownership
+
+| Range | Bytes | Owner |
+| ---: | ---: | --- |
+| `0000h..0096h` | 150 | driver state and fatal-error text |
+| `0096h..00CAh` | 52 | EMS runtime tables, counters, and pointers |
+| `00CAh..00CAh` | 0 | EMS/error-state alignment |
+| `00CAh..00D6h` | 12 | error dialog IRQ masks and saved fault record |
+| `00D6h..00DAh` | 4 | A20 and OEM transition state and alignment |
+| `00DAh..016Ah` | 144 | DMA snapshot and page metadata |
+| `016Ah..018Eh` | 36 | move-block status and padding |
+| **Total** | **398** | — |
+
+## Proposed high-data capacity, not installed relocation
+
+| Profile | Payload bytes | With alignment | Shortfall | Extra 4 KiB pages |
+| --- | ---: | ---: | ---: | ---: |
+| Selected | 1,904 | 1,907 | 0 | 0 |
+| Combined arithmetic maxima | 48,383 | 48,386 | 31,333 | 8 |
+
+Extra pages are a proposed reservation top-up, not stolen EMS backing.
+The combined maximum is a sizing bound, not a proven bootable hardware profile.
+Low gates/selectors, failure fallback and runtime publication remain unqualified.
+
+## Table address window (exclusive word break)
+
+| Profile and addressing | Origin | End | Bytes beyond FFFFh |
+| --- | ---: | ---: | ---: |
+| Selected current initialization | 19,304 | 21,208 | 0 |
+| Combined maxima at current origin | 19,304 | 67,687 | 2,152 |
+| Combined maxima, proposed object-relative owner | 0 | 48,383 | 0 |
+
+An overflowing sizing bound is not a supported-machine boot claim.
+The proposed high owner must normalize all roots, including current FRS,
+and preflight staging before writes; a later high copy cannot repair wrap.
+
+
+## Selected installed tail
+
+| Range | Bytes | Owner |
+| ---: | ---: | --- |
+| `0771h..0971h` | 512 | saved LIM 3.2 maps |
+| `0971h..0A71h` | 256 | handle page-index/count records |
+| `0A71h..0C71h` | 512 | eight-byte handle names |
+| `0C71h..0CF1h` | 128 | allocated-page index array |
+| `0CF1h..0D71h` | 128 | free-page index array |
+| `0D71h..0E71h` | 256 | physical page-table entries |
+| `0E71h..0E77h` | 6 | runtime-sized mappable-window indexes |
+| `0E77h..0E77h` | 0 | sparse Pn= exception pairs |
+| `0E77h..0E79h` | 2 | runtime-sized DMA page list |
+| `0E79h..0EE1h` | 104 | normal plus alternate register sets |
+| `0EE1h..0EF0h` | 15 | installed stack alignment |
+| `0EF0h..10F0h` | 512 | protected stack |
+| **Total** | **2,431** | — |
+
+Selected layout: `H=64`, `A=7`, 64 EMS pages, 6 mappable windows, and 0 sparse `Pn=` assignments, with 1 DMA page. The computed paragraph-rounded retained-layout end is **4,336 bytes**.
+
+## Linker-visible symbols
+
+The `_TEXT` ownership boundary is `IOTrap_Tab` at `0046:0311`: 775 low bytes and 17,942 protected-only bytes.
+
+| Lifetime | Symbols |
+| --- | ---: |
+| absolute/link-time constant | 3 |
+| discarded initialization stack | 2 |
+| discarded initialization state | 85 |
+| dynamic data compacted into low _TEXT suffix | 1 |
+| non-low _TEXT copy in locked XMS | 206 |
+| relocated to locked XMS | 2 |
+| retained mutable runtime data | 65 |
+| retained real-mode gateway | 23 |
+| retained/dual-mode _TEXT prefix | 18 |
+| UNCLASSIFIED | 0 |
+python3 tests/report_emm386_residency.py --check --page-assignments 20 \
+	src/MEMM/MEMM/EMM386.MAP
+# EMM386 residency census
+
+Map: `src/MEMM/MEMM/EMM386.MAP`
+
+## Locked-XMS relocation tail (source model)
+
+| Reservation or consumer | Bytes |
+| --- | ---: |
+| MEMREQ reservation, separate from EMS pool | 77,824 |
+| InitTab PAGESEG-through-LAST_start plus alignment | 42,032 |
+| RelocateText copy plus alignment | 18,739 |
+| Unconsumed reservation after both requests | 17,053 |
+
+Assumes the compiled NOHIMEM XMS path and both successful requests.
+Unused reservation is locked capacity, not a live VDATA copy or a saving.
+Validate selector ownership and runtime bounds before consuming it.
+
+| Segment | Link address | Linked bytes | Lifetime |
+| --- | ---: | ---: | --- |
+| R_CODE | `0000:0000` | 355 | retained real-mode gateway |
+| GDT | `0017:0000` | 176 | retained descriptor state |
+| LDT | `0022:0000` | 0 | empty |
+| _DATA | `0022:0000` | 398 | retained mutable runtime data |
+| CONST | `003A:000E` | 177 | retained runtime data |
+| CONST2 | `0046:0000` | 0 | retained runtime data |
+| CONST | `0046:0000` | 0 | retained runtime data |
+| _BSS | `0046:0000` | 10 | retained mutable runtime data |
+| _TEXT | `0046:000A` | 18,717 | split retained/relocated code |
+| VDATA | `04D8:0008` | 49,152 | dynamic data compacted into low _TEXT suffix |
+| PAGESEG | `10D9:0000` | 28,672 | relocated to locked XMS |
+| IDT | `17D9:0000` | 960 | relocated to locked XMS |
+| TSS | `1815:0000` | 8,297 | relocated to locked XMS |
+| LAST | `1A1C:0000` | 8,785 | discarded initialization state |
+| STACK | `1C42:0000` | 1,024 | discarded initialization stack |
+
+## Retained static low-image layout
+
+| Range | Bytes | Owner |
+| ---: | ---: | --- |
+| `0000h..0163h` | 355 | R_CODE real-mode gateway |
+| `0163h..0170h` | 13 | anonymous alignment gap |
+| `0170h..0220h` | 176 | GDT descriptor state |
+| `0220h..03AEh` | 398 | DGROUP mutable data |
+| `03AEh..045Fh` | 177 | DGROUP constants |
+| `045Fh..0460h` | 1 | anonymous alignment gap |
+| `0460h..046Ah` | 10 | DGROUP BSS |
+| `046Ah..0771h` | 775 | retained/dual-mode _TEXT prefix |
+| **Total** | **1,905** | — |
+
+The full-depth linked initialization stack follows the discardable LAST segment and is outside the installed allocation. After VDATA compaction, the installed image places a separate 512-byte protected stack after the selected runtime-sized data.
+
+## Retained `_TEXT` ranges by linked module
+
+| Range | Bytes | Owner |
+| ---: | ---: | --- |
+| `0000h..006Fh` | 111 | anonymous _TEXT prefix |
+| `006Fh..00E5h` | 118 | emm.obj(emm.obj) |
+| `00E5h..00FFh` | 26 | retreal.obj(retreal.obj) |
+| `00FFh..0245h` | 326 | errhndlr.obj(errhndlr.obj) |
+| `0245h..0276h` | 49 | ekbd.obj(ekbd.obj) |
+| `0276h..028Eh` | 24 | rrtrap.obj(rrtrap.obj) |
+| `028Eh..02BAh` | 44 | a20trap.obj(a20trap.obj) |
+| `02BAh..0307h` | 77 | util.obj(util.obj) |
+| **Total** | **775** | — |
+
+## Retained `_DATA` ownership
+
+| Range | Bytes | Owner |
+| ---: | ---: | --- |
+| `0000h..0096h` | 150 | driver state and fatal-error text |
+| `0096h..00CAh` | 52 | EMS runtime tables, counters, and pointers |
+| `00CAh..00CAh` | 0 | EMS/error-state alignment |
+| `00CAh..00D6h` | 12 | error dialog IRQ masks and saved fault record |
+| `00D6h..00DAh` | 4 | A20 and OEM transition state and alignment |
+| `00DAh..016Ah` | 144 | DMA snapshot and page metadata |
+| `016Ah..018Eh` | 36 | move-block status and padding |
+| **Total** | **398** | — |
+
+## Proposed high-data capacity, not installed relocation
+
+| Profile | Payload bytes | With alignment | Shortfall | Extra 4 KiB pages |
+| --- | ---: | ---: | ---: | ---: |
+| Selected | 1,944 | 1,947 | 0 | 0 |
+| Combined arithmetic maxima | 48,383 | 48,386 | 31,333 | 8 |
+
+Extra pages are a proposed reservation top-up, not stolen EMS backing.
+The combined maximum is a sizing bound, not a proven bootable hardware profile.
+Low gates/selectors, failure fallback and runtime publication remain unqualified.
+
+## Table address window (exclusive word break)
+
+| Profile and addressing | Origin | End | Bytes beyond FFFFh |
+| --- | ---: | ---: | ---: |
+| Selected current initialization | 19,304 | 21,248 | 0 |
+| Combined maxima at current origin | 19,304 | 67,687 | 2,152 |
+| Combined maxima, proposed object-relative owner | 0 | 48,383 | 0 |
+
+An overflowing sizing bound is not a supported-machine boot claim.
+The proposed high owner must normalize all roots, including current FRS,
+and preflight staging before writes; a later high copy cannot repair wrap.
+
+
+## Selected installed tail
+
+| Range | Bytes | Owner |
+| ---: | ---: | --- |
+| `0771h..0971h` | 512 | saved LIM 3.2 maps |
+| `0971h..0A71h` | 256 | handle page-index/count records |
+| `0A71h..0C71h` | 512 | eight-byte handle names |
+| `0C71h..0CF1h` | 128 | allocated-page index array |
+| `0CF1h..0D71h` | 128 | free-page index array |
+| `0D71h..0E71h` | 256 | physical page-table entries |
+| `0E71h..0E77h` | 6 | runtime-sized mappable-window indexes |
+| `0E77h..0E9Fh` | 40 | sparse Pn= exception pairs |
+| `0E9Fh..0EA1h` | 2 | runtime-sized DMA page list |
+| `0EA1h..0F09h` | 104 | normal plus alternate register sets |
+| `0F09h..0F10h` | 7 | installed stack alignment |
+| `0F10h..1110h` | 512 | protected stack |
+| **Total** | **2,463** | — |
+
+Selected layout: `H=64`, `A=7`, 64 EMS pages, 6 mappable windows, and 20 sparse `Pn=` assignments, with 1 DMA page. The computed paragraph-rounded retained-layout end is **4,368 bytes**.
+
+## Linker-visible symbols
+
+The `_TEXT` ownership boundary is `IOTrap_Tab` at `0046:0311`: 775 low bytes and 17,942 protected-only bytes.
+
+| Lifetime | Symbols |
+| --- | ---: |
+| absolute/link-time constant | 3 |
+| discarded initialization stack | 2 |
+| discarded initialization state | 85 |
+| dynamic data compacted into low _TEXT suffix | 1 |
+| non-low _TEXT copy in locked XMS | 206 |
+| relocated to locked XMS | 2 |
+| retained mutable runtime data | 65 |
+| retained real-mode gateway | 23 |
+| retained/dual-mode _TEXT prefix | 18 |
+| UNCLASSIFIED | 0 |
+python3 tests/report_emm386_residency.py --check --handles 255 \
+	--alternate-registers 254 --ems-pages 2048 --physical-pages 52 \
+	--page-assignments 20 --dma-pages 16 src/MEMM/MEMM/EMM386.MAP
+# EMM386 residency census
+
+Map: `src/MEMM/MEMM/EMM386.MAP`
+
+## Locked-XMS relocation tail (source model)
+
+| Reservation or consumer | Bytes |
+| --- | ---: |
+| MEMREQ reservation, separate from EMS pool | 77,824 |
+| InitTab PAGESEG-through-LAST_start plus alignment | 42,032 |
+| RelocateText copy plus alignment | 18,739 |
+| Unconsumed reservation after both requests | 17,053 |
+
+Assumes the compiled NOHIMEM XMS path and both successful requests.
+Unused reservation is locked capacity, not a live VDATA copy or a saving.
+Validate selector ownership and runtime bounds before consuming it.
+
+| Segment | Link address | Linked bytes | Lifetime |
+| --- | ---: | ---: | --- |
+| R_CODE | `0000:0000` | 355 | retained real-mode gateway |
+| GDT | `0017:0000` | 176 | retained descriptor state |
+| LDT | `0022:0000` | 0 | empty |
+| _DATA | `0022:0000` | 398 | retained mutable runtime data |
+| CONST | `003A:000E` | 177 | retained runtime data |
+| CONST2 | `0046:0000` | 0 | retained runtime data |
+| CONST | `0046:0000` | 0 | retained runtime data |
+| _BSS | `0046:0000` | 10 | retained mutable runtime data |
+| _TEXT | `0046:000A` | 18,717 | split retained/relocated code |
+| VDATA | `04D8:0008` | 49,152 | dynamic data compacted into low _TEXT suffix |
+| PAGESEG | `10D9:0000` | 28,672 | relocated to locked XMS |
+| IDT | `17D9:0000` | 960 | relocated to locked XMS |
+| TSS | `1815:0000` | 8,297 | relocated to locked XMS |
+| LAST | `1A1C:0000` | 8,785 | discarded initialization state |
+| STACK | `1C42:0000` | 1,024 | discarded initialization stack |
+
+## Retained static low-image layout
+
+| Range | Bytes | Owner |
+| ---: | ---: | --- |
+| `0000h..0163h` | 355 | R_CODE real-mode gateway |
+| `0163h..0170h` | 13 | anonymous alignment gap |
+| `0170h..0220h` | 176 | GDT descriptor state |
+| `0220h..03AEh` | 398 | DGROUP mutable data |
+| `03AEh..045Fh` | 177 | DGROUP constants |
+| `045Fh..0460h` | 1 | anonymous alignment gap |
+| `0460h..046Ah` | 10 | DGROUP BSS |
+| `046Ah..0771h` | 775 | retained/dual-mode _TEXT prefix |
+| **Total** | **1,905** | — |
+
+The full-depth linked initialization stack follows the discardable LAST segment and is outside the installed allocation. After VDATA compaction, the installed image places a separate 512-byte protected stack after the selected runtime-sized data.
+
+## Retained `_TEXT` ranges by linked module
+
+| Range | Bytes | Owner |
+| ---: | ---: | --- |
+| `0000h..006Fh` | 111 | anonymous _TEXT prefix |
+| `006Fh..00E5h` | 118 | emm.obj(emm.obj) |
+| `00E5h..00FFh` | 26 | retreal.obj(retreal.obj) |
+| `00FFh..0245h` | 326 | errhndlr.obj(errhndlr.obj) |
+| `0245h..0276h` | 49 | ekbd.obj(ekbd.obj) |
+| `0276h..028Eh` | 24 | rrtrap.obj(rrtrap.obj) |
+| `028Eh..02BAh` | 44 | a20trap.obj(a20trap.obj) |
+| `02BAh..0307h` | 77 | util.obj(util.obj) |
+| **Total** | **775** | — |
+
+## Retained `_DATA` ownership
+
+| Range | Bytes | Owner |
+| ---: | ---: | --- |
+| `0000h..0096h` | 150 | driver state and fatal-error text |
+| `0096h..00CAh` | 52 | EMS runtime tables, counters, and pointers |
+| `00CAh..00CAh` | 0 | EMS/error-state alignment |
+| `00CAh..00D6h` | 12 | error dialog IRQ masks and saved fault record |
+| `00D6h..00DAh` | 4 | A20 and OEM transition state and alignment |
+| `00DAh..016Ah` | 144 | DMA snapshot and page metadata |
+| `016Ah..018Eh` | 36 | move-block status and padding |
+| **Total** | **398** | — |
+
+## Proposed high-data capacity, not installed relocation
+
+| Profile | Payload bytes | With alignment | Shortfall | Extra 4 KiB pages |
+| --- | ---: | ---: | ---: | ---: |
+| Selected | 48,383 | 48,386 | 31,333 | 8 |
+| Combined arithmetic maxima | 48,383 | 48,386 | 31,333 | 8 |
+
+Extra pages are a proposed reservation top-up, not stolen EMS backing.
+The combined maximum is a sizing bound, not a proven bootable hardware profile.
+Low gates/selectors, failure fallback and runtime publication remain unqualified.
+
+## Table address window (exclusive word break)
+
+| Profile and addressing | Origin | End | Bytes beyond FFFFh |
+| --- | ---: | ---: | ---: |
+| Selected current initialization | 19,304 | 67,687 | 2,152 |
+| Combined maxima at current origin | 19,304 | 67,687 | 2,152 |
+| Combined maxima, proposed object-relative owner | 0 | 48,383 | 0 |
+
+An overflowing sizing bound is not a supported-machine boot claim.
+The proposed high owner must normalize all roots, including current FRS,
+and preflight staging before writes; a later high copy cannot repair wrap.
+
+
+## Selected installed tail
+
+| Range | Bytes | Owner |
+| ---: | ---: | --- |
+| `0771h..0F69h` | 2,040 | saved LIM 3.2 maps |
+| `0F69h..1365h` | 1,020 | handle page-index/count records |
+| `1365h..1B5Dh` | 2,040 | eight-byte handle names |
+| `1B5Dh..2B5Dh` | 4,096 | allocated-page index array |
+| `2B5Dh..3B5Dh` | 4,096 | free-page index array |
+| `3B5Dh..5B5Dh` | 8,192 | physical page-table entries |
+| `5B5Dh..5B91h` | 52 | runtime-sized mappable-window indexes |
+| `5B91h..5BB9h` | 40 | sparse Pn= exception pairs |
+| `5BB9h..5BD9h` | 32 | runtime-sized DMA page list |
+| `5BD9h..C470h` | 26,775 | normal plus alternate register sets |
+| `C470h..C670h` | 512 | protected stack |
+| **Total** | **48,895** | — |
+
+Selected layout: `H=255`, `A=254`, 2048 EMS pages, 52 mappable windows, and 20 sparse `Pn=` assignments, with 16 DMA pages. The computed paragraph-rounded retained-layout end is **50,800 bytes**.
+
+## Linker-visible symbols
+
+The `_TEXT` ownership boundary is `IOTrap_Tab` at `0046:0311`: 775 low bytes and 17,942 protected-only bytes.
+
+| Lifetime | Symbols |
+| --- | ---: |
+| absolute/link-time constant | 3 |
+| discarded initialization stack | 2 |
+| discarded initialization state | 85 |
+| dynamic data compacted into low _TEXT suffix | 1 |
+| non-low _TEXT copy in locked XMS | 206 |
+| relocated to locked XMS | 2 |
+| retained mutable runtime data | 65 |
+| retained real-mode gateway | 23 |
+| retained/dual-mode _TEXT prefix | 18 |
+| UNCLASSIFIED | 0 |
+python3 tests/test_ru_files_qemu.py
+Russian filesystem artifacts: /Users/ddanila/fun/msdos/out/ru-files-lm0wo_an
+PASS: Russian filenames high
+PASS: Russian filenames low
+python3 tests/test_ru_text_qemu.py
+Russian text artifacts: /Users/ddanila/fun/msdos/out/ru-text-mcf28jmw
+PASS: Russian text workflow high
+PASS: Russian text workflow low
+python3 tests/test_fc_version.py
+[{"version": "3.9", "accepted": false}, {"version": "3.10", "accepted": true}, {"version": "5.0", "accepted": true}, {"version": "6.0", "accepted": true}, {"version": "6.22", "accepted": true}, {"version": "6.23", "accepted": false}]
+python3 tests/test_fc_qemu.py
+Artifacts: /Users/ddanila/fun/msdos/out/fc-qemu-j3c6ckbs
+LOW PASS
+HIGH PASS
+COMMAND_CRITICAL_ABI=1 bash tests/test_command_startup_qemu.sh
+=== COMMAND.COM startup-switch tests (QEMU) ===
+Critical ABI=1 messages=disk no-hook=0 action=fail
+  PASS: COMMAND /P ignores EXIT and continues reading the permanent shell
+  PASS: RENAME existing target preserves both names and exact payloads
+  PASS: COPY destination /A preserves the exact source bytes on real DOS
+  PASS: COPY source /A plus destination /B retains one EOF marker on real DOS
+  PASS: DATE sets and reports the exact requested calendar date
+  PASS: TIME sets and reports hours, minutes, seconds, and ticking hundredths
+  PASS: DATE rejects an impossible calendar date and returns after empty input
+  PASS: TIME rejects an out-of-range hour and returns after empty input
+  PASS: COMMAND /E assigns the exact requested child environment capacity
+  PASS: output redirection survives external EXEC/reload and append
+  PASS: COMMAND /K executes its initial command and remains active until EXIT
+  PASS: DOS=HIGH permanent COMMAND survives critical errors (messages=disk)
+  PASS: COMMAND /P remains the active interpreter
+  PASS: critical fail preserves foreign stack/registers and JFNs across repeated opens
+  PASS: COMMAND /P /MSG accepts resident in-memory messages
+  PASS: COMMAND /D startup reached the permanent child without date/time input
+
+Results: 16 passed, 0 failed
+COMMAND_CRITICAL_ABI=1 COMMAND_CRITICAL_ACTION=retry bash tests/test_command_startup_qemu.sh
+=== COMMAND.COM startup-switch tests (QEMU) ===
+Critical ABI=1 messages=disk no-hook=0 action=retry
+  PASS: COMMAND /P ignores EXIT and continues reading the permanent shell
+  PASS: RENAME existing target preserves both names and exact payloads
+  PASS: COPY destination /A preserves the exact source bytes on real DOS
+  PASS: COPY source /A plus destination /B retains one EOF marker on real DOS
+  PASS: DATE sets and reports the exact requested calendar date
+  PASS: TIME sets and reports hours, minutes, seconds, and ticking hundredths
+  PASS: DATE rejects an impossible calendar date and returns after empty input
+  PASS: TIME rejects an out-of-range hour and returns after empty input
+  PASS: COMMAND /E assigns the exact requested child environment capacity
+  PASS: output redirection survives external EXEC/reload and append
+  PASS: COMMAND /K executes its initial command and remains active until EXIT
+  PASS: DOS=HIGH permanent COMMAND survives critical errors (messages=disk)
+  PASS: COMMAND /P remains the active interpreter
+  PASS: critical retry preserves foreign stack/registers and JFNs across repeated opens
+  PASS: COMMAND /P /MSG accepts resident in-memory messages
+  PASS: COMMAND /D startup reached the permanent child without date/time input
+
+Results: 16 passed, 0 failed
+python3 kvikdos/tests/arena_boundary/run.py kvikdos/kvikdos-soft
+PASS KVIKDOS_AZZY=0
+PASS KVIKDOS_AZZY=1
+python3 tests/test_command_shift_qemu.py
+Artifacts: /Users/ddanila/fun/msdos/out/command-shift-1qzoeehh
+LOW PASS
+HIGH PASS
+bash tests/run_tests.sh
+=== Section 1: output files exist ===
+  PASS: MESSAGES/USA-MS.IDX
+  PASS: MAPPER/MAPPER.LIB
+  PASS: INC/boot.inc
+  PASS: BIOS/IO.SYS
+  PASS: BIOS/SYSMENU.OVL
+  PASS: DOS/MSDOS.SYS
+  PASS: DEV/HIMEM/HIMEM.SYS
+  PASS: CMD/COMMAND/COMMAND.COM
+  PASS: CMD/SYS/SYS.COM
+  PASS: CMD/FORMAT/FORMAT.COM
+  PASS: CMD/EXPAND/EXPAND.EXE
+  PASS: CMD/SETUP/SETUP.EXE
+  PASS: CMD/CHKDSK/CHKDSK.COM
+  PASS: CMD/CHOICE/CHOICE.COM
+  PASS: CMD/DELTREE/DELTREE.EXE
+  PASS: CMD/DEFRAG/DEFRAG.EXE
+  PASS: CMD/LOADFIX/LOADFIX.COM
+  PASS: CMD/MOVE/MOVE.EXE
+  PASS: CMD/MSD/MSD.EXE
+  PASS: CMD/SCANDISK/SCANDISK.EXE
+  PASS: CMD/SCANDISK/SCANDISK.INI
+  PASS: CMD/MEMMAKER/MEMMAKER.EXE
+  PASS: CMD/INTERLNK/INTERLNK.EXE
+  PASS: CMD/INTERSVR/INTERSVR.EXE
+  PASS: DEV/ANSI/ANSI.SYS
+  PASS: DEV/VDISK/VDISK.SYS
+  PASS: DEV/COUNTRY/COUNTRY.SYS
+  PASS: DEV/RAMDRIVE/RAMDRIVE.SYS
+  PASS: DEV/KEYBOARD/KEYBOARD.SYS
+  PASS: DEV/PRINTER/PRINTER.SYS
+  PASS: DEV/DISPLAY/DISPLAY.SYS
+  PASS: DEV/SMARTDRV/SMARTDRV.EXE
+  PASS: DEV/SMARTDRV/FLUSH13.EXE
+  PASS: DEV/DRIVER/DRIVER.SYS
+  PASS: DEV/XMA2EMS/XMA2EMS.SYS
+  PASS: DEV/XMAEM/XMAEM.SYS
+  PASS: SELECT/SELECT.EXE
+  PASS: SELECT/SELECT.COM
+  PASS: SELECT/SELECT.HLP
+  PASS: SELECT/SELECT.DAT
+  PASS: CMD/DEBUG/DEBUG.COM
+  PASS: CMD/MEM/MEM.EXE
+  PASS: CMD/FDISK/FDISK.EXE
+  PASS: CMD/MORE/MORE.COM
+  PASS: CMD/SORT/SORT.EXE
+  PASS: CMD/LABEL/LABEL.COM
+  PASS: CMD/FIND/FIND.EXE
+  PASS: CMD/TREE/TREE.COM
+  PASS: CMD/COMP/COMP.COM
+  PASS: CMD/ATTRIB/ATTRIB.EXE
+  PASS: CMD/EDLIN/EDLIN.COM
+  PASS: CMD/FC/FC.EXE
+  PASS: CMD/NLSFUNC/NLSFUNC.EXE
+  PASS: CMD/ASSIGN/ASSIGN.COM
+  PASS: CMD/XCOPY/XCOPY.EXE
+  PASS: CMD/DISKCOMP/DISKCOMP.COM
+  PASS: CMD/DISKCOPY/DISKCOPY.COM
+  PASS: CMD/SETVER/SETVER.COM
+  PASS: CMD/DOSKEY/DOSKEY.COM
+  PASS: CMD/HELP/HELP.COM
+  PASS: CMD/HELP/FASTHELP.COM
+  PASS: CMD/HELP/HELP.HLP
+  PASS: CMD/MIRROR/MIRROR.COM
+  PASS: CMD/UNDELETE/UNDELETE.COM
+  PASS: CMD/UNFORMAT/UNFORMAT.COM
+  PASS: CMD/APPEND/APPEND.EXE
+  PASS: CMD/RECOVER/RECOVER.COM
+  PASS: CMD/FASTOPEN/FASTOPEN.EXE
+  PASS: CMD/PRINT/PRINT.COM
+  PASS: CMD/FILESYS/FILESYS.EXE
+  PASS: CMD/REPLACE/REPLACE.EXE
+  PASS: CMD/JOIN/JOIN.EXE
+  PASS: CMD/SUBST/SUBST.EXE
+  PASS: CMD/BACKUP/BACKUP.COM
+  PASS: CMD/RESTORE/RESTORE.COM
+  PASS: CMD/GRAFTABL/GRAFTABL.COM
+  PASS: CMD/KEYB/KEYB.COM
+  PASS: CMD/SHARE/SHARE.EXE
+  PASS: CMD/EXE2BIN/EXE2BIN.EXE
+  PASS: CMD/GRAPHICS/GRAPHICS.COM
+  PASS: CMD/IFSFUNC/IFSFUNC.EXE
+  PASS: CMD/MODE/MODE.COM
+  PASS: MEMM/MEMM/EMM386.EXE
+
+=== Section 2: kvikdos smoke tests ===
+kvikdos[pid=17748]: dos terminate int=0x21 ah=0x4c al=0 cs=9407 ip=2931
+  PASS: COMMAND.COM /C EXIT
+
+=== Section 3: /? help smoke tests ===
+  PASS: MEM /?
+  PASS: ATTRIB /?
+  PASS: XCOPY /?
+  PASS: FORMAT /?
+  PASS: FC /?
+  PASS: JOIN /?
+  PASS: SUBST /?
+  PASS: REPLACE /?
+  PASS: SORT /?
+  PASS: FIND /?
+  PASS: NLSFUNC /?
+  PASS: TREE /?
+  PASS: BACKUP /?
+  PASS: RESTORE /?
+  PASS: DISKCOMP /?
+  PASS: DISKCOPY /?
+  PASS: SETVER /?
+  PASS: DOSKEY /?
+  PASS: GRAFTABL /?
+  PASS: LABEL /?
+  PASS: COMP /?
+  PASS: ASSIGN /?
+  PASS: SHARE /?
+  PASS: APPEND /?
+  PASS: MORE /?
+  PASS: SYS /?
+  PASS: EXE2BIN /?
+  PASS: FASTOPEN /?
+  PASS: KEYB /?
+  PASS: GRAPHICS /?
+  PASS: MODE /?
+  PASS: PRINT /?
+  PASS: POWER /?
+  PASS: SMARTDRV /?
+  PASS: EDLIN /?
+  PASS: RECOVER /?
+  PASS: CHKDSK /?
+  PASS: CHOICE /?
+  PASS: DELTREE /?
+  PASS: DEFRAG /?
+  PASS: LOADFIX /?
+  PASS: MOVE /?
+  PASS: MSD /?
+  PASS: SCANDISK /?
+  PASS: MEMMAKER /?
+  PASS: FILESYS /?
+  PASS: DEBUG /?
+  PASS: FDISK /?
+  PASS: IFSFUNC /?
+  PASS: INTERLNK /?
+  PASS: INTERSVR /?
+  PASS: EXPAND /?
+  PASS: SETUP /?
+  PASS: HELP /?
+  PASS: FASTHELP /?
+  PASS: MIRROR /?
+  PASS: UNDELETE /?
+  PASS: UNFORMAT /?
+
+=== Section 4: COMMAND.COM built-in /? help (static check) ===
+  PASS: VER /? (static)
+  PASS: DIR /? (static)
+  PASS: COPY /? (static)
+  PASS: SET /? (static)
+  PASS: PROMPT /? (static)
+  PASS: PATH /? (static)
+  PASS: CD /? (static)
+  PASS: CHDIR /? (static)
+  PASS: MD /? (static)
+  PASS: MKDIR /? (static)
+  PASS: RD /? (static)
+  PASS: RMDIR /? (static)
+  PASS: PAUSE /? (static)
+  PASS: ERASE /? (static)
+  PASS: DEL /? (static)
+  PASS: RENAME /? (static)
+  PASS: TYPE /? (static)
+  PASS: VOL /? (static)
+  PASS: ECHO /? (static)
+  PASS: BREAK /? (static)
+  PASS: VERIFY /? (static)
+  PASS: CLS /? (static)
+  PASS: EXIT /? (static)
+  PASS: CTTY /? (static)
+  PASS: CHCP /? (static)
+  PASS: TRUENAME /? (static)
+  PASS: REM /? (static)
+  PASS: GOTO /? (static)
+  PASS: SHIFT /? (static)
+  PASS: IF /? (static)
+  PASS: FOR /? (static)
+  PASS: CALL /? (static)
+
+=== Section 5: E2E functional tests (kvikdos) ===
+  PASS: MEM (basic memory report)
+  PASS: FIND (search file for string)
+  PASS: FIND /V (inverted match)
+  PASS: FIND /N (line numbers)
+  PASS: FIND /C (count matches)
+  PASS: FIND /I (case-insensitive match)
+  PASS: FIND default matching remains case-sensitive
+  PASS: FIND /I folds letters only
+  PASS: FIND (multiple files)
+  PASS: FIND (no matches)
+  PASS: FIND /V /C (count non-matching)
+  PASS: FIND /V /N (numbered inverted matches)
+  PASS: FIND /C /N (count mode takes precedence over numbering)
+  PASS: FIND /V /C /N (inverted count takes precedence over numbering)
+  PASS: FIND duplicate switch (accepted idempotently)
+  PASS: FIND unknown switch (rejected with parser diagnostic and errorlevel 2)
+  PASS: FIND missing quoted search string (rejected with errorlevel 2)
+  PASS: FIND second quoted search string (rejected with errorlevel 2)
+  PASS: FIND errorlevel 2 (no args → exit code 2)
+  PASS: FC (identical files)
+  PASS: FC (different files)
+  PASS: FC /N (line numbers)
+  PASS: FC /B (binary diff)
+  PASS: FC /B (identical, binary)
+  PASS: FC automatic binary mode (.COM extension)
+  PASS: FC /B /L (incompatible line mode rejected)
+  PASS: FC /B /N (incompatible line mode rejected)
+  PASS: FC /B /2 (incompatible line mode rejected)
+  PASS: FC unknown switch (usage and errorlevel 1)
+  PASS: FC extra filename (usage and errorlevel 1)
+  PASS: FC /C (case-insensitive)
+  PASS: FC /W (compress whitespace)
+  PASS: FC /L (explicit ASCII)
+  PASS: FC /T (tabs preserved, files differ)
+  PASS: FC /T control (tabs expanded, files match)
+  PASS: FC /5 (higher resync count merges diff blocks)
+  PASS: TREE (directory listing)
+  PASS: TREE /F (filenames mode runs)
+  PASS: TREE (specific path)
+  PASS: TREE /A (alternate ASCII graphic chars)
+  PASS: TREE duplicate switch (rejected with parser error and errorlevel 1)
+  PASS: TREE unknown switch (rejected with parser error and errorlevel 1)
+  PASS: SORT (sort lines from stdin)
+  PASS: SORT /R (reverse sort)
+  PASS: SORT /+2 (sort by column)
+  PASS: SORT /+1 (accepted parser range endpoint)
+  PASS: SORT /+65535 (accepted parser range endpoint)
+  PASS: SORT /+0 (rejected outside parser range)
+  PASS: SORT /+65536 (rejected outside parser range)
+  PASS: SORT unknown switch (rejected with errorlevel 1)
+  PASS: SORT (from file)
+  PASS: COMP (identical files)
+  PASS: COMP (different files)
+  PASS: COMP (byte difference at offset)
+  PASS: COMP (hex byte values)
+  PASS: COMP (multiple differences — 4 errors)
+  PASS: COMP (10 mismatch limit)
+  PASS: COMP (file not found)
+  PASS: COMP (third filespec rejected with parser errorlevel 1)
+  PASS: ATTRIB (show attributes)
+  PASS: ATTRIB +R (set read-only)
+  PASS: ATTRIB -R (clear read-only)
+  PASS: ATTRIB +R +A (combined flags)
+  PASS: ATTRIB -A (clear archive)
+  PASS: ATTRIB +A (set archive)
+  PASS: ATTRIB +H +S (set hidden and system attributes)
+  PASS: ATTRIB -H -S (clear hidden and system attributes)
+  PASS: ATTRIB (missing file error)
+  PASS: ATTRIB (invalid switch error)
+  PASS: ATTRIB transitions preserve file payload
+  PASS: ATTRIB /S (recursive listing)
+  PASS: MORE (piped stdin)
+  PASS: MORE (from file)
+  PASS: DEBUG (launch and quit)
+  PASS: DEBUG R (register dump)
+  PASS: DEBUG R AX (set register)
+  PASS: DEBUG E+D (enter + dump bytes)
+  PASS: DEBUG F+D (fill memory)
+  PASS: DEBUG H (hex add/subtract: 1244 1224)
+  PASS: DEBUG C (compare memory — found difference)
+  PASS: DEBUG M+D (move memory)
+  PASS: DEBUG S (search memory — found 'll' at 102)
+  PASS: DEBUG A+U (assemble + unassemble)
+  PASS: DEBUG N+W (write file)
+  PASS: DEBUG N+W (file content verified)
+  PASS: DEBUG N+L (load file)
+  PASS: LABEL (show volume info)
+  PASS: EDLIN (open + list)
+  PASS: EDLIN (new file)
+  PASS: EDLIN (insert + list)
+  PASS: EDLIN (exit saves file)
+  PASS: EDLIN (delete line)
+  PASS: EDLIN (delete range)
+  PASS: EDLIN (edit line)
+  PASS: EDLIN (copy lines)
+  PASS: EDLIN (move lines)
+  PASS: EDLIN (search found)
+  PASS: EDLIN (search not found)
+  PASS: EDLIN (replace text)
+  PASS: EDLIN P (page displays lines)
+  PASS: EDLIN W setup (file created)
+  PASS: EDLIN (transfer file)
+  PASS: EDLIN /B (LINE3 visible after embedded ^Z)
+  PASS: EDLIN /B (LINE1 and LINE2 also present)
+  PASS: EDLIN (no /B: LINE3 absent — ^Z stops load)
+  PASS: REPLACE /A (add mode)
+  PASS: REPLACE (no args error)
+  PASS: REPLACE /A /S (incompatible combination rejected)
+  PASS: REPLACE /A /U (incompatible combination rejected)
+  PASS: REPLACE /A duplicate rejected
+  PASS: REPLACE /P duplicate rejected
+  PASS: REPLACE /R duplicate rejected
+  PASS: REPLACE /S duplicate rejected
+  PASS: REPLACE /U duplicate rejected
+  PASS: REPLACE /W duplicate rejected
+  PASS: REPLACE unknown switch rejected
+  PASS: REPLACE excess filespec rejected
+  PASS: REPLACE /U (source newer, replaced)
+  PASS: REPLACE /U (source older, no replacement)
+  PASS: XCOPY (no args error)
+  PASS: XCOPY /A duplicate rejected
+  PASS: XCOPY /E duplicate rejected
+  PASS: XCOPY /M duplicate rejected
+  PASS: XCOPY /P duplicate rejected
+  PASS: XCOPY /S duplicate rejected
+  PASS: XCOPY /V duplicate rejected
+  PASS: XCOPY /W duplicate rejected
+  PASS: XCOPY /D duplicate rejected
+  PASS: XCOPY unknown switch rejected
+  PASS: XCOPY excess filespec rejected
+  PASS: XCOPY date below DOS range rejected
+  PASS: XCOPY (copy single file)
+  PASS: XCOPY (file content verified)
+  PASS: XCOPY /S (copy subdirectory tree)
+  PASS: XCOPY /S (subdirectory file verified)
+  PASS: XCOPY /S /E (empty subdirectory created)
+  PASS: GRAFTABL /STATUS (code page info)
+  PASS: GRAFTABL /STA (short status synonym reaches code page query)
+  PASS: SUBST (no args, lists substitutions)
+  PASS: JOIN (no args, lists joins)
+  PASS: GRAFTABL 437 (load code page)
+  PASS: GRAFTABL 850 (load code page)
+  PASS: ASSIGN /STATUS (lists assignments)
+  PASS: EXE2BIN (minimal EXE to 1-byte BIN)
+  PASS: EXE2BIN (missing file error message)
+  PASS: MEM /PROGRAM (program listing)
+  PASS: MEM /DEBUG (debug listing)
+  PASS: MEM /DEBUG /PROGRAM (second switch rejected)
+  PASS: MEM /DEBUG /DEBUG (second switch rejected)
+  PASS: MEM /PROGRAM /PROGRAM (second switch rejected)
+  PASS: MEM unknown switch (rejected with errorlevel 1)
+  PASS: MEM positional operand (rejected with errorlevel 1)
+  PASS: MEM switch matching is case-insensitive
+  PASS: FC (nonexistent file error)
+  PASS: FC /A (abbreviated output with '...')
+  PASS: FC /LB1 (line buffer size applied)
+  PASS: FC /LB20 (line buffer size applied)
+  PASS: FC /LB without digits (historical default-buffer behavior)
+  PASS: FC /LB0 (zero-sized buffer rejected by allocation path)
+  PASS: FC /A control (no '...' without /A)
+  PASS: XCOPY /V (copy with verify)
+  PASS: XCOPY /V (file content verified)
+  PASS: XCOPY /A (copied only archived file)
+  PASS: XCOPY /A (archive bit preserved on source)
+  PASS: XCOPY /M (copied only archived file)
+  PASS: XCOPY /M (archive bit cleared on source)
+  PASS: XCOPY /A /M (last archive mode controls source attribute)
+  PASS: XCOPY /M /A (last archive mode controls source attribute)
+  PASS: XCOPY /D:01-01-90 (copied file dated 06/15/90)
+  PASS: XCOPY /D:12-31-90 (skipped file dated 06/15/90)
+  PASS: XCOPY /W (waited for key, then copied file)
+  PASS: REPLACE /R (replace read-only file)
+  PASS: REPLACE /S (recursive replacement)
+  PASS: REPLACE /S (SUB1 file content verified)
+  PASS: REPLACE /S (SUB2 file content verified)
+  PASS: REPLACE /W (waited for key, then replaced file)
+
+=== Section 6: COMMAND.COM built-in E2E tests (kvikdos) ===
+  PASS: COMMAND.COM /E:160 (minimum environment size accepted)
+  PASS: COMMAND.COM /E:32768 (maximum environment size accepted)
+  PASS: COMMAND.COM /E:159 (below-range value diagnosed before /C)
+  PASS: COMMAND.COM /E:32769 (above-range value diagnosed before /C)
+  PASS: COMMAND.COM duplicate /E (diagnosed before /C)
+  PASS: COMMAND.COM /MSG without /P (required relationship diagnosed)
+  PASS: COMMAND.COM /D (startup date/time suppression switch accepted)
+  PASS: COMMAND.COM /F (critical-error fail switch accepted)
+  PASS: COMMAND.COM /C consumes the remaining command line verbatim
+  PASS: COMMAND.COM VER reports the DOS 6.22 product version
+  PASS: COMMAND.COM ECHO
+  PASS: COMMAND.COM SET (lists env)
+  PASS: COMMAND.COM PATH (show)
+  PASS: COMMAND.COM DIR
+  PASS: COMMAND.COM DIR /W
+  PASS: COMMAND.COM DIR /B (bare name without header or trailer)
+  PASS: COMMAND.COM DIR /L (lowercase bare listing)
+  PASS: COMMAND.COM DIR /A:-D (excludes directories)
+  PASS: COMMAND.COM DIR duplicate /P (rejected by parser)
+  PASS: COMMAND.COM DIR unknown switch (rejected by parser)
+  PASS: COMMAND.COM DIRCMD defaults and /- switch overrides
+  PASS: COMMAND.COM DIR /O:N (name order)
+  PASS: COMMAND.COM DIR /O:-N (reverse name order)
+  PASS: COMMAND.COM DIR /O:E (extension order)
+  PASS: COMMAND.COM DIR /O:S (size order)
+  PASS: COMMAND.COM DIR /O:D (date order)
+  PASS: COMMAND.COM DIR /O:G-N (multi-key directory grouping)
+  PASS: COMMAND.COM DIR /S /B (recursive full paths and wildcard filtering)
+  PASS: COMMAND.COM DIR invalid /O key rejected
+  PASS: COMMAND.COM DIR duplicate /O rejected
+  PASS: COMMAND.COM CHCP (queries active code page 437)
+  PASS: COMMAND.COM CLS (emits exact ESC[2J clear-screen sequence)
+  PASS: COMMAND.COM VOL
+  PASS: COMMAND.COM BREAK (show state)
+  PASS: COMMAND.COM VERIFY (show state)
+  PASS: COMMAND.COM TYPE
+  PASS: COMMAND.COM GOTO
+  PASS: COMMAND.COM REM
+  PASS: COMMAND.COM IF EXIST
+  PASS: COMMAND.COM IF NOT EXIST
+  PASS: COMMAND.COM IF string==string
+  PASS: COMMAND.COM IF NOT string==string
+  PASS: COMMAND.COM CALL
+  PASS: COMMAND.COM SHIFT
+  PASS: COMMAND.COM FOR (loop iterates all items)
+  PASS: COMMAND.COM ECHO. (blank line)
+  PASS: COMMAND.COM ECHO OFF/ON
+  PASS: COMMAND.COM BREAK ON/OFF toggle
+  PASS: COMMAND.COM VERIFY ON/OFF toggle
+  PASS: COMMAND.COM PATH set and clear
+  PASS: COMMAND.COM SET assign, query, and remove
+  PASS: COMMAND.COM SET missing equals sign (exact syntax rejection)
+  PASS: COMMAND.COM SET second equals sign (exact syntax rejection)
+  PASS: COMMAND.COM COPY
+  PASS: COMMAND.COM COPY /V
+  PASS: COMMAND.COM REN
+  PASS: COMMAND.COM RENAME (long synonym mutates the file namespace)
+  PASS: COMMAND.COM REN missing source (exact path diagnostic)
+  PASS: COMMAND.COM REN excess operand (exact parser rejection)
+  PASS: COMMAND.COM DEL
+  PASS: COMMAND.COM ERASE (DEL synonym)
+  PASS: COMMAND.COM DEL wildcard
+  PASS: COMMAND.COM DEL duplicate /P (rejected by parser)
+  PASS: COMMAND.COM ERASE unknown switch (rejected by parser)
+  PASS: COMMAND.COM COPY duplicate /V (rejected by parser)
+  PASS: COMMAND.COM COPY unknown switch (rejected by parser)
+  PASS: COMMAND.COM MD + RD
+  PASS: COMMAND.COM MKDIR + RMDIR (long synonyms mutate directories)
+  PASS: COMMAND.COM MD existing + RD non-empty (state preserved)
+  PASS: COMMAND.COM MD excess operand (exact parser rejection)
+  PASS: COMMAND.COM RD excess operand (exact parser rejection)
+  PASS: COMMAND.COM MD nested
+  PASS: COMMAND.COM IF ERRORLEVEL (0 >= 0 true, 0 >= 1 false)
+  PASS: COMMAND.COM IF NOT ERRORLEVEL (NOT 0>=1 true, NOT 0>=0 false)
+  PASS: COMMAND.COM CD (change and verify directory)
+  PASS: COMMAND.COM CD missing path (current directory preserved)
+  PASS: COMMAND.COM CD excess operand (exact parser rejection)
+  PASS: COMMAND.COM CHDIR (long synonym changes and reports directory)
+  PASS: COMMAND.COM PROMPT (set and verify)
+  PASS: COMMAND.COM TRUENAME (resolve path)
+  PASS: COMMAND.COM TYPE missing file (exact diagnostic)
+  PASS: COMMAND.COM TYPE excess operand (exact parser rejection)
+  PASS: COMMAND.COM VOL unavailable drive (exact diagnostic)
+  PASS: COMMAND.COM VOL excess drive (exact parser rejection)
+  PASS: COMMAND.COM SET/PROMPT stress (10 alternating calls, no hang)
+  PASS: COMMAND.COM PAUSE (displayed prompt, continued after piped keystroke)
+  PASS: COMMAND.COM DATE (showed current date, accepted empty input)
+  PASS: COMMAND.COM TIME (showed current time, accepted empty input)
+  PASS: COMMAND.COM COPY a+b c (concatenation)
+  PASS: COMMAND.COM COPY /B (binary: full file past ^Z,       12 bytes)
+  PASS: COMMAND.COM COPY /A (ASCII: stopped at ^Z,        7 bytes)
+  PASS: COMMAND.COM COPY self-copy (rejected with exact payload preserved)
+  PASS: COMMAND.COM COPY missing source (existing destination preserved)
+  PASS: COMMAND.COM COPY concatenation skips a missing later source
+  PASS: COMMAND.COM COPY wildcard expansion (both exact payloads copied)
+  PASS: COMMAND.COM COPY destination /A preserves the exact source bytes
+  PASS: COMMAND.COM COPY source /A plus destination /B retains one EOF marker
+  PASS: COMMAND.COM COPY missing source (exact parser rejection)
+  PASS: COMMAND.COM COPY excess operand (exact parser rejection)
+  PASS: COMMAND.COM parser boundary (argbuf >= 0x8000, jae unsigned compare)
+
+Results: 450 passed, 0 failed, 0 skipped

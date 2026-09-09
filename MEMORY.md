@@ -20,8 +20,10 @@ passing probe does not establish full compatibility.
 
 ## Stabilization subplan
 
-The [current promotion review](tests/memory_promotion_review.json) records the
+The [initial promotion review](tests/memory_promotion_review.json) records the
 decision and links the [matched release evidence](tests/memory_production_release.json).
+The subsequent Russian kernel/COMMAND changes have [matched memory evidence](locales/ru/memory-requalification.json)
+and a successful [full release qualification](locales/ru/release-qualification.json).
 Use the subplan below for subsequent changes. Audit existing evidence before
 scheduling runs, and keep results in manifests or generated reports rather
 than copying them here.

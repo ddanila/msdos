@@ -123,67 +123,24 @@ readable files; this document records scope and the order of work.
      a locale qualification JSON file linked from tests/COVERAGE.md. Close only
      the Russian increment; other locale packs remain separate open work.
 
-## Starting point
+## Qualification
 
-Pinned inputs, selected compatibility tables and complete font coverage live in
-[locales/ru](locales/ru/README.md). The CP866 CPI build and focused display gate
-are implemented; [display qualification](locales/ru/display-qualification.json)
-records actual VGA bytes, screenshots and corruption detection.
-[Country qualification](locales/ru/country-qualification.json) covers the new
-country records, DOS/NLSFUNC APIs, CHCP transitions and rejection tests.
-[Keyboard qualification](locales/ru/keyboard-qualification.json) covers the
-RU library, initial Latin mode, Alt+Shift selections, enhanced-keyboard
-BIOS/DOS byte checks and switching through the existing German layout.
-[Modifier qualification](locales/ru/modifier-qualification.json) covers the
-remaining enhanced-keyboard precedence and release cases. The manifest keeps
-older keyboard variants and end-to-end gates visible. The distribution contains the
-optional resources, instructions and font notices; packaging and the startup
-recipe have focused gates. Fresh/upgrade copying and installed HIGH/UMB and
-LOW country/keyboard boots are covered by
-[installation qualification](locales/ru/installation-qualification.json).
-The recipe places COUNTRY before memory-manager DEVICE lines; the retained
-append-at-end diagnostic shows that the opposite order fails the country/page
-checks.
-[Profile qualification](locales/ru/profile-qualification.json) records actual
-VGA bytes and complete NLS transitions on HIGH/UMB and LOW. The three-page
-HIGH failure exposed a DOS generic-IOCTL segment error: handle flags must be
-read through the SFT pointer returned in ES:DI. The corrected production core
-passes both profile matrices; the report retains the failing instruction trace.
-Real-BIOS 286 and end-to-end/release work remain open, including full release
-qualification of the changed kernel.
-[Legacy backend bootstrap](locales/ru/legacy-backend-qualification.json)
-establishes guest-controlled 86Box exits. The
-[probe ISA qualification](locales/ru/legacy-probe-qualification.json) corrects
-386-only test branches and records initial real-BIOS AT-84 country/input
-checks. The [AT-84 input qualification](locales/ru/at84-qualification.json)
-extends this to the alphabet, punctuation, controls, keypad and applicable
-modifier precedence through BIOS and DOS reads. The matching
-[XT-83 qualification](locales/ru/xt83-qualification.json) exercises the same
-input oracle on an 8088 with IBM XT BIOS. The
-[legacy load-state qualification](locales/ru/legacy-load-qualification.json)
-checks rejected loads and RU/GR/RU reloads on both machines through BIOS and
-DOS input. The [286 country qualification](locales/ru/country-286-qualification.json)
-covers CONFIG selection, code-page transitions, rejection and case-table
-corruption against independent DOS reference bytes. The
-[286 display qualification](locales/ru/display-286-qualification.json) covers
-loaded font-plane bytes and rendered grid pixels at all CP866 heights, old
-pages and the wrong-glyph control. The
-[text workflow qualification](locales/ru/text-qualification.json) covers
-physical shell/EDLIN input, editing, save/reopen, redirection and pipes on
-HIGH/UMB and LOW. The [filesystem qualification](locales/ru/filesystem-qualification.json)
-adds Cyrillic file/directory operations and fresh-boot persistence. It fixes
-DIR name/extension ordering to use active DOS collation and records the changed
-COMMAND core. The [286 filesystem qualification](locales/ru/filesystem-286-qualification.json)
-adds the same batch-driven checks and fresh-boot persistence on IBM AT BIOS.
-The [286 text qualification](locales/ru/text-286-qualification.json) adds
-physical shell/EDLIN editing, save/reopen, redirection and pipes, with rendered
-CP866 glyph checks and exact saved bytes. The
-[directory qualification](locales/ru/directory-qualification.json) adds MOVE
-rename and recursive XCOPY of Cyrillic trees, including empty directories,
-FAT parent links, reboot persistence and cleanup on all three profiles.
-The [pristine build qualification](locales/ru/reproducibility-qualification.json)
-compares all declared artifacts and the composed core across serial and parallel
-builds. Full release runtime qualification of that core remains open.
+The optional Russian increment is complete. Follow the shipped
+[startup recipe](locales/ru/RUSSIAN.TXT) to enable it; default installation,
+messages and Help remain English. Other locale packs remain separate work.
+
+The [acceptance audit](locales/ru/acceptance-audit.json) maps the implementation
+requirements above to retained evidence. The [release record](locales/ru/release-qualification.json)
+contains the successful full suite, selected artifact hashes and ordinary
+baseline hardware/memory gates. [Pristine builds](locales/ru/reproducibility-qualification.json)
+produce identical serial and parallel artifacts. The changed production core
+also passes the [matched memory campaign](locales/ru/memory-requalification.json)
+and [final-core BIOS country/display matrix](locales/ru/final-core-qualification.json).
+
+[Locale documentation](locales/ru/README.md) links font, country, keyboard,
+installation, physical text editing and Cyrillic filesystem qualification.
+Historical reports retain their original component/core identities; the audit
+records the scope of their reuse alongside final-core integration evidence.
 
 Existing implementation and test entry points:
 
@@ -195,7 +152,7 @@ Existing implementation and test entry points:
   [guest country matrix](tests/test_country_matrix_qemu.sh).
 - [CPI header](src/DEV/DISPLAY/EGA/CPI-HEAD.ASM) and
   [supplemental locale smoke tests](tests/test_supplemental_locale_qemu.sh).
-  The new acceptance tests must add byte-level oracles and strict completion;
+  Russian acceptance tests add byte-level oracles and strict completion;
   the existing smoke markers alone do not prove the Russian contracts.
 
 Public starting references:
