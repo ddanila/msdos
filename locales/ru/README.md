@@ -312,5 +312,6 @@ It is a completion checklist, not a declaration that the remaining gates pass.
 
 [Final-core locale qualification](final-core-qualification.json) refreshes the
 real-BIOS country/NLS matrix after the COMMAND collation change. All country
-cases and the deliberate case-table failure pass on the final core; the
-matching display refresh is still running.
+cases and the deliberate case-table failure pass on the final core. The
+matching display matrix also passes all CP866 heights, existing pages and
+the wrong-glyph control. Font planes and rendered captures are retained.

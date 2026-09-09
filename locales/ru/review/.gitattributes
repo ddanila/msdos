@@ -51,3 +51,4 @@ release-*.log -text -whitespace
 
 # Preserve final-core locale captures and backend diagnostics.
 final-core-*.log -text -whitespace
+final-core-*.bin -text -diff -whitespace

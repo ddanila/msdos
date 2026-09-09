@@ -28,8 +28,7 @@
     }
   },
   "remaining": [
-    "Full FAIL_ON_SKIP=1 make -k test run.",
-    "Final-core real-BIOS country and display matrices."
+    "Full FAIL_ON_SKIP=1 make -k test run."
   ],
   "baseline_286": {
     "status": "passed",
@@ -136,5 +135,6 @@
       "path": "review/release-mutation-wrong-yo-guest.log",
       "sha256": "1ceb6e4dc697336cb82c6380334e41bd11d4b9348d4d70f050ed54ee7e554fbb"
     }
-  }
+  },
+  "final_core_locale_record": "final-core-qualification.json"
 }

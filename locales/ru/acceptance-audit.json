@@ -466,15 +466,15 @@
         },
         {
           "path": "release-qualification.json",
-          "sha256": "336f5c4b825254b6fb74580fed63a5b79b643ad6716c4fab604b5031903a26a6"
+          "sha256": "e5df110172f3aab14d096a7adacf3d70bdac7937c722d83d063b2190cf2bd364"
         },
         {
           "path": "final-core-qualification.json",
-          "sha256": "fe110daaa13c32af856d309d9534dc36ebee51cbf58171c130dc10a52536df86"
+          "sha256": "902488b96f3a65f09e22e86e8c57742aa695e700d6a21768cabd666d08d72d39"
         }
       ],
-      "assessment": "pending-release-completion",
-      "qualification_limit": "Final-core real-BIOS country/NLS passed. The matching display matrix is active. Older keyboard records remain component evidence for unchanged KEYB/library bytes, with final-core physical text and enhanced-keyboard checks recorded separately."
+      "assessment": "focused-evidence-recorded",
+      "qualification_limit": "Country/display matrices use the final core. Older legacy keyboard records retain their COMMAND hash and match unchanged BIOS, kernel and locale/keyboard component bytes; final-core AT-84 text integration is independently qualified."
     },
     {
       "id": "6.4",
@@ -511,7 +511,7 @@
         },
         {
           "path": "release-qualification.json",
-          "sha256": "336f5c4b825254b6fb74580fed63a5b79b643ad6716c4fab604b5031903a26a6"
+          "sha256": "e5df110172f3aab14d096a7adacf3d70bdac7937c722d83d063b2190cf2bd364"
         }
       ],
       "assessment": "pending-release-completion",
@@ -524,7 +524,7 @@
       "evidence": [
         {
           "path": "release-qualification.json",
-          "sha256": "336f5c4b825254b6fb74580fed63a5b79b643ad6716c4fab604b5031903a26a6"
+          "sha256": "e5df110172f3aab14d096a7adacf3d70bdac7937c722d83d063b2190cf2bd364"
         }
       ],
       "assessment": "pending-release-completion"
@@ -537,7 +537,6 @@
   },
   "remaining": [
     "Obtain a successful terminal result from the full release suite.",
-    "Complete the final-core real-BIOS display matrix.",
     "Refresh the final acceptance audit and only then close the Russian item."
   ]
 }
