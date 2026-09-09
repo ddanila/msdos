@@ -1,5 +1,12 @@
 # Behavioral coverage
 
+The optional Russian increment has a source/reference gate,
+`make test-ru-font-sources`, backed by the
+[locale manifest and candidate font audit](../locales/ru/README.md).
+It verifies pinned inputs, CP866 mappings, bitmap placement and corruption
+rejection. It does not establish guest display, country, keyboard, installation
+or end-to-end qualification; those gates remain in [the plan](../RUSSIAN.md).
+
 Coverage means a test asserts an externally visible result or state transition,
 or a live source condition justifies excluding the interface. Source-line
 execution alone is insufficient for DOS API, driver, and hardware contracts.

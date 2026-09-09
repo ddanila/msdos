@@ -125,8 +125,10 @@ readable files; this document records scope and the order of work.
 
 ## Starting point
 
-Implement step 1 first: the local CP866/reference manifest and font coverage
-prototype. No driver or kernel changes are needed to make that decision concrete.
+Step 1 inputs and the font coverage prototype live in
+[locales/ru](locales/ru/README.md). Its manifest records unresolved compatibility
+decisions; its generated audit and contact sheets expose candidate font gaps.
+Finish those decisions and glyph edits before treating step 1 as complete.
 
 Existing implementation and test entry points:
 
