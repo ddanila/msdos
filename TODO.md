@@ -2,7 +2,9 @@
 
 1. Implement retail-compatible DriveSpace, including compressed-volume support
    throughout the system. An explicit extended format may follow.
-2. Treat QBASIC/EDIT, AccessDOS, the Microsoft Network Client, and additional
+2. Implement the optional Russian / CP866 pack following [RUSSIAN.md](RUSSIAN.md).
+   Start with the reference manifest and font coverage prototype.
+3. Treat QBASIC/EDIT, AccessDOS, the Microsoft Network Client, and remaining
    DOS 6 locale packs as independent epics.
 
 [DOS622_GAPS.md](DOS622_GAPS.md) defines product scope and non-goals;

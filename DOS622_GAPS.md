@@ -21,7 +21,7 @@ are in [DOS5_GAPS.md](DOS5_GAPS.md).
 | QBASIC/EDIT | BASIC interpreter/runtime, IDE and editor, examples, Help, and Hercules display support. |
 | AccessDOS | Accessibility tools, Dvorak layouts, and documentation. |
 | Microsoft Network Client | Client applications, protocols, and configuration; kernel redirector compatibility stays in core scope. |
-| Additional DOS 6 locales | KEYBRD2.SYS, EGA2.CPI, EGA3.CPI, ISO.CPI, and associated data. Localized messages are outside the retail English baseline. |
+| Additional DOS 6 locales | KEYBRD2.SYS, EGA2.CPI, EGA3.CPI, ISO.CPI, and associated data. Localized messages are outside the retail English baseline. The first scoped increment is [Russian / CP866](RUSSIAN.md). |
 
 DriveSpace must read and write genuine DOS 6.22 CVFs and provide mounting,
 host-drive mapping, compression, recovery, and boot media. DIR compressed ratios
