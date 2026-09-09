@@ -7,7 +7,9 @@ Use an EGA/VGA-compatible display. The examples assume DOS is in C:\DOS;
 substitute your installation directory if it differs.
 
 Back up CONFIG.SYS and AUTOEXEC.BAT before editing. Keep your existing
-memory-manager and other device settings. Add these CONFIG.SYS lines:
+memory-manager and other device settings. Put the COUNTRY line before
+all memory-manager DEVICE lines. Put DISPLAY after the memory managers:
+COUNTRY after memory initialization is not supported by this recipe.
 
 [CONFIG]
 COUNTRY=007,866,C:\DOS\COUNTRY.SYS

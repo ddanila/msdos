@@ -1,0 +1,134 @@
+{
+  "selected_memory_core": "/Users/ddanila/fun/msdos/out/memory-production/files",
+  "fresh_hashes": {
+    "COUNTRY.SYS": "dcad40266140a3155a44323bc3f3876ea70e1aa779175cf6ab18b532b36037c3",
+    "DISPLAY.SYS": "0ebd3bfad4e87d79e05219c02ea71ce4e94f9e11b432efdf652a022488d9ac08",
+    "KEYB.COM": "ce547d39a18851ed9e9403486c50aa0730935647e80c8c88e6e1fd514f2eb647",
+    "KEYBRD2.SYS": "f6c776c95ec4b8bda1d72e93233995d76155a2d558283d7ce215def8f23a159e",
+    "MODE.COM": "c385aad5697fcec3a9113f58b983b978a7f969e99b153ebd496b12dab0e3767d",
+    "NLSFUNC.EXE": "bc2a0c9b0900bcac03a6cfe072ea56ea01bd2333b1d1bf8f810f28e668340e67",
+    "EGA866.CPI": "efa06cb267a370fab3db71fb85f73711b750ec04498b40b6cc6a4a2be2e3d7ad",
+    "RUSSIAN.TXT": "ff21c6217a1298d543ac96f384c8128e584e367e7643a71ef437c934e5bac4f5",
+    "RUFONT1.TXT": "6b0382b16279f26ff69014300541967a356a666eb0b91b422f6862f6b7dad17e",
+    "RUFONT2.TXT": "5d7f0dad37ceef2dc1e9c23e85fbf18629c4eaffe9a919fa4f5b618b46766d23",
+    "IO.SYS": "793169a292df40bb117eb487136a0d8e7f4334ca223e8206bf53f33141f24715",
+    "MSDOS.SYS": "199771dfe152be284bd84c1b6d572cc311c8c579c4d7e291ec13cd4bbaa8955d",
+    "COMMAND.COM": "f60f680336572c2c1375fbeae7f54b074ac6e365f35638a62822572bece584ba",
+    "HIMEM.SYS": "340cbfd1f0e835755adce99d80c607f8edeb48ea2b20a6a142402a25434f8d13",
+    "EMM386.EXE": "58266b6614594de7a9cfde9eda75e3eb241b9e2e941e67b70645a0f8a197dae6"
+  },
+  "upgrade_hashes": {
+    "COUNTRY.SYS": "dcad40266140a3155a44323bc3f3876ea70e1aa779175cf6ab18b532b36037c3",
+    "DISPLAY.SYS": "0ebd3bfad4e87d79e05219c02ea71ce4e94f9e11b432efdf652a022488d9ac08",
+    "KEYB.COM": "ce547d39a18851ed9e9403486c50aa0730935647e80c8c88e6e1fd514f2eb647",
+    "KEYBRD2.SYS": "f6c776c95ec4b8bda1d72e93233995d76155a2d558283d7ce215def8f23a159e",
+    "MODE.COM": "c385aad5697fcec3a9113f58b983b978a7f969e99b153ebd496b12dab0e3767d",
+    "NLSFUNC.EXE": "bc2a0c9b0900bcac03a6cfe072ea56ea01bd2333b1d1bf8f810f28e668340e67",
+    "EGA866.CPI": "efa06cb267a370fab3db71fb85f73711b750ec04498b40b6cc6a4a2be2e3d7ad",
+    "RUSSIAN.TXT": "ff21c6217a1298d543ac96f384c8128e584e367e7643a71ef437c934e5bac4f5",
+    "RUFONT1.TXT": "6b0382b16279f26ff69014300541967a356a666eb0b91b422f6862f6b7dad17e",
+    "RUFONT2.TXT": "5d7f0dad37ceef2dc1e9c23e85fbf18629c4eaffe9a919fa4f5b618b46766d23",
+    "IO.SYS": "793169a292df40bb117eb487136a0d8e7f4334ca223e8206bf53f33141f24715",
+    "MSDOS.SYS": "199771dfe152be284bd84c1b6d572cc311c8c579c4d7e291ec13cd4bbaa8955d",
+    "COMMAND.COM": "f60f680336572c2c1375fbeae7f54b074ac6e365f35638a62822572bece584ba",
+    "HIMEM.SYS": "340cbfd1f0e835755adce99d80c607f8edeb48ea2b20a6a142402a25434f8d13",
+    "EMM386.EXE": "58266b6614594de7a9cfde9eda75e3eb241b9e2e941e67b70645a0f8a197dae6"
+  },
+  "startup_preserved_on_upgrade": true,
+  "unrelated_file_preserved": true,
+  "cases": [
+    {
+      "name": "fresh",
+      "emulator_exit": 33,
+      "physical_reads": 0,
+      "log": "review/install-fresh.log",
+      "log_sha256": "3a1d7bf8a1454a11ec129a29888fe208d9be1f260aa999a4421c457bb4e9885a"
+    },
+    {
+      "name": "upgrade",
+      "emulator_exit": 33,
+      "physical_reads": 0,
+      "log": "review/install-upgrade.log",
+      "log_sha256": "77aa44e8d326bcbfb0f4206cc73341bbfaf8bd8199f209320f82559860861f66"
+    },
+    {
+      "name": "installed-recipe-high",
+      "emulator_exit": 33,
+      "physical_reads": 196,
+      "log": "review/install-installed-recipe-high.log",
+      "log_sha256": "a05cc85d9ce17727c850e1e4bd21b7f8cb203dd8a9aaf319b69436430fc4d028"
+    },
+    {
+      "name": "installed-recipe-low",
+      "emulator_exit": 33,
+      "physical_reads": 196,
+      "log": "review/install-installed-recipe-low.log",
+      "log_sha256": "37e304d763ae89e27e6dd4059c0168f17dbedbdcbc33420a05835f9886948606"
+    }
+  ],
+  "config": "COUNTRY=007,866,C:\\DOS\\COUNTRY.SYS\r\nDEVICE=C:\\DOS\\HIMEM.SYS\r\nDEVICE=C:\\DOS\\EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\nFILES=30\r\nBUFFERS=20\r\n\r\nDEVICE=C:\\DOS\\DISPLAY.SYS CON=(EGA,437,(1,3))\r\nNUMLOCK=ON\r\n",
+  "schema_version": 1,
+  "status": "fresh-upgrade-and-installed-high-low-country-keyboard-qualified",
+  "runtime_profile_proof": {
+    "high": "INT 2Fh AX=1203h returns DOSGROUP FFFFh; DOS allocates and frees an upper-memory block with high-only strategy.",
+    "low": "INT 2Fh AX=1203h returns a conventional DOSGROUP; boot omits memory-manager drivers and uses DOS=LOW."
+  },
+  "remaining": [
+    "Full loaded display-plane and NLS transition tests on final HIGH/UMB/LOW profiles.",
+    "83/84-key variants and real-BIOS 286 locale qualification.",
+    "Shell/editor/pipes and Cyrillic filename persistence across reboot.",
+    "Full release and pristine serial/parallel reproducibility gates from RUSSIAN.md."
+  ],
+  "private_artifacts": "out/ru-install-4fj8i5f7",
+  "commands": [
+    "make test-ru-install-qemu",
+    "make test-distribution",
+    "verify_files on retained installation and SHA-256 comparison of OLD_DOS.1 core files with selected production core"
+  ],
+  "inputs": {
+    "tests/test_ru_install_qemu.py": {
+      "sha256": "70187006e98bda5a85f6a79723d8e6de5335c259f007d9d8d553424e934e7bd7",
+      "size": 11190
+    },
+    "tests/ru_profile_probe.asm": {
+      "sha256": "a2214c083ab65cc6de4e40416010b83eeaaa37bf4e1ab58977f188924e7d79ba",
+      "size": 1000
+    },
+    "tests/ru_keyboard_probe.asm": {
+      "sha256": "7e1792a292e9719f33e5d009c918ae36f9521721f7e659d93dff15c4a9e72a22",
+      "size": 1915
+    },
+    "tests/ru_country_probe.asm": {
+      "sha256": "bb73f7be88da627c7399144c05e9cf8ce2349f0b15b7274bd6b446d5458601df",
+      "size": 4480
+    },
+    "tests/test_ru_keyboard_qemu.py": {
+      "sha256": "debc1540f5093478f14ed197baccb1f6b55ae10cbaa7b6c14565640d6395e795",
+      "size": 12685
+    },
+    "locales/ru/RUSSIAN.TXT": {
+      "sha256": "ff21c6217a1298d543ac96f384c8128e584e367e7643a71ef437c934e5bac4f5",
+      "size": 2657
+    },
+    "distribution/files.json": {
+      "sha256": "d547c9ad2a98277e1107aec13a4e5aade5d996db1293f0cc4a9ead51e2ea41e8",
+      "size": 4484
+    }
+  },
+  "installed_core_sha256": {
+    "IO.SYS": "793169a292df40bb117eb487136a0d8e7f4334ca223e8206bf53f33141f24715",
+    "MSDOS.SYS": "199771dfe152be284bd84c1b6d572cc311c8c579c4d7e291ec13cd4bbaa8955d",
+    "COMMAND.COM": "f60f680336572c2c1375fbeae7f54b074ac6e365f35638a62822572bece584ba",
+    "HIMEM.SYS": "340cbfd1f0e835755adce99d80c607f8edeb48ea2b20a6a142402a25434f8d13",
+    "EMM386.EXE": "58266b6614594de7a9cfde9eda75e3eb241b9e2e941e67b70645a0f8a197dae6"
+  },
+  "pre_upgrade_backup_core_matches_production": true,
+  "ordering_limit": {
+    "required": "COUNTRY before memory-manager DEVICE lines; DISPLAY after memory managers.",
+    "observed_before": "Moving COUNTRY to the end of the installed production HIGH/UMB configuration fails DOS/DISPLAY code-page agreement.",
+    "boot_error_log": "review/install-before-country-order.log",
+    "raw_build_diagnostic_log": "review/install-before-country-order-diagnostic.log",
+    "raw_build_diagnostic_observation": "The earlier raw-build diagnostic reports country 1 and CP437 after appending COUNTRY.",
+    "scope": "The shipped recipe and tests establish a working order; arbitrary CONFIG ordering is not qualified."
+  }
+}

@@ -2,24 +2,30 @@
   "disks": [
     {
       "file": "disk1.img",
-      "sha256": "e95eb611774743bff55736729515deca32ce72d65c9c2d17dc51304fd47ec5e5"
+      "sha256": "f5bb790cbf3d8cbcda3771f8c21f1a3d198c001deb1d3d9fdd3d418bff331bd9"
     },
     {
       "file": "disk2.img",
-      "sha256": "5a1b99a68a992a388994dfd72b4b6ada42b3350f26deb9100037ce8d1742fc72"
+      "sha256": "58ec320a75eb4fe8dbdcc485166f501eb06f2517b6eea150855c8d3046e9c682"
     }
   ],
   "files": 91,
-  "memory_core_sha256": {},
+  "memory_core_sha256": {
+    "COMMAND.COM": "f60f680336572c2c1375fbeae7f54b074ac6e365f35638a62822572bece584ba",
+    "EMM386.EXE": "58266b6614594de7a9cfde9eda75e3eb241b9e2e941e67b70645a0f8a197dae6",
+    "HIMEM.SYS": "340cbfd1f0e835755adce99d80c607f8edeb48ea2b20a6a142402a25434f8d13",
+    "IO.SYS": "793169a292df40bb117eb487136a0d8e7f4334ca223e8206bf53f33141f24715",
+    "MSDOS.SYS": "199771dfe152be284bd84c1b6d572cc311c8c579c4d7e291ec13cd4bbaa8955d"
+  },
   "schema": 1,
-  "private_artifacts": "out/ru-packaging-grbb3cpf",
+  "private_artifacts": "out/ru-release-j8bcbwgp",
   "commands": [
     "make test-distribution",
     "python3 tools/build_distribution.py --output PRIVATE_DIRECTORY"
   ],
   "capacity": {
-    "disk1.img": "1 176 576 bytes free",
-    "disk2.img": "586 752 bytes free"
+    "disk1.img": "1 148 928 bytes free",
+    "disk2.img": "578 048 bytes free"
   },
   "optional_files": {
     "KEYBRD2.SYS": {
@@ -36,8 +42,8 @@
     },
     "RUSSIAN.TXT": {
       "source": "locales/ru/RUSSIAN.TXT",
-      "sha256": "05fffe2ad22aefda16d4b6cc7a94c7e6ba877aa4a2445397699e7df5b7d7b542",
-      "size": 2514,
+      "sha256": "ff21c6217a1298d543ac96f384c8128e584e367e7643a71ef437c934e5bac4f5",
+      "size": 2657,
       "deployed_bytes_match": true
     },
     "RUFONT1.TXT": {
@@ -64,8 +70,8 @@
     }
   },
   "remaining": [
-    "Fresh and upgrade installation copying with exact hashes.",
-    "Boot installed disk using the shipped recipe and qualify final memory/hardware profiles.",
-    "Complete end-to-end and release gates from RUSSIAN.md."
-  ]
+    "Full display-plane and NLS transitions on final profiles; older keyboard variants and real-BIOS 286.",
+    "Complete end-to-end and release/reproducibility gates from RUSSIAN.md."
+  ],
+  "installation_qualification": "installation-qualification.json"
 }

@@ -2,7 +2,7 @@
   "schema_version": 1,
   "locale": "ru",
   "code_page": 866,
-  "status": "display-country-and-enhanced-keyboard-qualified-integration-pending",
+  "status": "installed-high-low-country-keyboard-qualified-end-to-end-pending",
   "sources": [
     {
       "path": "upstream/CP866.TXT",
@@ -604,8 +604,8 @@
   },
   "unresolved": [
     "Physical keyboard verification on 83/84-key variants and the real-BIOS 286 backend",
-    "Complete keyboard modifier-precedence edge cases and HIGH/UMB/LOW profiles",
-    "Fresh/upgrade installation, installed-disk recipe boot, and end-to-end qualification"
+    "Complete keyboard modifier-precedence edges; full display-plane and NLS transition checks on final memory profiles",
+    "Shell/editor, pipes, Cyrillic filesystem persistence, full release and reproducibility qualification"
   ],
   "behavior": {
     "reference": "dos622-reference.json",

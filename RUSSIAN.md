@@ -137,8 +137,14 @@ BIOS/DOS byte checks and switching through the existing German layout.
 The manifest keeps older keyboard variants, remaining modifier edge cases,
 installation and end-to-end gates visible. The distribution contains the
 optional resources, instructions and font notices; packaging and the startup
-recipe have focused gates. Installed-disk fresh/upgrade qualification remains
-open.
+recipe have focused gates. Fresh/upgrade copying and installed HIGH/UMB and
+LOW country/keyboard boots are covered by
+[installation qualification](locales/ru/installation-qualification.json).
+The recipe places COUNTRY before memory-manager DEVICE lines; the retained
+append-at-end diagnostic shows that the opposite order fails the country/page
+checks.
+Full display-plane checks across the final profiles, the real-BIOS 286 run,
+and end-to-end qualification remain open.
 
 Existing implementation and test entry points:
 

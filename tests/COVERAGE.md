@@ -226,7 +226,13 @@ in the prior Russian mode. It executes the startup sections from the shipped
 [RUSSIAN.TXT](../locales/ru/RUSSIAN.TXT) with paths adapted to its private
 floppy and checks DOS/DISPLAY code-page agreement. The distribution gate
 compares decompressed locale resources and font licenses with their sources.
-Fresh/upgrade installation and installed-disk boot remain open in the plan.
+`make test-ru-install-qemu` checks fresh/upgrade payload hashes and startup
+preservation, then boots the installed recipe in HIGH/UMB and LOW profiles.
+It requires emulator exit plus country, code-page and physical-key completion;
+the HIGH case proves HMA residency and a usable UMB allocation. See
+[installation qualification](../locales/ru/installation-qualification.json).
+Full display-plane profile checks and real-BIOS 286/end-to-end gates remain
+open in the plan.
 
 [RU packaging qualification](../locales/ru/packaging-qualification.json) records
 disk hashes, available capacity and deployed optional-file hashes.

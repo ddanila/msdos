@@ -133,8 +133,16 @@ The distribution now includes the optional CPI and keyboard library,
 [RUSSIAN.TXT](RUSSIAN.TXT) setup instructions, and both font licenses.
 The keyboard guest gate executes the document's actual startup commands in a
 private floppy environment and verifies active DOS/DISPLAY code pages.
-Fresh/upgrade installation and booting the recipe from the installed disk
-remain separate open qualification work; the default startup stays English.
+`make test-ru-install-qemu` performs fresh and upgrade installations on a
+private hard disk, checks optional-file hashes and preserved startup files,
+then boots the installed recipe with HIGH/UMB and LOW configurations. The
+COUNTRY line must precede memory-manager DEVICE lines as documented in the
+recipe. The default startup stays English.
 
 [Packaging qualification](packaging-qualification.json) records deterministic
-media hashes, remaining capacity, deployed files and pending installation gates.
+media hashes, remaining capacity, deployed files and remaining qualification.
+
+[Installation qualification](installation-qualification.json) records strict
+guest completion, country/code-page and physical-input checks, runtime HMA/UMB
+and LOW checks, and the retained CONFIG ordering failure. Full display-plane
+checks on final profiles and real-BIOS 286/end-to-end tests remain open.
