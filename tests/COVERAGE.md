@@ -317,7 +317,7 @@ physical JCUKEN/Latin keys, corrects a shell line with Backspace, creates and
 edits text in EDLIN, saves and reopens it, and exercises TYPE redirection and
 a FIND pipe. Exact CP866 files, fresh-screen text, screenshots, runtime
 profile evidence and guest completion/status are required. Real-BIOS
-end-to-end and Cyrillic directory persistence coverage remain open.
+physical text workflow coverage remains open.
 
 The [Russian filesystem qualification](../locales/ru/filesystem-qualification.json)
 runs `tests/test_ru_files_qemu.py` on HIGH/UMB and LOW. CP866 batch commands
@@ -330,3 +330,10 @@ DIR sorting; COMMAND now caches active DOS weights for name/extension keys.
 The record includes existing command regressions, a kvikdos NLS/BDA isolation
 fix and matched text-workflow evidence. Full release qualification of the
 changed COMMAND core remains required.
+
+The [286 filesystem qualification](../locales/ru/filesystem-286-qualification.json)
+uses the same runner with `--emulator` and `--roms` on IBM AT BIOS and DOS LOW.
+It creates a private boot image from the selected core and requires guest
+completion, exact backend exit status, raw FAT names and file bytes on both
+boots. Commands arrive from a CP866 batch file; this gate does not exercise
+physical keyboard input or rendered Cyrillic text.

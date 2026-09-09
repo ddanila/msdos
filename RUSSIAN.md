@@ -173,7 +173,9 @@ physical shell/EDLIN input, editing, save/reopen, redirection and pipes on
 HIGH/UMB and LOW. The [filesystem qualification](locales/ru/filesystem-qualification.json)
 adds Cyrillic file/directory operations and fresh-boot persistence. It fixes
 DIR name/extension ordering to use active DOS collation and records the changed
-COMMAND core. Real-BIOS end-to-end coverage and full release/reproducibility
+COMMAND core. The [286 filesystem qualification](locales/ru/filesystem-286-qualification.json)
+adds the same batch-driven checks and fresh-boot persistence on IBM AT BIOS.
+Real-BIOS physical text workflows and full release/reproducibility
 qualification of that core remain open.
 
 Existing implementation and test entry points:

@@ -1,0 +1,216 @@
+{
+  "status": "real-bios-286-filesystem-passed",
+  "core_sha256": {
+    "IO.SYS": "793169a292df40bb117eb487136a0d8e7f4334ca223e8206bf53f33141f24715",
+    "MSDOS.SYS": "1475174f50c8c349bedd7cd4a0be88bce055f2e411b7454b5f68fffbff269b62",
+    "COMMAND.COM": "6742b5889141a9c61d41e336445014d8055c19758febf4263f4f8ebe3c2f2c29",
+    "HIMEM.SYS": "340cbfd1f0e835755adce99d80c607f8edeb48ea2b20a6a142402a25434f8d13",
+    "EMM386.EXE": "58266b6614594de7a9cfde9eda75e3eb241b9e2e941e67b70645a0f8a197dae6"
+  },
+  "backend": "86box-286",
+  "cases": [
+    {
+      "profile": "low",
+      "phases": [
+        {
+          "phase": "create",
+          "emulator_exit": 0,
+          "files_hex": {
+            "LOOKUP.TXT": "a4a0adadeba520f0f10d0a",
+            "RENAMED.TXT": "a4a0adadeba520f0f10d0a",
+            "NESTED.TXT": "a4a0adadeba520f0f10d0a",
+            "ORDER.TXT": "802e5458540d0a812e5458540d0a852e5458540d0af02e5458540d0af086888a2e5458540d0a928591922e5458540d0a92859192312e5458540d0a9285919231322e5458540d0a92859192322e5458540d0a952e5458540d0a9f2e5458540d0a",
+            "ONE.TXT": "9f2e5458540d0a802e5458540d0af02e5458540d0a852e5458540d0a812e5458540d0a952e5458540d0a",
+            "WILD.TXT": "928591922e5458540d0a92859192312e5458540d0a92859192322e5458540d0a",
+            "REVERSE.TXT": "9f2e5458540d0a952e5458540d0a92859192322e5458540d0a9285919231322e5458540d0a92859192312e5458540d0a928591922e5458540d0af086888a2e5458540d0af02e5458540d0a852e5458540d0a812e5458540d0a802e5458540d0a",
+            "EXTORD.TXT": "4558542e800d0a4558542e850d0a4558542ef00d0a848e8a938c858d922e9291920d0a4558542e9f0d0a"
+          },
+          "log_sha256": "352f66fe87be9194ffdee400aad3ba6559fb4966a71b020fc93da806c19c5ce1",
+          "image_sha256": "d72b1aabc14b70b99d756d044f1d503b561be8c7be79204088f7753a3c80e197",
+          "serial_log": {
+            "path": "review/files-286-create.log",
+            "sha256": "352f66fe87be9194ffdee400aad3ba6559fb4966a71b020fc93da806c19c5ce1"
+          }
+        },
+        {
+          "phase": "reboot",
+          "emulator_exit": 0,
+          "files_hex": {
+            "REBOOT.TXT": "a4a0adadeba520f0f10d0a",
+            "REBNEST.TXT": "a4a0adadeba520f0f10d0a",
+            "REORDER.TXT": "802e5458540d0a812e5458540d0a852e5458540d0af02e5458540d0af086888a2e5458540d0a928591922e5458540d0a92859192312e5458540d0a9285919231322e5458540d0a92859192322e5458540d0a952e5458540d0a9f2e5458540d0a"
+          },
+          "log_sha256": "4123bee778baa61f118740f711088fc52de59ea393593da7a48002358da27ef7",
+          "image_sha256": "f95618289107e1b2251c9339938d492e2dbbf8c32154a9100678d953c6cb071d",
+          "serial_log": {
+            "path": "review/files-286-reboot.log",
+            "sha256": "4123bee778baa61f118740f711088fc52de59ea393593da7a48002358da27ef7"
+          }
+        }
+      ],
+      "create_commands": [
+        "MD \u043f\u0430\u043f\u043a\u0430",
+        "CD \u041f\u0410\u041f\u041a\u0410",
+        "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0451\u0436\u0438\u043a.txt",
+        "TYPE \u0401\u0416\u0418\u041a.TXT > A:\\LOOKUP.TXT",
+        "COPY \u0451\u0436\u0438\u043a.txt \u043a\u043e\u043f\u0438\u044f.dat >NUL",
+        "REN \u041a\u041e\u041f\u0418\u042f.DAT \u043d\u043e\u0432\u043e\u0435.dat",
+        "TYPE \u041d\u041e\u0412\u041e\u0415.DAT > A:\\RENAMED.TXT",
+        "DEL \u041d\u041e\u0412\u041e\u0415.DAT",
+        "MD \u0432\u043b\u043e\u0436\u0435\u043d",
+        "COPY \u0401\u0416\u0418\u041a.TXT \u0432\u043b\u043e\u0436\u0435\u043d\\\u0434\u043e\u043a\u0443\u043c\u0435\u043d\u0442.\u0442\u0441\u0442 >NUL",
+        "TYPE \u0412\u041b\u041e\u0416\u0415\u041d\\\u0414\u041e\u041a\u0423\u041c\u0415\u041d\u0422.\u0422\u0421\u0422 > A:\\NESTED.TXT",
+        "MD \u0432\u0440\u0435\u043c",
+        "RD \u0412\u0420\u0415\u041c",
+        "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0432\u043b\u043e\u0436\u0435\u043d\\ext.\u044f",
+        "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0432\u043b\u043e\u0436\u0435\u043d\\ext.\u0430",
+        "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0432\u043b\u043e\u0436\u0435\u043d\\ext.\u0451",
+        "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0432\u043b\u043e\u0436\u0435\u043d\\ext.\u0435",
+        "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u044f.txt",
+        "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0430.txt",
+        "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0451.txt",
+        "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0435.txt",
+        "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0431.txt",
+        "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0445.txt",
+        "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0442\u0435\u0441\u0442.txt",
+        "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0442\u0435\u0441\u04421.txt",
+        "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0442\u0435\u0441\u04422.txt",
+        "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0442\u0435\u0441\u044212.txt",
+        "DIR /B /A:-D /O:E \u0432\u043b\u043e\u0436\u0435\u043d\\*.* > A:\\EXTORD.TXT",
+        "DIR /B /O:-N *.TXT > A:\\REVERSE.TXT",
+        "DIR /B /O:N *.TXT > A:\\ORDER.TXT",
+        "DIR /B ?.TXT > A:\\ONE.TXT",
+        "DIR /B \u0442\u0435\u0441\u0442?.TXT > A:\\WILD.TXT",
+        "CD \\",
+        "ECHO CREATED>STAGE.TAG"
+      ],
+      "reboot_commands": [
+        "CD \u041f\u0410\u041f\u041a\u0410",
+        "TYPE \u0401\u0416\u0418\u041a.TXT > A:\\REBOOT.TXT",
+        "TYPE \u0412\u041b\u041e\u0416\u0415\u041d\\\u0414\u041e\u041a\u0423\u041c\u0415\u041d\u0422.\u0422\u0421\u0422 > A:\\REBNEST.TXT",
+        "DIR /B /O:N *.TXT > A:\\REORDER.TXT",
+        "DEL \u0412\u041b\u041e\u0416\u0415\u041d\\\u0414\u041e\u041a\u0423\u041c\u0415\u041d\u0422.\u0422\u0421\u0422",
+        "DEL \u0412\u041b\u041e\u0416\u0415\u041d\\EXT.*",
+        "RD \u0412\u041b\u041e\u0416\u0415\u041d",
+        "DEL *.TXT",
+        "CD \\",
+        "RD \u041f\u0410\u041f\u041a\u0410"
+      ],
+      "directory_sha256": "e6c5b2f6dce023510fd34ded1429374eb7a98a0ffb330a2b3b930a524e28f4b2",
+      "nested_sha256": "98476f087f513d0d837384eefd888ddf6a48dbf6b41ff3565332b6faa8e55b20",
+      "expected_order_hex": "802e5458540d0a812e5458540d0a852e5458540d0af02e5458540d0af086888a2e5458540d0a928591922e5458540d0a92859192312e5458540d0a9285919231322e5458540d0a92859192322e5458540d0a952e5458540d0a9f2e5458540d0a",
+      "raw_directory": {
+        "path": "review/files-286-directory.bin",
+        "sha256": "e6c5b2f6dce023510fd34ded1429374eb7a98a0ffb330a2b3b930a524e28f4b2"
+      },
+      "raw_nested_directory": {
+        "path": "review/files-286-nested.bin",
+        "sha256": "98476f087f513d0d837384eefd888ddf6a48dbf6b41ff3565332b6faa8e55b20"
+      },
+      "startup_configuration": {
+        "path": "review/files-286-startup.cfg",
+        "sha256": "10cbd002fee8b5a686cf358c231bafe0ca884b25acc97d1729c2a6b4a103c064"
+      },
+      "output_files": {
+        "EXTORD.TXT": {
+          "path": "review/files-286-extord.txt.bin",
+          "sha256": "0466c1405ec84f213f9bc292268fa90f7bcbe04f545e2257d969d65b5a7c39fd"
+        },
+        "ONE.TXT": {
+          "path": "review/files-286-one.txt.bin",
+          "sha256": "0e26aa0a08e9b4d862cee93d32ed6c56c77cecdaf583b23f97a00b702ccfa391"
+        },
+        "ORDER.TXT": {
+          "path": "review/files-286-order.txt.bin",
+          "sha256": "90f603cfb747657570b5cec9b6a3a92bcda22f50b740d11facdaca4b214c3cbb"
+        },
+        "REORDER.TXT": {
+          "path": "review/files-286-reorder.txt.bin",
+          "sha256": "90f603cfb747657570b5cec9b6a3a92bcda22f50b740d11facdaca4b214c3cbb"
+        },
+        "REVERSE.TXT": {
+          "path": "review/files-286-reverse.txt.bin",
+          "sha256": "d571c7c07a0ce8831e015df9def70aabf8f0860b641cee7a69f890fa814a112e"
+        },
+        "WILD.TXT": {
+          "path": "review/files-286-wild.txt.bin",
+          "sha256": "57952ad76c5a1857af8f2f7c37844aea4229754c792b9cc6a469ac5680de63f0"
+        }
+      }
+    }
+  ],
+  "emulator_sha256": "307ef966f67fbb64b1f61d4d48bb2b3bb5554bcd6fc17746b908f2809bf0205c",
+  "schema_version": 1,
+  "scope": "IBM AT 8 MHz 286 with IBM BIOS, CGA and DOS LOW. Batch-driven Cyrillic file operations, nested directories, wildcards, DOS collation and fresh-boot persistence. Physical text input is a separate gate.",
+  "private_artifacts": "out/ru-files-xl7tf_7j",
+  "command": "MEMORY_CORE_DIR=out/memory-production/files python3 tests/test_ru_files_qemu.py --emulator out/ru-86box-vnc-bs283qnk/build/src/86Box --roms \"$ROM_DIR\" --qt-platform offscreen",
+  "backend_provenance": "display-286-qualification.json",
+  "oracle": "dos622-reference.json country_records.866.objects.6; explicit CP866 uppercase short names, wildcard sets and file contents.",
+  "boot_isolation": "Two emulator processes use the same private image. The host only reads the image between boots; guest STAGE.TAG selects the reboot branch.",
+  "remaining": [
+    "Real-BIOS physical shell/editor workflow.",
+    "Full release and pristine reproducibility on the changed core."
+  ],
+  "inputs": {
+    "tests/test_ru_files_qemu.py": {
+      "sha256": "6b92b9453daf8727d3bd53db06931cabf909d7ab12016b6fb3529e824d48b6a7",
+      "size": 11604
+    },
+    "tests/86box_exit.asm": {
+      "sha256": "df10886fcf0a3fd37b97f9b280488c35b8265de8a306765b33fb11290dc6e82b",
+      "size": 755
+    },
+    "tests/ru_profile_probe.asm": {
+      "sha256": "ed4d4e1b6ca454860debc90e27d0eb42ce097f863a9e028eab64d3675fad4c09",
+      "size": 1009
+    },
+    "tests/86box_286_lib.sh": {
+      "sha256": "c35916e91ddb7c2d04a3d5e343631f4ee305b1963f3358bdcaa65c0842ce329e",
+      "size": 5111
+    },
+    "tests/seed_86box_ibmat_nvram.py": {
+      "sha256": "de41853b6fe7ccd79c50ae17e907793c719cbc00cc9739db15ff47711cca2ee5",
+      "size": 1891
+    },
+    "src/DEV/COUNTRY/COUNTRY.SYS": {
+      "sha256": "dcad40266140a3155a44323bc3f3876ea70e1aa779175cf6ab18b532b36037c3",
+      "size": 17130
+    }
+  },
+  "qemu_regression": {
+    "private_artifacts": "out/ru-files-q6xi4kao",
+    "status": "selected-cases-passed",
+    "cases": [
+      {
+        "profile": "high",
+        "phases": [
+          {
+            "phase": "create",
+            "emulator_exit": 33
+          },
+          {
+            "phase": "reboot",
+            "emulator_exit": 33
+          }
+        ]
+      },
+      {
+        "profile": "low",
+        "phases": [
+          {
+            "phase": "create",
+            "emulator_exit": 33
+          },
+          {
+            "phase": "reboot",
+            "emulator_exit": 33
+          }
+        ]
+      }
+    ],
+    "log": {
+      "path": "review/files-286-qemu-regression.log",
+      "sha256": "9567373b4ff2a5baf7bd532902240d7d2f6d87ed27eb45bf3b06b0eea9a98128"
+    }
+  }
+}

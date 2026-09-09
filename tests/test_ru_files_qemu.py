@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Cyrillic 8.3 operations, DOS wildcard/order rules and fresh-boot persistence."""
+import argparse
 import hashlib
 import json
 import os
@@ -59,10 +60,25 @@ class FAT:
     def read(self,entry):return self.chain(int.from_bytes(entry[26:28],'little'))[:int.from_bytes(entry[28:32],'little')]
 
 
-def run_case(work,base,profile):
-    case=work/profile;case.mkdir();image=case/'test.img';shutil.copyfile(base,image)
+def run_case(work,base,profile,args,core):
+    case=work/profile;case.mkdir();image=case/'test.img'
+    if args.emulator:
+        subprocess.run(['bash','-c','source "$1/tests/86box_286_lib.sh"\nmake_86box_286_boot_image "$2" "$1"',
+                        'bash',str(ROOT),str(image)],check=True,stdout=subprocess.DEVNULL)
+    else:
+        shutil.copyfile(base,image)
     def put(name,data):subprocess.run(['mcopy','-o','-i',str(image),'-','::'+name],input=data,check=True)
-    for source,name,defines in [('ru_profile_probe.asm','PROFILE.COM',[f'-DHIGH={int(profile=="high")}']),('qemu_exit.asm','QEXIT.COM',[])]:
+    for name in ('IO.SYS','MSDOS.SYS','COMMAND.COM'):
+        data=subprocess.check_output(['mtype','-i',str(image),'::'+name])
+        assert hashlib.sha256(data).hexdigest()==core[name],name
+    put('COUNTRY.SYS',(ROOT/'src/DEV/COUNTRY/COUNTRY.SYS').read_bytes())
+    if args.emulator:
+        config=(ROOT/'tests/86box/ibmat-286.cfg').read_text().replace('size = 2048','size = 512')
+        config=config.replace('[Other peripherals]','[Other peripherals]\nunittester_enabled = 1')
+        (case/'startup.cfg').write_text(config);(case/'86box.cfg').write_text(config)
+        shutil.copyfile(ROOT/'tests/86box/global.cfg',case/'global.cfg')
+        subprocess.run(['python3',str(ROOT/'tests/seed_86box_ibmat_nvram.py'),str(case/'nvr/ibm5170_111585.nvr'),'--extended-kib','512'],check=True)
+    for source,name,defines in [('ru_profile_probe.asm','PROFILE.COM',[f'-DHIGH={int(profile=="high")}']),('86box_exit.asm' if args.emulator else 'qemu_exit.asm','QEXIT.COM',[])]:
         subprocess.run(['nasm','-f','bin',*defines,str(ROOT/'tests'/source),'-o',str(case/name)],check=True);put(name,(case/name).read_bytes())
     put('CONFIG.SYS',('COUNTRY=007,866,COUNTRY.SYS\r\n'+CONFIG[profile]).encode())
     def batch(actions,end):
@@ -91,12 +107,17 @@ def run_case(work,base,profile):
     phases=[]
     for phase,marker in [('create',b'RU_FILES_CREATED'),('reboot',b'RU_FILES_REBOOTED')]:
         log=case/(phase+'.log')
+        env=dict(os.environ)
+        if args.qt_platform:env['QT_QPA_PLATFORM']=args.qt_platform
+        command=([str(args.emulator.resolve()),'-N','-O',str(case/'global.cfg'),'-P',str(case),
+                  '-R',str(args.roms.resolve()),'-I','a:'+str(image)] if args.emulator else
+                 ['qemu-system-i386','-display','none','-m','8',
+                  '-drive',f'if=floppy,format=raw,file={image},cache=writethrough','-boot','a','-serial','stdio',
+                  '-monitor','none','-no-reboot','-device','isa-debug-exit,iobase=0xf4,iosize=0x04'])
         with log.open('wb') as output:
-            result=subprocess.run(['qemu-system-i386','-display','none','-m','8',
-                '-drive',f'if=floppy,format=raw,file={image},cache=writethrough','-boot','a','-serial','stdio',
-                '-monitor','none','-no-reboot','-device','isa-debug-exit,iobase=0xf4,iosize=0x04'],
-                stdin=subprocess.DEVNULL,stdout=output,stderr=subprocess.STDOUT,timeout=30)
-        data=log.read_bytes();assert result.returncode==33 and marker in data and b'RU_FILES_FAIL' not in data,(phase,log)
+            result=subprocess.run(command,env=env,stdin=subprocess.DEVNULL,stdout=output,
+                                  stderr=subprocess.STDOUT,timeout=240 if args.emulator else 30)
+        data=log.read_bytes();assert result.returncode==(0 if args.emulator else 33) and marker in data and b'RU_FILES_FAIL' not in data,(phase,log)
         require_profile(data,profile);fat=FAT(image);root=fat.entries();payload=(PAYLOAD+'\r\n').encode('cp866')
         if phase=='create':
             entry=root[short_name(DIR)];assert entry[11]&16
@@ -142,13 +163,19 @@ def run_case(work,base,profile):
 
 
 def main():
+    parser=argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--emulator',type=Path,help='Select real-BIOS IBM AT 286 testing')
+    parser.add_argument('--roms',type=Path);parser.add_argument('--qt-platform')
+    args=parser.parse_args()
+    if args.emulator and not args.roms:parser.error('--roms is required with --emulator')
     base=Path(os.environ.get('FLOPPY_IMAGE',ROOT/'out/floppy.img'));core=verify_base(base)
     work=Path(tempfile.mkdtemp(prefix='ru-files-',dir=ROOT/'out'));print('Russian filesystem artifacts:',work,flush=True)
-    r={'status':'running','core_sha256':core,'cases':[]}
+    r={'status':'running','core_sha256':core,'backend':'86box-286' if args.emulator else 'qemu','cases':[]}
+    if args.emulator:r['emulator_sha256']=hashlib.sha256(args.emulator.read_bytes()).hexdigest()
     def save():(work/'results.json').write_text(json.dumps(r,indent=2)+'\n')
     save()
     try:
-        for profile in CONFIG:r['cases'].append(run_case(work,base,profile));save()
+        for profile in (['low'] if args.emulator else CONFIG):r['cases'].append(run_case(work,base,profile,args,core));save()
     except Exception as error:r['status']='failed';r['failure']=str(error);save();raise
     r['status']='selected-cases-passed';save()
 
