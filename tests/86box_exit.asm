@@ -2,6 +2,7 @@
 ; Enable unittester_enabled in the private VM configuration.
 ; Completion markers remain the responsibility of the invoking guest test.
 bits 16
+cpu 8086
 org 100h
     mov ah,0dh
     int 21h

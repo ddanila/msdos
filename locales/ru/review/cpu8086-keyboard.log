@@ -1,0 +1,5 @@
+Russian keyboard artifacts: /Users/ddanila/fun/msdos/out/ru-keyboard-2j74ndx_
+PASS: physical
+PASS: dos-input
+PASS: modifier-edges
+PASS: modifier-edges-dos

@@ -1,4 +1,5 @@
 bits 16
+cpu 8086
 org 100h
 %ifndef HIGH
 %define HIGH 1

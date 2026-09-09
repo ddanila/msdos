@@ -152,8 +152,10 @@ passes both profile matrices; the report retains the failing instruction trace.
 Real-BIOS 286 and end-to-end/release work remain open, including full release
 qualification of the changed kernel.
 [Legacy backend bootstrap](locales/ru/legacy-backend-qualification.json)
-establishes guest-controlled 86Box exits; the Russian country probe still
-requires diagnosis before the 286 locale gate can pass.
+establishes guest-controlled 86Box exits. The
+[probe ISA qualification](locales/ru/legacy-probe-qualification.json) corrects
+386-only test branches and records initial real-BIOS AT-84 country/input
+checks. The full old-keyboard and 286 matrices remain open.
 
 Existing implementation and test entry points:
 

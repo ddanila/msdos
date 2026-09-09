@@ -1,0 +1,579 @@
+{
+  "schema_version": 1,
+  "status": "8086-probes-qualified-on-selected-cases",
+  "core_sha256": {
+    "IO.SYS": "793169a292df40bb117eb487136a0d8e7f4334ca223e8206bf53f33141f24715",
+    "MSDOS.SYS": "1475174f50c8c349bedd7cd4a0be88bce055f2e411b7454b5f68fffbff269b62",
+    "COMMAND.COM": "f60f680336572c2c1375fbeae7f54b074ac6e365f35638a62822572bece584ba",
+    "HIMEM.SYS": "340cbfd1f0e835755adce99d80c607f8edeb48ea2b20a6a142402a25434f8d13",
+    "EMM386.EXE": "58266b6614594de7a9cfde9eda75e3eb241b9e2e941e67b70645a0f8a197dae6"
+  },
+  "core_changed": false,
+  "fix": "Declare cpu 8086 in locale probes so NASM synthesizes long conditional branches from an inverse short branch and a near JMP, instead of emitting 386-only near Jcc instructions.",
+  "inputs": {
+    "tests/ru_codepage_probe.asm": {
+      "sha256": "6802ddb382fe13d508d677991d974ba0f946c3e75ef3f8f5e3845904ec1bffa9",
+      "size": 389
+    },
+    "tests/ru_country_probe.asm": {
+      "sha256": "7c342565bed55137d1186713006753bedd5cffbf573503d966986e0cd53604f8",
+      "size": 4489
+    },
+    "tests/ru_country_reject.asm": {
+      "sha256": "82a901896ec835ad5c56217333d96dbf9f2aa47dd95da0f8f30ff112e389053a",
+      "size": 765
+    },
+    "tests/ru_font_probe.asm": {
+      "sha256": "83fbd3e5de7febbe8e42f47922f18a14873b9bcafa6085647bed481fbb505145",
+      "size": 3670
+    },
+    "tests/ru_keyboard_probe.asm": {
+      "sha256": "45a08f7aa12b9fc0d0036ec62c0740f2394071da28ab5cc1c106f03744c3be64",
+      "size": 1924
+    },
+    "tests/ru_profile_probe.asm": {
+      "sha256": "ed4d4e1b6ca454860debc90e27d0eb42ce097f863a9e028eab64d3675fad4c09",
+      "size": 1009
+    },
+    "tests/86box_exit.asm": {
+      "sha256": "df10886fcf0a3fd37b97f9b280488c35b8265de8a306765b33fb11290dc6e82b",
+      "size": 755
+    }
+  },
+  "qemu_runs": [
+    {
+      "command": "MEMORY_CORE_DIR=out/memory-production/files python3 tests/test_ru_profiles_qemu.py --part country",
+      "private_artifacts": "out/ru-profiles-4v132jlv",
+      "cases": [
+        {
+          "profile": "high",
+          "name": "transitions",
+          "emulator_exit": 33,
+          "country_probe_passes": 6,
+          "negative_control": false,
+          "serial_log": "transitions/serial.log",
+          "serial_sha256": "dd8694ab3d1ce851a6bde39f63d3943cac5ced475d19ba0a2cf91f8c29c84958"
+        },
+        {
+          "profile": "high",
+          "name": "wrong-case",
+          "emulator_exit": 33,
+          "country_probe_passes": 0,
+          "negative_control": true,
+          "serial_log": "wrong-case/serial.log",
+          "serial_sha256": "3e7ae45aad2e279140dff90187e3e102403492d4cb98ca1b945302561d66f84a"
+        },
+        {
+          "profile": "low",
+          "name": "transitions",
+          "emulator_exit": 33,
+          "country_probe_passes": 6,
+          "negative_control": false,
+          "serial_log": "transitions/serial.log",
+          "serial_sha256": "9c0bf8bf058e77f876fd22df3b7b2935bdd1312eab7439ee0ebee131db1855b0"
+        },
+        {
+          "profile": "low",
+          "name": "wrong-case",
+          "emulator_exit": 33,
+          "country_probe_passes": 0,
+          "negative_control": true,
+          "serial_log": "wrong-case/serial.log",
+          "serial_sha256": "6f6f1bae47bf917e0a3d50cf36454a1d91b1acaa9fa6a22573772f7c9028a8a8"
+        }
+      ],
+      "runner_log": {
+        "path": "review/cpu8086-country.log",
+        "sha256": "d3be358c0a63715337a995b92aa59cf5d665f0b5869dbbaa80f950503b4f19bc"
+      }
+    },
+    {
+      "command": "MEMORY_CORE_DIR=out/memory-production/files python3 tests/test_ru_profiles_qemu.py --part display",
+      "private_artifacts": "out/ru-profiles-vkl2lmeh",
+      "cases": [
+        {
+          "profile": "high",
+          "page": 866,
+          "height": 16,
+          "emulator_exit": 33,
+          "guest_completion": true,
+          "mismatched_slots": [],
+          "negative_control": false,
+          "font_plane_sha256": "fa1c87db74cad6b69c5a4bf1e7bb6fc625e31e4a92956dbf741c6eefa3f640d5"
+        },
+        {
+          "profile": "high",
+          "page": 866,
+          "height": 14,
+          "emulator_exit": 33,
+          "guest_completion": true,
+          "mismatched_slots": [],
+          "negative_control": false,
+          "font_plane_sha256": "d4285fd65cbb4aa83656c95f7e180d784df273dd51fcffa1c7c8fa614310bd1f"
+        },
+        {
+          "profile": "high",
+          "page": 866,
+          "height": 8,
+          "emulator_exit": 33,
+          "guest_completion": true,
+          "mismatched_slots": [],
+          "negative_control": false,
+          "font_plane_sha256": "d0f94f1f3d31ff8eef231dca8cf6c778c0dca1ffd33d5cfd662bc09d86a6ee57"
+        },
+        {
+          "profile": "high",
+          "page": 437,
+          "height": 16,
+          "emulator_exit": 33,
+          "guest_completion": true,
+          "mismatched_slots": [],
+          "negative_control": false,
+          "font_plane_sha256": "ca6a892ed0bf2d5d8038bd2ce2315bcfae30f53523f53ebfcd640c845cb6b0da"
+        },
+        {
+          "profile": "high",
+          "page": 850,
+          "height": 16,
+          "emulator_exit": 33,
+          "guest_completion": true,
+          "mismatched_slots": [],
+          "negative_control": false,
+          "font_plane_sha256": "28a38a163e62a6e56218d4bc72d5f6eda1cbc4972cd386fb1f0cae0828c88491"
+        },
+        {
+          "profile": "high",
+          "page": 860,
+          "height": 16,
+          "emulator_exit": 33,
+          "guest_completion": true,
+          "mismatched_slots": [],
+          "negative_control": false,
+          "font_plane_sha256": "4da2c55886eaf29c76875b93c0792fa4edbabd1cd386615e4135ce3a8c142e69"
+        },
+        {
+          "profile": "high",
+          "page": 863,
+          "height": 16,
+          "emulator_exit": 33,
+          "guest_completion": true,
+          "mismatched_slots": [],
+          "negative_control": false,
+          "font_plane_sha256": "8451bb1f06264cd012cef09d37d4046c32a60413405f4398744437acfa899d44"
+        },
+        {
+          "profile": "high",
+          "page": 865,
+          "height": 16,
+          "emulator_exit": 33,
+          "guest_completion": true,
+          "mismatched_slots": [],
+          "negative_control": false,
+          "font_plane_sha256": "2ed1fc6720a0c49606f7b53377056a68cbd1df387d8027523563130c470b0925"
+        },
+        {
+          "profile": "high",
+          "page": 866,
+          "height": 16,
+          "emulator_exit": 33,
+          "guest_completion": true,
+          "mismatched_slots": [
+            241
+          ],
+          "negative_control": true,
+          "font_plane_sha256": "07d6637f8d8d1636459d9436b0ec3249b8e66fbe8ae7f804ba6ab00c52ae6001"
+        },
+        {
+          "profile": "low",
+          "page": 866,
+          "height": 16,
+          "emulator_exit": 33,
+          "guest_completion": true,
+          "mismatched_slots": [],
+          "negative_control": false,
+          "font_plane_sha256": "fa1c87db74cad6b69c5a4bf1e7bb6fc625e31e4a92956dbf741c6eefa3f640d5"
+        },
+        {
+          "profile": "low",
+          "page": 866,
+          "height": 14,
+          "emulator_exit": 33,
+          "guest_completion": true,
+          "mismatched_slots": [],
+          "negative_control": false,
+          "font_plane_sha256": "d4285fd65cbb4aa83656c95f7e180d784df273dd51fcffa1c7c8fa614310bd1f"
+        },
+        {
+          "profile": "low",
+          "page": 866,
+          "height": 8,
+          "emulator_exit": 33,
+          "guest_completion": true,
+          "mismatched_slots": [],
+          "negative_control": false,
+          "font_plane_sha256": "d0f94f1f3d31ff8eef231dca8cf6c778c0dca1ffd33d5cfd662bc09d86a6ee57"
+        },
+        {
+          "profile": "low",
+          "page": 437,
+          "height": 16,
+          "emulator_exit": 33,
+          "guest_completion": true,
+          "mismatched_slots": [],
+          "negative_control": false,
+          "font_plane_sha256": "ca6a892ed0bf2d5d8038bd2ce2315bcfae30f53523f53ebfcd640c845cb6b0da"
+        },
+        {
+          "profile": "low",
+          "page": 850,
+          "height": 16,
+          "emulator_exit": 33,
+          "guest_completion": true,
+          "mismatched_slots": [],
+          "negative_control": false,
+          "font_plane_sha256": "28a38a163e62a6e56218d4bc72d5f6eda1cbc4972cd386fb1f0cae0828c88491"
+        },
+        {
+          "profile": "low",
+          "page": 860,
+          "height": 16,
+          "emulator_exit": 33,
+          "guest_completion": true,
+          "mismatched_slots": [],
+          "negative_control": false,
+          "font_plane_sha256": "4da2c55886eaf29c76875b93c0792fa4edbabd1cd386615e4135ce3a8c142e69"
+        },
+        {
+          "profile": "low",
+          "page": 863,
+          "height": 16,
+          "emulator_exit": 33,
+          "guest_completion": true,
+          "mismatched_slots": [],
+          "negative_control": false,
+          "font_plane_sha256": "8451bb1f06264cd012cef09d37d4046c32a60413405f4398744437acfa899d44"
+        },
+        {
+          "profile": "low",
+          "page": 865,
+          "height": 16,
+          "emulator_exit": 33,
+          "guest_completion": true,
+          "mismatched_slots": [],
+          "negative_control": false,
+          "font_plane_sha256": "2ed1fc6720a0c49606f7b53377056a68cbd1df387d8027523563130c470b0925"
+        },
+        {
+          "profile": "low",
+          "page": 866,
+          "height": 16,
+          "emulator_exit": 33,
+          "guest_completion": true,
+          "mismatched_slots": [
+            241
+          ],
+          "negative_control": true,
+          "font_plane_sha256": "07d6637f8d8d1636459d9436b0ec3249b8e66fbe8ae7f804ba6ab00c52ae6001"
+        }
+      ],
+      "runner_log": {
+        "path": "review/cpu8086-display.log",
+        "sha256": "af3ced20c02f84f7764d920f06b20b2dc4f0cea5c943d0a2c48a142b615e8cca"
+      }
+    },
+    {
+      "command": "MEMORY_CORE_DIR=out/memory-production/files python3 tests/test_ru_keyboard_qemu.py --case physical --case dos-input --case modifier-edges --case modifier-edges-dos",
+      "private_artifacts": "out/ru-keyboard-2j74ndx_",
+      "cases": [
+        {
+          "name": "physical",
+          "emulator_exit": 33,
+          "completed_reads": 196
+        },
+        {
+          "name": "dos-input",
+          "emulator_exit": 33,
+          "completed_reads": 196
+        },
+        {
+          "name": "modifier-edges",
+          "emulator_exit": 33,
+          "completed_reads": 55
+        },
+        {
+          "name": "modifier-edges-dos",
+          "emulator_exit": 33,
+          "completed_reads": 55
+        }
+      ],
+      "runner_log": {
+        "path": "review/cpu8086-keyboard.log",
+        "sha256": "ff09aa80dcc997c00e84ec8cfa59cd44e6bca7e2007384d153cd4006a97edd5d"
+      }
+    }
+  ],
+  "real_bios_286": {
+    "emulator_exit": 0,
+    "emulator_sha256": "fb1fecce1e36891ce9b4c99ec4e807bcbe648f3f816934b341e467d31ada9eef",
+    "backend_record": "legacy-backend-qualification.json",
+    "boot_core_sha256": {
+      "IO.SYS": "793169a292df40bb117eb487136a0d8e7f4334ca223e8206bf53f33141f24715",
+      "MSDOS.SYS": "1475174f50c8c349bedd7cd4a0be88bce055f2e411b7454b5f68fffbff269b62",
+      "COMMAND.COM": "f60f680336572c2c1375fbeae7f54b074ac6e365f35638a62822572bece584ba"
+    },
+    "profile": "DOS=LOW, IBM AT 8 MHz 286, AT 84-key keyboard, VGA, 640 KiB conventional and 512 KiB extended RAM",
+    "country_probe_passes": 1,
+    "code_page": 866,
+    "resident_keyb_type": 8192,
+    "physical_steps": [
+      {
+        "name": "initial Latin",
+        "keys": [
+          [
+            "q",
+            true
+          ],
+          [
+            "q",
+            false
+          ]
+        ],
+        "bios_ax": 4209
+      },
+      {
+        "name": "Alt then shift_r",
+        "keys": [
+          [
+            "alt",
+            true
+          ],
+          [
+            "shift_r",
+            true
+          ],
+          [
+            "shift_r",
+            false
+          ],
+          [
+            "alt",
+            false
+          ],
+          [
+            "q",
+            true
+          ],
+          [
+            "q",
+            false
+          ]
+        ],
+        "bios_ax": 169
+      },
+      {
+        "name": "Alt then shift_r",
+        "keys": [
+          [
+            "alt",
+            true
+          ],
+          [
+            "shift_r",
+            true
+          ],
+          [
+            "shift_r",
+            false
+          ],
+          [
+            "alt",
+            false
+          ],
+          [
+            "q",
+            true
+          ],
+          [
+            "q",
+            false
+          ]
+        ],
+        "bios_ax": 169
+      },
+      {
+        "name": "Alt then shift",
+        "keys": [
+          [
+            "alt",
+            true
+          ],
+          [
+            "shift",
+            true
+          ],
+          [
+            "shift",
+            false
+          ],
+          [
+            "alt",
+            false
+          ],
+          [
+            "q",
+            true
+          ],
+          [
+            "q",
+            false
+          ]
+        ],
+        "bios_ax": 4209
+      },
+      {
+        "name": "Alt then shift",
+        "keys": [
+          [
+            "alt",
+            true
+          ],
+          [
+            "shift",
+            true
+          ],
+          [
+            "shift",
+            false
+          ],
+          [
+            "alt",
+            false
+          ],
+          [
+            "q",
+            true
+          ],
+          [
+            "q",
+            false
+          ]
+        ],
+        "bios_ax": 4209
+      },
+      {
+        "name": "shift_r then Alt",
+        "keys": [
+          [
+            "shift_r",
+            true
+          ],
+          [
+            "alt",
+            true
+          ],
+          [
+            "alt",
+            false
+          ],
+          [
+            "shift_r",
+            false
+          ],
+          [
+            "q",
+            true
+          ],
+          [
+            "q",
+            false
+          ]
+        ],
+        "bios_ax": 169
+      },
+      {
+        "name": "shift then Alt",
+        "keys": [
+          [
+            "shift",
+            true
+          ],
+          [
+            "alt",
+            true
+          ],
+          [
+            "alt",
+            false
+          ],
+          [
+            "shift",
+            false
+          ],
+          [
+            "q",
+            true
+          ],
+          [
+            "q",
+            false
+          ]
+        ],
+        "bios_ax": 4209
+      },
+      {
+        "name": "shift_r then Alt",
+        "keys": [
+          [
+            "shift_r",
+            true
+          ],
+          [
+            "alt",
+            true
+          ],
+          [
+            "alt",
+            false
+          ],
+          [
+            "shift_r",
+            false
+          ],
+          [
+            "q",
+            true
+          ],
+          [
+            "q",
+            false
+          ]
+        ],
+        "bios_ax": 169
+      }
+    ],
+    "serial_log": {
+      "path": "review/cpu8086-at84.log",
+      "sha256": "181a1a93b6ac609753050da10442bc33df15199d0feb545a84df288fda5adb76"
+    },
+    "private_artifacts": "out/ru-at84-traced-0nzbixr4",
+    "scope": "Initial country, CP866 prepare/select and eight physical keyboard selections only; full old-keyboard and 286 matrices remain open."
+  },
+  "negative_evidence": {
+    "before_probe_sha256": "3e0c294df90a83005264771dd46e3a419bda362b2118930f27a2b26cff7bd93e",
+    "after_probe_sha256": "2834fca2d85e9795d0d5f59176c382421a8a56c2b5e3f3dfe6b0ed2dae8b0517",
+    "file_offset": 15,
+    "before_hex": "0f82f301",
+    "after_hex": "7303e90a02",
+    "observation": "The query returned AX=6601h, BX=0362h, DX=01B5h correctly in a private UART trace. The next original probe instruction is 0F 82, a conditional near jump unavailable on a 286. Targeting 8086 replaces it with short JNC plus near JMP; the untraced country probe then passes on the same backend/core.",
+    "query_trace_log": {
+      "path": "review/cpu8086-before-query-return.log",
+      "sha256": "225738b3a3b4f7a0a660c2544ec62c2f6dd2b90147065c2b31e7b55bd6069159"
+    }
+  },
+  "unchanged_exit_binary_sha256": "e009ca892bb4b293ba95122a3fc32529e9d4a22b1dfeb61bdbd4aa8fd7b94f07",
+  "remaining": [
+    "Full AT 84-key and XT 83-key physical-input matrices.",
+    "Full real-BIOS 286 font-plane, country-transition and locale rejection checks.",
+    "Shell/editor/pipes, Cyrillic filesystem persistence, full release and pristine reproducibility."
+  ]
+}

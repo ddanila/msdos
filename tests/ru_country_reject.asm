@@ -1,4 +1,5 @@
 bits 16
+cpu 8086
 org 100h
 
     ; NLSFUNC is resident. Reject absent country/page pairs without changing

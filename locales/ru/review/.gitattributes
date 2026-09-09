@@ -8,3 +8,6 @@ install-*.log -text -whitespace
 # Preserve emitted Qt diagnostics and unified-diff context bytes.
 86box-exit-*.log -text -whitespace
 86box-vnc-loopback.patch -text -whitespace
+
+# Raw backend diagnostics retained for the probe ISA correction.
+cpu8086-*.log -text -whitespace

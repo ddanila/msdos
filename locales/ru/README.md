@@ -172,5 +172,11 @@ IBM AT boots and guest-requested emulator exits through the 86Box Unit Tester.
 expected process status, including a deliberate failing status. The record
 also pins the private VNC-enabled backend and its loopback-only listener patch.
 The CMOS seeder accepts `--display vga` for VGA/EGA equipment bits; its default
-CGA configuration is unchanged. The Russian 286 prototype remains unqualified:
-the country probe reaches its first query stage but does not complete it.
+CGA configuration is unchanged.
+
+[Probe ISA qualification](legacy-probe-qualification.json) fixes the initial
+286 prototype failure: NASM emitted 386-only conditional branches in probes
+without an explicit CPU target. The locale probes now declare `cpu 8086`.
+The report records successful country/CP866 and initial AT-84 input checks,
+plus HIGH/LOW QEMU regressions. Full older-keyboard and 286 matrices remain
+open; the initial input sequence does not cover the whole Russian alphabet.

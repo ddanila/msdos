@@ -98,13 +98,13 @@
   },
   "remaining": [
     "Complete AT 84-key, XT 83-key and real-BIOS 286 Russian country/display checks.",
-    "Diagnose P866.COM not completing in the real-BIOS 286 prototype; stage-traced private probe is pending.",
     "End-to-end text/filesystem tests and full release/reproducibility qualification."
   ],
   "diagnostic": {
-    "status": "open",
+    "status": "resolved-test-probe-ISA",
     "private_artifacts": "out/ru-at84-country-stage-ad7ox463",
     "observed": "P866.COM prints stage 1 before its INT 21h AX=6601h query, but does not reach the next stage. This does not yet distinguish the query itself from its validation/failure path.",
-    "next_action": "Trace the query return and first-stage comparisons before diagnosing a kernel defect."
+    "resolution": "The code-page query returned correctly. NASM emitted a 386-only near conditional jump after it; cpu 8086 makes the probe execute on the 286.",
+    "qualification": "legacy-probe-qualification.json"
   }
 }
