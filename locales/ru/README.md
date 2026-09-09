@@ -144,15 +144,16 @@ media hashes, remaining capacity, deployed files and remaining qualification.
 
 [Installation qualification](installation-qualification.json) records strict
 guest completion, country/code-page and physical-input checks, runtime HMA/UMB
-and LOW checks, and the retained CONFIG ordering failure. Full display-plane
-checks on final profiles and real-BIOS 286/end-to-end tests remain open.
+and LOW checks, and the retained CONFIG ordering failure. The profile gate
+below covers display planes; real-BIOS 286/end-to-end tests remain open.
 
 `make test-ru-profiles-qemu` verifies the selected production core in each
 private image, runtime memory placement, loaded VGA glyph bytes and NLS
 transitions. [Profile qualification](profile-qualification.json) retains the
-successful font checks on both profiles and the LOW NLS matrix. HIGH/UMB
-three-page preparation currently fails; the new gate exposes that unresolved
-failure in `make test`. The single-page installed recipe remains covered by
-the installation gate. Use `--profile high --part country` on the Python
-runner with `MEMORY_CORE_DIR` set to rerun the failing subsystem; results
-are saved incrementally, including failure details.
+successful font and NLS checks on both profiles. HIGH/UMB three-page
+preparation exposed a DOS generic-IOCTL lookup that read handle flags from
+DS instead of ES; its instruction trace and corrected-core results are retained.
+The single-page installed recipe is covered by the installation gate. Use
+`--profile high --part country` on the Python runner with `MEMORY_CORE_DIR`
+set to select the NLS subsystem; results are saved incrementally, including
+failure details. Full release qualification of the changed kernel remains open.

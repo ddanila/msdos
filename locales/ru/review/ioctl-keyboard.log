@@ -1,0 +1,12 @@
+Russian keyboard artifacts: /Users/ddanila/fun/msdos/out/ru-keyboard-gg5iwdc8
+PASS: physical
+PASS: dos-input
+PASS: wrong-yo
+PASS: reload-existing
+PASS: documented-recipe
+PASS: reject-missing
+PASS: reject-bad-signature
+PASS: reject-short-header
+PASS: reject-unsupported-page
+PASS: reject-unsupported-id
+PASS: reject-unsupported-layout

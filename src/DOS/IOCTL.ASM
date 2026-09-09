@@ -393,7 +393,8 @@ goodh:
 	JZ	okokok			;AN000;;IFS.
 	jmp	ioctl_bad_fun		; Cannot do this over net.
 okokok:
-	TEST	[DI.sf_flags],sf_isnet	;AN000;IFS.; local IFS
+	; SFFromHandle returns ES:DI; DOS data in DS can be a different segment.
+	TEST	ES:[DI.sf_flags],sf_isnet	;AN000;IFS.; local IFS
 	JNZ	callifs 		;AN000;IFS.; yes
 
 

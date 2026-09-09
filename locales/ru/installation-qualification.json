@@ -12,7 +12,7 @@
     "RUFONT1.TXT": "6b0382b16279f26ff69014300541967a356a666eb0b91b422f6862f6b7dad17e",
     "RUFONT2.TXT": "5d7f0dad37ceef2dc1e9c23e85fbf18629c4eaffe9a919fa4f5b618b46766d23",
     "IO.SYS": "793169a292df40bb117eb487136a0d8e7f4334ca223e8206bf53f33141f24715",
-    "MSDOS.SYS": "199771dfe152be284bd84c1b6d572cc311c8c579c4d7e291ec13cd4bbaa8955d",
+    "MSDOS.SYS": "1475174f50c8c349bedd7cd4a0be88bce055f2e411b7454b5f68fffbff269b62",
     "COMMAND.COM": "f60f680336572c2c1375fbeae7f54b074ac6e365f35638a62822572bece584ba",
     "HIMEM.SYS": "340cbfd1f0e835755adce99d80c607f8edeb48ea2b20a6a142402a25434f8d13",
     "EMM386.EXE": "58266b6614594de7a9cfde9eda75e3eb241b9e2e941e67b70645a0f8a197dae6"
@@ -29,7 +29,7 @@
     "RUFONT1.TXT": "6b0382b16279f26ff69014300541967a356a666eb0b91b422f6862f6b7dad17e",
     "RUFONT2.TXT": "5d7f0dad37ceef2dc1e9c23e85fbf18629c4eaffe9a919fa4f5b618b46766d23",
     "IO.SYS": "793169a292df40bb117eb487136a0d8e7f4334ca223e8206bf53f33141f24715",
-    "MSDOS.SYS": "199771dfe152be284bd84c1b6d572cc311c8c579c4d7e291ec13cd4bbaa8955d",
+    "MSDOS.SYS": "1475174f50c8c349bedd7cd4a0be88bce055f2e411b7454b5f68fffbff269b62",
     "COMMAND.COM": "f60f680336572c2c1375fbeae7f54b074ac6e365f35638a62822572bece584ba",
     "HIMEM.SYS": "340cbfd1f0e835755adce99d80c607f8edeb48ea2b20a6a142402a25434f8d13",
     "EMM386.EXE": "58266b6614594de7a9cfde9eda75e3eb241b9e2e941e67b70645a0f8a197dae6"
@@ -74,16 +74,14 @@
     "low": "INT 2Fh AX=1203h returns a conventional DOSGROUP; boot omits memory-manager drivers and uses DOS=LOW."
   },
   "remaining": [
-    "Full loaded display-plane and NLS transition tests on final HIGH/UMB/LOW profiles.",
     "83/84-key variants and real-BIOS 286 locale qualification.",
     "Shell/editor/pipes and Cyrillic filename persistence across reboot.",
     "Full release and pristine serial/parallel reproducibility gates from RUSSIAN.md."
   ],
-  "private_artifacts": "out/ru-install-4fj8i5f7",
+  "private_artifacts": "out/ru-install-ac1ni5al",
   "commands": [
-    "make test-ru-install-qemu",
-    "make test-distribution",
-    "verify_files on retained installation and SHA-256 comparison of OLD_DOS.1 core files with selected production core"
+    "MEMORY_CORE_DIR=out/memory-production/files python3 tests/test_ru_install_qemu.py",
+    "SHA-256 comparison of OLD_DOS.1 core files with selected production core"
   ],
   "inputs": {
     "tests/test_ru_install_qemu.py": {
@@ -117,7 +115,7 @@
   },
   "installed_core_sha256": {
     "IO.SYS": "793169a292df40bb117eb487136a0d8e7f4334ca223e8206bf53f33141f24715",
-    "MSDOS.SYS": "199771dfe152be284bd84c1b6d572cc311c8c579c4d7e291ec13cd4bbaa8955d",
+    "MSDOS.SYS": "1475174f50c8c349bedd7cd4a0be88bce055f2e411b7454b5f68fffbff269b62",
     "COMMAND.COM": "f60f680336572c2c1375fbeae7f54b074ac6e365f35638a62822572bece584ba",
     "HIMEM.SYS": "340cbfd1f0e835755adce99d80c607f8edeb48ea2b20a6a142402a25434f8d13",
     "EMM386.EXE": "58266b6614594de7a9cfde9eda75e3eb241b9e2e941e67b70645a0f8a197dae6"
@@ -129,6 +127,14 @@
     "boot_error_log": "review/install-before-country-order.log",
     "raw_build_diagnostic_log": "review/install-before-country-order-diagnostic.log",
     "raw_build_diagnostic_observation": "The earlier raw-build diagnostic reports country 1 and CP437 after appending COUNTRY.",
-    "scope": "The shipped recipe and tests establish a working order; arbitrary CONFIG ordering is not qualified."
-  }
+    "scope": "The shipped recipe and tests establish a working order; arbitrary CONFIG ordering is not qualified.",
+    "observed_before_core_sha256": {
+      "IO.SYS": "793169a292df40bb117eb487136a0d8e7f4334ca223e8206bf53f33141f24715",
+      "MSDOS.SYS": "199771dfe152be284bd84c1b6d572cc311c8c579c4d7e291ec13cd4bbaa8955d",
+      "COMMAND.COM": "f60f680336572c2c1375fbeae7f54b074ac6e365f35638a62822572bece584ba",
+      "HIMEM.SYS": "340cbfd1f0e835755adce99d80c607f8edeb48ea2b20a6a142402a25434f8d13",
+      "EMM386.EXE": "58266b6614594de7a9cfde9eda75e3eb241b9e2e941e67b70645a0f8a197dae6"
+    }
+  },
+  "profile_qualification": "profile-qualification.json"
 }

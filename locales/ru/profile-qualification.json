@@ -1,14 +1,14 @@
 {
   "schema_version": 1,
-  "status": "font-profiles-and-low-NLS-qualified-high-NLS-failing",
+  "status": "HIGH-UMB-and-LOW-font-NLS-profiles-qualified",
   "commands": [
-    "make test-ru-profiles-qemu (fails at HIGH NLS after HIGH fonts pass)",
-    "MEMORY_CORE_DIR=out/memory-production/files python3 tests/test_ru_profiles_qemu.py --profile low",
-    "MEMORY_CORE_DIR=out/memory-production/files python3 tests/test_ru_profiles_qemu.py --profile high --part country (fails)"
+    "make -j4 deploy",
+    "MEMORY_CORE_DIR=out/memory-production/files python3 tests/test_ru_profiles_qemu.py --part country",
+    "MEMORY_CORE_DIR=out/memory-production/files python3 tests/test_ru_profiles_qemu.py --part display"
   ],
   "core_sha256": {
     "IO.SYS": "793169a292df40bb117eb487136a0d8e7f4334ca223e8206bf53f33141f24715",
-    "MSDOS.SYS": "199771dfe152be284bd84c1b6d572cc311c8c579c4d7e291ec13cd4bbaa8955d",
+    "MSDOS.SYS": "1475174f50c8c349bedd7cd4a0be88bce055f2e411b7454b5f68fffbff269b62",
     "COMMAND.COM": "f60f680336572c2c1375fbeae7f54b074ac6e365f35638a62822572bece584ba",
     "HIMEM.SYS": "340cbfd1f0e835755adce99d80c607f8edeb48ea2b20a6a142402a25434f8d13",
     "EMM386.EXE": "58266b6614594de7a9cfde9eda75e3eb241b9e2e941e67b70645a0f8a197dae6"
@@ -49,6 +49,10 @@
     "src/DEV/COUNTRY/COUNTRY.SYS": {
       "sha256": "dcad40266140a3155a44323bc3f3876ea70e1aa779175cf6ab18b532b36037c3",
       "size": 17130
+    },
+    "src/DOS/IOCTL.ASM": {
+      "sha256": "b057005bef7d8b54020079595c4dcb08b04b1dd5499c34ed095e62c1c587eb08",
+      "size": 18390
     }
   },
   "profiles": [
@@ -56,251 +60,329 @@
       "profile": "high",
       "display": [
         {
+          "profile": "high",
           "page": 866,
           "height": 16,
-          "negative_control": false,
-          "mismatched_slots": [],
           "emulator_exit": 33,
-          "font_plane": "review/profile-high-866-16.bin",
+          "guest_completion": true,
+          "mismatched_slots": [],
+          "negative_control": false,
           "font_plane_sha256": "fa1c87db74cad6b69c5a4bf1e7bb6fc625e31e4a92956dbf741c6eefa3f640d5",
-          "log": "review/profile-high-866-16.log",
-          "log_sha256": "dbdce0d96215399198ebb2e40de7e14a0997460c5c589922079d83d447995e54",
+          "font_plane": "review/profile-high-866-16.bin",
+          "serial_log": "review/profile-high-866-16.log",
+          "serial_sha256": "dbdce0d96215399198ebb2e40de7e14a0997460c5c589922079d83d447995e54",
+          "source_screen_sha256": "d762e023c57f68e4c72771b77de1313f5f5e9f72d827a833153b07628a3da7be",
           "screen": "review/profile-high-866-16.png",
-          "source_ppm_sha256": "d762e023c57f68e4c72771b77de1313f5f5e9f72d827a833153b07628a3da7be",
-          "screen_sha256": "07184742ae0013f687387ac60c4dcef013e6822d9ceef193387eda9bce8dd206",
-          "difference_bounds_from_prior_screen": [
-            0,
-            141,
-            9,
-            319
-          ]
+          "screen_sha256": "07184742ae0013f687387ac60c4dcef013e6822d9ceef193387eda9bce8dd206"
         },
         {
+          "profile": "high",
           "page": 866,
           "height": 14,
-          "negative_control": false,
-          "mismatched_slots": [],
           "emulator_exit": 33,
-          "font_plane": "review/profile-high-866-14.bin",
+          "guest_completion": true,
+          "mismatched_slots": [],
+          "negative_control": false,
           "font_plane_sha256": "d4285fd65cbb4aa83656c95f7e180d784df273dd51fcffa1c7c8fa614310bd1f",
-          "log": "review/profile-high-866-14.log",
-          "log_sha256": "dbdce0d96215399198ebb2e40de7e14a0997460c5c589922079d83d447995e54",
+          "font_plane": "review/profile-high-866-14.bin",
+          "serial_log": "review/profile-high-866-14.log",
+          "serial_sha256": "dbdce0d96215399198ebb2e40de7e14a0997460c5c589922079d83d447995e54",
+          "source_screen_sha256": "05ade4d788950431ba1bb1acf178aed200d296b555de0742598586b0fa81ce48",
           "screen": "review/profile-high-866-14.png",
-          "source_ppm_sha256": "05ade4d788950431ba1bb1acf178aed200d296b555de0742598586b0fa81ce48",
-          "screen_sha256": "7a8b4e0f7f3ec4d3ca988b37027de8efd7a92d4eb06ac1286d11ffb61b8908c7",
-          "difference_bounds_from_prior_screen": [
-            0,
-            123,
-            9,
-            279
-          ]
+          "screen_sha256": "7a8b4e0f7f3ec4d3ca988b37027de8efd7a92d4eb06ac1286d11ffb61b8908c7"
         },
         {
+          "profile": "high",
           "page": 866,
           "height": 8,
-          "negative_control": false,
-          "mismatched_slots": [],
           "emulator_exit": 33,
-          "font_plane": "review/profile-high-866-8.bin",
+          "guest_completion": true,
+          "mismatched_slots": [],
+          "negative_control": false,
           "font_plane_sha256": "d0f94f1f3d31ff8eef231dca8cf6c778c0dca1ffd33d5cfd662bc09d86a6ee57",
-          "log": "review/profile-high-866-8.log",
-          "log_sha256": "dbdce0d96215399198ebb2e40de7e14a0997460c5c589922079d83d447995e54",
+          "font_plane": "review/profile-high-866-8.bin",
+          "serial_log": "review/profile-high-866-8.log",
+          "serial_sha256": "dbdce0d96215399198ebb2e40de7e14a0997460c5c589922079d83d447995e54",
+          "source_screen_sha256": "86ff87da57be190fba0cea09e67c0b60b00876ed8acf8538717683e8dc4fea04",
           "screen": "review/profile-high-866-8.png",
-          "source_ppm_sha256": "86ff87da57be190fba0cea09e67c0b60b00876ed8acf8538717683e8dc4fea04",
-          "screen_sha256": "ac8fce638b1c2d610106ef31fa65f86e967537a1a36c7cb6d64b0da4fbcbd04d",
-          "difference_bounds_from_prior_screen": [
-            0,
-            70,
-            9,
-            160
-          ]
+          "screen_sha256": "ac8fce638b1c2d610106ef31fa65f86e967537a1a36c7cb6d64b0da4fbcbd04d"
         },
         {
+          "profile": "high",
           "page": 437,
           "height": 16,
-          "negative_control": false,
-          "mismatched_slots": [],
           "emulator_exit": 33,
-          "font_plane": "review/profile-high-437-16.bin",
+          "guest_completion": true,
+          "mismatched_slots": [],
+          "negative_control": false,
           "font_plane_sha256": "ca6a892ed0bf2d5d8038bd2ce2315bcfae30f53523f53ebfcd640c845cb6b0da",
-          "log": "review/profile-high-437-16.log",
-          "log_sha256": "dbdce0d96215399198ebb2e40de7e14a0997460c5c589922079d83d447995e54"
+          "font_plane": "review/profile-high-437-16.bin",
+          "serial_log": "review/profile-high-437-16.log",
+          "serial_sha256": "dbdce0d96215399198ebb2e40de7e14a0997460c5c589922079d83d447995e54",
+          "source_screen_sha256": "ee5484a8e2715aeb68751aeb0df83702317681651c29fb182634178d833a777c"
         },
         {
+          "profile": "high",
           "page": 850,
           "height": 16,
-          "negative_control": false,
-          "mismatched_slots": [],
           "emulator_exit": 33,
-          "font_plane": "review/profile-high-850-16.bin",
+          "guest_completion": true,
+          "mismatched_slots": [],
+          "negative_control": false,
           "font_plane_sha256": "28a38a163e62a6e56218d4bc72d5f6eda1cbc4972cd386fb1f0cae0828c88491",
-          "log": "review/profile-high-850-16.log",
-          "log_sha256": "dbdce0d96215399198ebb2e40de7e14a0997460c5c589922079d83d447995e54"
+          "font_plane": "review/profile-high-850-16.bin",
+          "serial_log": "review/profile-high-850-16.log",
+          "serial_sha256": "dbdce0d96215399198ebb2e40de7e14a0997460c5c589922079d83d447995e54",
+          "source_screen_sha256": "e0f565b710d7cebfbf8222ba5ed4c18e3dcaa84c174b40b78c3513b46c1c715b"
         },
         {
+          "profile": "high",
           "page": 860,
           "height": 16,
-          "negative_control": false,
-          "mismatched_slots": [],
           "emulator_exit": 33,
-          "font_plane": "review/profile-high-860-16.bin",
+          "guest_completion": true,
+          "mismatched_slots": [],
+          "negative_control": false,
           "font_plane_sha256": "4da2c55886eaf29c76875b93c0792fa4edbabd1cd386615e4135ce3a8c142e69",
-          "log": "review/profile-high-860-16.log",
-          "log_sha256": "dbdce0d96215399198ebb2e40de7e14a0997460c5c589922079d83d447995e54"
+          "font_plane": "review/profile-high-860-16.bin",
+          "serial_log": "review/profile-high-860-16.log",
+          "serial_sha256": "dbdce0d96215399198ebb2e40de7e14a0997460c5c589922079d83d447995e54",
+          "source_screen_sha256": "61d9b1c9340945d5ded74f27b2dbc1dcf96ad87295288d097422e7b7c09de1e2"
         },
         {
+          "profile": "high",
           "page": 863,
           "height": 16,
-          "negative_control": false,
-          "mismatched_slots": [],
           "emulator_exit": 33,
-          "font_plane": "review/profile-high-863-16.bin",
+          "guest_completion": true,
+          "mismatched_slots": [],
+          "negative_control": false,
           "font_plane_sha256": "8451bb1f06264cd012cef09d37d4046c32a60413405f4398744437acfa899d44",
-          "log": "review/profile-high-863-16.log",
-          "log_sha256": "dbdce0d96215399198ebb2e40de7e14a0997460c5c589922079d83d447995e54"
+          "font_plane": "review/profile-high-863-16.bin",
+          "serial_log": "review/profile-high-863-16.log",
+          "serial_sha256": "dbdce0d96215399198ebb2e40de7e14a0997460c5c589922079d83d447995e54",
+          "source_screen_sha256": "054ee89b379485dbf2b5dfc069524d72843a2c3cef7a575235b930ffdb55fd8a"
         },
         {
+          "profile": "high",
           "page": 865,
           "height": 16,
-          "negative_control": false,
-          "mismatched_slots": [],
           "emulator_exit": 33,
-          "font_plane": "review/profile-high-865-16.bin",
+          "guest_completion": true,
+          "mismatched_slots": [],
+          "negative_control": false,
           "font_plane_sha256": "2ed1fc6720a0c49606f7b53377056a68cbd1df387d8027523563130c470b0925",
-          "log": "review/profile-high-865-16.log",
-          "log_sha256": "dbdce0d96215399198ebb2e40de7e14a0997460c5c589922079d83d447995e54"
+          "font_plane": "review/profile-high-865-16.bin",
+          "serial_log": "review/profile-high-865-16.log",
+          "serial_sha256": "dbdce0d96215399198ebb2e40de7e14a0997460c5c589922079d83d447995e54",
+          "source_screen_sha256": "19ec0245ac9c775c67b22d55fd3c411148890107b251295884d35f02630c4953"
         },
         {
+          "profile": "high",
           "page": 866,
           "height": 16,
-          "negative_control": true,
+          "emulator_exit": 33,
+          "guest_completion": true,
           "mismatched_slots": [
             241
           ],
-          "emulator_exit": 33,
-          "font_plane": "review/profile-high-866-16-corrupt.bin",
+          "negative_control": true,
           "font_plane_sha256": "07d6637f8d8d1636459d9436b0ec3249b8e66fbe8ae7f804ba6ab00c52ae6001",
-          "log": "review/profile-high-866-16-corrupt.log",
-          "log_sha256": "dbdce0d96215399198ebb2e40de7e14a0997460c5c589922079d83d447995e54"
+          "font_plane": "review/profile-high-866-16-corrupt.bin",
+          "serial_log": "review/profile-high-866-16-corrupt.log",
+          "serial_sha256": "dbdce0d96215399198ebb2e40de7e14a0997460c5c589922079d83d447995e54",
+          "source_screen_sha256": "50d8918947b555a8c2193315e6524972bf53788ff7e6e0e6d46f0bb896850b65"
         }
       ],
-      "country": []
+      "country": [
+        {
+          "profile": "high",
+          "name": "transitions",
+          "emulator_exit": 33,
+          "country_probe_passes": 6,
+          "negative_control": false,
+          "config": "COUNTRY=007,866,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+          "actions": [
+            "PROFILE.COM",
+            "P866.COM",
+            "NLSFUNC",
+            "MODE CON CP PREPARE=((866) EGA866.CPI)",
+            "MODE CON CP PREPARE=((,437,850) EGA.CPI)",
+            "CHCP 866",
+            "CPCHK.COM",
+            "P866.COM",
+            "Q850.COM",
+            "CHCP 437",
+            "CPCHK.COM",
+            "P437.COM",
+            "Q866.COM",
+            "CHCP 850",
+            "CPCHK.COM",
+            "P850.COM",
+            "Q866.COM",
+            "CHCP 866",
+            "CPCHK.COM",
+            "P866.COM",
+            "Q850.COM",
+            "REJECT.COM",
+            "CPCHK.COM",
+            "P866.COM"
+          ],
+          "serial_log": "review/profile-high-transitions.log",
+          "serial_sha256": "dd8694ab3d1ce851a6bde39f63d3943cac5ced475d19ba0a2cf91f8c29c84958"
+        },
+        {
+          "profile": "high",
+          "name": "wrong-case",
+          "emulator_exit": 33,
+          "country_probe_passes": 0,
+          "negative_control": true,
+          "config": "COUNTRY=007,866,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\n",
+          "actions": [
+            "PROFILE.COM",
+            "P866.COM"
+          ],
+          "serial_log": "review/profile-high-wrong-case.log",
+          "serial_sha256": "3e7ae45aad2e279140dff90187e3e102403492d4cb98ca1b945302561d66f84a"
+        }
+      ]
     },
     {
       "profile": "low",
       "display": [
         {
+          "profile": "low",
           "page": 866,
           "height": 16,
-          "negative_control": false,
-          "mismatched_slots": [],
           "emulator_exit": 33,
-          "font_plane": "review/profile-low-866-16.bin",
+          "guest_completion": true,
+          "mismatched_slots": [],
+          "negative_control": false,
           "font_plane_sha256": "fa1c87db74cad6b69c5a4bf1e7bb6fc625e31e4a92956dbf741c6eefa3f640d5",
-          "log": "review/profile-low-866-16.log",
-          "log_sha256": "b4227e7a9b22ee991e0c7fcb980cf50cfb34a687e2097cb95e44558280464b02",
+          "font_plane": "review/profile-low-866-16.bin",
+          "serial_log": "review/profile-low-866-16.log",
+          "serial_sha256": "b4227e7a9b22ee991e0c7fcb980cf50cfb34a687e2097cb95e44558280464b02",
+          "source_screen_sha256": "ed77b366bee3185e8b1eace94cbea201ae99b33e84011fa05a5cb342953e2b95",
           "screen": "review/profile-low-866-16.png",
-          "source_ppm_sha256": "ed77b366bee3185e8b1eace94cbea201ae99b33e84011fa05a5cb342953e2b95",
-          "screen_sha256": "ad79b5c2d2ac1e7facd515dfa428186d66fc6324a22d6222f2f61b9c89034fd4",
-          "difference_bounds_from_prior_screen": null
+          "screen_sha256": "ad79b5c2d2ac1e7facd515dfa428186d66fc6324a22d6222f2f61b9c89034fd4"
         },
         {
+          "profile": "low",
           "page": 866,
           "height": 14,
-          "negative_control": false,
-          "mismatched_slots": [],
           "emulator_exit": 33,
-          "font_plane": "review/profile-low-866-14.bin",
+          "guest_completion": true,
+          "mismatched_slots": [],
+          "negative_control": false,
           "font_plane_sha256": "d4285fd65cbb4aa83656c95f7e180d784df273dd51fcffa1c7c8fa614310bd1f",
-          "log": "review/profile-low-866-14.log",
-          "log_sha256": "b4227e7a9b22ee991e0c7fcb980cf50cfb34a687e2097cb95e44558280464b02",
+          "font_plane": "review/profile-low-866-14.bin",
+          "serial_log": "review/profile-low-866-14.log",
+          "serial_sha256": "b4227e7a9b22ee991e0c7fcb980cf50cfb34a687e2097cb95e44558280464b02",
+          "source_screen_sha256": "01fc414799f5a7c2d4c6b90548c792d12eb90209320bc0be8560320a183cbe9e",
           "screen": "review/profile-low-866-14.png",
-          "source_ppm_sha256": "01fc414799f5a7c2d4c6b90548c792d12eb90209320bc0be8560320a183cbe9e",
-          "screen_sha256": "54b279dcdbd795c85040641cb76a4cdf8a367f5327f46d160ca121977672d0fd",
-          "difference_bounds_from_prior_screen": null
+          "screen_sha256": "54b279dcdbd795c85040641cb76a4cdf8a367f5327f46d160ca121977672d0fd"
         },
         {
+          "profile": "low",
           "page": 866,
           "height": 8,
-          "negative_control": false,
-          "mismatched_slots": [],
           "emulator_exit": 33,
-          "font_plane": "review/profile-low-866-8.bin",
+          "guest_completion": true,
+          "mismatched_slots": [],
+          "negative_control": false,
           "font_plane_sha256": "d0f94f1f3d31ff8eef231dca8cf6c778c0dca1ffd33d5cfd662bc09d86a6ee57",
-          "log": "review/profile-low-866-8.log",
-          "log_sha256": "b4227e7a9b22ee991e0c7fcb980cf50cfb34a687e2097cb95e44558280464b02",
+          "font_plane": "review/profile-low-866-8.bin",
+          "serial_log": "review/profile-low-866-8.log",
+          "serial_sha256": "b4227e7a9b22ee991e0c7fcb980cf50cfb34a687e2097cb95e44558280464b02",
+          "source_screen_sha256": "deb7ca3bd08a6a047f868d57d39574991ff1670f09177a3b8b732b1a8d73e7e9",
           "screen": "review/profile-low-866-8.png",
-          "source_ppm_sha256": "deb7ca3bd08a6a047f868d57d39574991ff1670f09177a3b8b732b1a8d73e7e9",
-          "screen_sha256": "886620bac21e757ddf9a5977ad8771d27dba5de3d9b3de54a5411ac3f34b03c5",
-          "difference_bounds_from_prior_screen": null
+          "screen_sha256": "886620bac21e757ddf9a5977ad8771d27dba5de3d9b3de54a5411ac3f34b03c5"
         },
         {
+          "profile": "low",
           "page": 437,
           "height": 16,
-          "negative_control": false,
-          "mismatched_slots": [],
           "emulator_exit": 33,
-          "font_plane": "review/profile-low-437-16.bin",
+          "guest_completion": true,
+          "mismatched_slots": [],
+          "negative_control": false,
           "font_plane_sha256": "ca6a892ed0bf2d5d8038bd2ce2315bcfae30f53523f53ebfcd640c845cb6b0da",
-          "log": "review/profile-low-437-16.log",
-          "log_sha256": "b4227e7a9b22ee991e0c7fcb980cf50cfb34a687e2097cb95e44558280464b02"
+          "font_plane": "review/profile-low-437-16.bin",
+          "serial_log": "review/profile-low-437-16.log",
+          "serial_sha256": "b4227e7a9b22ee991e0c7fcb980cf50cfb34a687e2097cb95e44558280464b02",
+          "source_screen_sha256": "bf892ec331dad75b0569163e05b7af7c991d1d84ea27ca1ecabdd8b015c68f7d"
         },
         {
+          "profile": "low",
           "page": 850,
           "height": 16,
-          "negative_control": false,
-          "mismatched_slots": [],
           "emulator_exit": 33,
-          "font_plane": "review/profile-low-850-16.bin",
+          "guest_completion": true,
+          "mismatched_slots": [],
+          "negative_control": false,
           "font_plane_sha256": "28a38a163e62a6e56218d4bc72d5f6eda1cbc4972cd386fb1f0cae0828c88491",
-          "log": "review/profile-low-850-16.log",
-          "log_sha256": "b4227e7a9b22ee991e0c7fcb980cf50cfb34a687e2097cb95e44558280464b02"
+          "font_plane": "review/profile-low-850-16.bin",
+          "serial_log": "review/profile-low-850-16.log",
+          "serial_sha256": "b4227e7a9b22ee991e0c7fcb980cf50cfb34a687e2097cb95e44558280464b02",
+          "source_screen_sha256": "31c689a246d0b868d679b35d16765c88f3914015f5338c40034b73f0e088b1c0"
         },
         {
+          "profile": "low",
           "page": 860,
           "height": 16,
-          "negative_control": false,
-          "mismatched_slots": [],
           "emulator_exit": 33,
-          "font_plane": "review/profile-low-860-16.bin",
+          "guest_completion": true,
+          "mismatched_slots": [],
+          "negative_control": false,
           "font_plane_sha256": "4da2c55886eaf29c76875b93c0792fa4edbabd1cd386615e4135ce3a8c142e69",
-          "log": "review/profile-low-860-16.log",
-          "log_sha256": "b4227e7a9b22ee991e0c7fcb980cf50cfb34a687e2097cb95e44558280464b02"
+          "font_plane": "review/profile-low-860-16.bin",
+          "serial_log": "review/profile-low-860-16.log",
+          "serial_sha256": "b4227e7a9b22ee991e0c7fcb980cf50cfb34a687e2097cb95e44558280464b02",
+          "source_screen_sha256": "22f2c1cc3c54d36b93892002c70439dc14dea9a779abe7bb4583a885dc5ad59c"
         },
         {
+          "profile": "low",
           "page": 863,
           "height": 16,
-          "negative_control": false,
-          "mismatched_slots": [],
           "emulator_exit": 33,
-          "font_plane": "review/profile-low-863-16.bin",
+          "guest_completion": true,
+          "mismatched_slots": [],
+          "negative_control": false,
           "font_plane_sha256": "8451bb1f06264cd012cef09d37d4046c32a60413405f4398744437acfa899d44",
-          "log": "review/profile-low-863-16.log",
-          "log_sha256": "b4227e7a9b22ee991e0c7fcb980cf50cfb34a687e2097cb95e44558280464b02"
+          "font_plane": "review/profile-low-863-16.bin",
+          "serial_log": "review/profile-low-863-16.log",
+          "serial_sha256": "b4227e7a9b22ee991e0c7fcb980cf50cfb34a687e2097cb95e44558280464b02",
+          "source_screen_sha256": "e717479ddcd1bac25a7400e227a3c4c9d826df4749972038e9fc71a8517f9788"
         },
         {
+          "profile": "low",
           "page": 865,
           "height": 16,
-          "negative_control": false,
-          "mismatched_slots": [],
           "emulator_exit": 33,
-          "font_plane": "review/profile-low-865-16.bin",
+          "guest_completion": true,
+          "mismatched_slots": [],
+          "negative_control": false,
           "font_plane_sha256": "2ed1fc6720a0c49606f7b53377056a68cbd1df387d8027523563130c470b0925",
-          "log": "review/profile-low-865-16.log",
-          "log_sha256": "b4227e7a9b22ee991e0c7fcb980cf50cfb34a687e2097cb95e44558280464b02"
+          "font_plane": "review/profile-low-865-16.bin",
+          "serial_log": "review/profile-low-865-16.log",
+          "serial_sha256": "b4227e7a9b22ee991e0c7fcb980cf50cfb34a687e2097cb95e44558280464b02",
+          "source_screen_sha256": "d4a57758b5a51b458ee7c6f765365aa8a6103c10cfa872aeade867ec40dfe26f"
         },
         {
+          "profile": "low",
           "page": 866,
           "height": 16,
-          "negative_control": true,
+          "emulator_exit": 33,
+          "guest_completion": true,
           "mismatched_slots": [
             241
           ],
-          "emulator_exit": 33,
-          "font_plane": "review/profile-low-866-16-corrupt.bin",
+          "negative_control": true,
           "font_plane_sha256": "07d6637f8d8d1636459d9436b0ec3249b8e66fbe8ae7f804ba6ab00c52ae6001",
-          "log": "review/profile-low-866-16-corrupt.log",
-          "log_sha256": "b4227e7a9b22ee991e0c7fcb980cf50cfb34a687e2097cb95e44558280464b02"
+          "font_plane": "review/profile-low-866-16-corrupt.bin",
+          "serial_log": "review/profile-low-866-16-corrupt.log",
+          "serial_sha256": "b4227e7a9b22ee991e0c7fcb980cf50cfb34a687e2097cb95e44558280464b02",
+          "source_screen_sha256": "d4a566453095fba23e3665dd30908fc4d61c510a71970533d9370500bf1337a3"
         }
       ],
       "country": [
@@ -358,7 +440,7 @@
     }
   ],
   "high_nls_failure": {
-    "reproduction": "make test-ru-profiles-qemu; or select --profile high --part country with MEMORY_CORE_DIR set",
+    "reproduction": "On the recorded pre-fix core: make test-ru-profiles-qemu; or --profile high --part country with MEMORY_CORE_DIR set.",
     "config": "COUNTRY=007,866,COUNTRY.SYS; HIMEM; EMM386 NOEMS; DOS=HIGH,UMB; DISPLAY CON=(EGA,437,(3,3))",
     "observed": "MODE CON CP PREPARE=((866) EGA866.CPI) returns ERRORLEVEL 1 and reports Current keyboard does not support this code page; extended error is 0008h.",
     "log": "review/profile-high-transitions-failure.log",
@@ -376,10 +458,25 @@
       "out/ru-display-query-87flm4k2",
       "out/ru-mode-error-uf3of3w_"
     ],
-    "next_action": "Trace the generic IOCTL route and DISPLAY request handling under HIGH; no failing instruction or fix established."
+    "status": "fixed",
+    "failing_core_sha256": {
+      "IO.SYS": "793169a292df40bb117eb487136a0d8e7f4334ca223e8206bf53f33141f24715",
+      "MSDOS.SYS": "199771dfe152be284bd84c1b6d572cc311c8c579c4d7e291ec13cd4bbaa8955d",
+      "COMMAND.COM": "f60f680336572c2c1375fbeae7f54b074ac6e365f35638a62822572bece584ba",
+      "HIMEM.SYS": "340cbfd1f0e835755adce99d80c607f8edeb48ea2b20a6a142402a25434f8d13",
+      "EMM386.EXE": "58266b6614594de7a9cfde9eda75e3eb241b9e2e941e67b70645a0f8a197dae6"
+    },
+    "root_cause": "Generic handle IOCTL tested DS:[DI.sf_flags] after SFFromHandle returned ES:DI. HIGH places the SFT in HMA while DOS data stays low. Unrelated low memory set sf_isnet and diverted a local CON request to the network redirector before DISPLAY ran.",
+    "fix": "Use explicit ES:[DI.sf_flags] in src/DOS/IOCTL.ASM.",
+    "instruction_trace": {
+      "path": "review/ioctl-before-fix-trace.json",
+      "sha256": "08449fd54d1865e424353a822f26923c0f2aa52cff12e9d76df57fe4e07ab621",
+      "probe": "review/ioctl-before-fix-probe.asm",
+      "output": "review/ioctl-before-fix.log",
+      "scope": "Direct generic IOCTL reproducer on the prior production core; steps through the wrong segment test and redirector dispatch."
+    }
   },
   "remaining": [
-    "Resolve and pass HIGH/UMB three-page NLS transitions and negative case-table control.",
     "83/84-key variants and real-BIOS 286 qualification.",
     "Shell/editor/pipes and Cyrillic filesystem persistence.",
     "Full release and pristine serial/parallel reproducibility gates."
@@ -388,5 +485,135 @@
     "accepted": true,
     "scope": "Loaded CP866 fonts at all three heights; reviewed HIGH 16-row and LOW 8/14-row screenshots, with byte-level comparison of every glyph at all heights.",
     "observation": "Mixed Russian/Latin text remains readable and the single/double borders remain connected; startup cursor position can differ from prior screenshots."
+  },
+  "core_change": {
+    "changed_files": [
+      "MSDOS.SYS"
+    ],
+    "reason": "Kernel ES override and resulting linked code offsets; provider, BIOS and COMMAND artifacts remain byte-identical. Earlier complete memory-release evidence does not qualify this changed kernel; full release checks remain open."
+  },
+  "private_artifacts": [
+    "out/ru-profiles-c58j2jr4",
+    "out/ru-profiles-76u14ewe"
+  ],
+  "regressions": {
+    "keyboard": {
+      "command": "MEMORY_CORE_DIR=out/memory-production/files python3 tests/test_ru_keyboard_qemu.py",
+      "private_artifacts": "out/ru-keyboard-gg5iwdc8",
+      "cases": [
+        {
+          "name": "physical",
+          "negative_control": false,
+          "dos_input": false,
+          "reload_existing": false,
+          "rejection": null,
+          "documented_recipe": false,
+          "emulator_exit": 33
+        },
+        {
+          "name": "dos-input",
+          "negative_control": false,
+          "dos_input": true,
+          "reload_existing": false,
+          "rejection": null,
+          "documented_recipe": false,
+          "emulator_exit": 33
+        },
+        {
+          "name": "wrong-yo",
+          "negative_control": true,
+          "dos_input": false,
+          "reload_existing": false,
+          "rejection": null,
+          "documented_recipe": false,
+          "emulator_exit": 33
+        },
+        {
+          "name": "reload-existing",
+          "negative_control": false,
+          "dos_input": false,
+          "reload_existing": true,
+          "rejection": null,
+          "documented_recipe": false,
+          "emulator_exit": 33
+        },
+        {
+          "name": "documented-recipe",
+          "negative_control": false,
+          "dos_input": false,
+          "reload_existing": false,
+          "rejection": null,
+          "documented_recipe": true,
+          "emulator_exit": 33
+        },
+        {
+          "name": "reject-missing",
+          "negative_control": false,
+          "dos_input": false,
+          "reload_existing": false,
+          "rejection": "missing",
+          "documented_recipe": false,
+          "emulator_exit": 33
+        },
+        {
+          "name": "reject-bad-signature",
+          "negative_control": false,
+          "dos_input": false,
+          "reload_existing": false,
+          "rejection": "bad-signature",
+          "documented_recipe": false,
+          "emulator_exit": 33
+        },
+        {
+          "name": "reject-short-header",
+          "negative_control": false,
+          "dos_input": false,
+          "reload_existing": false,
+          "rejection": "short-header",
+          "documented_recipe": false,
+          "emulator_exit": 33
+        },
+        {
+          "name": "reject-unsupported-page",
+          "negative_control": false,
+          "dos_input": false,
+          "reload_existing": false,
+          "rejection": "unsupported-page",
+          "documented_recipe": false,
+          "emulator_exit": 33
+        },
+        {
+          "name": "reject-unsupported-id",
+          "negative_control": false,
+          "dos_input": false,
+          "reload_existing": false,
+          "rejection": "unsupported-id",
+          "documented_recipe": false,
+          "emulator_exit": 33
+        },
+        {
+          "name": "reject-unsupported-layout",
+          "negative_control": false,
+          "dos_input": false,
+          "reload_existing": false,
+          "rejection": "unsupported-layout",
+          "documented_recipe": false,
+          "emulator_exit": 33
+        }
+      ],
+      "kernel_sha256": "1475174f50c8c349bedd7cd4a0be88bce055f2e411b7454b5f68fffbff269b62",
+      "kernel_hash_verified_in_every_image": true,
+      "log": "review/ioctl-keyboard.log",
+      "log_sha256": "ffac7da2830d0e2c7587b9a61ae5078ccb87ffde1062e658c256412a905c998c"
+    },
+    "installation": {
+      "record": "installation-qualification.json",
+      "core_matches": true,
+      "fresh_and_upgrade": true,
+      "installed_profiles": [
+        "high",
+        "low"
+      ]
+    }
   }
 }

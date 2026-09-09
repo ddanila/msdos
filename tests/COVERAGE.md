@@ -231,14 +231,15 @@ preservation, then boots the installed recipe in HIGH/UMB and LOW profiles.
 It requires emulator exit plus country, code-page and physical-key completion;
 the HIGH case proves HMA residency and a usable UMB allocation. See
 [installation qualification](../locales/ru/installation-qualification.json).
-Full display-plane profile checks and real-BIOS 286/end-to-end gates remain
-open in the plan.
+The profile gate below covers display planes; real-BIOS 286/end-to-end gates
+remain open in the plan.
 
 [RU packaging qualification](../locales/ru/packaging-qualification.json) records
 disk hashes, available capacity and deployed optional-file hashes.
 
 [RU profile qualification](../locales/ru/profile-qualification.json) covers
-actual VGA font bytes on production HIGH/UMB and LOW, plus the full LOW NLS
-transition/rejection matrix. `make test-ru-profiles-qemu` currently fails at
-HIGH/UMB three-page font preparation. This is a required open gate, also
-included in `make test`; the report records the failure and controlled checks.
+actual VGA font bytes and the NLS transition/rejection matrix on production
+HIGH/UMB and LOW. `make test-ru-profiles-qemu`, included in `make test`, detects
+the former generic-IOCTL segment error when preparing three DISPLAY pages.
+The report retains its instruction trace and successful corrected-core runs.
+The changed kernel still requires full release qualification.

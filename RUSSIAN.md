@@ -144,10 +144,12 @@ The recipe places COUNTRY before memory-manager DEVICE lines; the retained
 append-at-end diagnostic shows that the opposite order fails the country/page
 checks.
 [Profile qualification](locales/ru/profile-qualification.json) records actual
-VGA bytes on HIGH/UMB and LOW, and complete LOW NLS transitions. The new
-profile gate currently fails HIGH/UMB NLS preparation with three DISPLAY page
-slots; it remains a required failing gate, not a qualified result. The
-real-BIOS 286 and end-to-end/release work also remain open.
+VGA bytes and complete NLS transitions on HIGH/UMB and LOW. The three-page
+HIGH failure exposed a DOS generic-IOCTL segment error: handle flags must be
+read through the SFT pointer returned in ES:DI. The corrected production core
+passes both profile matrices; the report retains the failing instruction trace.
+Real-BIOS 286 and end-to-end/release work remain open, including full release
+qualification of the changed kernel.
 
 Existing implementation and test entry points:
 
