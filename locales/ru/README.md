@@ -259,3 +259,14 @@ The display record also retains a private Unit Tester capture fix: its
 symmetric-border assumption cropped the 14-row screen at the wrong vertical
 origin. The patch uses the primary SVGA renderer's actual crop origin,
 including line doubling. The pixel oracle remains unchanged.
+
+[Text workflow qualification](text-qualification.json) exercises physical
+Russian/Latin typing in COMMAND and EDLIN on HIGH/UMB and LOW. Run
+`MEMORY_CORE_DIR=out/memory-production/files python3 tests/test_ru_text_qemu.py`
+after deploying the matching production core. Use `--profile low` for a
+focused run. The retained record includes expected and actual CP866 bytes,
+physical events, fresh-screen captures, and saved/reopened editor output.
+EDLIN's DOS EOF byte is required in its saved file; TYPE omits it, and FIND
+outputs the selected Russian line through a pipe. This is text-content
+coverage; Cyrillic filename persistence and real-BIOS end-to-end work remain
+separate gates.

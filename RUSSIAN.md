@@ -167,7 +167,11 @@ covers CONFIG selection, code-page transitions, rejection and case-table
 corruption against independent DOS reference bytes. The
 [286 display qualification](locales/ru/display-286-qualification.json) covers
 loaded font-plane bytes and rendered grid pixels at all CP866 heights, old
-pages and the wrong-glyph control. End-to-end/release gates remain open.
+pages and the wrong-glyph control. The
+[text workflow qualification](locales/ru/text-qualification.json) covers
+physical shell/EDLIN input, editing, save/reopen, redirection and pipes on
+HIGH/UMB and LOW. Cyrillic filesystem persistence, remaining real-BIOS
+end-to-end coverage and release/reproducibility gates remain open.
 
 Existing implementation and test entry points:
 

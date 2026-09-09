@@ -28,3 +28,6 @@ country-286-*.log -text -whitespace
 # Preserve raw IBM AT font qualification captures.
 display-286-*.log -text -whitespace
 86box-unittester-snapshot.patch -text -whitespace
+
+# Preserve raw physical text-workflow serial captures.
+text-*.log -text -whitespace

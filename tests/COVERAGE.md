@@ -310,3 +310,11 @@ The host compares all glyph slots to the font oracle and every grid pixel
 to the loaded bitmap, including VGA ninth-column line-graphics replication. CP866 height variants, preserved old pages
 and the wrong-yo-slot control require exact completion and status zero.
 The default QEMU probe remains byte-identical with BOX86 undefined.
+
+The [Russian text workflow](../locales/ru/text-qualification.json) runs
+`tests/test_ru_text_qemu.py` on the selected HIGH/UMB and LOW core. It types
+physical JCUKEN/Latin keys, corrects a shell line with Backspace, creates and
+edits text in EDLIN, saves and reopens it, and exercises TYPE redirection and
+a FIND pipe. Exact CP866 files, fresh-screen text, screenshots, runtime
+profile evidence and guest completion/status are required. Real-BIOS
+end-to-end and Cyrillic directory persistence coverage remain open.
