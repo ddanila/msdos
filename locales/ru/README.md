@@ -129,4 +129,12 @@ punctuation, third shift, controls, navigation, keypad and modifier releases;
 it detects a wrong Yo translation and types through RU/GR/RU reloads.
 The enhanced-keyboard gate does not qualify the older hardware variants or
 final memory profiles.
-This is a development artifact and is not yet included in installation media.
+The distribution now includes the optional CPI and keyboard library,
+[RUSSIAN.TXT](RUSSIAN.TXT) setup instructions, and both font licenses.
+The keyboard guest gate executes the document's actual startup commands in a
+private floppy environment and verifies active DOS/DISPLAY code pages.
+Fresh/upgrade installation and booting the recipe from the installed disk
+remain separate open qualification work; the default startup stays English.
+
+[Packaging qualification](packaging-qualification.json) records deterministic
+media hashes, remaining capacity, deployed files and pending installation gates.

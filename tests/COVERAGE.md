@@ -216,6 +216,17 @@ rejects wrong translations and malformed records.
 results and before/after physical-input evidence. `make test-ru-keyboard-qemu`
 checks enhanced-keyboard BIOS/DOS bytes, mode selections, case, punctuation,
 third shift, controls, navigation, keypad and released modifiers. It detects
-a wrong Yo byte and verifies typed RU/GR/RU reloads. Older keyboard variants,
-resource rejections and complete locale qualification remain open in
+a wrong Yo byte and verifies typed RU/GR/RU reloads. Older keyboard variants
+and complete locale qualification remain open in
 [RUSSIAN.md](../RUSSIAN.md).
+
+The RU keyboard guest gate also rejects missing/invalid libraries and
+unsupported page, identifier and layout selections, then verifies typed input
+in the prior Russian mode. It executes the startup sections from the shipped
+[RUSSIAN.TXT](../locales/ru/RUSSIAN.TXT) with paths adapted to its private
+floppy and checks DOS/DISPLAY code-page agreement. The distribution gate
+compares decompressed locale resources and font licenses with their sources.
+Fresh/upgrade installation and installed-disk boot remain open in the plan.
+
+[RU packaging qualification](../locales/ru/packaging-qualification.json) records
+disk hashes, available capacity and deployed optional-file hashes.

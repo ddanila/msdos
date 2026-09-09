@@ -1,0 +1,71 @@
+{
+  "disks": [
+    {
+      "file": "disk1.img",
+      "sha256": "e95eb611774743bff55736729515deca32ce72d65c9c2d17dc51304fd47ec5e5"
+    },
+    {
+      "file": "disk2.img",
+      "sha256": "5a1b99a68a992a388994dfd72b4b6ada42b3350f26deb9100037ce8d1742fc72"
+    }
+  ],
+  "files": 91,
+  "memory_core_sha256": {},
+  "schema": 1,
+  "private_artifacts": "out/ru-packaging-grbb3cpf",
+  "commands": [
+    "make test-distribution",
+    "python3 tools/build_distribution.py --output PRIVATE_DIRECTORY"
+  ],
+  "capacity": {
+    "disk1.img": "1 176 576 bytes free",
+    "disk2.img": "586 752 bytes free"
+  },
+  "optional_files": {
+    "KEYBRD2.SYS": {
+      "source": "src/DEV/KEYBOARD/KEYBRD2.SYS",
+      "sha256": "f6c776c95ec4b8bda1d72e93233995d76155a2d558283d7ce215def8f23a159e",
+      "size": 363,
+      "deployed_bytes_match": true
+    },
+    "EGA866.CPI": {
+      "source": "src/DEV/DISPLAY/EGA/EGA866.CPI",
+      "sha256": "efa06cb267a370fab3db71fb85f73711b750ec04498b40b6cc6a4a2be2e3d7ad",
+      "size": 9922,
+      "deployed_bytes_match": true
+    },
+    "RUSSIAN.TXT": {
+      "source": "locales/ru/RUSSIAN.TXT",
+      "sha256": "05fffe2ad22aefda16d4b6cc7a94c7e6ba877aa4a2445397699e7df5b7d7b542",
+      "size": 2514,
+      "deployed_bytes_match": true
+    },
+    "RUFONT1.TXT": {
+      "source": "locales/ru/upstream/512_8/LICENSE",
+      "sha256": "6b0382b16279f26ff69014300541967a356a666eb0b91b422f6862f6b7dad17e",
+      "size": 1211,
+      "deployed_bytes_match": true
+    },
+    "RUFONT2.TXT": {
+      "source": "locales/ru/upstream/cozette/LICENSE",
+      "sha256": "5d7f0dad37ceef2dc1e9c23e85fbf18629c4eaffe9a919fa4f5b618b46766d23",
+      "size": 1080,
+      "deployed_bytes_match": true
+    }
+  },
+  "default_startup": {
+    "CONFIG.SYS": {
+      "present": false,
+      "no_russian_activation": true
+    },
+    "AUTOEXEC.BAT": {
+      "present": false,
+      "no_russian_activation": true
+    }
+  },
+  "remaining": [
+    "Fresh and upgrade installation copying with exact hashes.",
+    "Boot installed disk using the shipped recipe and qualify final memory/hardware profiles.",
+    "Complete end-to-end and release gates from RUSSIAN.md."
+  ]
+}

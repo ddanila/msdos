@@ -27,13 +27,19 @@
       "size": 1915
     },
     "tests/test_ru_keyboard_qemu.py": {
-      "sha256": "c5389699281c98f0bde28cee4a4b1bab1affdac50a1a5af9b442db976c8305d7",
-      "size": 9506
+      "sha256": "debc1540f5093478f14ed197baccb1f6b55ae10cbaa7b6c14565640d6395e795",
+      "size": 12685
+    },
+    "locales/ru/RUSSIAN.TXT": {
+      "sha256": "05fffe2ad22aefda16d4b6cc7a94c7e6ba877aa4a2445397699e7df5b7d7b542",
+      "size": 2514
     }
   },
   "commands": [
     "make test-ru-keyboard-records test-keyboard-records test-ru-contract",
-    "make test-ru-keyboard-qemu test-keyb-layout-qemu"
+    "make test-ru-keyboard-qemu test-keyb-layout-qemu",
+    "make test-distribution",
+    "python3 tests/test_ru_keyboard_qemu.py"
   ],
   "host_results": {
     "ru_record_tests": 4,
@@ -80,7 +86,7 @@
   },
   "remaining": [
     "Physical 83/84-key variants and real-BIOS 286 testing.",
-    "Additional modifier precedence edges, unsupported/missing/malformed keyboard resource rejection, and complete Latin punctuation coverage.",
+    "Additional modifier precedence edges, complete Latin punctuation coverage.",
     "HIGH/UMB/LOW memory-profile qualification.",
     "Installation and complete end-to-end locale qualification as recorded in RUSSIAN.md."
   ],
@@ -92,6 +98,8 @@
       "negative_control": false,
       "dos_input": false,
       "reload_existing": false,
+      "rejection": null,
+      "documented_recipe": false,
       "emulator_exit": 33,
       "completed_reads": 196,
       "log": "review/keyboard-physical.log",
@@ -103,6 +111,8 @@
       "negative_control": false,
       "dos_input": true,
       "reload_existing": false,
+      "rejection": null,
+      "documented_recipe": false,
       "emulator_exit": 33,
       "completed_reads": 196,
       "log": "review/keyboard-dos-input.log",
@@ -114,6 +124,8 @@
       "negative_control": true,
       "dos_input": false,
       "reload_existing": false,
+      "rejection": null,
+      "documented_recipe": false,
       "emulator_exit": 33,
       "completed_reads": 41,
       "log": "review/keyboard-wrong-yo.log",
@@ -125,14 +137,107 @@
       "negative_control": false,
       "dos_input": false,
       "reload_existing": true,
+      "rejection": null,
+      "documented_recipe": false,
       "emulator_exit": 33,
       "completed_reads": 7,
       "log": "review/keyboard-reload-existing.log",
       "log_sha256": "c928d62eac0eba6b6b0f4b41511423c0d541c95b6c40c037e9fbd7b5ccaef231",
       "planned_reads": 7
+    },
+    {
+      "name": "documented-recipe",
+      "negative_control": false,
+      "dos_input": false,
+      "reload_existing": false,
+      "rejection": null,
+      "documented_recipe": true,
+      "emulator_exit": 33,
+      "completed_reads": 196,
+      "log": "review/keyboard-documented-recipe.log",
+      "log_sha256": "1f7d73753ad124da1a9e466c10a7ba9c83b3568222f7a8a34d7c31eab4944ece",
+      "planned_reads": 196
+    },
+    {
+      "name": "reject-missing",
+      "negative_control": false,
+      "dos_input": false,
+      "reload_existing": false,
+      "rejection": "missing",
+      "documented_recipe": false,
+      "emulator_exit": 33,
+      "completed_reads": 3,
+      "log": "review/keyboard-reject-missing.log",
+      "log_sha256": "d00351e4652522e4f0acb579cee8592ad1b66deead8ceb0c8d422f2cf6643b01",
+      "planned_reads": 3
+    },
+    {
+      "name": "reject-bad-signature",
+      "negative_control": false,
+      "dos_input": false,
+      "reload_existing": false,
+      "rejection": "bad-signature",
+      "documented_recipe": false,
+      "emulator_exit": 33,
+      "completed_reads": 3,
+      "log": "review/keyboard-reject-bad-signature.log",
+      "log_sha256": "d00351e4652522e4f0acb579cee8592ad1b66deead8ceb0c8d422f2cf6643b01",
+      "planned_reads": 3
+    },
+    {
+      "name": "reject-short-header",
+      "negative_control": false,
+      "dos_input": false,
+      "reload_existing": false,
+      "rejection": "short-header",
+      "documented_recipe": false,
+      "emulator_exit": 33,
+      "completed_reads": 3,
+      "log": "review/keyboard-reject-short-header.log",
+      "log_sha256": "57b5649a4bd0254083b4b136f1b1d09c5f774cd873fd9c31d263e88225a969b6",
+      "planned_reads": 3
+    },
+    {
+      "name": "reject-unsupported-page",
+      "negative_control": false,
+      "dos_input": false,
+      "reload_existing": false,
+      "rejection": "unsupported-page",
+      "documented_recipe": false,
+      "emulator_exit": 33,
+      "completed_reads": 3,
+      "log": "review/keyboard-reject-unsupported-page.log",
+      "log_sha256": "57b5649a4bd0254083b4b136f1b1d09c5f774cd873fd9c31d263e88225a969b6",
+      "planned_reads": 3
+    },
+    {
+      "name": "reject-unsupported-id",
+      "negative_control": false,
+      "dos_input": false,
+      "reload_existing": false,
+      "rejection": "unsupported-id",
+      "documented_recipe": false,
+      "emulator_exit": 33,
+      "completed_reads": 3,
+      "log": "review/keyboard-reject-unsupported-id.log",
+      "log_sha256": "4069041a46fbc8d04b75482841b0676a9b9ebebb52770a310d22f216e937aa06",
+      "planned_reads": 3
+    },
+    {
+      "name": "reject-unsupported-layout",
+      "negative_control": false,
+      "dos_input": false,
+      "reload_existing": false,
+      "rejection": "unsupported-layout",
+      "documented_recipe": false,
+      "emulator_exit": 33,
+      "completed_reads": 3,
+      "log": "review/keyboard-reject-unsupported-layout.log",
+      "log_sha256": "e932ac1b6ceae911a2a09afe7f52697bebb6c7492c6d62c251ef5d0f1055f6ef",
+      "planned_reads": 3
     }
   ],
-  "private_artifacts": "out/ru-keyboard-65ffbr0j",
+  "private_artifacts": "out/ru-keyboard-6muwv_nt",
   "fixes": [
     "Select initial Latin at first install and successful reload for layouts with INITIAL_US_MODE.",
     "Handle Alt+left/right Shift selection at modifier make; accept either key order while retaining ordinary BIOS make/break handling.",
@@ -171,5 +276,11 @@
     "failed": 0,
     "log": "review/keyboard-existing-layouts.log",
     "log_sha256": "663b44d5b1736d014befd63e2fddce682576c5304ec02526f67511b7142839b5"
+  },
+  "documented_recipe": {
+    "source": "RUSSIAN.TXT",
+    "path_adaptation": "C:\\DOS\\ to private floppy root only",
+    "active_code_page_check": "INT 21h 6601 equals DISPLAY INT 2Fh AD02, expected 866",
+    "installed_disk_boot": "pending"
   }
 }

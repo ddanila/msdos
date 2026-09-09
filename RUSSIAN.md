@@ -135,7 +135,10 @@ country records, DOS/NLSFUNC APIs, CHCP transitions and rejection tests.
 RU library, initial Latin mode, Alt+Shift selections, enhanced-keyboard
 BIOS/DOS byte checks and switching through the existing German layout.
 The manifest keeps older keyboard variants, remaining modifier edge cases,
-resource rejection, installation and end-to-end gates visible.
+installation and end-to-end gates visible. The distribution contains the
+optional resources, instructions and font notices; packaging and the startup
+recipe have focused gates. Installed-disk fresh/upgrade qualification remains
+open.
 
 Existing implementation and test entry points:
 

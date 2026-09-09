@@ -72,7 +72,7 @@ def steps():
     return cases
 
 
-def run_case(work, base, name, corrupt=False, dos=False, reload=False):
+def run_case(work, base, name, corrupt=False, dos=False, reload=False, reject=None, recipe=False):
     directory=work/name
     directory.mkdir()
     cases=steps()
@@ -87,10 +87,15 @@ def run_case(work, base, name, corrupt=False, dos=False, reload=False):
             ('reloaded RU Latin',tap('q'),0x1071),
             ('reloaded RU national',tap('alt','shift_r')+tap('q'),0xa9),
             ('reloaded RU Latin selection',tap('alt','shift')+tap('q'),0x1071)]]
+    if reject:
+        cases=[{'name':'initial Latin','keys':[('q',True),('q',False)],'bios_ax':0x1071},
+               {'name':'select Russian','keys':[('alt',True),('shift_r',True),('shift_r',False),('alt',False),('q',True),('q',False)],'bios_ax':0xa9},
+               {'name':'Russian after rejected load','keys':[('q',True),('q',False)],'bios_ax':0xa9}]
     (directory/'expected.bin').write_bytes(b''.join(struct.pack('<H',s['bios_ax']) for s in cases))
     command('nasm','-f','bin',*(['-DDOS_INPUT'] if dos else []),str(ROOT/'tests/ru_keyboard_probe.asm'),'-o',str(directory/'PROBE.COM'),cwd=directory)
-    if reload:
-        for start,end,program in [(0,2,'PROBE.COM'),(2,4,'GPROBE.COM'),(4,7,'RPROBE.COM')]:
+    if reload or reject:
+        phases = [(0,2,'PROBE.COM'),(2,4,'GPROBE.COM'),(4,7,'RPROBE.COM')] if reload else [(0,2,'PROBE.COM'),(2,3,'RPROBE.COM')]
+        for start,end,program in phases:
             (directory/'expected.bin').write_bytes(b''.join(struct.pack('<H',s['bios_ax']) for s in cases[start:end]))
             command('nasm','-f','bin',f'-DSTART_INDEX={start}',str(ROOT/'tests/ru_keyboard_probe.asm'),'-o',str(directory/program),cwd=directory)
     command('nasm','-f','bin',str(ROOT/'tests/qemu_exit.asm'),'-o',str(directory/'QEXIT.COM'))
@@ -109,12 +114,53 @@ def run_case(work, base, name, corrupt=False, dos=False, reload=False):
         for program in ('GPROBE.COM','RPROBE.COM'):
             command('mcopy','-o','-i',str(image),str(directory/program),'::'+program)
         command('mcopy','-o','-i',str(image),str(ROOT/'src/DEV/KEYBOARD/KEYBOARD.SYS'),'::KEYBOARD.SYS')
+    if reject:
+        command('mcopy','-o','-i',str(image),str(directory/'RPROBE.COM'),'::RPROBE.COM')
+        bad=bytearray(library.read_bytes())
+        if reject=='bad-signature':
+            bad[0]=0
+        elif reject=='short-header':
+            bad=bad[:20]
+        (directory/'BAD.SYS').write_bytes(bad)
+        command('mcopy','-o','-i',str(image),str(directory/'BAD.SYS'),'::BAD.SYS')
     batch='@ECHO OFF\r\nCTTY AUX\r\nKEYB RU,866,KEYBRD2.SYS /ID:441\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nKEYB\r\nPROBE\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO RU_KEY_DONE\r\nQEXIT\r\n:FAIL\r\nECHO RU_CASE_FAIL\r\nQEXIT\r\n'
     if reload:
         batch=batch.replace('ECHO RU_KEY_DONE',
             'KEYB GR,437,KEYBOARD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nGPROBE\r\nIF ERRORLEVEL 1 GOTO FAIL\r\n'
             'KEYB RU,866,KEYBRD2.SYS /ID:441\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nRPROBE\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO RU_KEY_DONE')
-    for target,data in [('CONFIG.SYS','COUNTRY=007,866,COUNTRY.SYS\r\nNUMLOCK=ON\r\n'),('AUTOEXEC.BAT',batch)]:
+    if reject:
+        rejected_command={
+            'missing':'KEYB RU,866,MISSING.SYS',
+            'bad-signature':'KEYB RU,866,BAD.SYS',
+            'short-header':'KEYB RU,866,BAD.SYS',
+            'unsupported-page':'KEYB RU,855,KEYBRD2.SYS',
+            'unsupported-id':'KEYB RU,866,KEYBRD2.SYS /ID:999',
+            'unsupported-layout':'KEYB ZZ,866,KEYBRD2.SYS',
+        }[reject]
+        batch=batch.replace('ECHO RU_KEY_DONE', rejected_command+'\r\nIF NOT ERRORLEVEL 1 GOTO FAIL\r\n'
+            'KEYB\r\nRPROBE\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO RU_KEY_DONE')
+    config='COUNTRY=007,866,COUNTRY.SYS\r\nNUMLOCK=ON\r\n'
+    if recipe:
+        # Execute the installed document's actual lines, adapting only its
+        # C:\DOS directory to this private floppy's root. Installed-disk
+        # boot qualification is separate.
+        doc=(ROOT/'locales/ru/RUSSIAN.TXT').read_text()
+        def section(name):
+            return doc.split('['+name+']\n',1)[1].split('[END]',1)[0].replace('C:\\DOS\\','').splitlines()
+        config='\r\n'.join(section('CONFIG'))+'\r\nNUMLOCK=ON\r\n'
+        actions=[]
+        for line in section('AUTOEXEC'):
+            actions.extend([line,'IF ERRORLEVEL 1 GOTO FAIL'])
+        batch=batch.replace('KEYB RU,866,KEYBRD2.SYS /ID:441', '\r\n'.join(actions))
+        command('nasm','-f','bin',str(ROOT/'tests/ru_codepage_probe.asm'),'-o',str(directory/'CPCHK.COM'))
+        for source,target in [(ROOT/'src/DEV/DISPLAY/EGA/EGA866.CPI','EGA866.CPI'),
+                              (ROOT/'src/DEV/DISPLAY/DISPLAY.SYS','DISPLAY.SYS'),
+                              (ROOT/'src/CMD/MODE/MODE.COM','MODE.COM'),
+                              (ROOT/'src/CMD/NLSFUNC/NLSFUNC.EXE','NLSFUNC.EXE'),
+                              (directory/'CPCHK.COM','CPCHK.COM')]:
+            command('mcopy','-o','-i',str(image),str(source),'::'+target)
+        batch=batch.replace('ECHO RU_KEY_DONE','CPCHK\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO RU_KEY_DONE')
+    for target,data in [('CONFIG.SYS',config),('AUTOEXEC.BAT',batch)]:
         command('mcopy','-o','-i',str(image),'-','::'+target,input=data.encode())
     log=directory/'serial.log'
     with tempfile.TemporaryDirectory(prefix='ruk-') as sockets, log.open('wb') as output:
@@ -156,8 +202,10 @@ def run_case(work, base, name, corrupt=False, dos=False, reload=False):
         assert b'RU_KEY_FAIL actual=00F0' in output and b'RU_KEY_DONE' not in output, (log,output)
     else:
         assert b'RU_KEY_DONE' in output and b'RU_KEY_PASS' in output and b'FAIL' not in output,(log,output)
+    if recipe:
+        assert b'RU_CODEPAGE_PASS' in output,(log,output)
     print(f'PASS: {name}',flush=True)
-    return {'name':name,'negative_control':corrupt,'dos_input':dos,'reload_existing':reload,'emulator_exit':result,'steps':cases,
+    return {'name':name,'negative_control':corrupt,'dos_input':dos,'reload_existing':reload,'rejection':reject,'documented_recipe':recipe,'emulator_exit':result,'steps':cases,
             'completed_reads':output.count(b'RU_KEY_READY'),'log':str(log.relative_to(work)),
             'log_sha256':hashlib.sha256(output).hexdigest()}
 
@@ -167,6 +215,8 @@ def main():
     print(f'Russian keyboard artifacts: {work}',flush=True)
     base=Path(os.environ.get('FLOPPY_IMAGE',ROOT/'out/floppy.img'))
     results=[run_case(work,base,'physical'),run_case(work,base,'dos-input',dos=True),run_case(work,base,'wrong-yo',True),run_case(work,base,'reload-existing',reload=True)]
+    results.append(run_case(work,base,'documented-recipe',recipe=True))
+    results.extend(run_case(work,base,'reject-'+name,reject=name) for name in ('missing','bad-signature','short-header','unsupported-page','unsupported-id','unsupported-layout'))
     (work/'results.json').write_text(json.dumps({'cases':results},indent=2)+'\n')
 
 

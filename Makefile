@@ -1081,6 +1081,11 @@ SELECT_COM   := $(SRC)/SELECT/SELECT.COM
 SELECT_EXE   := $(SRC)/SELECT/SELECT.EXE
 SELECT_DAT   := $(SRC)/SELECT/SELECT.DAT
 SELECT_HLP   := $(SRC)/SELECT/SELECT.HLP
+EGA866_CPI   := $(SRC)/DEV/DISPLAY/EGA/EGA866.CPI
+KEYBRD2_SYS  := $(SRC)/DEV/KEYBOARD/KEYBRD2.SYS
+RU_README    := $(CURDIR)/locales/ru/RUSSIAN.TXT
+RU_FONT1     := $(CURDIR)/locales/ru/upstream/512_8/LICENSE
+RU_FONT2     := $(CURDIR)/locales/ru/upstream/cozette/LICENSE
 EGA_CPI      := $(SRC)/DEV/DISPLAY/EGA/EGA.CPI
 LCD_CPI      := $(SRC)/DEV/DISPLAY/LCD/LCD.CPI
 EGA_SYS      := $(SRC)/DEV/EGA/EGA.SYS
@@ -1119,6 +1124,7 @@ $(FLOPPY): $(OUT)/memory-profile $(BOOT_BIN) $(IO_SYS) $(MSDOS_SYS) $(SYSMENU_OV
            $(VDISK_SYS) $(DISPLAY_SYS) $(COUNTRY_SYS) $(PRINTER_SYS) $(PRINTER_CPI) $(PRINTER_4208_CPI) $(PRINTER_5202_CPI) \
            $(SMARTDRV_SYS) $(SMARTDRV_EXE) $(FLUSH13_EXE) $(DRIVER_SYS) $(XMA2EMS_SYS) $(XMAEM_SYS) \
            $(SELECT_COM) $(SELECT_EXE) $(SELECT_DAT) $(SELECT_HLP) \
+           $(EGA866_CPI) $(KEYBRD2_SYS) $(RU_README) $(RU_FONT1) $(RU_FONT2) \
            $(EGA_CPI) $(LCD_CPI) $(EGA_SYS) $(HIMEM_SYS) $(EMM386_EXE)
 	mkdir -p $(OUT)
 	# The complete developer image needs room for test probes and the growing
@@ -1220,6 +1226,11 @@ $(FLOPPY): $(OUT)/memory-profile $(BOOT_BIN) $(IO_SYS) $(MSDOS_SYS) $(SYSMENU_OV
 	mcopy -i $@ $(SELECT_EXE) ::SELECT.EXE
 	mcopy -i $@ $(SELECT_DAT) ::SELECT.DAT
 	mcopy -i $@ $(SELECT_HLP) ::SELECT.HLP
+	mcopy -i $@ $(EGA866_CPI) ::EGA866.CPI
+	mcopy -i $@ $(KEYBRD2_SYS) ::KEYBRD2.SYS
+	mcopy -i $@ $(RU_README) ::RUSSIAN.TXT
+	mcopy -i $@ $(RU_FONT1) ::RUFONT1.TXT
+	mcopy -i $@ $(RU_FONT2) ::RUFONT2.TXT
 	mcopy -i $@ $(EGA_CPI) ::EGA.CPI
 	mcopy -i $@ $(LCD_CPI) ::LCD.CPI
 	mcopy -i $@ $(EGA_SYS) ::EGA.SYS

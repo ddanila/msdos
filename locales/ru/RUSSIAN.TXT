@@ -1,0 +1,55 @@
+Optional Russian support (CP866)
+===============================
+
+The default installation remains English. Messages and help are English.
+This pack adds Russian screen fonts, keyboard input and country services.
+Use an EGA/VGA-compatible display. The examples assume DOS is in C:\DOS;
+substitute your installation directory if it differs.
+
+Back up CONFIG.SYS and AUTOEXEC.BAT before editing. Keep your existing
+memory-manager and other device settings. Add these CONFIG.SYS lines:
+
+[CONFIG]
+COUNTRY=007,866,C:\DOS\COUNTRY.SYS
+DEVICE=C:\DOS\DISPLAY.SYS CON=(EGA,437,(1,3))
+[END]
+
+Add these AUTOEXEC.BAT commands in this order, then reboot:
+
+[AUTOEXEC]
+C:\DOS\NLSFUNC.EXE
+C:\DOS\MODE.COM CON CP PREPARE=((866) C:\DOS\EGA866.CPI)
+C:\DOS\MODE.COM CON CP SELECT=866
+C:\DOS\KEYB.COM RU,866,C:\DOS\KEYBRD2.SYS /ID:441
+[END]
+
+MODE CON CP and KEYB report the selected code page and keyboard.
+The keyboard starts in Latin mode. Alt+Right Shift selects Russian;
+Alt+Left Shift selects Latin. These select modes, rather than toggling.
+Caps Lock affects letters; Shift reverses letter case while Caps is on.
+The key left of 1 types Yo. Russian punctuation follows the DOS layout:
+Shift+3 is the numero sign, Shift+4 is semicolon, Shift+6 is colon,
+Shift+7 is question mark, and the slash key types period (Shift: comma).
+Right Alt or Ctrl+Alt accesses the additional punctuation layer.
+
+Files contain CP866 bytes, not UTF-8. Use Cyrillic short names with at most
+8 characters plus a 3-character extension. Existing DOS filename and
+wildcard rules still apply. Other computers must decode these files as
+CP866 to display the text correctly.
+
+To return to your prior startup environment, restore the backed-up files
+and reboot. To type Latin without changing the active code page, press
+Alt+Left Shift. The RU library supports only CP866; Latin code-page use
+requires an existing layout from KEYBOARD.SYS and the matching display font.
+
+Font sources and licenses
+-------------------------
+EGA866.CPI uses the public-domain 512_8 sans font for its short font and
+line-drawing geometry, and MIT-licensed Cozette for taller text glyphs.
+Inverse symbols, taller borders and shading have been adapted locally.
+RUFONT1.TXT contains the 512_8 Unlicense; RUFONT2.TXT contains the Cozette
+copyright notice and MIT license. Keep these notices with redistributed
+copies of the font pack.
+
+Source and reproducible build details:
+https://github.com/ddanila/msdos/tree/master/locales/ru

@@ -51,6 +51,7 @@
     ["src/CMD/KEYB/KEYB.COM", "KEYB.COM"],
     ["src/CMD/LOADFIX/LOADFIX.COM", "LOADFIX.COM"],
     ["src/DEV/KEYBOARD/KEYBOARD.SYS", "KEYBOARD.SYS"],
+    ["src/DEV/KEYBOARD/KEYBRD2.SYS", "KEYBRD2.SYS"],
     ["src/CMD/LABEL/LABEL.COM", "LABEL.COM"],
     ["src/CMD/MEM/MEM.EXE", "MEM.EXE"],
     ["src/CMD/MEMMAKER/MEMMAKER.EXE", "MEMMAKER.EXE"],
@@ -88,6 +89,10 @@
     ["src/DEV/XMA2EMS/XMA2EMS.SYS", "XMA2EMS.SYS"],
     ["src/DEV/XMAEM/XMAEM.SYS", "XMAEM.SYS"],
     ["src/DEV/DISPLAY/EGA/EGA.CPI", "EGA.CPI"],
+    ["src/DEV/DISPLAY/EGA/EGA866.CPI", "EGA866.CPI"],
+    ["locales/ru/RUSSIAN.TXT", "RUSSIAN.TXT"],
+    ["locales/ru/upstream/512_8/LICENSE", "RUFONT1.TXT"],
+    ["locales/ru/upstream/cozette/LICENSE", "RUFONT2.TXT"],
     ["src/DEV/DISPLAY/LCD/LCD.CPI", "LCD.CPI"]
   ]
 }

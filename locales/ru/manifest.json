@@ -604,8 +604,8 @@
   },
   "unresolved": [
     "Physical keyboard verification on 83/84-key variants and the real-BIOS 286 backend",
-    "Keyboard resource rejection, complete modifier-precedence edge cases, and HIGH/UMB/LOW profiles",
-    "Installation and end-to-end qualification"
+    "Complete keyboard modifier-precedence edge cases and HIGH/UMB/LOW profiles",
+    "Fresh/upgrade installation, installed-disk recipe boot, and end-to-end qualification"
   ],
   "behavior": {
     "reference": "dos622-reference.json",
