@@ -1,0 +1,4655 @@
+{
+  "schema_version": 1,
+  "status": "at84-physical-bios-and-dos-passed",
+  "scope": "Russian AT-84 alphabet, Caps/Shift, punctuation, Ctrl+Alt, controls, keypad and applicable modifier precedence on real IBM AT BIOS. Does not qualify XT-83, legacy reload/rejection, or the full 286 display/NLS matrix.",
+  "private_artifacts": "out/ru-legacy-keyboard-nxj0h4k8",
+  "command": "MEMORY_CORE_DIR=out/memory-production/files python3 tests/test_ru_legacy_keyboard_86box.py --emulator out/ru-86box-vnc-bs283qnk/build/src/86Box --roms \"$BOX86_ROMS\" --qt-platform offscreen",
+  "core_sha256": {
+    "COMMAND.COM": "f60f680336572c2c1375fbeae7f54b074ac6e365f35638a62822572bece584ba",
+    "EMM386.EXE": "58266b6614594de7a9cfde9eda75e3eb241b9e2e941e67b70645a0f8a197dae6",
+    "HIMEM.SYS": "340cbfd1f0e835755adce99d80c607f8edeb48ea2b20a6a142402a25434f8d13",
+    "MSDOS.SYS": "1475174f50c8c349bedd7cd4a0be88bce055f2e411b7454b5f68fffbff269b62",
+    "IO.SYS": "793169a292df40bb117eb487136a0d8e7f4334ca223e8206bf53f33141f24715"
+  },
+  "booted_core_files": [
+    "IO.SYS",
+    "MSDOS.SYS",
+    "COMMAND.COM"
+  ],
+  "core_changed": false,
+  "emulator_sha256": "fb1fecce1e36891ce9b4c99ec4e807bcbe648f3f816934b341e467d31ada9eef",
+  "backend_record": "legacy-backend-qualification.json",
+  "profile": "DOS=LOW, IBM AT 8 MHz 286, AT 84-key keyboard, VGA, 640 KiB conventional and 512 KiB extended RAM",
+  "resident_keyb_type": 8192,
+  "oracle": "Existing independent Unicode-to-CP866 and BIOS-word expectations in steps() and modifier_steps(); unavailable right Alt/Ctrl cases excluded and navigation moved to the physical keypad.",
+  "physical_steps": [
+    {
+      "name": "initial Latin",
+      "keys": [
+        [
+          "q",
+          true
+        ],
+        [
+          "q",
+          false
+        ]
+      ],
+      "bios_ax": 4209
+    },
+    {
+      "name": "Alt then shift_r",
+      "keys": [
+        [
+          "alt",
+          true
+        ],
+        [
+          "shift_r",
+          true
+        ],
+        [
+          "shift_r",
+          false
+        ],
+        [
+          "alt",
+          false
+        ],
+        [
+          "q",
+          true
+        ],
+        [
+          "q",
+          false
+        ]
+      ],
+      "bios_ax": 169
+    },
+    {
+      "name": "Alt then shift_r",
+      "keys": [
+        [
+          "alt",
+          true
+        ],
+        [
+          "shift_r",
+          true
+        ],
+        [
+          "shift_r",
+          false
+        ],
+        [
+          "alt",
+          false
+        ],
+        [
+          "q",
+          true
+        ],
+        [
+          "q",
+          false
+        ]
+      ],
+      "bios_ax": 169
+    },
+    {
+      "name": "Alt then shift",
+      "keys": [
+        [
+          "alt",
+          true
+        ],
+        [
+          "shift",
+          true
+        ],
+        [
+          "shift",
+          false
+        ],
+        [
+          "alt",
+          false
+        ],
+        [
+          "q",
+          true
+        ],
+        [
+          "q",
+          false
+        ]
+      ],
+      "bios_ax": 4209
+    },
+    {
+      "name": "Alt then shift",
+      "keys": [
+        [
+          "alt",
+          true
+        ],
+        [
+          "shift",
+          true
+        ],
+        [
+          "shift",
+          false
+        ],
+        [
+          "alt",
+          false
+        ],
+        [
+          "q",
+          true
+        ],
+        [
+          "q",
+          false
+        ]
+      ],
+      "bios_ax": 4209
+    },
+    {
+      "name": "shift_r then Alt",
+      "keys": [
+        [
+          "shift_r",
+          true
+        ],
+        [
+          "alt",
+          true
+        ],
+        [
+          "alt",
+          false
+        ],
+        [
+          "shift_r",
+          false
+        ],
+        [
+          "q",
+          true
+        ],
+        [
+          "q",
+          false
+        ]
+      ],
+      "bios_ax": 169
+    },
+    {
+      "name": "shift then Alt",
+      "keys": [
+        [
+          "shift",
+          true
+        ],
+        [
+          "alt",
+          true
+        ],
+        [
+          "alt",
+          false
+        ],
+        [
+          "shift",
+          false
+        ],
+        [
+          "q",
+          true
+        ],
+        [
+          "q",
+          false
+        ]
+      ],
+      "bios_ax": 4209
+    },
+    {
+      "name": "shift_r then Alt",
+      "keys": [
+        [
+          "shift_r",
+          true
+        ],
+        [
+          "alt",
+          true
+        ],
+        [
+          "alt",
+          false
+        ],
+        [
+          "shift_r",
+          false
+        ],
+        [
+          "q",
+          true
+        ],
+        [
+          "q",
+          false
+        ]
+      ],
+      "bios_ax": 169
+    },
+    {
+      "name": "caps=False shift=False q",
+      "keys": [
+        [
+          "q",
+          true
+        ],
+        [
+          "q",
+          false
+        ]
+      ],
+      "bios_ax": 169
+    },
+    {
+      "name": "caps=False shift=False w",
+      "keys": [
+        [
+          "w",
+          true
+        ],
+        [
+          "w",
+          false
+        ]
+      ],
+      "bios_ax": 230
+    },
+    {
+      "name": "caps=False shift=False e",
+      "keys": [
+        [
+          "e",
+          true
+        ],
+        [
+          "e",
+          false
+        ]
+      ],
+      "bios_ax": 227
+    },
+    {
+      "name": "caps=False shift=False r",
+      "keys": [
+        [
+          "r",
+          true
+        ],
+        [
+          "r",
+          false
+        ]
+      ],
+      "bios_ax": 170
+    },
+    {
+      "name": "caps=False shift=False t",
+      "keys": [
+        [
+          "t",
+          true
+        ],
+        [
+          "t",
+          false
+        ]
+      ],
+      "bios_ax": 165
+    },
+    {
+      "name": "caps=False shift=False y",
+      "keys": [
+        [
+          "y",
+          true
+        ],
+        [
+          "y",
+          false
+        ]
+      ],
+      "bios_ax": 173
+    },
+    {
+      "name": "caps=False shift=False u",
+      "keys": [
+        [
+          "u",
+          true
+        ],
+        [
+          "u",
+          false
+        ]
+      ],
+      "bios_ax": 163
+    },
+    {
+      "name": "caps=False shift=False i",
+      "keys": [
+        [
+          "i",
+          true
+        ],
+        [
+          "i",
+          false
+        ]
+      ],
+      "bios_ax": 232
+    },
+    {
+      "name": "caps=False shift=False o",
+      "keys": [
+        [
+          "o",
+          true
+        ],
+        [
+          "o",
+          false
+        ]
+      ],
+      "bios_ax": 233
+    },
+    {
+      "name": "caps=False shift=False p",
+      "keys": [
+        [
+          "p",
+          true
+        ],
+        [
+          "p",
+          false
+        ]
+      ],
+      "bios_ax": 167
+    },
+    {
+      "name": "caps=False shift=False bracket_left",
+      "keys": [
+        [
+          "bracket_left",
+          true
+        ],
+        [
+          "bracket_left",
+          false
+        ]
+      ],
+      "bios_ax": 229
+    },
+    {
+      "name": "caps=False shift=False bracket_right",
+      "keys": [
+        [
+          "bracket_right",
+          true
+        ],
+        [
+          "bracket_right",
+          false
+        ]
+      ],
+      "bios_ax": 234
+    },
+    {
+      "name": "caps=False shift=False a",
+      "keys": [
+        [
+          "a",
+          true
+        ],
+        [
+          "a",
+          false
+        ]
+      ],
+      "bios_ax": 228
+    },
+    {
+      "name": "caps=False shift=False s",
+      "keys": [
+        [
+          "s",
+          true
+        ],
+        [
+          "s",
+          false
+        ]
+      ],
+      "bios_ax": 235
+    },
+    {
+      "name": "caps=False shift=False d",
+      "keys": [
+        [
+          "d",
+          true
+        ],
+        [
+          "d",
+          false
+        ]
+      ],
+      "bios_ax": 162
+    },
+    {
+      "name": "caps=False shift=False f",
+      "keys": [
+        [
+          "f",
+          true
+        ],
+        [
+          "f",
+          false
+        ]
+      ],
+      "bios_ax": 160
+    },
+    {
+      "name": "caps=False shift=False g",
+      "keys": [
+        [
+          "g",
+          true
+        ],
+        [
+          "g",
+          false
+        ]
+      ],
+      "bios_ax": 175
+    },
+    {
+      "name": "caps=False shift=False h",
+      "keys": [
+        [
+          "h",
+          true
+        ],
+        [
+          "h",
+          false
+        ]
+      ],
+      "bios_ax": 224
+    },
+    {
+      "name": "caps=False shift=False j",
+      "keys": [
+        [
+          "j",
+          true
+        ],
+        [
+          "j",
+          false
+        ]
+      ],
+      "bios_ax": 174
+    },
+    {
+      "name": "caps=False shift=False k",
+      "keys": [
+        [
+          "k",
+          true
+        ],
+        [
+          "k",
+          false
+        ]
+      ],
+      "bios_ax": 171
+    },
+    {
+      "name": "caps=False shift=False l",
+      "keys": [
+        [
+          "l",
+          true
+        ],
+        [
+          "l",
+          false
+        ]
+      ],
+      "bios_ax": 164
+    },
+    {
+      "name": "caps=False shift=False semicolon",
+      "keys": [
+        [
+          "semicolon",
+          true
+        ],
+        [
+          "semicolon",
+          false
+        ]
+      ],
+      "bios_ax": 166
+    },
+    {
+      "name": "caps=False shift=False apostrophe",
+      "keys": [
+        [
+          "apostrophe",
+          true
+        ],
+        [
+          "apostrophe",
+          false
+        ]
+      ],
+      "bios_ax": 237
+    },
+    {
+      "name": "caps=False shift=False z",
+      "keys": [
+        [
+          "z",
+          true
+        ],
+        [
+          "z",
+          false
+        ]
+      ],
+      "bios_ax": 239
+    },
+    {
+      "name": "caps=False shift=False x",
+      "keys": [
+        [
+          "x",
+          true
+        ],
+        [
+          "x",
+          false
+        ]
+      ],
+      "bios_ax": 231
+    },
+    {
+      "name": "caps=False shift=False c",
+      "keys": [
+        [
+          "c",
+          true
+        ],
+        [
+          "c",
+          false
+        ]
+      ],
+      "bios_ax": 225
+    },
+    {
+      "name": "caps=False shift=False v",
+      "keys": [
+        [
+          "v",
+          true
+        ],
+        [
+          "v",
+          false
+        ]
+      ],
+      "bios_ax": 172
+    },
+    {
+      "name": "caps=False shift=False b",
+      "keys": [
+        [
+          "b",
+          true
+        ],
+        [
+          "b",
+          false
+        ]
+      ],
+      "bios_ax": 168
+    },
+    {
+      "name": "caps=False shift=False n",
+      "keys": [
+        [
+          "n",
+          true
+        ],
+        [
+          "n",
+          false
+        ]
+      ],
+      "bios_ax": 226
+    },
+    {
+      "name": "caps=False shift=False m",
+      "keys": [
+        [
+          "m",
+          true
+        ],
+        [
+          "m",
+          false
+        ]
+      ],
+      "bios_ax": 236
+    },
+    {
+      "name": "caps=False shift=False comma",
+      "keys": [
+        [
+          "comma",
+          true
+        ],
+        [
+          "comma",
+          false
+        ]
+      ],
+      "bios_ax": 161
+    },
+    {
+      "name": "caps=False shift=False dot",
+      "keys": [
+        [
+          "dot",
+          true
+        ],
+        [
+          "dot",
+          false
+        ]
+      ],
+      "bios_ax": 238
+    },
+    {
+      "name": "caps=False shift=False grave_accent",
+      "keys": [
+        [
+          "grave_accent",
+          true
+        ],
+        [
+          "grave_accent",
+          false
+        ]
+      ],
+      "bios_ax": 241
+    },
+    {
+      "name": "caps=False shift=True q",
+      "keys": [
+        [
+          "shift",
+          true
+        ],
+        [
+          "q",
+          true
+        ],
+        [
+          "q",
+          false
+        ],
+        [
+          "shift",
+          false
+        ]
+      ],
+      "bios_ax": 137
+    },
+    {
+      "name": "caps=False shift=True w",
+      "keys": [
+        [
+          "shift",
+          true
+        ],
+        [
+          "w",
+          true
+        ],
+        [
+          "w",
+          false
+        ],
+        [
+          "shift",
+          false
+        ]
+      ],
+      "bios_ax": 150
+    },
+    {
+      "name": "caps=False shift=True e",
+      "keys": [
+        [
+          "shift",
+          true
+        ],
+        [
+          "e",
+          true
+        ],
+        [
+          "e",
+          false
+        ],
+        [
+          "shift",
+          false
+        ]
+      ],
+      "bios_ax": 147
+    },
+    {
+      "name": "caps=False shift=True r",
+      "keys": [
+        [
+          "shift",
+          true
+        ],
+        [
+          "r",
+          true
+        ],
+        [
+          "r",
+          false
+        ],
+        [
+          "shift",
+          false
+        ]
+      ],
+      "bios_ax": 138
+    },
+    {
+      "name": "caps=False shift=True t",
+      "keys": [
+        [
+          "shift",
+          true
+        ],
+        [
+          "t",
+          true
+        ],
+        [
+          "t",
+          false
+        ],
+        [
+          "shift",
+          false
+        ]
+      ],
+      "bios_ax": 133
+    },
+    {
+      "name": "caps=False shift=True y",
+      "keys": [
+        [
+          "shift",
+          true
+        ],
+        [
+          "y",
+          true
+        ],
+        [
+          "y",
+          false
+        ],
+        [
+          "shift",
+          false
+        ]
+      ],
+      "bios_ax": 141
+    },
+    {
+      "name": "caps=False shift=True u",
+      "keys": [
+        [
+          "shift",
+          true
+        ],
+        [
+          "u",
+          true
+        ],
+        [
+          "u",
+          false
+        ],
+        [
+          "shift",
+          false
+        ]
+      ],
+      "bios_ax": 131
+    },
+    {
+      "name": "caps=False shift=True i",
+      "keys": [
+        [
+          "shift",
+          true
+        ],
+        [
+          "i",
+          true
+        ],
+        [
+          "i",
+          false
+        ],
+        [
+          "shift",
+          false
+        ]
+      ],
+      "bios_ax": 152
+    },
+    {
+      "name": "caps=False shift=True o",
+      "keys": [
+        [
+          "shift",
+          true
+        ],
+        [
+          "o",
+          true
+        ],
+        [
+          "o",
+          false
+        ],
+        [
+          "shift",
+          false
+        ]
+      ],
+      "bios_ax": 153
+    },
+    {
+      "name": "caps=False shift=True p",
+      "keys": [
+        [
+          "shift",
+          true
+        ],
+        [
+          "p",
+          true
+        ],
+        [
+          "p",
+          false
+        ],
+        [
+          "shift",
+          false
+        ]
+      ],
+      "bios_ax": 135
+    },
+    {
+      "name": "caps=False shift=True bracket_left",
+      "keys": [
+        [
+          "shift",
+          true
+        ],
+        [
+          "bracket_left",
+          true
+        ],
+        [
+          "bracket_left",
+          false
+        ],
+        [
+          "shift",
+          false
+        ]
+      ],
+      "bios_ax": 149
+    },
+    {
+      "name": "caps=False shift=True bracket_right",
+      "keys": [
+        [
+          "shift",
+          true
+        ],
+        [
+          "bracket_right",
+          true
+        ],
+        [
+          "bracket_right",
+          false
+        ],
+        [
+          "shift",
+          false
+        ]
+      ],
+      "bios_ax": 154
+    },
+    {
+      "name": "caps=False shift=True a",
+      "keys": [
+        [
+          "shift",
+          true
+        ],
+        [
+          "a",
+          true
+        ],
+        [
+          "a",
+          false
+        ],
+        [
+          "shift",
+          false
+        ]
+      ],
+      "bios_ax": 148
+    },
+    {
+      "name": "caps=False shift=True s",
+      "keys": [
+        [
+          "shift",
+          true
+        ],
+        [
+          "s",
+          true
+        ],
+        [
+          "s",
+          false
+        ],
+        [
+          "shift",
+          false
+        ]
+      ],
+      "bios_ax": 155
+    },
+    {
+      "name": "caps=False shift=True d",
+      "keys": [
+        [
+          "shift",
+          true
+        ],
+        [
+          "d",
+          true
+        ],
+        [
+          "d",
+          false
+        ],
+        [
+          "shift",
+          false
+        ]
+      ],
+      "bios_ax": 130
+    },
+    {
+      "name": "caps=False shift=True f",
+      "keys": [
+        [
+          "shift",
+          true
+        ],
+        [
+          "f",
+          true
+        ],
+        [
+          "f",
+          false
+        ],
+        [
+          "shift",
+          false
+        ]
+      ],
+      "bios_ax": 128
+    },
+    {
+      "name": "caps=False shift=True g",
+      "keys": [
+        [
+          "shift",
+          true
+        ],
+        [
+          "g",
+          true
+        ],
+        [
+          "g",
+          false
+        ],
+        [
+          "shift",
+          false
+        ]
+      ],
+      "bios_ax": 143
+    },
+    {
+      "name": "caps=False shift=True h",
+      "keys": [
+        [
+          "shift",
+          true
+        ],
+        [
+          "h",
+          true
+        ],
+        [
+          "h",
+          false
+        ],
+        [
+          "shift",
+          false
+        ]
+      ],
+      "bios_ax": 144
+    },
+    {
+      "name": "caps=False shift=True j",
+      "keys": [
+        [
+          "shift",
+          true
+        ],
+        [
+          "j",
+          true
+        ],
+        [
+          "j",
+          false
+        ],
+        [
+          "shift",
+          false
+        ]
+      ],
+      "bios_ax": 142
+    },
+    {
+      "name": "caps=False shift=True k",
+      "keys": [
+        [
+          "shift",
+          true
+        ],
+        [
+          "k",
+          true
+        ],
+        [
+          "k",
+          false
+        ],
+        [
+          "shift",
+          false
+        ]
+      ],
+      "bios_ax": 139
+    },
+    {
+      "name": "caps=False shift=True l",
+      "keys": [
+        [
+          "shift",
+          true
+        ],
+        [
+          "l",
+          true
+        ],
+        [
+          "l",
+          false
+        ],
+        [
+          "shift",
+          false
+        ]
+      ],
+      "bios_ax": 132
+    },
+    {
+      "name": "caps=False shift=True semicolon",
+      "keys": [
+        [
+          "shift",
+          true
+        ],
+        [
+          "semicolon",
+          true
+        ],
+        [
+          "semicolon",
+          false
+        ],
+        [
+          "shift",
+          false
+        ]
+      ],
+      "bios_ax": 134
+    },
+    {
+      "name": "caps=False shift=True apostrophe",
+      "keys": [
+        [
+          "shift",
+          true
+        ],
+        [
+          "apostrophe",
+          true
+        ],
+        [
+          "apostrophe",
+          false
+        ],
+        [
+          "shift",
+          false
+        ]
+      ],
+      "bios_ax": 157
+    },
+    {
+      "name": "caps=False shift=True z",
+      "keys": [
+        [
+          "shift",
+          true
+        ],
+        [
+          "z",
+          true
+        ],
+        [
+          "z",
+          false
+        ],
+        [
+          "shift",
+          false
+        ]
+      ],
+      "bios_ax": 159
+    },
+    {
+      "name": "caps=False shift=True x",
+      "keys": [
+        [
+          "shift",
+          true
+        ],
+        [
+          "x",
+          true
+        ],
+        [
+          "x",
+          false
+        ],
+        [
+          "shift",
+          false
+        ]
+      ],
+      "bios_ax": 151
+    },
+    {
+      "name": "caps=False shift=True c",
+      "keys": [
+        [
+          "shift",
+          true
+        ],
+        [
+          "c",
+          true
+        ],
+        [
+          "c",
+          false
+        ],
+        [
+          "shift",
+          false
+        ]
+      ],
+      "bios_ax": 145
+    },
+    {
+      "name": "caps=False shift=True v",
+      "keys": [
+        [
+          "shift",
+          true
+        ],
+        [
+          "v",
+          true
+        ],
+        [
+          "v",
+          false
+        ],
+        [
+          "shift",
+          false
+        ]
+      ],
+      "bios_ax": 140
+    },
+    {
+      "name": "caps=False shift=True b",
+      "keys": [
+        [
+          "shift",
+          true
+        ],
+        [
+          "b",
+          true
+        ],
+        [
+          "b",
+          false
+        ],
+        [
+          "shift",
+          false
+        ]
+      ],
+      "bios_ax": 136
+    },
+    {
+      "name": "caps=False shift=True n",
+      "keys": [
+        [
+          "shift",
+          true
+        ],
+        [
+          "n",
+          true
+        ],
+        [
+          "n",
+          false
+        ],
+        [
+          "shift",
+          false
+        ]
+      ],
+      "bios_ax": 146
+    },
+    {
+      "name": "caps=False shift=True m",
+      "keys": [
+        [
+          "shift",
+          true
+        ],
+        [
+          "m",
+          true
+        ],
+        [
+          "m",
+          false
+        ],
+        [
+          "shift",
+          false
+        ]
+      ],
+      "bios_ax": 156
+    },
+    {
+      "name": "caps=False shift=True comma",
+      "keys": [
+        [
+          "shift",
+          true
+        ],
+        [
+          "comma",
+          true
+        ],
+        [
+          "comma",
+          false
+        ],
+        [
+          "shift",
+          false
+        ]
+      ],
+      "bios_ax": 129
+    },
+    {
+      "name": "caps=False shift=True dot",
+      "keys": [
+        [
+          "shift",
+          true
+        ],
+        [
+          "dot",
+          true
+        ],
+        [
+          "dot",
+          false
+        ],
+        [
+          "shift",
+          false
+        ]
+      ],
+      "bios_ax": 158
+    },
+    {
+      "name": "caps=False shift=True grave_accent",
+      "keys": [
+        [
+          "shift",
+          true
+        ],
+        [
+          "grave_accent",
+          true
+        ],
+        [
+          "grave_accent",
+          false
+        ],
+        [
+          "shift",
+          false
+        ]
+      ],
+      "bios_ax": 240
+    },
+    {
+      "name": "caps=True shift=False q",
+      "keys": [
+        [
+          "caps_lock",
+          true
+        ],
+        [
+          "caps_lock",
+          false
+        ],
+        [
+          "q",
+          true
+        ],
+        [
+          "q",
+          false
+        ]
+      ],
+      "bios_ax": 137
+    },
+    {
+      "name": "caps=True shift=False w",
+      "keys": [
+        [
+          "w",
+          true
+        ],
+        [
+          "w",
+          false
+        ]
+      ],
+      "bios_ax": 150
+    },
+    {
+      "name": "caps=True shift=False e",
+      "keys": [
+        [
+          "e",
+          true
+        ],
+        [
+          "e",
+          false
+        ]
+      ],
+      "bios_ax": 147
+    },
+    {
+      "name": "caps=True shift=False r",
+      "keys": [
+        [
+          "r",
+          true
+        ],
+        [
+          "r",
+          false
+        ]
+      ],
+      "bios_ax": 138
+    },
+    {
+      "name": "caps=True shift=False t",
+      "keys": [
+        [
+          "t",
+          true
+        ],
+        [
+          "t",
+          false
+        ]
+      ],
+      "bios_ax": 133
+    },
+    {
+      "name": "caps=True shift=False y",
+      "keys": [
+        [
+          "y",
+          true
+        ],
+        [
+          "y",
+          false
+        ]
+      ],
+      "bios_ax": 141
+    },
+    {
+      "name": "caps=True shift=False u",
+      "keys": [
+        [
+          "u",
+          true
+        ],
+        [
+          "u",
+          false
+        ]
+      ],
+      "bios_ax": 131
+    },
+    {
+      "name": "caps=True shift=False i",
+      "keys": [
+        [
+          "i",
+          true
+        ],
+        [
+          "i",
+          false
+        ]
+      ],
+      "bios_ax": 152
+    },
+    {
+      "name": "caps=True shift=False o",
+      "keys": [
+        [
+          "o",
+          true
+        ],
+        [
+          "o",
+          false
+        ]
+      ],
+      "bios_ax": 153
+    },
+    {
+      "name": "caps=True shift=False p",
+      "keys": [
+        [
+          "p",
+          true
+        ],
+        [
+          "p",
+          false
+        ]
+      ],
+      "bios_ax": 135
+    },
+    {
+      "name": "caps=True shift=False bracket_left",
+      "keys": [
+        [
+          "bracket_left",
+          true
+        ],
+        [
+          "bracket_left",
+          false
+        ]
+      ],
+      "bios_ax": 149
+    },
+    {
+      "name": "caps=True shift=False bracket_right",
+      "keys": [
+        [
+          "bracket_right",
+          true
+        ],
+        [
+          "bracket_right",
+          false
+        ]
+      ],
+      "bios_ax": 154
+    },
+    {
+      "name": "caps=True shift=False a",
+      "keys": [
+        [
+          "a",
+          true
+        ],
+        [
+          "a",
+          false
+        ]
+      ],
+      "bios_ax": 148
+    },
+    {
+      "name": "caps=True shift=False s",
+      "keys": [
+        [
+          "s",
+          true
+        ],
+        [
+          "s",
+          false
+        ]
+      ],
+      "bios_ax": 155
+    },
+    {
+      "name": "caps=True shift=False d",
+      "keys": [
+        [
+          "d",
+          true
+        ],
+        [
+          "d",
+          false
+        ]
+      ],
+      "bios_ax": 130
+    },
+    {
+      "name": "caps=True shift=False f",
+      "keys": [
+        [
+          "f",
+          true
+        ],
+        [
+          "f",
+          false
+        ]
+      ],
+      "bios_ax": 128
+    },
+    {
+      "name": "caps=True shift=False g",
+      "keys": [
+        [
+          "g",
+          true
+        ],
+        [
+          "g",
+          false
+        ]
+      ],
+      "bios_ax": 143
+    },
+    {
+      "name": "caps=True shift=False h",
+      "keys": [
+        [
+          "h",
+          true
+        ],
+        [
+          "h",
+          false
+        ]
+      ],
+      "bios_ax": 144
+    },
+    {
+      "name": "caps=True shift=False j",
+      "keys": [
+        [
+          "j",
+          true
+        ],
+        [
+          "j",
+          false
+        ]
+      ],
+      "bios_ax": 142
+    },
+    {
+      "name": "caps=True shift=False k",
+      "keys": [
+        [
+          "k",
+          true
+        ],
+        [
+          "k",
+          false
+        ]
+      ],
+      "bios_ax": 139
+    },
+    {
+      "name": "caps=True shift=False l",
+      "keys": [
+        [
+          "l",
+          true
+        ],
+        [
+          "l",
+          false
+        ]
+      ],
+      "bios_ax": 132
+    },
+    {
+      "name": "caps=True shift=False semicolon",
+      "keys": [
+        [
+          "semicolon",
+          true
+        ],
+        [
+          "semicolon",
+          false
+        ]
+      ],
+      "bios_ax": 134
+    },
+    {
+      "name": "caps=True shift=False apostrophe",
+      "keys": [
+        [
+          "apostrophe",
+          true
+        ],
+        [
+          "apostrophe",
+          false
+        ]
+      ],
+      "bios_ax": 157
+    },
+    {
+      "name": "caps=True shift=False z",
+      "keys": [
+        [
+          "z",
+          true
+        ],
+        [
+          "z",
+          false
+        ]
+      ],
+      "bios_ax": 159
+    },
+    {
+      "name": "caps=True shift=False x",
+      "keys": [
+        [
+          "x",
+          true
+        ],
+        [
+          "x",
+          false
+        ]
+      ],
+      "bios_ax": 151
+    },
+    {
+      "name": "caps=True shift=False c",
+      "keys": [
+        [
+          "c",
+          true
+        ],
+        [
+          "c",
+          false
+        ]
+      ],
+      "bios_ax": 145
+    },
+    {
+      "name": "caps=True shift=False v",
+      "keys": [
+        [
+          "v",
+          true
+        ],
+        [
+          "v",
+          false
+        ]
+      ],
+      "bios_ax": 140
+    },
+    {
+      "name": "caps=True shift=False b",
+      "keys": [
+        [
+          "b",
+          true
+        ],
+        [
+          "b",
+          false
+        ]
+      ],
+      "bios_ax": 136
+    },
+    {
+      "name": "caps=True shift=False n",
+      "keys": [
+        [
+          "n",
+          true
+        ],
+        [
+          "n",
+          false
+        ]
+      ],
+      "bios_ax": 146
+    },
+    {
+      "name": "caps=True shift=False m",
+      "keys": [
+        [
+          "m",
+          true
+        ],
+        [
+          "m",
+          false
+        ]
+      ],
+      "bios_ax": 156
+    },
+    {
+      "name": "caps=True shift=False comma",
+      "keys": [
+        [
+          "comma",
+          true
+        ],
+        [
+          "comma",
+          false
+        ]
+      ],
+      "bios_ax": 129
+    },
+    {
+      "name": "caps=True shift=False dot",
+      "keys": [
+        [
+          "dot",
+          true
+        ],
+        [
+          "dot",
+          false
+        ]
+      ],
+      "bios_ax": 158
+    },
+    {
+      "name": "caps=True shift=False grave_accent",
+      "keys": [
+        [
+          "grave_accent",
+          true
+        ],
+        [
+          "grave_accent",
+          false
+        ]
+      ],
+      "bios_ax": 240
+    },
+    {
+      "name": "caps=True shift=True q",
+      "keys": [
+        [
+          "shift",
+          true
+        ],
+        [
+          "q",
+          true
+        ],
+        [
+          "q",
+          false
+        ],
+        [
+          "shift",
+          false
+        ]
+      ],
+      "bios_ax": 169
+    },
+    {
+      "name": "caps=True shift=True w",
+      "keys": [
+        [
+          "shift",
+          true
+        ],
+        [
+          "w",
+          true
+        ],
+        [
+          "w",
+          false
+        ],
+        [
+          "shift",
+          false
+        ]
+      ],
+      "bios_ax": 230
+    },
+    {
+      "name": "caps=True shift=True e",
+      "keys": [
+        [
+          "shift",
+          true
+        ],
+        [
+          "e",
+          true
+        ],
+        [
+          "e",
+          false
+        ],
+        [
+          "shift",
+          false
+        ]
+      ],
+      "bios_ax": 227
+    },
+    {
+      "name": "caps=True shift=True r",
+      "keys": [
+        [
+          "shift",
+          true
+        ],
+        [
+          "r",
+          true
+        ],
+        [
+          "r",
+          false
+        ],
+        [
+          "shift",
+          false
+        ]
+      ],
+      "bios_ax": 170
+    },
+    {
+      "name": "caps=True shift=True t",
+      "keys": [
+        [
+          "shift",
+          true
+        ],
+        [
+          "t",
+          true
+        ],
+        [
+          "t",
+          false
+        ],
+        [
+          "shift",
+          false
+        ]
+      ],
+      "bios_ax": 165
+    },
+    {
+      "name": "caps=True shift=True y",
+      "keys": [
+        [
+          "shift",
+          true
+        ],
+        [
+          "y",
+          true
+        ],
+        [
+          "y",
+          false
+        ],
+        [
+          "shift",
+          false
+        ]
+      ],
+      "bios_ax": 173
+    },
+    {
+      "name": "caps=True shift=True u",
+      "keys": [
+        [
+          "shift",
+          true
+        ],
+        [
+          "u",
+          true
+        ],
+        [
+          "u",
+          false
+        ],
+        [
+          "shift",
+          false
+        ]
+      ],
+      "bios_ax": 163
+    },
+    {
+      "name": "caps=True shift=True i",
+      "keys": [
+        [
+          "shift",
+          true
+        ],
+        [
+          "i",
+          true
+        ],
+        [
+          "i",
+          false
+        ],
+        [
+          "shift",
+          false
+        ]
+      ],
+      "bios_ax": 232
+    },
+    {
+      "name": "caps=True shift=True o",
+      "keys": [
+        [
+          "shift",
+          true
+        ],
+        [
+          "o",
+          true
+        ],
+        [
+          "o",
+          false
+        ],
+        [
+          "shift",
+          false
+        ]
+      ],
+      "bios_ax": 233
+    },
+    {
+      "name": "caps=True shift=True p",
+      "keys": [
+        [
+          "shift",
+          true
+        ],
+        [
+          "p",
+          true
+        ],
+        [
+          "p",
+          false
+        ],
+        [
+          "shift",
+          false
+        ]
+      ],
+      "bios_ax": 167
+    },
+    {
+      "name": "caps=True shift=True bracket_left",
+      "keys": [
+        [
+          "shift",
+          true
+        ],
+        [
+          "bracket_left",
+          true
+        ],
+        [
+          "bracket_left",
+          false
+        ],
+        [
+          "shift",
+          false
+        ]
+      ],
+      "bios_ax": 229
+    },
+    {
+      "name": "caps=True shift=True bracket_right",
+      "keys": [
+        [
+          "shift",
+          true
+        ],
+        [
+          "bracket_right",
+          true
+        ],
+        [
+          "bracket_right",
+          false
+        ],
+        [
+          "shift",
+          false
+        ]
+      ],
+      "bios_ax": 234
+    },
+    {
+      "name": "caps=True shift=True a",
+      "keys": [
+        [
+          "shift",
+          true
+        ],
+        [
+          "a",
+          true
+        ],
+        [
+          "a",
+          false
+        ],
+        [
+          "shift",
+          false
+        ]
+      ],
+      "bios_ax": 228
+    },
+    {
+      "name": "caps=True shift=True s",
+      "keys": [
+        [
+          "shift",
+          true
+        ],
+        [
+          "s",
+          true
+        ],
+        [
+          "s",
+          false
+        ],
+        [
+          "shift",
+          false
+        ]
+      ],
+      "bios_ax": 235
+    },
+    {
+      "name": "caps=True shift=True d",
+      "keys": [
+        [
+          "shift",
+          true
+        ],
+        [
+          "d",
+          true
+        ],
+        [
+          "d",
+          false
+        ],
+        [
+          "shift",
+          false
+        ]
+      ],
+      "bios_ax": 162
+    },
+    {
+      "name": "caps=True shift=True f",
+      "keys": [
+        [
+          "shift",
+          true
+        ],
+        [
+          "f",
+          true
+        ],
+        [
+          "f",
+          false
+        ],
+        [
+          "shift",
+          false
+        ]
+      ],
+      "bios_ax": 160
+    },
+    {
+      "name": "caps=True shift=True g",
+      "keys": [
+        [
+          "shift",
+          true
+        ],
+        [
+          "g",
+          true
+        ],
+        [
+          "g",
+          false
+        ],
+        [
+          "shift",
+          false
+        ]
+      ],
+      "bios_ax": 175
+    },
+    {
+      "name": "caps=True shift=True h",
+      "keys": [
+        [
+          "shift",
+          true
+        ],
+        [
+          "h",
+          true
+        ],
+        [
+          "h",
+          false
+        ],
+        [
+          "shift",
+          false
+        ]
+      ],
+      "bios_ax": 224
+    },
+    {
+      "name": "caps=True shift=True j",
+      "keys": [
+        [
+          "shift",
+          true
+        ],
+        [
+          "j",
+          true
+        ],
+        [
+          "j",
+          false
+        ],
+        [
+          "shift",
+          false
+        ]
+      ],
+      "bios_ax": 174
+    },
+    {
+      "name": "caps=True shift=True k",
+      "keys": [
+        [
+          "shift",
+          true
+        ],
+        [
+          "k",
+          true
+        ],
+        [
+          "k",
+          false
+        ],
+        [
+          "shift",
+          false
+        ]
+      ],
+      "bios_ax": 171
+    },
+    {
+      "name": "caps=True shift=True l",
+      "keys": [
+        [
+          "shift",
+          true
+        ],
+        [
+          "l",
+          true
+        ],
+        [
+          "l",
+          false
+        ],
+        [
+          "shift",
+          false
+        ]
+      ],
+      "bios_ax": 164
+    },
+    {
+      "name": "caps=True shift=True semicolon",
+      "keys": [
+        [
+          "shift",
+          true
+        ],
+        [
+          "semicolon",
+          true
+        ],
+        [
+          "semicolon",
+          false
+        ],
+        [
+          "shift",
+          false
+        ]
+      ],
+      "bios_ax": 166
+    },
+    {
+      "name": "caps=True shift=True apostrophe",
+      "keys": [
+        [
+          "shift",
+          true
+        ],
+        [
+          "apostrophe",
+          true
+        ],
+        [
+          "apostrophe",
+          false
+        ],
+        [
+          "shift",
+          false
+        ]
+      ],
+      "bios_ax": 237
+    },
+    {
+      "name": "caps=True shift=True z",
+      "keys": [
+        [
+          "shift",
+          true
+        ],
+        [
+          "z",
+          true
+        ],
+        [
+          "z",
+          false
+        ],
+        [
+          "shift",
+          false
+        ]
+      ],
+      "bios_ax": 239
+    },
+    {
+      "name": "caps=True shift=True x",
+      "keys": [
+        [
+          "shift",
+          true
+        ],
+        [
+          "x",
+          true
+        ],
+        [
+          "x",
+          false
+        ],
+        [
+          "shift",
+          false
+        ]
+      ],
+      "bios_ax": 231
+    },
+    {
+      "name": "caps=True shift=True c",
+      "keys": [
+        [
+          "shift",
+          true
+        ],
+        [
+          "c",
+          true
+        ],
+        [
+          "c",
+          false
+        ],
+        [
+          "shift",
+          false
+        ]
+      ],
+      "bios_ax": 225
+    },
+    {
+      "name": "caps=True shift=True v",
+      "keys": [
+        [
+          "shift",
+          true
+        ],
+        [
+          "v",
+          true
+        ],
+        [
+          "v",
+          false
+        ],
+        [
+          "shift",
+          false
+        ]
+      ],
+      "bios_ax": 172
+    },
+    {
+      "name": "caps=True shift=True b",
+      "keys": [
+        [
+          "shift",
+          true
+        ],
+        [
+          "b",
+          true
+        ],
+        [
+          "b",
+          false
+        ],
+        [
+          "shift",
+          false
+        ]
+      ],
+      "bios_ax": 168
+    },
+    {
+      "name": "caps=True shift=True n",
+      "keys": [
+        [
+          "shift",
+          true
+        ],
+        [
+          "n",
+          true
+        ],
+        [
+          "n",
+          false
+        ],
+        [
+          "shift",
+          false
+        ]
+      ],
+      "bios_ax": 226
+    },
+    {
+      "name": "caps=True shift=True m",
+      "keys": [
+        [
+          "shift",
+          true
+        ],
+        [
+          "m",
+          true
+        ],
+        [
+          "m",
+          false
+        ],
+        [
+          "shift",
+          false
+        ]
+      ],
+      "bios_ax": 236
+    },
+    {
+      "name": "caps=True shift=True comma",
+      "keys": [
+        [
+          "shift",
+          true
+        ],
+        [
+          "comma",
+          true
+        ],
+        [
+          "comma",
+          false
+        ],
+        [
+          "shift",
+          false
+        ]
+      ],
+      "bios_ax": 161
+    },
+    {
+      "name": "caps=True shift=True dot",
+      "keys": [
+        [
+          "shift",
+          true
+        ],
+        [
+          "dot",
+          true
+        ],
+        [
+          "dot",
+          false
+        ],
+        [
+          "shift",
+          false
+        ]
+      ],
+      "bios_ax": 238
+    },
+    {
+      "name": "caps=True shift=True grave_accent",
+      "keys": [
+        [
+          "shift",
+          true
+        ],
+        [
+          "grave_accent",
+          true
+        ],
+        [
+          "grave_accent",
+          false
+        ],
+        [
+          "shift",
+          false
+        ]
+      ],
+      "bios_ax": 241
+    },
+    {
+      "name": "caps off",
+      "keys": [
+        [
+          "caps_lock",
+          true
+        ],
+        [
+          "caps_lock",
+          false
+        ],
+        [
+          "q",
+          true
+        ],
+        [
+          "q",
+          false
+        ]
+      ],
+      "bios_ax": 169
+    },
+    {
+      "name": "Ctrl q",
+      "keys": [
+        [
+          "ctrl",
+          true
+        ],
+        [
+          "q",
+          true
+        ],
+        [
+          "q",
+          false
+        ],
+        [
+          "ctrl",
+          false
+        ]
+      ],
+      "bios_ax": 4113
+    },
+    {
+      "name": "Ctrl a",
+      "keys": [
+        [
+          "ctrl",
+          true
+        ],
+        [
+          "a",
+          true
+        ],
+        [
+          "a",
+          false
+        ],
+        [
+          "ctrl",
+          false
+        ]
+      ],
+      "bios_ax": 7681
+    },
+    {
+      "name": "Ctrl z",
+      "keys": [
+        [
+          "ctrl",
+          true
+        ],
+        [
+          "z",
+          true
+        ],
+        [
+          "z",
+          false
+        ],
+        [
+          "ctrl",
+          false
+        ]
+      ],
+      "bios_ax": 11290
+    },
+    {
+      "name": "punctuation slash",
+      "keys": [
+        [
+          "slash",
+          true
+        ],
+        [
+          "slash",
+          false
+        ]
+      ],
+      "bios_ax": 13614
+    },
+    {
+      "name": "shift punctuation slash",
+      "keys": [
+        [
+          "shift",
+          true
+        ],
+        [
+          "slash",
+          true
+        ],
+        [
+          "slash",
+          false
+        ],
+        [
+          "shift",
+          false
+        ]
+      ],
+      "bios_ax": 13612
+    },
+    {
+      "name": "punctuation 3",
+      "keys": [
+        [
+          "3",
+          true
+        ],
+        [
+          "3",
+          false
+        ]
+      ],
+      "bios_ax": 1075
+    },
+    {
+      "name": "shift punctuation 3",
+      "keys": [
+        [
+          "shift",
+          true
+        ],
+        [
+          "3",
+          true
+        ],
+        [
+          "3",
+          false
+        ],
+        [
+          "shift",
+          false
+        ]
+      ],
+      "bios_ax": 1276
+    },
+    {
+      "name": "punctuation 4",
+      "keys": [
+        [
+          "4",
+          true
+        ],
+        [
+          "4",
+          false
+        ]
+      ],
+      "bios_ax": 1332
+    },
+    {
+      "name": "shift punctuation 4",
+      "keys": [
+        [
+          "shift",
+          true
+        ],
+        [
+          "4",
+          true
+        ],
+        [
+          "4",
+          false
+        ],
+        [
+          "shift",
+          false
+        ]
+      ],
+      "bios_ax": 1339
+    },
+    {
+      "name": "punctuation 6",
+      "keys": [
+        [
+          "6",
+          true
+        ],
+        [
+          "6",
+          false
+        ]
+      ],
+      "bios_ax": 1846
+    },
+    {
+      "name": "shift punctuation 6",
+      "keys": [
+        [
+          "shift",
+          true
+        ],
+        [
+          "6",
+          true
+        ],
+        [
+          "6",
+          false
+        ],
+        [
+          "shift",
+          false
+        ]
+      ],
+      "bios_ax": 1850
+    },
+    {
+      "name": "punctuation 7",
+      "keys": [
+        [
+          "7",
+          true
+        ],
+        [
+          "7",
+          false
+        ]
+      ],
+      "bios_ax": 2103
+    },
+    {
+      "name": "shift punctuation 7",
+      "keys": [
+        [
+          "shift",
+          true
+        ],
+        [
+          "7",
+          true
+        ],
+        [
+          "7",
+          false
+        ],
+        [
+          "shift",
+          false
+        ]
+      ],
+      "bios_ax": 2111
+    },
+    {
+      "name": "punctuation backslash",
+      "keys": [
+        [
+          "backslash",
+          true
+        ],
+        [
+          "backslash",
+          false
+        ]
+      ],
+      "bios_ax": 11100
+    },
+    {
+      "name": "shift punctuation backslash",
+      "keys": [
+        [
+          "shift",
+          true
+        ],
+        [
+          "backslash",
+          true
+        ],
+        [
+          "backslash",
+          false
+        ],
+        [
+          "shift",
+          false
+        ]
+      ],
+      "bios_ax": 11055
+    },
+    {
+      "name": "third shift ('ctrl', 'alt') 2",
+      "keys": [
+        [
+          "ctrl",
+          true
+        ],
+        [
+          "alt",
+          true
+        ],
+        [
+          "2",
+          true
+        ],
+        [
+          "2",
+          false
+        ],
+        [
+          "alt",
+          false
+        ],
+        [
+          "ctrl",
+          false
+        ]
+      ],
+      "bios_ax": 832
+    },
+    {
+      "name": "third shift ('ctrl', 'alt') 3",
+      "keys": [
+        [
+          "ctrl",
+          true
+        ],
+        [
+          "alt",
+          true
+        ],
+        [
+          "3",
+          true
+        ],
+        [
+          "3",
+          false
+        ],
+        [
+          "alt",
+          false
+        ],
+        [
+          "ctrl",
+          false
+        ]
+      ],
+      "bios_ax": 1059
+    },
+    {
+      "name": "third shift ('ctrl', 'alt') 4",
+      "keys": [
+        [
+          "ctrl",
+          true
+        ],
+        [
+          "alt",
+          true
+        ],
+        [
+          "4",
+          true
+        ],
+        [
+          "4",
+          false
+        ],
+        [
+          "alt",
+          false
+        ],
+        [
+          "ctrl",
+          false
+        ]
+      ],
+      "bios_ax": 1533
+    },
+    {
+      "name": "third shift ('ctrl', 'alt') 6",
+      "keys": [
+        [
+          "ctrl",
+          true
+        ],
+        [
+          "alt",
+          true
+        ],
+        [
+          "6",
+          true
+        ],
+        [
+          "6",
+          false
+        ],
+        [
+          "alt",
+          false
+        ],
+        [
+          "ctrl",
+          false
+        ]
+      ],
+      "bios_ax": 1886
+    },
+    {
+      "name": "third shift ('ctrl', 'alt') 7",
+      "keys": [
+        [
+          "ctrl",
+          true
+        ],
+        [
+          "alt",
+          true
+        ],
+        [
+          "7",
+          true
+        ],
+        [
+          "7",
+          false
+        ],
+        [
+          "alt",
+          false
+        ],
+        [
+          "ctrl",
+          false
+        ]
+      ],
+      "bios_ax": 2086
+    },
+    {
+      "name": "third shift ('ctrl', 'alt') 8",
+      "keys": [
+        [
+          "ctrl",
+          true
+        ],
+        [
+          "alt",
+          true
+        ],
+        [
+          "8",
+          true
+        ],
+        [
+          "8",
+          false
+        ],
+        [
+          "alt",
+          false
+        ],
+        [
+          "ctrl",
+          false
+        ]
+      ],
+      "bios_ax": 2340
+    },
+    {
+      "name": "third shift ('ctrl', 'alt') bracket_left",
+      "keys": [
+        [
+          "ctrl",
+          true
+        ],
+        [
+          "alt",
+          true
+        ],
+        [
+          "bracket_left",
+          true
+        ],
+        [
+          "bracket_left",
+          false
+        ],
+        [
+          "alt",
+          false
+        ],
+        [
+          "ctrl",
+          false
+        ]
+      ],
+      "bios_ax": 6747
+    },
+    {
+      "name": "third shift ('ctrl', 'alt') bracket_right",
+      "keys": [
+        [
+          "ctrl",
+          true
+        ],
+        [
+          "alt",
+          true
+        ],
+        [
+          "bracket_right",
+          true
+        ],
+        [
+          "bracket_right",
+          false
+        ],
+        [
+          "alt",
+          false
+        ],
+        [
+          "ctrl",
+          false
+        ]
+      ],
+      "bios_ax": 7005
+    },
+    {
+      "name": "third shift ('ctrl', 'alt') backslash",
+      "keys": [
+        [
+          "ctrl",
+          true
+        ],
+        [
+          "alt",
+          true
+        ],
+        [
+          "backslash",
+          true
+        ],
+        [
+          "backslash",
+          false
+        ],
+        [
+          "alt",
+          false
+        ],
+        [
+          "ctrl",
+          false
+        ]
+      ],
+      "bios_ax": 11132
+    },
+    {
+      "name": "third shift ('ctrl', 'alt') comma",
+      "keys": [
+        [
+          "ctrl",
+          true
+        ],
+        [
+          "alt",
+          true
+        ],
+        [
+          "comma",
+          true
+        ],
+        [
+          "comma",
+          false
+        ],
+        [
+          "alt",
+          false
+        ],
+        [
+          "ctrl",
+          false
+        ]
+      ],
+      "bios_ax": 13116
+    },
+    {
+      "name": "third shift ('ctrl', 'alt') dot",
+      "keys": [
+        [
+          "ctrl",
+          true
+        ],
+        [
+          "alt",
+          true
+        ],
+        [
+          "dot",
+          true
+        ],
+        [
+          "dot",
+          false
+        ],
+        [
+          "alt",
+          false
+        ],
+        [
+          "ctrl",
+          false
+        ]
+      ],
+      "bios_ax": 13374
+    },
+    {
+      "name": "third shift ('ctrl', 'alt') slash",
+      "keys": [
+        [
+          "ctrl",
+          true
+        ],
+        [
+          "alt",
+          true
+        ],
+        [
+          "slash",
+          true
+        ],
+        [
+          "slash",
+          false
+        ],
+        [
+          "alt",
+          false
+        ],
+        [
+          "ctrl",
+          false
+        ]
+      ],
+      "bios_ax": 13615
+    },
+    {
+      "name": "control/navigation esc",
+      "keys": [
+        [
+          "esc",
+          true
+        ],
+        [
+          "esc",
+          false
+        ]
+      ],
+      "bios_ax": 283
+    },
+    {
+      "name": "control/navigation ret",
+      "keys": [
+        [
+          "ret",
+          true
+        ],
+        [
+          "ret",
+          false
+        ]
+      ],
+      "bios_ax": 7181
+    },
+    {
+      "name": "control/navigation backspace",
+      "keys": [
+        [
+          "backspace",
+          true
+        ],
+        [
+          "backspace",
+          false
+        ]
+      ],
+      "bios_ax": 3592
+    },
+    {
+      "name": "control/navigation tab",
+      "keys": [
+        [
+          "tab",
+          true
+        ],
+        [
+          "tab",
+          false
+        ]
+      ],
+      "bios_ax": 3849
+    },
+    {
+      "name": "control/navigation spc",
+      "keys": [
+        [
+          "spc",
+          true
+        ],
+        [
+          "spc",
+          false
+        ]
+      ],
+      "bios_ax": 14624
+    },
+    {
+      "name": "control/navigation f1",
+      "keys": [
+        [
+          "f1",
+          true
+        ],
+        [
+          "f1",
+          false
+        ]
+      ],
+      "bios_ax": 15104
+    },
+    {
+      "name": "control/navigation up",
+      "keys": [
+        [
+          "num_lock",
+          true
+        ],
+        [
+          "num_lock",
+          false
+        ],
+        [
+          "kp_8",
+          true
+        ],
+        [
+          "kp_8",
+          false
+        ],
+        [
+          "num_lock",
+          true
+        ],
+        [
+          "num_lock",
+          false
+        ]
+      ],
+      "bios_ax": 18432
+    },
+    {
+      "name": "control/navigation left",
+      "keys": [
+        [
+          "num_lock",
+          true
+        ],
+        [
+          "num_lock",
+          false
+        ],
+        [
+          "kp_4",
+          true
+        ],
+        [
+          "kp_4",
+          false
+        ],
+        [
+          "num_lock",
+          true
+        ],
+        [
+          "num_lock",
+          false
+        ]
+      ],
+      "bios_ax": 19200
+    },
+    {
+      "name": "control/navigation delete",
+      "keys": [
+        [
+          "num_lock",
+          true
+        ],
+        [
+          "num_lock",
+          false
+        ],
+        [
+          "kp_decimal",
+          true
+        ],
+        [
+          "kp_decimal",
+          false
+        ],
+        [
+          "num_lock",
+          true
+        ],
+        [
+          "num_lock",
+          false
+        ]
+      ],
+      "bios_ax": 21248
+    },
+    {
+      "name": "right Shift alphabet",
+      "keys": [
+        [
+          "shift_r",
+          true
+        ],
+        [
+          "q",
+          true
+        ],
+        [
+          "q",
+          false
+        ],
+        [
+          "shift_r",
+          false
+        ]
+      ],
+      "bios_ax": 137
+    },
+    {
+      "name": "numeric keypad kp_1",
+      "keys": [
+        [
+          "kp_1",
+          true
+        ],
+        [
+          "kp_1",
+          false
+        ]
+      ],
+      "bios_ax": 20273
+    },
+    {
+      "name": "numeric keypad kp_add",
+      "keys": [
+        [
+          "kp_add",
+          true
+        ],
+        [
+          "kp_add",
+          false
+        ]
+      ],
+      "bios_ax": 20011
+    },
+    {
+      "name": "numeric keypad kp_subtract",
+      "keys": [
+        [
+          "kp_subtract",
+          true
+        ],
+        [
+          "kp_subtract",
+          false
+        ]
+      ],
+      "bios_ax": 18989
+    },
+    {
+      "name": "keypad navigation",
+      "keys": [
+        [
+          "num_lock",
+          true
+        ],
+        [
+          "num_lock",
+          false
+        ],
+        [
+          "kp_1",
+          true
+        ],
+        [
+          "kp_1",
+          false
+        ]
+      ],
+      "bios_ax": 20224
+    },
+    {
+      "name": "keypad numeric restored",
+      "keys": [
+        [
+          "num_lock",
+          true
+        ],
+        [
+          "num_lock",
+          false
+        ],
+        [
+          "kp_1",
+          true
+        ],
+        [
+          "kp_1",
+          false
+        ]
+      ],
+      "bios_ax": 20273
+    },
+    {
+      "name": "return Latin",
+      "keys": [
+        [
+          "alt",
+          true
+        ],
+        [
+          "shift",
+          true
+        ],
+        [
+          "shift",
+          false
+        ],
+        [
+          "alt",
+          false
+        ],
+        [
+          "q",
+          true
+        ],
+        [
+          "q",
+          false
+        ]
+      ],
+      "bios_ax": 4209
+    },
+    {
+      "name": "select Russian",
+      "keys": [
+        [
+          "alt",
+          true
+        ],
+        [
+          "shift_r",
+          true
+        ],
+        [
+          "shift_r",
+          false
+        ],
+        [
+          "alt",
+          false
+        ],
+        [
+          "q",
+          true
+        ],
+        [
+          "q",
+          false
+        ]
+      ],
+      "bios_ax": 169
+    },
+    {
+      "name": "both Shifts count as Shift",
+      "keys": [
+        [
+          "shift",
+          true
+        ],
+        [
+          "shift_r",
+          true
+        ],
+        [
+          "q",
+          true
+        ],
+        [
+          "q",
+          false
+        ],
+        [
+          "shift_r",
+          false
+        ],
+        [
+          "shift",
+          false
+        ]
+      ],
+      "bios_ax": 137
+    },
+    {
+      "name": "Caps enabled",
+      "keys": [
+        [
+          "caps_lock",
+          true
+        ],
+        [
+          "caps_lock",
+          false
+        ],
+        [
+          "q",
+          true
+        ],
+        [
+          "q",
+          false
+        ]
+      ],
+      "bios_ax": 137
+    },
+    {
+      "name": "Caps with both Shifts",
+      "keys": [
+        [
+          "shift",
+          true
+        ],
+        [
+          "shift_r",
+          true
+        ],
+        [
+          "q",
+          true
+        ],
+        [
+          "q",
+          false
+        ],
+        [
+          "shift_r",
+          false
+        ],
+        [
+          "shift",
+          false
+        ]
+      ],
+      "bios_ax": 169
+    },
+    {
+      "name": "Caps punctuation slash",
+      "keys": [
+        [
+          "slash",
+          true
+        ],
+        [
+          "slash",
+          false
+        ]
+      ],
+      "bios_ax": 13614
+    },
+    {
+      "name": "Caps shifted punctuation slash",
+      "keys": [
+        [
+          "shift_r",
+          true
+        ],
+        [
+          "slash",
+          true
+        ],
+        [
+          "slash",
+          false
+        ],
+        [
+          "shift_r",
+          false
+        ]
+      ],
+      "bios_ax": 13612
+    },
+    {
+      "name": "Caps punctuation 3",
+      "keys": [
+        [
+          "3",
+          true
+        ],
+        [
+          "3",
+          false
+        ]
+      ],
+      "bios_ax": 1075
+    },
+    {
+      "name": "Caps shifted punctuation 3",
+      "keys": [
+        [
+          "shift_r",
+          true
+        ],
+        [
+          "3",
+          true
+        ],
+        [
+          "3",
+          false
+        ],
+        [
+          "shift_r",
+          false
+        ]
+      ],
+      "bios_ax": 1276
+    },
+    {
+      "name": "Caps punctuation 4",
+      "keys": [
+        [
+          "4",
+          true
+        ],
+        [
+          "4",
+          false
+        ]
+      ],
+      "bios_ax": 1332
+    },
+    {
+      "name": "Caps shifted punctuation 4",
+      "keys": [
+        [
+          "shift_r",
+          true
+        ],
+        [
+          "4",
+          true
+        ],
+        [
+          "4",
+          false
+        ],
+        [
+          "shift_r",
+          false
+        ]
+      ],
+      "bios_ax": 1339
+    },
+    {
+      "name": "Caps punctuation 6",
+      "keys": [
+        [
+          "6",
+          true
+        ],
+        [
+          "6",
+          false
+        ]
+      ],
+      "bios_ax": 1846
+    },
+    {
+      "name": "Caps shifted punctuation 6",
+      "keys": [
+        [
+          "shift_r",
+          true
+        ],
+        [
+          "6",
+          true
+        ],
+        [
+          "6",
+          false
+        ],
+        [
+          "shift_r",
+          false
+        ]
+      ],
+      "bios_ax": 1850
+    },
+    {
+      "name": "Caps punctuation 7",
+      "keys": [
+        [
+          "7",
+          true
+        ],
+        [
+          "7",
+          false
+        ]
+      ],
+      "bios_ax": 2103
+    },
+    {
+      "name": "Caps shifted punctuation 7",
+      "keys": [
+        [
+          "shift_r",
+          true
+        ],
+        [
+          "7",
+          true
+        ],
+        [
+          "7",
+          false
+        ],
+        [
+          "shift_r",
+          false
+        ]
+      ],
+      "bios_ax": 2111
+    },
+    {
+      "name": "Caps punctuation backslash",
+      "keys": [
+        [
+          "backslash",
+          true
+        ],
+        [
+          "backslash",
+          false
+        ]
+      ],
+      "bios_ax": 11100
+    },
+    {
+      "name": "Caps shifted punctuation backslash",
+      "keys": [
+        [
+          "shift_r",
+          true
+        ],
+        [
+          "backslash",
+          true
+        ],
+        [
+          "backslash",
+          false
+        ],
+        [
+          "shift_r",
+          false
+        ]
+      ],
+      "bios_ax": 11055
+    },
+    {
+      "name": "Caps ctrl q",
+      "keys": [
+        [
+          "ctrl",
+          true
+        ],
+        [
+          "q",
+          true
+        ],
+        [
+          "q",
+          false
+        ],
+        [
+          "ctrl",
+          false
+        ]
+      ],
+      "bios_ax": 4113
+    },
+    {
+      "name": "Caps Shift ctrl q",
+      "keys": [
+        [
+          "shift_r",
+          true
+        ],
+        [
+          "ctrl",
+          true
+        ],
+        [
+          "q",
+          true
+        ],
+        [
+          "q",
+          false
+        ],
+        [
+          "ctrl",
+          false
+        ],
+        [
+          "shift_r",
+          false
+        ]
+      ],
+      "bios_ax": 4113
+    },
+    {
+      "name": "Caps ctrl a",
+      "keys": [
+        [
+          "ctrl",
+          true
+        ],
+        [
+          "a",
+          true
+        ],
+        [
+          "a",
+          false
+        ],
+        [
+          "ctrl",
+          false
+        ]
+      ],
+      "bios_ax": 7681
+    },
+    {
+      "name": "Caps Shift ctrl a",
+      "keys": [
+        [
+          "shift_r",
+          true
+        ],
+        [
+          "ctrl",
+          true
+        ],
+        [
+          "a",
+          true
+        ],
+        [
+          "a",
+          false
+        ],
+        [
+          "ctrl",
+          false
+        ],
+        [
+          "shift_r",
+          false
+        ]
+      ],
+      "bios_ax": 7681
+    },
+    {
+      "name": "Caps ctrl z",
+      "keys": [
+        [
+          "ctrl",
+          true
+        ],
+        [
+          "z",
+          true
+        ],
+        [
+          "z",
+          false
+        ],
+        [
+          "ctrl",
+          false
+        ]
+      ],
+      "bios_ax": 11290
+    },
+    {
+      "name": "Caps Shift ctrl z",
+      "keys": [
+        [
+          "shift_r",
+          true
+        ],
+        [
+          "ctrl",
+          true
+        ],
+        [
+          "z",
+          true
+        ],
+        [
+          "z",
+          false
+        ],
+        [
+          "ctrl",
+          false
+        ],
+        [
+          "shift_r",
+          false
+        ]
+      ],
+      "bios_ax": 11290
+    },
+    {
+      "name": "Caps disabled",
+      "keys": [
+        [
+          "caps_lock",
+          true
+        ],
+        [
+          "caps_lock",
+          false
+        ],
+        [
+          "q",
+          true
+        ],
+        [
+          "q",
+          false
+        ]
+      ],
+      "bios_ax": 169
+    },
+    {
+      "name": "Alt-letter BIOS passthrough ('alt',)",
+      "keys": [
+        [
+          "alt",
+          true
+        ],
+        [
+          "q",
+          true
+        ],
+        [
+          "q",
+          false
+        ],
+        [
+          "alt",
+          false
+        ]
+      ],
+      "bios_ax": 4096
+    },
+    {
+      "name": "Alt-letter BIOS passthrough ('ctrl', 'alt')",
+      "keys": [
+        [
+          "ctrl",
+          true
+        ],
+        [
+          "alt",
+          true
+        ],
+        [
+          "q",
+          true
+        ],
+        [
+          "q",
+          false
+        ],
+        [
+          "alt",
+          false
+        ],
+        [
+          "ctrl",
+          false
+        ]
+      ],
+      "bios_ax": 4096
+    },
+    {
+      "name": "third shift priority ('ctrl', 'alt', 'shift_r') 3",
+      "keys": [
+        [
+          "ctrl",
+          true
+        ],
+        [
+          "alt",
+          true
+        ],
+        [
+          "shift_r",
+          true
+        ],
+        [
+          "3",
+          true
+        ],
+        [
+          "3",
+          false
+        ],
+        [
+          "shift_r",
+          false
+        ],
+        [
+          "alt",
+          false
+        ],
+        [
+          "ctrl",
+          false
+        ]
+      ],
+      "bios_ax": 1059
+    },
+    {
+      "name": "third shift priority ('ctrl', 'alt', 'shift_r') 4",
+      "keys": [
+        [
+          "ctrl",
+          true
+        ],
+        [
+          "alt",
+          true
+        ],
+        [
+          "shift_r",
+          true
+        ],
+        [
+          "4",
+          true
+        ],
+        [
+          "4",
+          false
+        ],
+        [
+          "shift_r",
+          false
+        ],
+        [
+          "alt",
+          false
+        ],
+        [
+          "ctrl",
+          false
+        ]
+      ],
+      "bios_ax": 1533
+    },
+    {
+      "name": "third shift priority ('ctrl', 'alt', 'shift_r') slash",
+      "keys": [
+        [
+          "ctrl",
+          true
+        ],
+        [
+          "alt",
+          true
+        ],
+        [
+          "shift_r",
+          true
+        ],
+        [
+          "slash",
+          true
+        ],
+        [
+          "slash",
+          false
+        ],
+        [
+          "shift_r",
+          false
+        ],
+        [
+          "alt",
+          false
+        ],
+        [
+          "ctrl",
+          false
+        ]
+      ],
+      "bios_ax": 13615
+    },
+    {
+      "name": "selection precedence ('alt', 'shift_r', 'shift')",
+      "keys": [
+        [
+          "alt",
+          true
+        ],
+        [
+          "shift_r",
+          true
+        ],
+        [
+          "shift",
+          true
+        ],
+        [
+          "shift",
+          false
+        ],
+        [
+          "shift_r",
+          false
+        ],
+        [
+          "alt",
+          false
+        ],
+        [
+          "q",
+          true
+        ],
+        [
+          "q",
+          false
+        ]
+      ],
+      "bios_ax": 4209
+    },
+    {
+      "name": "selection precedence ('alt', 'shift', 'shift_r')",
+      "keys": [
+        [
+          "alt",
+          true
+        ],
+        [
+          "shift",
+          true
+        ],
+        [
+          "shift_r",
+          true
+        ],
+        [
+          "shift_r",
+          false
+        ],
+        [
+          "shift",
+          false
+        ],
+        [
+          "alt",
+          false
+        ],
+        [
+          "q",
+          true
+        ],
+        [
+          "q",
+          false
+        ]
+      ],
+      "bios_ax": 169
+    },
+    {
+      "name": "selection precedence ('shift', 'shift_r', 'alt')",
+      "keys": [
+        [
+          "shift",
+          true
+        ],
+        [
+          "shift_r",
+          true
+        ],
+        [
+          "alt",
+          true
+        ],
+        [
+          "alt",
+          false
+        ],
+        [
+          "shift_r",
+          false
+        ],
+        [
+          "shift",
+          false
+        ],
+        [
+          "q",
+          true
+        ],
+        [
+          "q",
+          false
+        ]
+      ],
+      "bios_ax": 169
+    },
+    {
+      "name": "selection precedence ('shift_r', 'shift', 'alt')",
+      "keys": [
+        [
+          "shift_r",
+          true
+        ],
+        [
+          "shift",
+          true
+        ],
+        [
+          "alt",
+          true
+        ],
+        [
+          "alt",
+          false
+        ],
+        [
+          "shift",
+          false
+        ],
+        [
+          "shift_r",
+          false
+        ],
+        [
+          "q",
+          true
+        ],
+        [
+          "q",
+          false
+        ]
+      ],
+      "bios_ax": 169
+    },
+    {
+      "name": "ordinary Russian after releases",
+      "keys": [
+        [
+          "q",
+          true
+        ],
+        [
+          "q",
+          false
+        ]
+      ],
+      "bios_ax": 169
+    },
+    {
+      "name": "return Latin",
+      "keys": [
+        [
+          "alt",
+          true
+        ],
+        [
+          "shift",
+          true
+        ],
+        [
+          "shift",
+          false
+        ],
+        [
+          "alt",
+          false
+        ],
+        [
+          "q",
+          true
+        ],
+        [
+          "q",
+          false
+        ]
+      ],
+      "bios_ax": 4209
+    },
+    {
+      "name": "Latin Caps",
+      "keys": [
+        [
+          "caps_lock",
+          true
+        ],
+        [
+          "caps_lock",
+          false
+        ],
+        [
+          "q",
+          true
+        ],
+        [
+          "q",
+          false
+        ]
+      ],
+      "bios_ax": 4177
+    },
+    {
+      "name": "Latin Caps Shift",
+      "keys": [
+        [
+          "shift_r",
+          true
+        ],
+        [
+          "q",
+          true
+        ],
+        [
+          "q",
+          false
+        ],
+        [
+          "shift_r",
+          false
+        ]
+      ],
+      "bios_ax": 4209
+    },
+    {
+      "name": "Latin Caps off",
+      "keys": [
+        [
+          "caps_lock",
+          true
+        ],
+        [
+          "caps_lock",
+          false
+        ],
+        [
+          "q",
+          true
+        ],
+        [
+          "q",
+          false
+        ]
+      ],
+      "bios_ax": 4209
+    }
+  ],
+  "cases": [
+    {
+      "input": "bios",
+      "reads": 221,
+      "emulator_exit": 0,
+      "serial_log": {
+        "path": "review/at84-bios.log",
+        "sha256": "468b25d5b9a9eb0862931245a4f26caf38c1d12d5eb820ed5f3d634e2a0e6f6b"
+      },
+      "saved_configuration": {
+        "path": "review/at84-bios.cfg",
+        "sha256": "920a12dd021a222e864437d86eb8e933d4f7aaf87b143945914e2a8a11b947f5"
+      },
+      "startup_configuration": {
+        "path": "review/at84-startup.cfg",
+        "sha256": "04fc259a69de497046ae6ceda8e50d189c09d1fd8ff337589e2088e0e3adb1fe"
+      }
+    },
+    {
+      "input": "dos",
+      "reads": 221,
+      "emulator_exit": 0,
+      "serial_log": {
+        "path": "review/at84-dos.log",
+        "sha256": "e5bf7bf1ccabba7c5e875ae5c1589cd67a1ec9078f12b16d72d40004f829f0b2"
+      },
+      "saved_configuration": {
+        "path": "review/at84-dos.cfg",
+        "sha256": "545afeb4a788881e34f13aa204fd8bdeafa9a02af91c16777162d63b03e44d91"
+      },
+      "startup_configuration": {
+        "path": "review/at84-startup.cfg",
+        "sha256": "04fc259a69de497046ae6ceda8e50d189c09d1fd8ff337589e2088e0e3adb1fe"
+      }
+    }
+  ],
+  "inputs": {
+    "tests/test_ru_legacy_keyboard_86box.py": {
+      "sha256": "0be12a21ac8363aa3862a0e4bfed38d33cacae13a26764cf851fe5e293c99ce9",
+      "size": 10384
+    },
+    "tests/ru_legacy_keyboard_type.asm": {
+      "sha256": "75e28cbb5aea1a9484c3a2c45251382670940bfeba45899fc9bb690c95dda254",
+      "size": 345
+    },
+    "tests/ru_keyboard_probe.asm": {
+      "sha256": "45a08f7aa12b9fc0d0036ec62c0740f2394071da28ab5cc1c106f03744c3be64",
+      "size": 1924
+    },
+    "tests/test_ru_keyboard_qemu.py": {
+      "sha256": "bad644d90159af24c09b0cf6ff56fbb04a6baa058047755e542bea01434e869b",
+      "size": 16124
+    },
+    "tests/86box_exit.asm": {
+      "sha256": "df10886fcf0a3fd37b97f9b280488c35b8265de8a306765b33fb11290dc6e82b",
+      "size": 755
+    },
+    "tests/86box_286_lib.sh": {
+      "sha256": "c35916e91ddb7c2d04a3d5e343631f4ee305b1963f3358bdcaa65c0842ce329e",
+      "size": 5111
+    },
+    "tests/seed_86box_ibmat_nvram.py": {
+      "sha256": "de41853b6fe7ccd79c50ae17e907793c719cbc00cc9739db15ff47711cca2ee5",
+      "size": 1891
+    }
+  },
+  "guest_files": {
+    "IO.SYS": "793169a292df40bb117eb487136a0d8e7f4334ca223e8206bf53f33141f24715",
+    "MSDOS.SYS": "1475174f50c8c349bedd7cd4a0be88bce055f2e411b7454b5f68fffbff269b62",
+    "COMMAND.COM": "f60f680336572c2c1375fbeae7f54b074ac6e365f35638a62822572bece584ba",
+    "COUNTRY.SYS": "dcad40266140a3155a44323bc3f3876ea70e1aa779175cf6ab18b532b36037c3",
+    "KEYB.COM": "ce547d39a18851ed9e9403486c50aa0730935647e80c8c88e6e1fd514f2eb647",
+    "KEYBRD2.SYS": "f6c776c95ec4b8bda1d72e93233995d76155a2d558283d7ce215def8f23a159e",
+    "NLSFUNC.EXE": "bc2a0c9b0900bcac03a6cfe072ea56ea01bd2333b1d1bf8f810f28e668340e67",
+    "DISPLAY.SYS": "0ebd3bfad4e87d79e05219c02ea71ce4e94f9e11b432efdf652a022488d9ac08",
+    "EGA866.CPI": "efa06cb267a370fab3db71fb85f73711b750ec04498b40b6cc6a4a2be2e3d7ad",
+    "MODE.COM": "c385aad5697fcec3a9113f58b983b978a7f969e99b153ebd496b12dab0e3767d",
+    "P866.COM": "2834fca2d85e9795d0d5f59176c382421a8a56c2b5e3f3dfe6b0ed2dae8b0517",
+    "CPCHK.COM": "12f7288c598ba341eff5f47b0c682a47da7ca94ef2c52a31ad37feed053b4ebb",
+    "TYPECHK.COM": "c7d5e1b6940ca433eac27523a094de0b586afcd243977d7fc2517d83a2bead8c",
+    "BXEXIT.COM": "e009ca892bb4b293ba95122a3fc32529e9d4a22b1dfeb61bdbd4aa8fd7b94f07"
+  },
+  "driver_corrections": [
+    {
+      "issue": "30 ms spacing could leave Shift held when the probe checked two BIOS ticks after reading the correct Cyrillic byte.",
+      "resolution": "Use 10 ms physical event spacing; preserve byte, modifier-release and empty-queue assertions.",
+      "evidence": {
+        "path": "review/at84-before-event-spacing.log",
+        "sha256": "74cf6f7aff91a8ad2907a0431785cf49e1806dcc2a06042121f8cb6531f61367"
+      }
+    },
+    {
+      "issue": "The backend maps XK_KP_Decimal to scan zero, so the guest waits at keypad Delete.",
+      "resolution": "Use XK_KP_Delete, mapped by the backend to physical scan 53h.",
+      "evidence": {
+        "path": "review/at84-before-keypad-mapping.log",
+        "sha256": "1503179429cfbc866e2bc759fa3871e5434e9c3790a17137031e49492f6c9c00"
+      }
+    },
+    {
+      "issue": "TIME_WAIT after clean BIOS-case exit prevented the next port availability check.",
+      "resolution": "SO_REUSEADDR permits closed connections while an independently verified live listener still prevents binding."
+    }
+  ],
+  "remaining": [
+    "XT-83 physical input.",
+    "Legacy keyboard reload/rejection checks.",
+    "Full real-BIOS 286 display font-plane and NLS transition/rejection matrix.",
+    "Shell/editor/pipes, Cyrillic filesystem persistence, full release and pristine reproducibility."
+  ]
+}

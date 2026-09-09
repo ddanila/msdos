@@ -155,7 +155,10 @@ qualification of the changed kernel.
 establishes guest-controlled 86Box exits. The
 [probe ISA qualification](locales/ru/legacy-probe-qualification.json) corrects
 386-only test branches and records initial real-BIOS AT-84 country/input
-checks. The full old-keyboard and 286 matrices remain open.
+checks. The [AT-84 input qualification](locales/ru/at84-qualification.json)
+extends this to the alphabet, punctuation, controls, keypad and applicable
+modifier precedence through BIOS and DOS reads. XT-83 input, legacy reload and
+rejection cases, and the full 286 locale matrix remain open.
 
 Existing implementation and test entry points:
 

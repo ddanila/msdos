@@ -260,5 +260,15 @@ behavior. The record pins the emulator build, BIOS ROMs and retained logs.
 why locale probes explicitly target 8086: NASM's default 386-only conditional
 near jumps prevented the country probe from running on a 286. The corrected
 probes pass the initial real-BIOS AT-84 country/input check and the selected
-HIGH/LOW QEMU regressions. This is partial legacy coverage; full 83/84-key and
+HIGH/LOW QEMU regressions. The expanded AT-84 input gate below adds coverage;
 286 font-plane/transition matrices remain required by the Russian plan.
+
+The [AT-84 input qualification](../locales/ru/at84-qualification.json) runs
+`tests/test_ru_legacy_keyboard_86box.py` against a VNC-enabled, loopback-only
+86Box backend. It verifies the resident AT keyboard type and reuses the
+independent Russian byte oracle through BIOS and DOS input. Separate enhanced
+navigation keys become physical keypad events; unavailable right Alt/Ctrl
+cases are excluded. Guest completion, exact process status, released modifier
+bits and an empty input queue are required. The retained record includes the
+actual event matrix and backend/core hashes. XT-83 input, legacy reload and
+rejection cases, and the complete 286 display/NLS matrix remain open.

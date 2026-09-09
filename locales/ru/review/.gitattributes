@@ -11,3 +11,6 @@ install-*.log -text -whitespace
 
 # Raw backend diagnostics retained for the probe ISA correction.
 cpu8086-*.log -text -whitespace
+
+# Preserve raw AT-84 backend diagnostics and DOS serial bytes.
+at84-*.log -text -whitespace

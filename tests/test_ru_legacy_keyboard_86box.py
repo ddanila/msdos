@@ -1,0 +1,226 @@
+#!/usr/bin/env python3
+"""Physical RU input through an emulated AT 84-key keyboard and real IBM BIOS."""
+import argparse
+import hashlib
+import json
+import os
+from pathlib import Path
+import shutil
+import socket
+import struct
+import subprocess
+import sys
+import tempfile
+import time
+
+from test_ru_keyboard_qemu import steps, modifier_steps
+from test_ru_country_qemu import compile_probes
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT/'tools'))
+from memory_release import selected_core
+
+
+def legacy_steps():
+    """Keep the byte oracle; use only physical keys present on an 84-key AT."""
+    result = []
+    def tap(key):
+        return [(key,True),(key,False)]
+    for item in steps()+modifier_steps():
+        # The old keyboard has no right Alt/Ctrl; left Ctrl+Alt covers third shift.
+        if any(key in ('alt_r','ctrl_r') for key,down in item['keys']):
+            continue
+        item = dict(item)
+        events = []
+        for key,down in item['keys']:
+            pad = {'up':'kp_8','left':'kp_4','delete':'kp_decimal'}.get(key)
+            if pad:
+                # There is no separate navigation cluster. Restore Num Lock.
+                if down:
+                    events += tap('num_lock')+tap(pad)+tap('num_lock')
+            else:
+                events.append((key,down))
+        item['keys'] = events
+        result.append(item)
+    return result
+
+
+class VNCKeyboard:
+    """RFB 3.8 physical key events, sent to a private local 86Box server."""
+    KEYS = {'alt':0xffe9,'shift':0xffe1,'shift_r':0xffe2,'ctrl':0xffe3,
+            'caps_lock':0xffe5,'num_lock':0xff7f,'esc':0xff1b,'ret':0xff0d,
+            'backspace':0xff08,'tab':0xff09,'spc':32,'f1':0xffbe,
+            'kp_1':0xffb1,'kp_8':0xffb8,'kp_4':0xffb4,'kp_decimal':0xff9f,  # XK_KP_Delete maps to physical scan 53h.
+            'kp_add':0xffab,'kp_subtract':0xffad}
+    KEYS.update({name:ord(char) for name,char in [('bracket_left','['),('bracket_right',']'),
+        ('semicolon',';'),('apostrophe',"'"),('grave_accent','`'),('comma',','),
+        ('dot','.'),('slash','/'),('backslash','\\')]})
+
+    def __init__(self, proc):
+        self.socket = None
+        deadline = time.monotonic()+30
+        while time.monotonic()<deadline and proc.poll() is None:
+            try:
+                self.socket=socket.create_connection(('127.0.0.1',5900),timeout=1)
+                break
+            except OSError:
+                time.sleep(.1)
+        if self.socket is None:
+            raise RuntimeError('86Box VNC server did not start; use a VNC-enabled backend')
+        self.socket.settimeout(10)
+        try:
+            assert self.receive(12)==b'RFB 003.008\n'
+            self.socket.sendall(b'RFB 003.008\n')
+            count=self.receive(1)[0]
+            assert 1 in self.receive(count), 'VNC requires unsupported authentication'
+            self.socket.sendall(b'\x01')
+            assert self.receive(4)==b'\0'*4
+            self.socket.sendall(b'\x01')
+            header=self.receive(24)
+            self.title=self.receive(struct.unpack('>I',header[20:24])[0]).decode(errors='replace')
+        except BaseException:
+            self.close()
+            raise
+
+    def receive(self,count):
+        data=b''
+        while len(data)<count:
+            chunk=self.socket.recv(count-len(data))
+            if not chunk:
+                raise RuntimeError('VNC connection closed')
+            data+=chunk
+        return data
+
+    def send(self,events):
+        for key,down in events:
+            value=ord(key) if len(key)==1 else self.KEYS[key]
+            self.socket.sendall(struct.pack('>BBHI',4,int(down),0,value))
+            # Release modifiers before the probe checks them two BIOS ticks later.
+            time.sleep(.01)
+
+    def close(self):
+        if self.socket:
+            self.socket.close()
+            self.socket=None
+
+
+def run_case(work, args, core, kind):
+    case=work/kind
+    case.mkdir()
+    image=case/'test.img'
+    subprocess.run(['bash','-c','source "$1/tests/86box_286_lib.sh"\nmake_86box_286_boot_image "$2" "$1"',
+                    'bash',str(ROOT),str(image)],check=True,stdout=subprocess.DEVNULL)
+    def put(name,data):
+        subprocess.run(['mcopy','-o','-i',str(image),'-','::'+name],input=data,check=True)
+    def copy(name,path):
+        put(name,path.read_bytes())
+    for name in ('IO.SYS','MSDOS.SYS','COMMAND.COM'):
+        data=subprocess.check_output(['mtype','-i',str(image),'::'+name])
+        assert data==core[name],name
+    compile_probes(case)
+    cases=legacy_steps()
+    (case/'expected.bin').write_bytes(b''.join(struct.pack('<H',step['bios_ax']) for step in cases))
+    subprocess.run(['nasm','-f','bin',*(['-DDOS_INPUT'] if kind=='dos' else []),
+                    str(ROOT/'tests/ru_keyboard_probe.asm'),'-o',str(case/'PROBE.COM')],cwd=case,check=True)
+    for source,target in [('86box_exit.asm','BXEXIT.COM'),('ru_legacy_keyboard_type.asm','TYPECHK.COM')]:
+        subprocess.run(['nasm','-f','bin',str(ROOT/'tests'/source),'-o',str(case/target)],check=True)
+    for name in ('P866.COM','CPCHK.COM','PROBE.COM','BXEXIT.COM','TYPECHK.COM'):
+        copy(name,case/name)
+    for source,name in [('DEV/COUNTRY/COUNTRY.SYS','COUNTRY.SYS'),('CMD/KEYB/KEYB.COM','KEYB.COM'),
+                         ('DEV/KEYBOARD/KEYBRD2.SYS','KEYBRD2.SYS'),('CMD/NLSFUNC/NLSFUNC.EXE','NLSFUNC.EXE'),
+                         ('DEV/DISPLAY/DISPLAY.SYS','DISPLAY.SYS'),('DEV/DISPLAY/EGA/EGA866.CPI','EGA866.CPI'),
+                         ('CMD/MODE/MODE.COM','MODE.COM')]:
+        copy(name,ROOT/'src'/source)
+    put('CONFIG.SYS',b'COUNTRY=007,866,COUNTRY.SYS\r\nDOS=LOW\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(1,3))\r\nNUMLOCK=ON\r\n')
+    actions=['P866.COM','NLSFUNC','MODE CON CP PREPARE=((866) EGA866.CPI)','MODE CON CP SELECT=866',
+             'KEYB RU,866,KEYBRD2.SYS /ID:441','TYPECHK.COM','CPCHK.COM','PROBE.COM']
+    batch=['@ECHO OFF','CTTY AUX']
+    for action in actions:
+        batch += ['ECHO RUN '+action,action,'IF ERRORLEVEL 1 GOTO FAIL']
+    batch += ['ECHO RU_LEGACY_KEY_DONE','BXEXIT.COM',':FAIL','ECHO RU_LEGACY_KEY_FAIL','BXEXIT.COM FAIL']
+    put('AUTOEXEC.BAT',('\r\n'.join(batch)+'\r\n').encode())
+    config=(ROOT/'tests/86box/ibmat-286.cfg').read_text().replace('qt_software','vnc')
+    config=config.replace('gfxcard = cga','gfxcard = vga').replace('size = 2048','size = 512')
+    config=config.replace('[Other peripherals]','[Other peripherals]\nunittester_enabled = 1')
+    config+='\n[AT Keyboard]\nkeys = 1\n'
+    (case/'86box.cfg').write_text(config)
+    shutil.copyfile(ROOT/'tests/86box/global.cfg',case/'global.cfg')
+    subprocess.run(['python3',str(ROOT/'tests/seed_86box_ibmat_nvram.py'),str(case/'nvr/ibm5170_111585.nvr'),
+                    '--display','vga','--extended-kib','512'],check=True)
+    # Refuse to connect to an unrelated server already using the backend port.
+    with socket.socket() as check:
+        # A previous case can leave TIME_WAIT sockets after a clean exit.
+        check.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        check.bind(('127.0.0.1',5900))
+    env=dict(os.environ)
+    if args.qt_platform:
+        env['QT_QPA_PLATFORM']=args.qt_platform
+    log=case/'serial.log'
+    with log.open('wb') as output:
+        proc=subprocess.Popen([str(args.emulator.resolve()),'-N','-O',str(case/'global.cfg'),'-P',str(case),
+                               '-R',str(args.roms.resolve()),'-I','a:'+str(image)],env=env,
+                              stdin=subprocess.DEVNULL,stdout=output,stderr=subprocess.STDOUT)
+        vnc=None
+        try:
+            vnc=VNCKeyboard(proc)
+            assert case.name in vnc.title, vnc.title
+            for index,step in enumerate(cases):
+                deadline=time.monotonic()+(180 if index==0 else 20)
+                marker=f'RU_KEY_READY {index:04X}'.encode()
+                while marker not in log.read_bytes():
+                    if proc.poll() is not None:
+                        raise AssertionError(f'guest stopped at {step}: {log}')
+                    if time.monotonic()>deadline:
+                        raise AssertionError(f'input timeout at {step}: {log}')
+                    time.sleep(.02)
+                vnc.send(step['keys'])
+            status=proc.wait(timeout=30)
+        finally:
+            if vnc:
+                vnc.close()
+            if proc.poll() is None:
+                proc.kill()
+                proc.wait()
+    data=log.read_bytes()
+    assert status==0 and b'RU_LEGACY_KEY_DONE' in data and b'FAIL' not in data,log
+    for marker in (b'RU_COUNTRY_PASS',b'RU_CODEPAGE_PASS',b'RU_AT84_TYPE_PASS',b'RU_KEY_PASS'):
+        assert data.count(marker)==1,(marker,log)
+    assert data.count(b'RU_KEY_READY')==len(cases)
+    print(f'PASS: AT-84 {kind}, {len(cases)} physical reads',flush=True)
+    return {'input':kind,'emulator_exit':status,'reads':len(cases),'steps':cases,
+            'log':str(log.relative_to(work)),'log_sha256':hashlib.sha256(data).hexdigest(),
+            'config_sha256':hashlib.sha256(config.encode()).hexdigest()}
+
+
+def main():
+    parser=argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--emulator',type=Path,required=True,help='VNC-enabled 86Box with loopback-only listeners')
+    parser.add_argument('--roms',type=Path,required=True)
+    parser.add_argument('--qt-platform')
+    parser.add_argument('--input',choices=('bios','dos'),action='append')
+    args=parser.parse_args()
+    core=selected_core()
+    if not core:
+        parser.error('MEMORY_CORE_DIR must select the production core')
+    work=Path(tempfile.mkdtemp(prefix='ru-legacy-keyboard-',dir=ROOT/'out'))
+    print(f'Russian legacy keyboard artifacts: {work}',flush=True)
+    report={'status':'running','core_sha256':{name:hashlib.sha256(data).hexdigest() for name,data in core.items()},
+            'emulator_sha256':hashlib.sha256(args.emulator.read_bytes()).hexdigest(),'cases':[]}
+    def save():
+        (work/'results.json').write_text(json.dumps(report,indent=2)+'\n')
+    save()
+    try:
+        for kind in args.input or ('bios','dos'):
+            report['cases'].append(run_case(work,args,core,kind))
+            save()
+    except Exception as error:
+        report['status']='failed'
+        report['failure']=str(error)
+        save()
+        raise
+    report['status']='selected-cases-passed'
+    save()
+
+
+if __name__=='__main__':
+    main()

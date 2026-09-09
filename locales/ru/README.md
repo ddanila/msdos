@@ -180,3 +180,22 @@ without an explicit CPU target. The locale probes now declare `cpu 8086`.
 The report records successful country/CP866 and initial AT-84 input checks,
 plus HIGH/LOW QEMU regressions. Full older-keyboard and 286 matrices remain
 open; the initial input sequence does not cover the whole Russian alphabet.
+
+[AT-84 input qualification](at84-qualification.json) extends the initial
+sequence to the complete Russian alphabet with Caps/Shift combinations,
+punctuation, Ctrl+Alt symbols, control/navigation/keypad input and applicable
+modifier precedence. The runner asserts the resident AT keyboard type and
+checks both BIOS words and DOS bytes against the existing independent oracle.
+Run it after building the production core:
+
+```sh
+MEMORY_CORE_DIR=out/memory-production/files \
+  python3 tests/test_ru_legacy_keyboard_86box.py \
+  --emulator /path/to/loopback-vnc/86Box --roms /path/to/roms
+```
+
+`--qt-platform offscreen` supports a Qt backend built with that plugin;
+`--input bios` or `--input dos` selects one input path. The runner reserves
+local port 5900 and uses private images. Unavailable right Alt/Ctrl events
+are excluded, and navigation uses the old physical keypad. Legacy reload
+and rejection checks and XT-83 input remain open.
