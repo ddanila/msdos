@@ -30,6 +30,38 @@
   "remaining": [
     "Full FAIL_ON_SKIP=1 make -k test run.",
     "Ordinary baseline memory/kernel matrix.",
-    "Real-BIOS fallback and applicable hardware acceptance."
-  ]
+    "Final-core real-BIOS country and display matrices."
+  ],
+  "baseline_286": {
+    "status": "passed",
+    "command": [
+      "make",
+      "MEMORY_PROFILE=baseline",
+      "test-286-acceptance"
+    ],
+    "cwd": "/Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8",
+    "environment": {
+      "FAIL_ON_SKIP": "1",
+      "BOX86_BIN": "/Users/ddanila/fun/msdos/out/ru-86box-vnc-bs283qnk/build/src/86Box",
+      "QT_QPA_PLATFORM": "offscreen"
+    },
+    "source_commit": "40305c9805dc1c10c0a46acb1412d56ae62ad638",
+    "scope": "Ordinary baseline IBM AT acceptance. Matched production fallback is separately recorded.",
+    "started": 1788982020.060478,
+    "exit_code": 0,
+    "finished": 1788982543.24756,
+    "log_sha256": "814c5c9af2b2f3647a5828d68da6cbd5f57da8cdc83b92db84956eef873f55b4",
+    "retained_log": {
+      "path": "review/release-baseline-286.log",
+      "sha256": "814c5c9af2b2f3647a5828d68da6cbd5f57da8cdc83b92db84956eef873f55b4"
+    },
+    "deployed_baseline_core_sha256": {
+      "IO.SYS": "451407cd7951396b5a4b720cf42ebe9d3267f705a41c38969c65d67ebe549fa9",
+      "MSDOS.SYS": "1475174f50c8c349bedd7cd4a0be88bce055f2e411b7454b5f68fffbff269b62",
+      "COMMAND.COM": "798ceb24eb752c8413e47400685b0574479eaf8750a4b76b7353fe2c542c2461",
+      "HIMEM.SYS": "45da026e22cda46e34e0f87eff387a8f2434f4d6e72cfe97e8745cf0153ebaa6",
+      "EMM386.EXE": "0bba6763ffdaff89c7cbdfe591527374199a7a6a74b9a27e81e44a75c204f2dc"
+    },
+    "scope_note": "Individual legacy scripts build their documented probe/driver variants and validate guest markers plus persisted results before stopping 86Box. This is ordinary-build acceptance, not a claim that every case executes the composed core or uses guest-triggered emulator exit."
+  }
 }

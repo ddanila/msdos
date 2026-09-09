@@ -45,3 +45,6 @@ repro-*.log -text -whitespace
 
 # Preserve composed-memory runtime diagnostics.
 memory-*.log -text -whitespace
+
+# Preserve raw full-release and hardware diagnostics.
+release-*.log -text -whitespace

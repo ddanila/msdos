@@ -692,8 +692,7 @@
   },
   "remaining": [
     "Full FAIL_ON_SKIP=1 make -k test run.",
-    "Ordinary baseline memory/kernel release matrix.",
-    "Ordinary baseline real-BIOS 286 acceptance."
+    "Ordinary baseline memory/kernel release matrix."
   ],
   "campaign": {
     "status": "passed",
@@ -881,5 +880,6 @@
       "path": "review/memory-pre386.log",
       "sha256": "79783746ab07a26a6659804b7439cd9be231cb7ee9f4c3bdc936635cc2b61b8b"
     }
-  }
+  },
+  "baseline_286_record": "release-qualification.json"
 }

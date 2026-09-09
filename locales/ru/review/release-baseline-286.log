@@ -1,0 +1,127 @@
+# A single jobserver-aware submake prevents parallel image and build paths
+# from racing on their shared generated message and include files.
+make /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img
+make[1]: Entering directory '/Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8'
+mkdir -p /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out
+mkdir -p /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out
+# The complete developer image needs room for test probes and the growing
+# DOS 6.22 tool set.  The minimal-floppy target remains a 1.44 MB image.
+dd if=/dev/zero of=/Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img bs=512 count=5760 status=none
+dd if=/Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/BOOT/MSBOOT.BIN of=/Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img bs=1 skip=31744 count=512 conv=notrunc status=none
+/Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/bin/patch-bpb /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img
+mformat -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img -k ::
+# IO.SYS must be the first root-directory entry because the boot sector assumes it.
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/BIOS/IO.SYS ::IO.SYS
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/DOS/MSDOS.SYS ::MSDOS.SYS
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/CMD/COMMAND/COMMAND.COM ::COMMAND.COM
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/BIOS/SYSMENU.OVL ::SYSMENU.OVL
+# mtools 4.0.49 broke mattrib's -i handling, so expose the image through MTOOLSRC.
+echo 'drive a: file="/Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img"' > /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/.mtoolsrc
+MTOOLSRC=/Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/.mtoolsrc mattrib +h +s +r a:/IO.SYS
+MTOOLSRC=/Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/.mtoolsrc mattrib +h +s +r a:/MSDOS.SYS
+MTOOLSRC=/Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/.mtoolsrc mattrib +h +s +r a:/SYSMENU.OVL
+rm -f /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/.mtoolsrc
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/CMD/SYS/SYS.COM ::SYS.COM
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/CMD/FORMAT/FORMAT.COM ::FORMAT.COM
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/CMD/EXPAND/EXPAND.EXE ::EXPAND.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/CMD/SETUP/SETUP.EXE ::SETUP.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/CMD/CHKDSK/CHKDSK.COM ::CHKDSK.COM
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/CMD/DEBUG/DEBUG.COM ::DEBUG.COM
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/CMD/MEM/MEM.EXE ::MEM.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/CMD/FDISK/FDISK.EXE ::FDISK.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/CMD/MORE/MORE.COM ::MORE.COM
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/CMD/SORT/SORT.EXE ::SORT.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/CMD/LABEL/LABEL.COM ::LABEL.COM
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/CMD/FIND/FIND.EXE ::FIND.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/CMD/TREE/TREE.COM ::TREE.COM
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/CMD/COMP/COMP.COM ::COMP.COM
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/CMD/ATTRIB/ATTRIB.EXE ::ATTRIB.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/CMD/EDLIN/EDLIN.COM ::EDLIN.COM
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/CMD/FC/FC.EXE ::FC.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/CMD/NLSFUNC/NLSFUNC.EXE ::NLSFUNC.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/CMD/ASSIGN/ASSIGN.COM ::ASSIGN.COM
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/CMD/XCOPY/XCOPY.EXE ::XCOPY.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/CMD/DISKCOMP/DISKCOMP.COM ::DISKCOMP.COM
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/CMD/DISKCOPY/DISKCOPY.COM ::DISKCOPY.COM
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/CMD/SETVER/SETVER.COM ::SETVER.COM
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/CMD/SETVER/SETVER.EXE ::SETVER.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/CMD/DOSKEY/DOSKEY.COM ::DOSKEY.COM
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/CMD/HELP/HELP.COM ::HELP.COM
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/CMD/HELP/FASTHELP.COM ::FASTHELP.COM
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/CMD/HELP/HELP.HLP ::HELP.HLP
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/CMD/MIRROR/MIRROR.COM ::MIRROR.COM
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/CMD/UNDELETE/UNDELETE.COM ::UNDELETE.COM
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/CMD/UNFORMAT/UNFORMAT.COM ::UNFORMAT.COM
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/CMD/CHOICE/CHOICE.COM ::CHOICE.COM
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/CMD/LOADFIX/LOADFIX.COM ::LOADFIX.COM
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/CMD/DELTREE/DELTREE.EXE ::DELTREE.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/CMD/DEFRAG/DEFRAG.EXE ::DEFRAG.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/CMD/MOVE/MOVE.EXE ::MOVE.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/CMD/MSD/MSD.EXE ::MSD.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/CMD/SCANDISK/SCANDISK.EXE ::SCANDISK.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/CMD/SCANDISK/SCANDISK.INI ::SCANDISK.INI
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/CMD/MEMMAKER/MEMMAKER.EXE ::MEMMAKER.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/CMD/SIZER/SIZER.EXE ::SIZER.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/CMD/POWER/POWER.EXE ::POWER.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/CMD/MSCDEX/MSCDEX.EXE ::MSCDEX.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/CMD/INTERLNK/INTERLNK.EXE ::INTERLNK.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/CMD/INTERSVR/INTERSVR.EXE ::INTERSVR.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/CMD/APPEND/APPEND.EXE ::APPEND.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/CMD/RECOVER/RECOVER.COM ::RECOVER.COM
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/CMD/FASTOPEN/FASTOPEN.EXE ::FASTOPEN.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/CMD/PRINT/PRINT.COM ::PRINT.COM
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/CMD/FILESYS/FILESYS.EXE ::FILESYS.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/CMD/REPLACE/REPLACE.EXE ::REPLACE.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/CMD/JOIN/JOIN.EXE ::JOIN.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/CMD/SUBST/SUBST.EXE ::SUBST.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/CMD/BACKUP/BACKUP.COM ::BACKUP.COM
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/CMD/RESTORE/RESTORE.COM ::RESTORE.COM
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/CMD/GRAFTABL/GRAFTABL.COM ::GRAFTABL.COM
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/CMD/KEYB/KEYB.COM ::KEYB.COM
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/DEV/KEYBOARD/KEYBOARD.SYS ::KEYBOARD.SYS
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/CMD/SHARE/SHARE.EXE ::SHARE.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/CMD/EXE2BIN/EXE2BIN.EXE ::EXE2BIN.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/CMD/GRAPHICS/GRAPHICS.COM ::GRAPHICS.COM
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/CMD/GRAPHICS/GRAPHICS.PRO ::GRAPHICS.PRO
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/CMD/IFSFUNC/IFSFUNC.EXE ::IFSFUNC.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/CMD/MODE/MODE.COM ::MODE.COM
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/DEV/ANSI/ANSI.SYS ::ANSI.SYS
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/DEV/RAMDRIVE/RAMDRIVE.SYS ::RAMDRIVE.SYS
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/DEV/VDISK/VDISK.SYS ::VDISK.SYS
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/DEV/DISPLAY/DISPLAY.SYS ::DISPLAY.SYS
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/DEV/COUNTRY/COUNTRY.SYS ::COUNTRY.SYS
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/DEV/PRINTER/PRINTER.SYS ::PRINTER.SYS
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/DEV/PRINTER/4201/4201.CPI ::4201.CPI
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/DEV/PRINTER/4208/4208.CPI ::4208.CPI
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/DEV/PRINTER/5202/5202.CPI ::5202.CPI
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/DEV/SMARTDRV/SMARTDRV.EXE ::SMARTDRV.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/DEV/SMARTDRV/FLUSH13.EXE ::FLUSH13.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/DEV/DRIVER/DRIVER.SYS ::DRIVER.SYS
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/DEV/XMA2EMS/XMA2EMS.SYS ::XMA2EMS.SYS
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/DEV/XMAEM/XMAEM.SYS ::XMAEM.SYS
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/SELECT/SELECT.COM ::SELECT.COM
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/SELECT/SELECT.EXE ::SELECT.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/SELECT/SELECT.DAT ::SELECT.DAT
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/SELECT/SELECT.HLP ::SELECT.HLP
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/DEV/DISPLAY/EGA/EGA866.CPI ::EGA866.CPI
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/DEV/KEYBOARD/KEYBRD2.SYS ::KEYBRD2.SYS
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/locales/ru/RUSSIAN.TXT ::RUSSIAN.TXT
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/locales/ru/upstream/512_8/LICENSE ::RUFONT1.TXT
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/locales/ru/upstream/cozette/LICENSE ::RUFONT2.TXT
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/DEV/DISPLAY/EGA/EGA.CPI ::EGA.CPI
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/DEV/DISPLAY/LCD/LCD.CPI ::LCD.CPI
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/DEV/EGA/EGA.SYS ::EGA.SYS
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/DEV/HIMEM/HIMEM.SYS ::HIMEM.SYS
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8/src/MEMM/MEMM/EMM386.EXE ::EMM386.EXE
+make[1]: Leaving directory '/Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j8'
+bash tests/test_86box_286_boot.sh
+  PASS: clean IBM AT 5170 BIOS boot on an 8 MHz 80286
+bash tests/test_himem_286_86box.sh
+  PASS: IBM AT BIOS INT 15h/AH=87h block move on an 8 MHz 80286
+  PASS: HIMEM XMS lifecycle on an 8 MHz 80286
+bash tests/test_platform_286_86box.sh
+  PASS: 286 CPU, A20/HMA/XMS, TESTMEM, menu, keyboard, and disk geometry
+bash tests/test_pre386_memory_86box.sh
+  PASS: EMM386 rejection and DEVICEHIGH/LOADHIGH/MemMaker 286 fallback
+bash tests/test_startup_reboot_286_86box.sh
+  PASS: IBM AT startup selection and warm reboot persistence

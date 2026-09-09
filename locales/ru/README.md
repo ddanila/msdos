@@ -300,8 +300,10 @@ full-suite, baseline and hardware release gates remain open.
 
 [Release qualification](release-qualification.json) tracks the full-suite
 completion gate. It records a repaired KEYBRD2 runtime-manifest omission and
-the validation of wired Python test evidence. Full release completion is
-not yet claimed.
+the validation of wired Python test evidence. The ordinary-build IBM AT
+acceptance suite passes, including warm-reboot persistence; its scope is
+separate from the matched production fallback record. Full release completion
+is not yet claimed.
 
 [Acceptance audit](acceptance-audit.json) maps each implementation-plan bullet
 to retained evidence and keeps final-core and release limitations explicit.
