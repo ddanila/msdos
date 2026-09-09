@@ -12,6 +12,7 @@ import tempfile
 import time
 
 from screen_expect import QMPConnection
+from ru_profiles import CONFIG, require_profile
 from test_ru_cpi import CPI, ROOT, check_glyphs, parse_cpi
 
 
@@ -30,7 +31,7 @@ def existing_font(page, height):
     return [bytes(values[i * height:(i + 1) * height]) for i in range(256)]
 
 
-def run_case(work, base, page, height, expected, corrupt=False):
+def run_case(work, base, page, height, expected, corrupt=False, profile=None):
     case = work / f"{page}-{height}{'-corrupt' if corrupt else ''}"
     case.mkdir()
     image = case / "boot.img"
@@ -55,6 +56,12 @@ def run_case(work, base, page, height, expected, corrupt=False):
     copy(ROOT / "src/DEV/DISPLAY/DISPLAY.SYS", "DISPLAY.SYS")
     copy(ROOT / "src/CMD/MODE/MODE.COM", "MODE.COM")
     config = b"DEVICE=DISPLAY.SYS CON=(EGA,437,(1,3))\r\n"
+    if profile:
+        config = ('COUNTRY=007,866,COUNTRY.SYS\r\n'+CONFIG[profile]).encode()+config
+        run('nasm','-f','bin',f'-DHIGH={int(profile == "high")}',
+            str(ROOT/'tests/ru_profile_probe.asm'),'-o',str(case/'PROFILE.COM'))
+        copy(case/'PROFILE.COM','PROFILE.COM')
+        copy(ROOT/'src/CMD/NLSFUNC/NLSFUNC.EXE','NLSFUNC.EXE')
     autoexec = ("@ECHO OFF\r\nCTTY AUX\r\n"
                 f"MODE CON CP PREPARE=(({page}) A:\\TEST.CPI)\r\n"
                 "IF ERRORLEVEL 1 GOTO FAIL\r\nSETH.COM\r\n"
@@ -62,12 +69,14 @@ def run_case(work, base, page, height, expected, corrupt=False):
                 "IF ERRORLEVEL 1 GOTO FAIL\r\nPROBE.COM\r\n"
                 "IF ERRORLEVEL 1 GOTO FAIL\r\nECHO RU_DISPLAY_DONE\r\nQEXIT.COM\r\n"
                 ":FAIL\r\nECHO RU_DISPLAY_FAIL\r\nQEXIT.COM\r\n").encode()
+    if profile:
+        autoexec = autoexec.replace(b'CTTY AUX\r\n',b'CTTY AUX\r\nPROFILE.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC\r\nIF ERRORLEVEL 1 GOTO FAIL\r\n')
     for name, data in [("CONFIG.SYS", config), ("AUTOEXEC.BAT", autoexec)]:
         run("mcopy", "-o", "-i", str(image), "-", f"::{name}", input=data)
     serial = case / "serial.log"
     with tempfile.TemporaryDirectory(prefix="ru-qmp-") as sockets, (case / "qemu.log").open("wb") as log:
         sock = Path(sockets) / "qmp"
-        command = [os.environ.get("QEMU", "qemu-system-i386"), "-display", "none", "-m", "4",
+        command = [os.environ.get("QEMU", "qemu-system-i386"), "-display", "none", "-m", "8" if profile else "4",
                    "-drive", f"if=floppy,index=0,format=raw,file={image},cache=writethrough",
                    "-boot", "a", "-serial", f"file:{serial}", "-qmp", f"unix:{sock},server=on,wait=off",
                    "-no-reboot", "-device", "isa-debug-exit,iobase=0xf4,iosize=0x04"]
@@ -98,6 +107,8 @@ def run_case(work, base, page, height, expected, corrupt=False):
             if process.poll() is None:
                 process.kill()
                 process.wait()
+    if profile:
+        require_profile(output,profile)
     actual = run("mtype", "-i", str(image), "::FONT.BIN").stdout
     (case / "font-plane.bin").write_bytes(actual)
     if len(actual) != 8192:
@@ -108,7 +119,7 @@ def run_case(work, base, page, height, expected, corrupt=False):
             raise AssertionError(f"wrong-slot control did not isolate yo: {mismatches}")
     elif mismatches:
         raise AssertionError(f"VGA font bytes differ at {page}/{height}: {mismatches}; artifacts: {case}")
-    result = {"page": page, "height": height, "emulator_exit": status,
+    result = {"profile": profile, "page": page, "height": height, "emulator_exit": status,
               "guest_completion": True, "mismatched_slots": mismatches,
               "negative_control": corrupt, "font_plane_sha256": hashlib.sha256(actual).hexdigest(),
               "screen": str(screen.relative_to(work)),

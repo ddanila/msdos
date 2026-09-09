@@ -146,3 +146,13 @@ media hashes, remaining capacity, deployed files and remaining qualification.
 guest completion, country/code-page and physical-input checks, runtime HMA/UMB
 and LOW checks, and the retained CONFIG ordering failure. Full display-plane
 checks on final profiles and real-BIOS 286/end-to-end tests remain open.
+
+`make test-ru-profiles-qemu` verifies the selected production core in each
+private image, runtime memory placement, loaded VGA glyph bytes and NLS
+transitions. [Profile qualification](profile-qualification.json) retains the
+successful font checks on both profiles and the LOW NLS matrix. HIGH/UMB
+three-page preparation currently fails; the new gate exposes that unresolved
+failure in `make test`. The single-page installed recipe remains covered by
+the installation gate. Use `--profile high --part country` on the Python
+runner with `MEMORY_CORE_DIR` set to rerun the failing subsystem; results
+are saved incrementally, including failure details.

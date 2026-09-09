@@ -2,7 +2,7 @@
   "schema_version": 1,
   "locale": "ru",
   "code_page": 866,
-  "status": "installed-high-low-country-keyboard-qualified-end-to-end-pending",
+  "status": "profile-fonts-and-low-NLS-qualified-high-NLS-failing",
   "sources": [
     {
       "path": "upstream/CP866.TXT",
@@ -603,9 +603,9 @@
     }
   },
   "unresolved": [
-    "Physical keyboard verification on 83/84-key variants and the real-BIOS 286 backend",
-    "Complete keyboard modifier-precedence edges; full display-plane and NLS transition checks on final memory profiles",
-    "Shell/editor, pipes, Cyrillic filesystem persistence, full release and reproducibility qualification"
+    "HIGH/UMB three-page DISPLAY preparation fails in the NLS transition gate; diagnosis and fix required",
+    "Physical keyboard verification on 83/84-key variants and real-BIOS 286",
+    "Complete modifier-precedence edges, shell/editor/pipes, Cyrillic filesystem persistence, full release and reproducibility"
   ],
   "behavior": {
     "reference": "dos622-reference.json",

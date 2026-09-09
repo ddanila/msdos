@@ -143,8 +143,11 @@ LOW country/keyboard boots are covered by
 The recipe places COUNTRY before memory-manager DEVICE lines; the retained
 append-at-end diagnostic shows that the opposite order fails the country/page
 checks.
-Full display-plane checks across the final profiles, the real-BIOS 286 run,
-and end-to-end qualification remain open.
+[Profile qualification](locales/ru/profile-qualification.json) records actual
+VGA bytes on HIGH/UMB and LOW, and complete LOW NLS transitions. The new
+profile gate currently fails HIGH/UMB NLS preparation with three DISPLAY page
+slots; it remains a required failing gate, not a qualified result. The
+real-BIOS 286 and end-to-end/release work also remain open.
 
 Existing implementation and test entry points:
 

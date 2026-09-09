@@ -236,3 +236,9 @@ open in the plan.
 
 [RU packaging qualification](../locales/ru/packaging-qualification.json) records
 disk hashes, available capacity and deployed optional-file hashes.
+
+[RU profile qualification](../locales/ru/profile-qualification.json) covers
+actual VGA font bytes on production HIGH/UMB and LOW, plus the full LOW NLS
+transition/rejection matrix. `make test-ru-profiles-qemu` currently fails at
+HIGH/UMB three-page font preparation. This is a required open gate, also
+included in `make test`; the report records the failure and controlled checks.

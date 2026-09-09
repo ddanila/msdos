@@ -10,6 +10,7 @@ import subprocess
 import tempfile
 
 from country_records import read_records
+from ru_profiles import require_profile
 
 ROOT = Path(__file__).resolve().parents[1]
 COUNTRY = ROOT / "src/DEV/COUNTRY/COUNTRY.SYS"
@@ -40,7 +41,7 @@ def compile_probes(work):
         command("nasm", "-f", "bin", str(ROOT / "tests" / source), "-o", str(work / name))
 
 
-def run_case(work, base, name, config, actions, expected_count, corrupt=False):
+def run_case(work, base, name, config, actions, expected_count, corrupt=False, profile=None):
     directory = work / name
     directory.mkdir()
     image = directory / "boot.img"
@@ -49,6 +50,9 @@ def run_case(work, base, name, config, actions, expected_count, corrupt=False):
         command("mcopy", "-o", "-i", str(image), str(source), f"::{name}")
     for name in ("P866.COM", "P437.COM", "P850.COM", "Q866.COM", "Q437.COM", "Q850.COM", "QEXIT.COM", "REJECT.COM", "CPCHK.COM"):
         copy(work / name, name)
+    if profile:
+        copy(work / "PROFILE.COM", "PROFILE.COM")
+        actions = ["PROFILE.COM"] + actions
     country = COUNTRY
     if corrupt:
         data = bytearray(COUNTRY.read_bytes())
@@ -70,7 +74,7 @@ def run_case(work, base, name, config, actions, expected_count, corrupt=False):
     for name, data in [("CONFIG.SYS", config), ("AUTOEXEC.BAT", "\r\n".join(batch) + "\r\n")]:
         command("mcopy", "-o", "-i", str(image), "-", f"::{name}", input=data.encode())
     log = directory / "serial.log"
-    args = [os.environ.get("QEMU", "qemu-system-i386"), "-display", "none", "-m", "4",
+    args = [os.environ.get("QEMU", "qemu-system-i386"), "-display", "none", "-m", "8" if profile else "4",
             "-drive", f"if=floppy,index=0,format=raw,file={image},cache=writethrough", "-boot", "a",
             "-serial", "stdio", "-monitor", "none", "-no-reboot",
             "-device", "isa-debug-exit,iobase=0xf4,iosize=0x04"]
@@ -79,6 +83,8 @@ def run_case(work, base, name, config, actions, expected_count, corrupt=False):
     output = log.read_bytes()
     if result.returncode != 33:
         raise AssertionError(f"emulator exit {result.returncode}: {log}\n{output!r}")
+    if profile:
+        require_profile(output,profile)
     if corrupt:
         if b"RU_COUNTRY_FAIL stage 03" not in output or b"RU_COUNTRY_DONE" in output:
             raise AssertionError(f"wrong-case control escaped the oracle: {log}\n{output!r}")
@@ -91,7 +97,7 @@ def run_case(work, base, name, config, actions, expected_count, corrupt=False):
         if output.count(b"RU_QUERY_PASS") != sum(action in ("Q437.COM", "Q850.COM", "Q866.COM") for action in actions):
             raise AssertionError(f"missing external-query completion: {log}")
     print(f"PASS: {directory.name}", flush=True)
-    return {"name": directory.name, "emulator_exit": result.returncode,
+    return {"profile": profile, "name": directory.name, "emulator_exit": result.returncode,
             "country_probe_passes": output.count(b"RU_COUNTRY_PASS"), "negative_control": corrupt,
             "config": config, "actions": actions, "serial_log": str(log.relative_to(work)),
             "serial_sha256": hashlib.sha256(output).hexdigest()}
