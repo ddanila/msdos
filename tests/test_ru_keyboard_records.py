@@ -37,8 +37,10 @@ def validate(path):
         raise ValueError('empty common section')
     if page != common + 6 or page + reader.word(page) != len(data):
         raise ValueError('section boundaries')
-    if reader.take(16, 6) != struct.pack('<HHH', 6, reader.word(page), reader.word(logic)):
+    if reader.take(16, 6) != struct.pack('<HHH', 1120, 496, 640):
         raise ValueError('allocation bounds')
+    if reader.word(page) > 496 or reader.word(logic) > 640:
+        raise ValueError('section exceeds allocation')
     _, actual = capture.keyboard_tables(path)
     if actual['identifier'] != 441:
         raise ValueError('RU identifier')

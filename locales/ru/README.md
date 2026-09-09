@@ -119,7 +119,14 @@ The optional RU-only `src/DEV/KEYBOARD/KEYBRD2.SYS` is built from
 all translation states against the independent reference, with corruption
 controls. Existing KEYBOARD.SYS is unchanged.
 [Keyboard qualification](keyboard-qualification.json) records the table gate
-and a physical QEMU key probe that exposes the missing initial-Latin behavior.
-The library requests the Russian mode features, but the resident KEYB handler
-still needs their implementation and full physical-input qualification.
+and retained before/after physical-input evidence.
+The resident handler supports initial Latin mode and Alt+left/right Shift
+selection, gated by layout feature flags. The RU file reserves the same
+resident capacities as KEYBOARD.SYS so a later existing layout fits.
+`make test-ru-keyboard-qemu` injects physical QMP key events and checks both
+BIOS INT 16h and DOS direct input from CON. It covers alphabet/Yo case,
+punctuation, third shift, controls, navigation, keypad and modifier releases;
+it detects a wrong Yo translation and types through RU/GR/RU reloads.
+The enhanced-keyboard gate does not qualify the older hardware variants or
+final memory profiles.
 This is a development artifact and is not yet included in installation media.

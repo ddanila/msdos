@@ -2,7 +2,7 @@
   "schema_version": 1,
   "locale": "ru",
   "code_page": 866,
-  "status": "display-and-country-qualified-keyboard-pending",
+  "status": "display-country-and-enhanced-keyboard-qualified-integration-pending",
   "sources": [
     {
       "path": "upstream/CP866.TXT",
@@ -603,8 +603,8 @@
     }
   },
   "unresolved": [
-    "Russian keyboard implementation and physical scan-code validation",
-    "Guest verification of keyboard modifier precedence and 83/84/enhanced variants",
+    "Physical keyboard verification on 83/84-key variants and the real-BIOS 286 backend",
+    "Keyboard resource rejection, complete modifier-precedence edge cases, and HIGH/UMB/LOW profiles",
     "Installation and end-to-end qualification"
   ],
   "behavior": {

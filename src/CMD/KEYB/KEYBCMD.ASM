@@ -1148,6 +1148,10 @@ SKIP_CTRL_COPY: 		       ;;
 				       ;;
 	MOV   AX,0AD82H 	       ;; Activate language
 	MOV   BL,-1		       ;;
+	TEST  TSD.SPECIAL_FEATURES,INITIAL_US_MODE
+	JZ    FIRST_LAYOUT_MODE
+	XOR   BL,BL
+FIRST_LAYOUT_MODE:
 	INT   2FH		       ;;
 				       ;;
 	MOV   DX,ES:TSD.RESIDENT_END   ;; Get resident end
@@ -1338,6 +1342,10 @@ KEYB_EXIT_NOT_RESIDENT: 	       ;;
 COPY_INTO_SDA:			       ;;
 	MOV   AX,0AD82H 	       ;; Activate language
 	MOV   BL,-1		       ;;
+	TEST  TSD.SPECIAL_FEATURES,INITIAL_US_MODE
+	JZ    RELOAD_LAYOUT_MODE
+	XOR   BL,BL
+RELOAD_LAYOUT_MODE:
 	INT   2FH		       ;;
 				       ;;
 	MOV   AH,04CH		       ;;;;;;;;;;;

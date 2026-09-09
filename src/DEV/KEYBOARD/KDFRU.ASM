@@ -2,7 +2,7 @@
 ; Translation facts are checked against locales/ru/dos622-reference.json.
 ; No retail keyboard resident code is embedded here.
 ; Features 1000h/2000h request Alt+Shift selection / initial Latin mode.
-; The resident handler support and physical-input qualification are pending.
+; Physical-input qualification is recorded in locales/ru.
 INCLUDE KEYBSHAR.INC
 INCLUDE POSTEQU.INC
 INCLUDE KEYBMAC.INC
@@ -10,7 +10,9 @@ INCLUDE KEYBMAC.INC
 CODE SEGMENT PUBLIC 'CODE'
 ASSUME CS:CODE,DS:CODE
 DB 0FFh,'KEYB   ',8 DUP(0)
-DW RU_COMMON_END-RU_COMMON, RU_PAGE_END-RU_PAGE, RU_LOGIC_END-RU_LOGIC
+; Reserve the existing KEYBOARD.SYS capacities so KEYB can later load an
+; existing layout into the same resident allocation (for example GR/437).
+DW 1120,496,640
 DW 0,1,1
 DB 'RU'
 DW OFFSET RU_ENTRY,0
@@ -23,7 +25,7 @@ DW 866,OFFSET RU_PAGE,0
 
 RU_LOGIC:
 DW RU_LOGIC_END-$
-DW 3000h
+DW ALT_SHIFT_SELECT+INITIAL_US_MODE
 OPTION EXIT_IF_FOUND
 ; Right Alt and Ctrl+Alt select the historical third-shift punctuation.
 IFF R_ALT_SHIFT

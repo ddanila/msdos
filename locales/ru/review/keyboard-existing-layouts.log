@@ -1,0 +1,10 @@
+bash tests/test_keyb_layout_qemu.sh
+  PASS: KEYB loaded and reported the German layout
+  PASS: KEYB loaded and reported the BR DOS 5 layout
+  PASS: KEYB loaded and reported the PL DOS 5 layout
+  PASS: KEYB loaded and reported the CZ DOS 5 layout
+  PASS: KEYB loaded and reported the SL DOS 5 layout
+  PASS: KEYB loaded and reported the YU DOS 5 layout
+  PASS: KEYB loaded and reported the HU DOS 5 layout
+  PASS: command interpreter resumed after KEYB
+Results: 8 passed, 0 failed

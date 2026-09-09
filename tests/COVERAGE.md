@@ -12,7 +12,7 @@ checks all prior country payloads, the new Russian records, DOS country/case
 APIs, external table queries, CHCP/DISPLAY agreement and rejected selections.
 [Country qualification](../locales/ru/country-qualification.json) records the
 guest results, including detection of a corrupted case entry and the NLSFUNC
-fixes established by the new tests. Keyboard runtime, installation,
+fixes established by the new tests. Older keyboard variants, installation,
 HIGH/UMB/LOW/286 and end-to-end qualification remain in [the plan](../RUSSIAN.md).
 
 Coverage means a test asserts an externally visible result or state transition,
@@ -213,6 +213,9 @@ The Russian keyboard table gate, `make test-ru-keyboard-records`, checks the
 separate RU library against the independently captured DOS reference and
 rejects wrong translations and malformed records.
 [Keyboard qualification](../locales/ru/keyboard-qualification.json) records its
-results and the initial physical-input failure. Resident mode switching and
-the complete physical BIOS/DOS input gate remain open in
+results and before/after physical-input evidence. `make test-ru-keyboard-qemu`
+checks enhanced-keyboard BIOS/DOS bytes, mode selections, case, punctuation,
+third shift, controls, navigation, keypad and released modifiers. It detects
+a wrong Yo byte and verifies typed RU/GR/RU reloads. Older keyboard variants,
+resource rejections and complete locale qualification remain open in
 [RUSSIAN.md](../RUSSIAN.md).

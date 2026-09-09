@@ -26,6 +26,8 @@
 ;;   each code page
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
                                        ;; SPECIAL_FEATURES equates:
+ALT_SHIFT_SELECT   EQU    1000H       ;; Alt+left/right Shift selects US/national
+INITIAL_US_MODE    EQU    2000H       ;; begin a newly loaded layout in US mode
 TYPEWRITER_CAPS_LK  EQU    8000H       ;; typewriter style caps lock
 JR_HOT_KEY_1_2      EQU    4000H       ;; on PCjr use 1/2 as the hot keys
                                        ;;  instead of F1/F2

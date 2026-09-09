@@ -1,18 +1,18 @@
 {
   "schema_version": 1,
-  "status": "tables-qualified-resident-behavior-pending",
+  "status": "enhanced-keyboard-BIOS-and-DOS-qualified-integration-pending",
   "inputs": {
     "src/DEV/KEYBOARD/KDFRU.ASM": {
-      "sha256": "1e0369cdbd21597b31b4dcc22b870f6c8d287ad893c28b79670c04ff5bc054ff",
-      "size": 3663
+      "sha256": "dbc021cbb347df7eff77b144a05995bd1580062d10469d9785cf7da2331567a6",
+      "size": 3763
     },
     "src/DEV/KEYBOARD/KEYBRD2.SYS": {
-      "sha256": "3adb6c2072a00a1b8f491d4f0611906e74c967f2810f8a4a889acbaa1dfeac46",
+      "sha256": "f6c776c95ec4b8bda1d72e93233995d76155a2d558283d7ce215def8f23a159e",
       "size": 363
     },
     "src/CMD/KEYB/KEYB.COM": {
-      "sha256": "fb52a5b34815d15db5cd5a7b1323b6062e835f8f6db237fd31e86a37b02ec91b",
-      "size": 14988
+      "sha256": "ce547d39a18851ed9e9403486c50aa0730935647e80c8c88e6e1fd514f2eb647",
+      "size": 15088
     },
     "src/DEV/KEYBOARD/KEYBOARD.SYS": {
       "sha256": "57571a4b10040dd0645998d0ccb8caa6e02be904ded253c9c81d542750ae4d9d",
@@ -21,10 +21,19 @@
     "locales/ru/dos622-reference.json": {
       "sha256": "f1b81253030de6bcbee4db96d11b7ac71b57984b568e07a310aff03159add63b",
       "size": 16005
+    },
+    "tests/ru_keyboard_probe.asm": {
+      "sha256": "7e1792a292e9719f33e5d009c918ae36f9521721f7e659d93dff15c4a9e72a22",
+      "size": 1915
+    },
+    "tests/test_ru_keyboard_qemu.py": {
+      "sha256": "c5389699281c98f0bde28cee4a4b1bab1affdac50a1a5af9b442db976c8305d7",
+      "size": 9506
     }
   },
   "commands": [
-    "make test-ru-keyboard-records test-keyboard-records test-ru-contract"
+    "make test-ru-keyboard-records test-keyboard-records test-ru-contract",
+    "make test-ru-keyboard-qemu test-keyb-layout-qemu"
   ],
   "host_results": {
     "ru_record_tests": 4,
@@ -45,12 +54,122 @@
     "emulator_exit": 33,
     "log": "review/keyboard-before-initial-latin.log",
     "log_sha256": "4fe86a4e5c88fa2c805549fee9a7c8195e151557f9c35693929c93136ef86b33",
-    "private_artifacts": "out/ru-keyboard-initial-brev3pjb"
+    "private_artifacts": "out/ru-keyboard-initial-brev3pjb",
+    "inputs": {
+      "src/DEV/KEYBOARD/KDFRU.ASM": {
+        "sha256": "1e0369cdbd21597b31b4dcc22b870f6c8d287ad893c28b79670c04ff5bc054ff",
+        "size": 3663
+      },
+      "src/DEV/KEYBOARD/KEYBRD2.SYS": {
+        "sha256": "3adb6c2072a00a1b8f491d4f0611906e74c967f2810f8a4a889acbaa1dfeac46",
+        "size": 363
+      },
+      "src/CMD/KEYB/KEYB.COM": {
+        "sha256": "fb52a5b34815d15db5cd5a7b1323b6062e835f8f6db237fd31e86a37b02ec91b",
+        "size": 14988
+      },
+      "src/DEV/KEYBOARD/KEYBOARD.SYS": {
+        "sha256": "57571a4b10040dd0645998d0ccb8caa6e02be904ded253c9c81d542750ae4d9d",
+        "size": 33872
+      },
+      "locales/ru/dos622-reference.json": {
+        "sha256": "f1b81253030de6bcbee4db96d11b7ac71b57984b568e07a310aff03159add63b",
+        "size": 16005
+      }
+    }
   },
   "remaining": [
-    "Implement and qualify initial Latin and Alt+Left/Right Shift selections in the resident handler.",
-    "Physical-key BIOS/DOS matrix: all letters, punctuation, Shift/Caps, third shift, control/navigation/keypad, key release and keyboard variants.",
-    "Physical wrong-key negative control and existing-layout transitions.",
+    "Physical 83/84-key variants and real-BIOS 286 testing.",
+    "Additional modifier precedence edges, unsupported/missing/malformed keyboard resource rejection, and complete Latin punctuation coverage.",
+    "HIGH/UMB/LOW memory-profile qualification.",
     "Installation and complete end-to-end locale qualification as recorded in RUSSIAN.md."
-  ]
+  ],
+  "configuration": "COUNTRY=007,866,COUNTRY.SYS; NUMLOCK=ON; KEYB RU,866,KEYBRD2.SYS /ID:441",
+  "keyboard_backend": "QEMU default enhanced PS/2; real QMP make/break events; BIOS INT 16h AH=00h and DOS INT 21h AH=07h with process stdin set to CON",
+  "cases": [
+    {
+      "name": "physical",
+      "negative_control": false,
+      "dos_input": false,
+      "reload_existing": false,
+      "emulator_exit": 33,
+      "completed_reads": 196,
+      "log": "review/keyboard-physical.log",
+      "log_sha256": "b22230d99907bcb7607eb8a9b76934879cdfea25682cc7d28adf5fdec8a517b4",
+      "planned_reads": 196
+    },
+    {
+      "name": "dos-input",
+      "negative_control": false,
+      "dos_input": true,
+      "reload_existing": false,
+      "emulator_exit": 33,
+      "completed_reads": 196,
+      "log": "review/keyboard-dos-input.log",
+      "log_sha256": "b22230d99907bcb7607eb8a9b76934879cdfea25682cc7d28adf5fdec8a517b4",
+      "planned_reads": 196
+    },
+    {
+      "name": "wrong-yo",
+      "negative_control": true,
+      "dos_input": false,
+      "reload_existing": false,
+      "emulator_exit": 33,
+      "completed_reads": 41,
+      "log": "review/keyboard-wrong-yo.log",
+      "log_sha256": "1ceb6e4dc697336cb82c6380334e41bd11d4b9348d4d70f050ed54ee7e554fbb",
+      "planned_reads": 196
+    },
+    {
+      "name": "reload-existing",
+      "negative_control": false,
+      "dos_input": false,
+      "reload_existing": true,
+      "emulator_exit": 33,
+      "completed_reads": 7,
+      "log": "review/keyboard-reload-existing.log",
+      "log_sha256": "c928d62eac0eba6b6b0f4b41511423c0d541c95b6c40c037e9fbd7b5ccaef231",
+      "planned_reads": 7
+    }
+  ],
+  "private_artifacts": "out/ru-keyboard-65ffbr0j",
+  "fixes": [
+    "Select initial Latin at first install and successful reload for layouts with INITIAL_US_MODE.",
+    "Handle Alt+left/right Shift selection at modifier make; accept either key order while retaining ordinary BIOS make/break handling.",
+    "Reserve existing KEYBOARD.SYS capacity limits in RU header so existing layouts can reload into resident space."
+  ],
+  "before_reload_capacity": {
+    "log": "review/keyboard-before-reload-capacity.log",
+    "log_sha256": "1304682a4699cfb35a408fc53aba044603d167d1f953a38d05249004eedcc82b",
+    "observed": "KEYB GR,437,KEYBOARD.SYS fails with Unable to create KEYB table in resident memory after compact RU load."
+  },
+  "memory_core_comparison": {
+    "IO.SYS": {
+      "sha256": "793169a292df40bb117eb487136a0d8e7f4334ca223e8206bf53f33141f24715",
+      "unchanged_from_country_qualification": true
+    },
+    "MSDOS.SYS": {
+      "sha256": "199771dfe152be284bd84c1b6d572cc311c8c579c4d7e291ec13cd4bbaa8955d",
+      "unchanged_from_country_qualification": true
+    },
+    "COMMAND.COM": {
+      "sha256": "f60f680336572c2c1375fbeae7f54b074ac6e365f35638a62822572bece584ba",
+      "unchanged_from_country_qualification": true
+    },
+    "HIMEM.SYS": {
+      "sha256": "340cbfd1f0e835755adce99d80c607f8edeb48ea2b20a6a142402a25434f8d13",
+      "unchanged_from_country_qualification": true
+    },
+    "EMM386.EXE": {
+      "sha256": "58266b6614594de7a9cfde9eda75e3eb241b9e2e941e67b70645a0f8a197dae6",
+      "unchanged_from_country_qualification": true
+    }
+  },
+  "existing_layout_regression": {
+    "command": "make test-keyb-layout-qemu",
+    "passed": 8,
+    "failed": 0,
+    "log": "review/keyboard-existing-layouts.log",
+    "log_sha256": "663b44d5b1736d014befd63e2fddce682576c5304ec02526f67511b7142839b5"
+  }
 }
