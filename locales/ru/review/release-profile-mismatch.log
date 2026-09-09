@@ -1,0 +1,17 @@
+FAIL: repository HIMEM contract: A20_FINAL CF=0 AX=0000
+HMA_REQUEST CF=0 AX=0000 BX=0091 DX=FFFF
+make: *** [Makefile:930: test-himem-qemu] Error 1
+FAIL: COMMAND did not publish all copied HMA catalogs
+HMA_PROBE_BEFORE_STRESS
+HMA_REQUEST AX=0000 BL=0191
+HMA_REFERENCE_END
+HMA_PROBE_AFTER_STRESS
+HMA_REQUEST AX=0000 BL=0191
+HMA_REFERENCE_END
+COMMAND_CATALOG_HMA_FAILURE
+HMA_TAIL_FAILURE
+HMA_LOW_RETURN_PASS
+HMA_XMS3_RETURN_PASS
+make: *** [Makefile:966: test-hma-qemu] Error 1
+FAIL: MEM did not preserve exact split UMB region accounting
+make: *** [Makefile:972: test-mem-umb-qemu] Error 1

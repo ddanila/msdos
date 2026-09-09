@@ -301,10 +301,16 @@ full-suite, baseline and hardware release gates remain open.
 [Release qualification](release-qualification.json) tracks the full-suite
 completion gate. It records a repaired KEYBRD2 runtime-manifest omission and
 the validation of wired Python test evidence. The ordinary-build IBM AT
-acceptance suite passes, including warm-reboot persistence; its scope is
-separate from the matched production fallback record. Full release completion
+acceptance suite and memory/kernel matrix pass, including warm-reboot
+persistence; their scope is separate from the matched production campaign.
+Full release completion
 is not yet claimed.
 
 [Acceptance audit](acceptance-audit.json) maps each implementation-plan bullet
 to retained evidence and keeps final-core and release limitations explicit.
 It is a completion checklist, not a declaration that the remaining gates pass.
+
+[Final-core locale qualification](final-core-qualification.json) refreshes the
+real-BIOS country/NLS matrix after the COMMAND collation change. All country
+cases and the deliberate case-table failure pass on the final core; the
+matching display refresh is still running.

@@ -1,0 +1,41 @@
+Drive A: /Users/ddanila/fun/msdos/out/ru-country-286-dxs6so6k/config-default/test.img
+#
+# 86Box v7.0 logfile, created 2026/09/09 22:35:22
+#
+# Emulator path: /Users/ddanila/fun/msdos/out/ru-86box-vnc-bs283qnk/build/src/
+# Global configuration file: /Users/ddanila/fun/msdos/out/ru-country-286-dxs6so6k/config-default/global.cfg
+# VM: config-default
+#
+# Configuration file: /Users/ddanila/fun/msdos/out/ru-country-286-dxs6so6k/config-default/86box.cfg
+#
+
+# Userfiles path: /Users/ddanila/fun/msdos/out/ru-country-286-dxs6so6k/config-default/
+# ROM path: /Users/ddanila/Library/Application Support/net.86box.86Box/roms/
+# ROM path: /Users/ddanila/fun/msdos/out/ru-country-286-dxs6so6k/config-default/roms/
+# ROM path: /Users/ddanila/fun/msdos/out/ru-86box-vnc-bs283qnk/build/src/roms/
+# ROM path: /Users/ddanila/Library/Application Support/net.86Box.86Box/roms/
+# ROM path: /Users/ddanila/Library/Application Support/86Box/roms/
+# ROM path: /Library/Application Support/net.86Box.86Box/roms/
+# ROM path: /Library/Application Support/86Box/roms/
+# Asset path: /Users/ddanila/fun/msdos/out/ru-country-286-dxs6so6k/config-default/assets/
+# Asset path: /Users/ddanila/fun/msdos/out/ru-86box-vnc-bs283qnk/build/src/assets/
+# Asset path: /Users/ddanila/Library/Application Support/net.86Box.86Box/assets/
+# Asset path: /Users/ddanila/Library/Application Support/86Box/assets/
+# Asset path: /Library/Application Support/net.86Box.86Box/assets/
+# Asset path: /Library/Application Support/86Box/assets/
+Qt: version 6.11.2, platform "offscreen"
+Translations loaded.
+Failed to find Qt translations!
+Qt translations loaded.
+Translations loaded.
+Failed to find Qt translations!
+Qt translations loaded.
+qt.qpa.fonts: Populating font family aliases took 45 ms. Replace uses of missing font family "Sans Serif" with one that exists to avoid this cost. 
+This plugin does not support createPlatformVulkanInstance
+QVulkanInstance: Failed to initialize Vulkan
+This plugin does not support propagateSizeHints()
+This plugin does not support propagateSizeHints()
+
+RUN P866.COM
+RU_COUNTRY_PASS
+RU_COUNTRY_DONE

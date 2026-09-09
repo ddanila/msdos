@@ -466,11 +466,15 @@
         },
         {
           "path": "release-qualification.json",
-          "sha256": "80758e83cc438c40a4eae1186919f21e5d514cf70e0ec578b6263501496e1bec"
+          "sha256": "e7b886c659c24fe1dbba974811557d6d5614a82f382e08bd59fe01950052fd39"
+        },
+        {
+          "path": "final-core-qualification.json",
+          "sha256": "fe110daaa13c32af856d309d9534dc36ebee51cbf58171c130dc10a52536df86"
         }
       ],
       "assessment": "pending-release-completion",
-      "qualification_limit": "Real-BIOS country/display and older keyboard records predate the final COMMAND collation change. Their tested locale component bytes are unchanged; this is historical component evidence, not a claim that those exact runs used the final core."
+      "qualification_limit": "Final-core real-BIOS country/NLS passed. The matching display matrix is active. Older keyboard records remain component evidence for unchanged KEYB/library bytes, with final-core physical text and enhanced-keyboard checks recorded separately."
     },
     {
       "id": "6.4",
@@ -503,15 +507,15 @@
         },
         {
           "path": "memory-requalification.json",
-          "sha256": "9530bce3d868473c5993ca63dbe767d2e6d01ad5961a7d1f011c7e7770a4cfa7"
+          "sha256": "2e05e4ad81a237515dd73dc8ba0979d1c779d9b329c2bdc55a5d610680c5da10"
         },
         {
           "path": "release-qualification.json",
-          "sha256": "80758e83cc438c40a4eae1186919f21e5d514cf70e0ec578b6263501496e1bec"
+          "sha256": "e7b886c659c24fe1dbba974811557d6d5614a82f382e08bd59fe01950052fd39"
         }
       ],
       "assessment": "pending-release-completion",
-      "qualification_limit": "Pristine builds, composed memory campaign and ordinary IBM AT acceptance passed. Full suite and ordinary-build memory matrix remain active."
+      "qualification_limit": "Pristine builds, composed memory campaign, ordinary IBM AT acceptance and baseline memory matrix passed. The full suite remains active."
     },
     {
       "id": "6.6",
@@ -520,7 +524,7 @@
       "evidence": [
         {
           "path": "release-qualification.json",
-          "sha256": "80758e83cc438c40a4eae1186919f21e5d514cf70e0ec578b6263501496e1bec"
+          "sha256": "e7b886c659c24fe1dbba974811557d6d5614a82f382e08bd59fe01950052fd39"
         }
       ],
       "assessment": "pending-release-completion"
@@ -528,12 +532,12 @@
   ],
   "retained_evidence_integrity": {
     "scope": "Explicit review/path plus sha256 objects in retained qualification JSON files",
-    "checked": 221,
+    "checked": 236,
     "failures": []
   },
   "remaining": [
-    "Obtain terminal results from the full release suite and baseline memory matrix.",
-    "Complete the final-core real-BIOS country/display reruns.",
-    "Refresh this audit with final runtime evidence and only then close the Russian item."
+    "Obtain a successful terminal result from the full release suite.",
+    "Complete the final-core real-BIOS display matrix.",
+    "Refresh the final acceptance audit and only then close the Russian item."
   ]
 }

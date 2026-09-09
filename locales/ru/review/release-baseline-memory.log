@@ -1,0 +1,528 @@
+# A single jobserver-aware submake prevents parallel image and build paths
+# from racing on their shared generated message and include files.
+make /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img
+make[1]: Entering directory '/Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4'
+mkdir -p /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out
+mkdir -p /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out
+# The complete developer image needs room for test probes and the growing
+# DOS 6.22 tool set.  The minimal-floppy target remains a 1.44 MB image.
+dd if=/dev/zero of=/Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img bs=512 count=5760 status=none
+dd if=/Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/BOOT/MSBOOT.BIN of=/Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img bs=1 skip=31744 count=512 conv=notrunc status=none
+/Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/bin/patch-bpb /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img
+mformat -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img -k ::
+# IO.SYS must be the first root-directory entry because the boot sector assumes it.
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/BIOS/IO.SYS ::IO.SYS
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/DOS/MSDOS.SYS ::MSDOS.SYS
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/CMD/COMMAND/COMMAND.COM ::COMMAND.COM
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/BIOS/SYSMENU.OVL ::SYSMENU.OVL
+# mtools 4.0.49 broke mattrib's -i handling, so expose the image through MTOOLSRC.
+echo 'drive a: file="/Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img"' > /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/.mtoolsrc
+MTOOLSRC=/Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/.mtoolsrc mattrib +h +s +r a:/IO.SYS
+MTOOLSRC=/Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/.mtoolsrc mattrib +h +s +r a:/MSDOS.SYS
+MTOOLSRC=/Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/.mtoolsrc mattrib +h +s +r a:/SYSMENU.OVL
+rm -f /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/.mtoolsrc
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/CMD/SYS/SYS.COM ::SYS.COM
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/CMD/FORMAT/FORMAT.COM ::FORMAT.COM
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/CMD/EXPAND/EXPAND.EXE ::EXPAND.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/CMD/SETUP/SETUP.EXE ::SETUP.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/CMD/CHKDSK/CHKDSK.COM ::CHKDSK.COM
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/CMD/DEBUG/DEBUG.COM ::DEBUG.COM
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/CMD/MEM/MEM.EXE ::MEM.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/CMD/FDISK/FDISK.EXE ::FDISK.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/CMD/MORE/MORE.COM ::MORE.COM
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/CMD/SORT/SORT.EXE ::SORT.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/CMD/LABEL/LABEL.COM ::LABEL.COM
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/CMD/FIND/FIND.EXE ::FIND.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/CMD/TREE/TREE.COM ::TREE.COM
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/CMD/COMP/COMP.COM ::COMP.COM
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/CMD/ATTRIB/ATTRIB.EXE ::ATTRIB.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/CMD/EDLIN/EDLIN.COM ::EDLIN.COM
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/CMD/FC/FC.EXE ::FC.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/CMD/NLSFUNC/NLSFUNC.EXE ::NLSFUNC.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/CMD/ASSIGN/ASSIGN.COM ::ASSIGN.COM
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/CMD/XCOPY/XCOPY.EXE ::XCOPY.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/CMD/DISKCOMP/DISKCOMP.COM ::DISKCOMP.COM
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/CMD/DISKCOPY/DISKCOPY.COM ::DISKCOPY.COM
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/CMD/SETVER/SETVER.COM ::SETVER.COM
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/CMD/SETVER/SETVER.EXE ::SETVER.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/CMD/DOSKEY/DOSKEY.COM ::DOSKEY.COM
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/CMD/HELP/HELP.COM ::HELP.COM
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/CMD/HELP/FASTHELP.COM ::FASTHELP.COM
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/CMD/HELP/HELP.HLP ::HELP.HLP
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/CMD/MIRROR/MIRROR.COM ::MIRROR.COM
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/CMD/UNDELETE/UNDELETE.COM ::UNDELETE.COM
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/CMD/UNFORMAT/UNFORMAT.COM ::UNFORMAT.COM
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/CMD/CHOICE/CHOICE.COM ::CHOICE.COM
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/CMD/LOADFIX/LOADFIX.COM ::LOADFIX.COM
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/CMD/DELTREE/DELTREE.EXE ::DELTREE.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/CMD/DEFRAG/DEFRAG.EXE ::DEFRAG.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/CMD/MOVE/MOVE.EXE ::MOVE.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/CMD/MSD/MSD.EXE ::MSD.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/CMD/SCANDISK/SCANDISK.EXE ::SCANDISK.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/CMD/SCANDISK/SCANDISK.INI ::SCANDISK.INI
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/CMD/MEMMAKER/MEMMAKER.EXE ::MEMMAKER.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/CMD/SIZER/SIZER.EXE ::SIZER.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/CMD/POWER/POWER.EXE ::POWER.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/CMD/MSCDEX/MSCDEX.EXE ::MSCDEX.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/CMD/INTERLNK/INTERLNK.EXE ::INTERLNK.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/CMD/INTERSVR/INTERSVR.EXE ::INTERSVR.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/CMD/APPEND/APPEND.EXE ::APPEND.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/CMD/RECOVER/RECOVER.COM ::RECOVER.COM
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/CMD/FASTOPEN/FASTOPEN.EXE ::FASTOPEN.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/CMD/PRINT/PRINT.COM ::PRINT.COM
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/CMD/FILESYS/FILESYS.EXE ::FILESYS.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/CMD/REPLACE/REPLACE.EXE ::REPLACE.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/CMD/JOIN/JOIN.EXE ::JOIN.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/CMD/SUBST/SUBST.EXE ::SUBST.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/CMD/BACKUP/BACKUP.COM ::BACKUP.COM
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/CMD/RESTORE/RESTORE.COM ::RESTORE.COM
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/CMD/GRAFTABL/GRAFTABL.COM ::GRAFTABL.COM
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/CMD/KEYB/KEYB.COM ::KEYB.COM
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/DEV/KEYBOARD/KEYBOARD.SYS ::KEYBOARD.SYS
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/CMD/SHARE/SHARE.EXE ::SHARE.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/CMD/EXE2BIN/EXE2BIN.EXE ::EXE2BIN.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/CMD/GRAPHICS/GRAPHICS.COM ::GRAPHICS.COM
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/CMD/GRAPHICS/GRAPHICS.PRO ::GRAPHICS.PRO
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/CMD/IFSFUNC/IFSFUNC.EXE ::IFSFUNC.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/CMD/MODE/MODE.COM ::MODE.COM
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/DEV/ANSI/ANSI.SYS ::ANSI.SYS
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/DEV/RAMDRIVE/RAMDRIVE.SYS ::RAMDRIVE.SYS
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/DEV/VDISK/VDISK.SYS ::VDISK.SYS
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/DEV/DISPLAY/DISPLAY.SYS ::DISPLAY.SYS
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/DEV/COUNTRY/COUNTRY.SYS ::COUNTRY.SYS
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/DEV/PRINTER/PRINTER.SYS ::PRINTER.SYS
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/DEV/PRINTER/4201/4201.CPI ::4201.CPI
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/DEV/PRINTER/4208/4208.CPI ::4208.CPI
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/DEV/PRINTER/5202/5202.CPI ::5202.CPI
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/DEV/SMARTDRV/SMARTDRV.EXE ::SMARTDRV.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/DEV/SMARTDRV/FLUSH13.EXE ::FLUSH13.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/DEV/DRIVER/DRIVER.SYS ::DRIVER.SYS
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/DEV/XMA2EMS/XMA2EMS.SYS ::XMA2EMS.SYS
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/DEV/XMAEM/XMAEM.SYS ::XMAEM.SYS
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/SELECT/SELECT.COM ::SELECT.COM
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/SELECT/SELECT.EXE ::SELECT.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/SELECT/SELECT.DAT ::SELECT.DAT
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/SELECT/SELECT.HLP ::SELECT.HLP
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/DEV/DISPLAY/EGA/EGA866.CPI ::EGA866.CPI
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/DEV/KEYBOARD/KEYBRD2.SYS ::KEYBRD2.SYS
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/locales/ru/RUSSIAN.TXT ::RUSSIAN.TXT
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/locales/ru/upstream/512_8/LICENSE ::RUFONT1.TXT
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/locales/ru/upstream/cozette/LICENSE ::RUFONT2.TXT
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/DEV/DISPLAY/EGA/EGA.CPI ::EGA.CPI
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/DEV/DISPLAY/LCD/LCD.CPI ::LCD.CPI
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/DEV/EGA/EGA.SYS ::EGA.SYS
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/DEV/HIMEM/HIMEM.SYS ::HIMEM.SYS
+mcopy -i /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/floppy.img /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/src/MEMM/MEMM/EMM386.EXE ::EMM386.EXE
+make[1]: Leaving directory '/Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4'
+bash tests/test_himem_qemu.sh
+INIT.ASM(126) : Warning A4184: Instructions and initialized data not supported in AT segments
+INIT.ASM(127) : Warning A4184: Instructions and initialized data not supported in AT segments
+INIT.ASM(130) : Warning A4184: Instructions and initialized data not supported in AT segments
+INIT.ASM(131) : Warning A4184: Instructions and initialized data not supported in AT segments
+ROM_SRCH.ASM(238) : Warning A4073: Size not specified, assuming: WORD
+ROM_SRCH.ASM(242) : Warning A4073: Size not specified, assuming: WORD
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EMMFUNCT.C(296): Warning! W131: No prototype found for function 'AllocateRawPages'
+EMMFUNCT.C(297): Warning! W107: Missing return value for function 'AllocatePages'
+EMMFUNCT.C(354): Warning! W107: Missing return value for function 'AllocateRawPages'
+EMMFUNCT.C(375): Warning! W131: No prototype found for function 'ReallocatePages'
+EMMFUNCT.C(399): Warning! W107: Missing return value for function 'DeallocatePages'
+EMM40.C(147): Warning! W131: No prototype found for function 'get_pages'
+EMM40.C(158): Warning! W131: No prototype found for function 'free_pages'
+EMM40.C(165): Warning! W107: Missing return value for function 'ReallocatePages'
+EMM40.C(213): Warning! W131: No prototype found for function 'GetUnallocatedPageCount'
+EMM40.C(216): Warning! W107: Missing return value for function 'GetInformation'
+EMMFUNCT.C(424): Warning! W107: Missing return value for function 'GetEMMHandlePages'
+EMMFUNCT.C(458): Warning! W107: Missing return value for function 'GetAllEMMHandlePages'
+EMM40.C(268): Warning! W131: No prototype found for function 'GetHandleDirectory'
+EMM40.C(286): Warning! W107: Missing return value for function 'GetSetHandleName'
+EMM40.C(347): Warning! W131: No prototype found for function 'copyin'
+EMM40.C(378): Warning! W107: Missing return value for function 'GetHandleDirectory'
+EMMP.ASM(840) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(840): Main line code
+EMM40.C(415): Warning! W131: No prototype found for function 'Get_Key_Val'
+EMM40.C(433): Warning! W107: Missing return value for function 'OSDisable'
+EMMP.ASM(788) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(788): Main line code
+EMMP.ASM(898) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(898): Main line code
+EMMP.ASM(1002) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(1002): Main line code
+EMMP.ASM(1054) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(1054): Main line code
+EMMP.ASM(1095) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(1095): Main line code
+EMMP.ASM(1482) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(1482): Main line code
+EMMP.ASM(2968) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(2968): Main line code
+EMMP.ASM(2999) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(2999): Main line code
+EMMP.ASM(3032) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(3032): Main line code
+EMMP.ASM(3079) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(3079): Main line code
+Warning! W1080: file rrtrap.obj is a 32-bit object file
+Warning! W1080: file vmtrap.obj is a 32-bit object file
+Warning! W1080: file rrtraphi.obj is a 32-bit object file
+Warning! W1080: file initepg.obj is a 32-bit object file
+Warning! W1080: file vminit.obj is a 32-bit object file
+Warning! W1080: file em286ll.obj is a 32-bit object file
+INIT.ASM(126) : Warning A4184: Instructions and initialized data not supported in AT segments
+INIT.ASM(127) : Warning A4184: Instructions and initialized data not supported in AT segments
+INIT.ASM(130) : Warning A4184: Instructions and initialized data not supported in AT segments
+INIT.ASM(131) : Warning A4184: Instructions and initialized data not supported in AT segments
+ROM_SRCH.ASM(238) : Warning A4073: Size not specified, assuming: WORD
+ROM_SRCH.ASM(242) : Warning A4073: Size not specified, assuming: WORD
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EMMFUNCT.C(296): Warning! W131: No prototype found for function 'AllocateRawPages'
+EMMFUNCT.C(297): Warning! W107: Missing return value for function 'AllocatePages'
+EMMFUNCT.C(354): Warning! W107: Missing return value for function 'AllocateRawPages'
+EMMFUNCT.C(375): Warning! W131: No prototype found for function 'ReallocatePages'
+EMMFUNCT.C(399): Warning! W107: Missing return value for function 'DeallocatePages'
+EMM40.C(147): Warning! W131: No prototype found for function 'get_pages'
+EMM40.C(158): Warning! W131: No prototype found for function 'free_pages'
+EMM40.C(165): Warning! W107: Missing return value for function 'ReallocatePages'
+EMM40.C(213): Warning! W131: No prototype found for function 'GetUnallocatedPageCount'
+EMM40.C(216): Warning! W107: Missing return value for function 'GetInformation'
+EMMFUNCT.C(424): Warning! W107: Missing return value for function 'GetEMMHandlePages'
+EMMFUNCT.C(458): Warning! W107: Missing return value for function 'GetAllEMMHandlePages'
+EMM40.C(268): Warning! W131: No prototype found for function 'GetHandleDirectory'
+EMM40.C(286): Warning! W107: Missing return value for function 'GetSetHandleName'
+EMM40.C(347): Warning! W131: No prototype found for function 'copyin'
+EMM40.C(378): Warning! W107: Missing return value for function 'GetHandleDirectory'
+EMMP.ASM(840) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(840): Main line code
+EMM40.C(415): Warning! W131: No prototype found for function 'Get_Key_Val'
+EMM40.C(433): Warning! W107: Missing return value for function 'OSDisable'
+EMMP.ASM(788) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(788): Main line code
+EMMP.ASM(898) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(898): Main line code
+EMMP.ASM(1002) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(1002): Main line code
+EMMP.ASM(1054) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(1054): Main line code
+EMMP.ASM(1095) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(1095): Main line code
+EMMP.ASM(1482) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(1482): Main line code
+EMMP.ASM(2968) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(2968): Main line code
+EMMP.ASM(2999) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(2999): Main line code
+EMMP.ASM(3032) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(3032): Main line code
+EMMP.ASM(3079) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(3079): Main line code
+Warning! W1080: file rrtrap.obj is a 32-bit object file
+Warning! W1080: file vmtrap.obj is a 32-bit object file
+Warning! W1080: file rrtraphi.obj is a 32-bit object file
+Warning! W1080: file initepg.obj is a 32-bit object file
+Warning! W1080: file vminit.obj is a 32-bit object file
+Warning! W1080: file em286ll.obj is a 32-bit object file
+INIT.ASM(126) : Warning A4184: Instructions and initialized data not supported in AT segments
+INIT.ASM(127) : Warning A4184: Instructions and initialized data not supported in AT segments
+INIT.ASM(130) : Warning A4184: Instructions and initialized data not supported in AT segments
+INIT.ASM(131) : Warning A4184: Instructions and initialized data not supported in AT segments
+ROM_SRCH.ASM(238) : Warning A4073: Size not specified, assuming: WORD
+ROM_SRCH.ASM(242) : Warning A4073: Size not specified, assuming: WORD
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EMMFUNCT.C(296): Warning! W131: No prototype found for function 'AllocateRawPages'
+EMMFUNCT.C(297): Warning! W107: Missing return value for function 'AllocatePages'
+EMMFUNCT.C(354): Warning! W107: Missing return value for function 'AllocateRawPages'
+EMMFUNCT.C(375): Warning! W131: No prototype found for function 'ReallocatePages'
+EMMFUNCT.C(399): Warning! W107: Missing return value for function 'DeallocatePages'
+EMM40.C(147): Warning! W131: No prototype found for function 'get_pages'
+EMM40.C(158): Warning! W131: No prototype found for function 'free_pages'
+EMM40.C(165): Warning! W107: Missing return value for function 'ReallocatePages'
+EMM40.C(213): Warning! W131: No prototype found for function 'GetUnallocatedPageCount'
+EMM40.C(216): Warning! W107: Missing return value for function 'GetInformation'
+EMMFUNCT.C(424): Warning! W107: Missing return value for function 'GetEMMHandlePages'
+EMMFUNCT.C(458): Warning! W107: Missing return value for function 'GetAllEMMHandlePages'
+EMM40.C(268): Warning! W131: No prototype found for function 'GetHandleDirectory'
+EMM40.C(286): Warning! W107: Missing return value for function 'GetSetHandleName'
+EMM40.C(347): Warning! W131: No prototype found for function 'copyin'
+EMM40.C(378): Warning! W107: Missing return value for function 'GetHandleDirectory'
+EMMP.ASM(840) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(840): Main line code
+EMM40.C(415): Warning! W131: No prototype found for function 'Get_Key_Val'
+EMM40.C(433): Warning! W107: Missing return value for function 'OSDisable'
+EMMP.ASM(788) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(788): Main line code
+EMMP.ASM(898) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(898): Main line code
+EMMP.ASM(1002) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(1002): Main line code
+EMMP.ASM(1054) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(1054): Main line code
+EMMP.ASM(1095) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(1095): Main line code
+EMMP.ASM(1482) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(1482): Main line code
+EMMP.ASM(2968) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(2968): Main line code
+EMMP.ASM(2999) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(2999): Main line code
+EMMP.ASM(3032) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(3032): Main line code
+EMMP.ASM(3079) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(3079): Main line code
+Warning! W1080: file rrtrap.obj is a 32-bit object file
+Warning! W1080: file vmtrap.obj is a 32-bit object file
+Warning! W1080: file rrtraphi.obj is a 32-bit object file
+Warning! W1080: file initepg.obj is a 32-bit object file
+Warning! W1080: file vminit.obj is a 32-bit object file
+Warning! W1080: file em286ll.obj is a 32-bit object file
+INIT.ASM(126) : Warning A4184: Instructions and initialized data not supported in AT segments
+INIT.ASM(127) : Warning A4184: Instructions and initialized data not supported in AT segments
+INIT.ASM(130) : Warning A4184: Instructions and initialized data not supported in AT segments
+INIT.ASM(131) : Warning A4184: Instructions and initialized data not supported in AT segments
+ROM_SRCH.ASM(238) : Warning A4073: Size not specified, assuming: WORD
+ROM_SRCH.ASM(242) : Warning A4073: Size not specified, assuming: WORD
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EMMFUNCT.C(296): Warning! W131: No prototype found for function 'AllocateRawPages'
+EMMFUNCT.C(297): Warning! W107: Missing return value for function 'AllocatePages'
+EMMFUNCT.C(354): Warning! W107: Missing return value for function 'AllocateRawPages'
+EMMFUNCT.C(375): Warning! W131: No prototype found for function 'ReallocatePages'
+EMMFUNCT.C(399): Warning! W107: Missing return value for function 'DeallocatePages'
+EMM40.C(147): Warning! W131: No prototype found for function 'get_pages'
+EMM40.C(158): Warning! W131: No prototype found for function 'free_pages'
+EMM40.C(165): Warning! W107: Missing return value for function 'ReallocatePages'
+EMM40.C(213): Warning! W131: No prototype found for function 'GetUnallocatedPageCount'
+EMM40.C(216): Warning! W107: Missing return value for function 'GetInformation'
+EMMFUNCT.C(424): Warning! W107: Missing return value for function 'GetEMMHandlePages'
+EMMFUNCT.C(458): Warning! W107: Missing return value for function 'GetAllEMMHandlePages'
+EMM40.C(268): Warning! W131: No prototype found for function 'GetHandleDirectory'
+EMM40.C(286): Warning! W107: Missing return value for function 'GetSetHandleName'
+EMM40.C(347): Warning! W131: No prototype found for function 'copyin'
+EMM40.C(378): Warning! W107: Missing return value for function 'GetHandleDirectory'
+EMMP.ASM(840) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(840): Main line code
+EMM40.C(415): Warning! W131: No prototype found for function 'Get_Key_Val'
+EMM40.C(433): Warning! W107: Missing return value for function 'OSDisable'
+EMMP.ASM(788) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(788): Main line code
+EMMP.ASM(898) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(898): Main line code
+EMMP.ASM(1002) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(1002): Main line code
+EMMP.ASM(1054) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(1054): Main line code
+EMMP.ASM(1095) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(1095): Main line code
+EMMP.ASM(1482) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(1482): Main line code
+EMMP.ASM(2968) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(2968): Main line code
+EMMP.ASM(2999) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(2999): Main line code
+EMMP.ASM(3032) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(3032): Main line code
+EMMP.ASM(3079) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(3079): Main line code
+Warning! W1080: file rrtrap.obj is a 32-bit object file
+Warning! W1080: file vmtrap.obj is a 32-bit object file
+Warning! W1080: file rrtraphi.obj is a 32-bit object file
+Warning! W1080: file initepg.obj is a 32-bit object file
+Warning! W1080: file vminit.obj is a 32-bit object file
+Warning! W1080: file em286ll.obj is a 32-bit object file
+  PASS: repository XMS core, concurrent UMB/EMS, rollback, and warm reboot
+bash tests/test_hma_qemu.sh
+Artifacts: /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/hma-qemu.PTHz4W
+screen_expect: 1 rules, connecting to /tmp/msdos-hma-qmp.tOrHF3/qmp
+  rule[0] matched: HMA not available: Loading DOS low
+screen_expect: all 1 rules matched.
+  PASS: DOS=HIGH ownership, fallback, code-tail reclaim, A20 recovery, and EXEC
+bash tests/test_mem_umb_qemu.sh
+Evidence: /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/mem-umb.sG242E
+  PASS: MEM UMB reporting, state restoration, and memory-manager footprint budgets
+bash tests/test_loadhigh_qemu.sh
+  PASS: LOADHIGH/LH regions, minima, shrinking, fallback, restoration, and DOS=HIGH
+bash tests/test_devicehigh_qemu.sh
+  PASS: DEVICEHIGH regions, minima, shrinking, DOS= ordering, and fallback
+bash tests/test_installhigh_qemu.sh
+  PASS: INSTALLHIGH TSR placement, tail, state restoration, and fallback
+bash tests/test_xms_umb_transaction_qemu.sh
+  PASS: XMS transactions, UMB allocator lifecycle/model stress, loader sequence, and register contract
+bash tests/test_emm386_qemu.sh
+  PASS: EMM386 driver API and complete runtime command grammar passed
+bash tests/test_emm386_frames_qemu.sh
+EMM386 M1-M9, FRAME=, and /P page-frame selectors passed
+EMM386 M10-M14 low-memory page-frame selectors passed
+EMM386 B= banking boundaries passed
+EMM386 Pn= sparse physical-page assignment passed
+bash tests/test_emm386_load_options_qemu.sh
+EMM386 driver-load ON/OFF/AUTO and W= options passed; equal allocatable paragraphs 8DDF
+EMM386 H= handle limit passed
+EMM386 L= XMS and D= DMA reservations passed
+EMM386 A= alternate-register limit passed
+EMM386 A=254 alternate-register boundary passed
+bash tests/test_config_stacks_qemu.sh
+  PASS: STACKS=9,128 uses 116 paragraphs; STACKS=9,256 uses 188
+bash tests/test_config_dos_qemu.sh
+  PASS: DOS= accepts case-insensitive HIGH/LOW and UMB/NOUMB combinations
+bash tests/test_ifsfunc_filesys_qemu.sh
+  PASS: DOS=HIGH FILESYS/IFSFUNC lifecycle
+  PASS: FILESYS/IFSFUNC lifecycle with DOS resident low and high
+bash tests/test_int21_file_memory_qemu.sh
+  PASS: INT 21h file, directory, search, error, memory, and exhaustion contracts
+bash tests/test_int21_process_qemu.sh
+  PASS: INT 21h EXEC success/error, wait, IOCTL, and NLS contracts
+bash tests/test_int21_media_qemu.sh
+  PASS: INT 21h media ID readback and raw-image metadata update
+bash tests/test_dos_async_interrupt_qemu.sh
+Artifacts: /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/dos-async-interrupt.P59gCC
+Artifacts: /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4/out/dos-async-interrupt.J3NDZW
+  PASS: DOS=HIGH asynchronous callbacks
+  PASS: DOS INT 23h Ctrl-Break and INT 28h idle callbacks low and high
+bash tests/test_doskey_qemu.sh
+  PASS: DOSKEY APIs, macros, redirected input, navigation keys, modes, sizing, and reinstall

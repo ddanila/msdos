@@ -29,7 +29,6 @@
   },
   "remaining": [
     "Full FAIL_ON_SKIP=1 make -k test run.",
-    "Ordinary baseline memory/kernel matrix.",
     "Final-core real-BIOS country and display matrices."
   ],
   "baseline_286": {
@@ -63,5 +62,57 @@
       "EMM386.EXE": "0bba6763ffdaff89c7cbdfe591527374199a7a6a74b9a27e81e44a75c204f2dc"
     },
     "scope_note": "Individual legacy scripts build their documented probe/driver variants and validate guest markers plus persisted results before stopping 86Box. This is ordinary-build acceptance, not a claim that every case executes the composed core or uses guest-triggered emulator exit."
+  },
+  "baseline_memory": {
+    "status": "passed",
+    "command": [
+      "make",
+      "MEMORY_PROFILE=baseline",
+      "-k",
+      "-j1",
+      "test-himem-qemu",
+      "test-hma-qemu",
+      "test-mem-umb-qemu",
+      "test-loadhigh-qemu",
+      "test-devicehigh-qemu",
+      "test-installhigh-qemu",
+      "test-xms-umb-transaction-qemu",
+      "test-emm386-qemu",
+      "test-emm386-frames-qemu",
+      "test-emm386-load-options-qemu",
+      "test-config-stacks-qemu",
+      "test-config-dos-qemu",
+      "test-ifsfunc-filesys-qemu",
+      "test-int21-file-memory-qemu",
+      "test-int21-process-qemu",
+      "test-int21-media-qemu",
+      "test-dos-async-interrupt-qemu",
+      "test-doskey-qemu"
+    ],
+    "cwd": "/Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j4",
+    "source_commit": "40305c9805dc1c10c0a46acb1412d56ae62ad638",
+    "environment": {
+      "FAIL_ON_SKIP": "1"
+    },
+    "scope": "Ordinary baseline memory/kernel matrix; composed production is qualified separately.",
+    "started": 1788981749.483053,
+    "exit_code": 0,
+    "finished": 1788982674.701898,
+    "log_sha256": "6f5f09fd1db37dc7d960937e1faa8386ed05cf8dff518664ef9a7c3c75a00621",
+    "retained_log": {
+      "path": "review/release-baseline-memory.log",
+      "sha256": "6f5f09fd1db37dc7d960937e1faa8386ed05cf8dff518664ef9a7c3c75a00621"
+    },
+    "prior_profile_mismatch": {
+      "status": "stopped-after-profile-mismatch",
+      "reason": "The historical extra matrix is an ordinary baseline gate. Its HMA probe derives expected addresses from ordinary maps, while this invocation selected the composed core; MEM/UMB also failed. Preserve diagnostics and rerun with explicit MEMORY_PROFILE=baseline.",
+      "private_log": "out/ru-extra-memory-matrix.log",
+      "full_log_sha256": "291d1a83086297d76889c892fd34fd9d9cbdb8504b6f995915964eb808b545c1",
+      "excerpt": {
+        "path": "review/release-profile-mismatch.log",
+        "sha256": "c3d6d928eb34fd375694519d045425ba33f4e2c36e2805dd84bdafe417ee4411"
+      },
+      "resolution": "Run the historical map-sensitive gates with MEMORY_PROFILE=baseline. The entire matching matrix passed; the composed core has a separate memory campaign."
+    }
   }
 }

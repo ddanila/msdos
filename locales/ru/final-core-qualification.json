@@ -1,0 +1,213 @@
+{
+  "status": "final-core-country-passed-display-pending",
+  "core_sha256": {
+    "COMMAND.COM": "6742b5889141a9c61d41e336445014d8055c19758febf4263f4f8ebe3c2f2c29",
+    "EMM386.EXE": "58266b6614594de7a9cfde9eda75e3eb241b9e2e941e67b70645a0f8a197dae6",
+    "IO.SYS": "793169a292df40bb117eb487136a0d8e7f4334ca223e8206bf53f33141f24715",
+    "MSDOS.SYS": "1475174f50c8c349bedd7cd4a0be88bce055f2e411b7454b5f68fffbff269b62",
+    "HIMEM.SYS": "340cbfd1f0e835755adce99d80c607f8edeb48ea2b20a6a142402a25434f8d13"
+  },
+  "emulator_sha256": "798ac6072d5147ed4dca7540ca5303da1e4c2d190853c227dde9ea3b33583c18",
+  "cases": [
+    {
+      "name": "config-866",
+      "negative_control": false,
+      "emulator_exit": 0,
+      "config_sys": "COUNTRY=007,866,COUNTRY.SYS\r\nDOS=LOW\r\n",
+      "actions": [
+        "P866.COM"
+      ],
+      "markers": {
+        "RU_COUNTRY_PASS": 1,
+        "RU_QUERY_PASS": 0,
+        "RU_CODEPAGE_PASS": 0,
+        "RU_REJECTION_PASS": 0
+      },
+      "country_sha256": "dcad40266140a3155a44323bc3f3876ea70e1aa779175cf6ab18b532b36037c3",
+      "config_sha256": "bc1ff341a3eb659a0d55fd6036f680cec32fd069304c2e2562e39e4a8497c669",
+      "log": "config-866/serial.log",
+      "log_sha256": "69ef47507c9f57ed7bd58633447c0138533c175af3d1fa92c5a7db3fddda752a",
+      "retained_logs": {
+        "serial.log": {
+          "path": "review/final-core-country-config-866-serial.log",
+          "sha256": "69ef47507c9f57ed7bd58633447c0138533c175af3d1fa92c5a7db3fddda752a"
+        }
+      },
+      "startup_configuration": {
+        "path": "review/final-core-country-config-866.cfg",
+        "sha256": "bc1ff341a3eb659a0d55fd6036f680cec32fd069304c2e2562e39e4a8497c669"
+      }
+    },
+    {
+      "name": "config-437",
+      "negative_control": false,
+      "emulator_exit": 0,
+      "config_sys": "COUNTRY=007,437,COUNTRY.SYS\r\nDOS=LOW\r\n",
+      "actions": [
+        "P437.COM"
+      ],
+      "markers": {
+        "RU_COUNTRY_PASS": 1,
+        "RU_QUERY_PASS": 0,
+        "RU_CODEPAGE_PASS": 0,
+        "RU_REJECTION_PASS": 0
+      },
+      "country_sha256": "dcad40266140a3155a44323bc3f3876ea70e1aa779175cf6ab18b532b36037c3",
+      "config_sha256": "bc1ff341a3eb659a0d55fd6036f680cec32fd069304c2e2562e39e4a8497c669",
+      "log": "config-437/serial.log",
+      "log_sha256": "fde51a228f76dda5a20630fe635d0b8b888d5a4dad61611f397363936e9fa94f",
+      "retained_logs": {
+        "serial.log": {
+          "path": "review/final-core-country-config-437-serial.log",
+          "sha256": "fde51a228f76dda5a20630fe635d0b8b888d5a4dad61611f397363936e9fa94f"
+        }
+      },
+      "startup_configuration": {
+        "path": "review/final-core-country-config-437.cfg",
+        "sha256": "bc1ff341a3eb659a0d55fd6036f680cec32fd069304c2e2562e39e4a8497c669"
+      }
+    },
+    {
+      "name": "config-850",
+      "negative_control": false,
+      "emulator_exit": 0,
+      "config_sys": "COUNTRY=007,850,COUNTRY.SYS\r\nDOS=LOW\r\n",
+      "actions": [
+        "P850.COM"
+      ],
+      "markers": {
+        "RU_COUNTRY_PASS": 1,
+        "RU_QUERY_PASS": 0,
+        "RU_CODEPAGE_PASS": 0,
+        "RU_REJECTION_PASS": 0
+      },
+      "country_sha256": "dcad40266140a3155a44323bc3f3876ea70e1aa779175cf6ab18b532b36037c3",
+      "config_sha256": "bc1ff341a3eb659a0d55fd6036f680cec32fd069304c2e2562e39e4a8497c669",
+      "log": "config-850/serial.log",
+      "log_sha256": "639a9f732b79ad61bc554246555c961e3fc4f6bd5a42fe76d3db512486a7f02b",
+      "retained_logs": {
+        "serial.log": {
+          "path": "review/final-core-country-config-850-serial.log",
+          "sha256": "639a9f732b79ad61bc554246555c961e3fc4f6bd5a42fe76d3db512486a7f02b"
+        }
+      },
+      "startup_configuration": {
+        "path": "review/final-core-country-config-850.cfg",
+        "sha256": "bc1ff341a3eb659a0d55fd6036f680cec32fd069304c2e2562e39e4a8497c669"
+      }
+    },
+    {
+      "name": "config-default",
+      "negative_control": false,
+      "emulator_exit": 0,
+      "config_sys": "COUNTRY=007,,COUNTRY.SYS\r\nDOS=LOW\r\n",
+      "actions": [
+        "P866.COM"
+      ],
+      "markers": {
+        "RU_COUNTRY_PASS": 1,
+        "RU_QUERY_PASS": 0,
+        "RU_CODEPAGE_PASS": 0,
+        "RU_REJECTION_PASS": 0
+      },
+      "country_sha256": "dcad40266140a3155a44323bc3f3876ea70e1aa779175cf6ab18b532b36037c3",
+      "config_sha256": "bc1ff341a3eb659a0d55fd6036f680cec32fd069304c2e2562e39e4a8497c669",
+      "log": "config-default/serial.log",
+      "log_sha256": "5d38071ecfbd1e9f4ff1a7a3ab98df8ea2e138a8994e92713c617d3d3dc42556",
+      "retained_logs": {
+        "serial.log": {
+          "path": "review/final-core-country-config-default-serial.log",
+          "sha256": "5d38071ecfbd1e9f4ff1a7a3ab98df8ea2e138a8994e92713c617d3d3dc42556"
+        }
+      },
+      "startup_configuration": {
+        "path": "review/final-core-country-config-default.cfg",
+        "sha256": "bc1ff341a3eb659a0d55fd6036f680cec32fd069304c2e2562e39e4a8497c669"
+      }
+    },
+    {
+      "name": "transitions",
+      "negative_control": false,
+      "emulator_exit": 0,
+      "config_sys": "COUNTRY=007,866,COUNTRY.SYS\r\nDOS=LOW\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+      "actions": [
+        "P866.COM",
+        "NLSFUNC",
+        "MODE CON CP PREPARE=((866) EGA866.CPI)",
+        "MODE CON CP PREPARE=((,437,850) EGA.CPI)",
+        "CHCP 866",
+        "CPCHK.COM",
+        "P866.COM",
+        "Q850.COM",
+        "CHCP 437",
+        "CPCHK.COM",
+        "P437.COM",
+        "Q866.COM",
+        "CHCP 850",
+        "CPCHK.COM",
+        "P850.COM",
+        "Q866.COM",
+        "CHCP 866",
+        "CPCHK.COM",
+        "P866.COM",
+        "Q850.COM",
+        "REJECT.COM",
+        "CPCHK.COM",
+        "P866.COM"
+      ],
+      "markers": {
+        "RU_COUNTRY_PASS": 6,
+        "RU_QUERY_PASS": 4,
+        "RU_CODEPAGE_PASS": 5,
+        "RU_REJECTION_PASS": 1
+      },
+      "country_sha256": "dcad40266140a3155a44323bc3f3876ea70e1aa779175cf6ab18b532b36037c3",
+      "config_sha256": "bc1ff341a3eb659a0d55fd6036f680cec32fd069304c2e2562e39e4a8497c669",
+      "log": "transitions/serial.log",
+      "log_sha256": "30bdefa18f10f51dc7658b7f32e98970bbf895a16ed18577c56ea6e3ae0ec6e6",
+      "retained_logs": {
+        "serial.log": {
+          "path": "review/final-core-country-transitions-serial.log",
+          "sha256": "30bdefa18f10f51dc7658b7f32e98970bbf895a16ed18577c56ea6e3ae0ec6e6"
+        }
+      },
+      "startup_configuration": {
+        "path": "review/final-core-country-transitions.cfg",
+        "sha256": "bc1ff341a3eb659a0d55fd6036f680cec32fd069304c2e2562e39e4a8497c669"
+      }
+    },
+    {
+      "name": "wrong-case",
+      "negative_control": true,
+      "emulator_exit": 1,
+      "config_sys": "COUNTRY=007,866,COUNTRY.SYS\r\nDOS=LOW\r\n",
+      "actions": [
+        "P866.COM"
+      ],
+      "markers": {},
+      "country_sha256": "d0f317fa862c36d3512caf280da53d67c82f622f54a2a76520fa2b519acc58d5",
+      "config_sha256": "bc1ff341a3eb659a0d55fd6036f680cec32fd069304c2e2562e39e4a8497c669",
+      "log": "wrong-case/serial.log",
+      "log_sha256": "b00a9d3763de1ed33e0296278996702a8e1adeb6adce2e71384d52606ae9fa82",
+      "retained_logs": {
+        "serial.log": {
+          "path": "review/final-core-country-wrong-case-serial.log",
+          "sha256": "b00a9d3763de1ed33e0296278996702a8e1adeb6adce2e71384d52606ae9fa82"
+        }
+      },
+      "startup_configuration": {
+        "path": "review/final-core-country-wrong-case.cfg",
+        "sha256": "bc1ff341a3eb659a0d55fd6036f680cec32fd069304c2e2562e39e4a8497c669"
+      }
+    }
+  ],
+  "schema_version": 1,
+  "scope": "Full IBM AT country/NLS matrix rerun with the final production kernel and COMMAND. Historical locale-component records retain their original hashes.",
+  "backend_provenance": "text-286-qualification.json",
+  "private_country_artifacts": "out/ru-country-286-dxs6so6k",
+  "driver": "out/ru-final-bios-e51u78lr/results.json",
+  "remaining": [
+    "Final-core real-BIOS display matrix.",
+    "Full release suite."
+  ]
+}

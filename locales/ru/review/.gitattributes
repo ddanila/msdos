@@ -48,3 +48,6 @@ memory-*.log -text -whitespace
 
 # Preserve raw full-release and hardware diagnostics.
 release-*.log -text -whitespace
+
+# Preserve final-core locale captures and backend diagnostics.
+final-core-*.log -text -whitespace

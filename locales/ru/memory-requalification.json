@@ -691,8 +691,7 @@
     "sha256": "2e3a04be4e184b1f6754a44ce869ab2b217aa1631210c01c36fee2e9981ce80a"
   },
   "remaining": [
-    "Full FAIL_ON_SKIP=1 make -k test run.",
-    "Ordinary baseline memory/kernel release matrix."
+    "Full FAIL_ON_SKIP=1 make -k test run."
   ],
   "campaign": {
     "status": "passed",
@@ -881,5 +880,6 @@
       "sha256": "79783746ab07a26a6659804b7439cd9be231cb7ee9f4c3bdc936635cc2b61b8b"
     }
   },
-  "baseline_286_record": "release-qualification.json"
+  "baseline_286_record": "release-qualification.json",
+  "baseline_memory_record": "release-qualification.json"
 }
