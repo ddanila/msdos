@@ -177,8 +177,11 @@ COMMAND core. The [286 filesystem qualification](locales/ru/filesystem-286-quali
 adds the same batch-driven checks and fresh-boot persistence on IBM AT BIOS.
 The [286 text qualification](locales/ru/text-286-qualification.json) adds
 physical shell/EDLIN editing, save/reopen, redirection and pipes, with rendered
-CP866 glyph checks and exact saved bytes. The filesystem scope audit and full
-release/reproducibility qualification of that core remain open.
+CP866 glyph checks and exact saved bytes. The
+[directory qualification](locales/ru/directory-qualification.json) adds MOVE
+rename and recursive XCOPY of Cyrillic trees, including empty directories,
+FAT parent links, reboot persistence and cleanup on all three profiles.
+Full release/reproducibility qualification of that core remains open.
 
 Existing implementation and test entry points:
 

@@ -506,6 +506,15 @@ test-himem-residency: $(BIN)/jwasm-bin
 	python3 tests/report_himem_residency.py --check \
 		$(OUT)/himem-residency.lst $(OUT)/himem-residency.sys
 
+.PHONY: test-ru-files-qemu test-ru-text-qemu
+test: test-ru-files-qemu test-ru-text-qemu
+
+test-ru-files-qemu: deploy
+	python3 tests/test_ru_files_qemu.py
+
+test-ru-text-qemu: deploy
+	python3 tests/test_ru_text_qemu.py
+
 test-ru-profiles-qemu: deploy
 	python3 tests/test_ru_profiles_qemu.py
 

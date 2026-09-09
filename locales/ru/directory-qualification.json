@@ -1,0 +1,500 @@
+{
+  "schema_version": 1,
+  "status": "directory-rename-recursive-copy-and-reboot-passed",
+  "scope": "Cyrillic directory trees: MOVE rename with alternate-case source, XCOPY /S /E with alternate-case paths, nested Cyrillic 8.3 file and empty directory, exact FAT short names and parent links, independent fresh-boot reads and complete cleanup. Existing file, wildcard and collation checks remain active.",
+  "runs": [
+    {
+      "status": "selected-cases-passed",
+      "core_sha256": {
+        "IO.SYS": "793169a292df40bb117eb487136a0d8e7f4334ca223e8206bf53f33141f24715",
+        "MSDOS.SYS": "1475174f50c8c349bedd7cd4a0be88bce055f2e411b7454b5f68fffbff269b62",
+        "COMMAND.COM": "6742b5889141a9c61d41e336445014d8055c19758febf4263f4f8ebe3c2f2c29",
+        "HIMEM.SYS": "340cbfd1f0e835755adce99d80c607f8edeb48ea2b20a6a142402a25434f8d13",
+        "EMM386.EXE": "58266b6614594de7a9cfde9eda75e3eb241b9e2e941e67b70645a0f8a197dae6"
+      },
+      "backend": "qemu",
+      "cases": [
+        {
+          "profile": "high",
+          "phases": [
+            {
+              "phase": "create",
+              "emulator_exit": 33,
+              "files_hex": {
+                "LOOKUP.TXT": "a4a0adadeba520f0f10d0a",
+                "RENAMED.TXT": "a4a0adadeba520f0f10d0a",
+                "NESTED.TXT": "a4a0adadeba520f0f10d0a",
+                "ORDER.TXT": "802e5458540d0a812e5458540d0a852e5458540d0af02e5458540d0af086888a2e5458540d0a928591922e5458540d0a92859192312e5458540d0a9285919231322e5458540d0a92859192322e5458540d0a952e5458540d0a9f2e5458540d0a",
+                "ONE.TXT": "9f2e5458540d0a802e5458540d0af02e5458540d0a852e5458540d0a812e5458540d0a952e5458540d0a",
+                "WILD.TXT": "928591922e5458540d0a92859192312e5458540d0a92859192322e5458540d0a",
+                "REVERSE.TXT": "9f2e5458540d0a952e5458540d0a92859192322e5458540d0a9285919231322e5458540d0a92859192312e5458540d0a928591922e5458540d0af086888a2e5458540d0af02e5458540d0a852e5458540d0a812e5458540d0a802e5458540d0a",
+                "EXTORD.TXT": "4558542e800d0a4558542e850d0a4558542ef00d0a848e8a938c858d922e9291920d0a4558542e9f0d0a"
+              },
+              "log_sha256": "31959443ce9a5485f8c399a8005d543ec6cc202346452b0bdee1a05b4c5fa7d7",
+              "image_sha256": "d706056ed168dc054e1df9e7a5628b68371b5f1a8815aaf7681e54adbe5d69ce",
+              "serial_log": {
+                "path": "review/files-trees-qemu-high-create.log",
+                "sha256": "31959443ce9a5485f8c399a8005d543ec6cc202346452b0bdee1a05b4c5fa7d7"
+              }
+            },
+            {
+              "phase": "reboot",
+              "emulator_exit": 33,
+              "files_hex": {
+                "REBOOT.TXT": "a4a0adadeba520f0f10d0a",
+                "REBNEST.TXT": "a4a0adadeba520f0f10d0a",
+                "TREE1.TXT": "a4a0adadeba520f0f10d0a",
+                "TREE2.TXT": "a4a0adadeba520f0f10d0a",
+                "REORDER.TXT": "802e5458540d0a812e5458540d0a852e5458540d0af02e5458540d0af086888a2e5458540d0a928591922e5458540d0a92859192312e5458540d0a9285919231322e5458540d0a92859192322e5458540d0a952e5458540d0a9f2e5458540d0a"
+              },
+              "log_sha256": "79b20116378a6889aa79e87bc1630281ffbcec9d2245684f84206306243295fb",
+              "image_sha256": "fbe843d470184d677d88874c90292e5c53f79a3594890bc3c0a61ac9513c5f22",
+              "serial_log": {
+                "path": "review/files-trees-qemu-high-reboot.log",
+                "sha256": "79b20116378a6889aa79e87bc1630281ffbcec9d2245684f84206306243295fb"
+              }
+            }
+          ],
+          "create_commands": [
+            "MD \u043f\u0430\u043f\u043a\u0430",
+            "CD \u041f\u0410\u041f\u041a\u0410",
+            "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0451\u0436\u0438\u043a.txt",
+            "TYPE \u0401\u0416\u0418\u041a.TXT > A:\\LOOKUP.TXT",
+            "COPY \u0451\u0436\u0438\u043a.txt \u043a\u043e\u043f\u0438\u044f.dat >NUL",
+            "REN \u041a\u041e\u041f\u0418\u042f.DAT \u043d\u043e\u0432\u043e\u0435.dat",
+            "TYPE \u041d\u041e\u0412\u041e\u0415.DAT > A:\\RENAMED.TXT",
+            "DEL \u041d\u041e\u0412\u041e\u0415.DAT",
+            "MD \u0432\u043b\u043e\u0436\u0435\u043d",
+            "COPY \u0401\u0416\u0418\u041a.TXT \u0432\u043b\u043e\u0436\u0435\u043d\\\u0434\u043e\u043a\u0443\u043c\u0435\u043d\u0442.\u0442\u0441\u0442 >NUL",
+            "TYPE \u0412\u041b\u041e\u0416\u0415\u041d\\\u0414\u041e\u041a\u0423\u041c\u0415\u041d\u0422.\u0422\u0421\u0422 > A:\\NESTED.TXT",
+            "MD \u0432\u0440\u0435\u043c",
+            "RD \u0412\u0420\u0415\u041c",
+            "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0432\u043b\u043e\u0436\u0435\u043d\\ext.\u044f",
+            "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0432\u043b\u043e\u0436\u0435\u043d\\ext.\u0430",
+            "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0432\u043b\u043e\u0436\u0435\u043d\\ext.\u0451",
+            "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0432\u043b\u043e\u0436\u0435\u043d\\ext.\u0435",
+            "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u044f.txt",
+            "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0430.txt",
+            "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0451.txt",
+            "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0435.txt",
+            "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0431.txt",
+            "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0445.txt",
+            "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0442\u0435\u0441\u0442.txt",
+            "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0442\u0435\u0441\u04421.txt",
+            "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0442\u0435\u0441\u04422.txt",
+            "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0442\u0435\u0441\u044212.txt",
+            "DIR /B /A:-D /O:E \u0432\u043b\u043e\u0436\u0435\u043d\\*.* > A:\\EXTORD.TXT",
+            "DIR /B /O:-N *.TXT > A:\\REVERSE.TXT",
+            "DIR /B /O:N *.TXT > A:\\ORDER.TXT",
+            "DIR /B ?.TXT > A:\\ONE.TXT",
+            "DIR /B \u0442\u0435\u0441\u0442?.TXT > A:\\WILD.TXT",
+            "CD \\",
+            "MD \u0438\u0441\u0442\u043e\u043a",
+            "MD \u0438\u0441\u0442\u043e\u043a\\\u0432\u043b\u043e\u0436\u0435\u043d",
+            "MD \u0438\u0441\u0442\u043e\u043a\\\u043f\u0443\u0441\u0442\u043e",
+            "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0438\u0441\u0442\u043e\u043a\\\u0432\u043b\u043e\u0436\u0435\u043d\\\u0434\u043e\u043a\u0443\u043c\u0435\u043d\u0442.\u0442\u0441\u0442",
+            "A:\\MOVE \u0418\u0421\u0422\u041e\u041a \u043f\u0435\u0440\u0435\u043d\u043e\u0441",
+            "MD \u043a\u043e\u043f\u0438\u044f",
+            "A:\\XCOPY \u041f\u0415\u0420\u0415\u041d\u041e\u0421 \u041a\u041e\u041f\u0418\u042f /S /E >NUL",
+            "ECHO CREATED>STAGE.TAG"
+          ],
+          "reboot_commands": [
+            "CD \u041f\u0410\u041f\u041a\u0410",
+            "TYPE \u0401\u0416\u0418\u041a.TXT > A:\\REBOOT.TXT",
+            "TYPE \u0412\u041b\u041e\u0416\u0415\u041d\\\u0414\u041e\u041a\u0423\u041c\u0415\u041d\u0422.\u0422\u0421\u0422 > A:\\REBNEST.TXT",
+            "DIR /B /O:N *.TXT > A:\\REORDER.TXT",
+            "DEL \u0412\u041b\u041e\u0416\u0415\u041d\\\u0414\u041e\u041a\u0423\u041c\u0415\u041d\u0422.\u0422\u0421\u0422",
+            "DEL \u0412\u041b\u041e\u0416\u0415\u041d\\EXT.*",
+            "RD \u0412\u041b\u041e\u0416\u0415\u041d",
+            "DEL *.TXT",
+            "CD \\",
+            "RD \u041f\u0410\u041f\u041a\u0410",
+            "TYPE \u041f\u0415\u0420\u0415\u041d\u041e\u0421\\\u0412\u041b\u041e\u0416\u0415\u041d\\\u0414\u041e\u041a\u0423\u041c\u0415\u041d\u0422.\u0422\u0421\u0422 > A:\\TREE1.TXT",
+            "DEL \u041f\u0415\u0420\u0415\u041d\u041e\u0421\\\u0412\u041b\u041e\u0416\u0415\u041d\\\u0414\u041e\u041a\u0423\u041c\u0415\u041d\u0422.\u0422\u0421\u0422",
+            "RD \u041f\u0415\u0420\u0415\u041d\u041e\u0421\\\u0412\u041b\u041e\u0416\u0415\u041d",
+            "RD \u041f\u0415\u0420\u0415\u041d\u041e\u0421\\\u041f\u0423\u0421\u0422\u041e",
+            "RD \u041f\u0415\u0420\u0415\u041d\u041e\u0421",
+            "TYPE \u041a\u041e\u041f\u0418\u042f\\\u0412\u041b\u041e\u0416\u0415\u041d\\\u0414\u041e\u041a\u0423\u041c\u0415\u041d\u0422.\u0422\u0421\u0422 > A:\\TREE2.TXT",
+            "DEL \u041a\u041e\u041f\u0418\u042f\\\u0412\u041b\u041e\u0416\u0415\u041d\\\u0414\u041e\u041a\u0423\u041c\u0415\u041d\u0422.\u0422\u0421\u0422",
+            "RD \u041a\u041e\u041f\u0418\u042f\\\u0412\u041b\u041e\u0416\u0415\u041d",
+            "RD \u041a\u041e\u041f\u0418\u042f\\\u041f\u0423\u0421\u0422\u041e",
+            "RD \u041a\u041e\u041f\u0418\u042f"
+          ],
+          "directory_sha256": "ee467e96f6f5520c9db489f9a4672446513766adad100c83d7db56420f08931d",
+          "nested_sha256": "552a41daf127c4ea7b44cdb7857d8ea23d1f08bfb6e3f2e88b2389ad1fed18e0",
+          "expected_order_hex": "802e5458540d0a812e5458540d0a852e5458540d0af02e5458540d0af086888a2e5458540d0a928591922e5458540d0a92859192312e5458540d0a9285919231322e5458540d0a92859192322e5458540d0a952e5458540d0a9f2e5458540d0a",
+          "raw_directories": {
+            "copied-nested.bin": {
+              "path": "review/files-trees-qemu-high-copied-nested.bin",
+              "sha256": "716ab152c3a134e736167edce62bb533a61cc2cff0f07a3178a183fe5a1b6fbb"
+            },
+            "copied-empty.bin": {
+              "path": "review/files-trees-qemu-high-copied-empty.bin",
+              "sha256": "5753b824f324f1f8fa5d564e5adb9c9fafd89fbd1efb17517e6eddc96e689a66"
+            },
+            "copied.bin": {
+              "path": "review/files-trees-qemu-high-copied.bin",
+              "sha256": "7eb5ef4ceb2dfc856ee8b2f465d116de9b5c0aa33ce233454dd80753a5c95f8f"
+            },
+            "renamed-nested.bin": {
+              "path": "review/files-trees-qemu-high-renamed-nested.bin",
+              "sha256": "56fad5b229c076fde74329800fd1cb98045e997b92679e1f6574cf391b1cf16a"
+            },
+            "renamed-empty.bin": {
+              "path": "review/files-trees-qemu-high-renamed-empty.bin",
+              "sha256": "b94fd7294b2b6121e3dceb90c9c640fcc26797ffebec37c084340a85bef0c111"
+            },
+            "renamed.bin": {
+              "path": "review/files-trees-qemu-high-renamed.bin",
+              "sha256": "75e1cbc7ad163b202f98d0db9f19cd9a237bfd646391a40fe80d24aaf83bafae"
+            },
+            "directory.bin": {
+              "path": "review/files-trees-qemu-high-directory.bin",
+              "sha256": "ee467e96f6f5520c9db489f9a4672446513766adad100c83d7db56420f08931d"
+            },
+            "nested.bin": {
+              "path": "review/files-trees-qemu-high-nested.bin",
+              "sha256": "552a41daf127c4ea7b44cdb7857d8ea23d1f08bfb6e3f2e88b2389ad1fed18e0"
+            }
+          }
+        },
+        {
+          "profile": "low",
+          "phases": [
+            {
+              "phase": "create",
+              "emulator_exit": 33,
+              "files_hex": {
+                "LOOKUP.TXT": "a4a0adadeba520f0f10d0a",
+                "RENAMED.TXT": "a4a0adadeba520f0f10d0a",
+                "NESTED.TXT": "a4a0adadeba520f0f10d0a",
+                "ORDER.TXT": "802e5458540d0a812e5458540d0a852e5458540d0af02e5458540d0af086888a2e5458540d0a928591922e5458540d0a92859192312e5458540d0a9285919231322e5458540d0a92859192322e5458540d0a952e5458540d0a9f2e5458540d0a",
+                "ONE.TXT": "9f2e5458540d0a802e5458540d0af02e5458540d0a852e5458540d0a812e5458540d0a952e5458540d0a",
+                "WILD.TXT": "928591922e5458540d0a92859192312e5458540d0a92859192322e5458540d0a",
+                "REVERSE.TXT": "9f2e5458540d0a952e5458540d0a92859192322e5458540d0a9285919231322e5458540d0a92859192312e5458540d0a928591922e5458540d0af086888a2e5458540d0af02e5458540d0a852e5458540d0a812e5458540d0a802e5458540d0a",
+                "EXTORD.TXT": "4558542e800d0a4558542e850d0a4558542ef00d0a848e8a938c858d922e9291920d0a4558542e9f0d0a"
+              },
+              "log_sha256": "e60f93b4361530626cc9fe2e95ba1808aaf07c3a7540197ff8d339ba9ee46242",
+              "image_sha256": "5f93bf73c39eb9ece8a35f4f47edaface46167ad87f01bda11b9b845b684871a",
+              "serial_log": {
+                "path": "review/files-trees-qemu-low-create.log",
+                "sha256": "e60f93b4361530626cc9fe2e95ba1808aaf07c3a7540197ff8d339ba9ee46242"
+              }
+            },
+            {
+              "phase": "reboot",
+              "emulator_exit": 33,
+              "files_hex": {
+                "REBOOT.TXT": "a4a0adadeba520f0f10d0a",
+                "REBNEST.TXT": "a4a0adadeba520f0f10d0a",
+                "TREE1.TXT": "a4a0adadeba520f0f10d0a",
+                "TREE2.TXT": "a4a0adadeba520f0f10d0a",
+                "REORDER.TXT": "802e5458540d0a812e5458540d0a852e5458540d0af02e5458540d0af086888a2e5458540d0a928591922e5458540d0a92859192312e5458540d0a9285919231322e5458540d0a92859192322e5458540d0a952e5458540d0a9f2e5458540d0a"
+              },
+              "log_sha256": "4945b4c808de45445504951b70c5c5d1ff359efc06b115e4c9f037ca4a1c9e33",
+              "image_sha256": "b97025b6389ea1cc995a4b856e277b76554249d58df4a342bc699d27cc5a8437",
+              "serial_log": {
+                "path": "review/files-trees-qemu-low-reboot.log",
+                "sha256": "4945b4c808de45445504951b70c5c5d1ff359efc06b115e4c9f037ca4a1c9e33"
+              }
+            }
+          ],
+          "create_commands": [
+            "MD \u043f\u0430\u043f\u043a\u0430",
+            "CD \u041f\u0410\u041f\u041a\u0410",
+            "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0451\u0436\u0438\u043a.txt",
+            "TYPE \u0401\u0416\u0418\u041a.TXT > A:\\LOOKUP.TXT",
+            "COPY \u0451\u0436\u0438\u043a.txt \u043a\u043e\u043f\u0438\u044f.dat >NUL",
+            "REN \u041a\u041e\u041f\u0418\u042f.DAT \u043d\u043e\u0432\u043e\u0435.dat",
+            "TYPE \u041d\u041e\u0412\u041e\u0415.DAT > A:\\RENAMED.TXT",
+            "DEL \u041d\u041e\u0412\u041e\u0415.DAT",
+            "MD \u0432\u043b\u043e\u0436\u0435\u043d",
+            "COPY \u0401\u0416\u0418\u041a.TXT \u0432\u043b\u043e\u0436\u0435\u043d\\\u0434\u043e\u043a\u0443\u043c\u0435\u043d\u0442.\u0442\u0441\u0442 >NUL",
+            "TYPE \u0412\u041b\u041e\u0416\u0415\u041d\\\u0414\u041e\u041a\u0423\u041c\u0415\u041d\u0422.\u0422\u0421\u0422 > A:\\NESTED.TXT",
+            "MD \u0432\u0440\u0435\u043c",
+            "RD \u0412\u0420\u0415\u041c",
+            "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0432\u043b\u043e\u0436\u0435\u043d\\ext.\u044f",
+            "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0432\u043b\u043e\u0436\u0435\u043d\\ext.\u0430",
+            "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0432\u043b\u043e\u0436\u0435\u043d\\ext.\u0451",
+            "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0432\u043b\u043e\u0436\u0435\u043d\\ext.\u0435",
+            "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u044f.txt",
+            "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0430.txt",
+            "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0451.txt",
+            "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0435.txt",
+            "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0431.txt",
+            "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0445.txt",
+            "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0442\u0435\u0441\u0442.txt",
+            "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0442\u0435\u0441\u04421.txt",
+            "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0442\u0435\u0441\u04422.txt",
+            "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0442\u0435\u0441\u044212.txt",
+            "DIR /B /A:-D /O:E \u0432\u043b\u043e\u0436\u0435\u043d\\*.* > A:\\EXTORD.TXT",
+            "DIR /B /O:-N *.TXT > A:\\REVERSE.TXT",
+            "DIR /B /O:N *.TXT > A:\\ORDER.TXT",
+            "DIR /B ?.TXT > A:\\ONE.TXT",
+            "DIR /B \u0442\u0435\u0441\u0442?.TXT > A:\\WILD.TXT",
+            "CD \\",
+            "MD \u0438\u0441\u0442\u043e\u043a",
+            "MD \u0438\u0441\u0442\u043e\u043a\\\u0432\u043b\u043e\u0436\u0435\u043d",
+            "MD \u0438\u0441\u0442\u043e\u043a\\\u043f\u0443\u0441\u0442\u043e",
+            "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0438\u0441\u0442\u043e\u043a\\\u0432\u043b\u043e\u0436\u0435\u043d\\\u0434\u043e\u043a\u0443\u043c\u0435\u043d\u0442.\u0442\u0441\u0442",
+            "A:\\MOVE \u0418\u0421\u0422\u041e\u041a \u043f\u0435\u0440\u0435\u043d\u043e\u0441",
+            "MD \u043a\u043e\u043f\u0438\u044f",
+            "A:\\XCOPY \u041f\u0415\u0420\u0415\u041d\u041e\u0421 \u041a\u041e\u041f\u0418\u042f /S /E >NUL",
+            "ECHO CREATED>STAGE.TAG"
+          ],
+          "reboot_commands": [
+            "CD \u041f\u0410\u041f\u041a\u0410",
+            "TYPE \u0401\u0416\u0418\u041a.TXT > A:\\REBOOT.TXT",
+            "TYPE \u0412\u041b\u041e\u0416\u0415\u041d\\\u0414\u041e\u041a\u0423\u041c\u0415\u041d\u0422.\u0422\u0421\u0422 > A:\\REBNEST.TXT",
+            "DIR /B /O:N *.TXT > A:\\REORDER.TXT",
+            "DEL \u0412\u041b\u041e\u0416\u0415\u041d\\\u0414\u041e\u041a\u0423\u041c\u0415\u041d\u0422.\u0422\u0421\u0422",
+            "DEL \u0412\u041b\u041e\u0416\u0415\u041d\\EXT.*",
+            "RD \u0412\u041b\u041e\u0416\u0415\u041d",
+            "DEL *.TXT",
+            "CD \\",
+            "RD \u041f\u0410\u041f\u041a\u0410",
+            "TYPE \u041f\u0415\u0420\u0415\u041d\u041e\u0421\\\u0412\u041b\u041e\u0416\u0415\u041d\\\u0414\u041e\u041a\u0423\u041c\u0415\u041d\u0422.\u0422\u0421\u0422 > A:\\TREE1.TXT",
+            "DEL \u041f\u0415\u0420\u0415\u041d\u041e\u0421\\\u0412\u041b\u041e\u0416\u0415\u041d\\\u0414\u041e\u041a\u0423\u041c\u0415\u041d\u0422.\u0422\u0421\u0422",
+            "RD \u041f\u0415\u0420\u0415\u041d\u041e\u0421\\\u0412\u041b\u041e\u0416\u0415\u041d",
+            "RD \u041f\u0415\u0420\u0415\u041d\u041e\u0421\\\u041f\u0423\u0421\u0422\u041e",
+            "RD \u041f\u0415\u0420\u0415\u041d\u041e\u0421",
+            "TYPE \u041a\u041e\u041f\u0418\u042f\\\u0412\u041b\u041e\u0416\u0415\u041d\\\u0414\u041e\u041a\u0423\u041c\u0415\u041d\u0422.\u0422\u0421\u0422 > A:\\TREE2.TXT",
+            "DEL \u041a\u041e\u041f\u0418\u042f\\\u0412\u041b\u041e\u0416\u0415\u041d\\\u0414\u041e\u041a\u0423\u041c\u0415\u041d\u0422.\u0422\u0421\u0422",
+            "RD \u041a\u041e\u041f\u0418\u042f\\\u0412\u041b\u041e\u0416\u0415\u041d",
+            "RD \u041a\u041e\u041f\u0418\u042f\\\u041f\u0423\u0421\u0422\u041e",
+            "RD \u041a\u041e\u041f\u0418\u042f"
+          ],
+          "directory_sha256": "3d6be5a76f44c1d62198842b5d5f6536604f9f434250a27abe6faaa0c157322a",
+          "nested_sha256": "49324d4d2e20ff49fa129a289f5f5b08c28125e46ce7ec06ed6786ac88843375",
+          "expected_order_hex": "802e5458540d0a812e5458540d0a852e5458540d0af02e5458540d0af086888a2e5458540d0a928591922e5458540d0a92859192312e5458540d0a9285919231322e5458540d0a92859192322e5458540d0a952e5458540d0a9f2e5458540d0a",
+          "raw_directories": {
+            "copied-nested.bin": {
+              "path": "review/files-trees-qemu-low-copied-nested.bin",
+              "sha256": "f8b17b9fba5a57178b98423f74d7a5a77e2e19ef6a35d75372d6364267fe771a"
+            },
+            "copied-empty.bin": {
+              "path": "review/files-trees-qemu-low-copied-empty.bin",
+              "sha256": "42a6f64f1c45a99e7fc64590c8a14e1eb8ad26649d6374b77890611a8a9c61dc"
+            },
+            "copied.bin": {
+              "path": "review/files-trees-qemu-low-copied.bin",
+              "sha256": "72a32cc1d3205b475e50417b7ba6cbfae2f2ab27fcdd8bbd244f19b3c61088fe"
+            },
+            "renamed-nested.bin": {
+              "path": "review/files-trees-qemu-low-renamed-nested.bin",
+              "sha256": "2e0ec83999bce47d2f47c1c4a8cd565f02cc52c291e10ed57b4ac1ec3fc5641e"
+            },
+            "renamed-empty.bin": {
+              "path": "review/files-trees-qemu-low-renamed-empty.bin",
+              "sha256": "0bae3aa8a1dd6c9736039b33d8595631dfca4f5f795a16508e4ad9e821c617c1"
+            },
+            "renamed.bin": {
+              "path": "review/files-trees-qemu-low-renamed.bin",
+              "sha256": "020ed2e9044d870ba0dd7738fff8b2592cac0741c7de30653da294d02966e6d1"
+            },
+            "directory.bin": {
+              "path": "review/files-trees-qemu-low-directory.bin",
+              "sha256": "3d6be5a76f44c1d62198842b5d5f6536604f9f434250a27abe6faaa0c157322a"
+            },
+            "nested.bin": {
+              "path": "review/files-trees-qemu-low-nested.bin",
+              "sha256": "49324d4d2e20ff49fa129a289f5f5b08c28125e46ce7ec06ed6786ac88843375"
+            }
+          }
+        }
+      ],
+      "private_artifacts": "out/ru-files-g2kt3tjx"
+    },
+    {
+      "status": "selected-cases-passed",
+      "core_sha256": {
+        "IO.SYS": "793169a292df40bb117eb487136a0d8e7f4334ca223e8206bf53f33141f24715",
+        "MSDOS.SYS": "1475174f50c8c349bedd7cd4a0be88bce055f2e411b7454b5f68fffbff269b62",
+        "COMMAND.COM": "6742b5889141a9c61d41e336445014d8055c19758febf4263f4f8ebe3c2f2c29",
+        "HIMEM.SYS": "340cbfd1f0e835755adce99d80c607f8edeb48ea2b20a6a142402a25434f8d13",
+        "EMM386.EXE": "58266b6614594de7a9cfde9eda75e3eb241b9e2e941e67b70645a0f8a197dae6"
+      },
+      "backend": "86box-286",
+      "cases": [
+        {
+          "profile": "low",
+          "phases": [
+            {
+              "phase": "create",
+              "emulator_exit": 0,
+              "files_hex": {
+                "LOOKUP.TXT": "a4a0adadeba520f0f10d0a",
+                "RENAMED.TXT": "a4a0adadeba520f0f10d0a",
+                "NESTED.TXT": "a4a0adadeba520f0f10d0a",
+                "ORDER.TXT": "802e5458540d0a812e5458540d0a852e5458540d0af02e5458540d0af086888a2e5458540d0a928591922e5458540d0a92859192312e5458540d0a9285919231322e5458540d0a92859192322e5458540d0a952e5458540d0a9f2e5458540d0a",
+                "ONE.TXT": "9f2e5458540d0a802e5458540d0af02e5458540d0a852e5458540d0a812e5458540d0a952e5458540d0a",
+                "WILD.TXT": "928591922e5458540d0a92859192312e5458540d0a92859192322e5458540d0a",
+                "REVERSE.TXT": "9f2e5458540d0a952e5458540d0a92859192322e5458540d0a9285919231322e5458540d0a92859192312e5458540d0a928591922e5458540d0af086888a2e5458540d0af02e5458540d0a852e5458540d0a812e5458540d0a802e5458540d0a",
+                "EXTORD.TXT": "4558542e800d0a4558542e850d0a4558542ef00d0a848e8a938c858d922e9291920d0a4558542e9f0d0a"
+              },
+              "log_sha256": "260c54946ea176ceeb4957305478c212f9a601852c77eb3bb8172e4b1c548892",
+              "image_sha256": "8ddf0f59be81d36cfaaebf742950f44182239babdbba264061c919716e7930c7",
+              "serial_log": {
+                "path": "review/files-trees-286-low-create.log",
+                "sha256": "260c54946ea176ceeb4957305478c212f9a601852c77eb3bb8172e4b1c548892"
+              }
+            },
+            {
+              "phase": "reboot",
+              "emulator_exit": 0,
+              "files_hex": {
+                "REBOOT.TXT": "a4a0adadeba520f0f10d0a",
+                "REBNEST.TXT": "a4a0adadeba520f0f10d0a",
+                "TREE1.TXT": "a4a0adadeba520f0f10d0a",
+                "TREE2.TXT": "a4a0adadeba520f0f10d0a",
+                "REORDER.TXT": "802e5458540d0a812e5458540d0a852e5458540d0af02e5458540d0af086888a2e5458540d0a928591922e5458540d0a92859192312e5458540d0a9285919231322e5458540d0a92859192322e5458540d0a952e5458540d0a9f2e5458540d0a"
+              },
+              "log_sha256": "ea215b491edc6180e6c6a1b44405b2e2f1f2d63685b65a5f922ca4002386bb48",
+              "image_sha256": "7a3d4a28385790f5c46fff9d4c9c6f91d91c0ef9a93a924caf9b41303cb9d519",
+              "serial_log": {
+                "path": "review/files-trees-286-low-reboot.log",
+                "sha256": "ea215b491edc6180e6c6a1b44405b2e2f1f2d63685b65a5f922ca4002386bb48"
+              }
+            }
+          ],
+          "create_commands": [
+            "MD \u043f\u0430\u043f\u043a\u0430",
+            "CD \u041f\u0410\u041f\u041a\u0410",
+            "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0451\u0436\u0438\u043a.txt",
+            "TYPE \u0401\u0416\u0418\u041a.TXT > A:\\LOOKUP.TXT",
+            "COPY \u0451\u0436\u0438\u043a.txt \u043a\u043e\u043f\u0438\u044f.dat >NUL",
+            "REN \u041a\u041e\u041f\u0418\u042f.DAT \u043d\u043e\u0432\u043e\u0435.dat",
+            "TYPE \u041d\u041e\u0412\u041e\u0415.DAT > A:\\RENAMED.TXT",
+            "DEL \u041d\u041e\u0412\u041e\u0415.DAT",
+            "MD \u0432\u043b\u043e\u0436\u0435\u043d",
+            "COPY \u0401\u0416\u0418\u041a.TXT \u0432\u043b\u043e\u0436\u0435\u043d\\\u0434\u043e\u043a\u0443\u043c\u0435\u043d\u0442.\u0442\u0441\u0442 >NUL",
+            "TYPE \u0412\u041b\u041e\u0416\u0415\u041d\\\u0414\u041e\u041a\u0423\u041c\u0415\u041d\u0422.\u0422\u0421\u0422 > A:\\NESTED.TXT",
+            "MD \u0432\u0440\u0435\u043c",
+            "RD \u0412\u0420\u0415\u041c",
+            "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0432\u043b\u043e\u0436\u0435\u043d\\ext.\u044f",
+            "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0432\u043b\u043e\u0436\u0435\u043d\\ext.\u0430",
+            "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0432\u043b\u043e\u0436\u0435\u043d\\ext.\u0451",
+            "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0432\u043b\u043e\u0436\u0435\u043d\\ext.\u0435",
+            "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u044f.txt",
+            "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0430.txt",
+            "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0451.txt",
+            "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0435.txt",
+            "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0431.txt",
+            "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0445.txt",
+            "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0442\u0435\u0441\u0442.txt",
+            "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0442\u0435\u0441\u04421.txt",
+            "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0442\u0435\u0441\u04422.txt",
+            "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0442\u0435\u0441\u044212.txt",
+            "DIR /B /A:-D /O:E \u0432\u043b\u043e\u0436\u0435\u043d\\*.* > A:\\EXTORD.TXT",
+            "DIR /B /O:-N *.TXT > A:\\REVERSE.TXT",
+            "DIR /B /O:N *.TXT > A:\\ORDER.TXT",
+            "DIR /B ?.TXT > A:\\ONE.TXT",
+            "DIR /B \u0442\u0435\u0441\u0442?.TXT > A:\\WILD.TXT",
+            "CD \\",
+            "MD \u0438\u0441\u0442\u043e\u043a",
+            "MD \u0438\u0441\u0442\u043e\u043a\\\u0432\u043b\u043e\u0436\u0435\u043d",
+            "MD \u0438\u0441\u0442\u043e\u043a\\\u043f\u0443\u0441\u0442\u043e",
+            "ECHO \u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451>\u0438\u0441\u0442\u043e\u043a\\\u0432\u043b\u043e\u0436\u0435\u043d\\\u0434\u043e\u043a\u0443\u043c\u0435\u043d\u0442.\u0442\u0441\u0442",
+            "A:\\MOVE \u0418\u0421\u0422\u041e\u041a \u043f\u0435\u0440\u0435\u043d\u043e\u0441",
+            "MD \u043a\u043e\u043f\u0438\u044f",
+            "A:\\XCOPY \u041f\u0415\u0420\u0415\u041d\u041e\u0421 \u041a\u041e\u041f\u0418\u042f /S /E >NUL",
+            "ECHO CREATED>STAGE.TAG"
+          ],
+          "reboot_commands": [
+            "CD \u041f\u0410\u041f\u041a\u0410",
+            "TYPE \u0401\u0416\u0418\u041a.TXT > A:\\REBOOT.TXT",
+            "TYPE \u0412\u041b\u041e\u0416\u0415\u041d\\\u0414\u041e\u041a\u0423\u041c\u0415\u041d\u0422.\u0422\u0421\u0422 > A:\\REBNEST.TXT",
+            "DIR /B /O:N *.TXT > A:\\REORDER.TXT",
+            "DEL \u0412\u041b\u041e\u0416\u0415\u041d\\\u0414\u041e\u041a\u0423\u041c\u0415\u041d\u0422.\u0422\u0421\u0422",
+            "DEL \u0412\u041b\u041e\u0416\u0415\u041d\\EXT.*",
+            "RD \u0412\u041b\u041e\u0416\u0415\u041d",
+            "DEL *.TXT",
+            "CD \\",
+            "RD \u041f\u0410\u041f\u041a\u0410",
+            "TYPE \u041f\u0415\u0420\u0415\u041d\u041e\u0421\\\u0412\u041b\u041e\u0416\u0415\u041d\\\u0414\u041e\u041a\u0423\u041c\u0415\u041d\u0422.\u0422\u0421\u0422 > A:\\TREE1.TXT",
+            "DEL \u041f\u0415\u0420\u0415\u041d\u041e\u0421\\\u0412\u041b\u041e\u0416\u0415\u041d\\\u0414\u041e\u041a\u0423\u041c\u0415\u041d\u0422.\u0422\u0421\u0422",
+            "RD \u041f\u0415\u0420\u0415\u041d\u041e\u0421\\\u0412\u041b\u041e\u0416\u0415\u041d",
+            "RD \u041f\u0415\u0420\u0415\u041d\u041e\u0421\\\u041f\u0423\u0421\u0422\u041e",
+            "RD \u041f\u0415\u0420\u0415\u041d\u041e\u0421",
+            "TYPE \u041a\u041e\u041f\u0418\u042f\\\u0412\u041b\u041e\u0416\u0415\u041d\\\u0414\u041e\u041a\u0423\u041c\u0415\u041d\u0422.\u0422\u0421\u0422 > A:\\TREE2.TXT",
+            "DEL \u041a\u041e\u041f\u0418\u042f\\\u0412\u041b\u041e\u0416\u0415\u041d\\\u0414\u041e\u041a\u0423\u041c\u0415\u041d\u0422.\u0422\u0421\u0422",
+            "RD \u041a\u041e\u041f\u0418\u042f\\\u0412\u041b\u041e\u0416\u0415\u041d",
+            "RD \u041a\u041e\u041f\u0418\u042f\\\u041f\u0423\u0421\u0422\u041e",
+            "RD \u041a\u041e\u041f\u0418\u042f"
+          ],
+          "directory_sha256": "3bcdf7a395fc61a80fc43521c70f66a0842f82ed888c18477dd6c3c97dd62033",
+          "nested_sha256": "130baef482192b09b293722a4893062378ea52c79d9e3f5f3780d5be2e2b47ca",
+          "expected_order_hex": "802e5458540d0a812e5458540d0a852e5458540d0af02e5458540d0af086888a2e5458540d0a928591922e5458540d0a92859192312e5458540d0a9285919231322e5458540d0a92859192322e5458540d0a952e5458540d0a9f2e5458540d0a",
+          "raw_directories": {
+            "copied-nested.bin": {
+              "path": "review/files-trees-286-low-copied-nested.bin",
+              "sha256": "326eae6b1acffa6e62b08cfd6942df52803f323ece56b73f9d2cd084b55c49ca"
+            },
+            "copied-empty.bin": {
+              "path": "review/files-trees-286-low-copied-empty.bin",
+              "sha256": "9c02b2911dd138c0d7584ec3fc922091c46adde2c49f8f81009ccbb18a3f4243"
+            },
+            "copied.bin": {
+              "path": "review/files-trees-286-low-copied.bin",
+              "sha256": "e4ae6ec42f4b1a375a616681428a253cb933ac42967ef60fdc9fa48f85dfddd3"
+            },
+            "renamed-nested.bin": {
+              "path": "review/files-trees-286-low-renamed-nested.bin",
+              "sha256": "d91407bc694a020e06fe26b0f5a27801f94a8906d1dae34fcd12070dd0a9841b"
+            },
+            "renamed-empty.bin": {
+              "path": "review/files-trees-286-low-renamed-empty.bin",
+              "sha256": "e6f11bcd29152a17bee916f7e0a07764d5b580780ac39246b912b37411d7f0ef"
+            },
+            "renamed.bin": {
+              "path": "review/files-trees-286-low-renamed.bin",
+              "sha256": "a0473caa22ce3486aa159ed3b485a1f28222d84a35a6f4eccf36d3e0dd2bdb98"
+            },
+            "directory.bin": {
+              "path": "review/files-trees-286-low-directory.bin",
+              "sha256": "3bcdf7a395fc61a80fc43521c70f66a0842f82ed888c18477dd6c3c97dd62033"
+            },
+            "nested.bin": {
+              "path": "review/files-trees-286-low-nested.bin",
+              "sha256": "130baef482192b09b293722a4893062378ea52c79d9e3f5f3780d5be2e2b47ca"
+            }
+          },
+          "startup_configuration": {
+            "path": "review/files-trees-286-low-startup.cfg",
+            "sha256": "10cbd002fee8b5a686cf358c231bafe0ca884b25acc97d1729c2a6b4a103c064"
+          }
+        }
+      ],
+      "emulator_sha256": "798ac6072d5147ed4dca7540ca5303da1e4c2d190853c227dde9ea3b33583c18",
+      "private_artifacts": "out/ru-files-ebogb3mo"
+    }
+  ],
+  "remaining": [
+    "Full release suite and applicable matrices on the selected core.",
+    "Pristine serial/parallel reproducibility."
+  ],
+  "inputs": {
+    "tests/test_ru_files_qemu.py": {
+      "sha256": "564406bc72fccdc588358fe604f8a52e5f967c6649abbb2e1ebfbbefa5c69df3",
+      "size": 13790
+    },
+    "src/CMD/MOVE/MOVE.EXE": {
+      "sha256": "577833937b25b62028595299669b7b937a89f60e15172a86d3185a9f0b5110ba",
+      "size": 16280
+    },
+    "src/CMD/XCOPY/XCOPY.EXE": {
+      "sha256": "4753caa9bf4cb3d0484fe85890a83f0e05136de18fa5e439b04c46e996bf8d3e",
+      "size": 17785
+    },
+    "src/DEV/COUNTRY/COUNTRY.SYS": {
+      "sha256": "dcad40266140a3155a44323bc3f3876ea70e1aa779175cf6ab18b532b36037c3",
+      "size": 17130
+    }
+  },
+  "commands": [
+    "MEMORY_CORE_DIR=out/memory-production/files python3 tests/test_ru_files_qemu.py",
+    "MEMORY_CORE_DIR=out/memory-production/files python3 tests/test_ru_files_qemu.py --emulator out/ru-86box-vnc-bs283qnk/build/src/86Box --roms \"$ROM_DIR\" --qt-platform offscreen"
+  ],
+  "backend_provenance": "text-286-qualification.json",
+  "release_integration": "make test now depends on test-ru-files-qemu and test-ru-text-qemu; each uses private media and the selected production core."
+}

@@ -21,6 +21,10 @@ DOC='\u0434\u043e\u043a\u0443\u043c\u0435\u043d\u0442.\u0442\u0441\u0442'
 STEM='\u0442\u0435\u0441\u0442'
 NAMES=[c+'.txt' for c in '\u044f\u0430\u0451\u0435\u0431\u0445']+[STEM+s+'.txt' for s in ('','1','2','12')]
 EXTENSIONS=['ext.'+c for c in '\u044f\u0430\u0451\u0435']
+TREE='\u0438\u0441\u0442\u043e\u043a'
+MOVED='\u043f\u0435\u0440\u0435\u043d\u043e\u0441'
+CLONE='\u043a\u043e\u043f\u0438\u044f'
+EMPTY='\u043f\u0443\u0441\u0442\u043e'
 PAYLOAD='\u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451'
 
 
@@ -71,6 +75,8 @@ def run_case(work,base,profile,args,core):
     for name in ('IO.SYS','MSDOS.SYS','COMMAND.COM'):
         data=subprocess.check_output(['mtype','-i',str(image),'::'+name])
         assert hashlib.sha256(data).hexdigest()==core[name],name
+    for name in ('MOVE','XCOPY'):
+        put(name+'.EXE',(ROOT/f'src/CMD/{name}/{name}.EXE').read_bytes())
     put('COUNTRY.SYS',(ROOT/'src/DEV/COUNTRY/COUNTRY.SYS').read_bytes())
     if args.emulator:
         config=(ROOT/'tests/86box/ibmat-286.cfg').read_text().replace('size = 2048','size = 512')
@@ -97,11 +103,18 @@ def run_case(work,base,profile,args,core):
     first += [f'DIR /B /A:-D /O:E {SUB}\\*.* > A:\\EXTORD.TXT',
               'DIR /B /O:-N *.TXT > A:\\REVERSE.TXT','DIR /B /O:N *.TXT > A:\\ORDER.TXT','DIR /B ?.TXT > A:\\ONE.TXT',
               f'DIR /B {STEM}?.TXT > A:\\WILD.TXT','CD \\',
+              f'MD {TREE}',f'MD {TREE}\\{SUB}',f'MD {TREE}\\{EMPTY}',
+              f'ECHO {PAYLOAD}>{TREE}\\{SUB}\\{DOC}',f'A:\\MOVE {TREE.upper()} {MOVED}',
+              f'MD {CLONE}',f'A:\\XCOPY {MOVED.upper()} {CLONE.upper()} /S /E >NUL',
               'ECHO CREATED>STAGE.TAG']
     second=[f'CD {DIR.upper()}',f'TYPE {MAIN.upper()} > A:\\REBOOT.TXT',
             f'TYPE {SUB.upper()}\\{DOC.upper()} > A:\\REBNEST.TXT',
             'DIR /B /O:N *.TXT > A:\\REORDER.TXT',f'DEL {SUB.upper()}\\{DOC.upper()}',
             f'DEL {SUB.upper()}\\EXT.*',f'RD {SUB.upper()}','DEL *.TXT','CD \\',f'RD {DIR.upper()}']
+    for index,name in enumerate((MOVED,CLONE),1):
+        second += [f'TYPE {name.upper()}\\{SUB.upper()}\\{DOC.upper()} > A:\\TREE{index}.TXT',
+                   f'DEL {name.upper()}\\{SUB.upper()}\\{DOC.upper()}',
+                   f'RD {name.upper()}\\{SUB.upper()}',f'RD {name.upper()}\\{EMPTY.upper()}',f'RD {name.upper()}']
     put('AUTOEXEC.BAT',b'@ECHO OFF\r\nIF EXIST STAGE.TAG GOTO SECOND\r\n'+batch(first,'RU_FILES_CREATED')+b':SECOND\r\nNEXT.BAT\r\n')
     put('NEXT.BAT',batch(second,'RU_FILES_REBOOTED'))
     phases=[]
@@ -133,9 +146,26 @@ def run_case(work,base,profile,args,core):
             assert short_name('\u0432\u0440\u0435\u043c') not in directory
             raw=b''.join(directory.values());(case/'directory.bin').write_bytes(raw)
             (case/'nested.bin').write_bytes(b''.join(nested.values()))
+            assert short_name(TREE) not in root
+            for name in (MOVED,CLONE):
+                tree_entry=root[short_name(name)];assert tree_entry[11]&16
+                tree_cluster=int.from_bytes(tree_entry[26:28],'little')
+                tree=fat.entries(tree_cluster)
+                assert set(tree)=={b'.          ',b'..         ',short_name(SUB),short_name(EMPTY)},tree
+                assert int.from_bytes(tree[b'..         '][26:28],'little')==0
+                for child in (SUB,EMPTY):
+                    entry=tree[short_name(child)];assert entry[11]&16
+                    children=fat.entries(int.from_bytes(entry[26:28],'little'))
+                    assert int.from_bytes(children[b'..         '][26:28],'little')==tree_cluster
+                    expected_children={b'.          ',b'..         '}
+                    if child==SUB:
+                        expected_children.add(short_name(DOC));assert fat.read(children[short_name(DOC)])==payload
+                    assert set(children)==expected_children,children
+                    (case/(name.encode('cp866').hex()+'-'+child.encode('cp866').hex()+'.bin')).write_bytes(b''.join(children.values()))
+                (case/(name.encode('cp866').hex()+'.bin')).write_bytes(b''.join(tree.values()))
             checks=['LOOKUP.TXT','RENAMED.TXT','NESTED.TXT']
         else:
-            assert short_name(DIR) not in root;checks=['REBOOT.TXT','REBNEST.TXT']
+            assert all(short_name(n) not in root for n in (DIR,TREE,MOVED,CLONE));checks=['REBOOT.TXT','REBNEST.TXT','TREE1.TXT','TREE2.TXT']
         files={}
         for n in checks:
             value=fat.read(root[short_name(n)]);assert value==payload,(n,value);files[n]=value.hex()

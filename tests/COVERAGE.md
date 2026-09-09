@@ -344,3 +344,10 @@ rows; saved files require exact bytes. The runner waits for editor prompts and
 for an empty shell prompt on the last occupied row around checkpoints, so
 floppy I/O cannot overflow the BIOS key buffer. The record includes the VNC
 resize correction, retained timing diagnostics and QEMU profile regressions.
+
+The [Russian directory qualification](../locales/ru/directory-qualification.json)
+extends the filesystem gate with MOVE directory rename and recursive XCOPY,
+including an empty directory. It checks exact short names, nested content and
+FAT parent links before fresh-boot reads and cleanup on QEMU HIGH/UMB, LOW and
+IBM AT BIOS. `make test` includes both `test-ru-files-qemu` and
+`test-ru-text-qemu`; their media remain private to each run.
