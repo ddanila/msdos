@@ -181,7 +181,9 @@ CP866 glyph checks and exact saved bytes. The
 [directory qualification](locales/ru/directory-qualification.json) adds MOVE
 rename and recursive XCOPY of Cyrillic trees, including empty directories,
 FAT parent links, reboot persistence and cleanup on all three profiles.
-Full release/reproducibility qualification of that core remains open.
+The [pristine build qualification](locales/ru/reproducibility-qualification.json)
+compares all declared artifacts and the composed core across serial and parallel
+builds. Full release runtime qualification of that core remains open.
 
 Existing implementation and test entry points:
 

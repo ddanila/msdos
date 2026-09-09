@@ -351,3 +351,10 @@ including an empty directory. It checks exact short names, nested content and
 FAT parent links before fresh-boot reads and cleanup on QEMU HIGH/UMB, LOW and
 IBM AT BIOS. `make test` includes both `test-ru-files-qemu` and
 `test-ru-text-qemu`; their media remain private to each run.
+
+The [Russian pristine build qualification](../locales/ru/reproducibility-qualification.json)
+compares every declared Makefile artifact and the composed production memory
+core from independent detached worktrees at serial and parallel job counts.
+The tool binaries, commands and complete logs are retained. Both the ordinary
+and composed outputs also match the active release artifacts. This evidence
+does not replace the full runtime release suite.

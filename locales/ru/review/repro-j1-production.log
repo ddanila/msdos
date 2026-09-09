@@ -1,0 +1,6 @@
+python3 tools/build_memory_production.py /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j1/out/memory-production
+Production build: /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j1/out/memory-production-pyvo3r5c
+Linked inactive development BIOS: /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j1/out/memory-production-pyvo3r5c/bios/IO.SYS
+Linked 8081 bytes (6073 service bytes); 36 unbound runtime slots; 367 checked offset fixups.
+Linked 8081 bytes (6073 service bytes); 36 unbound runtime slots; 367 checked offset fixups.
+Linked early-installer development BIOS: /Users/ddanila/fun/msdos/out/ru-repro-43uqhx89/j1/out/memory-production-pyvo3r5c/bios/IO.SYS

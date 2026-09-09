@@ -3,7 +3,7 @@
 1. Implement retail-compatible DriveSpace, including compressed-volume support
    throughout the system. An explicit extended format may follow.
 2. Implement the optional Russian / CP866 pack following [RUSSIAN.md](RUSSIAN.md).
-   Complete release qualification and pristine build reproducibility.
+   Complete full release runtime qualification.
 3. Treat QBASIC/EDIT, AccessDOS, the Microsoft Network Client, and remaining
    DOS 6 locale packs as independent epics.
 
