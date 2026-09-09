@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "status": "completion-not-yet-proven",
-  "scope": "Requirement-by-requirement index of RUSSIAN.md implementation bullets. Focused evidence is not a blanket final-core or release claim.",
+  "status": "russian-increment-qualified",
+  "scope": "Completed RUSSIAN.md implementation requirements, with focused, final-core, baseline and full-release evidence scoped separately. Historical component records retain their original core identities.",
   "requirements": [
     {
       "id": "1.1",
@@ -10,7 +10,7 @@
       "evidence": [
         {
           "path": "manifest.json",
-          "sha256": "ad4538a046fa01d2359e4e059173f0de13c9298ff610c5c7607e63f86facb165"
+          "sha256": "c69bd532ef5f8e0bd8f20d7ecda2ea75c228a56c9c0347a46ffbc95294fa821e"
         },
         {
           "path": "review/font-audit.json",
@@ -25,7 +25,7 @@
           "sha256": "6b0382b16279f26ff69014300541967a356a666eb0b91b422f6862f6b7dad17e"
         }
       ],
-      "assessment": "focused-evidence-recorded"
+      "assessment": "qualified"
     },
     {
       "id": "1.2",
@@ -34,7 +34,7 @@
       "evidence": [
         {
           "path": "manifest.json",
-          "sha256": "ad4538a046fa01d2359e4e059173f0de13c9298ff610c5c7607e63f86facb165"
+          "sha256": "c69bd532ef5f8e0bd8f20d7ecda2ea75c228a56c9c0347a46ffbc95294fa821e"
         },
         {
           "path": "dos622-reference.json",
@@ -45,7 +45,7 @@
           "sha256": "7e805c6caa97fd6befa1d801b74bc4e81a6bb7454896b8fa17b81998eff01c21"
         }
       ],
-      "assessment": "focused-evidence-recorded"
+      "assessment": "qualified"
     },
     {
       "id": "1.3",
@@ -54,7 +54,7 @@
       "evidence": [
         {
           "path": "manifest.json",
-          "sha256": "ad4538a046fa01d2359e4e059173f0de13c9298ff610c5c7607e63f86facb165"
+          "sha256": "c69bd532ef5f8e0bd8f20d7ecda2ea75c228a56c9c0347a46ffbc95294fa821e"
         },
         {
           "path": "dos622-reference.json",
@@ -73,7 +73,7 @@
           "sha256": "9fa289b37f6a8d5e2efa7eeaa307797ba74cbf81242d8ade3c8d3f2189f19384"
         }
       ],
-      "assessment": "focused-evidence-recorded"
+      "assessment": "qualified"
     },
     {
       "id": "1.4",
@@ -82,7 +82,7 @@
       "evidence": [
         {
           "path": "manifest.json",
-          "sha256": "ad4538a046fa01d2359e4e059173f0de13c9298ff610c5c7607e63f86facb165"
+          "sha256": "c69bd532ef5f8e0bd8f20d7ecda2ea75c228a56c9c0347a46ffbc95294fa821e"
         },
         {
           "path": "review/font-audit.json",
@@ -97,7 +97,7 @@
           "sha256": "f70b2422498d6e1c249902c7681e37348da323f0870c9d93eb127937038cf3be"
         }
       ],
-      "assessment": "focused-evidence-recorded"
+      "assessment": "qualified"
     },
     {
       "id": "1.5",
@@ -106,7 +106,7 @@
       "evidence": [
         {
           "path": "manifest.json",
-          "sha256": "ad4538a046fa01d2359e4e059173f0de13c9298ff610c5c7607e63f86facb165"
+          "sha256": "c69bd532ef5f8e0bd8f20d7ecda2ea75c228a56c9c0347a46ffbc95294fa821e"
         },
         {
           "path": "review/font-audit.json",
@@ -117,7 +117,7 @@
           "sha256": "f70b2422498d6e1c249902c7681e37348da323f0870c9d93eb127937038cf3be"
         }
       ],
-      "assessment": "focused-evidence-recorded"
+      "assessment": "qualified"
     },
     {
       "id": "2.1",
@@ -133,7 +133,7 @@
           "sha256": "48dbadd4613a66373c526cf5696b48abc55ca828aac5e79411cb78f60cb75c71"
         }
       ],
-      "assessment": "focused-evidence-recorded"
+      "assessment": "qualified"
     },
     {
       "id": "2.2",
@@ -149,7 +149,7 @@
           "sha256": "48dbadd4613a66373c526cf5696b48abc55ca828aac5e79411cb78f60cb75c71"
         }
       ],
-      "assessment": "focused-evidence-recorded"
+      "assessment": "qualified"
     },
     {
       "id": "2.3",
@@ -165,7 +165,7 @@
           "sha256": "25ab069eb45523756c3d37175441fe8ba00831c6e15768457912826effda2d79"
         }
       ],
-      "assessment": "focused-evidence-recorded"
+      "assessment": "qualified"
     },
     {
       "id": "2.4",
@@ -185,7 +185,7 @@
           "sha256": "def46655200ca190ccc12ff18e3747144261a217af13538277631fca4302f7f5"
         }
       ],
-      "assessment": "focused-evidence-recorded"
+      "assessment": "qualified"
     },
     {
       "id": "2.5",
@@ -201,7 +201,7 @@
           "sha256": "def46655200ca190ccc12ff18e3747144261a217af13538277631fca4302f7f5"
         }
       ],
-      "assessment": "focused-evidence-recorded"
+      "assessment": "qualified"
     },
     {
       "id": "3.1",
@@ -217,7 +217,7 @@
           "sha256": "f1b81253030de6bcbee4db96d11b7ac71b57984b568e07a310aff03159add63b"
         }
       ],
-      "assessment": "focused-evidence-recorded"
+      "assessment": "qualified"
     },
     {
       "id": "3.2",
@@ -233,7 +233,7 @@
           "sha256": "9d4784d8efeba0eb70d831a7662c8e112e0b98e65d91137f6e00b6020895bfea"
         }
       ],
-      "assessment": "focused-evidence-recorded"
+      "assessment": "qualified"
     },
     {
       "id": "3.3",
@@ -249,7 +249,7 @@
           "sha256": "9d4784d8efeba0eb70d831a7662c8e112e0b98e65d91137f6e00b6020895bfea"
         }
       ],
-      "assessment": "focused-evidence-recorded"
+      "assessment": "qualified"
     },
     {
       "id": "3.4",
@@ -265,7 +265,7 @@
           "sha256": "dc1508de08619a7081ced86dc284a03b504fe76574ea212cc89a1d2a3d8fa31b"
         }
       ],
-      "assessment": "focused-evidence-recorded"
+      "assessment": "qualified"
     },
     {
       "id": "4.1",
@@ -281,7 +281,7 @@
           "sha256": "48dbadd4613a66373c526cf5696b48abc55ca828aac5e79411cb78f60cb75c71"
         }
       ],
-      "assessment": "focused-evidence-recorded"
+      "assessment": "qualified"
     },
     {
       "id": "4.2",
@@ -301,7 +301,7 @@
           "sha256": "f35b3d2e3a4b756c9702d5ed94248f21c7c277f544312f8ae44be1d4ec04ab40"
         }
       ],
-      "assessment": "focused-evidence-recorded"
+      "assessment": "qualified"
     },
     {
       "id": "4.3",
@@ -321,7 +321,7 @@
           "sha256": "9fa289b37f6a8d5e2efa7eeaa307797ba74cbf81242d8ade3c8d3f2189f19384"
         }
       ],
-      "assessment": "focused-evidence-recorded"
+      "assessment": "qualified"
     },
     {
       "id": "4.4",
@@ -337,7 +337,7 @@
           "sha256": "f35b3d2e3a4b756c9702d5ed94248f21c7c277f544312f8ae44be1d4ec04ab40"
         }
       ],
-      "assessment": "focused-evidence-recorded"
+      "assessment": "qualified"
     },
     {
       "id": "5.1",
@@ -353,7 +353,7 @@
           "sha256": "87240407200704808386e756c7b482bf419338c1e9b715b3ca36215fb762184a"
         }
       ],
-      "assessment": "focused-evidence-recorded"
+      "assessment": "qualified"
     },
     {
       "id": "5.2",
@@ -369,7 +369,7 @@
           "sha256": "87240407200704808386e756c7b482bf419338c1e9b715b3ca36215fb762184a"
         }
       ],
-      "assessment": "focused-evidence-recorded"
+      "assessment": "qualified"
     },
     {
       "id": "5.3",
@@ -381,7 +381,7 @@
           "sha256": "87240407200704808386e756c7b482bf419338c1e9b715b3ca36215fb762184a"
         }
       ],
-      "assessment": "focused-evidence-recorded"
+      "assessment": "qualified"
     },
     {
       "id": "5.4",
@@ -401,7 +401,7 @@
           "sha256": "87240407200704808386e756c7b482bf419338c1e9b715b3ca36215fb762184a"
         }
       ],
-      "assessment": "focused-evidence-recorded"
+      "assessment": "qualified"
     },
     {
       "id": "6.1",
@@ -421,7 +421,7 @@
           "sha256": "52b3ba04dcfa2144e819cf4a2098baeec6e7e0f7b2184232df487d3906ba279e"
         }
       ],
-      "assessment": "focused-evidence-recorded"
+      "assessment": "qualified"
     },
     {
       "id": "6.2",
@@ -441,7 +441,7 @@
           "sha256": "af2e0edc6ec814ff87c390dde9d5eb77f96b1e6d3adfe30db06498db5b2fa9c3"
         }
       ],
-      "assessment": "focused-evidence-recorded"
+      "assessment": "qualified"
     },
     {
       "id": "6.3",
@@ -466,14 +466,14 @@
         },
         {
           "path": "release-qualification.json",
-          "sha256": "e5df110172f3aab14d096a7adacf3d70bdac7937c722d83d063b2190cf2bd364"
+          "sha256": "26af3b49663eec649a4e7df3ce5fe06caedd8d25fb59ae4dc944e9f5f4db4689"
         },
         {
           "path": "final-core-qualification.json",
-          "sha256": "902488b96f3a65f09e22e86e8c57742aa695e700d6a21768cabd666d08d72d39"
+          "sha256": "b32997cfcf7c1e08ae0085daf99d47201d6546a587992e70b82b9c5f8247a640"
         }
       ],
-      "assessment": "focused-evidence-recorded",
+      "assessment": "qualified",
       "qualification_limit": "Country/display matrices use the final core. Older legacy keyboard records retain their COMMAND hash and match unchanged BIOS, kernel and locale/keyboard component bytes; final-core AT-84 text integration is independently qualified."
     },
     {
@@ -494,7 +494,7 @@
           "sha256": "9d4784d8efeba0eb70d831a7662c8e112e0b98e65d91137f6e00b6020895bfea"
         }
       ],
-      "assessment": "focused-evidence-recorded"
+      "assessment": "qualified"
     },
     {
       "id": "6.5",
@@ -507,15 +507,15 @@
         },
         {
           "path": "memory-requalification.json",
-          "sha256": "2e05e4ad81a237515dd73dc8ba0979d1c779d9b329c2bdc55a5d610680c5da10"
+          "sha256": "5f2746154b0a24dd6fc3e35ae73b047d6e0909cfa94b6153fbf2ff3bd5087fa1"
         },
         {
           "path": "release-qualification.json",
-          "sha256": "e5df110172f3aab14d096a7adacf3d70bdac7937c722d83d063b2190cf2bd364"
+          "sha256": "26af3b49663eec649a4e7df3ce5fe06caedd8d25fb59ae4dc944e9f5f4db4689"
         }
       ],
-      "assessment": "pending-release-completion",
-      "qualification_limit": "Pristine builds, composed memory campaign, ordinary IBM AT acceptance and baseline memory matrix passed. The full suite remains active."
+      "assessment": "qualified",
+      "qualification_limit": "Pristine builds, matched composed-memory campaign, ordinary IBM AT acceptance, baseline memory matrix and full release suite passed."
     },
     {
       "id": "6.6",
@@ -524,19 +524,16 @@
       "evidence": [
         {
           "path": "release-qualification.json",
-          "sha256": "e5df110172f3aab14d096a7adacf3d70bdac7937c722d83d063b2190cf2bd364"
+          "sha256": "26af3b49663eec649a4e7df3ce5fe06caedd8d25fb59ae4dc944e9f5f4db4689"
         }
       ],
-      "assessment": "pending-release-completion"
+      "assessment": "qualified"
     }
   ],
   "retained_evidence_integrity": {
     "scope": "Explicit review/path plus sha256 objects in retained qualification JSON files",
-    "checked": 236,
+    "checked": 277,
     "failures": []
   },
-  "remaining": [
-    "Obtain a successful terminal result from the full release suite.",
-    "Refresh the final acceptance audit and only then close the Russian item."
-  ]
+  "remaining": []
 }

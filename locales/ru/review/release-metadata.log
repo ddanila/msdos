@@ -1,0 +1,19 @@
+python3 tests/test_ru_contract.py
+....
+----------------------------------------------------------------------
+Ran 4 tests in 0.001s
+
+OK
+python3 tests/test_ru_font_sources.py
+......
+----------------------------------------------------------------------
+Ran 6 tests in 0.232s
+
+OK
+python3 tools/build_ru_cpi.py --output /Users/ddanila/fun/msdos/src/DEV/DISPLAY/EGA/EGA866.CPI
+python3 tests/test_ru_cpi.py
+....
+----------------------------------------------------------------------
+Ran 4 tests in 0.270s
+
+OK

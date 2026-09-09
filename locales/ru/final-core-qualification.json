@@ -206,9 +206,7 @@
   "backend_provenance": "text-286-qualification.json",
   "private_country_artifacts": "out/ru-country-286-dxs6so6k",
   "driver": "out/ru-final-bios-e51u78lr/results.json",
-  "remaining": [
-    "Full release suite."
-  ],
+  "remaining": [],
   "display": {
     "status": "selected-cases-passed",
     "core_sha256": {
@@ -641,5 +639,6 @@
         "final_command_sha256": "6742b5889141a9c61d41e336445014d8055c19758febf4263f4f8ebe3c2f2c29"
       }
     ]
-  }
+  },
+  "release_record": "release-qualification.json"
 }

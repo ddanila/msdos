@@ -1,4 +1,9 @@
-# Russian locale inputs and display support
+# Russian / CP866 support
+
+The optional Russian increment is qualified. Use the shipped
+[startup recipe](RUSSIAN.TXT) to enable it. The [acceptance audit](acceptance-audit.json)
+and [release record](release-qualification.json) define the completed scope;
+individual reports below retain their original run identities.
 
 [manifest.json](manifest.json) pins the published CP866 mapping and candidate
 font inputs, their source revisions, SHA-256 hashes and licenses. Vendored
@@ -105,13 +110,11 @@ CHCP 866
 ```
 
 It uses `COUNTRY=007,866,COUNTRY.SYS` and
-`DEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))` in CONFIG.SYS. This is a test recipe;
-the installed-path recipe will include KEYB when the RU library is ready.
-
-Keyboard implementation, modifier/keyboard-variant guest checks, installation
-and end-to-end qualification remain open. The complete scope and acceptance
-gates remain in [RUSSIAN.md](../../RUSSIAN.md). The current build does not yet ship
-an installable Russian pack or change the English default boot.
+`DEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))` in CONFIG.SYS. For the complete
+installed-path recipe, including KEYB and startup ordering, use
+[RUSSIAN.TXT](RUSSIAN.TXT). The optional pack ships with the distribution;
+the default boot and messages remain English. The scope and acceptance
+gates are recorded in [RUSSIAN.md](../../RUSSIAN.md).
 
 The optional RU-only `src/DEV/KEYBOARD/KEYBRD2.SYS` is built from
 [KDFRU.ASM](../../src/DEV/KEYBOARD/KDFRU.ASM) using the existing KEYB macros.
@@ -140,12 +143,12 @@ COUNTRY line must precede memory-manager DEVICE lines as documented in the
 recipe. The default startup stays English.
 
 [Packaging qualification](packaging-qualification.json) records deterministic
-media hashes, remaining capacity, deployed files and remaining qualification.
+media hashes, available capacity and deployed files.
 
 [Installation qualification](installation-qualification.json) records strict
 guest completion, country/code-page and physical-input checks, runtime HMA/UMB
 and LOW checks, and the retained CONFIG ordering failure. The profile gate
-below covers display planes; real-BIOS 286/end-to-end tests remain open.
+below covers display planes; real-BIOS and end-to-end records follow.
 
 `make test-ru-profiles-qemu` verifies the selected production core in each
 private image, runtime memory placement, loaded VGA glyph bytes and NLS
@@ -156,7 +159,7 @@ DS instead of ES; its instruction trace and corrected-core results are retained.
 The single-page installed recipe is covered by the installation gate. Use
 `--profile high --part country` on the Python runner with `MEMORY_CORE_DIR`
 set to select the NLS subsystem; results are saved incrementally, including
-failure details. Full release qualification of the changed kernel remains open.
+failure details. The changed kernel passed the [full release suite](release-qualification.json).
 
 [Modifier qualification](modifier-qualification.json) adds BIOS and DOS physical
 input checks for both Shift keys, Caps punctuation, right Ctrl, Alt-letter
@@ -178,8 +181,8 @@ CGA configuration is unchanged.
 286 prototype failure: NASM emitted 386-only conditional branches in probes
 without an explicit CPU target. The locale probes now declare `cpu 8086`.
 The report records successful country/CP866 and initial AT-84 input checks,
-plus HIGH/LOW QEMU regressions. Full older-keyboard and 286 matrices remain
-open; the initial input sequence does not cover the whole Russian alphabet.
+plus HIGH/LOW QEMU regressions. The fuller keyboard and 286 matrices below
+extend this initial input sequence to the whole Russian alphabet.
 
 [AT-84 input qualification](at84-qualification.json) extends the initial
 sequence to the complete Russian alphabet with Caps/Shift combinations,
@@ -197,8 +200,8 @@ MEMORY_CORE_DIR=out/memory-production/files \
 `--qt-platform offscreen` supports a Qt backend built with that plugin;
 `--input bios` or `--input dos` selects one input path. The runner reserves
 local port 5900 and uses private images. Unavailable right Alt/Ctrl events
-are excluded, and navigation uses the old physical keypad. Legacy reload
-and rejection checks and XT-83 input remain open.
+are excluded, and navigation uses the old physical keypad. Legacy reload,
+rejection and XT-83 input have separate records below.
 
 [XT-83 input qualification](xt83-qualification.json) uses the same command
 with `--machine xt83`. The runner reformats its private template to 360 KiB
@@ -206,7 +209,7 @@ for the IBM XT BIOS, verifies the selected boot-core bytes, and asserts the
 resident XT keyboard type. The 8088 executes the same BIOS/DOS input matrix
 as the AT-84 case. Startup configurations are retained before 86Box writes
 runtime settings. XT font rendering, legacy reload/rejection cases and the
-remaining Russian release gates are outside this input qualification.
+other Russian release gates are outside this input qualification.
 
 [Legacy load-state qualification](legacy-load-qualification.json) adds
 `--suite lifecycle` to the legacy runner for either `--machine at84` or
@@ -289,29 +292,24 @@ all profiles. The text and filesystem QEMU gates are included in `make test`.
 
 [Pristine build qualification](reproducibility-qualification.json) records
 identical declared artifacts and composed production cores across serial and
-parallel builds. Full runtime release qualification remains open.
+parallel builds. The selected release artifacts match those outputs.
 
-[Memory requalification](memory-requalification.json) reruns the composed
-allocation/relocation failure matrix with the changed kernel and COMMAND.
-The record distinguishes deliberate fault variants from the selected core.
-The matched reboot, application lifecycle, cancellation, asynchronous A20,
-COMMAND failure/policy and startup-profile campaign also passes. Remaining
-full-suite, baseline and hardware release gates remain open.
+[Memory requalification](memory-requalification.json) covers the changed kernel
+and COMMAND with allocation/relocation failure, reboot, application lifecycle,
+cancellation, asynchronous A20, COMMAND fallback and startup-profile gates.
 
-[Release qualification](release-qualification.json) tracks the full-suite
-completion gate. It records a repaired KEYBRD2 runtime-manifest omission and
-the validation of wired Python test evidence. The ordinary-build IBM AT
-acceptance suite and memory/kernel matrix pass, including warm-reboot
-persistence; their scope is separate from the matched production campaign.
-Full release completion
-is not yet claimed.
+[Release qualification](release-qualification.json) records the successful full
+suite, including its final command regressions, and the ordinary-build IBM AT
+acceptance and memory/kernel matrix. Earlier manifest failures and their
+repairs remain in the record. Baseline evidence is scoped separately from the
+matched production campaign.
 
-[Acceptance audit](acceptance-audit.json) maps each implementation-plan bullet
-to retained evidence and keeps final-core and release limitations explicit.
-It is a completion checklist, not a declaration that the remaining gates pass.
+[Acceptance audit](acceptance-audit.json) maps every implementation-plan bullet
+to retained evidence and closes only this Russian increment.
 
 [Final-core locale qualification](final-core-qualification.json) refreshes the
-real-BIOS country/NLS matrix after the COMMAND collation change. All country
-cases and the deliberate case-table failure pass on the final core. The
-matching display matrix also passes all CP866 heights, existing pages and
-the wrong-glyph control. Font planes and rendered captures are retained.
+real-BIOS country/NLS and display matrices after the COMMAND collation change.
+It includes CP866 heights, existing pages and deliberate case-table/glyph
+failures. Font planes and rendered captures are retained. Older keyboard
+records retain their original COMMAND hash; unchanged component identities
+and final-core text integration support their documented scope.
