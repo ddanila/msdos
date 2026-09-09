@@ -1,0 +1,18 @@
+diff --git a/src/vnc.c b/src/vnc.c
+index cd539f5..e64b739 100644
+--- a/src/vnc.c
++++ b/src/vnc.c
+@@ -1,3 +1,4 @@
++#include <arpa/inet.h>
+ /*
+  * 86Box    A hypervisor and IBM PC system emulator that specializes in
+  *          running old operating systems and software designed for IBM
+@@ -234,6 +235,8 @@ vnc_init(UNUSED(void *arg))
+         rfb->width  = allowedX;
+         rfb->height = allowedY;
+ 
++        rfb->listenInterface = inet_addr("127.0.0.1");
++        rfb->listen6Interface = strdup("::1");
+         rfbInitServer(rfb);
+ 
+         rfbRunEventLoop(rfb, -1, TRUE);

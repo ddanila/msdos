@@ -165,3 +165,12 @@ have an explicit project-defined priority in the manifest. Each case checks
 released modifier bits and an empty input queue. Select these cases with
 `--case modifier-edges --case modifier-edges-dos`; they also run in the default
 keyboard gate. Results are retained incrementally if a later case fails.
+
+[Legacy backend bootstrap](legacy-backend-qualification.json) records real-BIOS
+IBM AT boots and guest-requested emulator exits through the 86Box Unit Tester.
+`tests/test_86box_guest_exit.py` requires both a DOS completion marker and the
+expected process status, including a deliberate failing status. The record
+also pins the private VNC-enabled backend and its loopback-only listener patch.
+The CMOS seeder accepts `--display vga` for VGA/EGA equipment bits; its default
+CGA configuration is unchanged. The Russian 286 prototype remains unqualified:
+the country probe reaches its first query stage but does not complete it.

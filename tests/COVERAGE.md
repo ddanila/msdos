@@ -248,3 +248,10 @@ HIGH/UMB and LOW. `make test-ru-profiles-qemu`, included in `make test`, detects
 the former generic-IOCTL segment error when preparing three DISPLAY pages.
 The report retains its instruction trace and successful corrected-core runs.
 The changed kernel still requires full release qualification.
+
+The [legacy backend bootstrap](../locales/ru/legacy-backend-qualification.json)
+records `tests/test_86box_guest_exit.py` with a selected production core. It
+requires DOS completion and guest-requested success/failure process statuses
+on the real-BIOS IBM AT. This establishes the exit mechanism for forthcoming
+Russian 286 gates; it does not qualify their country, keyboard or display
+behavior. The record pins the emulator build, BIOS ROMs and retained logs.

@@ -1,0 +1,110 @@
+{
+  "emulator": "/Users/ddanila/fun/msdos/out/ru-86box-vnc-bs283qnk/build/src/86Box",
+  "emulator_sha256": "fb1fecce1e36891ce9b4c99ec4e807bcbe648f3f816934b341e467d31ada9eef",
+  "core_sha256": {
+    "COMMAND.COM": "f60f680336572c2c1375fbeae7f54b074ac6e365f35638a62822572bece584ba",
+    "HIMEM.SYS": "340cbfd1f0e835755adce99d80c607f8edeb48ea2b20a6a142402a25434f8d13",
+    "MSDOS.SYS": "1475174f50c8c349bedd7cd4a0be88bce055f2e411b7454b5f68fffbff269b62",
+    "IO.SYS": "793169a292df40bb117eb487136a0d8e7f4334ca223e8206bf53f33141f24715",
+    "EMM386.EXE": "58266b6614594de7a9cfde9eda75e3eb241b9e2e941e67b70645a0f8a197dae6"
+  },
+  "status": "passed",
+  "cases": [
+    {
+      "expected_status": 0,
+      "exit_status": 0,
+      "log": "review/86box-exit-0.log",
+      "log_sha256": "3e9b665854255baafc557c86225e75aed87c48d545f60a3ba371cd74850667c8"
+    },
+    {
+      "expected_status": 1,
+      "exit_status": 1,
+      "log": "review/86box-exit-1.log",
+      "log_sha256": "485adc31442904fba21fb771756a14d245a44ce117246789c86350ddea606721"
+    }
+  ],
+  "schema_version": 1,
+  "scope": "Backend bootstrap only: real IBM AT BIOS boot with DOS=LOW and guest-controlled exit statuses. Russian 286 country/keyboard/display qualification remains open.",
+  "booted_core_files": [
+    "IO.SYS",
+    "MSDOS.SYS",
+    "COMMAND.COM"
+  ],
+  "private_artifacts": "out/86box-exit-0qy6zg6a",
+  "backend_build": {
+    "source_commit": "48343d36efd3854af9e1c8540c705bba6605e26c",
+    "source_url": "https://github.com/86Box/86Box",
+    "private_directory": "out/ru-86box-vnc-bs283qnk",
+    "local_patch": "review/86box-vnc-loopback.patch",
+    "patch_sha256": "4734f025f3653b1cd448b2a151dc18047a6103f83e5628d0c31eb168bc134bff",
+    "cmake_options": [
+      "-G Ninja",
+      "-DCMAKE_BUILD_TYPE=Release",
+      "-DVNC=ON",
+      "-DQT=ON",
+      "-DUSE_QT6=ON",
+      "-DCMAKE_MACOSX_BUNDLE=OFF",
+      "-DRTMIDI=OFF",
+      "-DFLUIDSYNTH=OFF",
+      "-DMUNT=OFF",
+      "-DSOUNDCANVAS=OFF",
+      "-DDISCORD=OFF",
+      "-DLIBRASHADER=OFF",
+      "-DOPENAL=ON",
+      "-DOPENAL_INCLUDE_DIR=/opt/homebrew/opt/openal-soft/include",
+      "-DOPENAL_LIBRARY=/opt/homebrew/opt/openal-soft/lib/libopenal.dylib",
+      "-DCMAKE_PREFIX_PATH=/opt/homebrew/opt/qtbase;/opt/homebrew/opt/qttools;/opt/homebrew/opt/qtimageformats"
+    ],
+    "build_command": "cmake --build BUILD -j4",
+    "qt_platform": "offscreen",
+    "vnc_listeners_verified": [
+      "127.0.0.1:5900",
+      "[::1]:5900"
+    ]
+  },
+  "commands": [
+    "MEMORY_CORE_DIR=out/memory-production/files python3 tests/test_86box_guest_exit.py --emulator out/ru-86box-vnc-bs283qnk/build/src/86Box --roms \"$HOME/Library/Application Support/net.86box.86Box/roms\" --qt-platform offscreen"
+  ],
+  "inputs": {
+    "tests/86box_exit.asm": {
+      "sha256": "b2c9c5fc9911b42c3c8e32048404d42faaaf863a8ee18d23ccac6395b345a5a8",
+      "size": 746
+    },
+    "tests/test_86box_guest_exit.py": {
+      "sha256": "a32aefd1b0c296f2ca71e79bf106eb605d2e73a7215b4337a5742a196d8c2cf2",
+      "size": 3992
+    },
+    "tests/seed_86box_ibmat_nvram.py": {
+      "sha256": "de41853b6fe7ccd79c50ae17e907793c719cbc00cc9739db15ff47711cca2ee5",
+      "size": 1891
+    },
+    "tests/86box_286_lib.sh": {
+      "sha256": "c35916e91ddb7c2d04a3d5e343631f4ee305b1963f3358bdcaa65c0842ce329e",
+      "size": 5111
+    },
+    "tests/86box/ibmat-286.cfg": {
+      "sha256": "b040850330e6ae7077cffe0fed626d911a56bb1fff8103d365013ee56d08821a",
+      "size": 667
+    },
+    "tests/86box/global.cfg": {
+      "sha256": "71ebf2cb3a79318d8f4d3446f2af8ae68c0febc57690ef33f87f70d59fdd5290",
+      "size": 106
+    }
+  },
+  "rom_sha256": {
+    "machines/ibmat/BIOS_5170_15NOV85_U27.BIN": "096ce496a06002eb68a5bc5db128a38dd7f27a4eda16ad7342c8076f1fc40683",
+    "machines/ibmat/BIOS_5170_15NOV85_U47.BIN": "4e4692031297e74053e37c8632dc73706de97d847d8f0e12995b4f009e5c71fe",
+    "video/vga/ibm_vga.bin": "51b49761f72780a696c36f3d2e74a8168c1c99b865070f7f90b8e621a8b5ae17"
+  },
+  "remaining": [
+    "Complete AT 84-key, XT 83-key and real-BIOS 286 Russian country/display checks.",
+    "Diagnose P866.COM not completing in the real-BIOS 286 prototype; stage-traced private probe is pending.",
+    "End-to-end text/filesystem tests and full release/reproducibility qualification."
+  ],
+  "diagnostic": {
+    "status": "open",
+    "private_artifacts": "out/ru-at84-country-stage-ad7ox463",
+    "observed": "P866.COM prints stage 1 before its INT 21h AX=6601h query, but does not reach the next stage. This does not yet distinguish the query itself from its validation/failure path.",
+    "next_action": "Trace the query return and first-stage comparisons before diagnosing a kernel defect."
+  }
+}

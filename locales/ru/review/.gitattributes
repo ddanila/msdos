@@ -4,3 +4,7 @@
 # Installer console echo can emit repeated CR bytes before LF. Keep the
 # raw captures (and their recorded hashes) instead of normalizing them.
 install-*.log -text -whitespace
+
+# Preserve emitted Qt diagnostics and unified-diff context bytes.
+86box-exit-*.log -text -whitespace
+86box-vnc-loopback.patch -text -whitespace

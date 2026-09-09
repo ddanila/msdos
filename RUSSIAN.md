@@ -151,6 +151,9 @@ read through the SFT pointer returned in ES:DI. The corrected production core
 passes both profile matrices; the report retains the failing instruction trace.
 Real-BIOS 286 and end-to-end/release work remain open, including full release
 qualification of the changed kernel.
+[Legacy backend bootstrap](locales/ru/legacy-backend-qualification.json)
+establishes guest-controlled 86Box exits; the Russian country probe still
+requires diagnosis before the 286 locale gate can pass.
 
 Existing implementation and test entry points:
 

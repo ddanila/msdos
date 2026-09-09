@@ -14,6 +14,7 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("output", type=Path)
     parser.add_argument("--extended-kib", type=int, default=2048)
+    parser.add_argument("--display", choices=("cga", "vga"), default="cga")
     args = parser.parse_args()
     if not 0 <= args.extended_kib <= 0xFFFF:
         parser.error("--extended-kib must fit in the IBM AT CMOS field")
@@ -36,7 +37,8 @@ def main() -> None:
     cmos[0x0F] = 0x00
     cmos[0x10] = 0x20  # Drive A: 1.2 MiB, drive B: absent.
     cmos[0x12] = 0x00  # No fixed disks.
-    cmos[0x14] = 0x21  # Diskette installed, 80-column color display.
+    # Equipment byte: VGA/EGA has display bits clear; CGA uses 80 columns.
+    cmos[0x14] = 0x01 if args.display == "vga" else 0x21
     cmos[0x15:0x17] = (640).to_bytes(2, "little")
     cmos[0x17:0x19] = args.extended_kib.to_bytes(2, "little")
     checksum = sum(cmos[0x10:0x2E]) & 0xFFFF
