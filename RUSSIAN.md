@@ -134,8 +134,9 @@ country records, DOS/NLSFUNC APIs, CHCP transitions and rejection tests.
 [Keyboard qualification](locales/ru/keyboard-qualification.json) covers the
 RU library, initial Latin mode, Alt+Shift selections, enhanced-keyboard
 BIOS/DOS byte checks and switching through the existing German layout.
-The manifest keeps older keyboard variants, remaining modifier edge cases,
-installation and end-to-end gates visible. The distribution contains the
+[Modifier qualification](locales/ru/modifier-qualification.json) covers the
+remaining enhanced-keyboard precedence and release cases. The manifest keeps
+older keyboard variants and end-to-end gates visible. The distribution contains the
 optional resources, instructions and font notices; packaging and the startup
 recipe have focused gates. Fresh/upgrade copying and installed HIGH/UMB and
 LOW country/keyboard boots are covered by

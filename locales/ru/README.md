@@ -157,3 +157,11 @@ The single-page installed recipe is covered by the installation gate. Use
 `--profile high --part country` on the Python runner with `MEMORY_CORE_DIR`
 set to select the NLS subsystem; results are saved incrementally, including
 failure details. Full release qualification of the changed kernel remains open.
+
+[Modifier qualification](modifier-qualification.json) adds BIOS and DOS physical
+input checks for both Shift keys, Caps punctuation, right Ctrl, Alt-letter
+passthrough and third-shift priority. Overlapping language-selection shortcuts
+have an explicit project-defined priority in the manifest. Each case checks
+released modifier bits and an empty input queue. Select these cases with
+`--case modifier-edges --case modifier-edges-dos`; they also run in the default
+keyboard gate. Results are retained incrementally if a later case fails.

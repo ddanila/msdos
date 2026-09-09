@@ -605,7 +605,7 @@
   "unresolved": [
     "HIGH/UMB three-page DISPLAY preparation fails in the NLS transition gate; diagnosis and fix required",
     "Physical keyboard verification on 83/84-key variants and real-BIOS 286",
-    "Complete modifier-precedence edges, shell/editor/pipes, Cyrillic filesystem persistence, full release and reproducibility"
+    "Shell/editor/pipes, Cyrillic filesystem persistence, full release and reproducibility"
   ],
   "behavior": {
     "reference": "dos622-reference.json",
@@ -725,7 +725,15 @@
         "shifted_7": "?"
       },
       "control_navigation": "Preserve BIOS scan/ASCII behavior for control, function, navigation and keypad keys; release events produce no text. Ctrl-letter uses the US physical key control code.",
-      "third_shift": "Use state 7 for right Alt, and Ctrl+Alt compatibility combination, subject to guest validation of modifier precedence."
+      "third_shift": "State 7 for right Alt or Ctrl+Alt; in Russian mode it takes precedence over ordinary Shift and Caps. Unmapped Alt-letter chords preserve the US BIOS scan/ASCII result.",
+      "overlapping_shortcuts": {
+        "contract": "Project-defined priority; not claimed as a retail compatibility oracle.",
+        "shift_make_with_alt_held": "The newly pressed Shift selects its language.",
+        "alt_make_with_both_shifts_held": "Right Shift wins, selecting Russian.",
+        "release": "Does not change language selection.",
+        "right_alt": "Accepts the same Shift selections as left Alt."
+      },
+      "modifier_qualification": "modifier-qualification.json"
     },
     "deliberate_differences": [
       "The initial pack selects country pages 866, 437 and 850; retail Russian pages 855 and 852 are outside this increment.",

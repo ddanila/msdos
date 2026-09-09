@@ -220,6 +220,11 @@ a wrong Yo byte and verifies typed RU/GR/RU reloads. Older keyboard variants
 and complete locale qualification remain open in
 [RUSSIAN.md](../RUSSIAN.md).
 
+[Modifier qualification](../locales/ru/modifier-qualification.json) extends the
+physical keyboard gate with BIOS/DOS checks of Caps punctuation, both Shifts,
+right Ctrl, Alt-letter passthrough, third-shift priority and overlapping
+language selections. These cases verify released flags and empty input queues.
+
 The RU keyboard guest gate also rejects missing/invalid libraries and
 unsupported page, identifier and layout selections, then verifies typed input
 in the prior Russian mode. It executes the startup sections from the shipped

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Physical QMP keyboard input, independent BIOS byte oracle, private media."""
+import argparse
 import hashlib
 import json
 import os
@@ -72,10 +73,57 @@ def steps():
     return cases
 
 
-def run_case(work, base, name, corrupt=False, dos=False, reload=False, reject=None, recipe=False):
+
+def modifier_steps():
+    """Independent physical-key expectations for modifier priority and release."""
+    cases=[]
+    def tap(*keys):
+        return [(key,True) for key in keys]+[(key,False) for key in reversed(keys)]
+    def add(name,keys,value):
+        cases.append({'name':name,'keys':keys,'bios_ax':value})
+    add('select Russian',tap('alt','shift_r')+tap('q'),0xa9)
+    add('both Shifts count as Shift',tap('shift','shift_r','q'),0x89)
+    add('Caps enabled',tap('caps_lock')+tap('q'),0x89)
+    add('Caps with both Shifts',tap('shift','shift_r','q'),0xa9)
+    # Caps changes letters only; these DOS punctuation facts are in the contract.
+    for key,scan,lower,upper in [('slash',0x35,46,44),('3',4,51,252),
+                               ('4',5,52,59),('6',7,54,58),('7',8,55,63),
+                               ('backslash',0x2b,92,47)]:
+        add('Caps punctuation '+key,tap(key),(scan<<8)|lower)
+        add('Caps shifted punctuation '+key,tap('shift_r',key),(scan<<8)|upper)
+    # Ctrl codes follow US physical letter positions regardless of Caps/Shift.
+    for modifier in ['ctrl','ctrl_r']:
+        for key,scan,control in [('q',0x10,17),('a',0x1e,1),('z',0x2c,26)]:
+            add('Caps '+modifier+' '+key,tap(modifier,key),(scan<<8)|control)
+            add('Caps Shift '+modifier+' '+key,tap('shift_r',modifier,key),(scan<<8)|control)
+    add('Caps disabled',tap('caps_lock')+tap('q'),0xa9)
+    for modifiers in [('alt',),('alt_r',),('ctrl','alt')]:
+        add('Alt-letter BIOS passthrough '+str(modifiers),tap(*modifiers,'q'),0x1000)
+    # Right Shift keeps Russian selected. Third shift outranks ordinary Shift.
+    for modifiers in [('alt_r','shift_r'),('ctrl','alt','shift_r'),
+                      ('ctrl_r','alt','shift_r'),('ctrl','alt_r','shift_r')]:
+        for key,scan,value in [('3',4,35),('4',5,253),('slash',0x35,47)]:
+            add('third shift priority '+str(modifiers)+' '+key,tap(*modifiers,key),(scan<<8)|value)
+    # A modifier make selects the language; releasing it cannot change selection.
+    for keys,value in [(('alt','shift_r','shift'),0x1071),
+                       (('alt','shift','shift_r'),0xa9),
+                       (('shift','shift_r','alt'),0xa9),
+                       (('shift_r','shift','alt'),0xa9),
+                       (('alt_r','shift'),0x1071),
+                       (('alt_r','shift_r'),0xa9)]:
+        add('selection precedence '+str(keys),tap(*keys)+tap('q'),value)
+    add('ordinary Russian after releases',tap('q'),0xa9)
+    add('return Latin',tap('alt','shift')+tap('q'),0x1071)
+    add('Latin Caps',tap('caps_lock')+tap('q'),0x1051)
+    add('Latin Caps Shift',tap('shift_r','q'),0x1071)
+    add('Latin Caps off',tap('caps_lock')+tap('q'),0x1071)
+    return cases
+
+
+def run_case(work, base, name, corrupt=False, dos=False, reload=False, reject=None, recipe=False, cases=None):
     directory=work/name
     directory.mkdir()
-    cases=steps()
+    cases=steps() if cases is None else cases
     if reload:
         def tap(*keys):
             return [(key,True) for key in keys]+[(key,False) for key in reversed(keys)]
@@ -211,13 +259,33 @@ def run_case(work, base, name, corrupt=False, dos=False, reload=False, reject=No
 
 
 def main():
+    selections = {'physical':{},'dos-input':{'dos':True},'wrong-yo':{'corrupt':True},
+                  'reload-existing':{'reload':True},'documented-recipe':{'recipe':True},
+                  'modifier-edges':{'cases':modifier_steps()},
+                  'modifier-edges-dos':{'cases':modifier_steps(),'dos':True}}
+    selections.update({'reject-'+name:{'reject':name} for name in
+        ('missing','bad-signature','short-header','unsupported-page','unsupported-id','unsupported-layout')})
+    parser=argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--case',choices=list(selections),action='append')
+    args=parser.parse_args()
     work=Path(tempfile.mkdtemp(prefix='ru-keyboard-',dir=ROOT/'out'))
     print(f'Russian keyboard artifacts: {work}',flush=True)
     base=Path(os.environ.get('FLOPPY_IMAGE',ROOT/'out/floppy.img'))
-    results=[run_case(work,base,'physical'),run_case(work,base,'dos-input',dos=True),run_case(work,base,'wrong-yo',True),run_case(work,base,'reload-existing',reload=True)]
-    results.append(run_case(work,base,'documented-recipe',recipe=True))
-    results.extend(run_case(work,base,'reject-'+name,reject=name) for name in ('missing','bad-signature','short-header','unsupported-page','unsupported-id','unsupported-layout'))
-    (work/'results.json').write_text(json.dumps({'cases':results},indent=2)+'\n')
+    report={'status':'running','cases':[]}
+    def save():
+        (work/'results.json').write_text(json.dumps(report,indent=2)+'\n')
+    save()
+    try:
+        for name in args.case or selections:
+            report['cases'].append(run_case(work,base,name,**selections[name]))
+            save()
+    except Exception as error:
+        report['status']='failed'
+        report['failure']=str(error)
+        save()
+        raise
+    report['status']='selected-cases-passed'
+    save()
 
 
 if __name__=='__main__':
