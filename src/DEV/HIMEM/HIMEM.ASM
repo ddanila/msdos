@@ -1612,9 +1612,9 @@ print_bios_done:
 print_bios_string endp
 
 ; Destructively verify every byte of the XMS span before the manager publishes
-; it. Each 1-KiB block is written and read back with complementary patterns.
-; INT 15h/87h keeps this path 286-safe and reuses the same transfer mechanism
-; later exposed through XMS function 0Bh.
+; it. Real-mode 386+ boots use bounded direct-access chunks. The BIOS-backed
+; 1-KiB loop remains the 286 and protected-environment fallback. Both paths
+; write and verify complementary patterns over the complete reported span.
 test_extended_memory proc near
         push    ax
         push    bx
@@ -1623,6 +1623,14 @@ test_extended_memory proc near
         push    si
         push    di
         push    es
+        cmp     [cpu_386], 0
+        je      short testmem_legacy
+        smsw    ax
+        test    al, 1
+        jnz     short testmem_legacy
+        call    test_memory_386
+        jmp     short testmem_done
+testmem_legacy:
         mov     word ptr [test_address], 0
         mov     word ptr [test_address+2], 0010h
         mov     ax, [extended_kb]
@@ -1722,6 +1730,8 @@ test_pattern_done:
         pop     ax
         ret
 test_memory_pattern endp
+
+        include TESTMEM386.INC
 
 ; Convert CS:AX to a physical DX:AX address.
 conventional_physical proc near

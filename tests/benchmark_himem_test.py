@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Compare default HIMEM test cost with /TESTMEM:OFF on matched DOS HDDs.
+r"""Compare default HIMEM test cost with /TESTMEM:OFF on matched DOS HDDs.
 
 Inputs must be bootable single-partition FAT16 images with their own HIMEM.SYS
 and EMM386.EXE at C:\. Microsoft media remain external inputs. All mutations

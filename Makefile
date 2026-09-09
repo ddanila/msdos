@@ -928,6 +928,10 @@ test-xms-umb-transaction-qemu: deploy
 
 test-himem-qemu: deploy
 	bash tests/test_himem_qemu.sh
+	python3 tests/test_himem_testmem_qemu.py
+	python3 tests/test_himem_testmem_qemu.py --production
+	python3 tests/test_himem_testmem_qemu.py --production --a20-backend bios --case partial-tail --case nmi-phase-2 --case nmi-phase-4
+	python3 tests/test_himem_testmem_qemu.py --production --a20-backend kbc --case partial-tail --case nmi-phase-2 --case nmi-phase-4
 
 test-himem-xms3-qemu: deploy
 	bash tests/test_himem_xms3_qemu.sh
