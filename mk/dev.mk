@@ -17,6 +17,7 @@ dev: \
     $(DEV_DIR)/XMA2EMS/XMA2EMS.SYS \
     $(DEV_DIR)/XMAEM/XMAEM.SYS \
     $(DEV_DIR)/DISPLAY/EGA/EGA.CPI \
+    $(DEV_DIR)/DISPLAY/EGA/EGA866.CPI \
     $(DEV_DIR)/DISPLAY/LCD/LCD.CPI \
     $(DEV_DIR)/PRINTER/5202/5202.CPI
 
@@ -195,6 +196,13 @@ $(DISPLAY_DIR)/DISPLAY.SYS: $(DISPLAY_DIR)/DISPLAY.EXE
 
 EGA_DIR  := $(DISPLAY_DIR)/EGA
 EGA_AINC := -I. -I..\\..\\..\\INC
+
+RU_FONT_INPUTS := $(wildcard locales/ru/upstream/*/*) \
+    locales/ru/upstream/CP866.TXT locales/ru/upstream/UNICODE-LICENSE.txt \
+    locales/ru/manifest.json locales/ru/font-edits.json
+
+$(EGA_DIR)/EGA866.CPI: tools/build_ru_cpi.py tools/audit_ru_fonts.py $(RU_FONT_INPUTS)
+	python3 tools/build_ru_cpi.py --output $@
 
 EGA_OBJS := \
     $(EGA_DIR)/CPI-HEAD.OBJ $(EGA_DIR)/437-CPI.OBJ $(EGA_DIR)/850-CPI.OBJ \

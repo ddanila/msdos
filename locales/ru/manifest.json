@@ -2,7 +2,7 @@
   "schema_version": 1,
   "locale": "ru",
   "code_page": 866,
-  "status": "reference-and-font-prototype",
+  "status": "fonts-built-and-guest-verified-country-keyboard-reference-captured",
   "sources": [
     {
       "path": "upstream/CP866.TXT",
@@ -587,23 +587,152 @@
   "display_mapping_note": "DOS graphical control slots are display-only; text encoding retains controls. Slot 00 is blank.",
   "fonts": {
     "8": {
-      "candidate": "512_8 sans",
-      "status": "coverage-audit"
+      "selected": "512_8 sans",
+      "edits": "font-edits.json",
+      "status": "VGA-plane-and-screen-verified"
     },
     "14": {
-      "candidate": "Cozette v.1.30.0",
-      "status": "coverage-audit"
+      "selected": "Cozette v.1.30.0 with 512_8 graphics",
+      "edits": "font-edits.json",
+      "status": "VGA-plane-and-screen-verified"
     },
     "16": {
-      "candidate": "Cozette v.1.30.0",
-      "status": "coverage-audit"
+      "selected": "Cozette v.1.30.0 with 512_8 graphics",
+      "edits": "font-edits.json",
+      "status": "VGA-plane-and-screen-verified"
     }
   },
   "unresolved": [
-    "Historical country formats, case and collation reference tables",
-    "Historical RU keyboard identifier, shortcuts and punctuation",
-    "Original replacements for uncovered or unsuitable glyphs; box-drawing edge continuity",
-    "Final font selection and visual acceptance",
-    "Guest drivers, installation and end-to-end qualification"
-  ]
+    "Guest verification of keyboard modifier precedence and 83/84/enhanced variants",
+    "Country and keyboard implementation and guest validation",
+    "Installation and end-to-end qualification"
+  ],
+  "behavior": {
+    "reference": "dos622-reference.json",
+    "public_reference": {
+      "title": "Microsoft MS-DOS 6.22 COUNTRY.TXT (KB Q117850)",
+      "url": "https://www.infania.net/misc/kbarchive/kb/117/Q117850/index.html",
+      "sections": [
+        "1.1",
+        "2",
+        "4"
+      ]
+    },
+    "country": {
+      "identifier": 7,
+      "default_code_page": 866,
+      "selected_code_pages": [
+        866,
+        437,
+        850
+      ],
+      "date_order": "DMY",
+      "date_separator": ".",
+      "time_format": "24-hour",
+      "time_separator": ":",
+      "thousands_separator": " ",
+      "decimal_separator": ".",
+      "currency_cp866_hex": "e02e",
+      "currency_latin": "r.",
+      "currency_digits": 2,
+      "currency_position": "after amount, separated by one space",
+      "list_separator": ";",
+      "uppercase": {
+        "ranges": [
+          {
+            "first": 160,
+            "last": 175,
+            "delta": -32
+          },
+          {
+            "first": 224,
+            "last": 239,
+            "delta": -80
+          }
+        ],
+        "pairs": [
+          [
+            241,
+            240
+          ],
+          [
+            243,
+            242
+          ],
+          [
+            245,
+            244
+          ],
+          [
+            247,
+            246
+          ]
+        ],
+        "other_high_bytes": "identity",
+        "ascii": "a-z to A-Z"
+      },
+      "filename_uppercase": "same as character uppercase",
+      "collation": "Exact DOS 6.22 CP866 weights in reference object 6; lower-case precedes corresponding upper-case; Yo follows Ie; pseudographics share weight 240. Do not derive from Unicode order or uppercase.",
+      "filename_rules": {
+        "lengths": [
+          8,
+          3
+        ],
+        "high_bytes": "128-255 accepted, single byte, subject to normal DOS path parsing",
+        "forbidden_hex": "222b2c2f3a3b3c3d3e5b5c5d7c",
+        "control_bytes": "00-20 excluded from a filename component",
+        "dot": "separates name and extension; dot and dot-dot are navigation entries",
+        "wildcards": "question mark matches one padded 8.3 field position; star fills remaining field positions with question marks",
+        "ordering": "DOS collation applies only where requested (for example DIR /O:N); FindFirst/FindNext enumerate directory entries"
+      },
+      "dbcs_lead_bytes": []
+    },
+    "keyboard": {
+      "code": "RU",
+      "identifier": 441,
+      "code_page": 866,
+      "layout": "DOS 6.22 Russian JCUKEN (not the modern Windows punctuation layout)",
+      "initial_mode": "Latin",
+      "latin_shortcut": "Alt+Left Shift",
+      "russian_shortcut": "Alt+Right Shift",
+      "shortcuts_are_selections_not_toggles": true,
+      "variants": [
+        "PC/XT 83-key",
+        "AT 84-key",
+        "enhanced 101/102-key"
+      ],
+      "alpha_states": {
+        "unshifted": 3,
+        "shifted": 4,
+        "caps_lock": 4,
+        "caps_lock_and_shift": 3
+      },
+      "nonalpha_states": {
+        "unshifted": 5,
+        "shifted": 6,
+        "caps_lock": "does not affect punctuation/digits"
+      },
+      "third_shift_state": 7,
+      "latin": "US BIOS character mapping; Caps Lock affects letters only",
+      "russian_alpha_bios_scan": 0,
+      "yo_scan": 41,
+      "russian_punctuation_examples": {
+        "unshifted_slash": ".",
+        "shifted_slash": ",",
+        "shifted_3": "U+2116 NUMERO SIGN",
+        "shifted_4": ";",
+        "shifted_6": ":",
+        "shifted_7": "?"
+      },
+      "control_navigation": "Preserve BIOS scan/ASCII behavior for control, function, navigation and keypad keys; release events produce no text. Ctrl-letter uses the US physical key control code.",
+      "third_shift": "Use state 7 for right Alt, and Ctrl+Alt compatibility combination, subject to guest validation of modifier precedence."
+    },
+    "deliberate_differences": [
+      "The initial pack selects country pages 866, 437 and 850; retail Russian pages 855 and 852 are outside this increment.",
+      "The RU library contains RU/866 only; changing to a Latin country code page requires selecting an existing keyboard layout.",
+      "Retail RU/866 includes an unexposed lowercase object (kind 3) and omits filename rules (kind 5). The implementation will expose existing DOS country APIs with an explicit shared filename-rules object, using the RU/437 rules. No new lowercase API is promised.",
+      "Fonts use permissively licensed modern bitmap sources; shapes need not match retail EGA3.CPI."
+    ],
+    "reference_sha256": "f1b81253030de6bcbee4db96d11b7ac71b57984b568e07a310aff03159add63b"
+  }
 }

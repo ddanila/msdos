@@ -1,0 +1,155 @@
+{
+  "schema_version": 1,
+  "base_image_sha256": "5c07bccc5b3e6936b78d57a306040ca6c536f1c36b58327a090d33410a8b2315",
+  "cpi_sha256": "efa06cb267a370fab3db71fb85f73711b750ec04498b40b6cc6a4a2be2e3d7ad",
+  "cases": [
+    {
+      "page": 866,
+      "height": 16,
+      "emulator_exit": 33,
+      "guest_completion": true,
+      "mismatched_slots": [],
+      "negative_control": false,
+      "font_plane_sha256": "fa1c87db74cad6b69c5a4bf1e7bb6fc625e31e4a92956dbf741c6eefa3f640d5",
+      "screen": "review/guest-8x16.png",
+      "font_plane": "review/vga-866-16.bin",
+      "source_ppm_sha256": "ed77b366bee3185e8b1eace94cbea201ae99b33e84011fa05a5cb342953e2b95",
+      "screen_sha256": "ad79b5c2d2ac1e7facd515dfa428186d66fc6324a22d6222f2f61b9c89034fd4"
+    },
+    {
+      "page": 866,
+      "height": 14,
+      "emulator_exit": 33,
+      "guest_completion": true,
+      "mismatched_slots": [],
+      "negative_control": false,
+      "font_plane_sha256": "d4285fd65cbb4aa83656c95f7e180d784df273dd51fcffa1c7c8fa614310bd1f",
+      "screen": "review/guest-8x14.png",
+      "font_plane": "review/vga-866-14.bin",
+      "source_ppm_sha256": "01fc414799f5a7c2d4c6b90548c792d12eb90209320bc0be8560320a183cbe9e",
+      "screen_sha256": "54b279dcdbd795c85040641cb76a4cdf8a367f5327f46d160ca121977672d0fd"
+    },
+    {
+      "page": 866,
+      "height": 8,
+      "emulator_exit": 33,
+      "guest_completion": true,
+      "mismatched_slots": [],
+      "negative_control": false,
+      "font_plane_sha256": "d0f94f1f3d31ff8eef231dca8cf6c778c0dca1ffd33d5cfd662bc09d86a6ee57",
+      "screen": "review/guest-8x8.png",
+      "font_plane": "review/vga-866-8.bin",
+      "source_ppm_sha256": "deb7ca3bd08a6a047f868d57d39574991ff1670f09177a3b8b732b1a8d73e7e9",
+      "screen_sha256": "886620bac21e757ddf9a5977ad8771d27dba5de3d9b3de54a5411ac3f34b03c5"
+    },
+    {
+      "page": 437,
+      "height": 16,
+      "emulator_exit": 33,
+      "guest_completion": true,
+      "mismatched_slots": [],
+      "negative_control": false,
+      "font_plane_sha256": "ca6a892ed0bf2d5d8038bd2ce2315bcfae30f53523f53ebfcd640c845cb6b0da",
+      "font_plane": "review/vga-437-16.bin"
+    },
+    {
+      "page": 850,
+      "height": 16,
+      "emulator_exit": 33,
+      "guest_completion": true,
+      "mismatched_slots": [],
+      "negative_control": false,
+      "font_plane_sha256": "28a38a163e62a6e56218d4bc72d5f6eda1cbc4972cd386fb1f0cae0828c88491",
+      "font_plane": "review/vga-850-16.bin"
+    },
+    {
+      "page": 860,
+      "height": 16,
+      "emulator_exit": 33,
+      "guest_completion": true,
+      "mismatched_slots": [],
+      "negative_control": false,
+      "font_plane_sha256": "4da2c55886eaf29c76875b93c0792fa4edbabd1cd386615e4135ce3a8c142e69",
+      "font_plane": "review/vga-860-16.bin"
+    },
+    {
+      "page": 863,
+      "height": 16,
+      "emulator_exit": 33,
+      "guest_completion": true,
+      "mismatched_slots": [],
+      "negative_control": false,
+      "font_plane_sha256": "8451bb1f06264cd012cef09d37d4046c32a60413405f4398744437acfa899d44",
+      "font_plane": "review/vga-863-16.bin"
+    },
+    {
+      "page": 865,
+      "height": 16,
+      "emulator_exit": 33,
+      "guest_completion": true,
+      "mismatched_slots": [],
+      "negative_control": false,
+      "font_plane_sha256": "2ed1fc6720a0c49606f7b53377056a68cbd1df387d8027523563130c470b0925",
+      "font_plane": "review/vga-865-16.bin"
+    },
+    {
+      "page": 866,
+      "height": 16,
+      "emulator_exit": 33,
+      "guest_completion": true,
+      "mismatched_slots": [
+        241
+      ],
+      "negative_control": true,
+      "font_plane_sha256": "07d6637f8d8d1636459d9436b0ec3249b8e66fbe8ae7f804ba6ab00c52ae6001",
+      "font_plane": "review/vga-866-16-corrupt.bin"
+    }
+  ],
+  "status": "display-qualified-overall-locale-incomplete",
+  "commands": [
+    {
+      "command": "make test-ru-font-sources test-ru-contract test-ru-cpi",
+      "result": "PASS"
+    },
+    {
+      "command": "python3 tools/capture_ru_contract.py .reference/msdos622 locales/ru/dos622-reference.json --check",
+      "result": "PASS"
+    },
+    {
+      "command": "make test-ru-display-qemu",
+      "result": "PASS"
+    }
+  ],
+  "inputs": {
+    "locales/ru/manifest.json": "a3095c234ed8367f005bf03aa5e39fdfa2444d134827d76fde227f4983f62232",
+    "locales/ru/font-edits.json": "9b0cea93392f389a57f6e6532a2de80b61e718691058d602e3c014a575a33ee2",
+    "tools/audit_ru_fonts.py": "edc6912e23e4e80832fb5bd2639eb827d4df2ed040156d0e1ebecdce55250ef3",
+    "tools/build_ru_cpi.py": "9f7f29de7ccdf899aeec6a5909a637bd748b45eddd003dfe1f10769ba60f33da",
+    "tests/ru_font_probe.asm": "d13a9c4a44fd9c37ec3f6114d3664030bff0dda78044ab281b6fa68055a6c24e",
+    "tests/test_ru_cpi.py": "92850d568b00f635d4c26a541055202512c0c06ac73784e8a20be4e1a2ed35d5",
+    "tests/test_ru_display_qemu.py": "f11f021a4ff273421c6a7b197a269679b343b49b72f2fc1582fa3cefc9b7aebc",
+    "tests/screen_expect.py": "1a923f350a189a3823ff3745da8bf8129ec0b1f20d191078895f2d728fc0f405"
+  },
+  "artifacts": {
+    "src/DEV/DISPLAY/EGA/EGA866.CPI": "efa06cb267a370fab3db71fb85f73711b750ec04498b40b6cc6a4a2be2e3d7ad",
+    "src/DEV/DISPLAY/EGA/EGA.CPI": "e62143d403dba21dd9f3c606769b90923038e542098fdb57de36eaf9e986a4b0",
+    "src/DEV/DISPLAY/DISPLAY.SYS": "0ebd3bfad4e87d79e05219c02ea71ce4e94f9e11b432efdf652a022488d9ac08",
+    "src/CMD/MODE/MODE.COM": "c385aad5697fcec3a9113f58b983b978a7f969e99b153ebd496b12dab0e3767d"
+  },
+  "qemu_version": "QEMU emulator version 11.1.1",
+  "guest_config": "DEVICE=DISPLAY.SYS CON=(EGA,437,(1,3))",
+  "visual_review": {
+    "result": "accepted for scoped font requirements",
+    "screens": "All three CP866 heights inspected; mixed Latin/Cyrillic, Yo and other CP866 Cyrillic letters readable; single and double borders continuous. The 8-row font is denser with compressed diacritics.",
+    "source": "QEMU screendump PPM converted losslessly to PNG with Pillow 11.3.0"
+  },
+  "remaining": [
+    "Country/NLS implementation and API probes",
+    "RU keyboard implementation and physical scan-code tests",
+    "Optional installation media, documentation and upgrade copying",
+    "End-to-end editing and Cyrillic filesystem tests",
+    "Composed HIGH/UMB, LOW/fallback and real-BIOS 286 locale runs",
+    "Malformed/missing resources and unsupported page/layout tests",
+    "Full release and pristine serial/parallel reproducibility gates"
+  ]
+}

@@ -1,0 +1,797 @@
+{
+  "schema_version": 1,
+  "edits": [
+    {
+      "height": 8,
+      "byte": 2,
+      "rows_hex": "837d557d457d83ff",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Invert all pixels of DOS display slot 01 to supply its inverse symbol."
+    },
+    {
+      "height": 8,
+      "byte": 8,
+      "rows_hex": "ffffe7c3e7ffffff",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Invert all pixels of DOS display slot 07 to supply its inverse symbol."
+    },
+    {
+      "height": 8,
+      "byte": 10,
+      "rows_hex": "ffe7dbbddbe7ffff",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Invert all pixels of DOS display slot 09 to supply its inverse symbol."
+    },
+    {
+      "height": 14,
+      "byte": 176,
+      "rows_hex": "8822882288228822882288228822",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Repeat the native two-row shading pattern across the DOS cell."
+    },
+    {
+      "height": 14,
+      "byte": 177,
+      "rows_hex": "aa55aa55aa55aa55aa55aa55aa55",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Repeat the native two-row shading pattern across the DOS cell."
+    },
+    {
+      "height": 14,
+      "byte": 178,
+      "rows_hex": "77dd77dd77dd77dd77dd77dd77dd",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Repeat the native two-row shading pattern across the DOS cell."
+    },
+    {
+      "height": 14,
+      "byte": 179,
+      "rows_hex": "1010101010101010101010101010",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 14,
+      "byte": 180,
+      "rows_hex": "101010101010f010101010101010",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 14,
+      "byte": 181,
+      "rows_hex": "1010101010f010f0101010101010",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 14,
+      "byte": 182,
+      "rows_hex": "282828282828e828282828282828",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 14,
+      "byte": 183,
+      "rows_hex": "000000000000f828282828282828",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 14,
+      "byte": 184,
+      "rows_hex": "0000000000f010f0101010101010",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 14,
+      "byte": 185,
+      "rows_hex": "2828282828e808e8282828282828",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 14,
+      "byte": 186,
+      "rows_hex": "2828282828282828282828282828",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 14,
+      "byte": 187,
+      "rows_hex": "0000000000f808e8282828282828",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 14,
+      "byte": 188,
+      "rows_hex": "2828282828e808f8000000000000",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 14,
+      "byte": 189,
+      "rows_hex": "282828282828f800000000000000",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 14,
+      "byte": 190,
+      "rows_hex": "1010101010f010f0000000000000",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 14,
+      "byte": 191,
+      "rows_hex": "000000000000f010101010101010",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 14,
+      "byte": 192,
+      "rows_hex": "1010101010101f00000000000000",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 14,
+      "byte": 193,
+      "rows_hex": "101010101010ff00000000000000",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 14,
+      "byte": 194,
+      "rows_hex": "000000000000ff10101010101010",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 14,
+      "byte": 195,
+      "rows_hex": "1010101010101f10101010101010",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 14,
+      "byte": 196,
+      "rows_hex": "000000000000ff00000000000000",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 14,
+      "byte": 197,
+      "rows_hex": "101010101010ff10101010101010",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 14,
+      "byte": 198,
+      "rows_hex": "10101010101f101f101010101010",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 14,
+      "byte": 199,
+      "rows_hex": "2828282828282f28282828282828",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 14,
+      "byte": 200,
+      "rows_hex": "28282828282f203f000000000000",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 14,
+      "byte": 201,
+      "rows_hex": "00000000003f202f282828282828",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 14,
+      "byte": 202,
+      "rows_hex": "2828282828ef00ff000000000000",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 14,
+      "byte": 203,
+      "rows_hex": "0000000000ff00ef282828282828",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 14,
+      "byte": 204,
+      "rows_hex": "28282828282f202f282828282828",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 14,
+      "byte": 205,
+      "rows_hex": "0000000000ff00ff000000000000",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 14,
+      "byte": 206,
+      "rows_hex": "2828282828ef00ef282828282828",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 14,
+      "byte": 207,
+      "rows_hex": "1010101010ff00ff000000000000",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 14,
+      "byte": 208,
+      "rows_hex": "282828282828ff00000000000000",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 14,
+      "byte": 209,
+      "rows_hex": "0000000000ff00ff101010101010",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 14,
+      "byte": 210,
+      "rows_hex": "000000000000ff28282828282828",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 14,
+      "byte": 211,
+      "rows_hex": "2828282828283f00000000000000",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 14,
+      "byte": 212,
+      "rows_hex": "10101010101f101f000000000000",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 14,
+      "byte": 213,
+      "rows_hex": "00000000001f101f101010101010",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 14,
+      "byte": 214,
+      "rows_hex": "0000000000003f28282828282828",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 14,
+      "byte": 215,
+      "rows_hex": "282828282828ff28282828282828",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 14,
+      "byte": 216,
+      "rows_hex": "1010101010ff10ff101010101010",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 14,
+      "byte": 217,
+      "rows_hex": "101010101010f000000000000000",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 14,
+      "byte": 218,
+      "rows_hex": "0000000000001f10101010101010",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 14,
+      "byte": 219,
+      "rows_hex": "ffffffffffffffffffffffffffff",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 14,
+      "byte": 220,
+      "rows_hex": "00000000000000ffffffffffffff",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 14,
+      "byte": 221,
+      "rows_hex": "f0f0f0f0f0f0f0f0f0f0f0f0f0f0",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 14,
+      "byte": 222,
+      "rows_hex": "0f0f0f0f0f0f0f0f0f0f0f0f0f0f",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 14,
+      "byte": 223,
+      "rows_hex": "ffffffffffffff00000000000000",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 16,
+      "byte": 176,
+      "rows_hex": "88228822882288228822882288228822",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Repeat the native two-row shading pattern across the DOS cell."
+    },
+    {
+      "height": 16,
+      "byte": 177,
+      "rows_hex": "aa55aa55aa55aa55aa55aa55aa55aa55",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Repeat the native two-row shading pattern across the DOS cell."
+    },
+    {
+      "height": 16,
+      "byte": 178,
+      "rows_hex": "77dd77dd77dd77dd77dd77dd77dd77dd",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Repeat the native two-row shading pattern across the DOS cell."
+    },
+    {
+      "height": 16,
+      "byte": 179,
+      "rows_hex": "10101010101010101010101010101010",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 16,
+      "byte": 180,
+      "rows_hex": "10101010101010f01010101010101010",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 16,
+      "byte": 181,
+      "rows_hex": "101010101010f010f010101010101010",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 16,
+      "byte": 182,
+      "rows_hex": "28282828282828e82828282828282828",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 16,
+      "byte": 183,
+      "rows_hex": "00000000000000f82828282828282828",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 16,
+      "byte": 184,
+      "rows_hex": "000000000000f010f010101010101010",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 16,
+      "byte": 185,
+      "rows_hex": "282828282828e808e828282828282828",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 16,
+      "byte": 186,
+      "rows_hex": "28282828282828282828282828282828",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 16,
+      "byte": 187,
+      "rows_hex": "000000000000f808e828282828282828",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 16,
+      "byte": 188,
+      "rows_hex": "282828282828e808f800000000000000",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 16,
+      "byte": 189,
+      "rows_hex": "28282828282828f80000000000000000",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 16,
+      "byte": 190,
+      "rows_hex": "101010101010f010f000000000000000",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 16,
+      "byte": 191,
+      "rows_hex": "00000000000000f01010101010101010",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 16,
+      "byte": 192,
+      "rows_hex": "101010101010101f0000000000000000",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 16,
+      "byte": 193,
+      "rows_hex": "10101010101010ff0000000000000000",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 16,
+      "byte": 194,
+      "rows_hex": "00000000000000ff1010101010101010",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 16,
+      "byte": 195,
+      "rows_hex": "101010101010101f1010101010101010",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 16,
+      "byte": 196,
+      "rows_hex": "00000000000000ff0000000000000000",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 16,
+      "byte": 197,
+      "rows_hex": "10101010101010ff1010101010101010",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 16,
+      "byte": 198,
+      "rows_hex": "1010101010101f101f10101010101010",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 16,
+      "byte": 199,
+      "rows_hex": "282828282828282f2828282828282828",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 16,
+      "byte": 200,
+      "rows_hex": "2828282828282f203f00000000000000",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 16,
+      "byte": 201,
+      "rows_hex": "0000000000003f202f28282828282828",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 16,
+      "byte": 202,
+      "rows_hex": "282828282828ef00ff00000000000000",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 16,
+      "byte": 203,
+      "rows_hex": "000000000000ff00ef28282828282828",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 16,
+      "byte": 204,
+      "rows_hex": "2828282828282f202f28282828282828",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 16,
+      "byte": 205,
+      "rows_hex": "000000000000ff00ff00000000000000",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 16,
+      "byte": 206,
+      "rows_hex": "282828282828ef00ef28282828282828",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 16,
+      "byte": 207,
+      "rows_hex": "101010101010ff00ff00000000000000",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 16,
+      "byte": 208,
+      "rows_hex": "28282828282828ff0000000000000000",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 16,
+      "byte": 209,
+      "rows_hex": "000000000000ff00ff10101010101010",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 16,
+      "byte": 210,
+      "rows_hex": "00000000000000ff2828282828282828",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 16,
+      "byte": 211,
+      "rows_hex": "282828282828283f0000000000000000",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 16,
+      "byte": 212,
+      "rows_hex": "1010101010101f101f00000000000000",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 16,
+      "byte": 213,
+      "rows_hex": "0000000000001f101f10101010101010",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 16,
+      "byte": 214,
+      "rows_hex": "000000000000003f2828282828282828",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 16,
+      "byte": 215,
+      "rows_hex": "28282828282828ff2828282828282828",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 16,
+      "byte": 216,
+      "rows_hex": "101010101010ff10ff10101010101010",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 16,
+      "byte": 217,
+      "rows_hex": "10101010101010f00000000000000000",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 16,
+      "byte": 218,
+      "rows_hex": "000000000000001f1010101010101010",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 16,
+      "byte": 219,
+      "rows_hex": "ffffffffffffffffffffffffffffffff",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 16,
+      "byte": 220,
+      "rows_hex": "0000000000000000ffffffffffffffff",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 16,
+      "byte": 221,
+      "rows_hex": "f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 16,
+      "byte": 222,
+      "rows_hex": "0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    },
+    {
+      "height": 16,
+      "byte": 223,
+      "rows_hex": "ffffffffffffffff0000000000000000",
+      "source": "512_8 sans",
+      "license": "Unlicense",
+      "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness."
+    }
+  ]
+}

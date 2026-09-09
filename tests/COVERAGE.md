@@ -1,11 +1,14 @@
 # Behavioral coverage
 
-The optional Russian increment has a source/reference gate,
-`make test-ru-font-sources`, backed by the
-[locale manifest and candidate font audit](../locales/ru/README.md).
-It verifies pinned inputs, CP866 mappings, bitmap placement and corruption
-rejection. It does not establish guest display, country, keyboard, installation
-or end-to-end qualification; those gates remain in [the plan](../RUSSIAN.md).
+The optional Russian increment has source, reference and CPI gates:
+`make test-ru-font-sources test-ru-contract test-ru-cpi`. The
+[locale manifest and font audits](../locales/ru/README.md) pin inputs and
+independent glyph/box-edge expectations. `make test-ru-display-qemu` verifies
+DISPLAY/MODE selection, every loaded VGA glyph, guest completion and emulator
+exit, including a wrong-slot control and existing EGA-page regressions.
+[Display qualification](../locales/ru/display-qualification.json) retains
+the focused results and screenshots. Country/keyboard runtime, installation,
+HIGH/UMB/LOW/286 and end-to-end qualification remain in [the plan](../RUSSIAN.md).
 
 Coverage means a test asserts an externally visible result or state transition,
 or a live source condition justifies excluding the interface. Source-line

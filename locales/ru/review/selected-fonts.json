@@ -1,0 +1,5596 @@
+{
+  "schema_version": 1,
+  "status": "complete-source-coverage",
+  "cpi_sha256": "efa06cb267a370fab3db71fb85f73711b750ec04498b40b6cc6a4a2be2e3d7ad",
+  "fonts": {
+    "8": {
+      "sha256": "2ef9c49fe94e4bc969929b95ab711bb50950d3d05de2a812c4e6e4f4a7223831",
+      "glyphs": [
+        {
+          "byte": 0,
+          "unicode": "U+0000",
+          "status": "intentional-blank",
+          "source": "DOS blank slot policy",
+          "rows_hex": "0000000000000000"
+        },
+        {
+          "byte": 1,
+          "unicode": "U+263A",
+          "status": "present",
+          "source": "512_8 index 1",
+          "rows_hex": "7c82aa82ba827c00"
+        },
+        {
+          "byte": 2,
+          "unicode": "U+263B",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Invert all pixels of DOS display slot 01 to supply its inverse symbol.",
+          "rows_hex": "837d557d457d83ff"
+        },
+        {
+          "byte": 3,
+          "unicode": "U+2665",
+          "status": "present",
+          "source": "512_8 index 3",
+          "rows_hex": "44eefefe7c381000"
+        },
+        {
+          "byte": 4,
+          "unicode": "U+2666",
+          "status": "present",
+          "source": "512_8 index 4",
+          "rows_hex": "10387cfe7c381000"
+        },
+        {
+          "byte": 5,
+          "unicode": "U+2663",
+          "status": "present",
+          "source": "512_8 index 5",
+          "rows_hex": "103854ee54103800"
+        },
+        {
+          "byte": 6,
+          "unicode": "U+2660",
+          "status": "present",
+          "source": "512_8 index 6",
+          "rows_hex": "10387cee54103800"
+        },
+        {
+          "byte": 7,
+          "unicode": "U+2022",
+          "status": "present",
+          "source": "512_8 index 7",
+          "rows_hex": "0000183c18000000"
+        },
+        {
+          "byte": 8,
+          "unicode": "U+25D8",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Invert all pixels of DOS display slot 07 to supply its inverse symbol.",
+          "rows_hex": "ffffe7c3e7ffffff"
+        },
+        {
+          "byte": 9,
+          "unicode": "U+25CB",
+          "status": "present",
+          "source": "512_8 index 9",
+          "rows_hex": "0018244224180000"
+        },
+        {
+          "byte": 10,
+          "unicode": "U+25D9",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Invert all pixels of DOS display slot 09 to supply its inverse symbol.",
+          "rows_hex": "ffe7dbbddbe7ffff"
+        },
+        {
+          "byte": 11,
+          "unicode": "U+2642",
+          "status": "present",
+          "source": "512_8 index 11",
+          "rows_hex": "0e060a3844443800"
+        },
+        {
+          "byte": 12,
+          "unicode": "U+2640",
+          "status": "present",
+          "source": "512_8 index 12",
+          "rows_hex": "3844443810381000"
+        },
+        {
+          "byte": 13,
+          "unicode": "U+266A",
+          "status": "present",
+          "source": "512_8 index 13",
+          "rows_hex": "1018141410706000"
+        },
+        {
+          "byte": 14,
+          "unicode": "U+266B",
+          "status": "present",
+          "source": "512_8 index 13",
+          "rows_hex": "1018141410706000"
+        },
+        {
+          "byte": 15,
+          "unicode": "U+263C",
+          "status": "present",
+          "source": "512_8 index 15",
+          "rows_hex": "105438c638541000"
+        },
+        {
+          "byte": 16,
+          "unicode": "U+25BA",
+          "status": "present",
+          "source": "512_8 index 16",
+          "rows_hex": "80e0f8fef8e08000"
+        },
+        {
+          "byte": 17,
+          "unicode": "U+25C4",
+          "status": "present",
+          "source": "512_8 index 17",
+          "rows_hex": "020e3efe3e0e0200"
+        },
+        {
+          "byte": 18,
+          "unicode": "U+2195",
+          "status": "present",
+          "source": "512_8 index 18",
+          "rows_hex": "10387c107c381000"
+        },
+        {
+          "byte": 19,
+          "unicode": "U+203C",
+          "status": "present",
+          "source": "512_8 index 33",
+          "rows_hex": "0010101010001000"
+        },
+        {
+          "byte": 20,
+          "unicode": "U+00B6",
+          "status": "present",
+          "source": "512_8 index 20",
+          "rows_hex": "007ca4a464242400"
+        },
+        {
+          "byte": 21,
+          "unicode": "U+00A7",
+          "status": "present",
+          "source": "512_8 index 21",
+          "rows_hex": "3c42384438847800"
+        },
+        {
+          "byte": 22,
+          "unicode": "U+25AC",
+          "status": "present",
+          "source": "512_8 index 196",
+          "rows_hex": "000000ff00000000"
+        },
+        {
+          "byte": 23,
+          "unicode": "U+21A8",
+          "status": "present",
+          "source": "512_8 index 18",
+          "rows_hex": "10387c107c381000"
+        },
+        {
+          "byte": 24,
+          "unicode": "U+2191",
+          "status": "present",
+          "source": "512_8 index 24",
+          "rows_hex": "10387c1010101000"
+        },
+        {
+          "byte": 25,
+          "unicode": "U+2193",
+          "status": "present",
+          "source": "512_8 index 25",
+          "rows_hex": "101010107c381000"
+        },
+        {
+          "byte": 26,
+          "unicode": "U+2192",
+          "status": "present",
+          "source": "512_8 index 26",
+          "rows_hex": "00080cfe0c080000"
+        },
+        {
+          "byte": 27,
+          "unicode": "U+2190",
+          "status": "present",
+          "source": "512_8 index 27",
+          "rows_hex": "002060fe60200000"
+        },
+        {
+          "byte": 28,
+          "unicode": "U+221F",
+          "status": "present",
+          "source": "512_8 index 192",
+          "rows_hex": "1010101f00000000"
+        },
+        {
+          "byte": 29,
+          "unicode": "U+2194",
+          "status": "present",
+          "source": "512_8 index 29",
+          "rows_hex": "00286cfe6c280000"
+        },
+        {
+          "byte": 30,
+          "unicode": "U+25B2",
+          "status": "present",
+          "source": "512_8 index 30",
+          "rows_hex": "101038387c7cfe00"
+        },
+        {
+          "byte": 31,
+          "unicode": "U+25BC",
+          "status": "present",
+          "source": "512_8 index 31",
+          "rows_hex": "fe7c7c3838101000"
+        },
+        {
+          "byte": 32,
+          "unicode": "U+0020",
+          "status": "present",
+          "source": "512_8 index 32",
+          "rows_hex": "0000000000000000"
+        },
+        {
+          "byte": 33,
+          "unicode": "U+0021",
+          "status": "present",
+          "source": "512_8 index 33",
+          "rows_hex": "0010101010001000"
+        },
+        {
+          "byte": 34,
+          "unicode": "U+0022",
+          "status": "present",
+          "source": "512_8 index 34",
+          "rows_hex": "0044442800000000"
+        },
+        {
+          "byte": 35,
+          "unicode": "U+0023",
+          "status": "present",
+          "source": "512_8 index 35",
+          "rows_hex": "0048fc4848fc4800"
+        },
+        {
+          "byte": 36,
+          "unicode": "U+0024",
+          "status": "present",
+          "source": "512_8 index 36",
+          "rows_hex": "107c907c12927c10"
+        },
+        {
+          "byte": 37,
+          "unicode": "U+0025",
+          "status": "present",
+          "source": "512_8 index 37",
+          "rows_hex": "0044e850285c8800"
+        },
+        {
+          "byte": 38,
+          "unicode": "U+0026",
+          "status": "present",
+          "source": "512_8 index 38",
+          "rows_hex": "0020506498887400"
+        },
+        {
+          "byte": 39,
+          "unicode": "U+0027",
+          "status": "present",
+          "source": "512_8 index 39",
+          "rows_hex": "0010102000000000"
+        },
+        {
+          "byte": 40,
+          "unicode": "U+0028",
+          "status": "present",
+          "source": "512_8 index 40",
+          "rows_hex": "0008101010100800"
+        },
+        {
+          "byte": 41,
+          "unicode": "U+0029",
+          "status": "present",
+          "source": "512_8 index 41",
+          "rows_hex": "0020101010102000"
+        },
+        {
+          "byte": 42,
+          "unicode": "U+002A",
+          "status": "present",
+          "source": "512_8 index 42",
+          "rows_hex": "00004830fc304800"
+        },
+        {
+          "byte": 43,
+          "unicode": "U+002B",
+          "status": "present",
+          "source": "512_8 index 43",
+          "rows_hex": "000010107c101000"
+        },
+        {
+          "byte": 44,
+          "unicode": "U+002C",
+          "status": "present",
+          "source": "512_8 index 44",
+          "rows_hex": "0000000000101020"
+        },
+        {
+          "byte": 45,
+          "unicode": "U+002D",
+          "status": "present",
+          "source": "512_8 index 45",
+          "rows_hex": "000000007c000000"
+        },
+        {
+          "byte": 46,
+          "unicode": "U+002E",
+          "status": "present",
+          "source": "512_8 index 46",
+          "rows_hex": "0000000000001000"
+        },
+        {
+          "byte": 47,
+          "unicode": "U+002F",
+          "status": "present",
+          "source": "512_8 index 47",
+          "rows_hex": "0004081020408000"
+        },
+        {
+          "byte": 48,
+          "unicode": "U+0030",
+          "status": "present",
+          "source": "512_8 index 48",
+          "rows_hex": "00788c94a4c47800"
+        },
+        {
+          "byte": 49,
+          "unicode": "U+0031",
+          "status": "present",
+          "source": "512_8 index 49",
+          "rows_hex": "0010305010107c00"
+        },
+        {
+          "byte": 50,
+          "unicode": "U+0032",
+          "status": "present",
+          "source": "512_8 index 50",
+          "rows_hex": "007884047880fc00"
+        },
+        {
+          "byte": 51,
+          "unicode": "U+0033",
+          "status": "present",
+          "source": "512_8 index 51",
+          "rows_hex": "0078841804847800"
+        },
+        {
+          "byte": 52,
+          "unicode": "U+0034",
+          "status": "present",
+          "source": "512_8 index 52",
+          "rows_hex": "001c2444fe040400"
+        },
+        {
+          "byte": 53,
+          "unicode": "U+0035",
+          "status": "present",
+          "source": "512_8 index 53",
+          "rows_hex": "00fc80f804847800"
+        },
+        {
+          "byte": 54,
+          "unicode": "U+0036",
+          "status": "present",
+          "source": "512_8 index 54",
+          "rows_hex": "007880f884847800"
+        },
+        {
+          "byte": 55,
+          "unicode": "U+0037",
+          "status": "present",
+          "source": "512_8 index 55",
+          "rows_hex": "00fc040810202000"
+        },
+        {
+          "byte": 56,
+          "unicode": "U+0038",
+          "status": "present",
+          "source": "512_8 index 56",
+          "rows_hex": "0078847884847800"
+        },
+        {
+          "byte": 57,
+          "unicode": "U+0039",
+          "status": "present",
+          "source": "512_8 index 57",
+          "rows_hex": "007884847c047800"
+        },
+        {
+          "byte": 58,
+          "unicode": "U+003A",
+          "status": "present",
+          "source": "512_8 index 58",
+          "rows_hex": "0000001000001000"
+        },
+        {
+          "byte": 59,
+          "unicode": "U+003B",
+          "status": "present",
+          "source": "512_8 index 59",
+          "rows_hex": "0000001000101020"
+        },
+        {
+          "byte": 60,
+          "unicode": "U+003C",
+          "status": "present",
+          "source": "512_8 index 60",
+          "rows_hex": "0000081020100800"
+        },
+        {
+          "byte": 61,
+          "unicode": "U+003D",
+          "status": "present",
+          "source": "512_8 index 61",
+          "rows_hex": "0000007c007c0000"
+        },
+        {
+          "byte": 62,
+          "unicode": "U+003E",
+          "status": "present",
+          "source": "512_8 index 62",
+          "rows_hex": "0000201008102000"
+        },
+        {
+          "byte": 63,
+          "unicode": "U+003F",
+          "status": "present",
+          "source": "512_8 index 63",
+          "rows_hex": "0038440810001000"
+        },
+        {
+          "byte": 64,
+          "unicode": "U+0040",
+          "status": "present",
+          "source": "512_8 index 64",
+          "rows_hex": "00789ca49c807800"
+        },
+        {
+          "byte": 65,
+          "unicode": "U+0041",
+          "status": "present",
+          "source": "512_8 index 65",
+          "rows_hex": "00102828447c8200"
+        },
+        {
+          "byte": 66,
+          "unicode": "U+0042",
+          "status": "present",
+          "source": "512_8 index 66",
+          "rows_hex": "00f884f88484f800"
+        },
+        {
+          "byte": 67,
+          "unicode": "U+0043",
+          "status": "present",
+          "source": "512_8 index 67",
+          "rows_hex": "0078848080847800"
+        },
+        {
+          "byte": 68,
+          "unicode": "U+0044",
+          "status": "present",
+          "source": "512_8 index 68",
+          "rows_hex": "00f884848484f800"
+        },
+        {
+          "byte": 69,
+          "unicode": "U+0045",
+          "status": "present",
+          "source": "512_8 index 69",
+          "rows_hex": "00fc80f08080fc00"
+        },
+        {
+          "byte": 70,
+          "unicode": "U+0046",
+          "status": "present",
+          "source": "512_8 index 70",
+          "rows_hex": "00fc80f080808000"
+        },
+        {
+          "byte": 71,
+          "unicode": "U+0047",
+          "status": "present",
+          "source": "512_8 index 71",
+          "rows_hex": "007884809c847800"
+        },
+        {
+          "byte": 72,
+          "unicode": "U+0048",
+          "status": "present",
+          "source": "512_8 index 72",
+          "rows_hex": "008484fc84848400"
+        },
+        {
+          "byte": 73,
+          "unicode": "U+0049",
+          "status": "present",
+          "source": "512_8 index 73",
+          "rows_hex": "007c101010107c00"
+        },
+        {
+          "byte": 74,
+          "unicode": "U+004A",
+          "status": "present",
+          "source": "512_8 index 74",
+          "rows_hex": "001c040404847800"
+        },
+        {
+          "byte": 75,
+          "unicode": "U+004B",
+          "status": "present",
+          "source": "512_8 index 75",
+          "rows_hex": "008488f088848400"
+        },
+        {
+          "byte": 76,
+          "unicode": "U+004C",
+          "status": "present",
+          "source": "512_8 index 76",
+          "rows_hex": "0040404040407c00"
+        },
+        {
+          "byte": 77,
+          "unicode": "U+004D",
+          "status": "present",
+          "source": "512_8 index 77",
+          "rows_hex": "0082c6aa92828200"
+        },
+        {
+          "byte": 78,
+          "unicode": "U+004E",
+          "status": "present",
+          "source": "512_8 index 78",
+          "rows_hex": "0084c4a4948c8400"
+        },
+        {
+          "byte": 79,
+          "unicode": "U+004F",
+          "status": "present",
+          "source": "512_8 index 79",
+          "rows_hex": "0078848484847800"
+        },
+        {
+          "byte": 80,
+          "unicode": "U+0050",
+          "status": "present",
+          "source": "512_8 index 80",
+          "rows_hex": "00f88484f8808000"
+        },
+        {
+          "byte": 81,
+          "unicode": "U+0051",
+          "status": "present",
+          "source": "512_8 index 81",
+          "rows_hex": "0078848484947804"
+        },
+        {
+          "byte": 82,
+          "unicode": "U+0052",
+          "status": "present",
+          "source": "512_8 index 82",
+          "rows_hex": "00f88484f8888400"
+        },
+        {
+          "byte": 83,
+          "unicode": "U+0053",
+          "status": "present",
+          "source": "512_8 index 83",
+          "rows_hex": "007c807c02827c00"
+        },
+        {
+          "byte": 84,
+          "unicode": "U+0054",
+          "status": "present",
+          "source": "512_8 index 84",
+          "rows_hex": "00fe101010101000"
+        },
+        {
+          "byte": 85,
+          "unicode": "U+0055",
+          "status": "present",
+          "source": "512_8 index 85",
+          "rows_hex": "0084848484847800"
+        },
+        {
+          "byte": 86,
+          "unicode": "U+0056",
+          "status": "present",
+          "source": "512_8 index 86",
+          "rows_hex": "0082824444281000"
+        },
+        {
+          "byte": 87,
+          "unicode": "U+0057",
+          "status": "present",
+          "source": "512_8 index 87",
+          "rows_hex": "0082828292aa4400"
+        },
+        {
+          "byte": 88,
+          "unicode": "U+0058",
+          "status": "present",
+          "source": "512_8 index 88",
+          "rows_hex": "0084483030488400"
+        },
+        {
+          "byte": 89,
+          "unicode": "U+0059",
+          "status": "present",
+          "source": "512_8 index 89",
+          "rows_hex": "0082442810101000"
+        },
+        {
+          "byte": 90,
+          "unicode": "U+005A",
+          "status": "present",
+          "source": "512_8 index 90",
+          "rows_hex": "00fc08102040fc00"
+        },
+        {
+          "byte": 91,
+          "unicode": "U+005B",
+          "status": "present",
+          "source": "512_8 index 91",
+          "rows_hex": "001e101010101e00"
+        },
+        {
+          "byte": 92,
+          "unicode": "U+005C",
+          "status": "present",
+          "source": "512_8 index 92",
+          "rows_hex": "0080402010080400"
+        },
+        {
+          "byte": 93,
+          "unicode": "U+005D",
+          "status": "present",
+          "source": "512_8 index 93",
+          "rows_hex": "00f010101010f000"
+        },
+        {
+          "byte": 94,
+          "unicode": "U+005E",
+          "status": "present",
+          "source": "512_8 index 94",
+          "rows_hex": "0010280000000000"
+        },
+        {
+          "byte": 95,
+          "unicode": "U+005F",
+          "status": "present",
+          "source": "512_8 index 95",
+          "rows_hex": "00000000000000fe"
+        },
+        {
+          "byte": 96,
+          "unicode": "U+0060",
+          "status": "present",
+          "source": "512_8 index 96",
+          "rows_hex": "0020100000000000"
+        },
+        {
+          "byte": 97,
+          "unicode": "U+0061",
+          "status": "present",
+          "source": "512_8 index 97",
+          "rows_hex": "0000007488986c00"
+        },
+        {
+          "byte": 98,
+          "unicode": "U+0062",
+          "status": "present",
+          "source": "512_8 index 98",
+          "rows_hex": "004040784444b800"
+        },
+        {
+          "byte": 99,
+          "unicode": "U+0063",
+          "status": "present",
+          "source": "512_8 index 99",
+          "rows_hex": "0000003c40403c00"
+        },
+        {
+          "byte": 100,
+          "unicode": "U+0064",
+          "status": "present",
+          "source": "512_8 index 100",
+          "rows_hex": "0004043c44443a00"
+        },
+        {
+          "byte": 101,
+          "unicode": "U+0065",
+          "status": "present",
+          "source": "512_8 index 101",
+          "rows_hex": "00000038447c2010"
+        },
+        {
+          "byte": 102,
+          "unicode": "U+0066",
+          "status": "present",
+          "source": "512_8 index 102",
+          "rows_hex": "0018247020202000"
+        },
+        {
+          "byte": 103,
+          "unicode": "U+0067",
+          "status": "present",
+          "source": "512_8 index 103",
+          "rows_hex": "0000003a443c0438"
+        },
+        {
+          "byte": 104,
+          "unicode": "U+0068",
+          "status": "present",
+          "source": "512_8 index 104",
+          "rows_hex": "0040405864444400"
+        },
+        {
+          "byte": 105,
+          "unicode": "U+0069",
+          "status": "present",
+          "source": "512_8 index 105",
+          "rows_hex": "0010003010101800"
+        },
+        {
+          "byte": 106,
+          "unicode": "U+006A",
+          "status": "present",
+          "source": "512_8 index 106",
+          "rows_hex": "0008001808080870"
+        },
+        {
+          "byte": 107,
+          "unicode": "U+006B",
+          "status": "present",
+          "source": "512_8 index 107",
+          "rows_hex": "0040404870484400"
+        },
+        {
+          "byte": 108,
+          "unicode": "U+006C",
+          "status": "present",
+          "source": "512_8 index 108",
+          "rows_hex": "0030101010101800"
+        },
+        {
+          "byte": 109,
+          "unicode": "U+006D",
+          "status": "present",
+          "source": "512_8 index 109",
+          "rows_hex": "000000ec92928200"
+        },
+        {
+          "byte": 110,
+          "unicode": "U+006E",
+          "status": "present",
+          "source": "512_8 index 110",
+          "rows_hex": "000000b844444400"
+        },
+        {
+          "byte": 111,
+          "unicode": "U+006F",
+          "status": "present",
+          "source": "512_8 index 111",
+          "rows_hex": "0000003844443800"
+        },
+        {
+          "byte": 112,
+          "unicode": "U+0070",
+          "status": "present",
+          "source": "512_8 index 112",
+          "rows_hex": "000000b844784040"
+        },
+        {
+          "byte": 113,
+          "unicode": "U+0071",
+          "status": "present",
+          "source": "512_8 index 113",
+          "rows_hex": "0000003a443c0404"
+        },
+        {
+          "byte": 114,
+          "unicode": "U+0072",
+          "status": "present",
+          "source": "512_8 index 114",
+          "rows_hex": "0000005824202000"
+        },
+        {
+          "byte": 115,
+          "unicode": "U+0073",
+          "status": "present",
+          "source": "512_8 index 115",
+          "rows_hex": "0000384038047800"
+        },
+        {
+          "byte": 116,
+          "unicode": "U+0074",
+          "status": "present",
+          "source": "512_8 index 116",
+          "rows_hex": "0000207820241800"
+        },
+        {
+          "byte": 117,
+          "unicode": "U+0075",
+          "status": "present",
+          "source": "512_8 index 117",
+          "rows_hex": "0000004444443a00"
+        },
+        {
+          "byte": 118,
+          "unicode": "U+0076",
+          "status": "present",
+          "source": "512_8 index 118",
+          "rows_hex": "0000004444281000"
+        },
+        {
+          "byte": 119,
+          "unicode": "U+0077",
+          "status": "present",
+          "source": "512_8 index 119",
+          "rows_hex": "0000008292926c00"
+        },
+        {
+          "byte": 120,
+          "unicode": "U+0078",
+          "status": "present",
+          "source": "512_8 index 120",
+          "rows_hex": "0000006c10284400"
+        },
+        {
+          "byte": 121,
+          "unicode": "U+0079",
+          "status": "present",
+          "source": "512_8 index 121",
+          "rows_hex": "00000044443c0438"
+        },
+        {
+          "byte": 122,
+          "unicode": "U+007A",
+          "status": "present",
+          "source": "512_8 index 122",
+          "rows_hex": "0000007c18207c00"
+        },
+        {
+          "byte": 123,
+          "unicode": "U+007B",
+          "status": "present",
+          "source": "512_8 index 123",
+          "rows_hex": "000c106010100c00"
+        },
+        {
+          "byte": 124,
+          "unicode": "U+007C",
+          "status": "present",
+          "source": "512_8 index 124",
+          "rows_hex": "0010101010101000"
+        },
+        {
+          "byte": 125,
+          "unicode": "U+007D",
+          "status": "present",
+          "source": "512_8 index 125",
+          "rows_hex": "0060100c10106000"
+        },
+        {
+          "byte": 126,
+          "unicode": "U+007E",
+          "status": "present",
+          "source": "512_8 index 126",
+          "rows_hex": "00728c0000000000"
+        },
+        {
+          "byte": 127,
+          "unicode": "U+2302",
+          "status": "present",
+          "source": "512_8 index 127",
+          "rows_hex": "001028284444fe00"
+        },
+        {
+          "byte": 128,
+          "unicode": "U+0410",
+          "status": "present",
+          "source": "512_8 index 65",
+          "rows_hex": "00102828447c8200"
+        },
+        {
+          "byte": 129,
+          "unicode": "U+0411",
+          "status": "present",
+          "source": "512_8 index 384",
+          "rows_hex": "00f880f88484f800"
+        },
+        {
+          "byte": 130,
+          "unicode": "U+0412",
+          "status": "present",
+          "source": "512_8 index 66",
+          "rows_hex": "00f884f88484f800"
+        },
+        {
+          "byte": 131,
+          "unicode": "U+0413",
+          "status": "present",
+          "source": "512_8 index 342",
+          "rows_hex": "007c404040404000"
+        },
+        {
+          "byte": 132,
+          "unicode": "U+0414",
+          "status": "present",
+          "source": "512_8 index 388",
+          "rows_hex": "003c24242444fe82"
+        },
+        {
+          "byte": 133,
+          "unicode": "U+0415",
+          "status": "present",
+          "source": "512_8 index 69",
+          "rows_hex": "00fc80f08080fc00"
+        },
+        {
+          "byte": 134,
+          "unicode": "U+0416",
+          "status": "present",
+          "source": "512_8 index 390",
+          "rows_hex": "00d654385454d600"
+        },
+        {
+          "byte": 135,
+          "unicode": "U+0417",
+          "status": "present",
+          "source": "512_8 index 51",
+          "rows_hex": "0078841804847800"
+        },
+        {
+          "byte": 136,
+          "unicode": "U+0418",
+          "status": "present",
+          "source": "512_8 index 394",
+          "rows_hex": "00848c94a4c48400"
+        },
+        {
+          "byte": 137,
+          "unicode": "U+0419",
+          "status": "present",
+          "source": "512_8 index 396",
+          "rows_hex": "30848c94a4c48400"
+        },
+        {
+          "byte": 138,
+          "unicode": "U+041A",
+          "status": "present",
+          "source": "512_8 index 75",
+          "rows_hex": "008488f088848400"
+        },
+        {
+          "byte": 139,
+          "unicode": "U+041B",
+          "status": "present",
+          "source": "512_8 index 398",
+          "rows_hex": "007c444444448400"
+        },
+        {
+          "byte": 140,
+          "unicode": "U+041C",
+          "status": "present",
+          "source": "512_8 index 77",
+          "rows_hex": "0082c6aa92828200"
+        },
+        {
+          "byte": 141,
+          "unicode": "U+041D",
+          "status": "present",
+          "source": "512_8 index 72",
+          "rows_hex": "008484fc84848400"
+        },
+        {
+          "byte": 142,
+          "unicode": "U+041E",
+          "status": "present",
+          "source": "512_8 index 79",
+          "rows_hex": "0078848484847800"
+        },
+        {
+          "byte": 143,
+          "unicode": "U+041F",
+          "status": "present",
+          "source": "512_8 index 363",
+          "rows_hex": "00fc848484848400"
+        },
+        {
+          "byte": 144,
+          "unicode": "U+0420",
+          "status": "present",
+          "source": "512_8 index 80",
+          "rows_hex": "00f88484f8808000"
+        },
+        {
+          "byte": 145,
+          "unicode": "U+0421",
+          "status": "present",
+          "source": "512_8 index 67",
+          "rows_hex": "0078848080847800"
+        },
+        {
+          "byte": 146,
+          "unicode": "U+0422",
+          "status": "present",
+          "source": "512_8 index 84",
+          "rows_hex": "00fe101010101000"
+        },
+        {
+          "byte": 147,
+          "unicode": "U+0423",
+          "status": "present",
+          "source": "512_8 index 403",
+          "rows_hex": "008484847c047800"
+        },
+        {
+          "byte": 148,
+          "unicode": "U+0424",
+          "status": "present",
+          "source": "512_8 index 375",
+          "rows_hex": "107c929292927c10"
+        },
+        {
+          "byte": 149,
+          "unicode": "U+0425",
+          "status": "present",
+          "source": "512_8 index 88",
+          "rows_hex": "0084483030488400"
+        },
+        {
+          "byte": 150,
+          "unicode": "U+0426",
+          "status": "present",
+          "source": "512_8 index 404",
+          "rows_hex": "008484848484fe02"
+        },
+        {
+          "byte": 151,
+          "unicode": "U+0427",
+          "status": "present",
+          "source": "512_8 index 406",
+          "rows_hex": "008484847c040400"
+        },
+        {
+          "byte": 152,
+          "unicode": "U+0428",
+          "status": "present",
+          "source": "512_8 index 408",
+          "rows_hex": "008292929292fe00"
+        },
+        {
+          "byte": 153,
+          "unicode": "U+0429",
+          "status": "present",
+          "source": "512_8 index 410",
+          "rows_hex": "008292929292ff01"
+        },
+        {
+          "byte": 154,
+          "unicode": "U+042A",
+          "status": "present",
+          "source": "512_8 index 412",
+          "rows_hex": "00c0407844447800"
+        },
+        {
+          "byte": 155,
+          "unicode": "U+042B",
+          "status": "present",
+          "source": "512_8 index 414",
+          "rows_hex": "008282f28a8af200"
+        },
+        {
+          "byte": 156,
+          "unicode": "U+042C",
+          "status": "present",
+          "source": "512_8 index 416",
+          "rows_hex": "008080f88484f800"
+        },
+        {
+          "byte": 157,
+          "unicode": "U+042D",
+          "status": "present",
+          "source": "512_8 index 418",
+          "rows_hex": "0078841c04847800"
+        },
+        {
+          "byte": 158,
+          "unicode": "U+042E",
+          "status": "present",
+          "source": "512_8 index 420",
+          "rows_hex": "009ca2e2a2a29c00"
+        },
+        {
+          "byte": 159,
+          "unicode": "U+042F",
+          "status": "present",
+          "source": "512_8 index 422",
+          "rows_hex": "007c84847c448400"
+        },
+        {
+          "byte": 160,
+          "unicode": "U+0430",
+          "status": "present",
+          "source": "512_8 index 97",
+          "rows_hex": "0000007488986c00"
+        },
+        {
+          "byte": 161,
+          "unicode": "U+0431",
+          "status": "present",
+          "source": "512_8 index 385",
+          "rows_hex": "0438407844443800"
+        },
+        {
+          "byte": 162,
+          "unicode": "U+0432",
+          "status": "present",
+          "source": "512_8 index 386",
+          "rows_hex": "0030487844443800"
+        },
+        {
+          "byte": 163,
+          "unicode": "U+0433",
+          "status": "present",
+          "source": "512_8 index 387",
+          "rows_hex": "0000007840404000"
+        },
+        {
+          "byte": 164,
+          "unicode": "U+0434",
+          "status": "present",
+          "source": "512_8 index 389",
+          "rows_hex": "000000382848fc84"
+        },
+        {
+          "byte": 165,
+          "unicode": "U+0435",
+          "status": "present",
+          "source": "512_8 index 101",
+          "rows_hex": "00000038447c2010"
+        },
+        {
+          "byte": 166,
+          "unicode": "U+0436",
+          "status": "present",
+          "source": "512_8 index 391",
+          "rows_hex": "000000d638549200"
+        },
+        {
+          "byte": 167,
+          "unicode": "U+0437",
+          "status": "present",
+          "source": "512_8 index 393",
+          "rows_hex": "0000003844184438"
+        },
+        {
+          "byte": 168,
+          "unicode": "U+0438",
+          "status": "present",
+          "source": "512_8 index 395",
+          "rows_hex": "000000444c546400"
+        },
+        {
+          "byte": 169,
+          "unicode": "U+0439",
+          "status": "present",
+          "source": "512_8 index 397",
+          "rows_hex": "003800444c546400"
+        },
+        {
+          "byte": 170,
+          "unicode": "U+043A",
+          "status": "present",
+          "source": "512_8 index 356",
+          "rows_hex": "0000004c70484400"
+        },
+        {
+          "byte": 171,
+          "unicode": "U+043B",
+          "status": "present",
+          "source": "512_8 index 399",
+          "rows_hex": "0000003c24244400"
+        },
+        {
+          "byte": 172,
+          "unicode": "U+043C",
+          "status": "present",
+          "source": "512_8 index 400",
+          "rows_hex": "000000c6aa928200"
+        },
+        {
+          "byte": 173,
+          "unicode": "U+043D",
+          "status": "present",
+          "source": "512_8 index 401",
+          "rows_hex": "000000447c444400"
+        },
+        {
+          "byte": 174,
+          "unicode": "U+043E",
+          "status": "present",
+          "source": "512_8 index 111",
+          "rows_hex": "0000003844443800"
+        },
+        {
+          "byte": 175,
+          "unicode": "U+043F",
+          "status": "present",
+          "source": "512_8 index 364",
+          "rows_hex": "0000007c44444400"
+        },
+        {
+          "byte": 176,
+          "unicode": "U+2591",
+          "status": "present",
+          "source": "512_8 index 176",
+          "rows_hex": "8822882288228822"
+        },
+        {
+          "byte": 177,
+          "unicode": "U+2592",
+          "status": "present",
+          "source": "512_8 index 177",
+          "rows_hex": "aa55aa55aa55aa55"
+        },
+        {
+          "byte": 178,
+          "unicode": "U+2593",
+          "status": "present",
+          "source": "512_8 index 178",
+          "rows_hex": "77dd77dd77dd77dd"
+        },
+        {
+          "byte": 179,
+          "unicode": "U+2502",
+          "status": "present",
+          "source": "512_8 index 179",
+          "rows_hex": "1010101010101010"
+        },
+        {
+          "byte": 180,
+          "unicode": "U+2524",
+          "status": "present",
+          "source": "512_8 index 180",
+          "rows_hex": "101010f010101010"
+        },
+        {
+          "byte": 181,
+          "unicode": "U+2561",
+          "status": "present",
+          "source": "512_8 index 488",
+          "rows_hex": "1010f010f0101010"
+        },
+        {
+          "byte": 182,
+          "unicode": "U+2562",
+          "status": "present",
+          "source": "512_8 index 489",
+          "rows_hex": "282828e828282828"
+        },
+        {
+          "byte": 183,
+          "unicode": "U+2556",
+          "status": "present",
+          "source": "512_8 index 481",
+          "rows_hex": "000000f828282828"
+        },
+        {
+          "byte": 184,
+          "unicode": "U+2555",
+          "status": "present",
+          "source": "512_8 index 480",
+          "rows_hex": "0000f010f0101010"
+        },
+        {
+          "byte": 185,
+          "unicode": "U+2563",
+          "status": "present",
+          "source": "512_8 index 185",
+          "rows_hex": "2828e808e8282828"
+        },
+        {
+          "byte": 186,
+          "unicode": "U+2551",
+          "status": "present",
+          "source": "512_8 index 186",
+          "rows_hex": "2828282828282828"
+        },
+        {
+          "byte": 187,
+          "unicode": "U+2557",
+          "status": "present",
+          "source": "512_8 index 187",
+          "rows_hex": "0000f808e8282828"
+        },
+        {
+          "byte": 188,
+          "unicode": "U+255D",
+          "status": "present",
+          "source": "512_8 index 188",
+          "rows_hex": "2828e808f8000000"
+        },
+        {
+          "byte": 189,
+          "unicode": "U+255C",
+          "status": "present",
+          "source": "512_8 index 485",
+          "rows_hex": "282828f800000000"
+        },
+        {
+          "byte": 190,
+          "unicode": "U+255B",
+          "status": "present",
+          "source": "512_8 index 484",
+          "rows_hex": "1010f010f0000000"
+        },
+        {
+          "byte": 191,
+          "unicode": "U+2510",
+          "status": "present",
+          "source": "512_8 index 191",
+          "rows_hex": "000000f010101010"
+        },
+        {
+          "byte": 192,
+          "unicode": "U+2514",
+          "status": "present",
+          "source": "512_8 index 192",
+          "rows_hex": "1010101f00000000"
+        },
+        {
+          "byte": 193,
+          "unicode": "U+2534",
+          "status": "present",
+          "source": "512_8 index 193",
+          "rows_hex": "101010ff00000000"
+        },
+        {
+          "byte": 194,
+          "unicode": "U+252C",
+          "status": "present",
+          "source": "512_8 index 194",
+          "rows_hex": "000000ff10101010"
+        },
+        {
+          "byte": 195,
+          "unicode": "U+251C",
+          "status": "present",
+          "source": "512_8 index 195",
+          "rows_hex": "1010101f10101010"
+        },
+        {
+          "byte": 196,
+          "unicode": "U+2500",
+          "status": "present",
+          "source": "512_8 index 196",
+          "rows_hex": "000000ff00000000"
+        },
+        {
+          "byte": 197,
+          "unicode": "U+253C",
+          "status": "present",
+          "source": "512_8 index 197",
+          "rows_hex": "101010ff10101010"
+        },
+        {
+          "byte": 198,
+          "unicode": "U+255E",
+          "status": "present",
+          "source": "512_8 index 486",
+          "rows_hex": "10101f101f101010"
+        },
+        {
+          "byte": 199,
+          "unicode": "U+255F",
+          "status": "present",
+          "source": "512_8 index 487",
+          "rows_hex": "2828282f28282828"
+        },
+        {
+          "byte": 200,
+          "unicode": "U+255A",
+          "status": "present",
+          "source": "512_8 index 200",
+          "rows_hex": "28282f203f000000"
+        },
+        {
+          "byte": 201,
+          "unicode": "U+2554",
+          "status": "present",
+          "source": "512_8 index 201",
+          "rows_hex": "00003f202f282828"
+        },
+        {
+          "byte": 202,
+          "unicode": "U+2569",
+          "status": "present",
+          "source": "512_8 index 202",
+          "rows_hex": "2828ef00ff000000"
+        },
+        {
+          "byte": 203,
+          "unicode": "U+2566",
+          "status": "present",
+          "source": "512_8 index 203",
+          "rows_hex": "0000ff00ef282828"
+        },
+        {
+          "byte": 204,
+          "unicode": "U+2560",
+          "status": "present",
+          "source": "512_8 index 204",
+          "rows_hex": "28282f202f282828"
+        },
+        {
+          "byte": 205,
+          "unicode": "U+2550",
+          "status": "present",
+          "source": "512_8 index 205",
+          "rows_hex": "0000ff00ff000000"
+        },
+        {
+          "byte": 206,
+          "unicode": "U+256C",
+          "status": "present",
+          "source": "512_8 index 206",
+          "rows_hex": "2828ef00ef282828"
+        },
+        {
+          "byte": 207,
+          "unicode": "U+2567",
+          "status": "present",
+          "source": "512_8 index 492",
+          "rows_hex": "1010ff00ff000000"
+        },
+        {
+          "byte": 208,
+          "unicode": "U+2568",
+          "status": "present",
+          "source": "512_8 index 493",
+          "rows_hex": "282828ff00000000"
+        },
+        {
+          "byte": 209,
+          "unicode": "U+2564",
+          "status": "present",
+          "source": "512_8 index 490",
+          "rows_hex": "0000ff00ff101010"
+        },
+        {
+          "byte": 210,
+          "unicode": "U+2565",
+          "status": "present",
+          "source": "512_8 index 491",
+          "rows_hex": "000000ff28282828"
+        },
+        {
+          "byte": 211,
+          "unicode": "U+2559",
+          "status": "present",
+          "source": "512_8 index 483",
+          "rows_hex": "2828283f00000000"
+        },
+        {
+          "byte": 212,
+          "unicode": "U+2558",
+          "status": "present",
+          "source": "512_8 index 482",
+          "rows_hex": "10101f101f000000"
+        },
+        {
+          "byte": 213,
+          "unicode": "U+2552",
+          "status": "present",
+          "source": "512_8 index 478",
+          "rows_hex": "00001f101f101010"
+        },
+        {
+          "byte": 214,
+          "unicode": "U+2553",
+          "status": "present",
+          "source": "512_8 index 479",
+          "rows_hex": "0000003f28282828"
+        },
+        {
+          "byte": 215,
+          "unicode": "U+256B",
+          "status": "present",
+          "source": "512_8 index 495",
+          "rows_hex": "282828ff28282828"
+        },
+        {
+          "byte": 216,
+          "unicode": "U+256A",
+          "status": "present",
+          "source": "512_8 index 494",
+          "rows_hex": "1010ff10ff101010"
+        },
+        {
+          "byte": 217,
+          "unicode": "U+2518",
+          "status": "present",
+          "source": "512_8 index 217",
+          "rows_hex": "101010f000000000"
+        },
+        {
+          "byte": 218,
+          "unicode": "U+250C",
+          "status": "present",
+          "source": "512_8 index 218",
+          "rows_hex": "0000001f10101010"
+        },
+        {
+          "byte": 219,
+          "unicode": "U+2588",
+          "status": "present",
+          "source": "512_8 index 219",
+          "rows_hex": "ffffffffffffffff"
+        },
+        {
+          "byte": 220,
+          "unicode": "U+2584",
+          "status": "present",
+          "source": "512_8 index 220",
+          "rows_hex": "00000000ffffffff"
+        },
+        {
+          "byte": 221,
+          "unicode": "U+258C",
+          "status": "present",
+          "source": "512_8 index 8",
+          "rows_hex": "f0f0f0f0f0f0f0f0"
+        },
+        {
+          "byte": 222,
+          "unicode": "U+2590",
+          "status": "present",
+          "source": "512_8 index 10",
+          "rows_hex": "0f0f0f0f0f0f0f0f"
+        },
+        {
+          "byte": 223,
+          "unicode": "U+2580",
+          "status": "present",
+          "source": "512_8 index 223",
+          "rows_hex": "ffffffff00000000"
+        },
+        {
+          "byte": 224,
+          "unicode": "U+0440",
+          "status": "present",
+          "source": "512_8 index 112",
+          "rows_hex": "000000b844784040"
+        },
+        {
+          "byte": 225,
+          "unicode": "U+0441",
+          "status": "present",
+          "source": "512_8 index 99",
+          "rows_hex": "0000003c40403c00"
+        },
+        {
+          "byte": 226,
+          "unicode": "U+0442",
+          "status": "present",
+          "source": "512_8 index 402",
+          "rows_hex": "0000007c10101000"
+        },
+        {
+          "byte": 227,
+          "unicode": "U+0443",
+          "status": "present",
+          "source": "512_8 index 121",
+          "rows_hex": "00000044443c0438"
+        },
+        {
+          "byte": 228,
+          "unicode": "U+0444",
+          "status": "present",
+          "source": "512_8 index 376",
+          "rows_hex": "0000107c92927c10"
+        },
+        {
+          "byte": 229,
+          "unicode": "U+0445",
+          "status": "present",
+          "source": "512_8 index 120",
+          "rows_hex": "0000006c10284400"
+        },
+        {
+          "byte": 230,
+          "unicode": "U+0446",
+          "status": "present",
+          "source": "512_8 index 405",
+          "rows_hex": "0000004444447e02"
+        },
+        {
+          "byte": 231,
+          "unicode": "U+0447",
+          "status": "present",
+          "source": "512_8 index 407",
+          "rows_hex": "00000044443c0400"
+        },
+        {
+          "byte": 232,
+          "unicode": "U+0448",
+          "status": "present",
+          "source": "512_8 index 409",
+          "rows_hex": "000000829292fe00"
+        },
+        {
+          "byte": 233,
+          "unicode": "U+0449",
+          "status": "present",
+          "source": "512_8 index 411",
+          "rows_hex": "000000829292ff01"
+        },
+        {
+          "byte": 234,
+          "unicode": "U+044A",
+          "status": "present",
+          "source": "512_8 index 413",
+          "rows_hex": "000000c078447800"
+        },
+        {
+          "byte": 235,
+          "unicode": "U+044B",
+          "status": "present",
+          "source": "512_8 index 415",
+          "rows_hex": "00000084e494e400"
+        },
+        {
+          "byte": 236,
+          "unicode": "U+044C",
+          "status": "present",
+          "source": "512_8 index 417",
+          "rows_hex": "0000004078447800"
+        },
+        {
+          "byte": 237,
+          "unicode": "U+044D",
+          "status": "present",
+          "source": "512_8 index 419",
+          "rows_hex": "00000038441c4438"
+        },
+        {
+          "byte": 238,
+          "unicode": "U+044E",
+          "status": "present",
+          "source": "512_8 index 421",
+          "rows_hex": "00000098e4a49800"
+        },
+        {
+          "byte": 239,
+          "unicode": "U+044F",
+          "status": "present",
+          "source": "512_8 index 423",
+          "rows_hex": "0000003c443c4400"
+        },
+        {
+          "byte": 240,
+          "unicode": "U+0401",
+          "status": "present",
+          "source": "512_8 index 211",
+          "rows_hex": "48fc80f08080fc00"
+        },
+        {
+          "byte": 241,
+          "unicode": "U+0451",
+          "status": "present",
+          "source": "512_8 index 137",
+          "rows_hex": "00280038447c2010"
+        },
+        {
+          "byte": 242,
+          "unicode": "U+0404",
+          "status": "present",
+          "source": "512_8 index 426",
+          "rows_hex": "007884e080847800"
+        },
+        {
+          "byte": 243,
+          "unicode": "U+0454",
+          "status": "present",
+          "source": "512_8 index 427",
+          "rows_hex": "0000003844704438"
+        },
+        {
+          "byte": 244,
+          "unicode": "U+0407",
+          "status": "present",
+          "source": "512_8 index 216",
+          "rows_hex": "287c101010107c00"
+        },
+        {
+          "byte": 245,
+          "unicode": "U+0457",
+          "status": "present",
+          "source": "512_8 index 139",
+          "rows_hex": "0028003010101800"
+        },
+        {
+          "byte": 246,
+          "unicode": "U+040E",
+          "status": "present",
+          "source": "512_8 index 428",
+          "rows_hex": "308484847c047800"
+        },
+        {
+          "byte": 247,
+          "unicode": "U+045E",
+          "status": "present",
+          "source": "512_8 index 429",
+          "rows_hex": "00380044443c0438"
+        },
+        {
+          "byte": 248,
+          "unicode": "U+00B0",
+          "status": "present",
+          "source": "512_8 index 248",
+          "rows_hex": "1028100000000000"
+        },
+        {
+          "byte": 249,
+          "unicode": "U+2219",
+          "status": "present",
+          "source": "512_8 index 250",
+          "rows_hex": "0000001000000000"
+        },
+        {
+          "byte": 250,
+          "unicode": "U+00B7",
+          "status": "present",
+          "source": "512_8 index 250",
+          "rows_hex": "0000001000000000"
+        },
+        {
+          "byte": 251,
+          "unicode": "U+221A",
+          "status": "present",
+          "source": "512_8 index 251",
+          "rows_hex": "1e10109050301000"
+        },
+        {
+          "byte": 252,
+          "unicode": "U+2116",
+          "status": "present",
+          "source": "512_8 index 392",
+          "rows_hex": "009699d6f0b69000"
+        },
+        {
+          "byte": 253,
+          "unicode": "U+00A4",
+          "status": "present",
+          "source": "512_8 index 207",
+          "rows_hex": "0044384444384400"
+        },
+        {
+          "byte": 254,
+          "unicode": "U+25A0",
+          "status": "present",
+          "source": "512_8 index 254",
+          "rows_hex": "00003c3c3c3c0000"
+        },
+        {
+          "byte": 255,
+          "unicode": "U+00A0",
+          "status": "present",
+          "source": "512_8 index 32",
+          "rows_hex": "0000000000000000"
+        }
+      ]
+    },
+    "14": {
+      "sha256": "47687d2e22613364d40e10f8f75cb7ebc78b2959c103de2b1dc76cb1825b328a",
+      "glyphs": [
+        {
+          "byte": 0,
+          "unicode": "U+0000",
+          "status": "intentional-blank",
+          "source": "DOS blank slot policy",
+          "rows_hex": "0000000000000000000000000000"
+        },
+        {
+          "byte": 1,
+          "unicode": "U+263A",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000000240000423c0000000000"
+        },
+        {
+          "byte": 2,
+          "unicode": "U+263B",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000007e5a7e7e3c427e00000000"
+        },
+        {
+          "byte": 3,
+          "unicode": "U+2665",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000367f7f7f3e1c0800000000"
+        },
+        {
+          "byte": 4,
+          "unicode": "U+2666",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000081c1c3e3e1c1c0800000000"
+        },
+        {
+          "byte": 5,
+          "unicode": "U+2663",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000081c082a7f2a081c00000000"
+        },
+        {
+          "byte": 6,
+          "unicode": "U+2660",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000081c3e7f7f2a081c00000000"
+        },
+        {
+          "byte": 7,
+          "unicode": "U+2022",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000001c3e3e3e1c0000000000"
+        },
+        {
+          "byte": 8,
+          "unicode": "U+25D8",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "7f7f7f7f63414141637f7f7f7f00"
+        },
+        {
+          "byte": 9,
+          "unicode": "U+25CB",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000001c22414141221c00000000"
+        },
+        {
+          "byte": 10,
+          "unicode": "U+25D9",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "7f7f7f7f635d5d5d637f7f7f7f00"
+        },
+        {
+          "byte": 11,
+          "unicode": "U+2642",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000000e063a48483000000000"
+        },
+        {
+          "byte": 12,
+          "unicode": "U+2640",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000001c2222221c081c080000"
+        },
+        {
+          "byte": 13,
+          "unicode": "U+266A",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000000c0a080808181800000000"
+        },
+        {
+          "byte": 14,
+          "unicode": "U+266B",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000382622222262660600000000"
+        },
+        {
+          "byte": 15,
+          "unicode": "U+263C",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000082a1c361c2a0800000000"
+        },
+        {
+          "byte": 16,
+          "unicode": "U+25BA",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000000020383e38200000000000"
+        },
+        {
+          "byte": 17,
+          "unicode": "U+25C4",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000000020e3e0e020000000000"
+        },
+        {
+          "byte": 18,
+          "unicode": "U+2195",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000081c08081c080000000000"
+        },
+        {
+          "byte": 19,
+          "unicode": "U+203C",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000121212121212001200000000"
+        },
+        {
+          "byte": 20,
+          "unicode": "U+00B6",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00001e3a3a1a0a0a0a0a0a000000"
+        },
+        {
+          "byte": 21,
+          "unicode": "U+00A7",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "001c22201814140c02221c000000"
+        },
+        {
+          "byte": 22,
+          "unicode": "U+25AC",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000000000007e7e7e7e00000000"
+        },
+        {
+          "byte": 23,
+          "unicode": "U+21A8",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000081c2a082a1c083e00000000"
+        },
+        {
+          "byte": 24,
+          "unicode": "U+2191",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000081c2a0808080800000000"
+        },
+        {
+          "byte": 25,
+          "unicode": "U+2193",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000080808082a1c0800000000"
+        },
+        {
+          "byte": 26,
+          "unicode": "U+2192",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000000008043e04080000000000"
+        },
+        {
+          "byte": 27,
+          "unicode": "U+2190",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000000008103e10080000000000"
+        },
+        {
+          "byte": 28,
+          "unicode": "U+221F",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000000202020203e0000000000"
+        },
+        {
+          "byte": 29,
+          "unicode": "U+2194",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000000000143e14000000000000"
+        },
+        {
+          "byte": 30,
+          "unicode": "U+25B2",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000081c1c3e3e7f7f00000000"
+        },
+        {
+          "byte": 31,
+          "unicode": "U+25BC",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000007f7f3e3e1c1c0800000000"
+        },
+        {
+          "byte": 32,
+          "unicode": "U+0020",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000000000000000000000000000"
+        },
+        {
+          "byte": 33,
+          "unicode": "U+0021",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000080808080808000800000000"
+        },
+        {
+          "byte": 34,
+          "unicode": "U+0022",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0014141400000000000000000000"
+        },
+        {
+          "byte": 35,
+          "unicode": "U+0023",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000014143e14143e141400000000"
+        },
+        {
+          "byte": 36,
+          "unicode": "U+0024",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00081c2a281c0a0a2a1c08000000"
+        },
+        {
+          "byte": 37,
+          "unicode": "U+0025",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00102812040810240a0400000000"
+        },
+        {
+          "byte": 38,
+          "unicode": "U+0026",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00081414081a2424241a00000000"
+        },
+        {
+          "byte": 39,
+          "unicode": "U+0027",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0008080800000000000000000000"
+        },
+        {
+          "byte": 40,
+          "unicode": "U+0028",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0004080810101010100808040000"
+        },
+        {
+          "byte": 41,
+          "unicode": "U+0029",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0010080804040404040808100000"
+        },
+        {
+          "byte": 42,
+          "unicode": "U+002A",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000000014083e08140000000000"
+        },
+        {
+          "byte": 43,
+          "unicode": "U+002B",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000000008083e08080000000000"
+        },
+        {
+          "byte": 44,
+          "unicode": "U+002C",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000000000000000181808100000"
+        },
+        {
+          "byte": 45,
+          "unicode": "U+002D",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000000000003e00000000000000"
+        },
+        {
+          "byte": 46,
+          "unicode": "U+002E",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000000000000000181800000000"
+        },
+        {
+          "byte": 47,
+          "unicode": "U+002F",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0002020404080810102020000000"
+        },
+        {
+          "byte": 48,
+          "unicode": "U+0030",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00001c22222a2a22221c00000000"
+        },
+        {
+          "byte": 49,
+          "unicode": "U+0031",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000081828080808083e00000000"
+        },
+        {
+          "byte": 50,
+          "unicode": "U+0032",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00001c2202040810203e00000000"
+        },
+        {
+          "byte": 51,
+          "unicode": "U+0033",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00001c22020c0202221c00000000"
+        },
+        {
+          "byte": 52,
+          "unicode": "U+0034",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000002060a12223f020200000000"
+        },
+        {
+          "byte": 53,
+          "unicode": "U+0035",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00003e20203c0202221c00000000"
+        },
+        {
+          "byte": 54,
+          "unicode": "U+0036",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000c10203c2222221c00000000"
+        },
+        {
+          "byte": 55,
+          "unicode": "U+0037",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00003e0204040808101000000000"
+        },
+        {
+          "byte": 56,
+          "unicode": "U+0038",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00001c22221c2222221c00000000"
+        },
+        {
+          "byte": 57,
+          "unicode": "U+0039",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00001c2222221e02041800000000"
+        },
+        {
+          "byte": 58,
+          "unicode": "U+003A",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000000018180000181800000000"
+        },
+        {
+          "byte": 59,
+          "unicode": "U+003B",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000000018180000181808100000"
+        },
+        {
+          "byte": 60,
+          "unicode": "U+003C",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000000204081008040200000000"
+        },
+        {
+          "byte": 61,
+          "unicode": "U+003D",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000000003e003e000000000000"
+        },
+        {
+          "byte": 62,
+          "unicode": "U+003E",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000002010080408102000000000"
+        },
+        {
+          "byte": 63,
+          "unicode": "U+003F",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00001c2202040808000800000000"
+        },
+        {
+          "byte": 64,
+          "unicode": "U+0040",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00001c22222e2a2e201e00000000"
+        },
+        {
+          "byte": 65,
+          "unicode": "U+0041",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00001c2222223e22222200000000"
+        },
+        {
+          "byte": 66,
+          "unicode": "U+0042",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00003c22223c2222223c00000000"
+        },
+        {
+          "byte": 67,
+          "unicode": "U+0043",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00001c2220202020221c00000000"
+        },
+        {
+          "byte": 68,
+          "unicode": "U+0044",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000382422222222243800000000"
+        },
+        {
+          "byte": 69,
+          "unicode": "U+0045",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00003e20203c2020203e00000000"
+        },
+        {
+          "byte": 70,
+          "unicode": "U+0046",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00003e20203c2020202000000000"
+        },
+        {
+          "byte": 71,
+          "unicode": "U+0047",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00001c2220202622221c00000000"
+        },
+        {
+          "byte": 72,
+          "unicode": "U+0048",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00002222223e2222222200000000"
+        },
+        {
+          "byte": 73,
+          "unicode": "U+0049",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00001c0808080808081c00000000"
+        },
+        {
+          "byte": 74,
+          "unicode": "U+004A",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000e0202020222221c00000000"
+        },
+        {
+          "byte": 75,
+          "unicode": "U+004B",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000222428382424222200000000"
+        },
+        {
+          "byte": 76,
+          "unicode": "U+004C",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000202020202020203e00000000"
+        },
+        {
+          "byte": 77,
+          "unicode": "U+004D",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000022362a2a2222222200000000"
+        },
+        {
+          "byte": 78,
+          "unicode": "U+004E",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00002232322a2a26262200000000"
+        },
+        {
+          "byte": 79,
+          "unicode": "U+004F",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00001c2222222222221c00000000"
+        },
+        {
+          "byte": 80,
+          "unicode": "U+0050",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00003c2222223c20202000000000"
+        },
+        {
+          "byte": 81,
+          "unicode": "U+0051",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00001c2222222222241a02000000"
+        },
+        {
+          "byte": 82,
+          "unicode": "U+0052",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00003c22223c2422222200000000"
+        },
+        {
+          "byte": 83,
+          "unicode": "U+0053",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00001c22201c0202221c00000000"
+        },
+        {
+          "byte": 84,
+          "unicode": "U+0054",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00003e0808080808080800000000"
+        },
+        {
+          "byte": 85,
+          "unicode": "U+0055",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000222222222222221c00000000"
+        },
+        {
+          "byte": 86,
+          "unicode": "U+0056",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000222222141414080800000000"
+        },
+        {
+          "byte": 87,
+          "unicode": "U+0057",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00002222222a2a1c141400000000"
+        },
+        {
+          "byte": 88,
+          "unicode": "U+0058",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000222214080814222200000000"
+        },
+        {
+          "byte": 89,
+          "unicode": "U+0059",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000222222140808080800000000"
+        },
+        {
+          "byte": 90,
+          "unicode": "U+005A",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00003e0408081010203e00000000"
+        },
+        {
+          "byte": 91,
+          "unicode": "U+005B",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "001c1010101010101010101c0000"
+        },
+        {
+          "byte": 92,
+          "unicode": "U+005C",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0020201010080804040202000000"
+        },
+        {
+          "byte": 93,
+          "unicode": "U+005D",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "001c0404040404040404041c0000"
+        },
+        {
+          "byte": 94,
+          "unicode": "U+005E",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0814220000000000000000000000"
+        },
+        {
+          "byte": 95,
+          "unicode": "U+005F",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000000000000000003e000000"
+        },
+        {
+          "byte": 96,
+          "unicode": "U+0060",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0010080000000000000000000000"
+        },
+        {
+          "byte": 97,
+          "unicode": "U+0061",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000001e222222261a00000000"
+        },
+        {
+          "byte": 98,
+          "unicode": "U+0062",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "002020203c222222223c00000000"
+        },
+        {
+          "byte": 99,
+          "unicode": "U+0063",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000001c222020221c00000000"
+        },
+        {
+          "byte": 100,
+          "unicode": "U+0064",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000202021e222222221e00000000"
+        },
+        {
+          "byte": 101,
+          "unicode": "U+0065",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000001c223e20221c00000000"
+        },
+        {
+          "byte": 102,
+          "unicode": "U+0066",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000e10103c101010101000000000"
+        },
+        {
+          "byte": 103,
+          "unicode": "U+0067",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000001e222222221e02021c00"
+        },
+        {
+          "byte": 104,
+          "unicode": "U+0068",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "002020203c222222222200000000"
+        },
+        {
+          "byte": 105,
+          "unicode": "U+0069",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000080018080808080600000000"
+        },
+        {
+          "byte": 106,
+          "unicode": "U+006A",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000004000c040404040414080000"
+        },
+        {
+          "byte": 107,
+          "unicode": "U+006B",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0020202022242838242200000000"
+        },
+        {
+          "byte": 108,
+          "unicode": "U+006C",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0018080808080808080c00000000"
+        },
+        {
+          "byte": 109,
+          "unicode": "U+006D",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000000342a2a2a2a2a00000000"
+        },
+        {
+          "byte": 110,
+          "unicode": "U+006E",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000003c222222222200000000"
+        },
+        {
+          "byte": 111,
+          "unicode": "U+006F",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000001c222222221c00000000"
+        },
+        {
+          "byte": 112,
+          "unicode": "U+0070",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000003c222222223c20202000"
+        },
+        {
+          "byte": 113,
+          "unicode": "U+0071",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000001e222222221e02020300"
+        },
+        {
+          "byte": 114,
+          "unicode": "U+0072",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000003c222020202000000000"
+        },
+        {
+          "byte": 115,
+          "unicode": "U+0073",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000001e201c02023c00000000"
+        },
+        {
+          "byte": 116,
+          "unicode": "U+0074",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000010103c101010100e00000000"
+        },
+        {
+          "byte": 117,
+          "unicode": "U+0075",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000000022222222221e00000000"
+        },
+        {
+          "byte": 118,
+          "unicode": "U+0076",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000000022221414080800000000"
+        },
+        {
+          "byte": 119,
+          "unicode": "U+0077",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000000022222a2a141400000000"
+        },
+        {
+          "byte": 120,
+          "unicode": "U+0078",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000000022140808142200000000"
+        },
+        {
+          "byte": 121,
+          "unicode": "U+0079",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000000022222222221e02021c00"
+        },
+        {
+          "byte": 122,
+          "unicode": "U+007A",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000003e040810203e00000000"
+        },
+        {
+          "byte": 123,
+          "unicode": "U+007B",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0006080808083008080808060000"
+        },
+        {
+          "byte": 124,
+          "unicode": "U+007C",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0008080808080808080808080000"
+        },
+        {
+          "byte": 125,
+          "unicode": "U+007D",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0030080808080608080808300000"
+        },
+        {
+          "byte": 126,
+          "unicode": "U+007E",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000000000122a24000000000000"
+        },
+        {
+          "byte": 127,
+          "unicode": "U+2302",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000008142222223e0000000000"
+        },
+        {
+          "byte": 128,
+          "unicode": "U+0410",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000080814141c22222200000000"
+        },
+        {
+          "byte": 129,
+          "unicode": "U+0411",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00003c20203c2222223c00000000"
+        },
+        {
+          "byte": 130,
+          "unicode": "U+0412",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00003c22223c2222223c00000000"
+        },
+        {
+          "byte": 131,
+          "unicode": "U+0413",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00001e1010101010101000000000"
+        },
+        {
+          "byte": 132,
+          "unicode": "U+0414",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000e1212121212223f21000000"
+        },
+        {
+          "byte": 133,
+          "unicode": "U+0415",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00003e20203c2020203e00000000"
+        },
+        {
+          "byte": 134,
+          "unicode": "U+0416",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00002a2a2a1c1c2a2a2a00000000"
+        },
+        {
+          "byte": 135,
+          "unicode": "U+0417",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00003c22020c0202221c00000000"
+        },
+        {
+          "byte": 136,
+          "unicode": "U+0418",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00002226262a2a32322200000000"
+        },
+        {
+          "byte": 137,
+          "unicode": "U+0419",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "14082226262a2a32322200000000"
+        },
+        {
+          "byte": 138,
+          "unicode": "U+041A",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000222224283424222200000000"
+        },
+        {
+          "byte": 139,
+          "unicode": "U+041B",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00001e1212121212122200000000"
+        },
+        {
+          "byte": 140,
+          "unicode": "U+041C",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000222236362a2a222200000000"
+        },
+        {
+          "byte": 141,
+          "unicode": "U+041D",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00002222223e2222222200000000"
+        },
+        {
+          "byte": 142,
+          "unicode": "U+041E",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00001c2222222222221c00000000"
+        },
+        {
+          "byte": 143,
+          "unicode": "U+041F",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00003e2222222222222200000000"
+        },
+        {
+          "byte": 144,
+          "unicode": "U+0420",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00003c2222223c20202000000000"
+        },
+        {
+          "byte": 145,
+          "unicode": "U+0421",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00001c2220202020221c00000000"
+        },
+        {
+          "byte": 146,
+          "unicode": "U+0422",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00003e0808080808080800000000"
+        },
+        {
+          "byte": 147,
+          "unicode": "U+0423",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000222222221414083000000000"
+        },
+        {
+          "byte": 148,
+          "unicode": "U+0424",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000081c2a2a2a2a1c0800000000"
+        },
+        {
+          "byte": 149,
+          "unicode": "U+0425",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000222214080814222200000000"
+        },
+        {
+          "byte": 150,
+          "unicode": "U+0426",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000242424242424243e02000000"
+        },
+        {
+          "byte": 151,
+          "unicode": "U+0427",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000222222221e02020200000000"
+        },
+        {
+          "byte": 152,
+          "unicode": "U+0428",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00002a2a2a2a2a2a2a3e00000000"
+        },
+        {
+          "byte": 153,
+          "unicode": "U+0429",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00002a2a2a2a2a2a2a3e01070000"
+        },
+        {
+          "byte": 154,
+          "unicode": "U+042A",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00007010101c1212121c00000000"
+        },
+        {
+          "byte": 155,
+          "unicode": "U+042B",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000222222322a2a2a3200000000"
+        },
+        {
+          "byte": 156,
+          "unicode": "U+042C",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00002020203c2222223c00000000"
+        },
+        {
+          "byte": 157,
+          "unicode": "U+042D",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00001824021e0202241800000000"
+        },
+        {
+          "byte": 158,
+          "unicode": "U+042E",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000242a2a3a2a2a2a2400000000"
+        },
+        {
+          "byte": 159,
+          "unicode": "U+042F",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00001e2222221e0a122200000000"
+        },
+        {
+          "byte": 160,
+          "unicode": "U+0430",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000001c021e22261a00000000"
+        },
+        {
+          "byte": 161,
+          "unicode": "U+0431",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00021c202c322222221c00000000"
+        },
+        {
+          "byte": 162,
+          "unicode": "U+0432",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000003c223c22223c00000000"
+        },
+        {
+          "byte": 163,
+          "unicode": "U+0433",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000001e101010101000000000"
+        },
+        {
+          "byte": 164,
+          "unicode": "U+0434",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000001e121212223f21000000"
+        },
+        {
+          "byte": 165,
+          "unicode": "U+0435",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000001c223e20221c00000000"
+        },
+        {
+          "byte": 166,
+          "unicode": "U+0436",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000002a2a1c1c2a2a00000000"
+        },
+        {
+          "byte": 167,
+          "unicode": "U+0437",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000001c220c02221c00000000"
+        },
+        {
+          "byte": 168,
+          "unicode": "U+0438",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000000026262a2a323200000000"
+        },
+        {
+          "byte": 169,
+          "unicode": "U+0439",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0014080026262a2a323200000000"
+        },
+        {
+          "byte": 170,
+          "unicode": "U+043A",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000000022242838242200000000"
+        },
+        {
+          "byte": 171,
+          "unicode": "U+043B",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000001e121212122200000000"
+        },
+        {
+          "byte": 172,
+          "unicode": "U+043C",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000002236362a2a2200000000"
+        },
+        {
+          "byte": 173,
+          "unicode": "U+043D",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000002222223e222200000000"
+        },
+        {
+          "byte": 174,
+          "unicode": "U+043E",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000001c222222221c00000000"
+        },
+        {
+          "byte": 175,
+          "unicode": "U+043F",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000003e222222222200000000"
+        },
+        {
+          "byte": 176,
+          "unicode": "U+2591",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Repeat the native two-row shading pattern across the DOS cell.",
+          "rows_hex": "8822882288228822882288228822"
+        },
+        {
+          "byte": 177,
+          "unicode": "U+2592",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Repeat the native two-row shading pattern across the DOS cell.",
+          "rows_hex": "aa55aa55aa55aa55aa55aa55aa55"
+        },
+        {
+          "byte": 178,
+          "unicode": "U+2593",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Repeat the native two-row shading pattern across the DOS cell.",
+          "rows_hex": "77dd77dd77dd77dd77dd77dd77dd"
+        },
+        {
+          "byte": 179,
+          "unicode": "U+2502",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "1010101010101010101010101010"
+        },
+        {
+          "byte": 180,
+          "unicode": "U+2524",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "101010101010f010101010101010"
+        },
+        {
+          "byte": 181,
+          "unicode": "U+2561",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "1010101010f010f0101010101010"
+        },
+        {
+          "byte": 182,
+          "unicode": "U+2562",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "282828282828e828282828282828"
+        },
+        {
+          "byte": 183,
+          "unicode": "U+2556",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "000000000000f828282828282828"
+        },
+        {
+          "byte": 184,
+          "unicode": "U+2555",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "0000000000f010f0101010101010"
+        },
+        {
+          "byte": 185,
+          "unicode": "U+2563",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "2828282828e808e8282828282828"
+        },
+        {
+          "byte": 186,
+          "unicode": "U+2551",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "2828282828282828282828282828"
+        },
+        {
+          "byte": 187,
+          "unicode": "U+2557",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "0000000000f808e8282828282828"
+        },
+        {
+          "byte": 188,
+          "unicode": "U+255D",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "2828282828e808f8000000000000"
+        },
+        {
+          "byte": 189,
+          "unicode": "U+255C",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "282828282828f800000000000000"
+        },
+        {
+          "byte": 190,
+          "unicode": "U+255B",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "1010101010f010f0000000000000"
+        },
+        {
+          "byte": 191,
+          "unicode": "U+2510",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "000000000000f010101010101010"
+        },
+        {
+          "byte": 192,
+          "unicode": "U+2514",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "1010101010101f00000000000000"
+        },
+        {
+          "byte": 193,
+          "unicode": "U+2534",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "101010101010ff00000000000000"
+        },
+        {
+          "byte": 194,
+          "unicode": "U+252C",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "000000000000ff10101010101010"
+        },
+        {
+          "byte": 195,
+          "unicode": "U+251C",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "1010101010101f10101010101010"
+        },
+        {
+          "byte": 196,
+          "unicode": "U+2500",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "000000000000ff00000000000000"
+        },
+        {
+          "byte": 197,
+          "unicode": "U+253C",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "101010101010ff10101010101010"
+        },
+        {
+          "byte": 198,
+          "unicode": "U+255E",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "10101010101f101f101010101010"
+        },
+        {
+          "byte": 199,
+          "unicode": "U+255F",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "2828282828282f28282828282828"
+        },
+        {
+          "byte": 200,
+          "unicode": "U+255A",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "28282828282f203f000000000000"
+        },
+        {
+          "byte": 201,
+          "unicode": "U+2554",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "00000000003f202f282828282828"
+        },
+        {
+          "byte": 202,
+          "unicode": "U+2569",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "2828282828ef00ff000000000000"
+        },
+        {
+          "byte": 203,
+          "unicode": "U+2566",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "0000000000ff00ef282828282828"
+        },
+        {
+          "byte": 204,
+          "unicode": "U+2560",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "28282828282f202f282828282828"
+        },
+        {
+          "byte": 205,
+          "unicode": "U+2550",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "0000000000ff00ff000000000000"
+        },
+        {
+          "byte": 206,
+          "unicode": "U+256C",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "2828282828ef00ef282828282828"
+        },
+        {
+          "byte": 207,
+          "unicode": "U+2567",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "1010101010ff00ff000000000000"
+        },
+        {
+          "byte": 208,
+          "unicode": "U+2568",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "282828282828ff00000000000000"
+        },
+        {
+          "byte": 209,
+          "unicode": "U+2564",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "0000000000ff00ff101010101010"
+        },
+        {
+          "byte": 210,
+          "unicode": "U+2565",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "000000000000ff28282828282828"
+        },
+        {
+          "byte": 211,
+          "unicode": "U+2559",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "2828282828283f00000000000000"
+        },
+        {
+          "byte": 212,
+          "unicode": "U+2558",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "10101010101f101f000000000000"
+        },
+        {
+          "byte": 213,
+          "unicode": "U+2552",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "00000000001f101f101010101010"
+        },
+        {
+          "byte": 214,
+          "unicode": "U+2553",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "0000000000003f28282828282828"
+        },
+        {
+          "byte": 215,
+          "unicode": "U+256B",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "282828282828ff28282828282828"
+        },
+        {
+          "byte": 216,
+          "unicode": "U+256A",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "1010101010ff10ff101010101010"
+        },
+        {
+          "byte": 217,
+          "unicode": "U+2518",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "101010101010f000000000000000"
+        },
+        {
+          "byte": 218,
+          "unicode": "U+250C",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "0000000000001f10101010101010"
+        },
+        {
+          "byte": 219,
+          "unicode": "U+2588",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "ffffffffffffffffffffffffffff"
+        },
+        {
+          "byte": 220,
+          "unicode": "U+2584",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "00000000000000ffffffffffffff"
+        },
+        {
+          "byte": 221,
+          "unicode": "U+258C",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "f0f0f0f0f0f0f0f0f0f0f0f0f0f0"
+        },
+        {
+          "byte": 222,
+          "unicode": "U+2590",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "0f0f0f0f0f0f0f0f0f0f0f0f0f0f"
+        },
+        {
+          "byte": 223,
+          "unicode": "U+2580",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "ffffffffffffff00000000000000"
+        },
+        {
+          "byte": 224,
+          "unicode": "U+0440",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000002c322222322c20202000"
+        },
+        {
+          "byte": 225,
+          "unicode": "U+0441",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000001c222020221c00000000"
+        },
+        {
+          "byte": 226,
+          "unicode": "U+0442",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000003e080808080800000000"
+        },
+        {
+          "byte": 227,
+          "unicode": "U+0443",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000000022222214140808300000"
+        },
+        {
+          "byte": 228,
+          "unicode": "U+0444",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000008081c2a2a2a2a1c08080000"
+        },
+        {
+          "byte": 229,
+          "unicode": "U+0445",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000000022140808142200000000"
+        },
+        {
+          "byte": 230,
+          "unicode": "U+0446",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000000024242424243e02000000"
+        },
+        {
+          "byte": 231,
+          "unicode": "U+0447",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000002222221e020200000000"
+        },
+        {
+          "byte": 232,
+          "unicode": "U+0448",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000002a2a2a2a2a3e00000000"
+        },
+        {
+          "byte": 233,
+          "unicode": "U+0449",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000002a2a2a2a2a3e01070000"
+        },
+        {
+          "byte": 234,
+          "unicode": "U+044A",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000000070101c12121c00000000"
+        },
+        {
+          "byte": 235,
+          "unicode": "U+044B",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000002222322a2a3200000000"
+        },
+        {
+          "byte": 236,
+          "unicode": "U+044C",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000000020203c22223c00000000"
+        },
+        {
+          "byte": 237,
+          "unicode": "U+044D",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000003c021e02023c00000000"
+        },
+        {
+          "byte": 238,
+          "unicode": "U+044E",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000000242a3a2a2a2400000000"
+        },
+        {
+          "byte": 239,
+          "unicode": "U+044F",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000001e22221e122200000000"
+        },
+        {
+          "byte": 240,
+          "unicode": "U+0401",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "14003e20203c2020203e00000000"
+        },
+        {
+          "byte": 241,
+          "unicode": "U+0451",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000014001c223e20221c00000000"
+        },
+        {
+          "byte": 242,
+          "unicode": "U+0404",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000c12203c2020120c00000000"
+        },
+        {
+          "byte": 243,
+          "unicode": "U+0454",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000001c223820221c00000000"
+        },
+        {
+          "byte": 244,
+          "unicode": "U+0407",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "14001c0808080808081c00000000"
+        },
+        {
+          "byte": 245,
+          "unicode": "U+0457",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000140008180808081c00000000"
+        },
+        {
+          "byte": 246,
+          "unicode": "U+040E",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "1408222222141408083000000000"
+        },
+        {
+          "byte": 247,
+          "unicode": "U+045E",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0014080022222214140808300000"
+        },
+        {
+          "byte": 248,
+          "unicode": "U+00B0",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000182424180000000000000000"
+        },
+        {
+          "byte": 249,
+          "unicode": "U+2219",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000000000081c08000000000000"
+        },
+        {
+          "byte": 250,
+          "unicode": "U+00B7",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000000000081c08000000000000"
+        },
+        {
+          "byte": 251,
+          "unicode": "U+221A",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0e08080810105050202000000000"
+        },
+        {
+          "byte": 252,
+          "unicode": "U+2116",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00004e4a6e605e58484800000000"
+        },
+        {
+          "byte": 253,
+          "unicode": "U+00A4",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000000221c14141c2200000000"
+        },
+        {
+          "byte": 254,
+          "unicode": "U+25A0",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000007f7f7f7f7f7f7f00000000"
+        },
+        {
+          "byte": 255,
+          "unicode": "U+00A0",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000000000000000000000000000"
+        }
+      ]
+    },
+    "16": {
+      "sha256": "1862d0c4f61c25da263ce03de35739e5fc58bf19b8ec95ba6c4603e6c40423ba",
+      "glyphs": [
+        {
+          "byte": 0,
+          "unicode": "U+0000",
+          "status": "intentional-blank",
+          "source": "DOS blank slot policy",
+          "rows_hex": "00000000000000000000000000000000"
+        },
+        {
+          "byte": 1,
+          "unicode": "U+263A",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000000000240000423c000000000000"
+        },
+        {
+          "byte": 2,
+          "unicode": "U+263B",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000007e5a7e7e3c427e0000000000"
+        },
+        {
+          "byte": 3,
+          "unicode": "U+2665",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000000367f7f7f3e1c080000000000"
+        },
+        {
+          "byte": 4,
+          "unicode": "U+2666",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000081c1c3e3e1c1c080000000000"
+        },
+        {
+          "byte": 5,
+          "unicode": "U+2663",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000081c082a7f2a081c0000000000"
+        },
+        {
+          "byte": 6,
+          "unicode": "U+2660",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000081c3e7f7f2a081c0000000000"
+        },
+        {
+          "byte": 7,
+          "unicode": "U+2022",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000000001c3e3e3e1c000000000000"
+        },
+        {
+          "byte": 8,
+          "unicode": "U+25D8",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "007f7f7f7f63414141637f7f7f7f0000"
+        },
+        {
+          "byte": 9,
+          "unicode": "U+25CB",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000001c22414141221c0000000000"
+        },
+        {
+          "byte": 10,
+          "unicode": "U+25D9",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "007f7f7f7f635d5d5d637f7f7f7f0000"
+        },
+        {
+          "byte": 11,
+          "unicode": "U+2642",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000000000e063a4848300000000000"
+        },
+        {
+          "byte": 12,
+          "unicode": "U+2640",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000000001c2222221c081c08000000"
+        },
+        {
+          "byte": 13,
+          "unicode": "U+266A",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000000c0a08080818180000000000"
+        },
+        {
+          "byte": 14,
+          "unicode": "U+266B",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000038262222226266060000000000"
+        },
+        {
+          "byte": 15,
+          "unicode": "U+263C",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000000082a1c361c2a080000000000"
+        },
+        {
+          "byte": 16,
+          "unicode": "U+25BA",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000000020383e3820000000000000"
+        },
+        {
+          "byte": 17,
+          "unicode": "U+25C4",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000000000020e3e0e02000000000000"
+        },
+        {
+          "byte": 18,
+          "unicode": "U+2195",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000000081c08081c08000000000000"
+        },
+        {
+          "byte": 19,
+          "unicode": "U+203C",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000012121212121200120000000000"
+        },
+        {
+          "byte": 20,
+          "unicode": "U+00B6",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000001e3a3a1a0a0a0a0a0a00000000"
+        },
+        {
+          "byte": 21,
+          "unicode": "U+00A7",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00001c22201814140c02221c00000000"
+        },
+        {
+          "byte": 22,
+          "unicode": "U+25AC",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000000000007e7e7e7e0000000000"
+        },
+        {
+          "byte": 23,
+          "unicode": "U+21A8",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000081c2a082a1c083e0000000000"
+        },
+        {
+          "byte": 24,
+          "unicode": "U+2191",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000000081c2a080808080000000000"
+        },
+        {
+          "byte": 25,
+          "unicode": "U+2193",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000000080808082a1c080000000000"
+        },
+        {
+          "byte": 26,
+          "unicode": "U+2192",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000000008043e0408000000000000"
+        },
+        {
+          "byte": 27,
+          "unicode": "U+2190",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000000008103e1008000000000000"
+        },
+        {
+          "byte": 28,
+          "unicode": "U+221F",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000000000202020203e000000000000"
+        },
+        {
+          "byte": 29,
+          "unicode": "U+2194",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000000000143e1400000000000000"
+        },
+        {
+          "byte": 30,
+          "unicode": "U+25B2",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000000081c1c3e3e7f7f0000000000"
+        },
+        {
+          "byte": 31,
+          "unicode": "U+25BC",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000007f7f3e3e1c1c080000000000"
+        },
+        {
+          "byte": 32,
+          "unicode": "U+0020",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000000000000000000000000000000"
+        },
+        {
+          "byte": 33,
+          "unicode": "U+0021",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000008080808080800080000000000"
+        },
+        {
+          "byte": 34,
+          "unicode": "U+0022",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00001414140000000000000000000000"
+        },
+        {
+          "byte": 35,
+          "unicode": "U+0023",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000014143e14143e14140000000000"
+        },
+        {
+          "byte": 36,
+          "unicode": "U+0024",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000081c2a281c0a0a2a1c0800000000"
+        },
+        {
+          "byte": 37,
+          "unicode": "U+0025",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000102812040810240a040000000000"
+        },
+        {
+          "byte": 38,
+          "unicode": "U+0026",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000081414081a2424241a0000000000"
+        },
+        {
+          "byte": 39,
+          "unicode": "U+0027",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000808080000000000000000000000"
+        },
+        {
+          "byte": 40,
+          "unicode": "U+0028",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000408081010101010080804000000"
+        },
+        {
+          "byte": 41,
+          "unicode": "U+0029",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00001008080404040404080810000000"
+        },
+        {
+          "byte": 42,
+          "unicode": "U+002A",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000000014083e0814000000000000"
+        },
+        {
+          "byte": 43,
+          "unicode": "U+002B",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000000008083e0808000000000000"
+        },
+        {
+          "byte": 44,
+          "unicode": "U+002C",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000000000000000018180810000000"
+        },
+        {
+          "byte": 45,
+          "unicode": "U+002D",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000000000003e0000000000000000"
+        },
+        {
+          "byte": 46,
+          "unicode": "U+002E",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000000000000000018180000000000"
+        },
+        {
+          "byte": 47,
+          "unicode": "U+002F",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000202040408081010202000000000"
+        },
+        {
+          "byte": 48,
+          "unicode": "U+0030",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000001c22222a2a22221c0000000000"
+        },
+        {
+          "byte": 49,
+          "unicode": "U+0031",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000081828080808083e0000000000"
+        },
+        {
+          "byte": 50,
+          "unicode": "U+0032",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000001c2202040810203e0000000000"
+        },
+        {
+          "byte": 51,
+          "unicode": "U+0033",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000001c22020c0202221c0000000000"
+        },
+        {
+          "byte": 52,
+          "unicode": "U+0034",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000002060a12223f02020000000000"
+        },
+        {
+          "byte": 53,
+          "unicode": "U+0035",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000003e20203c0202221c0000000000"
+        },
+        {
+          "byte": 54,
+          "unicode": "U+0036",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000000c10203c2222221c0000000000"
+        },
+        {
+          "byte": 55,
+          "unicode": "U+0037",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000003e020404080810100000000000"
+        },
+        {
+          "byte": 56,
+          "unicode": "U+0038",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000001c22221c2222221c0000000000"
+        },
+        {
+          "byte": 57,
+          "unicode": "U+0039",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000001c2222221e0204180000000000"
+        },
+        {
+          "byte": 58,
+          "unicode": "U+003A",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000000001818000018180000000000"
+        },
+        {
+          "byte": 59,
+          "unicode": "U+003B",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000000001818000018180810000000"
+        },
+        {
+          "byte": 60,
+          "unicode": "U+003C",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000000020408100804020000000000"
+        },
+        {
+          "byte": 61,
+          "unicode": "U+003D",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000000000003e003e00000000000000"
+        },
+        {
+          "byte": 62,
+          "unicode": "U+003E",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000000201008040810200000000000"
+        },
+        {
+          "byte": 63,
+          "unicode": "U+003F",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000001c220204080800080000000000"
+        },
+        {
+          "byte": 64,
+          "unicode": "U+0040",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000001c22222e2a2e201e0000000000"
+        },
+        {
+          "byte": 65,
+          "unicode": "U+0041",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000001c2222223e2222220000000000"
+        },
+        {
+          "byte": 66,
+          "unicode": "U+0042",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000003c22223c2222223c0000000000"
+        },
+        {
+          "byte": 67,
+          "unicode": "U+0043",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000001c2220202020221c0000000000"
+        },
+        {
+          "byte": 68,
+          "unicode": "U+0044",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000038242222222224380000000000"
+        },
+        {
+          "byte": 69,
+          "unicode": "U+0045",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000003e20203c2020203e0000000000"
+        },
+        {
+          "byte": 70,
+          "unicode": "U+0046",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000003e20203c202020200000000000"
+        },
+        {
+          "byte": 71,
+          "unicode": "U+0047",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000001c2220202622221c0000000000"
+        },
+        {
+          "byte": 72,
+          "unicode": "U+0048",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000002222223e222222220000000000"
+        },
+        {
+          "byte": 73,
+          "unicode": "U+0049",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000001c0808080808081c0000000000"
+        },
+        {
+          "byte": 74,
+          "unicode": "U+004A",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000000e0202020222221c0000000000"
+        },
+        {
+          "byte": 75,
+          "unicode": "U+004B",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000022242838242422220000000000"
+        },
+        {
+          "byte": 76,
+          "unicode": "U+004C",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000202020202020203e0000000000"
+        },
+        {
+          "byte": 77,
+          "unicode": "U+004D",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000022362a2a222222220000000000"
+        },
+        {
+          "byte": 78,
+          "unicode": "U+004E",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000002232322a2a2626220000000000"
+        },
+        {
+          "byte": 79,
+          "unicode": "U+004F",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000001c2222222222221c0000000000"
+        },
+        {
+          "byte": 80,
+          "unicode": "U+0050",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000003c2222223c2020200000000000"
+        },
+        {
+          "byte": 81,
+          "unicode": "U+0051",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000001c2222222222241a0200000000"
+        },
+        {
+          "byte": 82,
+          "unicode": "U+0052",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000003c22223c242222220000000000"
+        },
+        {
+          "byte": 83,
+          "unicode": "U+0053",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000001c22201c0202221c0000000000"
+        },
+        {
+          "byte": 84,
+          "unicode": "U+0054",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000003e080808080808080000000000"
+        },
+        {
+          "byte": 85,
+          "unicode": "U+0055",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000222222222222221c0000000000"
+        },
+        {
+          "byte": 86,
+          "unicode": "U+0056",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000022222214141408080000000000"
+        },
+        {
+          "byte": 87,
+          "unicode": "U+0057",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000002222222a2a1c14140000000000"
+        },
+        {
+          "byte": 88,
+          "unicode": "U+0058",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000022221408081422220000000000"
+        },
+        {
+          "byte": 89,
+          "unicode": "U+0059",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000022222214080808080000000000"
+        },
+        {
+          "byte": 90,
+          "unicode": "U+005A",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000003e0408081010203e0000000000"
+        },
+        {
+          "byte": 91,
+          "unicode": "U+005B",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00001c1010101010101010101c000000"
+        },
+        {
+          "byte": 92,
+          "unicode": "U+005C",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00002020101008080404020200000000"
+        },
+        {
+          "byte": 93,
+          "unicode": "U+005D",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00001c0404040404040404041c000000"
+        },
+        {
+          "byte": 94,
+          "unicode": "U+005E",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00081422000000000000000000000000"
+        },
+        {
+          "byte": 95,
+          "unicode": "U+005F",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000000000000000000003e00000000"
+        },
+        {
+          "byte": 96,
+          "unicode": "U+0060",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00001008000000000000000000000000"
+        },
+        {
+          "byte": 97,
+          "unicode": "U+0061",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000000001e222222261a0000000000"
+        },
+        {
+          "byte": 98,
+          "unicode": "U+0062",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00002020203c222222223c0000000000"
+        },
+        {
+          "byte": 99,
+          "unicode": "U+0063",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000000001c222020221c0000000000"
+        },
+        {
+          "byte": 100,
+          "unicode": "U+0064",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000202021e222222221e0000000000"
+        },
+        {
+          "byte": 101,
+          "unicode": "U+0065",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000000001c223e20221c0000000000"
+        },
+        {
+          "byte": 102,
+          "unicode": "U+0066",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000e10103c10101010100000000000"
+        },
+        {
+          "byte": 103,
+          "unicode": "U+0067",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000000001e222222221e02021c0000"
+        },
+        {
+          "byte": 104,
+          "unicode": "U+0068",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00002020203c22222222220000000000"
+        },
+        {
+          "byte": 105,
+          "unicode": "U+0069",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000008001808080808060000000000"
+        },
+        {
+          "byte": 106,
+          "unicode": "U+006A",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000004000c04040404041408000000"
+        },
+        {
+          "byte": 107,
+          "unicode": "U+006B",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00002020202224283824220000000000"
+        },
+        {
+          "byte": 108,
+          "unicode": "U+006C",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000018080808080808080c0000000000"
+        },
+        {
+          "byte": 109,
+          "unicode": "U+006D",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000000000342a2a2a2a2a0000000000"
+        },
+        {
+          "byte": 110,
+          "unicode": "U+006E",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000000003c22222222220000000000"
+        },
+        {
+          "byte": 111,
+          "unicode": "U+006F",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000000001c222222221c0000000000"
+        },
+        {
+          "byte": 112,
+          "unicode": "U+0070",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000000003c222222223c2020200000"
+        },
+        {
+          "byte": 113,
+          "unicode": "U+0071",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000000001e222222221e0202030000"
+        },
+        {
+          "byte": 114,
+          "unicode": "U+0072",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000000003c22202020200000000000"
+        },
+        {
+          "byte": 115,
+          "unicode": "U+0073",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000000001e201c02023c0000000000"
+        },
+        {
+          "byte": 116,
+          "unicode": "U+0074",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000010103c101010100e0000000000"
+        },
+        {
+          "byte": 117,
+          "unicode": "U+0075",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000000022222222221e0000000000"
+        },
+        {
+          "byte": 118,
+          "unicode": "U+0076",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000000002222141408080000000000"
+        },
+        {
+          "byte": 119,
+          "unicode": "U+0077",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000000022222a2a14140000000000"
+        },
+        {
+          "byte": 120,
+          "unicode": "U+0078",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000000002214080814220000000000"
+        },
+        {
+          "byte": 121,
+          "unicode": "U+0079",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000000022222222221e02021c0000"
+        },
+        {
+          "byte": 122,
+          "unicode": "U+007A",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000000003e040810203e0000000000"
+        },
+        {
+          "byte": 123,
+          "unicode": "U+007B",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000608080808300808080806000000"
+        },
+        {
+          "byte": 124,
+          "unicode": "U+007C",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000808080808080808080808000000"
+        },
+        {
+          "byte": 125,
+          "unicode": "U+007D",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00003008080808060808080830000000"
+        },
+        {
+          "byte": 126,
+          "unicode": "U+007E",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000000000122a2400000000000000"
+        },
+        {
+          "byte": 127,
+          "unicode": "U+2302",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000000008142222223e000000000000"
+        },
+        {
+          "byte": 128,
+          "unicode": "U+0410",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000080814141c2222220000000000"
+        },
+        {
+          "byte": 129,
+          "unicode": "U+0411",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000003c20203c2222223c0000000000"
+        },
+        {
+          "byte": 130,
+          "unicode": "U+0412",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000003c22223c2222223c0000000000"
+        },
+        {
+          "byte": 131,
+          "unicode": "U+0413",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000001e101010101010100000000000"
+        },
+        {
+          "byte": 132,
+          "unicode": "U+0414",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000000e1212121212223f2100000000"
+        },
+        {
+          "byte": 133,
+          "unicode": "U+0415",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000003e20203c2020203e0000000000"
+        },
+        {
+          "byte": 134,
+          "unicode": "U+0416",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000002a2a2a1c1c2a2a2a0000000000"
+        },
+        {
+          "byte": 135,
+          "unicode": "U+0417",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000003c22020c0202221c0000000000"
+        },
+        {
+          "byte": 136,
+          "unicode": "U+0418",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000002226262a2a3232220000000000"
+        },
+        {
+          "byte": 137,
+          "unicode": "U+0419",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0014082226262a2a3232220000000000"
+        },
+        {
+          "byte": 138,
+          "unicode": "U+041A",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000022222428342422220000000000"
+        },
+        {
+          "byte": 139,
+          "unicode": "U+041B",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000001e121212121212220000000000"
+        },
+        {
+          "byte": 140,
+          "unicode": "U+041C",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000222236362a2a22220000000000"
+        },
+        {
+          "byte": 141,
+          "unicode": "U+041D",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000002222223e222222220000000000"
+        },
+        {
+          "byte": 142,
+          "unicode": "U+041E",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000001c2222222222221c0000000000"
+        },
+        {
+          "byte": 143,
+          "unicode": "U+041F",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000003e222222222222220000000000"
+        },
+        {
+          "byte": 144,
+          "unicode": "U+0420",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000003c2222223c2020200000000000"
+        },
+        {
+          "byte": 145,
+          "unicode": "U+0421",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000001c2220202020221c0000000000"
+        },
+        {
+          "byte": 146,
+          "unicode": "U+0422",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000003e080808080808080000000000"
+        },
+        {
+          "byte": 147,
+          "unicode": "U+0423",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000022222222141408300000000000"
+        },
+        {
+          "byte": 148,
+          "unicode": "U+0424",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000081c2a2a2a2a1c080000000000"
+        },
+        {
+          "byte": 149,
+          "unicode": "U+0425",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000022221408081422220000000000"
+        },
+        {
+          "byte": 150,
+          "unicode": "U+0426",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000242424242424243e0200000000"
+        },
+        {
+          "byte": 151,
+          "unicode": "U+0427",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000222222221e0202020000000000"
+        },
+        {
+          "byte": 152,
+          "unicode": "U+0428",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000002a2a2a2a2a2a2a3e0000000000"
+        },
+        {
+          "byte": 153,
+          "unicode": "U+0429",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000002a2a2a2a2a2a2a3e0107000000"
+        },
+        {
+          "byte": 154,
+          "unicode": "U+042A",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000007010101c1212121c0000000000"
+        },
+        {
+          "byte": 155,
+          "unicode": "U+042B",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000222222322a2a2a320000000000"
+        },
+        {
+          "byte": 156,
+          "unicode": "U+042C",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000002020203c2222223c0000000000"
+        },
+        {
+          "byte": 157,
+          "unicode": "U+042D",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000001824021e020224180000000000"
+        },
+        {
+          "byte": 158,
+          "unicode": "U+042E",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000242a2a3a2a2a2a240000000000"
+        },
+        {
+          "byte": 159,
+          "unicode": "U+042F",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000001e2222221e0a12220000000000"
+        },
+        {
+          "byte": 160,
+          "unicode": "U+0430",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000000001c021e22261a0000000000"
+        },
+        {
+          "byte": 161,
+          "unicode": "U+0431",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000021c202c322222221c0000000000"
+        },
+        {
+          "byte": 162,
+          "unicode": "U+0432",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000000003c223c22223c0000000000"
+        },
+        {
+          "byte": 163,
+          "unicode": "U+0433",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000000001e10101010100000000000"
+        },
+        {
+          "byte": 164,
+          "unicode": "U+0434",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000000001e121212223f2100000000"
+        },
+        {
+          "byte": 165,
+          "unicode": "U+0435",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000000001c223e20221c0000000000"
+        },
+        {
+          "byte": 166,
+          "unicode": "U+0436",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000000002a2a1c1c2a2a0000000000"
+        },
+        {
+          "byte": 167,
+          "unicode": "U+0437",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000000001c220c02221c0000000000"
+        },
+        {
+          "byte": 168,
+          "unicode": "U+0438",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000000026262a2a32320000000000"
+        },
+        {
+          "byte": 169,
+          "unicode": "U+0439",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000014080026262a2a32320000000000"
+        },
+        {
+          "byte": 170,
+          "unicode": "U+043A",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000000002224283824220000000000"
+        },
+        {
+          "byte": 171,
+          "unicode": "U+043B",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000000001e12121212220000000000"
+        },
+        {
+          "byte": 172,
+          "unicode": "U+043C",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000000002236362a2a220000000000"
+        },
+        {
+          "byte": 173,
+          "unicode": "U+043D",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000000002222223e22220000000000"
+        },
+        {
+          "byte": 174,
+          "unicode": "U+043E",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000000001c222222221c0000000000"
+        },
+        {
+          "byte": 175,
+          "unicode": "U+043F",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000000003e22222222220000000000"
+        },
+        {
+          "byte": 176,
+          "unicode": "U+2591",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Repeat the native two-row shading pattern across the DOS cell.",
+          "rows_hex": "88228822882288228822882288228822"
+        },
+        {
+          "byte": 177,
+          "unicode": "U+2592",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Repeat the native two-row shading pattern across the DOS cell.",
+          "rows_hex": "aa55aa55aa55aa55aa55aa55aa55aa55"
+        },
+        {
+          "byte": 178,
+          "unicode": "U+2593",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Repeat the native two-row shading pattern across the DOS cell.",
+          "rows_hex": "77dd77dd77dd77dd77dd77dd77dd77dd"
+        },
+        {
+          "byte": 179,
+          "unicode": "U+2502",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "10101010101010101010101010101010"
+        },
+        {
+          "byte": 180,
+          "unicode": "U+2524",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "10101010101010f01010101010101010"
+        },
+        {
+          "byte": 181,
+          "unicode": "U+2561",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "101010101010f010f010101010101010"
+        },
+        {
+          "byte": 182,
+          "unicode": "U+2562",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "28282828282828e82828282828282828"
+        },
+        {
+          "byte": 183,
+          "unicode": "U+2556",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "00000000000000f82828282828282828"
+        },
+        {
+          "byte": 184,
+          "unicode": "U+2555",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "000000000000f010f010101010101010"
+        },
+        {
+          "byte": 185,
+          "unicode": "U+2563",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "282828282828e808e828282828282828"
+        },
+        {
+          "byte": 186,
+          "unicode": "U+2551",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "28282828282828282828282828282828"
+        },
+        {
+          "byte": 187,
+          "unicode": "U+2557",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "000000000000f808e828282828282828"
+        },
+        {
+          "byte": 188,
+          "unicode": "U+255D",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "282828282828e808f800000000000000"
+        },
+        {
+          "byte": 189,
+          "unicode": "U+255C",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "28282828282828f80000000000000000"
+        },
+        {
+          "byte": 190,
+          "unicode": "U+255B",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "101010101010f010f000000000000000"
+        },
+        {
+          "byte": 191,
+          "unicode": "U+2510",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "00000000000000f01010101010101010"
+        },
+        {
+          "byte": 192,
+          "unicode": "U+2514",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "101010101010101f0000000000000000"
+        },
+        {
+          "byte": 193,
+          "unicode": "U+2534",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "10101010101010ff0000000000000000"
+        },
+        {
+          "byte": 194,
+          "unicode": "U+252C",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "00000000000000ff1010101010101010"
+        },
+        {
+          "byte": 195,
+          "unicode": "U+251C",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "101010101010101f1010101010101010"
+        },
+        {
+          "byte": 196,
+          "unicode": "U+2500",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "00000000000000ff0000000000000000"
+        },
+        {
+          "byte": 197,
+          "unicode": "U+253C",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "10101010101010ff1010101010101010"
+        },
+        {
+          "byte": 198,
+          "unicode": "U+255E",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "1010101010101f101f10101010101010"
+        },
+        {
+          "byte": 199,
+          "unicode": "U+255F",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "282828282828282f2828282828282828"
+        },
+        {
+          "byte": 200,
+          "unicode": "U+255A",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "2828282828282f203f00000000000000"
+        },
+        {
+          "byte": 201,
+          "unicode": "U+2554",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "0000000000003f202f28282828282828"
+        },
+        {
+          "byte": 202,
+          "unicode": "U+2569",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "282828282828ef00ff00000000000000"
+        },
+        {
+          "byte": 203,
+          "unicode": "U+2566",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "000000000000ff00ef28282828282828"
+        },
+        {
+          "byte": 204,
+          "unicode": "U+2560",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "2828282828282f202f28282828282828"
+        },
+        {
+          "byte": 205,
+          "unicode": "U+2550",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "000000000000ff00ff00000000000000"
+        },
+        {
+          "byte": 206,
+          "unicode": "U+256C",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "282828282828ef00ef28282828282828"
+        },
+        {
+          "byte": 207,
+          "unicode": "U+2567",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "101010101010ff00ff00000000000000"
+        },
+        {
+          "byte": 208,
+          "unicode": "U+2568",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "28282828282828ff0000000000000000"
+        },
+        {
+          "byte": 209,
+          "unicode": "U+2564",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "000000000000ff00ff10101010101010"
+        },
+        {
+          "byte": 210,
+          "unicode": "U+2565",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "00000000000000ff2828282828282828"
+        },
+        {
+          "byte": 211,
+          "unicode": "U+2559",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "282828282828283f0000000000000000"
+        },
+        {
+          "byte": 212,
+          "unicode": "U+2558",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "1010101010101f101f00000000000000"
+        },
+        {
+          "byte": 213,
+          "unicode": "U+2552",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "0000000000001f101f10101010101010"
+        },
+        {
+          "byte": 214,
+          "unicode": "U+2553",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "000000000000003f2828282828282828"
+        },
+        {
+          "byte": 215,
+          "unicode": "U+256B",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "28282828282828ff2828282828282828"
+        },
+        {
+          "byte": 216,
+          "unicode": "U+256A",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "101010101010ff10ff10101010101010"
+        },
+        {
+          "byte": 217,
+          "unicode": "U+2518",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "10101010101010f00000000000000000"
+        },
+        {
+          "byte": 218,
+          "unicode": "U+250C",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "000000000000001f1010101010101010"
+        },
+        {
+          "byte": 219,
+          "unicode": "U+2588",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "ffffffffffffffffffffffffffffffff"
+        },
+        {
+          "byte": 220,
+          "unicode": "U+2584",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "0000000000000000ffffffffffffffff"
+        },
+        {
+          "byte": 221,
+          "unicode": "U+258C",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0"
+        },
+        {
+          "byte": 222,
+          "unicode": "U+2590",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f"
+        },
+        {
+          "byte": 223,
+          "unicode": "U+2580",
+          "status": "edited",
+          "source": "512_8 sans",
+          "license": "Unlicense",
+          "operation": "Extend the first and last rows equally to reach the DOS cell height; preserve junction geometry and stroke thickness.",
+          "rows_hex": "ffffffffffffffff0000000000000000"
+        },
+        {
+          "byte": 224,
+          "unicode": "U+0440",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000000002c322222322c2020200000"
+        },
+        {
+          "byte": 225,
+          "unicode": "U+0441",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000000001c222020221c0000000000"
+        },
+        {
+          "byte": 226,
+          "unicode": "U+0442",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000000003e08080808080000000000"
+        },
+        {
+          "byte": 227,
+          "unicode": "U+0443",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000000002222221414080830000000"
+        },
+        {
+          "byte": 228,
+          "unicode": "U+0444",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000008081c2a2a2a2a1c0808000000"
+        },
+        {
+          "byte": 229,
+          "unicode": "U+0445",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000000002214080814220000000000"
+        },
+        {
+          "byte": 230,
+          "unicode": "U+0446",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000000024242424243e0200000000"
+        },
+        {
+          "byte": 231,
+          "unicode": "U+0447",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000000002222221e02020000000000"
+        },
+        {
+          "byte": 232,
+          "unicode": "U+0448",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000000002a2a2a2a2a3e0000000000"
+        },
+        {
+          "byte": 233,
+          "unicode": "U+0449",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000000002a2a2a2a2a3e0107000000"
+        },
+        {
+          "byte": 234,
+          "unicode": "U+044A",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000000070101c12121c0000000000"
+        },
+        {
+          "byte": 235,
+          "unicode": "U+044B",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000000002222322a2a320000000000"
+        },
+        {
+          "byte": 236,
+          "unicode": "U+044C",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000000020203c22223c0000000000"
+        },
+        {
+          "byte": 237,
+          "unicode": "U+044D",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000000003c021e02023c0000000000"
+        },
+        {
+          "byte": 238,
+          "unicode": "U+044E",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000000000242a3a2a2a240000000000"
+        },
+        {
+          "byte": 239,
+          "unicode": "U+044F",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000000001e22221e12220000000000"
+        },
+        {
+          "byte": 240,
+          "unicode": "U+0401",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0014003e20203c2020203e0000000000"
+        },
+        {
+          "byte": 241,
+          "unicode": "U+0451",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000014001c223e20221c0000000000"
+        },
+        {
+          "byte": 242,
+          "unicode": "U+0404",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000000c12203c2020120c0000000000"
+        },
+        {
+          "byte": 243,
+          "unicode": "U+0454",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000000001c223820221c0000000000"
+        },
+        {
+          "byte": 244,
+          "unicode": "U+0407",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0014001c0808080808081c0000000000"
+        },
+        {
+          "byte": 245,
+          "unicode": "U+0457",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000140008180808081c0000000000"
+        },
+        {
+          "byte": 246,
+          "unicode": "U+040E",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00140822222214140808300000000000"
+        },
+        {
+          "byte": 247,
+          "unicode": "U+045E",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00001408002222221414080830000000"
+        },
+        {
+          "byte": 248,
+          "unicode": "U+00B0",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000018242418000000000000000000"
+        },
+        {
+          "byte": 249,
+          "unicode": "U+2219",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000000000081c0800000000000000"
+        },
+        {
+          "byte": 250,
+          "unicode": "U+00B7",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000000000081c0800000000000000"
+        },
+        {
+          "byte": 251,
+          "unicode": "U+221A",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000e0808081010505020200000000000"
+        },
+        {
+          "byte": 252,
+          "unicode": "U+2116",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000004e4a6e605e5848480000000000"
+        },
+        {
+          "byte": 253,
+          "unicode": "U+00A4",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "0000000000221c14141c220000000000"
+        },
+        {
+          "byte": 254,
+          "unicode": "U+25A0",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "000000007f7f7f7f7f7f7f0000000000"
+        },
+        {
+          "byte": 255,
+          "unicode": "U+00A0",
+          "status": "present",
+          "source": "Cozette",
+          "rows_hex": "00000000000000000000000000000000"
+        }
+      ]
+    }
+  }
+}

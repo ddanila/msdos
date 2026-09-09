@@ -125,10 +125,12 @@ readable files; this document records scope and the order of work.
 
 ## Starting point
 
-Step 1 inputs and the font coverage prototype live in
-[locales/ru](locales/ru/README.md). Its manifest records unresolved compatibility
-decisions; its generated audit and contact sheets expose candidate font gaps.
-Finish those decisions and glyph edits before treating step 1 as complete.
+Pinned inputs, selected compatibility tables and complete font coverage live in
+[locales/ru](locales/ru/README.md). The CP866 CPI build and focused display gate
+are implemented; [display qualification](locales/ru/display-qualification.json)
+records actual VGA bytes, screenshots and corruption detection. Country and
+keyboard implementation are next. The manifest keeps the keyboard modifier
+and variant checks visible, and installation/end-to-end gates remain open.
 
 Existing implementation and test entry points:
 
