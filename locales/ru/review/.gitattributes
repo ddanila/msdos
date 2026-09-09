@@ -1,0 +1,2 @@
+# Preserve DOS serial captures byte-for-byte for the qualification hashes.
+*.log -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol

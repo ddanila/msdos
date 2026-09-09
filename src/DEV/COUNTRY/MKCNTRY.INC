@@ -52,6 +52,7 @@ CID_YU          EQU     038             ; Yugoslavia
 CID_CZ          EQU     042             ; Czechoslovakia
 CID_PL          EQU     048             ; Poland
 CID_HU          EQU     036             ; Hungary
+CID_RU          EQU     007             ; Russia
 CID_XX          EQU     000             ; Dummy entry
 ;
 ; country code pages

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "base_image_sha256": "5c07bccc5b3e6936b78d57a306040ca6c536f1c36b58327a090d33410a8b2315",
+  "base_image_sha256": "129e222caf1e1e2956290c7e564fa9892ad95fcfc18e4aca1914168ab77bd833",
   "cpi_sha256": "efa06cb267a370fab3db71fb85f73711b750ec04498b40b6cc6a4a2be2e3d7ad",
   "cases": [
     {
@@ -118,10 +118,15 @@
     {
       "command": "make test-ru-display-qemu",
       "result": "PASS"
+    },
+    {
+      "command": "python3 tests/test_ru_display_qemu.py",
+      "result": "PASS",
+      "reason": "Refresh after country support and locale metadata updates"
     }
   ],
   "inputs": {
-    "locales/ru/manifest.json": "a3095c234ed8367f005bf03aa5e39fdfa2444d134827d76fde227f4983f62232",
+    "locales/ru/manifest.json": "7557da339867dfbe5fc5a43e139bec2911794d88cf56e3c0eef34afaba998c51",
     "locales/ru/font-edits.json": "9b0cea93392f389a57f6e6532a2de80b61e718691058d602e3c014a575a33ee2",
     "tools/audit_ru_fonts.py": "edc6912e23e4e80832fb5bd2639eb827d4df2ed040156d0e1ebecdce55250ef3",
     "tools/build_ru_cpi.py": "9f7f29de7ccdf899aeec6a5909a637bd748b45eddd003dfe1f10769ba60f33da",
@@ -144,7 +149,6 @@
     "source": "QEMU screendump PPM converted losslessly to PNG with Pillow 11.3.0"
   },
   "remaining": [
-    "Country/NLS implementation and API probes",
     "RU keyboard implementation and physical scan-code tests",
     "Optional installation media, documentation and upgrade copying",
     "End-to-end editing and Cyrillic filesystem tests",

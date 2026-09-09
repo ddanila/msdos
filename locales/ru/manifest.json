@@ -2,7 +2,7 @@
   "schema_version": 1,
   "locale": "ru",
   "code_page": 866,
-  "status": "fonts-built-and-guest-verified-country-keyboard-reference-captured",
+  "status": "display-and-country-qualified-keyboard-pending",
   "sources": [
     {
       "path": "upstream/CP866.TXT",
@@ -603,8 +603,8 @@
     }
   },
   "unresolved": [
+    "Russian keyboard implementation and physical scan-code validation",
     "Guest verification of keyboard modifier precedence and 83/84/enhanced variants",
-    "Country and keyboard implementation and guest validation",
     "Installation and end-to-end qualification"
   ],
   "behavior": {
@@ -730,7 +730,7 @@
     "deliberate_differences": [
       "The initial pack selects country pages 866, 437 and 850; retail Russian pages 855 and 852 are outside this increment.",
       "The RU library contains RU/866 only; changing to a Latin country code page requires selecting an existing keyboard layout.",
-      "Retail RU/866 includes an unexposed lowercase object (kind 3) and omits filename rules (kind 5). The implementation will expose existing DOS country APIs with an explicit shared filename-rules object, using the RU/437 rules. No new lowercase API is promised.",
+      "Retail RU/866 includes an unexposed lowercase object (kind 3) and omits filename rules (kind 5). The implementation exposes existing DOS country APIs with an explicit shared filename-rules object, using the RU/437 rules. No new lowercase API is promised.",
       "Fonts use permissively licensed modern bitmap sources; shapes need not match retail EGA3.CPI."
     ],
     "reference_sha256": "f1b81253030de6bcbee4db96d11b7ac71b57984b568e07a310aff03159add63b"

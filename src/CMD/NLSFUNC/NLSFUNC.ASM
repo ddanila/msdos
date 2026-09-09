@@ -74,7 +74,9 @@ INVALID_DATA	 equ	13		     ;=L
 PAD_CHAR	 equ	' '
 BAD_INVOKE	 equ	65		     ;=E
 UPCASE_A	 equ	'A'
-BUFFSIZE	 equ	512 ;	      ;AC000;REDUCTION OF ORIGINAL (128 BYTES) TO STORE
+; The external-query API returns a pointer into this buffer. Its data half
+; must hold a complete 266-byte collation record (tag, length, 256 weights).
+BUFFSIZE	 equ	528
 LOCATE_INFOTYPE  equ	18	      ;THE DEVICE LIST & THE OLD COUNTRY INFO
 CTL_BUFF	 equ	256 ;
 ID_TAG		 equ	8
@@ -152,7 +154,6 @@ OLD_PTR        DW	0		   ;AN003;; keeps track of parameter position
 NLS_BUFFER	db	BUFFSIZE dup (?)  ;NLS BUFFER to transfer data
 
 
-DATASIZE	equ	$-NLS_DATA
 
 NLSFUNC_HELP_STR DB "Loads country-specific information for national language support.",0Dh,0Ah
 		DB 0Dh,0Ah
@@ -436,7 +437,12 @@ FIND_CTY:					;Search for CTY/CP combo
 		call	READ_CTLBUFF		;=FC read next buffer in
 		jc	READERROR		;=FC read error occurs
 		pop	cx			;=FC restore number of cntries
-		mov	NOFFSET,0		;=FC a new beginning
+		; READ_CTLBUFF starts at the current entry. Account for that
+		; entry just as the non-refill path does, so later refills do
+		; not reread entries and exhaust the directory count early.
+		mov	ax,word ptr ds:[si]
+		add	ax,2
+		mov	NOFFSET,ax
 IN_BUFF:
 
 		mov	dx,CPAGE
@@ -1103,7 +1109,7 @@ Chk_Revisit	endp
 
 subttl end nlsfunc resident code
 page
- NLSRES_LENG	equ	$-NLSRES_CODE+DATASIZE
+NLS_RES_END label byte
 subttl initialization
 page
 ;***************************** NLSFUNC Initialization **************************
@@ -1143,14 +1149,20 @@ NLSFUNC_NO_HELP:
 		 call	 SYSLOADMSG		 ;does DOS version check
 
 	      .IF <NC>
-		mov	dx,NLSRES_LENG		;calculate paragraph
-		add	dx,15			;add 15
-		shr	dx,1			;divide by 16 to get conversion from
-		shr	dx,1			;bytes to paragraphs
+		; Keep through the actual end of resident code. Data before CS
+		; includes help text and linker alignment, not just NLS_BUFFER.
+		mov	ah,62h
+		int	21h			; BX = this program's PSP
+		mov	ax,cs
+		sub	ax,bx
+		mov	dx,offset NLS_RES_END
+		add	dx,15
 		shr	dx,1
 		shr	dx,1
-		add	dx,11h			;size based on the byte size of
-		mov	RES_PARASIZE,dx 	;the resident procedure
+		shr	dx,1
+		shr	dx,1
+		add	dx,ax
+		mov	RES_PARASIZE,dx
 		call	PROCESS_PATH
 
 	      .ELSE

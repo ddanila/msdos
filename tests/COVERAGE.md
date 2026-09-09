@@ -7,7 +7,12 @@ independent glyph/box-edge expectations. `make test-ru-display-qemu` verifies
 DISPLAY/MODE selection, every loaded VGA glyph, guest completion and emulator
 exit, including a wrong-slot control and existing EGA-page regressions.
 [Display qualification](../locales/ru/display-qualification.json) retains
-the focused results and screenshots. Country/keyboard runtime, installation,
+the focused results and screenshots. `make test-ru-country-records test-ru-country-qemu`
+checks all prior country payloads, the new Russian records, DOS country/case
+APIs, external table queries, CHCP/DISPLAY agreement and rejected selections.
+[Country qualification](../locales/ru/country-qualification.json) records the
+guest results, including detection of a corrupted case entry and the NLSFUNC
+fixes established by the new tests. Keyboard runtime, installation,
 HIGH/UMB/LOW/286 and end-to-end qualification remain in [the plan](../RUSSIAN.md).
 
 Coverage means a test asserts an externally visible result or state transition,

@@ -78,7 +78,37 @@ differences. In particular, DOS collation distinguishes lowercase from uppercase
 the decimal separator is a period, and the currency symbol is the period-era
 abbreviation rather than the modern ruble sign.
 
-Country and keyboard implementation, modifier/keyboard-variant guest checks,
-installation and end-to-end qualification remain open. The complete scope and
-acceptance gates remain in [RUSSIAN.md](../../RUSSIAN.md). The current build does
-not yet ship an installable Russian pack or change the English default boot.
+Russian COUNTRY.SYS records now support 866, 437 and 850. Run
+`make test-ru-country-records test-ru-country-qemu` for the binary and guest gates.
+The binary gate checks every prior country record as well as the new records.
+The guest gate checks default/explicit CONFIG.SYS loading, INT 21h country and
+extended-country results, all uppercase bytes through the table and conversion
+APIs, collation, non-active-page queries, CHCP transitions, DOS/DISPLAY agreement,
+and rejection without losing the previous usable page. A mutated Yo uppercase
+entry must fail the same guest oracle. [Country qualification](country-qualification.json)
+records the results and retained serial logs.
+
+These tests exposed NLSFUNC faults that affected the new records: its TSR size
+omitted some resident bytes, its directory-buffer refill could revisit entries
+and miss later ones, and its non-active collation query buffer was too short.
+The fixes retain the complete resident code, advance the country scan correctly,
+and hold a full collation record. No kernel or memory-manager change was needed.
+
+When preparing pages from separate CPI files, the second MODE command must
+preserve the first buffer slot. The transition test establishes this sequence:
+
+```dos
+NLSFUNC
+MODE CON CP PREPARE=((866) EGA866.CPI)
+MODE CON CP PREPARE=((,437,850) EGA.CPI)
+CHCP 866
+```
+
+It uses `COUNTRY=007,866,COUNTRY.SYS` and
+`DEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))` in CONFIG.SYS. This is a test recipe;
+the installed-path recipe will include KEYB when the RU library is ready.
+
+Keyboard implementation, modifier/keyboard-variant guest checks, installation
+and end-to-end qualification remain open. The complete scope and acceptance
+gates remain in [RUSSIAN.md](../../RUSSIAN.md). The current build does not yet ship
+an installable Russian pack or change the English default boot.

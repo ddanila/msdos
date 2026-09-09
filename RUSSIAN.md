@@ -128,9 +128,11 @@ readable files; this document records scope and the order of work.
 Pinned inputs, selected compatibility tables and complete font coverage live in
 [locales/ru](locales/ru/README.md). The CP866 CPI build and focused display gate
 are implemented; [display qualification](locales/ru/display-qualification.json)
-records actual VGA bytes, screenshots and corruption detection. Country and
-keyboard implementation are next. The manifest keeps the keyboard modifier
-and variant checks visible, and installation/end-to-end gates remain open.
+records actual VGA bytes, screenshots and corruption detection.
+[Country qualification](locales/ru/country-qualification.json) covers the new
+country records, DOS/NLSFUNC APIs, CHCP transitions and rejection tests. Russian
+keyboard implementation is next. The manifest keeps the keyboard modifier and
+variant checks visible, and installation/end-to-end gates remain open.
 
 Existing implementation and test entry points:
 

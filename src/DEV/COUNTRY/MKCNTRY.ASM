@@ -116,6 +116,10 @@ cntrycnt=0
 	ctryent <CENTRYSIZE,CID_HU,850,,,hu850_data>	    ;
 
 
+	ctryent <CENTRYSIZE,CID_RU,866,,,ru866_data>
+	ctryent <CENTRYSIZE,CID_RU,437,,,ru437_data>
+	ctryent <CENTRYSIZE,CID_RU,850,,,ru850_data>
+
 dummy	macro	p
 finalCNT	equ	p
 	endm
@@ -2400,6 +2404,7 @@ page
 
 include D5CNTRY.INC
 include D5C850.INC
+include RUCOUNTRY.INC
 
 include copyrigh.inc
 
