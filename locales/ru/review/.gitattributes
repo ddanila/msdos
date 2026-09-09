@@ -42,3 +42,6 @@ text-286-*.bin -text -diff -whitespace
 
 # Preserve complete pristine-build diagnostics byte-for-byte.
 repro-*.log -text -whitespace
+
+# Preserve composed-memory runtime diagnostics.
+memory-*.log -text -whitespace

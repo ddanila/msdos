@@ -1,0 +1,51 @@
+Artifacts: /Users/ddanila/fun/msdos/out/composed-memory-failures-0l_usvvc
+Linked inactive development BIOS: /Users/ddanila/fun/msdos/out/composed-memory-failures-0l_usvvc/control/bios/IO.SYS
+Linked 8081 bytes (6073 service bytes); 36 unbound runtime slots; 367 checked offset fixups.
+Linked 8081 bytes (6073 service bytes); 36 unbound runtime slots; 367 checked offset fixups.
+Linked early-installer development BIOS: /Users/ddanila/fun/msdos/out/composed-memory-failures-0l_usvvc/control/bios/IO.SYS
+PASS control: /Users/ddanila/fun/msdos/out/composed-memory-failures-0l_usvvc/control
+Linked inactive development BIOS: /Users/ddanila/fun/msdos/out/composed-memory-failures-0l_usvvc/bios-tables/bios/IO.SYS
+Linked 8081 bytes (6073 service bytes); 36 unbound runtime slots; 367 checked offset fixups.
+Linked 8081 bytes (6073 service bytes); 36 unbound runtime slots; 367 checked offset fixups.
+Linked early-installer development BIOS: /Users/ddanila/fun/msdos/out/composed-memory-failures-0l_usvvc/bios-tables/bios/IO.SYS
+PASS bios-tables: /Users/ddanila/fun/msdos/out/composed-memory-failures-0l_usvvc/bios-tables
+Linked inactive development BIOS: /Users/ddanila/fun/msdos/out/composed-memory-failures-0l_usvvc/bios-cds/bios/IO.SYS
+Linked 8081 bytes (6073 service bytes); 36 unbound runtime slots; 367 checked offset fixups.
+Linked 8081 bytes (6073 service bytes); 36 unbound runtime slots; 367 checked offset fixups.
+Linked early-installer development BIOS: /Users/ddanila/fun/msdos/out/composed-memory-failures-0l_usvvc/bios-cds/bios/IO.SYS
+PASS bios-cds: /Users/ddanila/fun/msdos/out/composed-memory-failures-0l_usvvc/bios-cds
+Linked inactive development BIOS: /Users/ddanila/fun/msdos/out/composed-memory-failures-0l_usvvc/bios-stacks/bios/IO.SYS
+Linked 8081 bytes (6073 service bytes); 36 unbound runtime slots; 367 checked offset fixups.
+Linked 8081 bytes (6073 service bytes); 36 unbound runtime slots; 367 checked offset fixups.
+Linked early-installer development BIOS: /Users/ddanila/fun/msdos/out/composed-memory-failures-0l_usvvc/bios-stacks/bios/IO.SYS
+PASS bios-stacks: /Users/ddanila/fun/msdos/out/composed-memory-failures-0l_usvvc/bios-stacks
+Linked inactive development BIOS: /Users/ddanila/fun/msdos/out/composed-memory-failures-0l_usvvc/emm-table-allocation/bios/IO.SYS
+Linked 8081 bytes (6073 service bytes); 36 unbound runtime slots; 367 checked offset fixups.
+Linked 8081 bytes (6073 service bytes); 36 unbound runtime slots; 367 checked offset fixups.
+Linked early-installer development BIOS: /Users/ddanila/fun/msdos/out/composed-memory-failures-0l_usvvc/emm-table-allocation/bios/IO.SYS
+PASS emm-table-allocation: /Users/ddanila/fun/msdos/out/composed-memory-failures-0l_usvvc/emm-table-allocation
+Linked inactive development BIOS: /Users/ddanila/fun/msdos/out/composed-memory-failures-0l_usvvc/emm-table-copy/bios/IO.SYS
+Linked 8081 bytes (6073 service bytes); 36 unbound runtime slots; 367 checked offset fixups.
+Linked 8081 bytes (6073 service bytes); 36 unbound runtime slots; 367 checked offset fixups.
+Linked early-installer development BIOS: /Users/ddanila/fun/msdos/out/composed-memory-failures-0l_usvvc/emm-table-copy/bios/IO.SYS
+PASS emm-table-copy: /Users/ddanila/fun/msdos/out/composed-memory-failures-0l_usvvc/emm-table-copy
+Linked inactive development BIOS: /Users/ddanila/fun/msdos/out/composed-memory-failures-0l_usvvc/umb-after-map/bios/IO.SYS
+Linked 8081 bytes (6073 service bytes); 36 unbound runtime slots; 367 checked offset fixups.
+Linked 8081 bytes (6073 service bytes); 36 unbound runtime slots; 367 checked offset fixups.
+Linked early-installer development BIOS: /Users/ddanila/fun/msdos/out/composed-memory-failures-0l_usvvc/umb-after-map/bios/IO.SYS
+PASS umb-after-map: /Users/ddanila/fun/msdos/out/composed-memory-failures-0l_usvvc/umb-after-map
+Linked inactive development BIOS: /Users/ddanila/fun/msdos/out/composed-memory-failures-0l_usvvc/umb-before-publish/bios/IO.SYS
+Linked 8081 bytes (6073 service bytes); 36 unbound runtime slots; 367 checked offset fixups.
+Linked 8081 bytes (6073 service bytes); 36 unbound runtime slots; 367 checked offset fixups.
+Linked early-installer development BIOS: /Users/ddanila/fun/msdos/out/composed-memory-failures-0l_usvvc/umb-before-publish/bios/IO.SYS
+PASS umb-before-publish: /Users/ddanila/fun/msdos/out/composed-memory-failures-0l_usvvc/umb-before-publish
+Linked inactive development BIOS: /Users/ddanila/fun/msdos/out/composed-memory-failures-0l_usvvc/retained-child/bios/IO.SYS
+Linked 8081 bytes (6073 service bytes); 36 unbound runtime slots; 367 checked offset fixups.
+Linked 8081 bytes (6073 service bytes); 36 unbound runtime slots; 367 checked offset fixups.
+Linked early-installer development BIOS: /Users/ddanila/fun/msdos/out/composed-memory-failures-0l_usvvc/retained-child/bios/IO.SYS
+PASS retained-child: /Users/ddanila/fun/msdos/out/composed-memory-failures-0l_usvvc/retained-child
+Linked inactive development BIOS: /Users/ddanila/fun/msdos/out/composed-memory-failures-0l_usvvc/dos-low/bios/IO.SYS
+Linked 8081 bytes (6073 service bytes); 36 unbound runtime slots; 367 checked offset fixups.
+Linked 8081 bytes (6073 service bytes); 36 unbound runtime slots; 367 checked offset fixups.
+Linked early-installer development BIOS: /Users/ddanila/fun/msdos/out/composed-memory-failures-0l_usvvc/dos-low/bios/IO.SYS
+PASS dos-low: /Users/ddanila/fun/msdos/out/composed-memory-failures-0l_usvvc/dos-low

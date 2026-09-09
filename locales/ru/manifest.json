@@ -2,7 +2,7 @@
   "schema_version": 1,
   "locale": "ru",
   "code_page": 866,
-  "status": "profile-fonts-and-low-NLS-qualified-high-NLS-failing",
+  "status": "focused-locale-and-reproducibility-qualified-full-runtime-release-pending",
   "sources": [
     {
       "path": "upstream/CP866.TXT",
@@ -603,9 +603,7 @@
     }
   },
   "unresolved": [
-    "HIGH/UMB three-page DISPLAY preparation fails in the NLS transition gate; diagnosis and fix required",
-    "Physical keyboard verification on 83/84-key variants and real-BIOS 286",
-    "Shell/editor/pipes, Cyrillic filesystem persistence, full release and reproducibility"
+    "Full release suite and applicable runtime matrices on the changed kernel and COMMAND core."
   ],
   "behavior": {
     "reference": "dos622-reference.json",
@@ -742,5 +740,16 @@
       "Fonts use permissively licensed modern bitmap sources; shapes need not match retail EGA3.CPI."
     ],
     "reference_sha256": "f1b81253030de6bcbee4db96d11b7ac71b57984b568e07a310aff03159add63b"
+  },
+  "qualification": {
+    "profile": "profile-qualification.json",
+    "at84": "at84-qualification.json",
+    "xt83": "xt83-qualification.json",
+    "legacy_reload": "legacy-load-qualification.json",
+    "country_286": "country-286-qualification.json",
+    "display_286": "display-286-qualification.json",
+    "text_286": "text-286-qualification.json",
+    "directories": "directory-qualification.json",
+    "reproducibility": "reproducibility-qualification.json"
   }
 }

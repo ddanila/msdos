@@ -1,0 +1,698 @@
+{
+  "schema_version": 1,
+  "status": "matched-memory-failure-matrix-passed-release-pending",
+  "core_sha256": {
+    "IO.SYS": "793169a292df40bb117eb487136a0d8e7f4334ca223e8206bf53f33141f24715",
+    "MSDOS.SYS": "1475174f50c8c349bedd7cd4a0be88bce055f2e411b7454b5f68fffbff269b62",
+    "COMMAND.COM": "6742b5889141a9c61d41e336445014d8055c19758febf4263f4f8ebe3c2f2c29",
+    "HIMEM.SYS": "340cbfd1f0e835755adce99d80c607f8edeb48ea2b20a6a142402a25434f8d13",
+    "EMM386.EXE": "58266b6614594de7a9cfde9eda75e3eb241b9e2e941e67b70645a0f8a197dae6"
+  },
+  "scope": "Requalify the composed production memory failure matrix after the Russian NLS kernel fix and COMMAND collation fix. Fault-injected variants are identified separately in the retained results.",
+  "changed_core_rationale": {
+    "MSDOS.SYS": "profile-qualification.json: generic IOCTL reads SFT flags through ES:DI.",
+    "COMMAND.COM": "filesystem-qualification.json: DIR uses active DOS collation weights."
+  },
+  "candidate_image_sha256": "46a086ecb006c7d5df6a8e4366f4045823448c07f7380febb2a3e80f7b2d1fa6",
+  "private_candidate": "out/ru-memory-candidate",
+  "private_results": "out/composed-memory-failures-0l_usvvc",
+  "command": "python3 tests/test_composed_memory_failures_qemu.py out/ru-memory-candidate",
+  "exit_code": 0,
+  "results": {
+    "schema": 1,
+    "input_sha256": "46a086ecb006c7d5df6a8e4366f4045823448c07f7380febb2a3e80f7b2d1fa6",
+    "build_record_sha256": "8cd4b9c0f53c7a74d5776a9ed02af62cfaaaa396424344d0c00aebf2ebc48b83",
+    "runner_sha256": "cbcda9bc6011d353567b7aa459e8a3a73a766d760dd4edbd9b12fb35a89fbcf3",
+    "table_probe_sha256": "40711a6b4fc46a255e622dd07a21b4fad25ce6607f4fd290fa2d68449e425808",
+    "results": {
+      "control": {
+        "exit_code": 33,
+        "passed": true,
+        "fault": null,
+        "bios_overrides": {},
+        "bios_sha256": "793169a292df40bb117eb487136a0d8e7f4334ca223e8206bf53f33141f24715",
+        "emm_sha256": "58266b6614594de7a9cfde9eda75e3eb241b9e2e941e67b70645a0f8a197dae6",
+        "stack_passes": 2,
+        "negative_control": false,
+        "config": "DEVICE=C:\\DOS\\HIMEM.SYS /TESTMEM:ON\r\nDEVICE=C:\\DOS\\EMM386.EXE RAM M5\r\nBUFFERS=15\r\nFILES=20\r\nDOS=HIGH,UMB\r\nLASTDRIVE=Z\r\nFCBS=4,0\r\nSTACKS=9,128\r\n",
+        "command": [
+          "qemu-system-i386",
+          "-machine",
+          "pc",
+          "-cpu",
+          "486",
+          "-m",
+          "8",
+          "-display",
+          "none",
+          "-monitor",
+          "none",
+          "-serial",
+          "stdio",
+          "-no-reboot",
+          "-boot",
+          "c",
+          "-debugcon",
+          "file:/Users/ddanila/fun/msdos/out/composed-memory-failures-0l_usvvc/control/debug.log",
+          "-device",
+          "isa-debug-exit,iobase=0xf4,iosize=0x04",
+          "-drive",
+          "if=ide,index=0,format=raw,file=/Users/ddanila/fun/msdos/out/composed-memory-failures-0l_usvvc/control/boot.img,cache=writethrough"
+        ],
+        "layout_segments": {
+          "cds": 52045,
+          "sft": 51970,
+          "fcb": 52027
+        },
+        "ems_pages": {
+          "free": 12,
+          "total": 40,
+          "system_handle_pages": 24
+        },
+        "emm_table_owner": {
+          "physical": 1442676,
+          "bytes": 2086,
+          "end": 1367,
+          "high": 1,
+          "selector": 176,
+          "descriptor": {
+            "base": 1442676,
+            "size": 2086,
+            "access": 146
+          }
+        },
+        "retained_logs": {
+          "serial.log": {
+            "path": "review/memory-control-serial.log",
+            "sha256": "ae16daf55901b648b2479058daa19b1f94becd897cb60173d27ef919ea90d8e8"
+          },
+          "debug.log": {
+            "path": "review/memory-control-debug.log",
+            "sha256": "8532ac2b50269d9fb08cb9473c6d45fb354c4e4a15c05e162894f81987f735a2"
+          }
+        }
+      },
+      "bios-tables": {
+        "exit_code": 33,
+        "passed": true,
+        "fault": null,
+        "bios_overrides": {
+          "fail_tables": true
+        },
+        "bios_sha256": "b36c5308a6e86af318611cf20efd953e82c31aafbc1d163b0915a02daec37841",
+        "emm_sha256": "58266b6614594de7a9cfde9eda75e3eb241b9e2e941e67b70645a0f8a197dae6",
+        "stack_passes": 2,
+        "negative_control": false,
+        "config": "DEVICE=C:\\DOS\\HIMEM.SYS /TESTMEM:ON\r\nDEVICE=C:\\DOS\\EMM386.EXE RAM M5\r\nBUFFERS=15\r\nFILES=20\r\nDOS=HIGH,UMB\r\nLASTDRIVE=Z\r\nFCBS=4,0\r\nSTACKS=9,128\r\n",
+        "command": [
+          "qemu-system-i386",
+          "-machine",
+          "pc",
+          "-cpu",
+          "486",
+          "-m",
+          "8",
+          "-display",
+          "none",
+          "-monitor",
+          "none",
+          "-serial",
+          "stdio",
+          "-no-reboot",
+          "-boot",
+          "c",
+          "-debugcon",
+          "file:/Users/ddanila/fun/msdos/out/composed-memory-failures-0l_usvvc/bios-tables/debug.log",
+          "-device",
+          "isa-debug-exit,iobase=0xf4,iosize=0x04",
+          "-drive",
+          "if=ide,index=0,format=raw,file=/Users/ddanila/fun/msdos/out/composed-memory-failures-0l_usvvc/bios-tables/boot.img,cache=writethrough"
+        ],
+        "layout_segments": {
+          "cds": 51970,
+          "sft": 861,
+          "fcb": 918
+        },
+        "ems_pages": {
+          "free": 12,
+          "total": 40,
+          "system_handle_pages": 24
+        },
+        "emm_table_owner": {
+          "physical": 1442676,
+          "bytes": 2086,
+          "end": 1367,
+          "high": 1,
+          "selector": 176,
+          "descriptor": {
+            "base": 1442676,
+            "size": 2086,
+            "access": 146
+          }
+        },
+        "retained_logs": {
+          "serial.log": {
+            "path": "review/memory-bios-tables-serial.log",
+            "sha256": "ae16daf55901b648b2479058daa19b1f94becd897cb60173d27ef919ea90d8e8"
+          },
+          "debug.log": {
+            "path": "review/memory-bios-tables-debug.log",
+            "sha256": "8532ac2b50269d9fb08cb9473c6d45fb354c4e4a15c05e162894f81987f735a2"
+          }
+        }
+      },
+      "bios-cds": {
+        "exit_code": 33,
+        "passed": true,
+        "fault": null,
+        "bios_overrides": {
+          "fail_cds": true
+        },
+        "bios_sha256": "cf8435e35d9fb3f7ccf6870f7b5835efb4ea35f8683c5bab56d18ab9bbb13765",
+        "emm_sha256": "58266b6614594de7a9cfde9eda75e3eb241b9e2e941e67b70645a0f8a197dae6",
+        "stack_passes": 2,
+        "negative_control": false,
+        "config": "DEVICE=C:\\DOS\\HIMEM.SYS /TESTMEM:ON\r\nDEVICE=C:\\DOS\\EMM386.EXE RAM M5\r\nBUFFERS=15\r\nFILES=20\r\nDOS=HIGH,UMB\r\nLASTDRIVE=Z\r\nFCBS=4,0\r\nSTACKS=9,128\r\n",
+        "command": [
+          "qemu-system-i386",
+          "-machine",
+          "pc",
+          "-cpu",
+          "486",
+          "-m",
+          "8",
+          "-display",
+          "none",
+          "-monitor",
+          "none",
+          "-serial",
+          "stdio",
+          "-no-reboot",
+          "-boot",
+          "c",
+          "-debugcon",
+          "file:/Users/ddanila/fun/msdos/out/composed-memory-failures-0l_usvvc/bios-cds/debug.log",
+          "-device",
+          "isa-debug-exit,iobase=0xf4,iosize=0x04",
+          "-drive",
+          "if=ide,index=0,format=raw,file=/Users/ddanila/fun/msdos/out/composed-memory-failures-0l_usvvc/bios-cds/boot.img,cache=writethrough"
+        ],
+        "layout_segments": {
+          "cds": 894,
+          "sft": 51970,
+          "fcb": 52027
+        },
+        "ems_pages": {
+          "free": 12,
+          "total": 40,
+          "system_handle_pages": 24
+        },
+        "emm_table_owner": {
+          "physical": 1442676,
+          "bytes": 2086,
+          "end": 1367,
+          "high": 1,
+          "selector": 176,
+          "descriptor": {
+            "base": 1442676,
+            "size": 2086,
+            "access": 146
+          }
+        },
+        "retained_logs": {
+          "serial.log": {
+            "path": "review/memory-bios-cds-serial.log",
+            "sha256": "ae16daf55901b648b2479058daa19b1f94becd897cb60173d27ef919ea90d8e8"
+          },
+          "debug.log": {
+            "path": "review/memory-bios-cds-debug.log",
+            "sha256": "8532ac2b50269d9fb08cb9473c6d45fb354c4e4a15c05e162894f81987f735a2"
+          }
+        }
+      },
+      "bios-stacks": {
+        "exit_code": 33,
+        "passed": true,
+        "fault": null,
+        "bios_overrides": {
+          "fail_stack_pool": true
+        },
+        "bios_sha256": "32e7a9ace5519c296563e3efcb41c8ae5d12f534fc5eca2b57ff9c91508eb0e4",
+        "emm_sha256": "58266b6614594de7a9cfde9eda75e3eb241b9e2e941e67b70645a0f8a197dae6",
+        "stack_passes": 2,
+        "negative_control": false,
+        "config": "DEVICE=C:\\DOS\\HIMEM.SYS /TESTMEM:ON\r\nDEVICE=C:\\DOS\\EMM386.EXE RAM M5\r\nBUFFERS=15\r\nFILES=20\r\nDOS=HIGH,UMB\r\nLASTDRIVE=Z\r\nFCBS=4,0\r\nSTACKS=9,128\r\n",
+        "command": [
+          "qemu-system-i386",
+          "-machine",
+          "pc",
+          "-cpu",
+          "486",
+          "-m",
+          "8",
+          "-display",
+          "none",
+          "-monitor",
+          "none",
+          "-serial",
+          "stdio",
+          "-no-reboot",
+          "-boot",
+          "c",
+          "-debugcon",
+          "file:/Users/ddanila/fun/msdos/out/composed-memory-failures-0l_usvvc/bios-stacks/debug.log",
+          "-device",
+          "isa-debug-exit,iobase=0xf4,iosize=0x04",
+          "-drive",
+          "if=ide,index=0,format=raw,file=/Users/ddanila/fun/msdos/out/composed-memory-failures-0l_usvvc/bios-stacks/boot.img,cache=writethrough"
+        ],
+        "layout_segments": {
+          "cds": 52045,
+          "sft": 51970,
+          "fcb": 52027
+        },
+        "ems_pages": {
+          "free": 12,
+          "total": 40,
+          "system_handle_pages": 24
+        },
+        "emm_table_owner": {
+          "physical": 1442676,
+          "bytes": 2086,
+          "end": 1367,
+          "high": 1,
+          "selector": 176,
+          "descriptor": {
+            "base": 1442676,
+            "size": 2086,
+            "access": 146
+          }
+        },
+        "retained_logs": {
+          "serial.log": {
+            "path": "review/memory-bios-stacks-serial.log",
+            "sha256": "ae16daf55901b648b2479058daa19b1f94becd897cb60173d27ef919ea90d8e8"
+          },
+          "debug.log": {
+            "path": "review/memory-bios-stacks-debug.log",
+            "sha256": "8532ac2b50269d9fb08cb9473c6d45fb354c4e4a15c05e162894f81987f735a2"
+          }
+        }
+      },
+      "emm-table-allocation": {
+        "exit_code": 33,
+        "passed": true,
+        "fault": "EMM_TABLE_ALLOC_FAIL",
+        "bios_overrides": {},
+        "bios_sha256": "e28b1abccbf9413f819ecb1d105285064a33983bd235dcab50d59fb1831af6f8",
+        "emm_sha256": "1da685f26b626a16e5384e158d3b23dc9186cf167cc38b45986a9121dbc340e0",
+        "stack_passes": 2,
+        "negative_control": false,
+        "config": "DEVICE=C:\\DOS\\HIMEM.SYS /TESTMEM:ON\r\nDEVICE=C:\\DOS\\EMM386.EXE RAM M5\r\nBUFFERS=15\r\nFILES=20\r\nDOS=HIGH,UMB\r\nLASTDRIVE=Z\r\nFCBS=4,0\r\nSTACKS=9,128\r\n",
+        "command": [
+          "qemu-system-i386",
+          "-machine",
+          "pc",
+          "-cpu",
+          "486",
+          "-m",
+          "8",
+          "-display",
+          "none",
+          "-monitor",
+          "none",
+          "-serial",
+          "stdio",
+          "-no-reboot",
+          "-boot",
+          "c",
+          "-debugcon",
+          "file:/Users/ddanila/fun/msdos/out/composed-memory-failures-0l_usvvc/emm-table-allocation/debug.log",
+          "-device",
+          "isa-debug-exit,iobase=0xf4,iosize=0x04",
+          "-drive",
+          "if=ide,index=0,format=raw,file=/Users/ddanila/fun/msdos/out/composed-memory-failures-0l_usvvc/emm-table-allocation/boot.img,cache=writethrough"
+        ],
+        "layout_segments": {
+          "cds": 52045,
+          "sft": 51970,
+          "fcb": 52027
+        },
+        "ems_pages": {
+          "free": 12,
+          "total": 40,
+          "system_handle_pages": 24
+        },
+        "emm_table_owner": {
+          "physical": 13239,
+          "bytes": 2086,
+          "end": 3453,
+          "high": 0,
+          "selector": 64,
+          "descriptor": {
+            "base": 11872,
+            "size": 65536,
+            "access": 147
+          }
+        },
+        "retained_logs": {
+          "serial.log": {
+            "path": "review/memory-emm-table-allocation-serial.log",
+            "sha256": "ae16daf55901b648b2479058daa19b1f94becd897cb60173d27ef919ea90d8e8"
+          },
+          "debug.log": {
+            "path": "review/memory-emm-table-allocation-debug.log",
+            "sha256": "8532ac2b50269d9fb08cb9473c6d45fb354c4e4a15c05e162894f81987f735a2"
+          }
+        }
+      },
+      "emm-table-copy": {
+        "exit_code": 33,
+        "passed": true,
+        "fault": "EMM_TABLE_COPY_FAIL",
+        "bios_overrides": {},
+        "bios_sha256": "cfe26625699a5925d1dc717e599f24c303a05acd86aeb9b874e19e15d9e29f6c",
+        "emm_sha256": "f7a73cc6f65eabd87fbba7d5f1fc72ef58979130ce478ae9e79defeab571a059",
+        "stack_passes": 2,
+        "negative_control": false,
+        "config": "DEVICE=C:\\DOS\\HIMEM.SYS /TESTMEM:ON\r\nDEVICE=C:\\DOS\\EMM386.EXE RAM M5\r\nBUFFERS=15\r\nFILES=20\r\nDOS=HIGH,UMB\r\nLASTDRIVE=Z\r\nFCBS=4,0\r\nSTACKS=9,128\r\n",
+        "command": [
+          "qemu-system-i386",
+          "-machine",
+          "pc",
+          "-cpu",
+          "486",
+          "-m",
+          "8",
+          "-display",
+          "none",
+          "-monitor",
+          "none",
+          "-serial",
+          "stdio",
+          "-no-reboot",
+          "-boot",
+          "c",
+          "-debugcon",
+          "file:/Users/ddanila/fun/msdos/out/composed-memory-failures-0l_usvvc/emm-table-copy/debug.log",
+          "-device",
+          "isa-debug-exit,iobase=0xf4,iosize=0x04",
+          "-drive",
+          "if=ide,index=0,format=raw,file=/Users/ddanila/fun/msdos/out/composed-memory-failures-0l_usvvc/emm-table-copy/boot.img,cache=writethrough"
+        ],
+        "layout_segments": {
+          "cds": 52045,
+          "sft": 51970,
+          "fcb": 52027
+        },
+        "ems_pages": {
+          "free": 12,
+          "total": 40,
+          "system_handle_pages": 24
+        },
+        "emm_table_owner": {
+          "physical": 13239,
+          "bytes": 2086,
+          "end": 3453,
+          "high": 0,
+          "selector": 64,
+          "descriptor": {
+            "base": 11872,
+            "size": 65536,
+            "access": 147
+          }
+        },
+        "retained_logs": {
+          "serial.log": {
+            "path": "review/memory-emm-table-copy-serial.log",
+            "sha256": "ae16daf55901b648b2479058daa19b1f94becd897cb60173d27ef919ea90d8e8"
+          },
+          "debug.log": {
+            "path": "review/memory-emm-table-copy-debug.log",
+            "sha256": "e01d684aa77c36e1037d496fe082058526b922ee4902accdebd7477aed84ca5f"
+          }
+        }
+      },
+      "umb-after-map": {
+        "exit_code": 33,
+        "passed": true,
+        "fault": "UMB_TEST_FAIL_AFTER_MAP=1",
+        "bios_overrides": {},
+        "bios_sha256": "793169a292df40bb117eb487136a0d8e7f4334ca223e8206bf53f33141f24715",
+        "emm_sha256": "188748d36f70a666d001d56792d00a6ce56439d1b6a7087482a50ce3ef2f740c",
+        "stack_passes": 2,
+        "negative_control": false,
+        "config": "DEVICE=C:\\DOS\\HIMEM.SYS /TESTMEM:ON\r\nDEVICE=C:\\DOS\\EMM386.EXE RAM M5\r\nBUFFERS=15\r\nFILES=20\r\nDOS=HIGH,UMB\r\nLASTDRIVE=Z\r\nFCBS=4,0\r\nSTACKS=9,128\r\n",
+        "command": [
+          "qemu-system-i386",
+          "-machine",
+          "pc",
+          "-cpu",
+          "486",
+          "-m",
+          "8",
+          "-display",
+          "none",
+          "-monitor",
+          "none",
+          "-serial",
+          "stdio",
+          "-no-reboot",
+          "-boot",
+          "c",
+          "-debugcon",
+          "file:/Users/ddanila/fun/msdos/out/composed-memory-failures-0l_usvvc/umb-after-map/debug.log",
+          "-device",
+          "isa-debug-exit,iobase=0xf4,iosize=0x04",
+          "-drive",
+          "if=ide,index=0,format=raw,file=/Users/ddanila/fun/msdos/out/composed-memory-failures-0l_usvvc/umb-after-map/boot.img,cache=writethrough"
+        ],
+        "layout_segments": {
+          "cds": 968,
+          "sft": 861,
+          "fcb": 918
+        },
+        "ems_pages": {
+          "free": 16,
+          "total": 40,
+          "system_handle_pages": 24
+        },
+        "emm_table_owner": {
+          "physical": 1442676,
+          "bytes": 2086,
+          "end": 1367,
+          "high": 1,
+          "selector": 176,
+          "descriptor": {
+            "base": 1442676,
+            "size": 2086,
+            "access": 146
+          }
+        },
+        "retained_logs": {
+          "serial.log": {
+            "path": "review/memory-umb-after-map-serial.log",
+            "sha256": "5a3f3c6b3b7298c12bf76e00a44f7d2d47b3b011a48d8bb44f51c41e6350f27b"
+          },
+          "debug.log": {
+            "path": "review/memory-umb-after-map-debug.log",
+            "sha256": "95f8b002fc1b7563a0f459cb93e548ab9aabe363dd7c621832b95b39221577b8"
+          }
+        }
+      },
+      "umb-before-publish": {
+        "exit_code": 33,
+        "passed": true,
+        "fault": "UMB_TEST_FAIL_BEFORE_PUBLISH",
+        "bios_overrides": {},
+        "bios_sha256": "793169a292df40bb117eb487136a0d8e7f4334ca223e8206bf53f33141f24715",
+        "emm_sha256": "59f7e83c58ed06fc26eeafdd89e2b0ee863601e6311b2a99571141d12e2a2d8e",
+        "stack_passes": 2,
+        "negative_control": false,
+        "config": "DEVICE=C:\\DOS\\HIMEM.SYS /TESTMEM:ON\r\nDEVICE=C:\\DOS\\EMM386.EXE RAM M5\r\nBUFFERS=15\r\nFILES=20\r\nDOS=HIGH,UMB\r\nLASTDRIVE=Z\r\nFCBS=4,0\r\nSTACKS=9,128\r\n",
+        "command": [
+          "qemu-system-i386",
+          "-machine",
+          "pc",
+          "-cpu",
+          "486",
+          "-m",
+          "8",
+          "-display",
+          "none",
+          "-monitor",
+          "none",
+          "-serial",
+          "stdio",
+          "-no-reboot",
+          "-boot",
+          "c",
+          "-debugcon",
+          "file:/Users/ddanila/fun/msdos/out/composed-memory-failures-0l_usvvc/umb-before-publish/debug.log",
+          "-device",
+          "isa-debug-exit,iobase=0xf4,iosize=0x04",
+          "-drive",
+          "if=ide,index=0,format=raw,file=/Users/ddanila/fun/msdos/out/composed-memory-failures-0l_usvvc/umb-before-publish/boot.img,cache=writethrough"
+        ],
+        "layout_segments": {
+          "cds": 968,
+          "sft": 861,
+          "fcb": 918
+        },
+        "ems_pages": {
+          "free": 16,
+          "total": 40,
+          "system_handle_pages": 24
+        },
+        "emm_table_owner": {
+          "physical": 1442676,
+          "bytes": 2086,
+          "end": 1367,
+          "high": 1,
+          "selector": 176,
+          "descriptor": {
+            "base": 1442676,
+            "size": 2086,
+            "access": 146
+          }
+        },
+        "retained_logs": {
+          "serial.log": {
+            "path": "review/memory-umb-before-publish-serial.log",
+            "sha256": "5a3f3c6b3b7298c12bf76e00a44f7d2d47b3b011a48d8bb44f51c41e6350f27b"
+          },
+          "debug.log": {
+            "path": "review/memory-umb-before-publish-debug.log",
+            "sha256": "95f8b002fc1b7563a0f459cb93e548ab9aabe363dd7c621832b95b39221577b8"
+          }
+        }
+      },
+      "retained-child": {
+        "exit_code": 35,
+        "passed": true,
+        "fault": null,
+        "bios_overrides": {},
+        "bios_sha256": "793169a292df40bb117eb487136a0d8e7f4334ca223e8206bf53f33141f24715",
+        "emm_sha256": "58266b6614594de7a9cfde9eda75e3eb241b9e2e941e67b70645a0f8a197dae6",
+        "stack_passes": 1,
+        "negative_control": true,
+        "config": "DEVICE=C:\\DOS\\HIMEM.SYS /TESTMEM:ON\r\nDEVICE=C:\\DOS\\EMM386.EXE RAM M5\r\nBUFFERS=15\r\nFILES=20\r\nDOS=HIGH,UMB\r\nLASTDRIVE=Z\r\nFCBS=4,0\r\nSTACKS=9,128\r\n",
+        "command": [
+          "qemu-system-i386",
+          "-machine",
+          "pc",
+          "-cpu",
+          "486",
+          "-m",
+          "8",
+          "-display",
+          "none",
+          "-monitor",
+          "none",
+          "-serial",
+          "stdio",
+          "-no-reboot",
+          "-boot",
+          "c",
+          "-debugcon",
+          "file:/Users/ddanila/fun/msdos/out/composed-memory-failures-0l_usvvc/retained-child/debug.log",
+          "-device",
+          "isa-debug-exit,iobase=0xf4,iosize=0x04",
+          "-drive",
+          "if=ide,index=0,format=raw,file=/Users/ddanila/fun/msdos/out/composed-memory-failures-0l_usvvc/retained-child/boot.img,cache=writethrough"
+        ],
+        "retained_logs": {
+          "serial.log": {
+            "path": "review/memory-retained-child-serial.log",
+            "sha256": "ed49d60bfa75d2494a27d787914781f1075fec1da710ee369fdb04872dc8fe73"
+          },
+          "debug.log": {
+            "path": "review/memory-retained-child-debug.log",
+            "sha256": "7bd490f3bc9c6c0abc11f295bc979f5a34db989b0a8097023ad775a981b80355"
+          }
+        }
+      },
+      "dos-low": {
+        "exit_code": 33,
+        "passed": true,
+        "fault": "DOS_LOW_WITNESS",
+        "bios_overrides": {},
+        "bios_sha256": "793169a292df40bb117eb487136a0d8e7f4334ca223e8206bf53f33141f24715",
+        "emm_sha256": "58266b6614594de7a9cfde9eda75e3eb241b9e2e941e67b70645a0f8a197dae6",
+        "stack_passes": 2,
+        "negative_control": false,
+        "config": "DEVICE=C:\\DOS\\HIMEM.SYS /TESTMEM:ON\r\nDEVICE=C:\\DOS\\EMM386.EXE RAM M5\r\nBUFFERS=15\r\nFILES=20\r\nDOS=LOW,UMB\r\nLASTDRIVE=Z\r\nFCBS=4,0\r\nSTACKS=9,128\r\n",
+        "command": [
+          "qemu-system-i386",
+          "-machine",
+          "pc",
+          "-cpu",
+          "486",
+          "-m",
+          "8",
+          "-display",
+          "none",
+          "-monitor",
+          "none",
+          "-serial",
+          "stdio",
+          "-no-reboot",
+          "-boot",
+          "c",
+          "-debugcon",
+          "file:/Users/ddanila/fun/msdos/out/composed-memory-failures-0l_usvvc/dos-low/debug.log",
+          "-device",
+          "isa-debug-exit,iobase=0xf4,iosize=0x04",
+          "-drive",
+          "if=ide,index=0,format=raw,file=/Users/ddanila/fun/msdos/out/composed-memory-failures-0l_usvvc/dos-low/boot.img,cache=writethrough"
+        ],
+        "layout_segments": {
+          "cds": 52045,
+          "sft": 51970,
+          "fcb": 52027
+        },
+        "ems_pages": {
+          "free": 12,
+          "total": 40,
+          "system_handle_pages": 24
+        },
+        "emm_table_owner": {
+          "physical": 1442676,
+          "bytes": 2086,
+          "end": 1367,
+          "high": 1,
+          "selector": 176,
+          "descriptor": {
+            "base": 1442676,
+            "size": 2086,
+            "access": 146
+          }
+        },
+        "retained_logs": {
+          "serial.log": {
+            "path": "review/memory-dos-low-serial.log",
+            "sha256": "ae16daf55901b648b2479058daa19b1f94becd897cb60173d27ef919ea90d8e8"
+          },
+          "debug.log": {
+            "path": "review/memory-dos-low-debug.log",
+            "sha256": "5d07b1b52ac4b64ba12213109a8c56db9e89e94b1fcb0cbb0245dd48992f5425"
+          }
+        }
+      }
+    },
+    "scope": "Private fault variants; base image remains unchanged."
+  },
+  "driver_log": {
+    "path": "review/memory-failures.log",
+    "sha256": "7138d0167609fd93cf9bfc4721b98eb43e04a0db2c600815e91676945d84335d"
+  },
+  "freeze_log": {
+    "path": "review/memory-freeze.log",
+    "sha256": "2e3a04be4e184b1f6754a44ce869ab2b217aa1631210c01c36fee2e9981ce80a"
+  },
+  "remaining": [
+    "Full FAIL_ON_SKIP=1 make test run.",
+    "Matched reboot, applications, cancellation, A20, COMMAND fallback and startup-profile campaign.",
+    "Applicable additional hardware and memory release matrices."
+  ]
+}

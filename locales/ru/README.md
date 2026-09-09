@@ -268,8 +268,10 @@ focused run. The retained record includes expected and actual CP866 bytes,
 physical events, fresh-screen captures, and saved/reopened editor output.
 EDLIN's DOS EOF byte is required in its saved file; TYPE omits it, and FIND
 outputs the selected Russian line through a pipe. This is text-content
-coverage; Cyrillic filename persistence and real-BIOS end-to-end work remain
-separate gates.
+coverage; Cyrillic filename persistence is qualified by the filesystem gates
+below. The [286 text record](text-286-qualification.json) adds physical AT-84
+input and rendered glyph checks on IBM AT BIOS, including save/reopen,
+redirection and pipes. Its VNC backend requires the retained resize patch.
 
 [Filesystem qualification](filesystem-qualification.json) covers CP866
 filenames and nested directories on HIGH/UMB and LOW, including alternate-case
@@ -280,5 +282,16 @@ after deploying the matching core. Raw FAT entries and DOS output bytes are
 retained. The test found that DIR sorted by byte value; name and extension
 comparison now use the active DOS collation table, placing Yo after Ie.
 The changed COMMAND hash, matched regressions and kvikdos NLS table relocation
-are recorded. Real-BIOS end-to-end and full release/reproducibility checks
-remain open.
+are recorded. The [286 filesystem record](filesystem-286-qualification.json)
+adds IBM AT BIOS, and [directory qualification](directory-qualification.json)
+adds MOVE rename, recursive XCOPY, empty directories and FAT parent links on
+all profiles. The text and filesystem QEMU gates are included in `make test`.
+
+[Pristine build qualification](reproducibility-qualification.json) records
+identical declared artifacts and composed production cores across serial and
+parallel builds. Full runtime release qualification remains open.
+
+[Memory requalification](memory-requalification.json) reruns the composed
+allocation/relocation failure matrix with the changed kernel and COMMAND.
+The record distinguishes deliberate fault variants from the selected core.
+Reboot/application and remaining release matrices are still in progress.
