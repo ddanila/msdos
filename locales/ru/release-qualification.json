@@ -114,5 +114,27 @@
       },
       "resolution": "Run the historical map-sensitive gates with MEMORY_PROFILE=baseline. The entire matching matrix passed; the composed core has a separate memory campaign."
     }
+  },
+  "second_full_suite": {
+    "command": "FAIL_ON_SKIP=1 make -k test",
+    "exit_code": 2,
+    "private_log": "out/ru-full-release-fixed.log",
+    "log_sha256": "cc0d5b7eaacb877d442d45ca6118b3719a50c0c5d9644c66f0e668e7b3790dcf",
+    "failure": "KEYBRD2.SYS was absent from the oracle mutation manifest. All other prerequisites completed successfully; the final command-regression recipe was not run because a prerequisite failed."
+  },
+  "mutation_repair": {
+    "description": "Record the private lowercase-Yo-to-uppercase-Yo translation mutation. The validator accepts this corruption kind alongside artifact removal and retains evidence-membership and isolated-image checks.",
+    "manifest_log": {
+      "path": "review/release-mutation-manifests.log",
+      "sha256": "2e6c4518a9ddbf677bb504d0683c8604b081993b9180b186cc412ff7018d8a4f"
+    },
+    "negative_control_log": {
+      "path": "review/release-mutation-wrong-yo.log",
+      "sha256": "88c47c7188d460d63e0681e504f5f11bb444d07f1ea7a045e41d74bc4631ff00"
+    },
+    "guest_log": {
+      "path": "review/release-mutation-wrong-yo-guest.log",
+      "sha256": "1ceb6e4dc697336cb82c6380334e41bd11d4b9348d4d70f050ed54ee7e554fbb"
+    }
   }
 }

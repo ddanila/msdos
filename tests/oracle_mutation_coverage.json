@@ -42,6 +42,7 @@
     "INTERSVR.EXE": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_interlnk_qemu.sh"},
     "JOIN.EXE": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_assign_subst_join.sh"},
     "KEYB.COM": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_keyb_layout_qemu.sh"},
+    "KEYBRD2.SYS": {"level": "killed", "mutation": "corrupt_translation", "test": "tests/test_ru_keyboard_qemu.py", "case": "wrong-yo", "note": "Replace lowercase Yo with uppercase Yo in a private library; physical input must report actual=00F0 and never emit the success marker"},
     "KEYBOARD.SYS": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_keyb_layout_qemu.sh"},
     "HIMEM.SYS": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_himem_qemu.sh"},
     "LABEL.COM": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_label.sh"},

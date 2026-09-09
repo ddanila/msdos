@@ -466,7 +466,7 @@
         },
         {
           "path": "release-qualification.json",
-          "sha256": "e7b886c659c24fe1dbba974811557d6d5614a82f382e08bd59fe01950052fd39"
+          "sha256": "336f5c4b825254b6fb74580fed63a5b79b643ad6716c4fab604b5031903a26a6"
         },
         {
           "path": "final-core-qualification.json",
@@ -511,7 +511,7 @@
         },
         {
           "path": "release-qualification.json",
-          "sha256": "e7b886c659c24fe1dbba974811557d6d5614a82f382e08bd59fe01950052fd39"
+          "sha256": "336f5c4b825254b6fb74580fed63a5b79b643ad6716c4fab604b5031903a26a6"
         }
       ],
       "assessment": "pending-release-completion",
@@ -524,7 +524,7 @@
       "evidence": [
         {
           "path": "release-qualification.json",
-          "sha256": "e7b886c659c24fe1dbba974811557d6d5614a82f382e08bd59fe01950052fd39"
+          "sha256": "336f5c4b825254b6fb74580fed63a5b79b643ad6716c4fab604b5031903a26a6"
         }
       ],
       "assessment": "pending-release-completion"

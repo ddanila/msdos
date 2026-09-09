@@ -33,7 +33,7 @@ def main() -> None:
             continue
         level = entry.get("level")
         if level == "killed":
-            if entry.get("mutation") != "remove_artifact":
+            if entry.get("mutation") not in {"remove_artifact", "corrupt_translation"}:
                 errors.append(f"{name}: unsupported killed mutation")
             test_name = entry.get("test", "")
             test_path = ROOT / test_name
