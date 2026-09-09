@@ -6,7 +6,7 @@
 /*.o
 /*.err
 /*.log
-/bin/__pycache__/
+__pycache__/
 /src/CMD/COMMAND/COMMAND.CDH
 
 jwasm/macos-arm64/jwasm

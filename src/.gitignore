@@ -33,6 +33,7 @@ DOS/*.EXE
 MEMM/**/*.SYS
 MEMM/**/*.EXE
 MEMM/**/*.LIB
+MEMM/**/*.lib
 
 # SELECT installer outputs
 SELECT/SELECT.EXE
@@ -61,7 +62,9 @@ INC/0*
 # Intermediate build artifacts
 **/*.OBJ
 **/*.MAP
+**/*.map
 **/*.CTL
 **/*.CL?
 **/*.LST
 **/*.ERR
+**/*.err
