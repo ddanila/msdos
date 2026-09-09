@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "status": "full-runtime-release-in-progress",
+  "core_sha256": {
+    "IO.SYS": "793169a292df40bb117eb487136a0d8e7f4334ca223e8206bf53f33141f24715",
+    "MSDOS.SYS": "1475174f50c8c349bedd7cd4a0be88bce055f2e411b7454b5f68fffbff269b62",
+    "COMMAND.COM": "6742b5889141a9c61d41e336445014d8055c19758febf4263f4f8ebe3c2f2c29",
+    "HIMEM.SYS": "340cbfd1f0e835755adce99d80c607f8edeb48ea2b20a6a142402a25434f8d13",
+    "EMM386.EXE": "58266b6614594de7a9cfde9eda75e3eb241b9e2e941e67b70645a0f8a197dae6"
+  },
+  "first_full_suite": {
+    "command": "FAIL_ON_SKIP=1 make test",
+    "exit_code": 2,
+    "private_log": "out/ru-full-release.log",
+    "log_sha256": "038037e4a3801e030c7a7d534f9b9dbad46cbaec374524b856256772866aad6c",
+    "failure": "Runtime coverage manifest omitted shipped KEYBRD2.SYS. Its Python contract tests were also excluded by the shell-only runnable-evidence filter.",
+    "failure_excerpt": {
+      "path": "review/release-missing-keybrd2.log",
+      "sha256": "7351fa626111faec630e2df89aa0631ead5b3eeb27f32c79e5ee2298cab1b2c8"
+    }
+  },
+  "repair": {
+    "description": "Declare the RU-only library and recognize wired Python tests alongside shell tests. The wiring requirement and complete shipped-component coverage remain enforced.",
+    "validation": "All ten remaining runtime/interface/structure coverage-manifest targets pass.",
+    "log": {
+      "path": "review/release-manifests.log",
+      "sha256": "6118b861d8a2684c9782c1533050963cc1dce6560ee5590863a0b5c4a91b04d0"
+    }
+  },
+  "remaining": [
+    "Full FAIL_ON_SKIP=1 make -k test run.",
+    "Ordinary baseline memory/kernel matrix.",
+    "Real-BIOS fallback and applicable hardware acceptance."
+  ]
+}

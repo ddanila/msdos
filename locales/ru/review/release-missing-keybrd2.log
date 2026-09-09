@@ -1,0 +1,10 @@
+python3 tests/test_runtime_coverage_manifest.py --require-complete
+Traceback (most recent call last):
+  File "/Users/ddanila/fun/msdos/tests/test_runtime_coverage_manifest.py", line 180, in <module>
+    main()
+  File "/Users/ddanila/fun/msdos/tests/test_runtime_coverage_manifest.py", line 145, in main
+    validate_items(
+  File "/Users/ddanila/fun/msdos/tests/test_runtime_coverage_manifest.py", line 76, in validate_items
+    raise AssertionError(f"{category}: missing manifest entries: {sorted(missing)}")
+AssertionError: runtime component: missing manifest entries: ['KEYBRD2.SYS']
+make: *** [Makefile:615: test-runtime-coverage-manifest] Error 1

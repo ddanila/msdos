@@ -98,7 +98,7 @@ def validate_items(items, expected, category, ci_corpus):
                     f"{category}/{name}: evidence does not exist: {relative}"
                 )
         if level == "contract":
-            runnable = [relative for relative in evidence if relative.endswith(".sh")]
+            runnable = [relative for relative in evidence if relative.endswith((".sh", ".py"))]
             if not runnable or not any(path in ci_corpus for path in runnable):
                 raise AssertionError(
                     f"{category}/{name}: contract evidence is not wired into CI"

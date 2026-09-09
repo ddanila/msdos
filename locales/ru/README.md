@@ -297,3 +297,8 @@ The record distinguishes deliberate fault variants from the selected core.
 The matched reboot, application lifecycle, cancellation, asynchronous A20,
 COMMAND failure/policy and startup-profile campaign also passes. Remaining
 full-suite, baseline and hardware release gates remain open.
+
+[Release qualification](release-qualification.json) tracks the full-suite
+completion gate. It records a repaired KEYBRD2 runtime-manifest omission and
+the validation of wired Python test evidence. Full release completion is
+not yet claimed.

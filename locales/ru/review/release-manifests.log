@@ -1,0 +1,65 @@
+python3 tests/test_runtime_coverage_manifest.py --require-complete
+Shipped runtime components: 82
+  contract tested: 82
+  behavior observed: 0
+  uncovered: 0
+SELECT.EXE modes: 2
+  contract tested: 2
+  behavior observed: 0
+  uncovered: 0
+CONFIG.SYS directives: 27
+  contract tested: 27
+  behavior observed: 0
+  uncovered: 0
+python3 tests/test_command_coverage.py --require-complete
+COMMAND.COM traceability entries: 45
+  internal commands: 37
+  startup switches: 8
+  contract tested: 45
+  behavior observed: 0
+  uncovered: 0
+  operational switches: COPY=/-Y,/A,/B,/V,/Y DEL=/P DIR=/A,/B,/L,/O,/P,/S,/W ERASE=/P
+  startup surface: /C /D /E /F /K /MSG /P /Y
+python3 tests/test_utility_parser_coverage.py --require-complete
+Standalone utility parser switches: 200
+  utilities: 37
+  contract tested: 200
+  behavior observed: 0
+  uncovered: 0
+python3 tests/test_program_interface_coverage.py --require-complete
+Shipped executable interfaces: 64
+  source-derived switch grammars: 37
+  COMMAND.COM grammar: 1
+  SELECT.EXE mode grammar: 1
+  specialized interfaces: 25
+  unaccounted: 0
+python3 tests/test_debug_command_coverage.py --require-complete
+DEBUG interactive commands: 20
+  EMS subcommands: 4
+  contract tested: 24
+  uncovered: 0
+python3 tests/test_help_coverage.py --require-complete
+Shipped executable help surfaces: 64
+  /? behavior tested: 58
+  source-justified no-help interfaces: 6
+  indexed HELP database topics: 137
+  unaccounted: 0
+python3 tests/test_dos_interrupt_coverage.py --require-complete
+DOS interrupt surfaces: 11
+  contract tested: 11
+  behavior observed: 0
+  justified exclusions: 0
+  uncovered: 0
+python3 tests/test_internal_structure_coverage.py --require-complete
+Observable DOS structures: 8
+  contract tested: 8
+  uncovered: 0
+python3 tests/test_ems40_coverage.py --require-complete
+LIM EMS 4.0 functions: 30
+  contract tested: 30
+  uncovered: 0
+python3 tests/test_device_request_coverage.py --require-complete
+Device request surfaces: 142
+  contract tested: 94
+  justified exclusions: 48
+  uncovered: 0
