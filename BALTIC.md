@@ -172,6 +172,8 @@ recipes are packaged; fresh/upgrade installation and installed HIGH/LOW language
 profiles are covered by the [installation qualification](locales/baltic/installation-qualification.json).
 [Keyboard resource qualification](locales/baltic/keyboard-resource-qualification.json)
 covers rejected outer-record pointers, short reads and section lengths.
+[Font resource qualification](locales/baltic/font-resource-qualification.json)
+covers missing/malformed CPI rejection and documented recovery in QEMU.
 Deeper malformed-resource cases, legacy lifecycle failures, complete typed
 text/filename workflows and final source-matched release/reproducibility gates
 remain open. Existing Russian evidence does not establish Baltic support.

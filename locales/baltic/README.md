@@ -315,3 +315,28 @@ allocation-header arithmetic, additional directory/ID variants, installed
 resource failures and legacy pending/rejection paths remain open. Existing
 installation results predate this loader change and require a final rerun with
 the release composition.
+
+## Font resource errors and recovery
+
+[Font resource qualification](font-resource-qualification.json) records missing,
+empty, bad-signature and truncated CP775 files, out-of-file directory/font
+pointers and an absent requested page. `make test-baltic-font-resources-qemu`
+runs the cases for each language, HIGH/LOW profile and supported font height.
+The probe reads the actual VGA font plane before rejection, after rejection
+and after restoring the correct resource; every active glyph row must match
+the shared CPI, and the entire plane must remain unchanged through recovery.
+Country services are checked throughout.
+
+The contract follows DISPLAY's existing distinction between opening a missing
+file and failing a started preparation. A missing file leaves the selected
+page intact. Bad font data invalidates the requested prepared slot; querying
+DISPLAY returns its inactive status, and selecting that slot must fail. DOS
+country state and the visible glyphs remain intact. Repeating valid MODE
+PREPARE and SELECT restores prepared-font availability and DOS/DISPLAY page
+agreement without rebooting. [BALTIC.TXT](BALTIC.TXT) documents this recovery.
+An unchanged screen alone does not prove that DISPLAY still has a valid slot.
+
+The dump-only and inactive-page probe options leave existing default probe
+binaries unchanged. These QEMU checks do not replace rendered-font evidence,
+real-BIOS resource-failure cases, installed-path failure tests or complete
+application/file workflows. The shared driver behavior is unchanged.

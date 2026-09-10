@@ -508,6 +508,16 @@ short-read and length-boundary cases. Deeper inner-table validation, other
 directory/ID forms and installed/legacy failure workflows remain separate
 acceptance work.
 
+The [Baltic font resource qualification](../locales/baltic/font-resource-qualification.json)
+records `test-baltic-font-resources-qemu`, included in `make test`. Each language,
+HIGH/LOW profile and font height rejects missing/malformed CP775 resources.
+The gate distinguishes unchanged selection after open failure from DISPLAY's
+inactive prepared slot after bad data, then requires recovery through valid
+PREPARE/SELECT. Actual VGA glyph rows, full plane identity and country services
+are checked before/after errors and recovery. This qualifies QEMU resource
+handling; installed paths, real-BIOS failure cases and application workflows
+remain open.
+
 ## External DOS API suite
 
 `make test-dosemu2-qemu` runs selected upstream DOSEMU2 FAT tests against the

@@ -575,6 +575,13 @@ test: test-baltic-country-qemu
 test-baltic-country-qemu: deploy $(SRC)/DEV/DISPLAY/EGA/EGA775.CPI
 	python3 tests/test_baltic_country_qemu.py
 
+.PHONY: test-baltic-font-resources-qemu
+test: test-baltic-font-resources-qemu
+test-baltic-font-resources-qemu: deploy
+	python3 tests/test_baltic_font_resources_qemu.py --height 8
+	python3 tests/test_baltic_font_resources_qemu.py --height 14
+	python3 tests/test_baltic_font_resources_qemu.py --height 16
+
 .PHONY: test-baltic-keyboard-resources-qemu
 test: test-baltic-keyboard-resources-qemu
 test-baltic-keyboard-resources-qemu: deploy

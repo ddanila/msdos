@@ -84,6 +84,13 @@ loading a Baltic layout clears a pending accent. A rejected load preserves
 it. Start KEYB from KEYBRD2.SYS when Baltic switching is required; an older
 KEYBOARD.SYS resident allocation can be too small for the Baltic tables.
 
+If font preparation fails, a missing file leaves the active page intact.
+Bad font data can invalidate DISPLAY's prepared slot even while the old
+characters remain visible. Restore the correct EGA775.CPI, then repeat the
+matching MODE PREPARE and MODE SELECT commands above. This restores the
+prepared font and page agreement without rebooting. Do not rely on an old
+screen appearance as proof that the prepared font is still valid.
+
 Use matching KEYB.COM and KEYBRD2.SYS files from this distribution. To return
 to the prior startup environment, restore the backups and reboot.
 

@@ -1,0 +1,30 @@
+python3 tests/test_coverage_manifest.py --require-complete
+INT 21h dispatch entries: 109
+  contract tested: 104
+  behavior observed: 0
+  justified exclusions: 5
+  uncovered: 0
+python3 tests/test_runtime_coverage_manifest.py --require-complete
+Shipped runtime components: 82
+  contract tested: 82
+  behavior observed: 0
+  uncovered: 0
+SELECT.EXE modes: 2
+  contract tested: 2
+  behavior observed: 0
+  uncovered: 0
+CONFIG.SYS directives: 27
+  contract tested: 27
+  behavior observed: 0
+  uncovered: 0
+python3 tests/test_oracle_mutation_coverage.py --require-complete
+Runtime component oracle mutations: 82
+  killed: 82
+  justified exclusions: 0
+  uncovered: 0
+python3 tests/test_baltic_cpi.py
+....
+----------------------------------------------------------------------
+Ran 4 tests in 0.282s
+
+OK

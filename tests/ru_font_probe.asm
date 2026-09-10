@@ -26,9 +26,17 @@ org 100h
     cld
     mov ax, 0ad02h
     int 2fh
+%ifdef INACTIVE_DISPLAY
+    jnc fail
+    cmp ax, 1
+    jne fail
+    cmp bx, -1
+    jne fail
+%else
     jc fail
     cmp bx, PAGE
     jne fail
+%endif
     mov ax, 40h
     mov es, ax
     cmp word [es:85h], HEIGHT
@@ -118,6 +126,10 @@ org 100h
     int 21h
     jc fail
 
+%ifdef DUMP_ONLY
+    ; Resource-failure checks need font bytes without a screen/input handshake.
+    jmp dump_complete
+%endif
 %ifdef HIDE_CURSOR
     ; Installed keyboard/status commands can leave a blinking cursor in the
     ; glyph grid. Keep the capture independent of its position and blink phase.
@@ -177,6 +189,7 @@ org 100h
     cmp al, 13
     jne fail
 %endif
+dump_complete:
     mov dx, passed
     mov ah, 9
     int 21h
