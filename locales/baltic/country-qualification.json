@@ -1,0 +1,1362 @@
+{
+  "schema_version": 1,
+  "status": "qemu-country-profiles-passed-release-pending",
+  "scope": "All Baltic CONFIG combinations, default selections, country/extended-country/uppercase APIs, NLSFUNC/CHCP page transitions and rejection on matched HIGH/LOW profiles. Extended transition runs additionally verify unknown-country set rejection and foreign-country queries without changing active state.",
+  "core_sha256": {
+    "IO.SYS": "793169a292df40bb117eb487136a0d8e7f4334ca223e8206bf53f33141f24715",
+    "MSDOS.SYS": "1475174f50c8c349bedd7cd4a0be88bce055f2e411b7454b5f68fffbff269b62",
+    "COMMAND.COM": "6742b5889141a9c61d41e336445014d8055c19758febf4263f4f8ebe3c2f2c29",
+    "HIMEM.SYS": "340cbfd1f0e835755adce99d80c607f8edeb48ea2b20a6a142402a25434f8d13",
+    "EMM386.EXE": "58266b6614594de7a9cfde9eda75e3eb241b9e2e941e67b70645a0f8a197dae6"
+  },
+  "country_sha256": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c",
+  "full_matrix": {
+    "schema_version": 1,
+    "status": "passed",
+    "core_sha256": {
+      "IO.SYS": "793169a292df40bb117eb487136a0d8e7f4334ca223e8206bf53f33141f24715",
+      "MSDOS.SYS": "1475174f50c8c349bedd7cd4a0be88bce055f2e411b7454b5f68fffbff269b62",
+      "COMMAND.COM": "6742b5889141a9c61d41e336445014d8055c19758febf4263f4f8ebe3c2f2c29",
+      "HIMEM.SYS": "340cbfd1f0e835755adce99d80c607f8edeb48ea2b20a6a142402a25434f8d13",
+      "EMM386.EXE": "58266b6614594de7a9cfde9eda75e3eb241b9e2e941e67b70645a0f8a197dae6"
+    },
+    "country_sha256": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c",
+    "base_image_sha256": "5884fe671fc895866bcdb5b118c17bb3cdbfd23e4057df26178ba1135b2f79aa",
+    "cases": [
+      {
+        "profile": "high",
+        "name": "config-et-775",
+        "emulator_exit": 33,
+        "config": "COUNTRY=372,775,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+        "actions": [
+          "P372775.COM"
+        ],
+        "corruption": null,
+        "serial_log": "high/config-et-775/serial.log",
+        "serial_sha256": "a7a1252df5c8c0e0c9ada11c1592503d80c67070648667052011aeae4261f1bb",
+        "retained_serial": {
+          "path": "review/country-matrix-high-config-et-775.log",
+          "sha256": "a7a1252df5c8c0e0c9ada11c1592503d80c67070648667052011aeae4261f1bb"
+        },
+        "retained_startup": [
+          {
+            "path": "review/country-matrix-high-config-et-775-config.sys.cfg",
+            "sha256": "070f6878bbdc5f27cffc4fe14c6788694dee953c0fac6a316c0e3c3f564acfe5"
+          },
+          {
+            "path": "review/country-matrix-high-config-et-775-autoexec.bat.cfg",
+            "sha256": "b9fc6921e708c2551210f35341bc11d8815fab37a627422a06a2b45df86f113d"
+          }
+        ]
+      },
+      {
+        "profile": "high",
+        "name": "config-et-437",
+        "emulator_exit": 33,
+        "config": "COUNTRY=372,437,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+        "actions": [
+          "P372437.COM"
+        ],
+        "corruption": null,
+        "serial_log": "high/config-et-437/serial.log",
+        "serial_sha256": "a7a1252df5c8c0e0c9ada11c1592503d80c67070648667052011aeae4261f1bb",
+        "retained_serial": {
+          "path": "review/country-matrix-high-config-et-437.log",
+          "sha256": "a7a1252df5c8c0e0c9ada11c1592503d80c67070648667052011aeae4261f1bb"
+        },
+        "retained_startup": [
+          {
+            "path": "review/country-matrix-high-config-et-437-config.sys.cfg",
+            "sha256": "da69a1a1e6336f7fe2fdee7eacc9249edd4acb18456510042bf9dc34802a7bea"
+          },
+          {
+            "path": "review/country-matrix-high-config-et-437-autoexec.bat.cfg",
+            "sha256": "dd6056c13ae66223c1e4f5a8863dc2831ef099aa8f1748c3133e259833a7765c"
+          }
+        ]
+      },
+      {
+        "profile": "high",
+        "name": "config-et-850",
+        "emulator_exit": 33,
+        "config": "COUNTRY=372,850,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+        "actions": [
+          "P372850.COM"
+        ],
+        "corruption": null,
+        "serial_log": "high/config-et-850/serial.log",
+        "serial_sha256": "a7a1252df5c8c0e0c9ada11c1592503d80c67070648667052011aeae4261f1bb",
+        "retained_serial": {
+          "path": "review/country-matrix-high-config-et-850.log",
+          "sha256": "a7a1252df5c8c0e0c9ada11c1592503d80c67070648667052011aeae4261f1bb"
+        },
+        "retained_startup": [
+          {
+            "path": "review/country-matrix-high-config-et-850-config.sys.cfg",
+            "sha256": "b421ec70fedc4a66e7d151482cdb8fd7b153be7cba7e5f0a3195cd08c35d5dd2"
+          },
+          {
+            "path": "review/country-matrix-high-config-et-850-autoexec.bat.cfg",
+            "sha256": "95f67467ac8aa8b5bca25eca28cc2fba86f121e51c1344a9329e8473bc38852d"
+          }
+        ]
+      },
+      {
+        "profile": "high",
+        "name": "config-et-default",
+        "emulator_exit": 33,
+        "config": "COUNTRY=372,,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+        "actions": [
+          "P372775.COM"
+        ],
+        "corruption": null,
+        "serial_log": "high/config-et-default/serial.log",
+        "serial_sha256": "a7a1252df5c8c0e0c9ada11c1592503d80c67070648667052011aeae4261f1bb",
+        "retained_serial": {
+          "path": "review/country-matrix-high-config-et-default.log",
+          "sha256": "a7a1252df5c8c0e0c9ada11c1592503d80c67070648667052011aeae4261f1bb"
+        },
+        "retained_startup": [
+          {
+            "path": "review/country-matrix-high-config-et-default-config.sys.cfg",
+            "sha256": "7b4ad7a867c760b00e7a1b959b530a94b1e555774cf014a01015608a76b19d67"
+          },
+          {
+            "path": "review/country-matrix-high-config-et-default-autoexec.bat.cfg",
+            "sha256": "b9fc6921e708c2551210f35341bc11d8815fab37a627422a06a2b45df86f113d"
+          }
+        ]
+      },
+      {
+        "profile": "high",
+        "name": "config-lv-775",
+        "emulator_exit": 33,
+        "config": "COUNTRY=371,775,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+        "actions": [
+          "P371775.COM"
+        ],
+        "corruption": null,
+        "serial_log": "high/config-lv-775/serial.log",
+        "serial_sha256": "a7a1252df5c8c0e0c9ada11c1592503d80c67070648667052011aeae4261f1bb",
+        "retained_serial": {
+          "path": "review/country-matrix-high-config-lv-775.log",
+          "sha256": "a7a1252df5c8c0e0c9ada11c1592503d80c67070648667052011aeae4261f1bb"
+        },
+        "retained_startup": [
+          {
+            "path": "review/country-matrix-high-config-lv-775-config.sys.cfg",
+            "sha256": "3d74947ed329c9e8e19a70c5494bce913a2d15819651b733345d90368411a51a"
+          },
+          {
+            "path": "review/country-matrix-high-config-lv-775-autoexec.bat.cfg",
+            "sha256": "8929c93be456f6397ce3ae3e7aff374897aeb1b16ebd55642bc9c18c156587cb"
+          }
+        ]
+      },
+      {
+        "profile": "high",
+        "name": "config-lv-437",
+        "emulator_exit": 33,
+        "config": "COUNTRY=371,437,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+        "actions": [
+          "P371437.COM"
+        ],
+        "corruption": null,
+        "serial_log": "high/config-lv-437/serial.log",
+        "serial_sha256": "a7a1252df5c8c0e0c9ada11c1592503d80c67070648667052011aeae4261f1bb",
+        "retained_serial": {
+          "path": "review/country-matrix-high-config-lv-437.log",
+          "sha256": "a7a1252df5c8c0e0c9ada11c1592503d80c67070648667052011aeae4261f1bb"
+        },
+        "retained_startup": [
+          {
+            "path": "review/country-matrix-high-config-lv-437-config.sys.cfg",
+            "sha256": "e5c1a4eee5b61c25b8e1bccb324a05c672f312a3a354c62048c1a6006723036e"
+          },
+          {
+            "path": "review/country-matrix-high-config-lv-437-autoexec.bat.cfg",
+            "sha256": "7e59761b2ce0156a9d63a33a88b355971e695975ea56f76184a35591b81900ab"
+          }
+        ]
+      },
+      {
+        "profile": "high",
+        "name": "config-lv-850",
+        "emulator_exit": 33,
+        "config": "COUNTRY=371,850,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+        "actions": [
+          "P371850.COM"
+        ],
+        "corruption": null,
+        "serial_log": "high/config-lv-850/serial.log",
+        "serial_sha256": "a7a1252df5c8c0e0c9ada11c1592503d80c67070648667052011aeae4261f1bb",
+        "retained_serial": {
+          "path": "review/country-matrix-high-config-lv-850.log",
+          "sha256": "a7a1252df5c8c0e0c9ada11c1592503d80c67070648667052011aeae4261f1bb"
+        },
+        "retained_startup": [
+          {
+            "path": "review/country-matrix-high-config-lv-850-config.sys.cfg",
+            "sha256": "b9fbcee76b024a449d4e7fe078de5370d1a25ddf4e58080f4d3ffb95447d241f"
+          },
+          {
+            "path": "review/country-matrix-high-config-lv-850-autoexec.bat.cfg",
+            "sha256": "78e529127cb486de17f35b0dc9b572748f25112fd752b2dcbbd6df501c859429"
+          }
+        ]
+      },
+      {
+        "profile": "high",
+        "name": "config-lv-default",
+        "emulator_exit": 33,
+        "config": "COUNTRY=371,,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+        "actions": [
+          "P371775.COM"
+        ],
+        "corruption": null,
+        "serial_log": "high/config-lv-default/serial.log",
+        "serial_sha256": "a7a1252df5c8c0e0c9ada11c1592503d80c67070648667052011aeae4261f1bb",
+        "retained_serial": {
+          "path": "review/country-matrix-high-config-lv-default.log",
+          "sha256": "a7a1252df5c8c0e0c9ada11c1592503d80c67070648667052011aeae4261f1bb"
+        },
+        "retained_startup": [
+          {
+            "path": "review/country-matrix-high-config-lv-default-config.sys.cfg",
+            "sha256": "4d7419116be6b752fb7ca162a5de41f453eabbac0a5d56fd059abd2da7f203b6"
+          },
+          {
+            "path": "review/country-matrix-high-config-lv-default-autoexec.bat.cfg",
+            "sha256": "8929c93be456f6397ce3ae3e7aff374897aeb1b16ebd55642bc9c18c156587cb"
+          }
+        ]
+      },
+      {
+        "profile": "high",
+        "name": "config-lt-775",
+        "emulator_exit": 33,
+        "config": "COUNTRY=370,775,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+        "actions": [
+          "P370775.COM"
+        ],
+        "corruption": null,
+        "serial_log": "high/config-lt-775/serial.log",
+        "serial_sha256": "a7a1252df5c8c0e0c9ada11c1592503d80c67070648667052011aeae4261f1bb",
+        "retained_serial": {
+          "path": "review/country-matrix-high-config-lt-775.log",
+          "sha256": "a7a1252df5c8c0e0c9ada11c1592503d80c67070648667052011aeae4261f1bb"
+        },
+        "retained_startup": [
+          {
+            "path": "review/country-matrix-high-config-lt-775-config.sys.cfg",
+            "sha256": "bb13bd3e2017c793a809269689a000c702bc900ccb1a992ddf4e7bf4215a5b7f"
+          },
+          {
+            "path": "review/country-matrix-high-config-lt-775-autoexec.bat.cfg",
+            "sha256": "9043060dd05d2b7f9c85a888ed7fc8dc773828067e5d0deb949bd0a50a011a40"
+          }
+        ]
+      },
+      {
+        "profile": "high",
+        "name": "config-lt-437",
+        "emulator_exit": 33,
+        "config": "COUNTRY=370,437,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+        "actions": [
+          "P370437.COM"
+        ],
+        "corruption": null,
+        "serial_log": "high/config-lt-437/serial.log",
+        "serial_sha256": "a7a1252df5c8c0e0c9ada11c1592503d80c67070648667052011aeae4261f1bb",
+        "retained_serial": {
+          "path": "review/country-matrix-high-config-lt-437.log",
+          "sha256": "a7a1252df5c8c0e0c9ada11c1592503d80c67070648667052011aeae4261f1bb"
+        },
+        "retained_startup": [
+          {
+            "path": "review/country-matrix-high-config-lt-437-config.sys.cfg",
+            "sha256": "8a20fb6be75c488cc90c515047867b1351caf57e4552acf68c8414bbea0bb1d3"
+          },
+          {
+            "path": "review/country-matrix-high-config-lt-437-autoexec.bat.cfg",
+            "sha256": "56029d3d605f85e491e5b4bf57362094e549dbc2425a7a8374f1b9ca9d101df0"
+          }
+        ]
+      },
+      {
+        "profile": "high",
+        "name": "config-lt-850",
+        "emulator_exit": 33,
+        "config": "COUNTRY=370,850,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+        "actions": [
+          "P370850.COM"
+        ],
+        "corruption": null,
+        "serial_log": "high/config-lt-850/serial.log",
+        "serial_sha256": "a7a1252df5c8c0e0c9ada11c1592503d80c67070648667052011aeae4261f1bb",
+        "retained_serial": {
+          "path": "review/country-matrix-high-config-lt-850.log",
+          "sha256": "a7a1252df5c8c0e0c9ada11c1592503d80c67070648667052011aeae4261f1bb"
+        },
+        "retained_startup": [
+          {
+            "path": "review/country-matrix-high-config-lt-850-config.sys.cfg",
+            "sha256": "ee5b84a061f719d7b2553f0297f344cd10333f66407dcb3ce97ebb6d4b55ef94"
+          },
+          {
+            "path": "review/country-matrix-high-config-lt-850-autoexec.bat.cfg",
+            "sha256": "0ef313e5845daab486d97422ea0b471a6c2ef11a9a6d3b5e153ea259c7b170d3"
+          }
+        ]
+      },
+      {
+        "profile": "high",
+        "name": "config-lt-default",
+        "emulator_exit": 33,
+        "config": "COUNTRY=370,,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+        "actions": [
+          "P370775.COM"
+        ],
+        "corruption": null,
+        "serial_log": "high/config-lt-default/serial.log",
+        "serial_sha256": "a7a1252df5c8c0e0c9ada11c1592503d80c67070648667052011aeae4261f1bb",
+        "retained_serial": {
+          "path": "review/country-matrix-high-config-lt-default.log",
+          "sha256": "a7a1252df5c8c0e0c9ada11c1592503d80c67070648667052011aeae4261f1bb"
+        },
+        "retained_startup": [
+          {
+            "path": "review/country-matrix-high-config-lt-default-config.sys.cfg",
+            "sha256": "4207e2e1884e5e2226769c0645b11d84435ba99d748e96c1f1969d5068836c9b"
+          },
+          {
+            "path": "review/country-matrix-high-config-lt-default-autoexec.bat.cfg",
+            "sha256": "9043060dd05d2b7f9c85a888ed7fc8dc773828067e5d0deb949bd0a50a011a40"
+          }
+        ]
+      },
+      {
+        "profile": "high",
+        "name": "transitions",
+        "emulator_exit": 33,
+        "config": "COUNTRY=372,775,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+        "actions": [
+          "P372775.COM",
+          "NLSFUNC",
+          "MODE CON CP PREPARE=((775) EGA775.CPI)",
+          "MODE CON CP PREPARE=((,437,850) EGA.CPI)",
+          "S372775.COM",
+          "CHCP 775",
+          "CPCHK.COM",
+          "P372775.COM",
+          "Q372850.COM",
+          "CHCP 437",
+          "CPCHK.COM",
+          "P372437.COM",
+          "Q372775.COM",
+          "CHCP 850",
+          "CPCHK.COM",
+          "P372850.COM",
+          "Q372775.COM",
+          "CHCP 775",
+          "CPCHK.COM",
+          "P372775.COM",
+          "Q372850.COM",
+          "R372.COM",
+          "CPCHK.COM",
+          "P372775.COM",
+          "S371775.COM",
+          "CHCP 775",
+          "CPCHK.COM",
+          "P371775.COM",
+          "Q371850.COM",
+          "CHCP 437",
+          "CPCHK.COM",
+          "P371437.COM",
+          "Q371775.COM",
+          "CHCP 850",
+          "CPCHK.COM",
+          "P371850.COM",
+          "Q371775.COM",
+          "CHCP 775",
+          "CPCHK.COM",
+          "P371775.COM",
+          "Q371850.COM",
+          "R371.COM",
+          "CPCHK.COM",
+          "P371775.COM",
+          "S370775.COM",
+          "CHCP 775",
+          "CPCHK.COM",
+          "P370775.COM",
+          "Q370850.COM",
+          "CHCP 437",
+          "CPCHK.COM",
+          "P370437.COM",
+          "Q370775.COM",
+          "CHCP 850",
+          "CPCHK.COM",
+          "P370850.COM",
+          "Q370775.COM",
+          "CHCP 775",
+          "CPCHK.COM",
+          "P370775.COM",
+          "Q370850.COM",
+          "R370.COM",
+          "CPCHK.COM",
+          "P370775.COM",
+          "S372775.COM",
+          "CHCP 775",
+          "CPCHK.COM",
+          "P372775.COM",
+          "Q372850.COM",
+          "CHCP 437",
+          "CPCHK.COM",
+          "P372437.COM",
+          "Q372775.COM",
+          "CHCP 850",
+          "CPCHK.COM",
+          "P372850.COM",
+          "Q372775.COM",
+          "CHCP 775",
+          "CPCHK.COM",
+          "P372775.COM",
+          "Q372850.COM",
+          "R372.COM",
+          "CPCHK.COM",
+          "P372775.COM"
+        ],
+        "corruption": null,
+        "serial_log": "high/transitions/serial.log",
+        "serial_sha256": "db022c8650797811ca6b2f92c0d7ba538f72ac81e38236a7f77657427733accf",
+        "retained_serial": {
+          "path": "review/country-matrix-high-transitions.log",
+          "sha256": "db022c8650797811ca6b2f92c0d7ba538f72ac81e38236a7f77657427733accf"
+        },
+        "retained_startup": [
+          {
+            "path": "review/country-matrix-high-transitions-config.sys.cfg",
+            "sha256": "070f6878bbdc5f27cffc4fe14c6788694dee953c0fac6a316c0e3c3f564acfe5"
+          },
+          {
+            "path": "review/country-matrix-high-transitions-autoexec.bat.cfg",
+            "sha256": "902256ddc264837cda6c245da62a1869fad45a49df34c5d3841c58b6e175afc5"
+          }
+        ]
+      },
+      {
+        "profile": "high",
+        "name": "wrong-case",
+        "emulator_exit": 33,
+        "config": "COUNTRY=372,775,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+        "actions": [
+          "P372775.COM"
+        ],
+        "corruption": "case",
+        "serial_log": "high/wrong-case/serial.log",
+        "serial_sha256": "15fd6fca670898c4511afaa50abb3d3e075894e973293f3982a31e589fee0059",
+        "retained_serial": {
+          "path": "review/country-matrix-high-wrong-case.log",
+          "sha256": "15fd6fca670898c4511afaa50abb3d3e075894e973293f3982a31e589fee0059"
+        },
+        "retained_startup": [
+          {
+            "path": "review/country-matrix-high-wrong-case-config.sys.cfg",
+            "sha256": "070f6878bbdc5f27cffc4fe14c6788694dee953c0fac6a316c0e3c3f564acfe5"
+          },
+          {
+            "path": "review/country-matrix-high-wrong-case-autoexec.bat.cfg",
+            "sha256": "b9fc6921e708c2551210f35341bc11d8815fab37a627422a06a2b45df86f113d"
+          }
+        ]
+      },
+      {
+        "profile": "high",
+        "name": "wrong-collation",
+        "emulator_exit": 33,
+        "config": "COUNTRY=372,775,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+        "actions": [
+          "P372775.COM"
+        ],
+        "corruption": "collation",
+        "serial_log": "high/wrong-collation/serial.log",
+        "serial_sha256": "4338c40233e3469f7b0d202b1afbc44fa832ea960f3ba0181d32da5f23be009a",
+        "retained_serial": {
+          "path": "review/country-matrix-high-wrong-collation.log",
+          "sha256": "4338c40233e3469f7b0d202b1afbc44fa832ea960f3ba0181d32da5f23be009a"
+        },
+        "retained_startup": [
+          {
+            "path": "review/country-matrix-high-wrong-collation-config.sys.cfg",
+            "sha256": "070f6878bbdc5f27cffc4fe14c6788694dee953c0fac6a316c0e3c3f564acfe5"
+          },
+          {
+            "path": "review/country-matrix-high-wrong-collation-autoexec.bat.cfg",
+            "sha256": "b9fc6921e708c2551210f35341bc11d8815fab37a627422a06a2b45df86f113d"
+          }
+        ]
+      },
+      {
+        "profile": "low",
+        "name": "config-et-775",
+        "emulator_exit": 33,
+        "config": "COUNTRY=372,775,COUNTRY.SYS\r\nDOS=LOW\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+        "actions": [
+          "P372775.COM"
+        ],
+        "corruption": null,
+        "serial_log": "low/config-et-775/serial.log",
+        "serial_sha256": "1423951fe0da5c8698152543e8882f17e663f9c4a6bbeb62153ce0edeef39d67",
+        "retained_serial": {
+          "path": "review/country-matrix-low-config-et-775.log",
+          "sha256": "1423951fe0da5c8698152543e8882f17e663f9c4a6bbeb62153ce0edeef39d67"
+        },
+        "retained_startup": [
+          {
+            "path": "review/country-matrix-low-config-et-775-config.sys.cfg",
+            "sha256": "e1635a57550c7b853a7bb7495064d5d1346fd0f7dbcabfaa30f05d3cb3180790"
+          },
+          {
+            "path": "review/country-matrix-low-config-et-775-autoexec.bat.cfg",
+            "sha256": "4086e936a5b7fbb5af325fbd677419807f4cdee2ee56bc0e510b5d5d0cf92c91"
+          }
+        ]
+      },
+      {
+        "profile": "low",
+        "name": "config-et-437",
+        "emulator_exit": 33,
+        "config": "COUNTRY=372,437,COUNTRY.SYS\r\nDOS=LOW\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+        "actions": [
+          "P372437.COM"
+        ],
+        "corruption": null,
+        "serial_log": "low/config-et-437/serial.log",
+        "serial_sha256": "1423951fe0da5c8698152543e8882f17e663f9c4a6bbeb62153ce0edeef39d67",
+        "retained_serial": {
+          "path": "review/country-matrix-low-config-et-437.log",
+          "sha256": "1423951fe0da5c8698152543e8882f17e663f9c4a6bbeb62153ce0edeef39d67"
+        },
+        "retained_startup": [
+          {
+            "path": "review/country-matrix-low-config-et-437-config.sys.cfg",
+            "sha256": "aae1377b135493d11e9fe971f5c39808bbe2e9dd2e1ef8eca4f960d7dfcac78c"
+          },
+          {
+            "path": "review/country-matrix-low-config-et-437-autoexec.bat.cfg",
+            "sha256": "3c97d325911996729cbd8dfd2f833ccf42cac2a10547e96f67cecd877686a636"
+          }
+        ]
+      },
+      {
+        "profile": "low",
+        "name": "config-et-850",
+        "emulator_exit": 33,
+        "config": "COUNTRY=372,850,COUNTRY.SYS\r\nDOS=LOW\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+        "actions": [
+          "P372850.COM"
+        ],
+        "corruption": null,
+        "serial_log": "low/config-et-850/serial.log",
+        "serial_sha256": "1423951fe0da5c8698152543e8882f17e663f9c4a6bbeb62153ce0edeef39d67",
+        "retained_serial": {
+          "path": "review/country-matrix-low-config-et-850.log",
+          "sha256": "1423951fe0da5c8698152543e8882f17e663f9c4a6bbeb62153ce0edeef39d67"
+        },
+        "retained_startup": [
+          {
+            "path": "review/country-matrix-low-config-et-850-config.sys.cfg",
+            "sha256": "02a5797f59aca644903f2badfcea95e268d5b5c07674d089cf723cc4c3f6938d"
+          },
+          {
+            "path": "review/country-matrix-low-config-et-850-autoexec.bat.cfg",
+            "sha256": "dde52a5f350ae5d4c400bdb070e36fa9c2f3c7dac1016ea3dafe827a6a16e426"
+          }
+        ]
+      },
+      {
+        "profile": "low",
+        "name": "config-et-default",
+        "emulator_exit": 33,
+        "config": "COUNTRY=372,,COUNTRY.SYS\r\nDOS=LOW\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+        "actions": [
+          "P372775.COM"
+        ],
+        "corruption": null,
+        "serial_log": "low/config-et-default/serial.log",
+        "serial_sha256": "1423951fe0da5c8698152543e8882f17e663f9c4a6bbeb62153ce0edeef39d67",
+        "retained_serial": {
+          "path": "review/country-matrix-low-config-et-default.log",
+          "sha256": "1423951fe0da5c8698152543e8882f17e663f9c4a6bbeb62153ce0edeef39d67"
+        },
+        "retained_startup": [
+          {
+            "path": "review/country-matrix-low-config-et-default-config.sys.cfg",
+            "sha256": "e7606e3ee217b52ac2bf988eb25153d729e4df863149ae4f799aa856c10347f7"
+          },
+          {
+            "path": "review/country-matrix-low-config-et-default-autoexec.bat.cfg",
+            "sha256": "4086e936a5b7fbb5af325fbd677419807f4cdee2ee56bc0e510b5d5d0cf92c91"
+          }
+        ]
+      },
+      {
+        "profile": "low",
+        "name": "config-lv-775",
+        "emulator_exit": 33,
+        "config": "COUNTRY=371,775,COUNTRY.SYS\r\nDOS=LOW\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+        "actions": [
+          "P371775.COM"
+        ],
+        "corruption": null,
+        "serial_log": "low/config-lv-775/serial.log",
+        "serial_sha256": "1423951fe0da5c8698152543e8882f17e663f9c4a6bbeb62153ce0edeef39d67",
+        "retained_serial": {
+          "path": "review/country-matrix-low-config-lv-775.log",
+          "sha256": "1423951fe0da5c8698152543e8882f17e663f9c4a6bbeb62153ce0edeef39d67"
+        },
+        "retained_startup": [
+          {
+            "path": "review/country-matrix-low-config-lv-775-config.sys.cfg",
+            "sha256": "0be356ae0a7f4dcc428d9c65e096d0f9148e5b44147c0ced8203d62b33d502c2"
+          },
+          {
+            "path": "review/country-matrix-low-config-lv-775-autoexec.bat.cfg",
+            "sha256": "873082e44b5b6bdcc88ba0630c571da96f903b0a4430721da728a6c7c8dbcb4f"
+          }
+        ]
+      },
+      {
+        "profile": "low",
+        "name": "config-lv-437",
+        "emulator_exit": 33,
+        "config": "COUNTRY=371,437,COUNTRY.SYS\r\nDOS=LOW\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+        "actions": [
+          "P371437.COM"
+        ],
+        "corruption": null,
+        "serial_log": "low/config-lv-437/serial.log",
+        "serial_sha256": "1423951fe0da5c8698152543e8882f17e663f9c4a6bbeb62153ce0edeef39d67",
+        "retained_serial": {
+          "path": "review/country-matrix-low-config-lv-437.log",
+          "sha256": "1423951fe0da5c8698152543e8882f17e663f9c4a6bbeb62153ce0edeef39d67"
+        },
+        "retained_startup": [
+          {
+            "path": "review/country-matrix-low-config-lv-437-config.sys.cfg",
+            "sha256": "17cd3f6efdad06f3c4808463e44dc0b664afb0c64666f0eb74597cbee2aef496"
+          },
+          {
+            "path": "review/country-matrix-low-config-lv-437-autoexec.bat.cfg",
+            "sha256": "b484eb16fe72cbe24f9971279cab7d820cb269a3abfced74525d233044bd745a"
+          }
+        ]
+      },
+      {
+        "profile": "low",
+        "name": "config-lv-850",
+        "emulator_exit": 33,
+        "config": "COUNTRY=371,850,COUNTRY.SYS\r\nDOS=LOW\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+        "actions": [
+          "P371850.COM"
+        ],
+        "corruption": null,
+        "serial_log": "low/config-lv-850/serial.log",
+        "serial_sha256": "1423951fe0da5c8698152543e8882f17e663f9c4a6bbeb62153ce0edeef39d67",
+        "retained_serial": {
+          "path": "review/country-matrix-low-config-lv-850.log",
+          "sha256": "1423951fe0da5c8698152543e8882f17e663f9c4a6bbeb62153ce0edeef39d67"
+        },
+        "retained_startup": [
+          {
+            "path": "review/country-matrix-low-config-lv-850-config.sys.cfg",
+            "sha256": "8b275df9b45cb138136473650cfba4dc1b54896de956a19bfb3d868ee64b0fef"
+          },
+          {
+            "path": "review/country-matrix-low-config-lv-850-autoexec.bat.cfg",
+            "sha256": "ddd3b38a0c273f3167d6c3f14ac79ba5e873773cbf4b0f82a52a25cfbe8c7625"
+          }
+        ]
+      },
+      {
+        "profile": "low",
+        "name": "config-lv-default",
+        "emulator_exit": 33,
+        "config": "COUNTRY=371,,COUNTRY.SYS\r\nDOS=LOW\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+        "actions": [
+          "P371775.COM"
+        ],
+        "corruption": null,
+        "serial_log": "low/config-lv-default/serial.log",
+        "serial_sha256": "1423951fe0da5c8698152543e8882f17e663f9c4a6bbeb62153ce0edeef39d67",
+        "retained_serial": {
+          "path": "review/country-matrix-low-config-lv-default.log",
+          "sha256": "1423951fe0da5c8698152543e8882f17e663f9c4a6bbeb62153ce0edeef39d67"
+        },
+        "retained_startup": [
+          {
+            "path": "review/country-matrix-low-config-lv-default-config.sys.cfg",
+            "sha256": "161486439616b8fe0233add1208ed7b5ffd5fd98ceb36b751b2ac3bc3184ef2c"
+          },
+          {
+            "path": "review/country-matrix-low-config-lv-default-autoexec.bat.cfg",
+            "sha256": "873082e44b5b6bdcc88ba0630c571da96f903b0a4430721da728a6c7c8dbcb4f"
+          }
+        ]
+      },
+      {
+        "profile": "low",
+        "name": "config-lt-775",
+        "emulator_exit": 33,
+        "config": "COUNTRY=370,775,COUNTRY.SYS\r\nDOS=LOW\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+        "actions": [
+          "P370775.COM"
+        ],
+        "corruption": null,
+        "serial_log": "low/config-lt-775/serial.log",
+        "serial_sha256": "1423951fe0da5c8698152543e8882f17e663f9c4a6bbeb62153ce0edeef39d67",
+        "retained_serial": {
+          "path": "review/country-matrix-low-config-lt-775.log",
+          "sha256": "1423951fe0da5c8698152543e8882f17e663f9c4a6bbeb62153ce0edeef39d67"
+        },
+        "retained_startup": [
+          {
+            "path": "review/country-matrix-low-config-lt-775-config.sys.cfg",
+            "sha256": "87db53f24a33fae8faa6ce91bfb71f58a7406b8fca1bb4b24ab97ff81568b57f"
+          },
+          {
+            "path": "review/country-matrix-low-config-lt-775-autoexec.bat.cfg",
+            "sha256": "994dfaf933fa3f7153807b3ece3e6e928a481d5b80f7a6d1b282195bc420c944"
+          }
+        ]
+      },
+      {
+        "profile": "low",
+        "name": "config-lt-437",
+        "emulator_exit": 33,
+        "config": "COUNTRY=370,437,COUNTRY.SYS\r\nDOS=LOW\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+        "actions": [
+          "P370437.COM"
+        ],
+        "corruption": null,
+        "serial_log": "low/config-lt-437/serial.log",
+        "serial_sha256": "1423951fe0da5c8698152543e8882f17e663f9c4a6bbeb62153ce0edeef39d67",
+        "retained_serial": {
+          "path": "review/country-matrix-low-config-lt-437.log",
+          "sha256": "1423951fe0da5c8698152543e8882f17e663f9c4a6bbeb62153ce0edeef39d67"
+        },
+        "retained_startup": [
+          {
+            "path": "review/country-matrix-low-config-lt-437-config.sys.cfg",
+            "sha256": "bf5be498f63346ff4889535e6833170ae1a419c68c91239856e7ee7251d050cd"
+          },
+          {
+            "path": "review/country-matrix-low-config-lt-437-autoexec.bat.cfg",
+            "sha256": "a0e60e28abc6acd2a2d25b2dba1f54dcc2d5f119059ce90635bf7358a3244c5e"
+          }
+        ]
+      },
+      {
+        "profile": "low",
+        "name": "config-lt-850",
+        "emulator_exit": 33,
+        "config": "COUNTRY=370,850,COUNTRY.SYS\r\nDOS=LOW\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+        "actions": [
+          "P370850.COM"
+        ],
+        "corruption": null,
+        "serial_log": "low/config-lt-850/serial.log",
+        "serial_sha256": "1423951fe0da5c8698152543e8882f17e663f9c4a6bbeb62153ce0edeef39d67",
+        "retained_serial": {
+          "path": "review/country-matrix-low-config-lt-850.log",
+          "sha256": "1423951fe0da5c8698152543e8882f17e663f9c4a6bbeb62153ce0edeef39d67"
+        },
+        "retained_startup": [
+          {
+            "path": "review/country-matrix-low-config-lt-850-config.sys.cfg",
+            "sha256": "054b9cf2cbb09640804b2a62287a5afd4d0f8951ecfe050618d165c391d1f891"
+          },
+          {
+            "path": "review/country-matrix-low-config-lt-850-autoexec.bat.cfg",
+            "sha256": "67d5e4800cf13b692b010f6a9fe8b40c3fb673a69005c830431d8303f3e8068e"
+          }
+        ]
+      },
+      {
+        "profile": "low",
+        "name": "config-lt-default",
+        "emulator_exit": 33,
+        "config": "COUNTRY=370,,COUNTRY.SYS\r\nDOS=LOW\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+        "actions": [
+          "P370775.COM"
+        ],
+        "corruption": null,
+        "serial_log": "low/config-lt-default/serial.log",
+        "serial_sha256": "1423951fe0da5c8698152543e8882f17e663f9c4a6bbeb62153ce0edeef39d67",
+        "retained_serial": {
+          "path": "review/country-matrix-low-config-lt-default.log",
+          "sha256": "1423951fe0da5c8698152543e8882f17e663f9c4a6bbeb62153ce0edeef39d67"
+        },
+        "retained_startup": [
+          {
+            "path": "review/country-matrix-low-config-lt-default-config.sys.cfg",
+            "sha256": "a6fd5e58b18fa2aadb6c3f4f87758066315cafae21dfb03a248c0ed5030a6ee7"
+          },
+          {
+            "path": "review/country-matrix-low-config-lt-default-autoexec.bat.cfg",
+            "sha256": "994dfaf933fa3f7153807b3ece3e6e928a481d5b80f7a6d1b282195bc420c944"
+          }
+        ]
+      },
+      {
+        "profile": "low",
+        "name": "transitions",
+        "emulator_exit": 33,
+        "config": "COUNTRY=372,775,COUNTRY.SYS\r\nDOS=LOW\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+        "actions": [
+          "P372775.COM",
+          "NLSFUNC",
+          "MODE CON CP PREPARE=((775) EGA775.CPI)",
+          "MODE CON CP PREPARE=((,437,850) EGA.CPI)",
+          "S372775.COM",
+          "CHCP 775",
+          "CPCHK.COM",
+          "P372775.COM",
+          "Q372850.COM",
+          "CHCP 437",
+          "CPCHK.COM",
+          "P372437.COM",
+          "Q372775.COM",
+          "CHCP 850",
+          "CPCHK.COM",
+          "P372850.COM",
+          "Q372775.COM",
+          "CHCP 775",
+          "CPCHK.COM",
+          "P372775.COM",
+          "Q372850.COM",
+          "R372.COM",
+          "CPCHK.COM",
+          "P372775.COM",
+          "S371775.COM",
+          "CHCP 775",
+          "CPCHK.COM",
+          "P371775.COM",
+          "Q371850.COM",
+          "CHCP 437",
+          "CPCHK.COM",
+          "P371437.COM",
+          "Q371775.COM",
+          "CHCP 850",
+          "CPCHK.COM",
+          "P371850.COM",
+          "Q371775.COM",
+          "CHCP 775",
+          "CPCHK.COM",
+          "P371775.COM",
+          "Q371850.COM",
+          "R371.COM",
+          "CPCHK.COM",
+          "P371775.COM",
+          "S370775.COM",
+          "CHCP 775",
+          "CPCHK.COM",
+          "P370775.COM",
+          "Q370850.COM",
+          "CHCP 437",
+          "CPCHK.COM",
+          "P370437.COM",
+          "Q370775.COM",
+          "CHCP 850",
+          "CPCHK.COM",
+          "P370850.COM",
+          "Q370775.COM",
+          "CHCP 775",
+          "CPCHK.COM",
+          "P370775.COM",
+          "Q370850.COM",
+          "R370.COM",
+          "CPCHK.COM",
+          "P370775.COM",
+          "S372775.COM",
+          "CHCP 775",
+          "CPCHK.COM",
+          "P372775.COM",
+          "Q372850.COM",
+          "CHCP 437",
+          "CPCHK.COM",
+          "P372437.COM",
+          "Q372775.COM",
+          "CHCP 850",
+          "CPCHK.COM",
+          "P372850.COM",
+          "Q372775.COM",
+          "CHCP 775",
+          "CPCHK.COM",
+          "P372775.COM",
+          "Q372850.COM",
+          "R372.COM",
+          "CPCHK.COM",
+          "P372775.COM"
+        ],
+        "corruption": null,
+        "serial_log": "low/transitions/serial.log",
+        "serial_sha256": "962997fdcf3823c1fd5d04f873c91301cb88da61b90d9da1eb375336ee985239",
+        "retained_serial": {
+          "path": "review/country-matrix-low-transitions.log",
+          "sha256": "962997fdcf3823c1fd5d04f873c91301cb88da61b90d9da1eb375336ee985239"
+        },
+        "retained_startup": [
+          {
+            "path": "review/country-matrix-low-transitions-config.sys.cfg",
+            "sha256": "e1635a57550c7b853a7bb7495064d5d1346fd0f7dbcabfaa30f05d3cb3180790"
+          },
+          {
+            "path": "review/country-matrix-low-transitions-autoexec.bat.cfg",
+            "sha256": "5f77be698b4e7a77ad375f27b85aa803264b9273a84fca25a3cc9d59fece7bc4"
+          }
+        ]
+      },
+      {
+        "profile": "low",
+        "name": "wrong-case",
+        "emulator_exit": 33,
+        "config": "COUNTRY=372,775,COUNTRY.SYS\r\nDOS=LOW\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+        "actions": [
+          "P372775.COM"
+        ],
+        "corruption": "case",
+        "serial_log": "low/wrong-case/serial.log",
+        "serial_sha256": "e15f5b5d28e49df259fd9440adb74bb61c491068fafa549315edf32a15f644d7",
+        "retained_serial": {
+          "path": "review/country-matrix-low-wrong-case.log",
+          "sha256": "e15f5b5d28e49df259fd9440adb74bb61c491068fafa549315edf32a15f644d7"
+        },
+        "retained_startup": [
+          {
+            "path": "review/country-matrix-low-wrong-case-config.sys.cfg",
+            "sha256": "e1635a57550c7b853a7bb7495064d5d1346fd0f7dbcabfaa30f05d3cb3180790"
+          },
+          {
+            "path": "review/country-matrix-low-wrong-case-autoexec.bat.cfg",
+            "sha256": "4086e936a5b7fbb5af325fbd677419807f4cdee2ee56bc0e510b5d5d0cf92c91"
+          }
+        ]
+      },
+      {
+        "profile": "low",
+        "name": "wrong-collation",
+        "emulator_exit": 33,
+        "config": "COUNTRY=372,775,COUNTRY.SYS\r\nDOS=LOW\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+        "actions": [
+          "P372775.COM"
+        ],
+        "corruption": "collation",
+        "serial_log": "low/wrong-collation/serial.log",
+        "serial_sha256": "f23601062a33cb5581edc648cab7a1f387c06c5ba618238e4b8c87d518623f40",
+        "retained_serial": {
+          "path": "review/country-matrix-low-wrong-collation.log",
+          "sha256": "f23601062a33cb5581edc648cab7a1f387c06c5ba618238e4b8c87d518623f40"
+        },
+        "retained_startup": [
+          {
+            "path": "review/country-matrix-low-wrong-collation-config.sys.cfg",
+            "sha256": "e1635a57550c7b853a7bb7495064d5d1346fd0f7dbcabfaa30f05d3cb3180790"
+          },
+          {
+            "path": "review/country-matrix-low-wrong-collation-autoexec.bat.cfg",
+            "sha256": "4086e936a5b7fbb5af325fbd677419807f4cdee2ee56bc0e510b5d5d0cf92c91"
+          }
+        ]
+      }
+    ],
+    "retained_log": {
+      "path": "review/country-matrix.log",
+      "sha256": "169eddd0af134646a0840331f4bc716a48bb83a86b84b61fa362fc0de26491f8"
+    }
+  },
+  "extended_transitions": {
+    "schema_version": 1,
+    "status": "selected-cases-passed",
+    "core_sha256": {
+      "IO.SYS": "793169a292df40bb117eb487136a0d8e7f4334ca223e8206bf53f33141f24715",
+      "MSDOS.SYS": "1475174f50c8c349bedd7cd4a0be88bce055f2e411b7454b5f68fffbff269b62",
+      "COMMAND.COM": "6742b5889141a9c61d41e336445014d8055c19758febf4263f4f8ebe3c2f2c29",
+      "HIMEM.SYS": "340cbfd1f0e835755adce99d80c607f8edeb48ea2b20a6a142402a25434f8d13",
+      "EMM386.EXE": "58266b6614594de7a9cfde9eda75e3eb241b9e2e941e67b70645a0f8a197dae6"
+    },
+    "country_sha256": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c",
+    "base_image_sha256": "5884fe671fc895866bcdb5b118c17bb3cdbfd23e4057df26178ba1135b2f79aa",
+    "cases": [
+      {
+        "profile": "high",
+        "name": "transitions",
+        "emulator_exit": 33,
+        "config": "COUNTRY=372,775,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+        "actions": [
+          "P372775.COM",
+          "NLSFUNC",
+          "MODE CON CP PREPARE=((775) EGA775.CPI)",
+          "MODE CON CP PREPARE=((,437,850) EGA.CPI)",
+          "S372775.COM",
+          "Q371775.COM",
+          "P372775.COM",
+          "CHCP 775",
+          "CPCHK.COM",
+          "P372775.COM",
+          "Q372850.COM",
+          "CHCP 437",
+          "CPCHK.COM",
+          "P372437.COM",
+          "Q372775.COM",
+          "CHCP 850",
+          "CPCHK.COM",
+          "P372850.COM",
+          "Q372775.COM",
+          "CHCP 775",
+          "CPCHK.COM",
+          "P372775.COM",
+          "Q372850.COM",
+          "R372.COM",
+          "CPCHK.COM",
+          "P372775.COM",
+          "S371775.COM",
+          "Q372775.COM",
+          "P371775.COM",
+          "CHCP 775",
+          "CPCHK.COM",
+          "P371775.COM",
+          "Q371850.COM",
+          "CHCP 437",
+          "CPCHK.COM",
+          "P371437.COM",
+          "Q371775.COM",
+          "CHCP 850",
+          "CPCHK.COM",
+          "P371850.COM",
+          "Q371775.COM",
+          "CHCP 775",
+          "CPCHK.COM",
+          "P371775.COM",
+          "Q371850.COM",
+          "R371.COM",
+          "CPCHK.COM",
+          "P371775.COM",
+          "S370775.COM",
+          "Q372775.COM",
+          "P370775.COM",
+          "CHCP 775",
+          "CPCHK.COM",
+          "P370775.COM",
+          "Q370850.COM",
+          "CHCP 437",
+          "CPCHK.COM",
+          "P370437.COM",
+          "Q370775.COM",
+          "CHCP 850",
+          "CPCHK.COM",
+          "P370850.COM",
+          "Q370775.COM",
+          "CHCP 775",
+          "CPCHK.COM",
+          "P370775.COM",
+          "Q370850.COM",
+          "R370.COM",
+          "CPCHK.COM",
+          "P370775.COM",
+          "S372775.COM",
+          "Q371775.COM",
+          "P372775.COM",
+          "CHCP 775",
+          "CPCHK.COM",
+          "P372775.COM",
+          "Q372850.COM",
+          "CHCP 437",
+          "CPCHK.COM",
+          "P372437.COM",
+          "Q372775.COM",
+          "CHCP 850",
+          "CPCHK.COM",
+          "P372850.COM",
+          "Q372775.COM",
+          "CHCP 775",
+          "CPCHK.COM",
+          "P372775.COM",
+          "Q372850.COM",
+          "R372.COM",
+          "CPCHK.COM",
+          "P372775.COM"
+        ],
+        "corruption": null,
+        "serial_log": "high/transitions/serial.log",
+        "serial_sha256": "b67452b750cb1aa362a19a7b42280cbc5e3abf1bd88ba5090aef2c5042636cf7",
+        "retained_serial": {
+          "path": "review/country-extended-transitions-high-transitions.log",
+          "sha256": "b67452b750cb1aa362a19a7b42280cbc5e3abf1bd88ba5090aef2c5042636cf7"
+        },
+        "retained_startup": [
+          {
+            "path": "review/country-extended-transitions-high-transitions-config.sys.cfg",
+            "sha256": "070f6878bbdc5f27cffc4fe14c6788694dee953c0fac6a316c0e3c3f564acfe5"
+          },
+          {
+            "path": "review/country-extended-transitions-high-transitions-autoexec.bat.cfg",
+            "sha256": "b6de02649c1cde347db06ef85e5f1d2cd15d2bb49d2b3c59c31ac445ea79a0e9"
+          }
+        ]
+      },
+      {
+        "profile": "low",
+        "name": "transitions",
+        "emulator_exit": 33,
+        "config": "COUNTRY=372,775,COUNTRY.SYS\r\nDOS=LOW\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+        "actions": [
+          "P372775.COM",
+          "NLSFUNC",
+          "MODE CON CP PREPARE=((775) EGA775.CPI)",
+          "MODE CON CP PREPARE=((,437,850) EGA.CPI)",
+          "S372775.COM",
+          "Q371775.COM",
+          "P372775.COM",
+          "CHCP 775",
+          "CPCHK.COM",
+          "P372775.COM",
+          "Q372850.COM",
+          "CHCP 437",
+          "CPCHK.COM",
+          "P372437.COM",
+          "Q372775.COM",
+          "CHCP 850",
+          "CPCHK.COM",
+          "P372850.COM",
+          "Q372775.COM",
+          "CHCP 775",
+          "CPCHK.COM",
+          "P372775.COM",
+          "Q372850.COM",
+          "R372.COM",
+          "CPCHK.COM",
+          "P372775.COM",
+          "S371775.COM",
+          "Q372775.COM",
+          "P371775.COM",
+          "CHCP 775",
+          "CPCHK.COM",
+          "P371775.COM",
+          "Q371850.COM",
+          "CHCP 437",
+          "CPCHK.COM",
+          "P371437.COM",
+          "Q371775.COM",
+          "CHCP 850",
+          "CPCHK.COM",
+          "P371850.COM",
+          "Q371775.COM",
+          "CHCP 775",
+          "CPCHK.COM",
+          "P371775.COM",
+          "Q371850.COM",
+          "R371.COM",
+          "CPCHK.COM",
+          "P371775.COM",
+          "S370775.COM",
+          "Q372775.COM",
+          "P370775.COM",
+          "CHCP 775",
+          "CPCHK.COM",
+          "P370775.COM",
+          "Q370850.COM",
+          "CHCP 437",
+          "CPCHK.COM",
+          "P370437.COM",
+          "Q370775.COM",
+          "CHCP 850",
+          "CPCHK.COM",
+          "P370850.COM",
+          "Q370775.COM",
+          "CHCP 775",
+          "CPCHK.COM",
+          "P370775.COM",
+          "Q370850.COM",
+          "R370.COM",
+          "CPCHK.COM",
+          "P370775.COM",
+          "S372775.COM",
+          "Q371775.COM",
+          "P372775.COM",
+          "CHCP 775",
+          "CPCHK.COM",
+          "P372775.COM",
+          "Q372850.COM",
+          "CHCP 437",
+          "CPCHK.COM",
+          "P372437.COM",
+          "Q372775.COM",
+          "CHCP 850",
+          "CPCHK.COM",
+          "P372850.COM",
+          "Q372775.COM",
+          "CHCP 775",
+          "CPCHK.COM",
+          "P372775.COM",
+          "Q372850.COM",
+          "R372.COM",
+          "CPCHK.COM",
+          "P372775.COM"
+        ],
+        "corruption": null,
+        "serial_log": "low/transitions/serial.log",
+        "serial_sha256": "3d0ec509fa73d2a9bd47313fa06f0e7416907d053ee308dd49442809321288e9",
+        "retained_serial": {
+          "path": "review/country-extended-transitions-low-transitions.log",
+          "sha256": "3d0ec509fa73d2a9bd47313fa06f0e7416907d053ee308dd49442809321288e9"
+        },
+        "retained_startup": [
+          {
+            "path": "review/country-extended-transitions-low-transitions-config.sys.cfg",
+            "sha256": "e1635a57550c7b853a7bb7495064d5d1346fd0f7dbcabfaa30f05d3cb3180790"
+          },
+          {
+            "path": "review/country-extended-transitions-low-transitions-autoexec.bat.cfg",
+            "sha256": "521b6754be50375813b437e10b9217b57b98620f74f2c619913422e520fe0044"
+          }
+        ]
+      }
+    ],
+    "retained_log": {
+      "path": "review/country-extended-transitions.log",
+      "sha256": "a07df6205ba007a1cef46b6a1535952a2bf7aad0d86357aec0c24d112dbc985f"
+    }
+  },
+  "commands": [
+    {
+      "command": "MEMORY_CORE_DIR=out/memory-production/files python3 tests/test_baltic_country_qemu.py",
+      "exit_code": 0
+    },
+    {
+      "command": "MEMORY_CORE_DIR=out/memory-production/files python3 tests/test_baltic_country_qemu.py --case transitions",
+      "exit_code": 0
+    },
+    {
+      "command": "python3 tests/test_ru_country_qemu.py",
+      "exit_code": 0
+    }
+  ],
+  "russian_regression": {
+    "schema_version": 1,
+    "country_sys_sha256": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c",
+    "base_image_sha256": "5884fe671fc895866bcdb5b118c17bb3cdbfd23e4057df26178ba1135b2f79aa",
+    "cases": [
+      {
+        "profile": null,
+        "name": "config-866",
+        "emulator_exit": 33,
+        "country_probe_passes": 1,
+        "negative_control": false,
+        "config": "COUNTRY=007,866,COUNTRY.SYS\r\n",
+        "actions": [
+          "P866.COM"
+        ],
+        "serial_log": "config-866/serial.log",
+        "serial_sha256": "23e9e95b0e7a64cf0ee9316c26dc867acb1c7f919c496014fadb32bb57ca948c"
+      },
+      {
+        "profile": null,
+        "name": "config-437",
+        "emulator_exit": 33,
+        "country_probe_passes": 1,
+        "negative_control": false,
+        "config": "COUNTRY=007,437,COUNTRY.SYS\r\n",
+        "actions": [
+          "P437.COM"
+        ],
+        "serial_log": "config-437/serial.log",
+        "serial_sha256": "23e9e95b0e7a64cf0ee9316c26dc867acb1c7f919c496014fadb32bb57ca948c"
+      },
+      {
+        "profile": null,
+        "name": "config-850",
+        "emulator_exit": 33,
+        "country_probe_passes": 1,
+        "negative_control": false,
+        "config": "COUNTRY=007,850,COUNTRY.SYS\r\n",
+        "actions": [
+          "P850.COM"
+        ],
+        "serial_log": "config-850/serial.log",
+        "serial_sha256": "23e9e95b0e7a64cf0ee9316c26dc867acb1c7f919c496014fadb32bb57ca948c"
+      },
+      {
+        "profile": null,
+        "name": "config-default",
+        "emulator_exit": 33,
+        "country_probe_passes": 1,
+        "negative_control": false,
+        "config": "COUNTRY=007,,COUNTRY.SYS\r\n",
+        "actions": [
+          "P866.COM"
+        ],
+        "serial_log": "config-default/serial.log",
+        "serial_sha256": "23e9e95b0e7a64cf0ee9316c26dc867acb1c7f919c496014fadb32bb57ca948c"
+      },
+      {
+        "profile": null,
+        "name": "transitions",
+        "emulator_exit": 33,
+        "country_probe_passes": 6,
+        "negative_control": false,
+        "config": "COUNTRY=007,866,COUNTRY.SYS\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+        "actions": [
+          "P866.COM",
+          "NLSFUNC",
+          "MODE CON CP PREPARE=((866) EGA866.CPI)",
+          "MODE CON CP PREPARE=((,437,850) EGA.CPI)",
+          "CHCP 866",
+          "CPCHK.COM",
+          "P866.COM",
+          "Q850.COM",
+          "CHCP 437",
+          "CPCHK.COM",
+          "P437.COM",
+          "Q866.COM",
+          "CHCP 850",
+          "CPCHK.COM",
+          "P850.COM",
+          "Q866.COM",
+          "CHCP 866",
+          "CPCHK.COM",
+          "P866.COM",
+          "Q850.COM",
+          "REJECT.COM",
+          "CPCHK.COM",
+          "P866.COM"
+        ],
+        "serial_log": "transitions/serial.log",
+        "serial_sha256": "13ac435337e012a0fd57bbb90968166f37d95bd5abfda0b2e6010128e476099c"
+      },
+      {
+        "profile": null,
+        "name": "wrong-case",
+        "emulator_exit": 33,
+        "country_probe_passes": 0,
+        "negative_control": true,
+        "config": "COUNTRY=007,866,COUNTRY.SYS\r\n",
+        "actions": [
+          "P866.COM"
+        ],
+        "serial_log": "wrong-case/serial.log",
+        "serial_sha256": "7919a1ce74d819cd04bfcac42c8d60438e29f8365af97f57252298fb4cbd7c04"
+      }
+    ],
+    "retained_log": {
+      "path": "review/country-russian-regression.log",
+      "sha256": "6fe1793ea45c8d569fa96f51bda153d21cfb8929f0ba9c816d66b500f8df8b9f"
+    }
+  },
+  "probe_compatibility": "Default Russian country/query/rejection probes remain byte-identical when the new conditional options are omitted.",
+  "remaining": [
+    "Real-BIOS country/NLS matrix.",
+    "Missing/malformed runtime resource cases and installed recipes.",
+    "Baltic keyboard, text/filesystem workflows and full BALTIC.md release qualification."
+  ]
+}

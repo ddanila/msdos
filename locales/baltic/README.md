@@ -46,8 +46,7 @@ positions, and unrepresentable uppercase partners leave DOS bytes unchanged.
 
 Run `python3 tools/baltic_country_contract.py --check` from the repository root
 to verify the retained expectations. The materializer does not build COUNTRY.SYS;
-production records are checked separately against its output. Guest API
-qualification remains open.
+production records and guest APIs are checked separately against its output.
 
 [Keyboard contract qualification](keyboard-contract-qualification.json) records
 `make test-baltic-keyboard-contract`. The pinned FreeDOS KEY sources and compiler
@@ -80,7 +79,21 @@ captures. A deliberately wrong o-with-tilde glyph must fail the same byte oracle
 Samples include all three languages. The Russian/existing EGA-page regression
 matrix passes with the shared runner. Both new gates are included in `make test`.
 
-Real-BIOS rendering, physical keyboard input, country APIs, installed recipes
+Real-BIOS rendering/country APIs, physical keyboard input, installed recipes
 and full release qualification remain separate open gates. The font test's
 Estonian COUNTRY selection does not establish country-API support for every
 language, and rendered samples do not establish typed keyboard input.
+
+[Country API qualification](country-qualification.json) records the full QEMU
+HIGH/LOW CONFIG matrix and extended transition runs. Each language is tested
+with explicit CP775/437/850 and default-page selection. Guest probes check
+country formatting, external tables, far and INT 21h uppercase services,
+filename rules and collation bytes. NLSFUNC/CHCP transitions verify active
+DISPLAY and DOS page agreement. Country switches on CP775 must load the new
+national tables; foreign-country queries and rejected selections must preserve
+active state. Deliberate case and collation corruption fail at their expected
+probe stages. Russian guest regressions pass with unchanged default probe bytes.
+
+`make test-baltic-country-qemu` runs the matrix and is included in `make test`.
+The Python runner accepts `--profile high|low` and `--case` for focused diagnosis.
+Real-BIOS, missing/malformed resource and installed-workflow checks remain open.

@@ -1,6 +1,9 @@
 bits 16
 cpu 8086
 org 100h
+%ifndef COUNTRY
+%define COUNTRY 7
+%endif
 
     ; NLSFUNC is resident. Reject absent country/page pairs without changing
     ; state; the host runs the full current-country probe after this program.
@@ -12,7 +15,7 @@ org 100h
     jne fail
     mov ax, 6501h
     mov bx, 855
-    mov dx, 7
+    mov dx, COUNTRY
     mov cx, 41
     mov di, buffer
     int 21h
@@ -26,6 +29,15 @@ org 100h
     jnc fail
     cmp ax, 2
     jne fail
+%ifdef SET_REJECTION
+    mov ax, 38ffh
+    mov bx, 9999
+    mov dx, -1
+    int 21h
+    jnc fail
+    cmp ax, 2
+    jne fail
+%endif
     mov dx, passed
     mov ah, 9
     int 21h

@@ -5,12 +5,22 @@ org 100h
 %ifndef PAGE
 %define PAGE 866
 %endif
+%ifndef COUNTRY
+%define COUNTRY 7
+%endif
 
     cld
     push cs
     pop ds
     push cs
     pop es
+%ifdef SET_COUNTRY
+    mov ax, 38ffh
+    mov bx, COUNTRY
+    mov dx, -1
+    int 21h
+    jc fail
+%endif
 %ifdef QUERY_ONLY
     jmp query_start
 %endif
@@ -28,9 +38,9 @@ org 100h
     mov dx, country_buffer
     int 21h
     jc fail
-    cmp ax, 7
+    cmp ax, COUNTRY
     jne fail
-    cmp bx, 7
+    cmp bx, COUNTRY
     jne fail
     mov si, country_buffer
     mov di, expected_info+4
@@ -62,7 +72,7 @@ query_start:
     mov ax, 6501h
 %ifdef QUERY_ONLY
     mov bx, PAGE
-    mov dx, 7
+    mov dx, COUNTRY
 %else
     mov bx, -1
     mov dx, -1
@@ -164,7 +174,7 @@ check_table:
     mov [table_kind], al
 %ifdef QUERY_ONLY
     mov bx, PAGE
-    mov dx, 7
+    mov dx, COUNTRY
 %else
     mov bx, -1
     mov dx, -1

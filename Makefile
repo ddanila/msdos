@@ -569,6 +569,11 @@ test-baltic-cpi: $(SRC)/DEV/DISPLAY/EGA/EGA775.CPI
 test-baltic-display-qemu: deploy $(SRC)/DEV/DISPLAY/EGA/EGA775.CPI
 	python3 tests/test_baltic_display_qemu.py
 
+.PHONY: test-baltic-country-qemu
+test: test-baltic-country-qemu
+test-baltic-country-qemu: deploy $(SRC)/DEV/DISPLAY/EGA/EGA775.CPI
+	python3 tests/test_baltic_country_qemu.py
+
 test-keyboard-records: $(KEYBOARD_SYS)
 	python3 tests/test_keyboard_records.py
 

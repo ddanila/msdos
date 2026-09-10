@@ -383,7 +383,7 @@ records the selected per-country formatting, uppercase and collation expectation
 for native and legacy code pages. `make test-baltic-country-contract`, included
 in `make test`, checks DOS field encoding, independent national ordering examples,
 case behavior and rejection of incomplete/ambiguous letter groups. This is a
-reference-data gate; installed COUNTRY.SYS and guest API qualification remain open.
+reference-data gate; installed COUNTRY.SYS and guest API evidence is linked below.
 
 The [Baltic keyboard contract qualification](../locales/baltic/keyboard-contract-qualification.json)
 records `make test-baltic-keyboard-contract`, including pinned reference parsing,
@@ -395,7 +395,7 @@ The [Baltic country record qualification](../locales/baltic/country-record-quali
 records `make test-baltic-country-records`. It rebuilds COUNTRY.SYS, checks every
 Baltic object against retained expectations, verifies all prior object contents
 and detects incorrect case/collation bytes. Both targets are included in
-`make test`. Country guest API and transition/rejection coverage remains open.
+`make test`. Country guest API and transition/rejection coverage is recorded below.
 
 The [Baltic display qualification](../locales/baltic/display-qualification.json)
 records `make test-baltic-cpi` and the shared QEMU display runner on HIGH/LOW.
@@ -405,3 +405,13 @@ and renders samples; completion, profile markers and process exit are required.
 A wrong o-with-tilde slot is isolated through the same oracle. Existing Russian
 and EGA-page display regressions pass. Real-BIOS, keyboard, country API and
 installed-workflow qualification remain separate requirements.
+
+The [Baltic country API qualification](../locales/baltic/country-qualification.json)
+records `test-baltic-country-qemu`, included in `make test`. It requires matching
+production-core hashes, HIGH/LOW profile markers, exact guest completion and
+emulator exit. The matrix covers explicit/default CONFIG pages, DOS country,
+external tables and uppercase APIs, NLSFUNC/CHCP transitions, unchanged-page
+country switches, foreign-country queries and rejected page/country selections.
+Private wrong-case and wrong-collation controls fail at expected stages. Existing
+Russian country regressions pass; real-BIOS, resource and installation gates
+remain separate requirements.

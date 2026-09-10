@@ -161,6 +161,7 @@ The [Baltic implementation records](locales/baltic/README.md) contain pinned
 encoding/font inputs and selected national country and keyboard contracts.
 COUNTRY.SYS includes the Baltic records with static checks against retained
 expectations and preservation of prior records. EGA775.CPI passes the shared
-font build and QEMU HIGH/LOW font-plane/rendering gates. Keyboard driver data,
+font build and QEMU HIGH/LOW font-plane/rendering gates. Baltic country APIs
+and NLS transitions pass the QEMU HIGH/LOW matrix. Keyboard driver data,
 real-BIOS and remaining runtime/install/release qualification remain open.
 Existing Russian evidence does not establish Baltic support.

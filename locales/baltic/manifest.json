@@ -634,7 +634,7 @@
           850
         ],
         "contract": "country-contract.json",
-        "status": "records-built-static-qualified-runtime-pending"
+        "status": "qemu-high-low-country-api-qualified"
       }
     },
     "lv": {
@@ -662,7 +662,7 @@
           850
         ],
         "contract": "country-contract.json",
-        "status": "records-built-static-qualified-runtime-pending"
+        "status": "qemu-high-low-country-api-qualified"
       }
     },
     "lt": {
@@ -690,13 +690,13 @@
           850
         ],
         "contract": "country-contract.json",
-        "status": "records-built-static-qualified-runtime-pending"
+        "status": "qemu-high-low-country-api-qualified"
       }
     }
   },
   "unresolved": [
     "Implement selected keyboard contracts and qualify physical BIOS/DOS input, modifiers and composition lifecycle.",
-    "Qualify built country records through DOS APIs, transitions and rejection on every required profile.",
+    "Qualify Baltic country APIs on real BIOS and complete missing/malformed resource and installed-workflow cases.",
     "Qualify CP775 font loading and rendering on real BIOS and in installed workflows.",
     "Implement, package and qualify all three language profiles and complete release gates in BALTIC.md."
   ],
@@ -704,6 +704,7 @@
   "qualification": {
     "display": "display-qualification.json",
     "country_records": "country-record-qualification.json",
-    "keyboard_contract": "keyboard-contract-qualification.json"
+    "keyboard_contract": "keyboard-contract-qualification.json",
+    "country": "country-qualification.json"
   }
 }
