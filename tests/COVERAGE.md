@@ -671,3 +671,12 @@ linked instruction audit and the passing `test-dos-bios-residency` rerun.
 The assertion includes the existing true-version HMA flag instructions and
 continues to require the exact audited size and valid relocation boundaries.
 This focused repair does not qualify the full release suite.
+
+
+The [legacy cross-page selection qualification](../locales/baltic/legacy-selection-qualification.json)
+records the corrected AT BIOS selection run. Successful CP866 reloads require
+a second prepared DISPLAY slot; the gate derives additional font pages from
+its phase plan and records the prepared pages. It retains the original
+unprepared-page failure, passing physical selection/rejection/reload results,
+XT media-capacity check and byte-identical ordinary guest payload regressions.
+Full AT/XT BIOS/DOS lifecycle completion remains a separate requirement.

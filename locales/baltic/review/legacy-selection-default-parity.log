@@ -1,0 +1,3 @@
+PASS: ru all 30 guest payloads including CONFIG/AUTOEXEC match the prior passed image byte for byte
+PASS: baltic all 40 guest payloads including CONFIG/AUTOEXEC match the prior passed image byte for byte
+Private artifacts: /Users/ddanila/fun/msdos/out/baltic-legacy-page-compat-a7tcr3rl

@@ -224,5 +224,8 @@ full runtime and distribution release checks remain separate.
 checks malformed-library rejection, pending-accent preservation and valid
 reload on XT BIOS for Estonian. The dedicated gate also defines complete
 AT/XT BIOS/DOS mode, selection, resource and pending-accent matrices.
-Those full legacy matrices and final source-matched release gates remain open.
+[Legacy cross-page selection qualification](locales/baltic/legacy-selection-qualification.json)
+checks the complete AT BIOS selection plan with both CP775 and CP866 prepared,
+including Baltic/Russian/German reloads and rejected selections.
+The full legacy matrices and final source-matched release gates remain open.
 Existing Russian evidence does not establish Baltic support.

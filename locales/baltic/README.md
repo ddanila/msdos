@@ -685,3 +685,17 @@ existing true-version HMA flag fix. Inspection of the linked instructions
 accounts for the size change, and the complete DOS/BIOS residency target passes
 with the corrected expectation. Production bytes are unchanged. The full
 release suite still requires a successful rerun.
+
+
+[Legacy cross-page selection qualification](legacy-selection-qualification.json)
+retains the complete AT BIOS selection plan, including Baltic aliases/IDs,
+rejected loads and Russian/German reloads. This plan prepares CP866 in a second
+DISPLAY slot alongside CP775 before requesting a successful Russian reload.
+The initial failure record shows why preparing only CP775 was insufficient.
+The corrected complete selection image also fits XT media; actual XT execution
+remains part of the full lifecycle gate.
+
+Other legacy plans keep their single prepared page. Reconstructed Russian and
+Baltic resource images preserve every guest payload and startup command from
+their previously passed images byte for byte. The qualification distinguishes
+these image checks from the completed physical AT selection run.
