@@ -1,0 +1,400 @@
+{
+  "scope": "Initial external DOSEMU2 NASM/FAT subset using the QEMU transport, not the complete upstream suite or a full DOS release qualification.",
+  "dos_source_base_commit": "7f31571eecaa0e37fd9c1079730fd257fbcda3c6",
+  "dosemu2_fork": "https://github.com/ddanila/dosemu2",
+  "dosemu2_branch": "custom",
+  "dosemu2_commit": "fd70e8106ee45a651f25baf0a655732bdcc2afc6",
+  "devel_unchanged_at": "8fe4740cfd8bd51d6abd6f6e3d3229ba860649a5",
+  "build": {
+    "command": "make -j4 deploy",
+    "log": "out/dosemu2-build.log",
+    "passed": true
+  },
+  "runs": {
+    "low": {
+      "mode": "low",
+      "boot_image": "/home/ddanila/fun/msdos/out/floppy.img",
+      "boot_sha256": "614980b601ceb66e6303e2568187e8dcba385a0f1254f178eea3060ac6cccb31",
+      "result_file": "/home/ddanila/fun/msdos/out/dosemu2-qemu-t60f8h66/results.json",
+      "cases": [
+        {
+          "name": "fcb_read",
+          "passed": true
+        },
+        {
+          "name": "fcb_read_alt_dta",
+          "passed": true
+        },
+        {
+          "name": "fcb_write",
+          "passed": true
+        },
+        {
+          "name": "ds2_read_eof",
+          "passed": true
+        },
+        {
+          "name": "ds2_read_alt_dta",
+          "passed": true
+        },
+        {
+          "name": "ds2_file_seek_read_SET",
+          "passed": true
+        },
+        {
+          "name": "ds2_file_seek_read_CUR",
+          "passed": true
+        },
+        {
+          "name": "ds2_file_seek_read_END",
+          "passed": true
+        },
+        {
+          "name": "ds2_file_seek_tell_ENDBCKSML",
+          "passed": true
+        },
+        {
+          "name": "ds2_file_seek_tell_ENDBCKLRG",
+          "passed": true
+        },
+        {
+          "name": "ds2_file_seek_tell_ENDFWDSML",
+          "passed": true
+        },
+        {
+          "name": "ds2_file_seek_tell_ENDFWDLRG",
+          "passed": true
+        },
+        {
+          "name": "fcb_rename_common_simple",
+          "passed": true
+        },
+        {
+          "name": "fcb_rename_common_source_missing",
+          "passed": true
+        },
+        {
+          "name": "fcb_rename_common_target_exists",
+          "passed": true
+        },
+        {
+          "name": "fcb_rename_common_wild_one",
+          "passed": true
+        },
+        {
+          "name": "fcb_rename_common_wild_two",
+          "passed": true
+        },
+        {
+          "name": "fcb_rename_common_wild_three",
+          "passed": true
+        },
+        {
+          "name": "fcb_rename_common_wild_four",
+          "passed": true
+        },
+        {
+          "name": "fcb_delete_common_simple",
+          "passed": true
+        },
+        {
+          "name": "fcb_delete_common_missing",
+          "passed": true
+        },
+        {
+          "name": "fcb_delete_common_wild_one",
+          "passed": true
+        },
+        {
+          "name": "fcb_delete_common_wild_two",
+          "passed": true
+        },
+        {
+          "name": "fcb_delete_common_wild_three",
+          "passed": true
+        },
+        {
+          "name": "fcb_find_common_simple",
+          "passed": true
+        },
+        {
+          "name": "fcb_find_common_missing",
+          "passed": true
+        },
+        {
+          "name": "fcb_find_common_wild_one",
+          "passed": true
+        },
+        {
+          "name": "fcb_find_common_wild_two",
+          "passed": true
+        },
+        {
+          "name": "fcb_find_common_wild_three",
+          "passed": true
+        }
+      ]
+    },
+    "high": {
+      "mode": "high",
+      "boot_image": "/home/ddanila/fun/msdos/out/floppy.img",
+      "boot_sha256": "614980b601ceb66e6303e2568187e8dcba385a0f1254f178eea3060ac6cccb31",
+      "result_file": "/home/ddanila/fun/msdos/out/dosemu2-qemu-f371lag6/results.json",
+      "cases": [
+        {
+          "name": "fcb_read",
+          "passed": true
+        },
+        {
+          "name": "fcb_read_alt_dta",
+          "passed": true
+        },
+        {
+          "name": "fcb_write",
+          "passed": true
+        },
+        {
+          "name": "ds2_read_eof",
+          "passed": true
+        },
+        {
+          "name": "ds2_read_alt_dta",
+          "passed": true
+        },
+        {
+          "name": "ds2_file_seek_read_SET",
+          "passed": true
+        },
+        {
+          "name": "ds2_file_seek_read_CUR",
+          "passed": true
+        },
+        {
+          "name": "ds2_file_seek_read_END",
+          "passed": true
+        },
+        {
+          "name": "ds2_file_seek_tell_ENDBCKSML",
+          "passed": true
+        },
+        {
+          "name": "ds2_file_seek_tell_ENDBCKLRG",
+          "passed": true
+        },
+        {
+          "name": "ds2_file_seek_tell_ENDFWDSML",
+          "passed": true
+        },
+        {
+          "name": "ds2_file_seek_tell_ENDFWDLRG",
+          "passed": true
+        },
+        {
+          "name": "fcb_rename_common_simple",
+          "passed": true
+        },
+        {
+          "name": "fcb_rename_common_source_missing",
+          "passed": true
+        },
+        {
+          "name": "fcb_rename_common_target_exists",
+          "passed": true
+        },
+        {
+          "name": "fcb_rename_common_wild_one",
+          "passed": true
+        },
+        {
+          "name": "fcb_rename_common_wild_two",
+          "passed": true
+        },
+        {
+          "name": "fcb_rename_common_wild_three",
+          "passed": true
+        },
+        {
+          "name": "fcb_rename_common_wild_four",
+          "passed": true
+        },
+        {
+          "name": "fcb_delete_common_simple",
+          "passed": true
+        },
+        {
+          "name": "fcb_delete_common_missing",
+          "passed": true
+        },
+        {
+          "name": "fcb_delete_common_wild_one",
+          "passed": true
+        },
+        {
+          "name": "fcb_delete_common_wild_two",
+          "passed": true
+        },
+        {
+          "name": "fcb_delete_common_wild_three",
+          "passed": true
+        },
+        {
+          "name": "fcb_find_common_simple",
+          "passed": true
+        },
+        {
+          "name": "fcb_find_common_missing",
+          "passed": true
+        },
+        {
+          "name": "fcb_find_common_wild_one",
+          "passed": true
+        },
+        {
+          "name": "fcb_find_common_wild_two",
+          "passed": true
+        },
+        {
+          "name": "fcb_find_common_wild_three",
+          "passed": true
+        }
+      ]
+    },
+    "microsoft": {
+      "mode": "low",
+      "boot_image": "/home/ddanila/fun/msdos/.reference/msdos622/msdos622disk1.IMA",
+      "boot_sha256": "b88030401122d234ea6aafba3cfed7de2b7b1782700a67be5498edca6f9fec5d",
+      "result_file": "/home/ddanila/fun/msdos/out/dosemu2-qemu-3d1exhx0/results.json",
+      "cases": [
+        {
+          "name": "fcb_read",
+          "passed": true
+        },
+        {
+          "name": "fcb_read_alt_dta",
+          "passed": true
+        },
+        {
+          "name": "fcb_write",
+          "passed": true
+        },
+        {
+          "name": "ds2_read_eof",
+          "passed": true
+        },
+        {
+          "name": "ds2_read_alt_dta",
+          "passed": true
+        },
+        {
+          "name": "ds2_file_seek_read_SET",
+          "passed": true
+        },
+        {
+          "name": "ds2_file_seek_read_CUR",
+          "passed": true
+        },
+        {
+          "name": "ds2_file_seek_read_END",
+          "passed": true
+        },
+        {
+          "name": "ds2_file_seek_tell_ENDBCKSML",
+          "passed": true
+        },
+        {
+          "name": "ds2_file_seek_tell_ENDBCKLRG",
+          "passed": true
+        },
+        {
+          "name": "ds2_file_seek_tell_ENDFWDSML",
+          "passed": true
+        },
+        {
+          "name": "ds2_file_seek_tell_ENDFWDLRG",
+          "passed": true
+        },
+        {
+          "name": "fcb_rename_common_simple",
+          "passed": true
+        },
+        {
+          "name": "fcb_rename_common_source_missing",
+          "passed": true
+        },
+        {
+          "name": "fcb_rename_common_target_exists",
+          "passed": true
+        },
+        {
+          "name": "fcb_rename_common_wild_one",
+          "passed": true
+        },
+        {
+          "name": "fcb_rename_common_wild_two",
+          "passed": true
+        },
+        {
+          "name": "fcb_rename_common_wild_three",
+          "passed": true
+        },
+        {
+          "name": "fcb_rename_common_wild_four",
+          "passed": true
+        },
+        {
+          "name": "fcb_delete_common_simple",
+          "passed": true
+        },
+        {
+          "name": "fcb_delete_common_missing",
+          "passed": true
+        },
+        {
+          "name": "fcb_delete_common_wild_one",
+          "passed": true
+        },
+        {
+          "name": "fcb_delete_common_wild_two",
+          "passed": true
+        },
+        {
+          "name": "fcb_delete_common_wild_three",
+          "passed": true
+        },
+        {
+          "name": "fcb_find_common_simple",
+          "passed": true
+        },
+        {
+          "name": "fcb_find_common_missing",
+          "passed": true
+        },
+        {
+          "name": "fcb_find_common_wild_one",
+          "passed": true
+        },
+        {
+          "name": "fcb_find_common_wild_two",
+          "passed": true
+        },
+        {
+          "name": "fcb_find_common_wild_three",
+          "passed": true
+        }
+      ]
+    }
+  },
+  "negative_control": {
+    "case": "ds2_file_seek_read_SET",
+    "expected_exit": 1,
+    "detected": true,
+    "mutation": "Change generated seek/read payload from 0123456789abcdefFEDCBA9876543210 to 012X456789abcdefFEDCBA9876543210 without changing the upstream expected result.",
+    "result_file": "/home/ddanila/fun/msdos/out/dosemu2-qemu-rn6o6js4/results.json"
+  },
+  "limitations": [
+    "Only the case list is adopted; MFS, LFN, networking, DPMI and compiler-dependent tests remain outside this target.",
+    "Scratch disks carry a DOS-compatible OEM identifier. Arbitrary formatter signatures are not qualified.",
+    "HIGH/UMB is checked using the guest MEM HMA report and a reversible UMB-link operation. Our true-version HMA reporting flag is an existing TODO.",
+    "The Microsoft 6.22 control covers LOW mode; proprietary media are external and not committed."
+  ]
+}

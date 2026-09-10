@@ -3,3 +3,8 @@
 	url = https://github.com/ddanila/kvikdos.git
 	branch = custom
 	ignore = untracked
+[submodule "dosemu2"]
+	path = dosemu2
+	url = https://github.com/ddanila/dosemu2.git
+	branch = custom
+	ignore = untracked

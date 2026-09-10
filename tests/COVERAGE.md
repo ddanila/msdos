@@ -475,3 +475,10 @@ The gate requires guest completion and successful exit; Estonian COUNTRY setup
 does not qualify national country transitions or installed workflows.
 The record includes the shared runner's CP866 height matrix, preserved EGA
 pages and Russian corruption-control regression.
+
+## External DOS API suite
+
+`make test-dosemu2-qemu` runs selected upstream DOSEMU2 FAT tests against the
+matched guest DOS in LOW and HIGH/UMB modes. This is an independent optional
+gate, not a replacement for the maintained contract inventories. See
+[setup, licensing, and scope](DOSEMU2.md).

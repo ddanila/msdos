@@ -1407,3 +1407,8 @@ test-baltic-keyboard-pending-qemu: deploy $(SRC)/DEV/KEYBOARD/KEYBRD2.SYS $(SRC)
 	python3 tests/test_baltic_keyboard_pending_qemu.py --capacity-control
 	python3 tests/test_baltic_keyboard_pending_qemu.py --small-allocation
 	python3 tests/test_baltic_keyboard_pending_qemu.py --small-allocation --dos
+
+.PHONY: test-dosemu2-qemu
+test-dosemu2-qemu: deploy
+	python3 tests/test_dosemu2_qemu.py --mode low
+	python3 tests/test_dosemu2_qemu.py --mode high
