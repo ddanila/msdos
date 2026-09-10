@@ -32,7 +32,8 @@ def cases():
     return result
 
 
-def run_case(work,args,core,name,country_config,actions):
+def run_case(work,args,core,name,country_config,actions,probe_files=None,
+             font_page=866,country_source=None,expected_failure=None,expected_markers=None):
     case=work/name
     case.mkdir()
     image=case/'test.img'
@@ -42,16 +43,17 @@ def run_case(work,args,core,name,country_config,actions):
         subprocess.run(['mcopy','-o','-i',str(image),'-','::'+name],input=data,check=True)
     for filename in ('IO.SYS','MSDOS.SYS','COMMAND.COM'):
         assert subprocess.check_output(['mtype','-i',str(image),'::'+filename])==core[filename],filename
-    for filename in ('P866.COM','P437.COM','P850.COM','Q866.COM','Q437.COM','Q850.COM',
+    for filename in probe_files or ('P866.COM','P437.COM','P850.COM','Q866.COM','Q437.COM','Q850.COM',
                      'CPCHK.COM','REJECT.COM','BXEXIT.COM'):
         put(filename,(work/filename).read_bytes())
-    country=bytearray((ROOT/'src/DEV/COUNTRY/COUNTRY.SYS').read_bytes())
-    corrupt=name=='wrong-case'
+    country=bytearray((country_source or ROOT/'src/DEV/COUNTRY/COUNTRY.SYS').read_bytes())
+    corrupt=name=='wrong-case' and country_source is None
     if corrupt:
         offset=read_records(country)[7,866][2]['offset']+10+0xf1-128
         country[offset]=0xf1
+    failure_stage=expected_failure or ('03' if corrupt else None)
     put('COUNTRY.SYS',country)
-    for source,target in [('DEV/DISPLAY/EGA/EGA866.CPI','EGA866.CPI'),
+    for source,target in [(f'DEV/DISPLAY/EGA/EGA{font_page}.CPI',f'EGA{font_page}.CPI'),
                           ('DEV/DISPLAY/EGA/EGA.CPI','EGA.CPI'),
                           ('DEV/DISPLAY/DISPLAY.SYS','DISPLAY.SYS'),
                           ('CMD/MODE/MODE.COM','MODE.COM'),('CMD/NLSFUNC/NLSFUNC.EXE','NLSFUNC.EXE')]:
@@ -83,19 +85,19 @@ def run_case(work,args,core,name,country_config,actions):
                               stdin=subprocess.DEVNULL,stdout=output,stderr=subprocess.STDOUT,timeout=240)
     data=log.read_bytes()
     counts={}
-    if corrupt:
-        assert result.returncode==1 and data.count(b'RU_COUNTRY_FAIL stage 03')==1,log
+    if failure_stage:
+        assert result.returncode==1 and data.count(('RU_COUNTRY_FAIL stage '+failure_stage).encode())==1,log
         assert b'RU_COUNTRY_DONE' not in data and data.count(b'RU_CASE_FAIL')==1,log
     else:
         assert result.returncode==0 and b'FAIL' not in data and data.count(b'RU_COUNTRY_DONE')==1,(result.returncode,log)
-        for marker,count in [(b'RU_COUNTRY_PASS',sum(a in ('P866.COM','P437.COM','P850.COM') for a in actions)),
+        for marker,count in expected_markers or [(b'RU_COUNTRY_PASS',sum(a in ('P866.COM','P437.COM','P850.COM') for a in actions)),
                              (b'RU_QUERY_PASS',sum(a in ('Q866.COM','Q437.COM','Q850.COM') for a in actions)),
                              (b'RU_CODEPAGE_PASS',actions.count('CPCHK.COM')),
                              (b'RU_REJECTION_PASS',actions.count('REJECT.COM'))]:
             assert data.count(marker)==count,(marker,log)
             counts[marker.decode()]=count
     print(f'PASS: 286 country {name}',flush=True)
-    return {'name':name,'negative_control':corrupt,'emulator_exit':result.returncode,
+    return {'name':name,'negative_control':bool(failure_stage),'failure_stage':failure_stage,'emulator_exit':result.returncode,
             'config_sys':config_sys,'actions':actions,'markers':counts,
             'country_sha256':hashlib.sha256(country).hexdigest(),
             'config_sha256':hashlib.sha256(config.encode()).hexdigest(),

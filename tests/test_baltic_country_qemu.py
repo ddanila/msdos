@@ -106,16 +106,8 @@ def run_case(work, base, profile, name, number, page, actions, corruption=None):
             "serial_log": str(log.relative_to(work)), "serial_sha256": hashlib.sha256(output).hexdigest()}
 
 
-def main():
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--profile", choices=tuple(CONFIG), action="append")
-    parser.add_argument("--case", help="run one named case")
-    args = parser.parse_args()
-    base = Path(os.environ.get("FLOPPY_IMAGE", ROOT / "out/floppy.img"))
-    core = verify_base(base)
-    work = Path(tempfile.mkdtemp(prefix="baltic-country-", dir=ROOT / "out"))
-    print(f"Baltic country artifacts: {work}", flush=True)
-    compile_probes(work)
+def country_cases():
+    """Shared CONFIG, transition and corruption plans for QEMU and real BIOS."""
     cases = []
     for language, number in LANGUAGES.items():
         for page in (775, 437, 850, ""):
@@ -133,6 +125,20 @@ def main():
     cases += [("transitions", 372, 775, actions, None),
               ("wrong-case", 372, 775, ["P372775.COM"], "case"),
               ("wrong-collation", 372, 775, ["P372775.COM"], "collation")]
+    return cases
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--profile", choices=tuple(CONFIG), action="append")
+    parser.add_argument("--case", help="run one named case")
+    args = parser.parse_args()
+    base = Path(os.environ.get("FLOPPY_IMAGE", ROOT / "out/floppy.img"))
+    core = verify_base(base)
+    work = Path(tempfile.mkdtemp(prefix="baltic-country-", dir=ROOT / "out"))
+    print(f"Baltic country artifacts: {work}", flush=True)
+    compile_probes(work)
+    cases = country_cases()
     if args.case and args.case not in {case[0] for case in cases}:
         raise SystemExit("unknown country case")
     report = {"schema_version": 1, "status": "running", "core_sha256": core,

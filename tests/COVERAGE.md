@@ -476,6 +476,17 @@ does not qualify national country transitions or installed workflows.
 The record includes the shared runner's CP866 height matrix, preserved EGA
 pages and Russian corruption-control regression.
 
+The [Baltic real-BIOS country qualification](../locales/baltic/country-286-qualification.json)
+records `tests/test_baltic_country_86box.py` on IBM AT BIOS with DOS LOW.
+Every language passes explicit CP775/437/850 and default CONFIG selection.
+The shared transition plan changes national records on CP775, cycles supported
+pages, performs foreign queries and rejects absent country/page selections;
+full probes verify the active state afterward. Case and collation corruption
+must fail at the expected probe stages with guest-controlled failure exit.
+The record retains the complete QEMU HIGH/LOW rerun, identical guest probes,
+plan parity and Russian real-BIOS regressions. Missing or structurally malformed
+resources and installed/complete language workflows remain separate open gates.
+
 ## External DOS API suite
 
 `make test-dosemu2-qemu` runs selected upstream DOSEMU2 FAT tests against the

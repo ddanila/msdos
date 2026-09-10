@@ -1,0 +1,1439 @@
+{
+  "schema_version": 1,
+  "status": "real-bios-country-matrix-passed",
+  "scope": "Estonian, Latvian and Lithuanian country APIs on real IBM AT BIOS with DOS LOW: CP775/437/850 and default CONFIG selections, national switches on CP775, code-page cycles, non-mutating foreign queries, rejected country/page selections preserving current state, and case/collation corruption controls. Does not qualify missing or structurally malformed resources, installed paths, complete text/filename workflows or the final source-matched release composition.",
+  "backend_provenance": "../ru/text-286-qualification.json",
+  "booted_core_files": [
+    "IO.SYS",
+    "MSDOS.SYS",
+    "COMMAND.COM"
+  ],
+  "runs": [
+    {
+      "schema_version": 1,
+      "status": "selected-cases-passed",
+      "memory_profile": "DOS=LOW",
+      "core_sha256": {
+        "COMMAND.COM": "6742b5889141a9c61d41e336445014d8055c19758febf4263f4f8ebe3c2f2c29",
+        "IO.SYS": "793169a292df40bb117eb487136a0d8e7f4334ca223e8206bf53f33141f24715",
+        "EMM386.EXE": "58266b6614594de7a9cfde9eda75e3eb241b9e2e941e67b70645a0f8a197dae6",
+        "MSDOS.SYS": "1475174f50c8c349bedd7cd4a0be88bce055f2e411b7454b5f68fffbff269b62",
+        "HIMEM.SYS": "340cbfd1f0e835755adce99d80c607f8edeb48ea2b20a6a142402a25434f8d13"
+      },
+      "emulator_sha256": "798ac6072d5147ed4dca7540ca5303da1e4c2d190853c227dde9ea3b33583c18",
+      "resource_sha256": {
+        "src/DEV/COUNTRY/COUNTRY.SYS": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c",
+        "src/DEV/DISPLAY/EGA/EGA775.CPI": "ab38fe5b8acae0ba3933ac6b66596c58b32bc23385285b8cc68fec1fa8f15255",
+        "src/DEV/DISPLAY/EGA/EGA.CPI": "e62143d403dba21dd9f3c606769b90923038e542098fdb57de36eaf9e986a4b0",
+        "src/DEV/DISPLAY/DISPLAY.SYS": "0ebd3bfad4e87d79e05219c02ea71ce4e94f9e11b432efdf652a022488d9ac08",
+        "src/CMD/MODE/MODE.COM": "c385aad5697fcec3a9113f58b983b978a7f969e99b153ebd496b12dab0e3767d",
+        "src/CMD/NLSFUNC/NLSFUNC.EXE": "bc2a0c9b0900bcac03a6cfe072ea56ea01bd2333b1d1bf8f810f28e668340e67"
+      },
+      "cases": [
+        {
+          "name": "config-et-775",
+          "negative_control": false,
+          "failure_stage": null,
+          "emulator_exit": 0,
+          "config_sys": "COUNTRY=372,775,COUNTRY.SYS\r\nDOS=LOW\r\n",
+          "actions": [
+            "P372775.COM"
+          ],
+          "markers": {
+            "RU_COUNTRY_PASS": 1,
+            "RU_QUERY_PASS": 0,
+            "RU_REJECTION_PASS": 0,
+            "RU_CODEPAGE_PASS": 0
+          },
+          "country_sha256": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c",
+          "log": {
+            "path": "review/country-286-baltic-config-et-775.log",
+            "sha256": "c81385218324414517dea622dbc996e523803dc8579fe1367a9769d197ebf774"
+          },
+          "config": {
+            "path": "review/country-286-baltic-config-et-775.cfg",
+            "sha256": "bc1ff341a3eb659a0d55fd6036f680cec32fd069304c2e2562e39e4a8497c669"
+          }
+        },
+        {
+          "name": "config-et-437",
+          "negative_control": false,
+          "failure_stage": null,
+          "emulator_exit": 0,
+          "config_sys": "COUNTRY=372,437,COUNTRY.SYS\r\nDOS=LOW\r\n",
+          "actions": [
+            "P372437.COM"
+          ],
+          "markers": {
+            "RU_COUNTRY_PASS": 1,
+            "RU_QUERY_PASS": 0,
+            "RU_REJECTION_PASS": 0,
+            "RU_CODEPAGE_PASS": 0
+          },
+          "country_sha256": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c",
+          "log": {
+            "path": "review/country-286-baltic-config-et-437.log",
+            "sha256": "59c8ca4ec66ad59a8c36f895b380adbfedcffed5e4347993cd6ae55bfc8b3048"
+          },
+          "config": {
+            "path": "review/country-286-baltic-config-et-437.cfg",
+            "sha256": "bc1ff341a3eb659a0d55fd6036f680cec32fd069304c2e2562e39e4a8497c669"
+          }
+        },
+        {
+          "name": "config-et-850",
+          "negative_control": false,
+          "failure_stage": null,
+          "emulator_exit": 0,
+          "config_sys": "COUNTRY=372,850,COUNTRY.SYS\r\nDOS=LOW\r\n",
+          "actions": [
+            "P372850.COM"
+          ],
+          "markers": {
+            "RU_COUNTRY_PASS": 1,
+            "RU_QUERY_PASS": 0,
+            "RU_REJECTION_PASS": 0,
+            "RU_CODEPAGE_PASS": 0
+          },
+          "country_sha256": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c",
+          "log": {
+            "path": "review/country-286-baltic-config-et-850.log",
+            "sha256": "99d8e66002e1a2af8b93c1effd15ec636ff3dca2684e860a02e3a91787c1e365"
+          },
+          "config": {
+            "path": "review/country-286-baltic-config-et-850.cfg",
+            "sha256": "bc1ff341a3eb659a0d55fd6036f680cec32fd069304c2e2562e39e4a8497c669"
+          }
+        },
+        {
+          "name": "config-et-default",
+          "negative_control": false,
+          "failure_stage": null,
+          "emulator_exit": 0,
+          "config_sys": "COUNTRY=372,,COUNTRY.SYS\r\nDOS=LOW\r\n",
+          "actions": [
+            "P372775.COM"
+          ],
+          "markers": {
+            "RU_COUNTRY_PASS": 1,
+            "RU_QUERY_PASS": 0,
+            "RU_REJECTION_PASS": 0,
+            "RU_CODEPAGE_PASS": 0
+          },
+          "country_sha256": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c",
+          "log": {
+            "path": "review/country-286-baltic-config-et-default.log",
+            "sha256": "a6acf4fc201463626f17f9d3d660d90a5b4703a412adcf406e6cb9ad1fa0c363"
+          },
+          "config": {
+            "path": "review/country-286-baltic-config-et-default.cfg",
+            "sha256": "bc1ff341a3eb659a0d55fd6036f680cec32fd069304c2e2562e39e4a8497c669"
+          }
+        },
+        {
+          "name": "config-lv-775",
+          "negative_control": false,
+          "failure_stage": null,
+          "emulator_exit": 0,
+          "config_sys": "COUNTRY=371,775,COUNTRY.SYS\r\nDOS=LOW\r\n",
+          "actions": [
+            "P371775.COM"
+          ],
+          "markers": {
+            "RU_COUNTRY_PASS": 1,
+            "RU_QUERY_PASS": 0,
+            "RU_REJECTION_PASS": 0,
+            "RU_CODEPAGE_PASS": 0
+          },
+          "country_sha256": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c",
+          "log": {
+            "path": "review/country-286-baltic-config-lv-775.log",
+            "sha256": "63defb11b43afbbd7c8959371419cd6288b42e135a2ba1dccb15d436b213f992"
+          },
+          "config": {
+            "path": "review/country-286-baltic-config-lv-775.cfg",
+            "sha256": "bc1ff341a3eb659a0d55fd6036f680cec32fd069304c2e2562e39e4a8497c669"
+          }
+        },
+        {
+          "name": "config-lv-437",
+          "negative_control": false,
+          "failure_stage": null,
+          "emulator_exit": 0,
+          "config_sys": "COUNTRY=371,437,COUNTRY.SYS\r\nDOS=LOW\r\n",
+          "actions": [
+            "P371437.COM"
+          ],
+          "markers": {
+            "RU_COUNTRY_PASS": 1,
+            "RU_QUERY_PASS": 0,
+            "RU_REJECTION_PASS": 0,
+            "RU_CODEPAGE_PASS": 0
+          },
+          "country_sha256": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c",
+          "log": {
+            "path": "review/country-286-baltic-config-lv-437.log",
+            "sha256": "7d515fb8973c1374470833a41313a84b20e698ad07b9e7966573859f4c8317f8"
+          },
+          "config": {
+            "path": "review/country-286-baltic-config-lv-437.cfg",
+            "sha256": "bc1ff341a3eb659a0d55fd6036f680cec32fd069304c2e2562e39e4a8497c669"
+          }
+        },
+        {
+          "name": "config-lv-850",
+          "negative_control": false,
+          "failure_stage": null,
+          "emulator_exit": 0,
+          "config_sys": "COUNTRY=371,850,COUNTRY.SYS\r\nDOS=LOW\r\n",
+          "actions": [
+            "P371850.COM"
+          ],
+          "markers": {
+            "RU_COUNTRY_PASS": 1,
+            "RU_QUERY_PASS": 0,
+            "RU_REJECTION_PASS": 0,
+            "RU_CODEPAGE_PASS": 0
+          },
+          "country_sha256": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c",
+          "log": {
+            "path": "review/country-286-baltic-config-lv-850.log",
+            "sha256": "6ff1668039c6f023e122d81c45d1518c465c94dd6e8e7ca85d765868664d50a7"
+          },
+          "config": {
+            "path": "review/country-286-baltic-config-lv-850.cfg",
+            "sha256": "bc1ff341a3eb659a0d55fd6036f680cec32fd069304c2e2562e39e4a8497c669"
+          }
+        },
+        {
+          "name": "config-lv-default",
+          "negative_control": false,
+          "failure_stage": null,
+          "emulator_exit": 0,
+          "config_sys": "COUNTRY=371,,COUNTRY.SYS\r\nDOS=LOW\r\n",
+          "actions": [
+            "P371775.COM"
+          ],
+          "markers": {
+            "RU_COUNTRY_PASS": 1,
+            "RU_QUERY_PASS": 0,
+            "RU_REJECTION_PASS": 0,
+            "RU_CODEPAGE_PASS": 0
+          },
+          "country_sha256": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c",
+          "log": {
+            "path": "review/country-286-baltic-config-lv-default.log",
+            "sha256": "c4a8e767075c5fb16d6d7e2d3af2d8d25d8d82fae33cf3fceeaa0da27c73c322"
+          },
+          "config": {
+            "path": "review/country-286-baltic-config-lv-default.cfg",
+            "sha256": "bc1ff341a3eb659a0d55fd6036f680cec32fd069304c2e2562e39e4a8497c669"
+          }
+        },
+        {
+          "name": "config-lt-775",
+          "negative_control": false,
+          "failure_stage": null,
+          "emulator_exit": 0,
+          "config_sys": "COUNTRY=370,775,COUNTRY.SYS\r\nDOS=LOW\r\n",
+          "actions": [
+            "P370775.COM"
+          ],
+          "markers": {
+            "RU_COUNTRY_PASS": 1,
+            "RU_QUERY_PASS": 0,
+            "RU_REJECTION_PASS": 0,
+            "RU_CODEPAGE_PASS": 0
+          },
+          "country_sha256": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c",
+          "log": {
+            "path": "review/country-286-baltic-config-lt-775.log",
+            "sha256": "9fcd275373351674e155d3cfb974b789d02f155cef686fc6cf1a3a761b85f5fd"
+          },
+          "config": {
+            "path": "review/country-286-baltic-config-lt-775.cfg",
+            "sha256": "bc1ff341a3eb659a0d55fd6036f680cec32fd069304c2e2562e39e4a8497c669"
+          }
+        },
+        {
+          "name": "config-lt-437",
+          "negative_control": false,
+          "failure_stage": null,
+          "emulator_exit": 0,
+          "config_sys": "COUNTRY=370,437,COUNTRY.SYS\r\nDOS=LOW\r\n",
+          "actions": [
+            "P370437.COM"
+          ],
+          "markers": {
+            "RU_COUNTRY_PASS": 1,
+            "RU_QUERY_PASS": 0,
+            "RU_REJECTION_PASS": 0,
+            "RU_CODEPAGE_PASS": 0
+          },
+          "country_sha256": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c",
+          "log": {
+            "path": "review/country-286-baltic-config-lt-437.log",
+            "sha256": "7dac7e336baa1149437437215942909c5005f2bb1dcf6b951ffbeadff6734198"
+          },
+          "config": {
+            "path": "review/country-286-baltic-config-lt-437.cfg",
+            "sha256": "bc1ff341a3eb659a0d55fd6036f680cec32fd069304c2e2562e39e4a8497c669"
+          }
+        },
+        {
+          "name": "config-lt-850",
+          "negative_control": false,
+          "failure_stage": null,
+          "emulator_exit": 0,
+          "config_sys": "COUNTRY=370,850,COUNTRY.SYS\r\nDOS=LOW\r\n",
+          "actions": [
+            "P370850.COM"
+          ],
+          "markers": {
+            "RU_COUNTRY_PASS": 1,
+            "RU_QUERY_PASS": 0,
+            "RU_REJECTION_PASS": 0,
+            "RU_CODEPAGE_PASS": 0
+          },
+          "country_sha256": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c",
+          "log": {
+            "path": "review/country-286-baltic-config-lt-850.log",
+            "sha256": "3e297d3f33d45ebbe9ae9f65cd0f9ce0c939df1fab834c9e84810be1d9df307c"
+          },
+          "config": {
+            "path": "review/country-286-baltic-config-lt-850.cfg",
+            "sha256": "bc1ff341a3eb659a0d55fd6036f680cec32fd069304c2e2562e39e4a8497c669"
+          }
+        },
+        {
+          "name": "config-lt-default",
+          "negative_control": false,
+          "failure_stage": null,
+          "emulator_exit": 0,
+          "config_sys": "COUNTRY=370,,COUNTRY.SYS\r\nDOS=LOW\r\n",
+          "actions": [
+            "P370775.COM"
+          ],
+          "markers": {
+            "RU_COUNTRY_PASS": 1,
+            "RU_QUERY_PASS": 0,
+            "RU_REJECTION_PASS": 0,
+            "RU_CODEPAGE_PASS": 0
+          },
+          "country_sha256": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c",
+          "log": {
+            "path": "review/country-286-baltic-config-lt-default.log",
+            "sha256": "67abbe232e9504b6461bff0375be972489ada2c6aff015b62fff9ccf4b6050ba"
+          },
+          "config": {
+            "path": "review/country-286-baltic-config-lt-default.cfg",
+            "sha256": "bc1ff341a3eb659a0d55fd6036f680cec32fd069304c2e2562e39e4a8497c669"
+          }
+        },
+        {
+          "name": "wrong-case",
+          "negative_control": true,
+          "failure_stage": "03",
+          "emulator_exit": 1,
+          "config_sys": "COUNTRY=372,775,COUNTRY.SYS\r\nDOS=LOW\r\n",
+          "actions": [
+            "P372775.COM"
+          ],
+          "markers": {},
+          "country_sha256": "7ac623e1e0d2e13d50b4d10dde657b434054a15516438ea5fb40350ee8bb17b2",
+          "log": {
+            "path": "review/country-286-baltic-wrong-case.log",
+            "sha256": "9b1b0a722a75d24c31b9b92b97c47e11d42393a269d2f53a9f7624c2fd22728b"
+          },
+          "config": {
+            "path": "review/country-286-baltic-wrong-case.cfg",
+            "sha256": "bc1ff341a3eb659a0d55fd6036f680cec32fd069304c2e2562e39e4a8497c669"
+          }
+        },
+        {
+          "name": "wrong-collation",
+          "negative_control": true,
+          "failure_stage": "08",
+          "emulator_exit": 1,
+          "config_sys": "COUNTRY=372,775,COUNTRY.SYS\r\nDOS=LOW\r\n",
+          "actions": [
+            "P372775.COM"
+          ],
+          "markers": {},
+          "country_sha256": "577e4876a603b3fae99cbea08f1c0885aa8e5af09ae52bbe14100a39b672ee9f",
+          "log": {
+            "path": "review/country-286-baltic-wrong-collation.log",
+            "sha256": "cb71a8c81e6947b483222c8fbfb9efe212ff8414298814fdf95ff09ca3d9d03e"
+          },
+          "config": {
+            "path": "review/country-286-baltic-wrong-collation.cfg",
+            "sha256": "bc1ff341a3eb659a0d55fd6036f680cec32fd069304c2e2562e39e4a8497c669"
+          }
+        },
+        {
+          "name": "transitions",
+          "negative_control": false,
+          "failure_stage": null,
+          "emulator_exit": 0,
+          "config_sys": "COUNTRY=372,775,COUNTRY.SYS\r\nDOS=LOW\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+          "actions": [
+            "P372775.COM",
+            "NLSFUNC",
+            "MODE CON CP PREPARE=((775) EGA775.CPI)",
+            "MODE CON CP PREPARE=((,437,850) EGA.CPI)",
+            "S372775.COM",
+            "Q371775.COM",
+            "P372775.COM",
+            "CHCP 775",
+            "CPCHK.COM",
+            "P372775.COM",
+            "Q372850.COM",
+            "CHCP 437",
+            "CPCHK.COM",
+            "P372437.COM",
+            "Q372775.COM",
+            "CHCP 850",
+            "CPCHK.COM",
+            "P372850.COM",
+            "Q372775.COM",
+            "CHCP 775",
+            "CPCHK.COM",
+            "P372775.COM",
+            "Q372850.COM",
+            "R372.COM",
+            "CPCHK.COM",
+            "P372775.COM",
+            "S371775.COM",
+            "Q372775.COM",
+            "P371775.COM",
+            "CHCP 775",
+            "CPCHK.COM",
+            "P371775.COM",
+            "Q371850.COM",
+            "CHCP 437",
+            "CPCHK.COM",
+            "P371437.COM",
+            "Q371775.COM",
+            "CHCP 850",
+            "CPCHK.COM",
+            "P371850.COM",
+            "Q371775.COM",
+            "CHCP 775",
+            "CPCHK.COM",
+            "P371775.COM",
+            "Q371850.COM",
+            "R371.COM",
+            "CPCHK.COM",
+            "P371775.COM",
+            "S370775.COM",
+            "Q372775.COM",
+            "P370775.COM",
+            "CHCP 775",
+            "CPCHK.COM",
+            "P370775.COM",
+            "Q370850.COM",
+            "CHCP 437",
+            "CPCHK.COM",
+            "P370437.COM",
+            "Q370775.COM",
+            "CHCP 850",
+            "CPCHK.COM",
+            "P370850.COM",
+            "Q370775.COM",
+            "CHCP 775",
+            "CPCHK.COM",
+            "P370775.COM",
+            "Q370850.COM",
+            "R370.COM",
+            "CPCHK.COM",
+            "P370775.COM",
+            "S372775.COM",
+            "Q371775.COM",
+            "P372775.COM",
+            "CHCP 775",
+            "CPCHK.COM",
+            "P372775.COM",
+            "Q372850.COM",
+            "CHCP 437",
+            "CPCHK.COM",
+            "P372437.COM",
+            "Q372775.COM",
+            "CHCP 850",
+            "CPCHK.COM",
+            "P372850.COM",
+            "Q372775.COM",
+            "CHCP 775",
+            "CPCHK.COM",
+            "P372775.COM",
+            "Q372850.COM",
+            "R372.COM",
+            "CPCHK.COM",
+            "P372775.COM"
+          ],
+          "markers": {
+            "RU_COUNTRY_PASS": 29,
+            "RU_QUERY_PASS": 20,
+            "RU_REJECTION_PASS": 4,
+            "RU_CODEPAGE_PASS": 20
+          },
+          "country_sha256": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c",
+          "log": {
+            "path": "review/country-286-baltic-transitions.log",
+            "sha256": "c6ad8745d9dce83af463c65b174e840064827c24c9d240f402cf566f5db5208c"
+          },
+          "config": {
+            "path": "review/country-286-baltic-transitions.cfg",
+            "sha256": "bc1ff341a3eb659a0d55fd6036f680cec32fd069304c2e2562e39e4a8497c669"
+          }
+        }
+      ],
+      "private_artifacts": "out/baltic-country-286-mvvncx_c",
+      "command": "MEMORY_CORE_DIR=out/memory-production/files python3 tests/test_baltic_country_86box.py --emulator out/ru-86box-vnc-bs283qnk/build/src/86Box --roms \"$BOX86_ROMS\" --qt-platform offscreen --jobs 2"
+    },
+    {
+      "status": "selected-cases-passed",
+      "core_sha256": {
+        "EMM386.EXE": "58266b6614594de7a9cfde9eda75e3eb241b9e2e941e67b70645a0f8a197dae6",
+        "HIMEM.SYS": "340cbfd1f0e835755adce99d80c607f8edeb48ea2b20a6a142402a25434f8d13",
+        "COMMAND.COM": "6742b5889141a9c61d41e336445014d8055c19758febf4263f4f8ebe3c2f2c29",
+        "IO.SYS": "793169a292df40bb117eb487136a0d8e7f4334ca223e8206bf53f33141f24715",
+        "MSDOS.SYS": "1475174f50c8c349bedd7cd4a0be88bce055f2e411b7454b5f68fffbff269b62"
+      },
+      "emulator_sha256": "798ac6072d5147ed4dca7540ca5303da1e4c2d190853c227dde9ea3b33583c18",
+      "cases": [
+        {
+          "name": "config-866",
+          "negative_control": false,
+          "failure_stage": null,
+          "emulator_exit": 0,
+          "config_sys": "COUNTRY=007,866,COUNTRY.SYS\r\nDOS=LOW\r\n",
+          "actions": [
+            "P866.COM"
+          ],
+          "markers": {
+            "RU_COUNTRY_PASS": 1,
+            "RU_QUERY_PASS": 0,
+            "RU_CODEPAGE_PASS": 0,
+            "RU_REJECTION_PASS": 0
+          },
+          "country_sha256": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c",
+          "log": {
+            "path": "review/country-286-ru-config-866.log",
+            "sha256": "04ae3522931e848033f76c2290200b5af593308eca21677534693395c24e91c9"
+          },
+          "config": {
+            "path": "review/country-286-ru-config-866.cfg",
+            "sha256": "bc1ff341a3eb659a0d55fd6036f680cec32fd069304c2e2562e39e4a8497c669"
+          }
+        },
+        {
+          "name": "config-437",
+          "negative_control": false,
+          "failure_stage": null,
+          "emulator_exit": 0,
+          "config_sys": "COUNTRY=007,437,COUNTRY.SYS\r\nDOS=LOW\r\n",
+          "actions": [
+            "P437.COM"
+          ],
+          "markers": {
+            "RU_COUNTRY_PASS": 1,
+            "RU_QUERY_PASS": 0,
+            "RU_CODEPAGE_PASS": 0,
+            "RU_REJECTION_PASS": 0
+          },
+          "country_sha256": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c",
+          "log": {
+            "path": "review/country-286-ru-config-437.log",
+            "sha256": "b0def8d8a8866482442cea33c5ee9d03119fbd41975e661f623ac4efe1a7f088"
+          },
+          "config": {
+            "path": "review/country-286-ru-config-437.cfg",
+            "sha256": "bc1ff341a3eb659a0d55fd6036f680cec32fd069304c2e2562e39e4a8497c669"
+          }
+        },
+        {
+          "name": "config-850",
+          "negative_control": false,
+          "failure_stage": null,
+          "emulator_exit": 0,
+          "config_sys": "COUNTRY=007,850,COUNTRY.SYS\r\nDOS=LOW\r\n",
+          "actions": [
+            "P850.COM"
+          ],
+          "markers": {
+            "RU_COUNTRY_PASS": 1,
+            "RU_QUERY_PASS": 0,
+            "RU_CODEPAGE_PASS": 0,
+            "RU_REJECTION_PASS": 0
+          },
+          "country_sha256": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c",
+          "log": {
+            "path": "review/country-286-ru-config-850.log",
+            "sha256": "9a9741e9b6b2a211c821423f9881fc493764eacb42045436ee92d23027aa5108"
+          },
+          "config": {
+            "path": "review/country-286-ru-config-850.cfg",
+            "sha256": "bc1ff341a3eb659a0d55fd6036f680cec32fd069304c2e2562e39e4a8497c669"
+          }
+        },
+        {
+          "name": "config-default",
+          "negative_control": false,
+          "failure_stage": null,
+          "emulator_exit": 0,
+          "config_sys": "COUNTRY=007,,COUNTRY.SYS\r\nDOS=LOW\r\n",
+          "actions": [
+            "P866.COM"
+          ],
+          "markers": {
+            "RU_COUNTRY_PASS": 1,
+            "RU_QUERY_PASS": 0,
+            "RU_CODEPAGE_PASS": 0,
+            "RU_REJECTION_PASS": 0
+          },
+          "country_sha256": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c",
+          "log": {
+            "path": "review/country-286-ru-config-default.log",
+            "sha256": "1fb14ff114ee9dd5a1b97d2d1039370610becbeee614762ed58bf626f3172ead"
+          },
+          "config": {
+            "path": "review/country-286-ru-config-default.cfg",
+            "sha256": "bc1ff341a3eb659a0d55fd6036f680cec32fd069304c2e2562e39e4a8497c669"
+          }
+        },
+        {
+          "name": "transitions",
+          "negative_control": false,
+          "failure_stage": null,
+          "emulator_exit": 0,
+          "config_sys": "COUNTRY=007,866,COUNTRY.SYS\r\nDOS=LOW\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+          "actions": [
+            "P866.COM",
+            "NLSFUNC",
+            "MODE CON CP PREPARE=((866) EGA866.CPI)",
+            "MODE CON CP PREPARE=((,437,850) EGA.CPI)",
+            "CHCP 866",
+            "CPCHK.COM",
+            "P866.COM",
+            "Q850.COM",
+            "CHCP 437",
+            "CPCHK.COM",
+            "P437.COM",
+            "Q866.COM",
+            "CHCP 850",
+            "CPCHK.COM",
+            "P850.COM",
+            "Q866.COM",
+            "CHCP 866",
+            "CPCHK.COM",
+            "P866.COM",
+            "Q850.COM",
+            "REJECT.COM",
+            "CPCHK.COM",
+            "P866.COM"
+          ],
+          "markers": {
+            "RU_COUNTRY_PASS": 6,
+            "RU_QUERY_PASS": 4,
+            "RU_CODEPAGE_PASS": 5,
+            "RU_REJECTION_PASS": 1
+          },
+          "country_sha256": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c",
+          "log": {
+            "path": "review/country-286-ru-transitions.log",
+            "sha256": "d1fd71657c81d24b70daaeef4c6572ceaea491cf5ac83b730bffb1f272b5c527"
+          },
+          "config": {
+            "path": "review/country-286-ru-transitions.cfg",
+            "sha256": "bc1ff341a3eb659a0d55fd6036f680cec32fd069304c2e2562e39e4a8497c669"
+          }
+        },
+        {
+          "name": "wrong-case",
+          "negative_control": true,
+          "failure_stage": "03",
+          "emulator_exit": 1,
+          "config_sys": "COUNTRY=007,866,COUNTRY.SYS\r\nDOS=LOW\r\n",
+          "actions": [
+            "P866.COM"
+          ],
+          "markers": {},
+          "country_sha256": "4b3136f29ebb981887f890c4a489c81ff7c8c6d69e35937d6bc0746e2d6e1440",
+          "log": {
+            "path": "review/country-286-ru-wrong-case.log",
+            "sha256": "cd35168dc410f2e56a13b6691e05d2c024b2506df888fb6183c5417a1a8d9f35"
+          },
+          "config": {
+            "path": "review/country-286-ru-wrong-case.cfg",
+            "sha256": "bc1ff341a3eb659a0d55fd6036f680cec32fd069304c2e2562e39e4a8497c669"
+          }
+        }
+      ],
+      "private_artifacts": "out/ru-country-286-w3k1k_y7",
+      "command": "MEMORY_CORE_DIR=out/memory-production/files python3 tests/test_ru_country_86box.py --emulator out/ru-86box-vnc-bs283qnk/build/src/86Box --roms \"$BOX86_ROMS\" --qt-platform offscreen"
+    }
+  ],
+  "inputs": {
+    "tests/test_baltic_country_86box.py": {
+      "sha256": "920ee9a121680584290f17700855b67d9abfce969669c9f425e06fa42383aaf8",
+      "size": 3798
+    },
+    "tests/test_ru_country_86box.py": {
+      "sha256": "bc78257c84af9d6ca4b5b4b7d9e94dcad94388807a6dd7e8a80a01ff008610e1",
+      "size": 7154
+    },
+    "tests/test_baltic_country_qemu.py": {
+      "sha256": "7c871a213364fa790bfd756f0e7cc08e5235c4268996a547691cbd1f8bb0133a",
+      "size": 8416
+    },
+    "tests/test_ru_country_qemu.py": {
+      "sha256": "2adb3132fbbedbd8a2e0d1bb7a1d8c8f49966ff0515ccf45d55f155a92a0fcda",
+      "size": 7072
+    },
+    "tests/ru_country_probe.asm": {
+      "sha256": "b436f026930842e02daf259117689642fd5ea9874a1924980fbb0173807fac58",
+      "size": 4657
+    },
+    "tests/ru_country_reject.asm": {
+      "sha256": "834c868dcb0c988fb9d73578669955f296baeb068805d1ad936766e8e12b8f7e",
+      "size": 942
+    },
+    "tests/ru_codepage_probe.asm": {
+      "sha256": "6802ddb382fe13d508d677991d974ba0f946c3e75ef3f8f5e3845904ec1bffa9",
+      "size": 389
+    },
+    "tests/ru_profile_probe.asm": {
+      "sha256": "ed4d4e1b6ca454860debc90e27d0eb42ce097f863a9e028eab64d3675fad4c09",
+      "size": 1009
+    },
+    "tests/ru_profiles.py": {
+      "sha256": "d8f7a498c146ae4bf85139f943f94d27a26c7e55661a4cd08a5d1346bd66a536",
+      "size": 1054
+    },
+    "tests/country_records.py": {
+      "sha256": "9afa4cb12400b85ff7a968d67dc8b82482bb3e961f70de54b4349a2de892a1df",
+      "size": 1652
+    },
+    "tests/86box_exit.asm": {
+      "sha256": "df10886fcf0a3fd37b97f9b280488c35b8265de8a306765b33fb11290dc6e82b",
+      "size": 755
+    },
+    "tests/86box_286_lib.sh": {
+      "sha256": "c35916e91ddb7c2d04a3d5e343631f4ee305b1963f3358bdcaa65c0842ce329e",
+      "size": 5111
+    },
+    "tests/seed_86box_ibmat_nvram.py": {
+      "sha256": "de41853b6fe7ccd79c50ae17e907793c719cbc00cc9739db15ff47711cca2ee5",
+      "size": 1891
+    },
+    "tests/86box/ibmat-286.cfg": {
+      "sha256": "b040850330e6ae7077cffe0fed626d911a56bb1fff8103d365013ee56d08821a",
+      "size": 667
+    },
+    "tests/86box/global.cfg": {
+      "sha256": "71ebf2cb3a79318d8f4d3446f2af8ae68c0febc57690ef33f87f70d59fdd5290",
+      "size": 106
+    },
+    "tools/memory_release.py": {
+      "sha256": "9811c0895dc38d8ef08707cbbc1db2d293bc68d098f8e67372ec0ee78484cc7a",
+      "size": 723
+    },
+    "locales/baltic/review/country-expectations.json": {
+      "sha256": "c1c7d9807785f0c80ff6c6edf727b9e07be845ee412ce7b5c33c8a71d6714466",
+      "size": 16114
+    },
+    "locales/baltic/country-contract.json": {
+      "sha256": "908adad0b45d98e13f53a010155d85684eca494f762881a6c1a8e2b9acc6009d",
+      "size": 9004
+    },
+    "locales/ru/dos622-reference.json": {
+      "sha256": "f1b81253030de6bcbee4db96d11b7ac71b57984b568e07a310aff03159add63b",
+      "size": 16005
+    },
+    "src/BOOT/MSBOOT.BIN": {
+      "sha256": "523534c0ded7c62a8bba0d5da753cb3c70e425fd0a59b89ddc3a6159eefff297",
+      "size": 32256
+    },
+    "src/BIOS/SYSMENU.OVL": {
+      "sha256": "8e40405ba7be2bfde3e088380551112d8d470bf052a442b5386de827cc45bbd3",
+      "size": 4336
+    },
+    "src/DEV/COUNTRY/COUNTRY.SYS": {
+      "sha256": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c",
+      "size": 20946
+    },
+    "src/DEV/DISPLAY/DISPLAY.SYS": {
+      "sha256": "0ebd3bfad4e87d79e05219c02ea71ce4e94f9e11b432efdf652a022488d9ac08",
+      "size": 15672
+    },
+    "src/DEV/DISPLAY/EGA/EGA775.CPI": {
+      "sha256": "ab38fe5b8acae0ba3933ac6b66596c58b32bc23385285b8cc68fec1fa8f15255",
+      "size": 9921
+    },
+    "src/DEV/DISPLAY/EGA/EGA866.CPI": {
+      "sha256": "efa06cb267a370fab3db71fb85f73711b750ec04498b40b6cc6a4a2be2e3d7ad",
+      "size": 9922
+    },
+    "src/DEV/DISPLAY/EGA/EGA.CPI": {
+      "sha256": "e62143d403dba21dd9f3c606769b90923038e542098fdb57de36eaf9e986a4b0",
+      "size": 49068
+    },
+    "src/CMD/MODE/MODE.COM": {
+      "sha256": "c385aad5697fcec3a9113f58b983b978a7f969e99b153ebd496b12dab0e3767d",
+      "size": 23200
+    },
+    "src/CMD/NLSFUNC/NLSFUNC.EXE": {
+      "sha256": "bc2a0c9b0900bcac03a6cfe072ea56ea01bd2333b1d1bf8f810f28e668340e67",
+      "size": 6685
+    }
+  },
+  "qemu_regression": {
+    "schema_version": 1,
+    "status": "passed",
+    "core_sha256": {
+      "IO.SYS": "793169a292df40bb117eb487136a0d8e7f4334ca223e8206bf53f33141f24715",
+      "MSDOS.SYS": "1475174f50c8c349bedd7cd4a0be88bce055f2e411b7454b5f68fffbff269b62",
+      "COMMAND.COM": "6742b5889141a9c61d41e336445014d8055c19758febf4263f4f8ebe3c2f2c29",
+      "HIMEM.SYS": "340cbfd1f0e835755adce99d80c607f8edeb48ea2b20a6a142402a25434f8d13",
+      "EMM386.EXE": "58266b6614594de7a9cfde9eda75e3eb241b9e2e941e67b70645a0f8a197dae6"
+    },
+    "country_sha256": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c",
+    "base_image_sha256": "5884fe671fc895866bcdb5b118c17bb3cdbfd23e4057df26178ba1135b2f79aa",
+    "cases": [
+      {
+        "profile": "high",
+        "name": "config-et-775",
+        "emulator_exit": 33,
+        "config": "COUNTRY=372,775,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+        "actions": [
+          "P372775.COM"
+        ],
+        "corruption": null,
+        "log": {
+          "path": "review/country-286-qemu-high-config-et-775.log",
+          "sha256": "a7a1252df5c8c0e0c9ada11c1592503d80c67070648667052011aeae4261f1bb"
+        }
+      },
+      {
+        "profile": "high",
+        "name": "config-et-437",
+        "emulator_exit": 33,
+        "config": "COUNTRY=372,437,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+        "actions": [
+          "P372437.COM"
+        ],
+        "corruption": null,
+        "log": {
+          "path": "review/country-286-qemu-high-config-et-437.log",
+          "sha256": "a7a1252df5c8c0e0c9ada11c1592503d80c67070648667052011aeae4261f1bb"
+        }
+      },
+      {
+        "profile": "high",
+        "name": "config-et-850",
+        "emulator_exit": 33,
+        "config": "COUNTRY=372,850,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+        "actions": [
+          "P372850.COM"
+        ],
+        "corruption": null,
+        "log": {
+          "path": "review/country-286-qemu-high-config-et-850.log",
+          "sha256": "a7a1252df5c8c0e0c9ada11c1592503d80c67070648667052011aeae4261f1bb"
+        }
+      },
+      {
+        "profile": "high",
+        "name": "config-et-default",
+        "emulator_exit": 33,
+        "config": "COUNTRY=372,,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+        "actions": [
+          "P372775.COM"
+        ],
+        "corruption": null,
+        "log": {
+          "path": "review/country-286-qemu-high-config-et-default.log",
+          "sha256": "a7a1252df5c8c0e0c9ada11c1592503d80c67070648667052011aeae4261f1bb"
+        }
+      },
+      {
+        "profile": "high",
+        "name": "config-lv-775",
+        "emulator_exit": 33,
+        "config": "COUNTRY=371,775,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+        "actions": [
+          "P371775.COM"
+        ],
+        "corruption": null,
+        "log": {
+          "path": "review/country-286-qemu-high-config-lv-775.log",
+          "sha256": "a7a1252df5c8c0e0c9ada11c1592503d80c67070648667052011aeae4261f1bb"
+        }
+      },
+      {
+        "profile": "high",
+        "name": "config-lv-437",
+        "emulator_exit": 33,
+        "config": "COUNTRY=371,437,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+        "actions": [
+          "P371437.COM"
+        ],
+        "corruption": null,
+        "log": {
+          "path": "review/country-286-qemu-high-config-lv-437.log",
+          "sha256": "a7a1252df5c8c0e0c9ada11c1592503d80c67070648667052011aeae4261f1bb"
+        }
+      },
+      {
+        "profile": "high",
+        "name": "config-lv-850",
+        "emulator_exit": 33,
+        "config": "COUNTRY=371,850,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+        "actions": [
+          "P371850.COM"
+        ],
+        "corruption": null,
+        "log": {
+          "path": "review/country-286-qemu-high-config-lv-850.log",
+          "sha256": "a7a1252df5c8c0e0c9ada11c1592503d80c67070648667052011aeae4261f1bb"
+        }
+      },
+      {
+        "profile": "high",
+        "name": "config-lv-default",
+        "emulator_exit": 33,
+        "config": "COUNTRY=371,,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+        "actions": [
+          "P371775.COM"
+        ],
+        "corruption": null,
+        "log": {
+          "path": "review/country-286-qemu-high-config-lv-default.log",
+          "sha256": "a7a1252df5c8c0e0c9ada11c1592503d80c67070648667052011aeae4261f1bb"
+        }
+      },
+      {
+        "profile": "high",
+        "name": "config-lt-775",
+        "emulator_exit": 33,
+        "config": "COUNTRY=370,775,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+        "actions": [
+          "P370775.COM"
+        ],
+        "corruption": null,
+        "log": {
+          "path": "review/country-286-qemu-high-config-lt-775.log",
+          "sha256": "a7a1252df5c8c0e0c9ada11c1592503d80c67070648667052011aeae4261f1bb"
+        }
+      },
+      {
+        "profile": "high",
+        "name": "config-lt-437",
+        "emulator_exit": 33,
+        "config": "COUNTRY=370,437,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+        "actions": [
+          "P370437.COM"
+        ],
+        "corruption": null,
+        "log": {
+          "path": "review/country-286-qemu-high-config-lt-437.log",
+          "sha256": "a7a1252df5c8c0e0c9ada11c1592503d80c67070648667052011aeae4261f1bb"
+        }
+      },
+      {
+        "profile": "high",
+        "name": "config-lt-850",
+        "emulator_exit": 33,
+        "config": "COUNTRY=370,850,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+        "actions": [
+          "P370850.COM"
+        ],
+        "corruption": null,
+        "log": {
+          "path": "review/country-286-qemu-high-config-lt-850.log",
+          "sha256": "a7a1252df5c8c0e0c9ada11c1592503d80c67070648667052011aeae4261f1bb"
+        }
+      },
+      {
+        "profile": "high",
+        "name": "config-lt-default",
+        "emulator_exit": 33,
+        "config": "COUNTRY=370,,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+        "actions": [
+          "P370775.COM"
+        ],
+        "corruption": null,
+        "log": {
+          "path": "review/country-286-qemu-high-config-lt-default.log",
+          "sha256": "a7a1252df5c8c0e0c9ada11c1592503d80c67070648667052011aeae4261f1bb"
+        }
+      },
+      {
+        "profile": "high",
+        "name": "transitions",
+        "emulator_exit": 33,
+        "config": "COUNTRY=372,775,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+        "actions": [
+          "P372775.COM",
+          "NLSFUNC",
+          "MODE CON CP PREPARE=((775) EGA775.CPI)",
+          "MODE CON CP PREPARE=((,437,850) EGA.CPI)",
+          "S372775.COM",
+          "Q371775.COM",
+          "P372775.COM",
+          "CHCP 775",
+          "CPCHK.COM",
+          "P372775.COM",
+          "Q372850.COM",
+          "CHCP 437",
+          "CPCHK.COM",
+          "P372437.COM",
+          "Q372775.COM",
+          "CHCP 850",
+          "CPCHK.COM",
+          "P372850.COM",
+          "Q372775.COM",
+          "CHCP 775",
+          "CPCHK.COM",
+          "P372775.COM",
+          "Q372850.COM",
+          "R372.COM",
+          "CPCHK.COM",
+          "P372775.COM",
+          "S371775.COM",
+          "Q372775.COM",
+          "P371775.COM",
+          "CHCP 775",
+          "CPCHK.COM",
+          "P371775.COM",
+          "Q371850.COM",
+          "CHCP 437",
+          "CPCHK.COM",
+          "P371437.COM",
+          "Q371775.COM",
+          "CHCP 850",
+          "CPCHK.COM",
+          "P371850.COM",
+          "Q371775.COM",
+          "CHCP 775",
+          "CPCHK.COM",
+          "P371775.COM",
+          "Q371850.COM",
+          "R371.COM",
+          "CPCHK.COM",
+          "P371775.COM",
+          "S370775.COM",
+          "Q372775.COM",
+          "P370775.COM",
+          "CHCP 775",
+          "CPCHK.COM",
+          "P370775.COM",
+          "Q370850.COM",
+          "CHCP 437",
+          "CPCHK.COM",
+          "P370437.COM",
+          "Q370775.COM",
+          "CHCP 850",
+          "CPCHK.COM",
+          "P370850.COM",
+          "Q370775.COM",
+          "CHCP 775",
+          "CPCHK.COM",
+          "P370775.COM",
+          "Q370850.COM",
+          "R370.COM",
+          "CPCHK.COM",
+          "P370775.COM",
+          "S372775.COM",
+          "Q371775.COM",
+          "P372775.COM",
+          "CHCP 775",
+          "CPCHK.COM",
+          "P372775.COM",
+          "Q372850.COM",
+          "CHCP 437",
+          "CPCHK.COM",
+          "P372437.COM",
+          "Q372775.COM",
+          "CHCP 850",
+          "CPCHK.COM",
+          "P372850.COM",
+          "Q372775.COM",
+          "CHCP 775",
+          "CPCHK.COM",
+          "P372775.COM",
+          "Q372850.COM",
+          "R372.COM",
+          "CPCHK.COM",
+          "P372775.COM"
+        ],
+        "corruption": null,
+        "log": {
+          "path": "review/country-286-qemu-high-transitions.log",
+          "sha256": "b67452b750cb1aa362a19a7b42280cbc5e3abf1bd88ba5090aef2c5042636cf7"
+        }
+      },
+      {
+        "profile": "high",
+        "name": "wrong-case",
+        "emulator_exit": 33,
+        "config": "COUNTRY=372,775,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+        "actions": [
+          "P372775.COM"
+        ],
+        "corruption": "case",
+        "log": {
+          "path": "review/country-286-qemu-high-wrong-case.log",
+          "sha256": "15fd6fca670898c4511afaa50abb3d3e075894e973293f3982a31e589fee0059"
+        }
+      },
+      {
+        "profile": "high",
+        "name": "wrong-collation",
+        "emulator_exit": 33,
+        "config": "COUNTRY=372,775,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+        "actions": [
+          "P372775.COM"
+        ],
+        "corruption": "collation",
+        "log": {
+          "path": "review/country-286-qemu-high-wrong-collation.log",
+          "sha256": "4338c40233e3469f7b0d202b1afbc44fa832ea960f3ba0181d32da5f23be009a"
+        }
+      },
+      {
+        "profile": "low",
+        "name": "config-et-775",
+        "emulator_exit": 33,
+        "config": "COUNTRY=372,775,COUNTRY.SYS\r\nDOS=LOW\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+        "actions": [
+          "P372775.COM"
+        ],
+        "corruption": null,
+        "log": {
+          "path": "review/country-286-qemu-low-config-et-775.log",
+          "sha256": "1423951fe0da5c8698152543e8882f17e663f9c4a6bbeb62153ce0edeef39d67"
+        }
+      },
+      {
+        "profile": "low",
+        "name": "config-et-437",
+        "emulator_exit": 33,
+        "config": "COUNTRY=372,437,COUNTRY.SYS\r\nDOS=LOW\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+        "actions": [
+          "P372437.COM"
+        ],
+        "corruption": null,
+        "log": {
+          "path": "review/country-286-qemu-low-config-et-437.log",
+          "sha256": "1423951fe0da5c8698152543e8882f17e663f9c4a6bbeb62153ce0edeef39d67"
+        }
+      },
+      {
+        "profile": "low",
+        "name": "config-et-850",
+        "emulator_exit": 33,
+        "config": "COUNTRY=372,850,COUNTRY.SYS\r\nDOS=LOW\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+        "actions": [
+          "P372850.COM"
+        ],
+        "corruption": null,
+        "log": {
+          "path": "review/country-286-qemu-low-config-et-850.log",
+          "sha256": "1423951fe0da5c8698152543e8882f17e663f9c4a6bbeb62153ce0edeef39d67"
+        }
+      },
+      {
+        "profile": "low",
+        "name": "config-et-default",
+        "emulator_exit": 33,
+        "config": "COUNTRY=372,,COUNTRY.SYS\r\nDOS=LOW\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+        "actions": [
+          "P372775.COM"
+        ],
+        "corruption": null,
+        "log": {
+          "path": "review/country-286-qemu-low-config-et-default.log",
+          "sha256": "1423951fe0da5c8698152543e8882f17e663f9c4a6bbeb62153ce0edeef39d67"
+        }
+      },
+      {
+        "profile": "low",
+        "name": "config-lv-775",
+        "emulator_exit": 33,
+        "config": "COUNTRY=371,775,COUNTRY.SYS\r\nDOS=LOW\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+        "actions": [
+          "P371775.COM"
+        ],
+        "corruption": null,
+        "log": {
+          "path": "review/country-286-qemu-low-config-lv-775.log",
+          "sha256": "1423951fe0da5c8698152543e8882f17e663f9c4a6bbeb62153ce0edeef39d67"
+        }
+      },
+      {
+        "profile": "low",
+        "name": "config-lv-437",
+        "emulator_exit": 33,
+        "config": "COUNTRY=371,437,COUNTRY.SYS\r\nDOS=LOW\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+        "actions": [
+          "P371437.COM"
+        ],
+        "corruption": null,
+        "log": {
+          "path": "review/country-286-qemu-low-config-lv-437.log",
+          "sha256": "1423951fe0da5c8698152543e8882f17e663f9c4a6bbeb62153ce0edeef39d67"
+        }
+      },
+      {
+        "profile": "low",
+        "name": "config-lv-850",
+        "emulator_exit": 33,
+        "config": "COUNTRY=371,850,COUNTRY.SYS\r\nDOS=LOW\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+        "actions": [
+          "P371850.COM"
+        ],
+        "corruption": null,
+        "log": {
+          "path": "review/country-286-qemu-low-config-lv-850.log",
+          "sha256": "1423951fe0da5c8698152543e8882f17e663f9c4a6bbeb62153ce0edeef39d67"
+        }
+      },
+      {
+        "profile": "low",
+        "name": "config-lv-default",
+        "emulator_exit": 33,
+        "config": "COUNTRY=371,,COUNTRY.SYS\r\nDOS=LOW\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+        "actions": [
+          "P371775.COM"
+        ],
+        "corruption": null,
+        "log": {
+          "path": "review/country-286-qemu-low-config-lv-default.log",
+          "sha256": "1423951fe0da5c8698152543e8882f17e663f9c4a6bbeb62153ce0edeef39d67"
+        }
+      },
+      {
+        "profile": "low",
+        "name": "config-lt-775",
+        "emulator_exit": 33,
+        "config": "COUNTRY=370,775,COUNTRY.SYS\r\nDOS=LOW\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+        "actions": [
+          "P370775.COM"
+        ],
+        "corruption": null,
+        "log": {
+          "path": "review/country-286-qemu-low-config-lt-775.log",
+          "sha256": "1423951fe0da5c8698152543e8882f17e663f9c4a6bbeb62153ce0edeef39d67"
+        }
+      },
+      {
+        "profile": "low",
+        "name": "config-lt-437",
+        "emulator_exit": 33,
+        "config": "COUNTRY=370,437,COUNTRY.SYS\r\nDOS=LOW\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+        "actions": [
+          "P370437.COM"
+        ],
+        "corruption": null,
+        "log": {
+          "path": "review/country-286-qemu-low-config-lt-437.log",
+          "sha256": "1423951fe0da5c8698152543e8882f17e663f9c4a6bbeb62153ce0edeef39d67"
+        }
+      },
+      {
+        "profile": "low",
+        "name": "config-lt-850",
+        "emulator_exit": 33,
+        "config": "COUNTRY=370,850,COUNTRY.SYS\r\nDOS=LOW\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+        "actions": [
+          "P370850.COM"
+        ],
+        "corruption": null,
+        "log": {
+          "path": "review/country-286-qemu-low-config-lt-850.log",
+          "sha256": "1423951fe0da5c8698152543e8882f17e663f9c4a6bbeb62153ce0edeef39d67"
+        }
+      },
+      {
+        "profile": "low",
+        "name": "config-lt-default",
+        "emulator_exit": 33,
+        "config": "COUNTRY=370,,COUNTRY.SYS\r\nDOS=LOW\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+        "actions": [
+          "P370775.COM"
+        ],
+        "corruption": null,
+        "log": {
+          "path": "review/country-286-qemu-low-config-lt-default.log",
+          "sha256": "1423951fe0da5c8698152543e8882f17e663f9c4a6bbeb62153ce0edeef39d67"
+        }
+      },
+      {
+        "profile": "low",
+        "name": "transitions",
+        "emulator_exit": 33,
+        "config": "COUNTRY=372,775,COUNTRY.SYS\r\nDOS=LOW\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+        "actions": [
+          "P372775.COM",
+          "NLSFUNC",
+          "MODE CON CP PREPARE=((775) EGA775.CPI)",
+          "MODE CON CP PREPARE=((,437,850) EGA.CPI)",
+          "S372775.COM",
+          "Q371775.COM",
+          "P372775.COM",
+          "CHCP 775",
+          "CPCHK.COM",
+          "P372775.COM",
+          "Q372850.COM",
+          "CHCP 437",
+          "CPCHK.COM",
+          "P372437.COM",
+          "Q372775.COM",
+          "CHCP 850",
+          "CPCHK.COM",
+          "P372850.COM",
+          "Q372775.COM",
+          "CHCP 775",
+          "CPCHK.COM",
+          "P372775.COM",
+          "Q372850.COM",
+          "R372.COM",
+          "CPCHK.COM",
+          "P372775.COM",
+          "S371775.COM",
+          "Q372775.COM",
+          "P371775.COM",
+          "CHCP 775",
+          "CPCHK.COM",
+          "P371775.COM",
+          "Q371850.COM",
+          "CHCP 437",
+          "CPCHK.COM",
+          "P371437.COM",
+          "Q371775.COM",
+          "CHCP 850",
+          "CPCHK.COM",
+          "P371850.COM",
+          "Q371775.COM",
+          "CHCP 775",
+          "CPCHK.COM",
+          "P371775.COM",
+          "Q371850.COM",
+          "R371.COM",
+          "CPCHK.COM",
+          "P371775.COM",
+          "S370775.COM",
+          "Q372775.COM",
+          "P370775.COM",
+          "CHCP 775",
+          "CPCHK.COM",
+          "P370775.COM",
+          "Q370850.COM",
+          "CHCP 437",
+          "CPCHK.COM",
+          "P370437.COM",
+          "Q370775.COM",
+          "CHCP 850",
+          "CPCHK.COM",
+          "P370850.COM",
+          "Q370775.COM",
+          "CHCP 775",
+          "CPCHK.COM",
+          "P370775.COM",
+          "Q370850.COM",
+          "R370.COM",
+          "CPCHK.COM",
+          "P370775.COM",
+          "S372775.COM",
+          "Q371775.COM",
+          "P372775.COM",
+          "CHCP 775",
+          "CPCHK.COM",
+          "P372775.COM",
+          "Q372850.COM",
+          "CHCP 437",
+          "CPCHK.COM",
+          "P372437.COM",
+          "Q372775.COM",
+          "CHCP 850",
+          "CPCHK.COM",
+          "P372850.COM",
+          "Q372775.COM",
+          "CHCP 775",
+          "CPCHK.COM",
+          "P372775.COM",
+          "Q372850.COM",
+          "R372.COM",
+          "CPCHK.COM",
+          "P372775.COM"
+        ],
+        "corruption": null,
+        "log": {
+          "path": "review/country-286-qemu-low-transitions.log",
+          "sha256": "3d0ec509fa73d2a9bd47313fa06f0e7416907d053ee308dd49442809321288e9"
+        }
+      },
+      {
+        "profile": "low",
+        "name": "wrong-case",
+        "emulator_exit": 33,
+        "config": "COUNTRY=372,775,COUNTRY.SYS\r\nDOS=LOW\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+        "actions": [
+          "P372775.COM"
+        ],
+        "corruption": "case",
+        "log": {
+          "path": "review/country-286-qemu-low-wrong-case.log",
+          "sha256": "e15f5b5d28e49df259fd9440adb74bb61c491068fafa549315edf32a15f644d7"
+        }
+      },
+      {
+        "profile": "low",
+        "name": "wrong-collation",
+        "emulator_exit": 33,
+        "config": "COUNTRY=372,775,COUNTRY.SYS\r\nDOS=LOW\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+        "actions": [
+          "P372775.COM"
+        ],
+        "corruption": "collation",
+        "log": {
+          "path": "review/country-286-qemu-low-wrong-collation.log",
+          "sha256": "f23601062a33cb5581edc648cab7a1f387c06c5ba618238e4b8c87d518623f40"
+        }
+      }
+    ],
+    "private_artifacts": "out/baltic-country-_73imwrw",
+    "command": "MEMORY_CORE_DIR=out/memory-production/files python3 tests/test_baltic_country_qemu.py"
+  },
+  "probe_parity": {
+    "path": "review/country-286-probe-parity.json",
+    "sha256": "a74d70e7183a0b395f3d38aa699725ad1efd714a5bbac3564fbf72bf6caa2aef"
+  },
+  "plan_parity": {
+    "path": "review/country-286-plan-parity.json",
+    "sha256": "f8bd90fae477b85bf035ec72e338212f91cb919d9174e94e4519f9edeb29b8ff"
+  },
+  "static_regression": {
+    "command": "make test-baltic-country-records test-ru-country-records",
+    "exit": 0,
+    "log": {
+      "path": "review/country-286-static.log",
+      "sha256": "6a36484ae2ed8b61be7d84995a1491b68c84f11962c6a4f00cb56078312b6231"
+    }
+  },
+  "roms": {
+    "video/vga/ibm_vga.bin": {
+      "sha256": "51b49761f72780a696c36f3d2e74a8168c1c99b865070f7f90b8e621a8b5ae17",
+      "size": 32768
+    },
+    "machines/ibmat/BIOS_5170_15NOV85_U27.BIN": {
+      "sha256": "096ce496a06002eb68a5bc5db128a38dd7f27a4eda16ad7342c8076f1fc40683",
+      "size": 32768
+    },
+    "machines/ibmat/BIOS_5170_15NOV85_U47.BIN": {
+      "sha256": "4e4692031297e74053e37c8632dc73706de97d847d8f0e12995b4f009e5c71fe",
+      "size": 32768
+    }
+  }
+}

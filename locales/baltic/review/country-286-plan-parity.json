@@ -1,0 +1,8 @@
+{
+  "status": "passed",
+  "baseline_commit": "60f417cfd8255b2f0ce49836f91c9598cadb36d5",
+  "baseline_source_sha256": "dbcb66715e8726bd84117dfa13546a9ca7309cdb8fb17adf94f13c49e2af9181",
+  "current_source_sha256": "7c871a213364fa790bfd756f0e7cc08e5235c4268996a547691cbd1f8bb0133a",
+  "case_count": 15,
+  "contract": "The extracted country_cases function returns exactly the prior QEMU case tuples, action lists and corruption choices."
+}

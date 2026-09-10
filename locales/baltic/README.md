@@ -79,9 +79,8 @@ captures. A deliberately wrong o-with-tilde glyph must fail the same byte oracle
 Samples include all three languages. The Russian/existing EGA-page regression
 matrix passes with the shared runner. Both new gates are included in `make test`.
 
-Real-BIOS country transitions, installed recipes and full release qualification
-remain separate open gates. Physical input and real-BIOS rendering are recorded
-below. The font test's
+Installed recipes and full release qualification remain separate open gates.
+Physical input, real-BIOS country checks and rendering are recorded below. The font test's
 Estonian COUNTRY selection does not establish country-API support for every
 language, and rendered samples do not establish typed keyboard input.
 
@@ -97,7 +96,8 @@ probe stages. Russian guest regressions pass with unchanged default probe bytes.
 
 `make test-baltic-country-qemu` runs the matrix and is included in `make test`.
 The Python runner accepts `--profile high|low` and `--case` for focused diagnosis.
-Real-BIOS, missing/malformed resource and installed-workflow checks remain open.
+Missing/malformed resource and installed-workflow checks remain open.
+Real-BIOS country qualification is recorded below.
 
 [Keyboard implementation qualification](keyboard-qualification.json) records
 the generated supplemental library and focused physical BIOS/DOS input gates.
@@ -225,5 +225,26 @@ the Russian wrong-glyph control with its default arguments.
 Invoke the display gate with the same `--emulator`, `--roms` and `--qt-platform`
 arguments as the keyboard gate. It uses private images and accepts `--jobs 2`;
 its software renderer does not use the keyboard backend's VNC port. The setup
-uses Estonian COUNTRY for a shared-font check. Country transitions, installed
-paths and complete typed workflows remain separate requirements.
+uses Estonian COUNTRY for a shared-font check. Country transitions are qualified
+separately below; installed paths and complete typed workflows remain open.
+
+[Real-BIOS country qualification](country-286-qualification.json) records
+`tests/test_baltic_country_86box.py` on IBM AT BIOS with DOS LOW. Each language
+passes explicit CP775/437/850 and default CONFIG selection. The transition
+sequence switches national records while retaining CP775, cycles supported
+pages, and checks that foreign queries and rejected country/page selections
+preserve the active country and tables. The probes verify formatting, far
+uppercase, extended country tables, character/string uppercase, filename rules,
+collation and agreement between DOS and DISPLAY code pages.
+
+Wrong case and collation data must fail their expected probe stages and exit
+the emulator with failure status. Normal cases require complete marker counts
+and successful guest-controlled exit. The QEMU and real-BIOS runners share the
+same case plan and produce identical guest probes; the record includes plan
+parity, the full QEMU HIGH/LOW rerun and the existing Russian real-BIOS suite.
+Logs, configurations, input hashes and ROM identities are retained.
+
+Invoke the country gate with `--emulator`, `--roms` and `--qt-platform` as above.
+It accepts `--jobs 2` and repeated `--case` selectors. Missing or structurally
+malformed resources, installed paths, complete text/filename workflows and final
+release qualification remain open.
