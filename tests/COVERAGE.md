@@ -650,3 +650,16 @@ without adopting invalid fields. Optional external Microsoft inputs characterize
 retail differences; expected DPB mismatches are recorded explicitly. See the
 [qualification record](compat_bpb_qualification.json) for cases, controls,
 matched memory regressions, and scope.
+
+
+The [focused Baltic legacy lifecycle qualification](../locales/baltic/legacy-lifecycle-focused-qualification.json)
+records `tests/test_baltic_legacy_lifecycle_86box.py` for the Estonian XT BIOS
+malformed-library family. The manual gate reuses independent mode, selection,
+resource and pending-accent oracles with physical legacy-key adaptations.
+It checks per-phase status, resident keyboard type, exact BIOS/DOS bytes,
+command rejection, pending-accent preservation and valid reload recovery.
+Cached guest probes retain per-phase indices and fit the full malformed-library
+set on XT media. The default gate covers both input interfaces and every family;
+AT and XT runs must be sequential because they use the VNC keyboard port.
+Full lifecycle qualification remains pending; the linked record claims only
+the completed focused case and verifies its probes against the retained image.

@@ -643,3 +643,37 @@ linker/control files differ only by CRLF versus LF. It also records the primary
 checkout's different ordinary HIMEM binary; release runtime checks use the
 pristine checkout. Full runtime, deployment/distribution and remaining legacy
 keyboard acceptance must pass before the Baltic increment closes.
+
+## Legacy keyboard lifecycle gate
+
+`tests/test_baltic_legacy_lifecycle_86box.py` runs the Baltic mode, selection,
+malformed-library and pending-accent plans on real IBM AT and XT BIOS. Run
+one machine at a time because the physical VNC keyboard uses a shared loopback
+port:
+
+```sh
+MEMORY_CORE_DIR=out/baltic-country-boot-core2/files \
+python3 tests/test_baltic_legacy_lifecycle_86box.py \
+  --emulator /path/to/86Box --roms /path/to/roms \
+  --qt-platform offscreen --machine at84
+```
+
+Repeat with `--machine xt83`. The default runs BIOS and DOS input for every
+family. `--family`, `--language`, `--scenario` and `--input` allow focused runs;
+the language filter applies to the resource family. Legacy third-level input
+uses left Ctrl+Alt, and navigation uses the keypad with Num Lock restored.
+The selected hardware has no separate right Ctrl/Alt or ISO scan-86 key.
+
+Every phase checks keyboard status and physical input against the independent
+language oracle. Rejected loads must preserve the resident layout and pending
+accent, and valid reloads must recover. A guest acknowledgment separates arming
+a pending accent from releasing Caps Lock. Identical phase probes are shared
+with a checked hexadecimal starting index so the complete resource matrix fits
+on XT media. Command error checks and physical input checks remain per phase.
+
+The [focused lifecycle qualification](legacy-lifecycle-focused-qualification.json)
+retains the completed Estonian XT BIOS resource case, including guest logs,
+physical events, core/resource hashes and startup files. During retention, the
+current plans and compiled probes reproduce the actions and bytes in that
+completed image. This is focused evidence; the full AT/XT BIOS/DOS matrices
+remain open until their complete results are retained.
