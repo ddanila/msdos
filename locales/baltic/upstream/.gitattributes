@@ -1,2 +1,2 @@
 CP775.TXT -text
-cldr/* -text
+cldr/* -text -whitespace
