@@ -1113,6 +1113,7 @@ next_kchar      proc    near
 no_p:
         inc     di
         dec     cx
+        jcxz    no_kleft                ;Do not continue past the line boundary
         clc
         ret
 

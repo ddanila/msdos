@@ -1,0 +1,10 @@
+cd /Users/ddanila/fun/msdos/src/CMD/FIND && /Users/ddanila/fun/msdos/bin/jwasm-masm "-Mx -t -I. -ID:\\TOOLS\\INC -I..\\..\\INC" "FIND.ASM,FIND.OBJ;"
+... for DOS Version 6.22 ...
+INCLUDING COMP=COMMON DSN=PSDATA.INC...
+INCLUDING COMP=COMMON DSN=PARSE.ASM...
+... Including message Class A
+... Including message Class 1
+... Including message Class 2
+cd /Users/ddanila/fun/msdos/src/CMD/FIND && /Users/ddanila/fun/msdos/bin/wlink "FIND+FINDMES,FIND.EXE/EX;"
+/Users/ddanila/fun/msdos/bin/fix-exepack /Users/ddanila/fun/msdos/src/CMD/FIND/FIND.EXE
+fix-exepack: /Users/ddanila/fun/msdos/src/CMD/FIND/FIND.EXE is not EXEPACK or already fixed

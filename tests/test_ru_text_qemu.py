@@ -26,9 +26,9 @@ RUSSIAN={chr(code):key for keys,codes in [
  for key,code in zip(keys.split(),codes)}
 
 
-def screen_contains(screen,value,prompt=False):
+def screen_contains(screen,value,prompt=False,page=866):
     """Match complete glyph masks against actual pixels, without OCR or VRAM injection."""
-    glyphs=parse_cpi((ROOT/'src/DEV/DISPLAY/EGA/EGA866.CPI').read_bytes())[16]
+    glyphs=parse_cpi((ROOT/f'src/DEV/DISPLAY/EGA/EGA{page}.CPI').read_bytes(),page)[16]
     width,height=screen.size
     if height!=400 or width not in (640,720):return False
     cell=width//80
@@ -36,7 +36,7 @@ def screen_contains(screen,value,prompt=False):
     for row in range(25):
         for col in range(81-len(value)):
             if all(all(bool(any(pixels[(col+i)*cell+x,row*16+y]))==bool(bits & (128>>x))
-                       for x in range(8)) for i,byte in enumerate(value.encode('cp866'))
+                       for x in range(8)) for i,byte in enumerate(value.encode(f'cp{page}'))
                        for y,bits in enumerate(glyphs[byte])):
                 if not prompt or (col==0 and all(not any(pixels[x,row*16+y])
                     for x in range(3*cell,width) for y in range(16)) and
@@ -44,7 +44,11 @@ def screen_contains(screen,value,prompt=False):
     return False
 
 
-def run_case(work,base,profile,args,core):
+def run_case(work,base,profile,args,core,locale=None):
+    page=locale['page'] if locale else 866
+    encoding=f'cp{page}'
+    sample=locale['sample'] if locale else SAMPLE
+    second=locale['second'] if locale else SECOND
     case=work/profile;case.mkdir();image=case/'test.img'
     if args.emulator:
         subprocess.run(['bash','-c','source "$1/tests/86box_286_lib.sh"\nmake_86box_286_boot_image "$2" "$1"',
@@ -56,17 +60,17 @@ def run_case(work,base,profile,args,core):
     for source,name in [('CMD/EDLIN/EDLIN.COM','EDLIN.COM'),('CMD/FIND/FIND.EXE','FIND.EXE'),
                         ('DEV/COUNTRY/COUNTRY.SYS','COUNTRY.SYS'),('CMD/KEYB/KEYB.COM','KEYB.COM'),
                         ('DEV/KEYBOARD/KEYBRD2.SYS','KEYBRD2.SYS'),('CMD/NLSFUNC/NLSFUNC.EXE','NLSFUNC.EXE'),
-                        ('DEV/DISPLAY/DISPLAY.SYS','DISPLAY.SYS'),('DEV/DISPLAY/EGA/EGA866.CPI','EGA866.CPI'),
+                        ('DEV/DISPLAY/DISPLAY.SYS','DISPLAY.SYS'),(f'DEV/DISPLAY/EGA/EGA{page}.CPI',f'EGA{page}.CPI'),
                         ('CMD/MODE/MODE.COM','MODE.COM')]:
         put(name,(ROOT/'src'/source).read_bytes())
     for source,name,defines in [('ru_profile_probe.asm','PROFILE.COM',[f'-DHIGH={int(profile=="high")}']),
                                 ('86box_exit.asm' if args.emulator else 'qemu_exit.asm','QEXIT.COM',[])]:
         subprocess.run(['nasm','-f','bin',*defines,str(ROOT/'tests'/source),'-o',str(case/name)],check=True)
         put(name,(case/name).read_bytes())
-    put('CONFIG.SYS',('COUNTRY=007,866,COUNTRY.SYS\r\n'+CONFIG[profile]+
+    put('CONFIG.SYS',(f'COUNTRY={locale["country"] if locale else 7:03d},{page},COUNTRY.SYS\r\n'+CONFIG[profile]+
                      'DEVICE=DISPLAY.SYS CON=(EGA,437,(1,3))\r\n').encode())
-    actions=['PROFILE.COM > AUX','NLSFUNC','MODE CON CP PREPARE=((866) EGA866.CPI)',
-             'MODE CON CP SELECT=866','KEYB RU,866,KEYBRD2.SYS /ID:441']
+    actions=['PROFILE.COM > AUX','NLSFUNC',f'MODE CON CP PREPARE=(({page}) EGA{page}.CPI)',
+             f'MODE CON CP SELECT={page}',locale['keyb'] if locale else 'KEYB RU,866,KEYBRD2.SYS /ID:441']
     batch=['@ECHO OFF']
     for action in actions:batch += [action,'IF ERRORLEVEL 1 GOTO FAIL']
     batch += ['ECHO RU_TEXT_READY > AUX','GOTO END',':FAIL','ECHO RU_TEXT_FAIL > AUX','QEXIT.COM',':END']
@@ -97,7 +101,7 @@ def run_case(work,base,profile,args,core):
         proc=subprocess.Popen(command,env=env,stdin=subprocess.DEVNULL,stdout=output,stderr=subprocess.STDOUT)
         qmp=None
         try:
-            qmp=VNCConsole(proc) if args.emulator else QMPConnection(sockets+'/q');national=False
+            qmp=VNCConsole(proc) if args.emulator else QMPConnection(sockets+'/q');national=bool(locale)
             def wait(marker):
                 deadline=time.monotonic()+(240 if args.emulator else 30)
                 while marker not in log.read_bytes():
@@ -115,6 +119,9 @@ def run_case(work,base,profile,args,core):
                     time.sleep(.01)
             def text(value):
                 nonlocal national
+                if locale:
+                    national=locale['type'](value,tap,national)
+                    return
                 for char in value:
                     lower=char.lower();ru=lower in RUSSIAN
                     if char!=' ' and ru!=national:
@@ -137,7 +144,7 @@ def run_case(work,base,profile,args,core):
                 deadline=time.monotonic()+30
                 while True:
                     screen=qmp.capture()
-                    if all(screen_contains(screen,value,prompt) for value in expected):return screen
+                    if all(screen_contains(screen,value,prompt,page) for value in expected):return screen
                     assert proc.poll() is None and time.monotonic()<deadline,('screen text missing',expected)
                     screen.save(case/'waiting.png');time.sleep(.1)
             def capture(name,expected):
@@ -148,22 +155,28 @@ def run_case(work,base,profile,args,core):
                     return
                 path=case/(name+'.bin');qmp.human_cmd(f'pmemsave 0xb8000 4000 "{path}"')
                 data=path.read_bytes();chars=data[::2]
-                for value in expected:assert value.encode('cp866') in chars,(name,value,chars)
+                for value in expected:assert value.encode(encoding) in chars,(name,value,chars)
                 qmp.human_cmd(f'screendump "{case/(name+".ppm")}"')
+                if locale:
+                    from PIL import Image
+                    screen=Image.open(case/(name+'.ppm'))
+                    for value in expected:
+                        assert screen_contains(screen,value,page=page),(name,value,'rendered glyph mismatch')
+                    screen.save(case/(name+'.png'))
                 captures.append({'name':name,'vram_sha256':hashlib.sha256(data).hexdigest(),
                                  'screen_sha256':hashlib.sha256((case/(name+'.ppm')).read_bytes()).hexdigest()})
             wait(b'RU_TEXT_READY')
-            text('echo '+SAMPLE+'x');tap('backspace');line('>shell.txt');checkpoint('SHELL_SAVED')
-            line('cls');line('type shell.txt');checkpoint('SHELL_SHOWN');capture('shell',[SAMPLE])
+            text('echo '+sample+'x');tap('backspace');line('>shell.txt');checkpoint('SHELL_SAVED')
+            line('cls');line('type shell.txt');checkpoint('SHELL_SHOWN');capture('shell',[sample])
             line('cls');line('edlin edit.txt');
             if args.emulator:screen_wait(['New file'])
-            line('i');line('\u041f\u0440\u0438\u0432\u0435\u0442');line('\u043e\u0448\u0438\u0431\u043a\u0430');tap('ctrl','z');tap('ret');time.sleep(.25)
-            line('1');line(SAMPLE);line('2');line(SECOND);line('1,2l');capture('edited',[SAMPLE,SECOND]);line('e');checkpoint('EDITOR_SAVED')
+            line('i');line(locale['first'] if locale else '\u041f\u0440\u0438\u0432\u0435\u0442');line(locale['error'] if locale else '\u043e\u0448\u0438\u0431\u043a\u0430');tap('ctrl','z');tap('ret');time.sleep(.25)
+            line('1');line(sample);line('2');line(second);line('1,2l');capture('edited',[sample,second]);line('e');checkpoint('EDITOR_SAVED')
             line('cls');line('edlin edit.txt');
             if args.emulator:screen_wait(['End of input file'])
-            line('1,2l');capture('reopened',[SAMPLE,SECOND]);line('q');line('y');checkpoint('EDITOR_REOPENED')
+            line('1,2l');capture('reopened',[sample,second]);line('q');line('y');checkpoint('EDITOR_REOPENED')
             line('type edit.txt >copy.txt');checkpoint('REDIRECTED')
-            line('type edit.txt | find "'+SECOND+'" >pipe.txt');checkpoint('PIPED')
+            line('type edit.txt | find "'+second+'" >pipe.txt');checkpoint('PIPED')
             checkpoint('RU_TEXT_DONE');text('qexit.com')
             events.append(('ret',True))
             if args.emulator:qmp.send([('ret',True)])
@@ -177,12 +190,12 @@ def run_case(work,base,profile,args,core):
     files={}
     for name in ['SHELL.TXT','EDIT.TXT','COPY.TXT','PIPE.TXT']:
         value=subprocess.check_output(['mtype','-i',str(image),'::'+name]);(case/name).write_bytes(value);files[name]=value.hex()
-    expected=(SAMPLE+'\r\n'+SECOND+'\r\n').encode('cp866')
-    assert bytes.fromhex(files['SHELL.TXT'])==(SAMPLE+'\r\n').encode('cp866'),files
+    expected=(sample+'\r\n'+second+'\r\n').encode(encoding)
+    assert bytes.fromhex(files['SHELL.TXT'])==(sample+'\r\n').encode(encoding),files
     assert bytes.fromhex(files['EDIT.TXT'])==expected+b'\x1a',files
     assert bytes.fromhex(files['COPY.TXT'])==expected,files
-    assert bytes.fromhex(files['PIPE.TXT'])==(SECOND+'\r\n').encode('cp866'),files
-    print('PASS: Russian text workflow '+profile,flush=True)
+    assert bytes.fromhex(files['PIPE.TXT'])==(second+'\r\n').encode(encoding),files
+    print('PASS: '+(locale['language'] if locale else 'Russian')+' text workflow '+profile,flush=True)
     return {'profile':profile,'emulator_exit':status,'files_hex':files,'events':events,'captures':captures,
             'serial_sha256':hashlib.sha256(data).hexdigest()}
 

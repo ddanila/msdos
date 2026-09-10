@@ -518,6 +518,15 @@ are checked before/after errors and recovery. This qualifies QEMU resource
 handling; installed paths, real-BIOS failure cases and application workflows
 remain open.
 
+The [Baltic text qualification](../locales/baltic/text-qualification.json)
+records `test-baltic-text-qemu` and `test-find-sbcs-qemu`, included in `make test`.
+Physical shell/editor input creates, edits, saves and reopens CP775 text, then
+checks redirection, FIND filtering, exact file bytes and rendered glyph pixels.
+The FIND regression covers high-byte line endings and detects the previous
+cross-line match with the old executable. Backend and memory-profile scope,
+Russian regressions and native command results are recorded explicitly.
+Filename/directory and installed/reboot workflows remain separate requirements.
+
 ## External DOS API suite
 
 `make test-dosemu2-qemu` runs selected upstream DOSEMU2 FAT tests against the

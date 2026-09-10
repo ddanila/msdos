@@ -1,0 +1,4709 @@
+{
+  "schema_version": 1,
+  "status": "physical-text-workflows-passed",
+  "scope": "Physical COMMAND/EDLIN input, backspace/insert/replace/save/reopen, TYPE redirection and FIND pipes for ET/LV/LT on QEMU HIGH/LOW and real IBM AT BIOS LOW. Exact CP775 files and rendered glyph masks. Selected retained core only; national filename/directory workflows, reboot and installed-path workflows, and final source-matched release remain open.",
+  "cases": [
+    {
+      "profile": "high",
+      "emulator_exit": 33,
+      "files_hex": {
+        "SHELL.TXT": "546572652c20e4756e206a6120949421208e99e59a20becf208494e48120d5d80d0a",
+        "EDIT.TXT": "546572652c20e4756e206a6120949421208e99e59a20becf208494e48120d5d80d0ae5756e0d0a1a",
+        "COPY.TXT": "546572652c20e4756e206a6120949421208e99e59a20becf208494e48120d5d80d0ae5756e0d0a",
+        "PIPE.TXT": "e5756e0d0a"
+      },
+      "captures": [
+        {
+          "name": "shell",
+          "vram": {
+            "path": "review/text-qemu-et-high-shell-vram.bin",
+            "sha256": "be309d220544d2a9f1832085cacb14c8185a2ea14de1e7029a82ba717f4c6664"
+          },
+          "screen": {
+            "path": "review/text-qemu-et-high-shell.png",
+            "sha256": "f5dab4e4b48e070906de97abafe2d8ef7ad95cf2033bd7aecd2d0c7e2fb3924b"
+          },
+          "expected_text": [
+            "Tere, \u00f5un ja \u00f6\u00f6! \u00c4\u00d6\u00d5\u00dc \u0160\u017d \u00e4\u00f6\u00f5\u00fc \u0161\u017e"
+          ]
+        },
+        {
+          "name": "edited",
+          "vram": {
+            "path": "review/text-qemu-et-high-edited-vram.bin",
+            "sha256": "891ec5f9d4f8a0f22abf03cfa252167445e0c9bc04958f8d1695b880429b001a"
+          },
+          "screen": {
+            "path": "review/text-qemu-et-high-edited.png",
+            "sha256": "4533ad3d88e71aa7f0fd974401d269a23d608ea9c65205edd537605ce01d3ef2"
+          },
+          "expected_text": [
+            "Tere, \u00f5un ja \u00f6\u00f6! \u00c4\u00d6\u00d5\u00dc \u0160\u017d \u00e4\u00f6\u00f5\u00fc \u0161\u017e",
+            "\u00d5un"
+          ]
+        },
+        {
+          "name": "reopened",
+          "vram": {
+            "path": "review/text-qemu-et-high-reopened-vram.bin",
+            "sha256": "3b327e5fc83da775c99ee7e13f566c2cc5a6c6971300b0468bcaf73bc5e39a34"
+          },
+          "screen": {
+            "path": "review/text-qemu-et-high-reopened.png",
+            "sha256": "3455935035455f7ada185c737a5eb54241ebbecba1be74ecb946fada6b3ad474"
+          },
+          "expected_text": [
+            "Tere, \u00f5un ja \u00f6\u00f6! \u00c4\u00d6\u00d5\u00dc \u0160\u017d \u00e4\u00f6\u00f5\u00fc \u0161\u017e",
+            "\u00d5un"
+          ]
+        }
+      ],
+      "language": "et",
+      "national_sequences": {
+        "156": [
+          [
+            "ctrl",
+            "alt",
+            "3"
+          ]
+        ],
+        "159": [
+          [
+            "shift",
+            "4"
+          ]
+        ],
+        "129": [
+          [
+            "bracket_left"
+          ]
+        ],
+        "154": [
+          [
+            "shift",
+            "bracket_left"
+          ]
+        ],
+        "228": [
+          [
+            "shift",
+            "grave_accent"
+          ],
+          [
+            "o"
+          ]
+        ],
+        "229": [
+          [
+            "shift",
+            "grave_accent"
+          ],
+          [
+            "shift",
+            "o"
+          ]
+        ],
+        "245": [
+          [
+            "ctrl",
+            "alt",
+            "bracket_right"
+          ]
+        ],
+        "213": [
+          [
+            "grave_accent"
+          ],
+          [
+            "s"
+          ]
+        ],
+        "190": [
+          [
+            "grave_accent"
+          ],
+          [
+            "shift",
+            "s"
+          ]
+        ],
+        "148": [
+          [
+            "semicolon"
+          ]
+        ],
+        "153": [
+          [
+            "shift",
+            "semicolon"
+          ]
+        ],
+        "132": [
+          [
+            "apostrophe"
+          ]
+        ],
+        "142": [
+          [
+            "shift",
+            "apostrophe"
+          ]
+        ],
+        "171": [
+          [
+            "ctrl",
+            "alt",
+            "backslash"
+          ]
+        ],
+        "216": [
+          [
+            "grave_accent"
+          ],
+          [
+            "z"
+          ]
+        ],
+        "207": [
+          [
+            "grave_accent"
+          ],
+          [
+            "shift",
+            "z"
+          ]
+        ],
+        "135": [
+          [
+            "equal"
+          ],
+          [
+            "c"
+          ]
+        ],
+        "130": [
+          [
+            "equal"
+          ],
+          [
+            "e"
+          ]
+        ],
+        "231": [
+          [
+            "equal"
+          ],
+          [
+            "n"
+          ]
+        ],
+        "162": [
+          [
+            "equal"
+          ],
+          [
+            "o"
+          ]
+        ],
+        "152": [
+          [
+            "equal"
+          ],
+          [
+            "s"
+          ]
+        ],
+        "165": [
+          [
+            "equal"
+          ],
+          [
+            "z"
+          ]
+        ],
+        "128": [
+          [
+            "equal"
+          ],
+          [
+            "shift",
+            "c"
+          ]
+        ],
+        "144": [
+          [
+            "equal"
+          ],
+          [
+            "shift",
+            "e"
+          ]
+        ],
+        "227": [
+          [
+            "equal"
+          ],
+          [
+            "shift",
+            "n"
+          ]
+        ],
+        "224": [
+          [
+            "equal"
+          ],
+          [
+            "shift",
+            "o"
+          ]
+        ],
+        "151": [
+          [
+            "equal"
+          ],
+          [
+            "shift",
+            "s"
+          ]
+        ],
+        "141": [
+          [
+            "equal"
+          ],
+          [
+            "shift",
+            "z"
+          ]
+        ],
+        "131": [
+          [
+            "shift",
+            "equal"
+          ],
+          [
+            "a"
+          ]
+        ],
+        "137": [
+          [
+            "shift",
+            "equal"
+          ],
+          [
+            "e"
+          ]
+        ],
+        "140": [
+          [
+            "shift",
+            "equal"
+          ],
+          [
+            "i"
+          ]
+        ],
+        "147": [
+          [
+            "shift",
+            "equal"
+          ],
+          [
+            "o"
+          ]
+        ],
+        "215": [
+          [
+            "shift",
+            "equal"
+          ],
+          [
+            "u"
+          ]
+        ],
+        "160": [
+          [
+            "shift",
+            "equal"
+          ],
+          [
+            "shift",
+            "a"
+          ]
+        ],
+        "237": [
+          [
+            "shift",
+            "equal"
+          ],
+          [
+            "shift",
+            "e"
+          ]
+        ],
+        "161": [
+          [
+            "shift",
+            "equal"
+          ],
+          [
+            "shift",
+            "i"
+          ]
+        ],
+        "226": [
+          [
+            "shift",
+            "equal"
+          ],
+          [
+            "shift",
+            "o"
+          ]
+        ],
+        "199": [
+          [
+            "shift",
+            "equal"
+          ],
+          [
+            "shift",
+            "u"
+          ]
+        ],
+        "208": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "a"
+          ]
+        ],
+        "210": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "e"
+          ]
+        ],
+        "212": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "i"
+          ]
+        ],
+        "214": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "u"
+          ]
+        ],
+        "133": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "g"
+          ]
+        ],
+        "233": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "k"
+          ]
+        ],
+        "235": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "l"
+          ]
+        ],
+        "236": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "n"
+          ]
+        ],
+        "139": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "r"
+          ]
+        ],
+        "181": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "shift",
+            "a"
+          ]
+        ],
+        "183": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "shift",
+            "e"
+          ]
+        ],
+        "189": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "shift",
+            "i"
+          ]
+        ],
+        "198": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "shift",
+            "u"
+          ]
+        ],
+        "149": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "shift",
+            "g"
+          ]
+        ],
+        "232": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "shift",
+            "k"
+          ]
+        ],
+        "234": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "shift",
+            "l"
+          ]
+        ],
+        "238": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "shift",
+            "n"
+          ]
+        ],
+        "138": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "shift",
+            "r"
+          ]
+        ],
+        "209": [
+          [
+            "grave_accent"
+          ],
+          [
+            "c"
+          ]
+        ],
+        "182": [
+          [
+            "grave_accent"
+          ],
+          [
+            "shift",
+            "c"
+          ]
+        ]
+      },
+      "log": {
+        "path": "review/text-qemu-et-high.log",
+        "sha256": "e2be54e448e21acde447d1288b4d8de95f5476b0a2e49acabed42490dbc86f50"
+      },
+      "files": {
+        "SHELL.TXT": {
+          "path": "review/text-qemu-et-high-shell.bin",
+          "sha256": "985f5fb3ef9782f21451d19dd7f88928e32187cbb13ab7b848dbf5aa10692133"
+        },
+        "EDIT.TXT": {
+          "path": "review/text-qemu-et-high-edit.bin",
+          "sha256": "e9edb2a66a147b0abd80dddfc2e6a80351392193b080460d4ff1dcf3ae32cf2e"
+        },
+        "COPY.TXT": {
+          "path": "review/text-qemu-et-high-copy.bin",
+          "sha256": "1f6eb0e98d1f627cdab05b30bb964298d14c66f5d11aded0c834a3b870e8b3de"
+        },
+        "PIPE.TXT": {
+          "path": "review/text-qemu-et-high-pipe.bin",
+          "sha256": "6e1d5e430e10452f39dcacb300381bf1c5774f0f3ff8719e0e765006d6febe62"
+        }
+      },
+      "events": {
+        "path": "review/text-qemu-et-high-events.json",
+        "sha256": "2edb3feeb37d9d052110221b2d4f78bc3cd43c19f1f6a93db8ad71c980001faf"
+      },
+      "resource_sha256": {
+        "EDLIN.COM": "21dcc094437d6e7dbed8d8cf34d5b7bb6629d6fd8f9b0256710bc038a77e132a",
+        "FIND.EXE": "bce1e2a4df29876ae4720bec538cb8034d833c5eb945718e6a05d7510d1c399e",
+        "KEYB.COM": "924edf011009fe4a747d045f24ae5da817b613e914cbf58b66ca22e3637ffa3e",
+        "KEYBRD2.SYS": "d003716471ffbe12803ac7beaf511a8a4e2d6a0b8ef5e3d214eee2a69584cf06",
+        "EGA775.CPI": "ab38fe5b8acae0ba3933ac6b66596c58b32bc23385285b8cc68fec1fa8f15255",
+        "DISPLAY.SYS": "0ebd3bfad4e87d79e05219c02ea71ce4e94f9e11b432efdf652a022488d9ac08",
+        "COUNTRY.SYS": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c",
+        "NLSFUNC.EXE": "bc2a0c9b0900bcac03a6cfe072ea56ea01bd2333b1d1bf8f810f28e668340e67",
+        "MODE.COM": "c385aad5697fcec3a9113f58b983b978a7f969e99b153ebd496b12dab0e3767d"
+      },
+      "config": "COUNTRY=372,775,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(1,3))\r\n",
+      "backend": "qemu",
+      "private_artifacts": "out/baltic-text-iatbnc8s/et/high",
+      "sample": "Tere, \u00f5un ja \u00f6\u00f6! \u00c4\u00d6\u00d5\u00dc \u0160\u017d \u00e4\u00f6\u00f5\u00fc \u0161\u017e",
+      "second": "\u00d5un",
+      "composed_characters": [
+        "\u00d5",
+        "\u00f5",
+        "\u0160",
+        "\u0161",
+        "\u017d",
+        "\u017e"
+      ]
+    },
+    {
+      "profile": "low",
+      "emulator_exit": 33,
+      "files_hex": {
+        "SHELL.TXT": "546572652c20e4756e206a6120949421208e99e59a20becf208494e48120d5d80d0a",
+        "EDIT.TXT": "546572652c20e4756e206a6120949421208e99e59a20becf208494e48120d5d80d0ae5756e0d0a1a",
+        "COPY.TXT": "546572652c20e4756e206a6120949421208e99e59a20becf208494e48120d5d80d0ae5756e0d0a",
+        "PIPE.TXT": "e5756e0d0a"
+      },
+      "captures": [
+        {
+          "name": "shell",
+          "vram": {
+            "path": "review/text-qemu-et-low-shell-vram.bin",
+            "sha256": "be309d220544d2a9f1832085cacb14c8185a2ea14de1e7029a82ba717f4c6664"
+          },
+          "screen": {
+            "path": "review/text-qemu-et-low-shell.png",
+            "sha256": "f5dab4e4b48e070906de97abafe2d8ef7ad95cf2033bd7aecd2d0c7e2fb3924b"
+          },
+          "expected_text": [
+            "Tere, \u00f5un ja \u00f6\u00f6! \u00c4\u00d6\u00d5\u00dc \u0160\u017d \u00e4\u00f6\u00f5\u00fc \u0161\u017e"
+          ]
+        },
+        {
+          "name": "edited",
+          "vram": {
+            "path": "review/text-qemu-et-low-edited-vram.bin",
+            "sha256": "891ec5f9d4f8a0f22abf03cfa252167445e0c9bc04958f8d1695b880429b001a"
+          },
+          "screen": {
+            "path": "review/text-qemu-et-low-edited.png",
+            "sha256": "4533ad3d88e71aa7f0fd974401d269a23d608ea9c65205edd537605ce01d3ef2"
+          },
+          "expected_text": [
+            "Tere, \u00f5un ja \u00f6\u00f6! \u00c4\u00d6\u00d5\u00dc \u0160\u017d \u00e4\u00f6\u00f5\u00fc \u0161\u017e",
+            "\u00d5un"
+          ]
+        },
+        {
+          "name": "reopened",
+          "vram": {
+            "path": "review/text-qemu-et-low-reopened-vram.bin",
+            "sha256": "3b327e5fc83da775c99ee7e13f566c2cc5a6c6971300b0468bcaf73bc5e39a34"
+          },
+          "screen": {
+            "path": "review/text-qemu-et-low-reopened.png",
+            "sha256": "3455935035455f7ada185c737a5eb54241ebbecba1be74ecb946fada6b3ad474"
+          },
+          "expected_text": [
+            "Tere, \u00f5un ja \u00f6\u00f6! \u00c4\u00d6\u00d5\u00dc \u0160\u017d \u00e4\u00f6\u00f5\u00fc \u0161\u017e",
+            "\u00d5un"
+          ]
+        }
+      ],
+      "language": "et",
+      "national_sequences": {
+        "156": [
+          [
+            "ctrl",
+            "alt",
+            "3"
+          ]
+        ],
+        "159": [
+          [
+            "shift",
+            "4"
+          ]
+        ],
+        "129": [
+          [
+            "bracket_left"
+          ]
+        ],
+        "154": [
+          [
+            "shift",
+            "bracket_left"
+          ]
+        ],
+        "228": [
+          [
+            "shift",
+            "grave_accent"
+          ],
+          [
+            "o"
+          ]
+        ],
+        "229": [
+          [
+            "shift",
+            "grave_accent"
+          ],
+          [
+            "shift",
+            "o"
+          ]
+        ],
+        "245": [
+          [
+            "ctrl",
+            "alt",
+            "bracket_right"
+          ]
+        ],
+        "213": [
+          [
+            "grave_accent"
+          ],
+          [
+            "s"
+          ]
+        ],
+        "190": [
+          [
+            "grave_accent"
+          ],
+          [
+            "shift",
+            "s"
+          ]
+        ],
+        "148": [
+          [
+            "semicolon"
+          ]
+        ],
+        "153": [
+          [
+            "shift",
+            "semicolon"
+          ]
+        ],
+        "132": [
+          [
+            "apostrophe"
+          ]
+        ],
+        "142": [
+          [
+            "shift",
+            "apostrophe"
+          ]
+        ],
+        "171": [
+          [
+            "ctrl",
+            "alt",
+            "backslash"
+          ]
+        ],
+        "216": [
+          [
+            "grave_accent"
+          ],
+          [
+            "z"
+          ]
+        ],
+        "207": [
+          [
+            "grave_accent"
+          ],
+          [
+            "shift",
+            "z"
+          ]
+        ],
+        "135": [
+          [
+            "equal"
+          ],
+          [
+            "c"
+          ]
+        ],
+        "130": [
+          [
+            "equal"
+          ],
+          [
+            "e"
+          ]
+        ],
+        "231": [
+          [
+            "equal"
+          ],
+          [
+            "n"
+          ]
+        ],
+        "162": [
+          [
+            "equal"
+          ],
+          [
+            "o"
+          ]
+        ],
+        "152": [
+          [
+            "equal"
+          ],
+          [
+            "s"
+          ]
+        ],
+        "165": [
+          [
+            "equal"
+          ],
+          [
+            "z"
+          ]
+        ],
+        "128": [
+          [
+            "equal"
+          ],
+          [
+            "shift",
+            "c"
+          ]
+        ],
+        "144": [
+          [
+            "equal"
+          ],
+          [
+            "shift",
+            "e"
+          ]
+        ],
+        "227": [
+          [
+            "equal"
+          ],
+          [
+            "shift",
+            "n"
+          ]
+        ],
+        "224": [
+          [
+            "equal"
+          ],
+          [
+            "shift",
+            "o"
+          ]
+        ],
+        "151": [
+          [
+            "equal"
+          ],
+          [
+            "shift",
+            "s"
+          ]
+        ],
+        "141": [
+          [
+            "equal"
+          ],
+          [
+            "shift",
+            "z"
+          ]
+        ],
+        "131": [
+          [
+            "shift",
+            "equal"
+          ],
+          [
+            "a"
+          ]
+        ],
+        "137": [
+          [
+            "shift",
+            "equal"
+          ],
+          [
+            "e"
+          ]
+        ],
+        "140": [
+          [
+            "shift",
+            "equal"
+          ],
+          [
+            "i"
+          ]
+        ],
+        "147": [
+          [
+            "shift",
+            "equal"
+          ],
+          [
+            "o"
+          ]
+        ],
+        "215": [
+          [
+            "shift",
+            "equal"
+          ],
+          [
+            "u"
+          ]
+        ],
+        "160": [
+          [
+            "shift",
+            "equal"
+          ],
+          [
+            "shift",
+            "a"
+          ]
+        ],
+        "237": [
+          [
+            "shift",
+            "equal"
+          ],
+          [
+            "shift",
+            "e"
+          ]
+        ],
+        "161": [
+          [
+            "shift",
+            "equal"
+          ],
+          [
+            "shift",
+            "i"
+          ]
+        ],
+        "226": [
+          [
+            "shift",
+            "equal"
+          ],
+          [
+            "shift",
+            "o"
+          ]
+        ],
+        "199": [
+          [
+            "shift",
+            "equal"
+          ],
+          [
+            "shift",
+            "u"
+          ]
+        ],
+        "208": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "a"
+          ]
+        ],
+        "210": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "e"
+          ]
+        ],
+        "212": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "i"
+          ]
+        ],
+        "214": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "u"
+          ]
+        ],
+        "133": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "g"
+          ]
+        ],
+        "233": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "k"
+          ]
+        ],
+        "235": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "l"
+          ]
+        ],
+        "236": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "n"
+          ]
+        ],
+        "139": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "r"
+          ]
+        ],
+        "181": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "shift",
+            "a"
+          ]
+        ],
+        "183": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "shift",
+            "e"
+          ]
+        ],
+        "189": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "shift",
+            "i"
+          ]
+        ],
+        "198": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "shift",
+            "u"
+          ]
+        ],
+        "149": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "shift",
+            "g"
+          ]
+        ],
+        "232": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "shift",
+            "k"
+          ]
+        ],
+        "234": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "shift",
+            "l"
+          ]
+        ],
+        "238": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "shift",
+            "n"
+          ]
+        ],
+        "138": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "shift",
+            "r"
+          ]
+        ],
+        "209": [
+          [
+            "grave_accent"
+          ],
+          [
+            "c"
+          ]
+        ],
+        "182": [
+          [
+            "grave_accent"
+          ],
+          [
+            "shift",
+            "c"
+          ]
+        ]
+      },
+      "log": {
+        "path": "review/text-qemu-et-low.log",
+        "sha256": "fb46bded5420e4dc2ef25d9176f4cb041a9b541f66a846845ef00edfa11b6540"
+      },
+      "files": {
+        "SHELL.TXT": {
+          "path": "review/text-qemu-et-low-shell.bin",
+          "sha256": "985f5fb3ef9782f21451d19dd7f88928e32187cbb13ab7b848dbf5aa10692133"
+        },
+        "EDIT.TXT": {
+          "path": "review/text-qemu-et-low-edit.bin",
+          "sha256": "e9edb2a66a147b0abd80dddfc2e6a80351392193b080460d4ff1dcf3ae32cf2e"
+        },
+        "COPY.TXT": {
+          "path": "review/text-qemu-et-low-copy.bin",
+          "sha256": "1f6eb0e98d1f627cdab05b30bb964298d14c66f5d11aded0c834a3b870e8b3de"
+        },
+        "PIPE.TXT": {
+          "path": "review/text-qemu-et-low-pipe.bin",
+          "sha256": "6e1d5e430e10452f39dcacb300381bf1c5774f0f3ff8719e0e765006d6febe62"
+        }
+      },
+      "events": {
+        "path": "review/text-qemu-et-low-events.json",
+        "sha256": "2edb3feeb37d9d052110221b2d4f78bc3cd43c19f1f6a93db8ad71c980001faf"
+      },
+      "resource_sha256": {
+        "EDLIN.COM": "21dcc094437d6e7dbed8d8cf34d5b7bb6629d6fd8f9b0256710bc038a77e132a",
+        "FIND.EXE": "bce1e2a4df29876ae4720bec538cb8034d833c5eb945718e6a05d7510d1c399e",
+        "KEYB.COM": "924edf011009fe4a747d045f24ae5da817b613e914cbf58b66ca22e3637ffa3e",
+        "KEYBRD2.SYS": "d003716471ffbe12803ac7beaf511a8a4e2d6a0b8ef5e3d214eee2a69584cf06",
+        "EGA775.CPI": "ab38fe5b8acae0ba3933ac6b66596c58b32bc23385285b8cc68fec1fa8f15255",
+        "DISPLAY.SYS": "0ebd3bfad4e87d79e05219c02ea71ce4e94f9e11b432efdf652a022488d9ac08",
+        "COUNTRY.SYS": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c",
+        "NLSFUNC.EXE": "bc2a0c9b0900bcac03a6cfe072ea56ea01bd2333b1d1bf8f810f28e668340e67",
+        "MODE.COM": "c385aad5697fcec3a9113f58b983b978a7f969e99b153ebd496b12dab0e3767d"
+      },
+      "config": "COUNTRY=372,775,COUNTRY.SYS\r\nDOS=LOW\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(1,3))\r\n",
+      "backend": "qemu",
+      "private_artifacts": "out/baltic-text-iatbnc8s/et/low",
+      "sample": "Tere, \u00f5un ja \u00f6\u00f6! \u00c4\u00d6\u00d5\u00dc \u0160\u017d \u00e4\u00f6\u00f5\u00fc \u0161\u017e",
+      "second": "\u00d5un",
+      "composed_characters": [
+        "\u00d5",
+        "\u00f5",
+        "\u0160",
+        "\u0161",
+        "\u017d",
+        "\u017e"
+      ]
+    },
+    {
+      "profile": "high",
+      "emulator_exit": 33,
+      "files_hex": {
+        "SHELL.TXT": "4c616261732c20d0d8756f6c61732120b5b6b7b8bdbec6c7cf20d0d1d2d3d4d5d6d7d80d0a",
+        "EDIT.TXT": "4c616261732c20d0d8756f6c61732120b5b6b7b8bdbec6c7cf20d0d1d2d3d4d5d6d7d80d0ab5d8756f6c61730d0a1a",
+        "COPY.TXT": "4c616261732c20d0d8756f6c61732120b5b6b7b8bdbec6c7cf20d0d1d2d3d4d5d6d7d80d0ab5d8756f6c61730d0a",
+        "PIPE.TXT": "b5d8756f6c61730d0a"
+      },
+      "captures": [
+        {
+          "name": "shell",
+          "vram": {
+            "path": "review/text-qemu-lt-high-shell-vram.bin",
+            "sha256": "ec7ae00f53780382123e676fc2865dc6ac840b8dac061d5822a6d563b179de99"
+          },
+          "screen": {
+            "path": "review/text-qemu-lt-high-shell.png",
+            "sha256": "770ef3c966bfc32586832cadf877fe878df222f05ff36afca1af52045b8519db"
+          },
+          "expected_text": [
+            "Labas, \u0105\u017euolas! \u0104\u010c\u0118\u0116\u012e\u0160\u0172\u016a\u017d \u0105\u010d\u0119\u0117\u012f\u0161\u0173\u016b\u017e"
+          ]
+        },
+        {
+          "name": "edited",
+          "vram": {
+            "path": "review/text-qemu-lt-high-edited-vram.bin",
+            "sha256": "6747c6de729e3a9ee34e36dd75eda9e1187c7559a43f0735dce635632f4d497d"
+          },
+          "screen": {
+            "path": "review/text-qemu-lt-high-edited.png",
+            "sha256": "00d801cf5600c1b0b9d1464e84df48e9aadb96976ebfea7ec5ce37c494c5f0e5"
+          },
+          "expected_text": [
+            "Labas, \u0105\u017euolas! \u0104\u010c\u0118\u0116\u012e\u0160\u0172\u016a\u017d \u0105\u010d\u0119\u0117\u012f\u0161\u0173\u016b\u017e",
+            "\u0104\u017euolas"
+          ]
+        },
+        {
+          "name": "reopened",
+          "vram": {
+            "path": "review/text-qemu-lt-high-reopened-vram.bin",
+            "sha256": "390267e284ba841b96b95c998977011832120f6463cb5252f19040761f425040"
+          },
+          "screen": {
+            "path": "review/text-qemu-lt-high-reopened.png",
+            "sha256": "6b092ae79b91040d287a4dbd9049c075ac5a51334e24b9ea9b214c00f305d522"
+          },
+          "expected_text": [
+            "Labas, \u0105\u017euolas! \u0104\u010c\u0118\u0116\u012e\u0160\u0172\u016a\u017d \u0105\u010d\u0119\u0117\u012f\u0161\u0173\u016b\u017e",
+            "\u0104\u017euolas"
+          ]
+        }
+      ],
+      "language": "lt",
+      "national_sequences": {
+        "245": [
+          [
+            "ctrl",
+            "alt",
+            "5"
+          ]
+        ],
+        "208": [
+          [
+            "q"
+          ]
+        ],
+        "181": [
+          [
+            "shift",
+            "q"
+          ]
+        ],
+        "216": [
+          [
+            "w"
+          ]
+        ],
+        "207": [
+          [
+            "shift",
+            "w"
+          ]
+        ],
+        "212": [
+          [
+            "bracket_left"
+          ]
+        ],
+        "189": [
+          [
+            "shift",
+            "bracket_left"
+          ]
+        ],
+        "213": [
+          [
+            "f"
+          ]
+        ],
+        "190": [
+          [
+            "shift",
+            "f"
+          ]
+        ],
+        "214": [
+          [
+            "semicolon"
+          ]
+        ],
+        "198": [
+          [
+            "shift",
+            "semicolon"
+          ]
+        ],
+        "211": [
+          [
+            "apostrophe"
+          ]
+        ],
+        "184": [
+          [
+            "shift",
+            "apostrophe"
+          ]
+        ],
+        "239": [
+          [
+            "ctrl",
+            "alt",
+            "grave_accent"
+          ]
+        ],
+        "215": [
+          [
+            "x"
+          ]
+        ],
+        "199": [
+          [
+            "shift",
+            "x"
+          ]
+        ],
+        "209": [
+          [
+            "comma"
+          ]
+        ],
+        "182": [
+          [
+            "shift",
+            "comma"
+          ]
+        ],
+        "247": [
+          [
+            "ctrl",
+            "alt",
+            "comma"
+          ]
+        ],
+        "242": [
+          [
+            "ctrl",
+            "alt",
+            "dot"
+          ]
+        ],
+        "210": [
+          [
+            "slash"
+          ]
+        ],
+        "183": [
+          [
+            "shift",
+            "slash"
+          ]
+        ]
+      },
+      "log": {
+        "path": "review/text-qemu-lt-high.log",
+        "sha256": "e2be54e448e21acde447d1288b4d8de95f5476b0a2e49acabed42490dbc86f50"
+      },
+      "files": {
+        "SHELL.TXT": {
+          "path": "review/text-qemu-lt-high-shell.bin",
+          "sha256": "97bfdb1d822c41014d059c45d796b33b282ed3942a783244421342955f22806f"
+        },
+        "EDIT.TXT": {
+          "path": "review/text-qemu-lt-high-edit.bin",
+          "sha256": "2e5c801efbe02bc5eb5194c63f8f8e2941196a6e557141ff68254b33fe244243"
+        },
+        "COPY.TXT": {
+          "path": "review/text-qemu-lt-high-copy.bin",
+          "sha256": "ea59c23212b20e90538e25f89097860c8c91f670a14c130eba4c6dac68974960"
+        },
+        "PIPE.TXT": {
+          "path": "review/text-qemu-lt-high-pipe.bin",
+          "sha256": "d4c62cb885fbe390be342200d9a196f9c1d970c2aece01684f686d11fe54a1af"
+        }
+      },
+      "events": {
+        "path": "review/text-qemu-lt-high-events.json",
+        "sha256": "1112db20bec8ef9868a3a03f9a183a5559331d363cc73c5c377e482707590636"
+      },
+      "resource_sha256": {
+        "EDLIN.COM": "21dcc094437d6e7dbed8d8cf34d5b7bb6629d6fd8f9b0256710bc038a77e132a",
+        "FIND.EXE": "bce1e2a4df29876ae4720bec538cb8034d833c5eb945718e6a05d7510d1c399e",
+        "KEYB.COM": "924edf011009fe4a747d045f24ae5da817b613e914cbf58b66ca22e3637ffa3e",
+        "KEYBRD2.SYS": "d003716471ffbe12803ac7beaf511a8a4e2d6a0b8ef5e3d214eee2a69584cf06",
+        "EGA775.CPI": "ab38fe5b8acae0ba3933ac6b66596c58b32bc23385285b8cc68fec1fa8f15255",
+        "DISPLAY.SYS": "0ebd3bfad4e87d79e05219c02ea71ce4e94f9e11b432efdf652a022488d9ac08",
+        "COUNTRY.SYS": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c",
+        "NLSFUNC.EXE": "bc2a0c9b0900bcac03a6cfe072ea56ea01bd2333b1d1bf8f810f28e668340e67",
+        "MODE.COM": "c385aad5697fcec3a9113f58b983b978a7f969e99b153ebd496b12dab0e3767d"
+      },
+      "config": "COUNTRY=370,775,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(1,3))\r\n",
+      "backend": "qemu",
+      "private_artifacts": "out/baltic-text-iatbnc8s/lt/high",
+      "sample": "Labas, \u0105\u017euolas! \u0104\u010c\u0118\u0116\u012e\u0160\u0172\u016a\u017d \u0105\u010d\u0119\u0117\u012f\u0161\u0173\u016b\u017e",
+      "second": "\u0104\u017euolas",
+      "composed_characters": []
+    },
+    {
+      "profile": "low",
+      "emulator_exit": 33,
+      "files_hex": {
+        "SHELL.TXT": "4c616261732c20d0d8756f6c61732120b5b6b7b8bdbec6c7cf20d0d1d2d3d4d5d6d7d80d0a",
+        "EDIT.TXT": "4c616261732c20d0d8756f6c61732120b5b6b7b8bdbec6c7cf20d0d1d2d3d4d5d6d7d80d0ab5d8756f6c61730d0a1a",
+        "COPY.TXT": "4c616261732c20d0d8756f6c61732120b5b6b7b8bdbec6c7cf20d0d1d2d3d4d5d6d7d80d0ab5d8756f6c61730d0a",
+        "PIPE.TXT": "b5d8756f6c61730d0a"
+      },
+      "captures": [
+        {
+          "name": "shell",
+          "vram": {
+            "path": "review/text-qemu-lt-low-shell-vram.bin",
+            "sha256": "ec7ae00f53780382123e676fc2865dc6ac840b8dac061d5822a6d563b179de99"
+          },
+          "screen": {
+            "path": "review/text-qemu-lt-low-shell.png",
+            "sha256": "770ef3c966bfc32586832cadf877fe878df222f05ff36afca1af52045b8519db"
+          },
+          "expected_text": [
+            "Labas, \u0105\u017euolas! \u0104\u010c\u0118\u0116\u012e\u0160\u0172\u016a\u017d \u0105\u010d\u0119\u0117\u012f\u0161\u0173\u016b\u017e"
+          ]
+        },
+        {
+          "name": "edited",
+          "vram": {
+            "path": "review/text-qemu-lt-low-edited-vram.bin",
+            "sha256": "6747c6de729e3a9ee34e36dd75eda9e1187c7559a43f0735dce635632f4d497d"
+          },
+          "screen": {
+            "path": "review/text-qemu-lt-low-edited.png",
+            "sha256": "00d801cf5600c1b0b9d1464e84df48e9aadb96976ebfea7ec5ce37c494c5f0e5"
+          },
+          "expected_text": [
+            "Labas, \u0105\u017euolas! \u0104\u010c\u0118\u0116\u012e\u0160\u0172\u016a\u017d \u0105\u010d\u0119\u0117\u012f\u0161\u0173\u016b\u017e",
+            "\u0104\u017euolas"
+          ]
+        },
+        {
+          "name": "reopened",
+          "vram": {
+            "path": "review/text-qemu-lt-low-reopened-vram.bin",
+            "sha256": "390267e284ba841b96b95c998977011832120f6463cb5252f19040761f425040"
+          },
+          "screen": {
+            "path": "review/text-qemu-lt-low-reopened.png",
+            "sha256": "6b092ae79b91040d287a4dbd9049c075ac5a51334e24b9ea9b214c00f305d522"
+          },
+          "expected_text": [
+            "Labas, \u0105\u017euolas! \u0104\u010c\u0118\u0116\u012e\u0160\u0172\u016a\u017d \u0105\u010d\u0119\u0117\u012f\u0161\u0173\u016b\u017e",
+            "\u0104\u017euolas"
+          ]
+        }
+      ],
+      "language": "lt",
+      "national_sequences": {
+        "245": [
+          [
+            "ctrl",
+            "alt",
+            "5"
+          ]
+        ],
+        "208": [
+          [
+            "q"
+          ]
+        ],
+        "181": [
+          [
+            "shift",
+            "q"
+          ]
+        ],
+        "216": [
+          [
+            "w"
+          ]
+        ],
+        "207": [
+          [
+            "shift",
+            "w"
+          ]
+        ],
+        "212": [
+          [
+            "bracket_left"
+          ]
+        ],
+        "189": [
+          [
+            "shift",
+            "bracket_left"
+          ]
+        ],
+        "213": [
+          [
+            "f"
+          ]
+        ],
+        "190": [
+          [
+            "shift",
+            "f"
+          ]
+        ],
+        "214": [
+          [
+            "semicolon"
+          ]
+        ],
+        "198": [
+          [
+            "shift",
+            "semicolon"
+          ]
+        ],
+        "211": [
+          [
+            "apostrophe"
+          ]
+        ],
+        "184": [
+          [
+            "shift",
+            "apostrophe"
+          ]
+        ],
+        "239": [
+          [
+            "ctrl",
+            "alt",
+            "grave_accent"
+          ]
+        ],
+        "215": [
+          [
+            "x"
+          ]
+        ],
+        "199": [
+          [
+            "shift",
+            "x"
+          ]
+        ],
+        "209": [
+          [
+            "comma"
+          ]
+        ],
+        "182": [
+          [
+            "shift",
+            "comma"
+          ]
+        ],
+        "247": [
+          [
+            "ctrl",
+            "alt",
+            "comma"
+          ]
+        ],
+        "242": [
+          [
+            "ctrl",
+            "alt",
+            "dot"
+          ]
+        ],
+        "210": [
+          [
+            "slash"
+          ]
+        ],
+        "183": [
+          [
+            "shift",
+            "slash"
+          ]
+        ]
+      },
+      "log": {
+        "path": "review/text-qemu-lt-low.log",
+        "sha256": "fb46bded5420e4dc2ef25d9176f4cb041a9b541f66a846845ef00edfa11b6540"
+      },
+      "files": {
+        "SHELL.TXT": {
+          "path": "review/text-qemu-lt-low-shell.bin",
+          "sha256": "97bfdb1d822c41014d059c45d796b33b282ed3942a783244421342955f22806f"
+        },
+        "EDIT.TXT": {
+          "path": "review/text-qemu-lt-low-edit.bin",
+          "sha256": "2e5c801efbe02bc5eb5194c63f8f8e2941196a6e557141ff68254b33fe244243"
+        },
+        "COPY.TXT": {
+          "path": "review/text-qemu-lt-low-copy.bin",
+          "sha256": "ea59c23212b20e90538e25f89097860c8c91f670a14c130eba4c6dac68974960"
+        },
+        "PIPE.TXT": {
+          "path": "review/text-qemu-lt-low-pipe.bin",
+          "sha256": "d4c62cb885fbe390be342200d9a196f9c1d970c2aece01684f686d11fe54a1af"
+        }
+      },
+      "events": {
+        "path": "review/text-qemu-lt-low-events.json",
+        "sha256": "1112db20bec8ef9868a3a03f9a183a5559331d363cc73c5c377e482707590636"
+      },
+      "resource_sha256": {
+        "EDLIN.COM": "21dcc094437d6e7dbed8d8cf34d5b7bb6629d6fd8f9b0256710bc038a77e132a",
+        "FIND.EXE": "bce1e2a4df29876ae4720bec538cb8034d833c5eb945718e6a05d7510d1c399e",
+        "KEYB.COM": "924edf011009fe4a747d045f24ae5da817b613e914cbf58b66ca22e3637ffa3e",
+        "KEYBRD2.SYS": "d003716471ffbe12803ac7beaf511a8a4e2d6a0b8ef5e3d214eee2a69584cf06",
+        "EGA775.CPI": "ab38fe5b8acae0ba3933ac6b66596c58b32bc23385285b8cc68fec1fa8f15255",
+        "DISPLAY.SYS": "0ebd3bfad4e87d79e05219c02ea71ce4e94f9e11b432efdf652a022488d9ac08",
+        "COUNTRY.SYS": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c",
+        "NLSFUNC.EXE": "bc2a0c9b0900bcac03a6cfe072ea56ea01bd2333b1d1bf8f810f28e668340e67",
+        "MODE.COM": "c385aad5697fcec3a9113f58b983b978a7f969e99b153ebd496b12dab0e3767d"
+      },
+      "config": "COUNTRY=370,775,COUNTRY.SYS\r\nDOS=LOW\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(1,3))\r\n",
+      "backend": "qemu",
+      "private_artifacts": "out/baltic-text-iatbnc8s/lt/low",
+      "sample": "Labas, \u0105\u017euolas! \u0104\u010c\u0118\u0116\u012e\u0160\u0172\u016a\u017d \u0105\u010d\u0119\u0117\u012f\u0161\u0173\u016b\u017e",
+      "second": "\u0104\u017euolas",
+      "composed_characters": []
+    },
+    {
+      "profile": "high",
+      "emulator_exit": 33,
+      "files_hex": {
+        "SHELL.TXT": "4c6162728c742c20528c67612120a0b6ed95a1e8eaeebec7cf2083d189858ce9ebecd5d7d8202f2045543a20e40d0a",
+        "EDIT.TXT": "4c6162728c742c20528c67612120a0b6ed95a1e8eaeebec7cf2083d189858ce9ebecd5d7d8202f2045543a20e40d0ae869727369730d0a1a",
+        "COPY.TXT": "4c6162728c742c20528c67612120a0b6ed95a1e8eaeebec7cf2083d189858ce9ebecd5d7d8202f2045543a20e40d0ae869727369730d0a",
+        "PIPE.TXT": "e869727369730d0a"
+      },
+      "captures": [
+        {
+          "name": "shell",
+          "vram": {
+            "path": "review/text-qemu-lv-high-shell-vram.bin",
+            "sha256": "61c1b6f975630f65d904d2bd947f6417ffa894de9e6a8b67861d55535da81e01"
+          },
+          "screen": {
+            "path": "review/text-qemu-lv-high-shell.png",
+            "sha256": "7071a4a8fc6526abc67a09a0c6b20cd3ed722b59afd28a08f11697d29a5cbd04"
+          },
+          "expected_text": [
+            "Labr\u012bt, R\u012bga! \u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d \u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e / ET: \u00f5"
+          ]
+        },
+        {
+          "name": "edited",
+          "vram": {
+            "path": "review/text-qemu-lv-high-edited-vram.bin",
+            "sha256": "8afb936c82b074a7e7cd98cbd4e46a6dc98a2f5233e8283bda81f028d3571ee1"
+          },
+          "screen": {
+            "path": "review/text-qemu-lv-high-edited.png",
+            "sha256": "a340253bc0e393cc10257f73ccc0695421cdfc59b87ac91764b6893676037a5e"
+          },
+          "expected_text": [
+            "Labr\u012bt, R\u012bga! \u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d \u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e / ET: \u00f5",
+            "\u0136irsis"
+          ]
+        },
+        {
+          "name": "reopened",
+          "vram": {
+            "path": "review/text-qemu-lv-high-reopened-vram.bin",
+            "sha256": "b79902ce602b296bd12982522e40ec40b4946dc64e650ea6b4aae503643eeb6d"
+          },
+          "screen": {
+            "path": "review/text-qemu-lv-high-reopened.png",
+            "sha256": "3996bc8c9fe926632f4d8794500b88571ff6fd6da19cf78e1f7998891dc96983"
+          },
+          "expected_text": [
+            "Labr\u012bt, R\u012bga! \u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d \u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e / ET: \u00f5",
+            "\u0136irsis"
+          ]
+        }
+      ],
+      "language": "lv",
+      "national_sequences": {
+        "255": [
+          [
+            "ctrl",
+            "alt",
+            "1"
+          ]
+        ],
+        "174": [
+          [
+            "ctrl",
+            "alt",
+            "2"
+          ]
+        ],
+        "175": [
+          [
+            "ctrl",
+            "alt",
+            "3"
+          ]
+        ],
+        "245": [
+          [
+            "shift",
+            "ctrl",
+            "alt",
+            "4"
+          ]
+        ],
+        "248": [
+          [
+            "shift",
+            "ctrl",
+            "alt",
+            "5"
+          ]
+        ],
+        "241": [
+          [
+            "shift",
+            "ctrl",
+            "alt",
+            "7"
+          ]
+        ],
+        "158": [
+          [
+            "shift",
+            "ctrl",
+            "alt",
+            "8"
+          ]
+        ],
+        "137": [
+          [
+            "ctrl",
+            "alt",
+            "e"
+          ]
+        ],
+        "237": [
+          [
+            "shift",
+            "ctrl",
+            "alt",
+            "e"
+          ]
+        ],
+        "139": [
+          [
+            "ctrl",
+            "alt",
+            "r"
+          ]
+        ],
+        "138": [
+          [
+            "shift",
+            "ctrl",
+            "alt",
+            "r"
+          ]
+        ],
+        "215": [
+          [
+            "ctrl",
+            "alt",
+            "u"
+          ]
+        ],
+        "199": [
+          [
+            "shift",
+            "ctrl",
+            "alt",
+            "u"
+          ]
+        ],
+        "140": [
+          [
+            "ctrl",
+            "alt",
+            "i"
+          ]
+        ],
+        "161": [
+          [
+            "shift",
+            "ctrl",
+            "alt",
+            "i"
+          ]
+        ],
+        "228": [
+          [
+            "shift",
+            "grave_accent"
+          ],
+          [
+            "o"
+          ]
+        ],
+        "229": [
+          [
+            "shift",
+            "grave_accent"
+          ],
+          [
+            "shift",
+            "o"
+          ]
+        ],
+        "131": [
+          [
+            "ctrl",
+            "alt",
+            "a"
+          ]
+        ],
+        "160": [
+          [
+            "shift",
+            "ctrl",
+            "alt",
+            "a"
+          ]
+        ],
+        "213": [
+          [
+            "ctrl",
+            "alt",
+            "s"
+          ]
+        ],
+        "190": [
+          [
+            "shift",
+            "ctrl",
+            "alt",
+            "s"
+          ]
+        ],
+        "133": [
+          [
+            "ctrl",
+            "alt",
+            "g"
+          ]
+        ],
+        "149": [
+          [
+            "shift",
+            "ctrl",
+            "alt",
+            "g"
+          ]
+        ],
+        "233": [
+          [
+            "ctrl",
+            "alt",
+            "k"
+          ]
+        ],
+        "232": [
+          [
+            "shift",
+            "ctrl",
+            "alt",
+            "k"
+          ]
+        ],
+        "235": [
+          [
+            "ctrl",
+            "alt",
+            "l"
+          ]
+        ],
+        "234": [
+          [
+            "shift",
+            "ctrl",
+            "alt",
+            "l"
+          ]
+        ],
+        "216": [
+          [
+            "ctrl",
+            "alt",
+            "z"
+          ]
+        ],
+        "207": [
+          [
+            "shift",
+            "ctrl",
+            "alt",
+            "z"
+          ]
+        ],
+        "209": [
+          [
+            "ctrl",
+            "alt",
+            "c"
+          ]
+        ],
+        "182": [
+          [
+            "shift",
+            "ctrl",
+            "alt",
+            "c"
+          ]
+        ],
+        "236": [
+          [
+            "ctrl",
+            "alt",
+            "n"
+          ]
+        ],
+        "238": [
+          [
+            "shift",
+            "ctrl",
+            "alt",
+            "n"
+          ]
+        ],
+        "135": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "c"
+          ]
+        ],
+        "130": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "e"
+          ]
+        ],
+        "231": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "n"
+          ]
+        ],
+        "162": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "o"
+          ]
+        ],
+        "152": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "s"
+          ]
+        ],
+        "165": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "z"
+          ]
+        ],
+        "128": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "shift",
+            "c"
+          ]
+        ],
+        "144": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "shift",
+            "e"
+          ]
+        ],
+        "227": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "shift",
+            "n"
+          ]
+        ],
+        "224": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "shift",
+            "o"
+          ]
+        ],
+        "151": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "shift",
+            "s"
+          ]
+        ],
+        "141": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "shift",
+            "z"
+          ]
+        ],
+        "132": [
+          [
+            "shift",
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "a"
+          ]
+        ],
+        "148": [
+          [
+            "shift",
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "o"
+          ]
+        ],
+        "129": [
+          [
+            "shift",
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "u"
+          ]
+        ],
+        "142": [
+          [
+            "shift",
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "shift",
+            "a"
+          ]
+        ],
+        "153": [
+          [
+            "shift",
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "shift",
+            "o"
+          ]
+        ],
+        "154": [
+          [
+            "shift",
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "shift",
+            "u"
+          ]
+        ],
+        "134": [
+          [
+            "backslash"
+          ],
+          [
+            "a"
+          ]
+        ],
+        "211": [
+          [
+            "backslash"
+          ],
+          [
+            "e"
+          ]
+        ],
+        "164": [
+          [
+            "backslash"
+          ],
+          [
+            "z"
+          ]
+        ],
+        "143": [
+          [
+            "backslash"
+          ],
+          [
+            "shift",
+            "a"
+          ]
+        ],
+        "184": [
+          [
+            "backslash"
+          ],
+          [
+            "shift",
+            "e"
+          ]
+        ],
+        "163": [
+          [
+            "backslash"
+          ],
+          [
+            "shift",
+            "z"
+          ]
+        ]
+      },
+      "log": {
+        "path": "review/text-qemu-lv-high.log",
+        "sha256": "e2be54e448e21acde447d1288b4d8de95f5476b0a2e49acabed42490dbc86f50"
+      },
+      "files": {
+        "SHELL.TXT": {
+          "path": "review/text-qemu-lv-high-shell.bin",
+          "sha256": "4dd4249cd9b3c824d52cdd20330bbbb0fe242dea10be006d2fd2441a43f40a3e"
+        },
+        "EDIT.TXT": {
+          "path": "review/text-qemu-lv-high-edit.bin",
+          "sha256": "e883a9857e367c536ab73eee1f36d85d39976a69779e357aa529cdda52c12bce"
+        },
+        "COPY.TXT": {
+          "path": "review/text-qemu-lv-high-copy.bin",
+          "sha256": "8f9ccad197778ac841c5d41ca1729ced47623ce0ae19bdb56184a42066687ad8"
+        },
+        "PIPE.TXT": {
+          "path": "review/text-qemu-lv-high-pipe.bin",
+          "sha256": "4afdb3786c9055add1a38472ed6da82e8e4d60a807830b2b902d8e6f682bdf96"
+        }
+      },
+      "events": {
+        "path": "review/text-qemu-lv-high-events.json",
+        "sha256": "62d4bc80a0655f75f5ebbcce4ff82fc1aa1f121b9573eb55d1bee5a4320ad5b4"
+      },
+      "resource_sha256": {
+        "EDLIN.COM": "21dcc094437d6e7dbed8d8cf34d5b7bb6629d6fd8f9b0256710bc038a77e132a",
+        "FIND.EXE": "bce1e2a4df29876ae4720bec538cb8034d833c5eb945718e6a05d7510d1c399e",
+        "KEYB.COM": "924edf011009fe4a747d045f24ae5da817b613e914cbf58b66ca22e3637ffa3e",
+        "KEYBRD2.SYS": "d003716471ffbe12803ac7beaf511a8a4e2d6a0b8ef5e3d214eee2a69584cf06",
+        "EGA775.CPI": "ab38fe5b8acae0ba3933ac6b66596c58b32bc23385285b8cc68fec1fa8f15255",
+        "DISPLAY.SYS": "0ebd3bfad4e87d79e05219c02ea71ce4e94f9e11b432efdf652a022488d9ac08",
+        "COUNTRY.SYS": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c",
+        "NLSFUNC.EXE": "bc2a0c9b0900bcac03a6cfe072ea56ea01bd2333b1d1bf8f810f28e668340e67",
+        "MODE.COM": "c385aad5697fcec3a9113f58b983b978a7f969e99b153ebd496b12dab0e3767d"
+      },
+      "config": "COUNTRY=371,775,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(1,3))\r\n",
+      "backend": "qemu",
+      "private_artifacts": "out/baltic-text-mhxumqam/lv/high",
+      "sample": "Labr\u012bt, R\u012bga! \u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d \u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e / ET: \u00f5",
+      "second": "\u0136irsis",
+      "composed_characters": [
+        "\u00f5"
+      ]
+    },
+    {
+      "profile": "low",
+      "emulator_exit": 33,
+      "files_hex": {
+        "SHELL.TXT": "4c6162728c742c20528c67612120a0b6ed95a1e8eaeebec7cf2083d189858ce9ebecd5d7d8202f2045543a20e40d0a",
+        "EDIT.TXT": "4c6162728c742c20528c67612120a0b6ed95a1e8eaeebec7cf2083d189858ce9ebecd5d7d8202f2045543a20e40d0ae869727369730d0a1a",
+        "COPY.TXT": "4c6162728c742c20528c67612120a0b6ed95a1e8eaeebec7cf2083d189858ce9ebecd5d7d8202f2045543a20e40d0ae869727369730d0a",
+        "PIPE.TXT": "e869727369730d0a"
+      },
+      "captures": [
+        {
+          "name": "shell",
+          "vram": {
+            "path": "review/text-qemu-lv-low-shell-vram.bin",
+            "sha256": "61c1b6f975630f65d904d2bd947f6417ffa894de9e6a8b67861d55535da81e01"
+          },
+          "screen": {
+            "path": "review/text-qemu-lv-low-shell.png",
+            "sha256": "7071a4a8fc6526abc67a09a0c6b20cd3ed722b59afd28a08f11697d29a5cbd04"
+          },
+          "expected_text": [
+            "Labr\u012bt, R\u012bga! \u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d \u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e / ET: \u00f5"
+          ]
+        },
+        {
+          "name": "edited",
+          "vram": {
+            "path": "review/text-qemu-lv-low-edited-vram.bin",
+            "sha256": "8afb936c82b074a7e7cd98cbd4e46a6dc98a2f5233e8283bda81f028d3571ee1"
+          },
+          "screen": {
+            "path": "review/text-qemu-lv-low-edited.png",
+            "sha256": "a340253bc0e393cc10257f73ccc0695421cdfc59b87ac91764b6893676037a5e"
+          },
+          "expected_text": [
+            "Labr\u012bt, R\u012bga! \u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d \u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e / ET: \u00f5",
+            "\u0136irsis"
+          ]
+        },
+        {
+          "name": "reopened",
+          "vram": {
+            "path": "review/text-qemu-lv-low-reopened-vram.bin",
+            "sha256": "b79902ce602b296bd12982522e40ec40b4946dc64e650ea6b4aae503643eeb6d"
+          },
+          "screen": {
+            "path": "review/text-qemu-lv-low-reopened.png",
+            "sha256": "3996bc8c9fe926632f4d8794500b88571ff6fd6da19cf78e1f7998891dc96983"
+          },
+          "expected_text": [
+            "Labr\u012bt, R\u012bga! \u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d \u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e / ET: \u00f5",
+            "\u0136irsis"
+          ]
+        }
+      ],
+      "language": "lv",
+      "national_sequences": {
+        "255": [
+          [
+            "ctrl",
+            "alt",
+            "1"
+          ]
+        ],
+        "174": [
+          [
+            "ctrl",
+            "alt",
+            "2"
+          ]
+        ],
+        "175": [
+          [
+            "ctrl",
+            "alt",
+            "3"
+          ]
+        ],
+        "245": [
+          [
+            "shift",
+            "ctrl",
+            "alt",
+            "4"
+          ]
+        ],
+        "248": [
+          [
+            "shift",
+            "ctrl",
+            "alt",
+            "5"
+          ]
+        ],
+        "241": [
+          [
+            "shift",
+            "ctrl",
+            "alt",
+            "7"
+          ]
+        ],
+        "158": [
+          [
+            "shift",
+            "ctrl",
+            "alt",
+            "8"
+          ]
+        ],
+        "137": [
+          [
+            "ctrl",
+            "alt",
+            "e"
+          ]
+        ],
+        "237": [
+          [
+            "shift",
+            "ctrl",
+            "alt",
+            "e"
+          ]
+        ],
+        "139": [
+          [
+            "ctrl",
+            "alt",
+            "r"
+          ]
+        ],
+        "138": [
+          [
+            "shift",
+            "ctrl",
+            "alt",
+            "r"
+          ]
+        ],
+        "215": [
+          [
+            "ctrl",
+            "alt",
+            "u"
+          ]
+        ],
+        "199": [
+          [
+            "shift",
+            "ctrl",
+            "alt",
+            "u"
+          ]
+        ],
+        "140": [
+          [
+            "ctrl",
+            "alt",
+            "i"
+          ]
+        ],
+        "161": [
+          [
+            "shift",
+            "ctrl",
+            "alt",
+            "i"
+          ]
+        ],
+        "228": [
+          [
+            "shift",
+            "grave_accent"
+          ],
+          [
+            "o"
+          ]
+        ],
+        "229": [
+          [
+            "shift",
+            "grave_accent"
+          ],
+          [
+            "shift",
+            "o"
+          ]
+        ],
+        "131": [
+          [
+            "ctrl",
+            "alt",
+            "a"
+          ]
+        ],
+        "160": [
+          [
+            "shift",
+            "ctrl",
+            "alt",
+            "a"
+          ]
+        ],
+        "213": [
+          [
+            "ctrl",
+            "alt",
+            "s"
+          ]
+        ],
+        "190": [
+          [
+            "shift",
+            "ctrl",
+            "alt",
+            "s"
+          ]
+        ],
+        "133": [
+          [
+            "ctrl",
+            "alt",
+            "g"
+          ]
+        ],
+        "149": [
+          [
+            "shift",
+            "ctrl",
+            "alt",
+            "g"
+          ]
+        ],
+        "233": [
+          [
+            "ctrl",
+            "alt",
+            "k"
+          ]
+        ],
+        "232": [
+          [
+            "shift",
+            "ctrl",
+            "alt",
+            "k"
+          ]
+        ],
+        "235": [
+          [
+            "ctrl",
+            "alt",
+            "l"
+          ]
+        ],
+        "234": [
+          [
+            "shift",
+            "ctrl",
+            "alt",
+            "l"
+          ]
+        ],
+        "216": [
+          [
+            "ctrl",
+            "alt",
+            "z"
+          ]
+        ],
+        "207": [
+          [
+            "shift",
+            "ctrl",
+            "alt",
+            "z"
+          ]
+        ],
+        "209": [
+          [
+            "ctrl",
+            "alt",
+            "c"
+          ]
+        ],
+        "182": [
+          [
+            "shift",
+            "ctrl",
+            "alt",
+            "c"
+          ]
+        ],
+        "236": [
+          [
+            "ctrl",
+            "alt",
+            "n"
+          ]
+        ],
+        "238": [
+          [
+            "shift",
+            "ctrl",
+            "alt",
+            "n"
+          ]
+        ],
+        "135": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "c"
+          ]
+        ],
+        "130": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "e"
+          ]
+        ],
+        "231": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "n"
+          ]
+        ],
+        "162": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "o"
+          ]
+        ],
+        "152": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "s"
+          ]
+        ],
+        "165": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "z"
+          ]
+        ],
+        "128": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "shift",
+            "c"
+          ]
+        ],
+        "144": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "shift",
+            "e"
+          ]
+        ],
+        "227": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "shift",
+            "n"
+          ]
+        ],
+        "224": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "shift",
+            "o"
+          ]
+        ],
+        "151": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "shift",
+            "s"
+          ]
+        ],
+        "141": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "shift",
+            "z"
+          ]
+        ],
+        "132": [
+          [
+            "shift",
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "a"
+          ]
+        ],
+        "148": [
+          [
+            "shift",
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "o"
+          ]
+        ],
+        "129": [
+          [
+            "shift",
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "u"
+          ]
+        ],
+        "142": [
+          [
+            "shift",
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "shift",
+            "a"
+          ]
+        ],
+        "153": [
+          [
+            "shift",
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "shift",
+            "o"
+          ]
+        ],
+        "154": [
+          [
+            "shift",
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "shift",
+            "u"
+          ]
+        ],
+        "134": [
+          [
+            "backslash"
+          ],
+          [
+            "a"
+          ]
+        ],
+        "211": [
+          [
+            "backslash"
+          ],
+          [
+            "e"
+          ]
+        ],
+        "164": [
+          [
+            "backslash"
+          ],
+          [
+            "z"
+          ]
+        ],
+        "143": [
+          [
+            "backslash"
+          ],
+          [
+            "shift",
+            "a"
+          ]
+        ],
+        "184": [
+          [
+            "backslash"
+          ],
+          [
+            "shift",
+            "e"
+          ]
+        ],
+        "163": [
+          [
+            "backslash"
+          ],
+          [
+            "shift",
+            "z"
+          ]
+        ]
+      },
+      "log": {
+        "path": "review/text-qemu-lv-low.log",
+        "sha256": "fb46bded5420e4dc2ef25d9176f4cb041a9b541f66a846845ef00edfa11b6540"
+      },
+      "files": {
+        "SHELL.TXT": {
+          "path": "review/text-qemu-lv-low-shell.bin",
+          "sha256": "4dd4249cd9b3c824d52cdd20330bbbb0fe242dea10be006d2fd2441a43f40a3e"
+        },
+        "EDIT.TXT": {
+          "path": "review/text-qemu-lv-low-edit.bin",
+          "sha256": "e883a9857e367c536ab73eee1f36d85d39976a69779e357aa529cdda52c12bce"
+        },
+        "COPY.TXT": {
+          "path": "review/text-qemu-lv-low-copy.bin",
+          "sha256": "8f9ccad197778ac841c5d41ca1729ced47623ce0ae19bdb56184a42066687ad8"
+        },
+        "PIPE.TXT": {
+          "path": "review/text-qemu-lv-low-pipe.bin",
+          "sha256": "4afdb3786c9055add1a38472ed6da82e8e4d60a807830b2b902d8e6f682bdf96"
+        }
+      },
+      "events": {
+        "path": "review/text-qemu-lv-low-events.json",
+        "sha256": "62d4bc80a0655f75f5ebbcce4ff82fc1aa1f121b9573eb55d1bee5a4320ad5b4"
+      },
+      "resource_sha256": {
+        "EDLIN.COM": "21dcc094437d6e7dbed8d8cf34d5b7bb6629d6fd8f9b0256710bc038a77e132a",
+        "FIND.EXE": "bce1e2a4df29876ae4720bec538cb8034d833c5eb945718e6a05d7510d1c399e",
+        "KEYB.COM": "924edf011009fe4a747d045f24ae5da817b613e914cbf58b66ca22e3637ffa3e",
+        "KEYBRD2.SYS": "d003716471ffbe12803ac7beaf511a8a4e2d6a0b8ef5e3d214eee2a69584cf06",
+        "EGA775.CPI": "ab38fe5b8acae0ba3933ac6b66596c58b32bc23385285b8cc68fec1fa8f15255",
+        "DISPLAY.SYS": "0ebd3bfad4e87d79e05219c02ea71ce4e94f9e11b432efdf652a022488d9ac08",
+        "COUNTRY.SYS": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c",
+        "NLSFUNC.EXE": "bc2a0c9b0900bcac03a6cfe072ea56ea01bd2333b1d1bf8f810f28e668340e67",
+        "MODE.COM": "c385aad5697fcec3a9113f58b983b978a7f969e99b153ebd496b12dab0e3767d"
+      },
+      "config": "COUNTRY=371,775,COUNTRY.SYS\r\nDOS=LOW\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(1,3))\r\n",
+      "backend": "qemu",
+      "private_artifacts": "out/baltic-text-mhxumqam/lv/low",
+      "sample": "Labr\u012bt, R\u012bga! \u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d \u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e / ET: \u00f5",
+      "second": "\u0136irsis",
+      "composed_characters": [
+        "\u00f5"
+      ]
+    },
+    {
+      "profile": "low",
+      "emulator_exit": 0,
+      "files_hex": {
+        "SHELL.TXT": "546572652c20e4756e206a6120949421208e99e59a20becf208494e48120d5d80d0a",
+        "EDIT.TXT": "546572652c20e4756e206a6120949421208e99e59a20becf208494e48120d5d80d0ae5756e0d0a1a",
+        "COPY.TXT": "546572652c20e4756e206a6120949421208e99e59a20becf208494e48120d5d80d0ae5756e0d0a",
+        "PIPE.TXT": "e5756e0d0a"
+      },
+      "captures": [
+        {
+          "name": "shell",
+          "expected_text": [
+            "Tere, \u00f5un ja \u00f6\u00f6! \u00c4\u00d6\u00d5\u00dc \u0160\u017d \u00e4\u00f6\u00f5\u00fc \u0161\u017e"
+          ],
+          "size": [
+            720,
+            400
+          ],
+          "screen": {
+            "path": "review/text-86box-286-et-low-shell.png",
+            "sha256": "43a40e6a947c441f6528ec7f9141dac1ca01542146b3c9f7779ceaaa03051ecd"
+          }
+        },
+        {
+          "name": "edited",
+          "expected_text": [
+            "Tere, \u00f5un ja \u00f6\u00f6! \u00c4\u00d6\u00d5\u00dc \u0160\u017d \u00e4\u00f6\u00f5\u00fc \u0161\u017e",
+            "\u00d5un"
+          ],
+          "size": [
+            720,
+            400
+          ],
+          "screen": {
+            "path": "review/text-86box-286-et-low-edited.png",
+            "sha256": "aee392e4d5acff9d0fb95e45398bf2c37668c574a6a4449cd64579c3608a756b"
+          }
+        },
+        {
+          "name": "reopened",
+          "expected_text": [
+            "Tere, \u00f5un ja \u00f6\u00f6! \u00c4\u00d6\u00d5\u00dc \u0160\u017d \u00e4\u00f6\u00f5\u00fc \u0161\u017e",
+            "\u00d5un"
+          ],
+          "size": [
+            720,
+            400
+          ],
+          "screen": {
+            "path": "review/text-86box-286-et-low-reopened.png",
+            "sha256": "7378d4f3ba5c9e615f327945a8a5bcd33b390dd58db63a72eca4ce0e1f2448bb"
+          }
+        }
+      ],
+      "language": "et",
+      "national_sequences": {
+        "156": [
+          [
+            "ctrl",
+            "alt",
+            "3"
+          ]
+        ],
+        "159": [
+          [
+            "shift",
+            "4"
+          ]
+        ],
+        "129": [
+          [
+            "bracket_left"
+          ]
+        ],
+        "154": [
+          [
+            "shift",
+            "bracket_left"
+          ]
+        ],
+        "228": [
+          [
+            "shift",
+            "grave_accent"
+          ],
+          [
+            "o"
+          ]
+        ],
+        "229": [
+          [
+            "shift",
+            "grave_accent"
+          ],
+          [
+            "shift",
+            "o"
+          ]
+        ],
+        "245": [
+          [
+            "ctrl",
+            "alt",
+            "bracket_right"
+          ]
+        ],
+        "213": [
+          [
+            "grave_accent"
+          ],
+          [
+            "s"
+          ]
+        ],
+        "190": [
+          [
+            "grave_accent"
+          ],
+          [
+            "shift",
+            "s"
+          ]
+        ],
+        "148": [
+          [
+            "semicolon"
+          ]
+        ],
+        "153": [
+          [
+            "shift",
+            "semicolon"
+          ]
+        ],
+        "132": [
+          [
+            "apostrophe"
+          ]
+        ],
+        "142": [
+          [
+            "shift",
+            "apostrophe"
+          ]
+        ],
+        "171": [
+          [
+            "ctrl",
+            "alt",
+            "backslash"
+          ]
+        ],
+        "216": [
+          [
+            "grave_accent"
+          ],
+          [
+            "z"
+          ]
+        ],
+        "207": [
+          [
+            "grave_accent"
+          ],
+          [
+            "shift",
+            "z"
+          ]
+        ],
+        "135": [
+          [
+            "equal"
+          ],
+          [
+            "c"
+          ]
+        ],
+        "130": [
+          [
+            "equal"
+          ],
+          [
+            "e"
+          ]
+        ],
+        "231": [
+          [
+            "equal"
+          ],
+          [
+            "n"
+          ]
+        ],
+        "162": [
+          [
+            "equal"
+          ],
+          [
+            "o"
+          ]
+        ],
+        "152": [
+          [
+            "equal"
+          ],
+          [
+            "s"
+          ]
+        ],
+        "165": [
+          [
+            "equal"
+          ],
+          [
+            "z"
+          ]
+        ],
+        "128": [
+          [
+            "equal"
+          ],
+          [
+            "shift",
+            "c"
+          ]
+        ],
+        "144": [
+          [
+            "equal"
+          ],
+          [
+            "shift",
+            "e"
+          ]
+        ],
+        "227": [
+          [
+            "equal"
+          ],
+          [
+            "shift",
+            "n"
+          ]
+        ],
+        "224": [
+          [
+            "equal"
+          ],
+          [
+            "shift",
+            "o"
+          ]
+        ],
+        "151": [
+          [
+            "equal"
+          ],
+          [
+            "shift",
+            "s"
+          ]
+        ],
+        "141": [
+          [
+            "equal"
+          ],
+          [
+            "shift",
+            "z"
+          ]
+        ],
+        "131": [
+          [
+            "shift",
+            "equal"
+          ],
+          [
+            "a"
+          ]
+        ],
+        "137": [
+          [
+            "shift",
+            "equal"
+          ],
+          [
+            "e"
+          ]
+        ],
+        "140": [
+          [
+            "shift",
+            "equal"
+          ],
+          [
+            "i"
+          ]
+        ],
+        "147": [
+          [
+            "shift",
+            "equal"
+          ],
+          [
+            "o"
+          ]
+        ],
+        "215": [
+          [
+            "shift",
+            "equal"
+          ],
+          [
+            "u"
+          ]
+        ],
+        "160": [
+          [
+            "shift",
+            "equal"
+          ],
+          [
+            "shift",
+            "a"
+          ]
+        ],
+        "237": [
+          [
+            "shift",
+            "equal"
+          ],
+          [
+            "shift",
+            "e"
+          ]
+        ],
+        "161": [
+          [
+            "shift",
+            "equal"
+          ],
+          [
+            "shift",
+            "i"
+          ]
+        ],
+        "226": [
+          [
+            "shift",
+            "equal"
+          ],
+          [
+            "shift",
+            "o"
+          ]
+        ],
+        "199": [
+          [
+            "shift",
+            "equal"
+          ],
+          [
+            "shift",
+            "u"
+          ]
+        ],
+        "208": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "a"
+          ]
+        ],
+        "210": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "e"
+          ]
+        ],
+        "212": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "i"
+          ]
+        ],
+        "214": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "u"
+          ]
+        ],
+        "133": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "g"
+          ]
+        ],
+        "233": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "k"
+          ]
+        ],
+        "235": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "l"
+          ]
+        ],
+        "236": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "n"
+          ]
+        ],
+        "139": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "r"
+          ]
+        ],
+        "181": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "shift",
+            "a"
+          ]
+        ],
+        "183": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "shift",
+            "e"
+          ]
+        ],
+        "189": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "shift",
+            "i"
+          ]
+        ],
+        "198": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "shift",
+            "u"
+          ]
+        ],
+        "149": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "shift",
+            "g"
+          ]
+        ],
+        "232": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "shift",
+            "k"
+          ]
+        ],
+        "234": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "shift",
+            "l"
+          ]
+        ],
+        "238": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "shift",
+            "n"
+          ]
+        ],
+        "138": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "shift",
+            "r"
+          ]
+        ],
+        "209": [
+          [
+            "grave_accent"
+          ],
+          [
+            "c"
+          ]
+        ],
+        "182": [
+          [
+            "grave_accent"
+          ],
+          [
+            "shift",
+            "c"
+          ]
+        ]
+      },
+      "log": {
+        "path": "review/text-86box-286-et-low.log",
+        "sha256": "62d6f921cea2042b392ad6190bc4e679f43de7ab7ea56e646680f32eba23e491"
+      },
+      "files": {
+        "SHELL.TXT": {
+          "path": "review/text-86box-286-et-low-shell.bin",
+          "sha256": "985f5fb3ef9782f21451d19dd7f88928e32187cbb13ab7b848dbf5aa10692133"
+        },
+        "EDIT.TXT": {
+          "path": "review/text-86box-286-et-low-edit.bin",
+          "sha256": "e9edb2a66a147b0abd80dddfc2e6a80351392193b080460d4ff1dcf3ae32cf2e"
+        },
+        "COPY.TXT": {
+          "path": "review/text-86box-286-et-low-copy.bin",
+          "sha256": "1f6eb0e98d1f627cdab05b30bb964298d14c66f5d11aded0c834a3b870e8b3de"
+        },
+        "PIPE.TXT": {
+          "path": "review/text-86box-286-et-low-pipe.bin",
+          "sha256": "6e1d5e430e10452f39dcacb300381bf1c5774f0f3ff8719e0e765006d6febe62"
+        }
+      },
+      "events": {
+        "path": "review/text-86box-286-et-low-events.json",
+        "sha256": "2edb3feeb37d9d052110221b2d4f78bc3cd43c19f1f6a93db8ad71c980001faf"
+      },
+      "resource_sha256": {
+        "EDLIN.COM": "21dcc094437d6e7dbed8d8cf34d5b7bb6629d6fd8f9b0256710bc038a77e132a",
+        "FIND.EXE": "bce1e2a4df29876ae4720bec538cb8034d833c5eb945718e6a05d7510d1c399e",
+        "KEYB.COM": "924edf011009fe4a747d045f24ae5da817b613e914cbf58b66ca22e3637ffa3e",
+        "KEYBRD2.SYS": "d003716471ffbe12803ac7beaf511a8a4e2d6a0b8ef5e3d214eee2a69584cf06",
+        "EGA775.CPI": "ab38fe5b8acae0ba3933ac6b66596c58b32bc23385285b8cc68fec1fa8f15255",
+        "DISPLAY.SYS": "0ebd3bfad4e87d79e05219c02ea71ce4e94f9e11b432efdf652a022488d9ac08",
+        "COUNTRY.SYS": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c",
+        "NLSFUNC.EXE": "bc2a0c9b0900bcac03a6cfe072ea56ea01bd2333b1d1bf8f810f28e668340e67",
+        "MODE.COM": "c385aad5697fcec3a9113f58b983b978a7f969e99b153ebd496b12dab0e3767d"
+      },
+      "config": "COUNTRY=372,775,COUNTRY.SYS\r\nDOS=LOW\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(1,3))\r\n",
+      "backend": "86box-286",
+      "private_artifacts": "out/baltic-text-8o0hhtjm/et/low",
+      "sample": "Tere, \u00f5un ja \u00f6\u00f6! \u00c4\u00d6\u00d5\u00dc \u0160\u017d \u00e4\u00f6\u00f5\u00fc \u0161\u017e",
+      "second": "\u00d5un",
+      "composed_characters": [
+        "\u00d5",
+        "\u00f5",
+        "\u0160",
+        "\u0161",
+        "\u017d",
+        "\u017e"
+      ],
+      "machine_configuration": {
+        "path": "review/text-86box-286-et-low-startup.cfg",
+        "sha256": "04fc259a69de497046ae6ceda8e50d189c09d1fd8ff337589e2088e0e3adb1fe"
+      },
+      "global_configuration": {
+        "path": "review/text-86box-286-et-low-global.cfg",
+        "sha256": "f73f16006e8e914f7a23dd3a49ebd821d9c11cca6a64647342c447d1d679c664"
+      }
+    },
+    {
+      "profile": "low",
+      "emulator_exit": 0,
+      "files_hex": {
+        "SHELL.TXT": "4c616261732c20d0d8756f6c61732120b5b6b7b8bdbec6c7cf20d0d1d2d3d4d5d6d7d80d0a",
+        "EDIT.TXT": "4c616261732c20d0d8756f6c61732120b5b6b7b8bdbec6c7cf20d0d1d2d3d4d5d6d7d80d0ab5d8756f6c61730d0a1a",
+        "COPY.TXT": "4c616261732c20d0d8756f6c61732120b5b6b7b8bdbec6c7cf20d0d1d2d3d4d5d6d7d80d0ab5d8756f6c61730d0a",
+        "PIPE.TXT": "b5d8756f6c61730d0a"
+      },
+      "captures": [
+        {
+          "name": "shell",
+          "expected_text": [
+            "Labas, \u0105\u017euolas! \u0104\u010c\u0118\u0116\u012e\u0160\u0172\u016a\u017d \u0105\u010d\u0119\u0117\u012f\u0161\u0173\u016b\u017e"
+          ],
+          "size": [
+            720,
+            400
+          ],
+          "screen": {
+            "path": "review/text-86box-286-lt-low-shell.png",
+            "sha256": "f84d9bbf8850028bf08a74ba14bcff11ce74203ee920d99d594a5516e2f17c66"
+          }
+        },
+        {
+          "name": "edited",
+          "expected_text": [
+            "Labas, \u0105\u017euolas! \u0104\u010c\u0118\u0116\u012e\u0160\u0172\u016a\u017d \u0105\u010d\u0119\u0117\u012f\u0161\u0173\u016b\u017e",
+            "\u0104\u017euolas"
+          ],
+          "size": [
+            720,
+            400
+          ],
+          "screen": {
+            "path": "review/text-86box-286-lt-low-edited.png",
+            "sha256": "840cb1cccf85cb6a75d8b5b24eb4370123c6685fb4f326efe3a866d883e314d5"
+          }
+        },
+        {
+          "name": "reopened",
+          "expected_text": [
+            "Labas, \u0105\u017euolas! \u0104\u010c\u0118\u0116\u012e\u0160\u0172\u016a\u017d \u0105\u010d\u0119\u0117\u012f\u0161\u0173\u016b\u017e",
+            "\u0104\u017euolas"
+          ],
+          "size": [
+            720,
+            400
+          ],
+          "screen": {
+            "path": "review/text-86box-286-lt-low-reopened.png",
+            "sha256": "eece5a071715673be0e2bc4e2e48205a598b47ae11d4c007f5861b73157a5f39"
+          }
+        }
+      ],
+      "language": "lt",
+      "national_sequences": {
+        "245": [
+          [
+            "ctrl",
+            "alt",
+            "5"
+          ]
+        ],
+        "208": [
+          [
+            "q"
+          ]
+        ],
+        "181": [
+          [
+            "shift",
+            "q"
+          ]
+        ],
+        "216": [
+          [
+            "w"
+          ]
+        ],
+        "207": [
+          [
+            "shift",
+            "w"
+          ]
+        ],
+        "212": [
+          [
+            "bracket_left"
+          ]
+        ],
+        "189": [
+          [
+            "shift",
+            "bracket_left"
+          ]
+        ],
+        "213": [
+          [
+            "f"
+          ]
+        ],
+        "190": [
+          [
+            "shift",
+            "f"
+          ]
+        ],
+        "214": [
+          [
+            "semicolon"
+          ]
+        ],
+        "198": [
+          [
+            "shift",
+            "semicolon"
+          ]
+        ],
+        "211": [
+          [
+            "apostrophe"
+          ]
+        ],
+        "184": [
+          [
+            "shift",
+            "apostrophe"
+          ]
+        ],
+        "239": [
+          [
+            "ctrl",
+            "alt",
+            "grave_accent"
+          ]
+        ],
+        "215": [
+          [
+            "x"
+          ]
+        ],
+        "199": [
+          [
+            "shift",
+            "x"
+          ]
+        ],
+        "209": [
+          [
+            "comma"
+          ]
+        ],
+        "182": [
+          [
+            "shift",
+            "comma"
+          ]
+        ],
+        "247": [
+          [
+            "ctrl",
+            "alt",
+            "comma"
+          ]
+        ],
+        "242": [
+          [
+            "ctrl",
+            "alt",
+            "dot"
+          ]
+        ],
+        "210": [
+          [
+            "slash"
+          ]
+        ],
+        "183": [
+          [
+            "shift",
+            "slash"
+          ]
+        ]
+      },
+      "log": {
+        "path": "review/text-86box-286-lt-low.log",
+        "sha256": "3f30a751a0590f5a5f50b5863c9c9a4d4f845069d236c2667d65a013d6c67290"
+      },
+      "files": {
+        "SHELL.TXT": {
+          "path": "review/text-86box-286-lt-low-shell.bin",
+          "sha256": "97bfdb1d822c41014d059c45d796b33b282ed3942a783244421342955f22806f"
+        },
+        "EDIT.TXT": {
+          "path": "review/text-86box-286-lt-low-edit.bin",
+          "sha256": "2e5c801efbe02bc5eb5194c63f8f8e2941196a6e557141ff68254b33fe244243"
+        },
+        "COPY.TXT": {
+          "path": "review/text-86box-286-lt-low-copy.bin",
+          "sha256": "ea59c23212b20e90538e25f89097860c8c91f670a14c130eba4c6dac68974960"
+        },
+        "PIPE.TXT": {
+          "path": "review/text-86box-286-lt-low-pipe.bin",
+          "sha256": "d4c62cb885fbe390be342200d9a196f9c1d970c2aece01684f686d11fe54a1af"
+        }
+      },
+      "events": {
+        "path": "review/text-86box-286-lt-low-events.json",
+        "sha256": "1112db20bec8ef9868a3a03f9a183a5559331d363cc73c5c377e482707590636"
+      },
+      "resource_sha256": {
+        "EDLIN.COM": "21dcc094437d6e7dbed8d8cf34d5b7bb6629d6fd8f9b0256710bc038a77e132a",
+        "FIND.EXE": "bce1e2a4df29876ae4720bec538cb8034d833c5eb945718e6a05d7510d1c399e",
+        "KEYB.COM": "924edf011009fe4a747d045f24ae5da817b613e914cbf58b66ca22e3637ffa3e",
+        "KEYBRD2.SYS": "d003716471ffbe12803ac7beaf511a8a4e2d6a0b8ef5e3d214eee2a69584cf06",
+        "EGA775.CPI": "ab38fe5b8acae0ba3933ac6b66596c58b32bc23385285b8cc68fec1fa8f15255",
+        "DISPLAY.SYS": "0ebd3bfad4e87d79e05219c02ea71ce4e94f9e11b432efdf652a022488d9ac08",
+        "COUNTRY.SYS": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c",
+        "NLSFUNC.EXE": "bc2a0c9b0900bcac03a6cfe072ea56ea01bd2333b1d1bf8f810f28e668340e67",
+        "MODE.COM": "c385aad5697fcec3a9113f58b983b978a7f969e99b153ebd496b12dab0e3767d"
+      },
+      "config": "COUNTRY=370,775,COUNTRY.SYS\r\nDOS=LOW\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(1,3))\r\n",
+      "backend": "86box-286",
+      "private_artifacts": "out/baltic-text-8o0hhtjm/lt/low",
+      "sample": "Labas, \u0105\u017euolas! \u0104\u010c\u0118\u0116\u012e\u0160\u0172\u016a\u017d \u0105\u010d\u0119\u0117\u012f\u0161\u0173\u016b\u017e",
+      "second": "\u0104\u017euolas",
+      "composed_characters": [],
+      "machine_configuration": {
+        "path": "review/text-86box-286-lt-low-startup.cfg",
+        "sha256": "04fc259a69de497046ae6ceda8e50d189c09d1fd8ff337589e2088e0e3adb1fe"
+      },
+      "global_configuration": {
+        "path": "review/text-86box-286-lt-low-global.cfg",
+        "sha256": "f73f16006e8e914f7a23dd3a49ebd821d9c11cca6a64647342c447d1d679c664"
+      }
+    },
+    {
+      "profile": "low",
+      "emulator_exit": 0,
+      "files_hex": {
+        "SHELL.TXT": "4c6162728c742c20528c67612120a0b6ed95a1e8eaeebec7cf2083d189858ce9ebecd5d7d8202f2045543a20e40d0a",
+        "EDIT.TXT": "4c6162728c742c20528c67612120a0b6ed95a1e8eaeebec7cf2083d189858ce9ebecd5d7d8202f2045543a20e40d0ae869727369730d0a1a",
+        "COPY.TXT": "4c6162728c742c20528c67612120a0b6ed95a1e8eaeebec7cf2083d189858ce9ebecd5d7d8202f2045543a20e40d0ae869727369730d0a",
+        "PIPE.TXT": "e869727369730d0a"
+      },
+      "captures": [
+        {
+          "name": "shell",
+          "expected_text": [
+            "Labr\u012bt, R\u012bga! \u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d \u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e / ET: \u00f5"
+          ],
+          "size": [
+            720,
+            400
+          ],
+          "screen": {
+            "path": "review/text-86box-286-lv-low-shell.png",
+            "sha256": "bce9be411f4c544192e6f4e02c9cf8463c0d56b38f1129aa18be5b1dd5d2249b"
+          }
+        },
+        {
+          "name": "edited",
+          "expected_text": [
+            "Labr\u012bt, R\u012bga! \u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d \u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e / ET: \u00f5",
+            "\u0136irsis"
+          ],
+          "size": [
+            720,
+            400
+          ],
+          "screen": {
+            "path": "review/text-86box-286-lv-low-edited.png",
+            "sha256": "9f1a9094c8ee40770932eeb360b7fb1efe6249085192053ad6a519ce0c62b88a"
+          }
+        },
+        {
+          "name": "reopened",
+          "expected_text": [
+            "Labr\u012bt, R\u012bga! \u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d \u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e / ET: \u00f5",
+            "\u0136irsis"
+          ],
+          "size": [
+            720,
+            400
+          ],
+          "screen": {
+            "path": "review/text-86box-286-lv-low-reopened.png",
+            "sha256": "d3f46ed8edc9e512839483a311751fb4bd541624bfb31552dc49b842bc670b9a"
+          }
+        }
+      ],
+      "language": "lv",
+      "national_sequences": {
+        "255": [
+          [
+            "ctrl",
+            "alt",
+            "1"
+          ]
+        ],
+        "174": [
+          [
+            "ctrl",
+            "alt",
+            "2"
+          ]
+        ],
+        "175": [
+          [
+            "ctrl",
+            "alt",
+            "3"
+          ]
+        ],
+        "245": [
+          [
+            "shift",
+            "ctrl",
+            "alt",
+            "4"
+          ]
+        ],
+        "248": [
+          [
+            "shift",
+            "ctrl",
+            "alt",
+            "5"
+          ]
+        ],
+        "241": [
+          [
+            "shift",
+            "ctrl",
+            "alt",
+            "7"
+          ]
+        ],
+        "158": [
+          [
+            "shift",
+            "ctrl",
+            "alt",
+            "8"
+          ]
+        ],
+        "137": [
+          [
+            "ctrl",
+            "alt",
+            "e"
+          ]
+        ],
+        "237": [
+          [
+            "shift",
+            "ctrl",
+            "alt",
+            "e"
+          ]
+        ],
+        "139": [
+          [
+            "ctrl",
+            "alt",
+            "r"
+          ]
+        ],
+        "138": [
+          [
+            "shift",
+            "ctrl",
+            "alt",
+            "r"
+          ]
+        ],
+        "215": [
+          [
+            "ctrl",
+            "alt",
+            "u"
+          ]
+        ],
+        "199": [
+          [
+            "shift",
+            "ctrl",
+            "alt",
+            "u"
+          ]
+        ],
+        "140": [
+          [
+            "ctrl",
+            "alt",
+            "i"
+          ]
+        ],
+        "161": [
+          [
+            "shift",
+            "ctrl",
+            "alt",
+            "i"
+          ]
+        ],
+        "228": [
+          [
+            "shift",
+            "grave_accent"
+          ],
+          [
+            "o"
+          ]
+        ],
+        "229": [
+          [
+            "shift",
+            "grave_accent"
+          ],
+          [
+            "shift",
+            "o"
+          ]
+        ],
+        "131": [
+          [
+            "ctrl",
+            "alt",
+            "a"
+          ]
+        ],
+        "160": [
+          [
+            "shift",
+            "ctrl",
+            "alt",
+            "a"
+          ]
+        ],
+        "213": [
+          [
+            "ctrl",
+            "alt",
+            "s"
+          ]
+        ],
+        "190": [
+          [
+            "shift",
+            "ctrl",
+            "alt",
+            "s"
+          ]
+        ],
+        "133": [
+          [
+            "ctrl",
+            "alt",
+            "g"
+          ]
+        ],
+        "149": [
+          [
+            "shift",
+            "ctrl",
+            "alt",
+            "g"
+          ]
+        ],
+        "233": [
+          [
+            "ctrl",
+            "alt",
+            "k"
+          ]
+        ],
+        "232": [
+          [
+            "shift",
+            "ctrl",
+            "alt",
+            "k"
+          ]
+        ],
+        "235": [
+          [
+            "ctrl",
+            "alt",
+            "l"
+          ]
+        ],
+        "234": [
+          [
+            "shift",
+            "ctrl",
+            "alt",
+            "l"
+          ]
+        ],
+        "216": [
+          [
+            "ctrl",
+            "alt",
+            "z"
+          ]
+        ],
+        "207": [
+          [
+            "shift",
+            "ctrl",
+            "alt",
+            "z"
+          ]
+        ],
+        "209": [
+          [
+            "ctrl",
+            "alt",
+            "c"
+          ]
+        ],
+        "182": [
+          [
+            "shift",
+            "ctrl",
+            "alt",
+            "c"
+          ]
+        ],
+        "236": [
+          [
+            "ctrl",
+            "alt",
+            "n"
+          ]
+        ],
+        "238": [
+          [
+            "shift",
+            "ctrl",
+            "alt",
+            "n"
+          ]
+        ],
+        "135": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "c"
+          ]
+        ],
+        "130": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "e"
+          ]
+        ],
+        "231": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "n"
+          ]
+        ],
+        "162": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "o"
+          ]
+        ],
+        "152": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "s"
+          ]
+        ],
+        "165": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "z"
+          ]
+        ],
+        "128": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "shift",
+            "c"
+          ]
+        ],
+        "144": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "shift",
+            "e"
+          ]
+        ],
+        "227": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "shift",
+            "n"
+          ]
+        ],
+        "224": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "shift",
+            "o"
+          ]
+        ],
+        "151": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "shift",
+            "s"
+          ]
+        ],
+        "141": [
+          [
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "shift",
+            "z"
+          ]
+        ],
+        "132": [
+          [
+            "shift",
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "a"
+          ]
+        ],
+        "148": [
+          [
+            "shift",
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "o"
+          ]
+        ],
+        "129": [
+          [
+            "shift",
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "u"
+          ]
+        ],
+        "142": [
+          [
+            "shift",
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "shift",
+            "a"
+          ]
+        ],
+        "153": [
+          [
+            "shift",
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "shift",
+            "o"
+          ]
+        ],
+        "154": [
+          [
+            "shift",
+            "ctrl",
+            "alt",
+            "apostrophe"
+          ],
+          [
+            "shift",
+            "u"
+          ]
+        ],
+        "134": [
+          [
+            "backslash"
+          ],
+          [
+            "a"
+          ]
+        ],
+        "211": [
+          [
+            "backslash"
+          ],
+          [
+            "e"
+          ]
+        ],
+        "164": [
+          [
+            "backslash"
+          ],
+          [
+            "z"
+          ]
+        ],
+        "143": [
+          [
+            "backslash"
+          ],
+          [
+            "shift",
+            "a"
+          ]
+        ],
+        "184": [
+          [
+            "backslash"
+          ],
+          [
+            "shift",
+            "e"
+          ]
+        ],
+        "163": [
+          [
+            "backslash"
+          ],
+          [
+            "shift",
+            "z"
+          ]
+        ]
+      },
+      "log": {
+        "path": "review/text-86box-286-lv-low.log",
+        "sha256": "548ee8bd7e98115b6699abaddeebde3b4bd166755a83b0b1bef17e7f5013d226"
+      },
+      "files": {
+        "SHELL.TXT": {
+          "path": "review/text-86box-286-lv-low-shell.bin",
+          "sha256": "4dd4249cd9b3c824d52cdd20330bbbb0fe242dea10be006d2fd2441a43f40a3e"
+        },
+        "EDIT.TXT": {
+          "path": "review/text-86box-286-lv-low-edit.bin",
+          "sha256": "e883a9857e367c536ab73eee1f36d85d39976a69779e357aa529cdda52c12bce"
+        },
+        "COPY.TXT": {
+          "path": "review/text-86box-286-lv-low-copy.bin",
+          "sha256": "8f9ccad197778ac841c5d41ca1729ced47623ce0ae19bdb56184a42066687ad8"
+        },
+        "PIPE.TXT": {
+          "path": "review/text-86box-286-lv-low-pipe.bin",
+          "sha256": "4afdb3786c9055add1a38472ed6da82e8e4d60a807830b2b902d8e6f682bdf96"
+        }
+      },
+      "events": {
+        "path": "review/text-86box-286-lv-low-events.json",
+        "sha256": "62d4bc80a0655f75f5ebbcce4ff82fc1aa1f121b9573eb55d1bee5a4320ad5b4"
+      },
+      "resource_sha256": {
+        "EDLIN.COM": "21dcc094437d6e7dbed8d8cf34d5b7bb6629d6fd8f9b0256710bc038a77e132a",
+        "FIND.EXE": "bce1e2a4df29876ae4720bec538cb8034d833c5eb945718e6a05d7510d1c399e",
+        "KEYB.COM": "924edf011009fe4a747d045f24ae5da817b613e914cbf58b66ca22e3637ffa3e",
+        "KEYBRD2.SYS": "d003716471ffbe12803ac7beaf511a8a4e2d6a0b8ef5e3d214eee2a69584cf06",
+        "EGA775.CPI": "ab38fe5b8acae0ba3933ac6b66596c58b32bc23385285b8cc68fec1fa8f15255",
+        "DISPLAY.SYS": "0ebd3bfad4e87d79e05219c02ea71ce4e94f9e11b432efdf652a022488d9ac08",
+        "COUNTRY.SYS": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c",
+        "NLSFUNC.EXE": "bc2a0c9b0900bcac03a6cfe072ea56ea01bd2333b1d1bf8f810f28e668340e67",
+        "MODE.COM": "c385aad5697fcec3a9113f58b983b978a7f969e99b153ebd496b12dab0e3767d"
+      },
+      "config": "COUNTRY=371,775,COUNTRY.SYS\r\nDOS=LOW\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(1,3))\r\n",
+      "backend": "86box-286",
+      "private_artifacts": "out/baltic-text-boyt89ce/lv/low",
+      "sample": "Labr\u012bt, R\u012bga! \u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d \u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e / ET: \u00f5",
+      "second": "\u0136irsis",
+      "composed_characters": [
+        "\u00f5"
+      ],
+      "machine_configuration": {
+        "path": "review/text-86box-286-lv-low-startup.cfg",
+        "sha256": "04fc259a69de497046ae6ceda8e50d189c09d1fd8ff337589e2088e0e3adb1fe"
+      },
+      "global_configuration": {
+        "path": "review/text-86box-286-lv-low-global.cfg",
+        "sha256": "f73f16006e8e914f7a23dd3a49ebd821d9c11cca6a64647342c447d1d679c664"
+      }
+    }
+  ],
+  "regressions": {
+    "russian": {
+      "status": "selected-cases-passed",
+      "core_sha256": {
+        "IO.SYS": "793169a292df40bb117eb487136a0d8e7f4334ca223e8206bf53f33141f24715",
+        "MSDOS.SYS": "1475174f50c8c349bedd7cd4a0be88bce055f2e411b7454b5f68fffbff269b62",
+        "COMMAND.COM": "6742b5889141a9c61d41e336445014d8055c19758febf4263f4f8ebe3c2f2c29",
+        "HIMEM.SYS": "340cbfd1f0e835755adce99d80c607f8edeb48ea2b20a6a142402a25434f8d13",
+        "EMM386.EXE": "58266b6614594de7a9cfde9eda75e3eb241b9e2e941e67b70645a0f8a197dae6"
+      },
+      "backend": "qemu",
+      "cases": [
+        {
+          "profile": "high",
+          "emulator_exit": 33,
+          "files_hex": {
+            "SHELL.TXT": "8fe0a8a2a5e220aca8e020f0f120444f530d0a",
+            "EDIT.TXT": "8fe0a8a2a5e220aca8e020f0f120444f530d0a92a5aae1e20d0a1a",
+            "COPY.TXT": "8fe0a8a2a5e220aca8e020f0f120444f530d0a92a5aae1e20d0a",
+            "PIPE.TXT": "92a5aae1e20d0a"
+          },
+          "log": {
+            "path": "review/text-ru-high.log",
+            "sha256": "e2be54e448e21acde447d1288b4d8de95f5476b0a2e49acabed42490dbc86f50"
+          }
+        },
+        {
+          "profile": "low",
+          "emulator_exit": 33,
+          "files_hex": {
+            "SHELL.TXT": "8fe0a8a2a5e220aca8e020f0f120444f530d0a",
+            "EDIT.TXT": "8fe0a8a2a5e220aca8e020f0f120444f530d0a92a5aae1e20d0a1a",
+            "COPY.TXT": "8fe0a8a2a5e220aca8e020f0f120444f530d0a92a5aae1e20d0a",
+            "PIPE.TXT": "92a5aae1e20d0a"
+          },
+          "log": {
+            "path": "review/text-ru-low.log",
+            "sha256": "fb46bded5420e4dc2ef25d9176f4cb041a9b541f66a846845ef00edfa11b6540"
+          }
+        }
+      ]
+    },
+    "find_sbcs": {
+      "status": "passed",
+      "core_sha256": {
+        "IO.SYS": "793169a292df40bb117eb487136a0d8e7f4334ca223e8206bf53f33141f24715",
+        "MSDOS.SYS": "1475174f50c8c349bedd7cd4a0be88bce055f2e411b7454b5f68fffbff269b62",
+        "COMMAND.COM": "6742b5889141a9c61d41e336445014d8055c19758febf4263f4f8ebe3c2f2c29",
+        "HIMEM.SYS": "340cbfd1f0e835755adce99d80c607f8edeb48ea2b20a6a142402a25434f8d13",
+        "EMM386.EXE": "58266b6614594de7a9cfde9eda75e3eb241b9e2e941e67b70645a0f8a197dae6"
+      },
+      "find_sha256": "bce1e2a4df29876ae4720bec538cb8034d833c5eb945718e6a05d7510d1c399e",
+      "cases": [
+        {
+          "profile": "high",
+          "emulator_exit": 33,
+          "files": {
+            "AYES.OUT": {
+              "sha256": "a590a2aaf56cdfb15bcba61770527d3324101a89aaf344b40f5400f99357ddec",
+              "size": 1024,
+              "artifact": {
+                "path": "review/text-find-high-AYES.OUT.bin",
+                "sha256": "a590a2aaf56cdfb15bcba61770527d3324101a89aaf344b40f5400f99357ddec"
+              }
+            },
+            "ANO.OUT": {
+              "sha256": "67a960a8cf79a61e5bd0fbcf3d8638d0b94b4fdaeb32ec789e80b279099ee2df",
+              "size": 1152,
+              "artifact": {
+                "path": "review/text-find-high-ANO.OUT.bin",
+                "sha256": "67a960a8cf79a61e5bd0fbcf3d8638d0b94b4fdaeb32ec789e80b279099ee2df"
+              }
+            },
+            "BYES.OUT": {
+              "sha256": "3e04efa9fdd487051c38ffc29b2ac606bf798bf1f90f8fdaece18b8f31901bfd",
+              "size": 640,
+              "artifact": {
+                "path": "review/text-find-high-BYES.OUT.bin",
+                "sha256": "3e04efa9fdd487051c38ffc29b2ac606bf798bf1f90f8fdaece18b8f31901bfd"
+              }
+            },
+            "BNO.OUT": {
+              "sha256": "67a960a8cf79a61e5bd0fbcf3d8638d0b94b4fdaeb32ec789e80b279099ee2df",
+              "size": 1152,
+              "artifact": {
+                "path": "review/text-find-high-BNO.OUT.bin",
+                "sha256": "67a960a8cf79a61e5bd0fbcf3d8638d0b94b4fdaeb32ec789e80b279099ee2df"
+              }
+            }
+          },
+          "inputs_hex": {
+            "ASCII.TXT": "707265666978800d0a6e6565646c650d0a707265666978810d0a6e6565646c650d0a707265666978820d0a6e6565646c650d0a707265666978830d0a6e6565646c650d0a707265666978840d0a6e6565646c650d0a707265666978850d0a6e6565646c650d0a707265666978860d0a6e6565646c650d0a707265666978870d0a6e6565646c650d0a707265666978880d0a6e6565646c650d0a707265666978890d0a6e6565646c650d0a7072656669788a0d0a6e6565646c650d0a7072656669788b0d0a6e6565646c650d0a7072656669788c0d0a6e6565646c650d0a7072656669788d0d0a6e6565646c650d0a7072656669788e0d0a6e6565646c650d0a7072656669788f0d0a6e6565646c650d0a707265666978900d0a6e6565646c650d0a707265666978910d0a6e6565646c650d0a707265666978920d0a6e6565646c650d0a707265666978930d0a6e6565646c650d0a707265666978940d0a6e6565646c650d0a707265666978950d0a6e6565646c650d0a707265666978960d0a6e6565646c650d0a707265666978970d0a6e6565646c650d0a707265666978980d0a6e6565646c650d0a707265666978990d0a6e6565646c650d0a7072656669789a0d0a6e6565646c650d0a7072656669789b0d0a6e6565646c650d0a7072656669789c0d0a6e6565646c650d0a7072656669789d0d0a6e6565646c650d0a7072656669789e0d0a6e6565646c650d0a7072656669789f0d0a6e6565646c650d0a707265666978a00d0a6e6565646c650d0a707265666978a10d0a6e6565646c650d0a707265666978a20d0a6e6565646c650d0a707265666978a30d0a6e6565646c650d0a707265666978a40d0a6e6565646c650d0a707265666978a50d0a6e6565646c650d0a707265666978a60d0a6e6565646c650d0a707265666978a70d0a6e6565646c650d0a707265666978a80d0a6e6565646c650d0a707265666978a90d0a6e6565646c650d0a707265666978aa0d0a6e6565646c650d0a707265666978ab0d0a6e6565646c650d0a707265666978ac0d0a6e6565646c650d0a707265666978ad0d0a6e6565646c650d0a707265666978ae0d0a6e6565646c650d0a707265666978af0d0a6e6565646c650d0a707265666978b00d0a6e6565646c650d0a707265666978b10d0a6e6565646c650d0a707265666978b20d0a6e6565646c650d0a707265666978b30d0a6e6565646c650d0a707265666978b40d0a6e6565646c650d0a707265666978b50d0a6e6565646c650d0a707265666978b60d0a6e6565646c650d0a707265666978b70d0a6e6565646c650d0a707265666978b80d0a6e6565646c650d0a707265666978b90d0a6e6565646c650d0a707265666978ba0d0a6e6565646c650d0a707265666978bb0d0a6e6565646c650d0a707265666978bc0d0a6e6565646c650d0a707265666978bd0d0a6e6565646c650d0a707265666978be0d0a6e6565646c650d0a707265666978bf0d0a6e6565646c650d0a707265666978c00d0a6e6565646c650d0a707265666978c10d0a6e6565646c650d0a707265666978c20d0a6e6565646c650d0a707265666978c30d0a6e6565646c650d0a707265666978c40d0a6e6565646c650d0a707265666978c50d0a6e6565646c650d0a707265666978c60d0a6e6565646c650d0a707265666978c70d0a6e6565646c650d0a707265666978c80d0a6e6565646c650d0a707265666978c90d0a6e6565646c650d0a707265666978ca0d0a6e6565646c650d0a707265666978cb0d0a6e6565646c650d0a707265666978cc0d0a6e6565646c650d0a707265666978cd0d0a6e6565646c650d0a707265666978ce0d0a6e6565646c650d0a707265666978cf0d0a6e6565646c650d0a707265666978d00d0a6e6565646c650d0a707265666978d10d0a6e6565646c650d0a707265666978d20d0a6e6565646c650d0a707265666978d30d0a6e6565646c650d0a707265666978d40d0a6e6565646c650d0a707265666978d50d0a6e6565646c650d0a707265666978d60d0a6e6565646c650d0a707265666978d70d0a6e6565646c650d0a707265666978d80d0a6e6565646c650d0a707265666978d90d0a6e6565646c650d0a707265666978da0d0a6e6565646c650d0a707265666978db0d0a6e6565646c650d0a707265666978dc0d0a6e6565646c650d0a707265666978dd0d0a6e6565646c650d0a707265666978de0d0a6e6565646c650d0a707265666978df0d0a6e6565646c650d0a707265666978e00d0a6e6565646c650d0a707265666978e10d0a6e6565646c650d0a707265666978e20d0a6e6565646c650d0a707265666978e30d0a6e6565646c650d0a707265666978e40d0a6e6565646c650d0a707265666978e50d0a6e6565646c650d0a707265666978e60d0a6e6565646c650d0a707265666978e70d0a6e6565646c650d0a707265666978e80d0a6e6565646c650d0a707265666978e90d0a6e6565646c650d0a707265666978ea0d0a6e6565646c650d0a707265666978eb0d0a6e6565646c650d0a707265666978ec0d0a6e6565646c650d0a707265666978ed0d0a6e6565646c650d0a707265666978ee0d0a6e6565646c650d0a707265666978ef0d0a6e6565646c650d0a707265666978f00d0a6e6565646c650d0a707265666978f10d0a6e6565646c650d0a707265666978f20d0a6e6565646c650d0a707265666978f30d0a6e6565646c650d0a707265666978f40d0a6e6565646c650d0a707265666978f50d0a6e6565646c650d0a707265666978f60d0a6e6565646c650d0a707265666978f70d0a6e6565646c650d0a707265666978f80d0a6e6565646c650d0a707265666978f90d0a6e6565646c650d0a707265666978fa0d0a6e6565646c650d0a707265666978fb0d0a6e6565646c650d0a707265666978fc0d0a6e6565646c650d0a707265666978fd0d0a6e6565646c650d0a707265666978fe0d0a6e6565646c650d0a707265666978ff0d0a6e6565646c650d0a",
+            "BALTIC.TXT": "707265666978800d0ae5756e0d0a707265666978810d0ae5756e0d0a707265666978820d0ae5756e0d0a707265666978830d0ae5756e0d0a707265666978840d0ae5756e0d0a707265666978850d0ae5756e0d0a707265666978860d0ae5756e0d0a707265666978870d0ae5756e0d0a707265666978880d0ae5756e0d0a707265666978890d0ae5756e0d0a7072656669788a0d0ae5756e0d0a7072656669788b0d0ae5756e0d0a7072656669788c0d0ae5756e0d0a7072656669788d0d0ae5756e0d0a7072656669788e0d0ae5756e0d0a7072656669788f0d0ae5756e0d0a707265666978900d0ae5756e0d0a707265666978910d0ae5756e0d0a707265666978920d0ae5756e0d0a707265666978930d0ae5756e0d0a707265666978940d0ae5756e0d0a707265666978950d0ae5756e0d0a707265666978960d0ae5756e0d0a707265666978970d0ae5756e0d0a707265666978980d0ae5756e0d0a707265666978990d0ae5756e0d0a7072656669789a0d0ae5756e0d0a7072656669789b0d0ae5756e0d0a7072656669789c0d0ae5756e0d0a7072656669789d0d0ae5756e0d0a7072656669789e0d0ae5756e0d0a7072656669789f0d0ae5756e0d0a707265666978a00d0ae5756e0d0a707265666978a10d0ae5756e0d0a707265666978a20d0ae5756e0d0a707265666978a30d0ae5756e0d0a707265666978a40d0ae5756e0d0a707265666978a50d0ae5756e0d0a707265666978a60d0ae5756e0d0a707265666978a70d0ae5756e0d0a707265666978a80d0ae5756e0d0a707265666978a90d0ae5756e0d0a707265666978aa0d0ae5756e0d0a707265666978ab0d0ae5756e0d0a707265666978ac0d0ae5756e0d0a707265666978ad0d0ae5756e0d0a707265666978ae0d0ae5756e0d0a707265666978af0d0ae5756e0d0a707265666978b00d0ae5756e0d0a707265666978b10d0ae5756e0d0a707265666978b20d0ae5756e0d0a707265666978b30d0ae5756e0d0a707265666978b40d0ae5756e0d0a707265666978b50d0ae5756e0d0a707265666978b60d0ae5756e0d0a707265666978b70d0ae5756e0d0a707265666978b80d0ae5756e0d0a707265666978b90d0ae5756e0d0a707265666978ba0d0ae5756e0d0a707265666978bb0d0ae5756e0d0a707265666978bc0d0ae5756e0d0a707265666978bd0d0ae5756e0d0a707265666978be0d0ae5756e0d0a707265666978bf0d0ae5756e0d0a707265666978c00d0ae5756e0d0a707265666978c10d0ae5756e0d0a707265666978c20d0ae5756e0d0a707265666978c30d0ae5756e0d0a707265666978c40d0ae5756e0d0a707265666978c50d0ae5756e0d0a707265666978c60d0ae5756e0d0a707265666978c70d0ae5756e0d0a707265666978c80d0ae5756e0d0a707265666978c90d0ae5756e0d0a707265666978ca0d0ae5756e0d0a707265666978cb0d0ae5756e0d0a707265666978cc0d0ae5756e0d0a707265666978cd0d0ae5756e0d0a707265666978ce0d0ae5756e0d0a707265666978cf0d0ae5756e0d0a707265666978d00d0ae5756e0d0a707265666978d10d0ae5756e0d0a707265666978d20d0ae5756e0d0a707265666978d30d0ae5756e0d0a707265666978d40d0ae5756e0d0a707265666978d50d0ae5756e0d0a707265666978d60d0ae5756e0d0a707265666978d70d0ae5756e0d0a707265666978d80d0ae5756e0d0a707265666978d90d0ae5756e0d0a707265666978da0d0ae5756e0d0a707265666978db0d0ae5756e0d0a707265666978dc0d0ae5756e0d0a707265666978dd0d0ae5756e0d0a707265666978de0d0ae5756e0d0a707265666978df0d0ae5756e0d0a707265666978e00d0ae5756e0d0a707265666978e10d0ae5756e0d0a707265666978e20d0ae5756e0d0a707265666978e30d0ae5756e0d0a707265666978e40d0ae5756e0d0a707265666978e50d0ae5756e0d0a707265666978e60d0ae5756e0d0a707265666978e70d0ae5756e0d0a707265666978e80d0ae5756e0d0a707265666978e90d0ae5756e0d0a707265666978ea0d0ae5756e0d0a707265666978eb0d0ae5756e0d0a707265666978ec0d0ae5756e0d0a707265666978ed0d0ae5756e0d0a707265666978ee0d0ae5756e0d0a707265666978ef0d0ae5756e0d0a707265666978f00d0ae5756e0d0a707265666978f10d0ae5756e0d0a707265666978f20d0ae5756e0d0a707265666978f30d0ae5756e0d0a707265666978f40d0ae5756e0d0a707265666978f50d0ae5756e0d0a707265666978f60d0ae5756e0d0a707265666978f70d0ae5756e0d0a707265666978f80d0ae5756e0d0a707265666978f90d0ae5756e0d0a707265666978fa0d0ae5756e0d0a707265666978fb0d0ae5756e0d0a707265666978fc0d0ae5756e0d0a707265666978fd0d0ae5756e0d0a707265666978fe0d0ae5756e0d0a707265666978ff0d0ae5756e0d0a"
+          },
+          "log": {
+            "path": "review/text-find-high.log",
+            "sha256": "5314780070fb9c6330eb74b9517499f98f519bdc1e780528ce1595254076f6b6"
+          }
+        },
+        {
+          "profile": "low",
+          "emulator_exit": 33,
+          "files": {
+            "AYES.OUT": {
+              "sha256": "a590a2aaf56cdfb15bcba61770527d3324101a89aaf344b40f5400f99357ddec",
+              "size": 1024,
+              "artifact": {
+                "path": "review/text-find-low-AYES.OUT.bin",
+                "sha256": "a590a2aaf56cdfb15bcba61770527d3324101a89aaf344b40f5400f99357ddec"
+              }
+            },
+            "ANO.OUT": {
+              "sha256": "67a960a8cf79a61e5bd0fbcf3d8638d0b94b4fdaeb32ec789e80b279099ee2df",
+              "size": 1152,
+              "artifact": {
+                "path": "review/text-find-low-ANO.OUT.bin",
+                "sha256": "67a960a8cf79a61e5bd0fbcf3d8638d0b94b4fdaeb32ec789e80b279099ee2df"
+              }
+            },
+            "BYES.OUT": {
+              "sha256": "3e04efa9fdd487051c38ffc29b2ac606bf798bf1f90f8fdaece18b8f31901bfd",
+              "size": 640,
+              "artifact": {
+                "path": "review/text-find-low-BYES.OUT.bin",
+                "sha256": "3e04efa9fdd487051c38ffc29b2ac606bf798bf1f90f8fdaece18b8f31901bfd"
+              }
+            },
+            "BNO.OUT": {
+              "sha256": "67a960a8cf79a61e5bd0fbcf3d8638d0b94b4fdaeb32ec789e80b279099ee2df",
+              "size": 1152,
+              "artifact": {
+                "path": "review/text-find-low-BNO.OUT.bin",
+                "sha256": "67a960a8cf79a61e5bd0fbcf3d8638d0b94b4fdaeb32ec789e80b279099ee2df"
+              }
+            }
+          },
+          "inputs_hex": {
+            "ASCII.TXT": "707265666978800d0a6e6565646c650d0a707265666978810d0a6e6565646c650d0a707265666978820d0a6e6565646c650d0a707265666978830d0a6e6565646c650d0a707265666978840d0a6e6565646c650d0a707265666978850d0a6e6565646c650d0a707265666978860d0a6e6565646c650d0a707265666978870d0a6e6565646c650d0a707265666978880d0a6e6565646c650d0a707265666978890d0a6e6565646c650d0a7072656669788a0d0a6e6565646c650d0a7072656669788b0d0a6e6565646c650d0a7072656669788c0d0a6e6565646c650d0a7072656669788d0d0a6e6565646c650d0a7072656669788e0d0a6e6565646c650d0a7072656669788f0d0a6e6565646c650d0a707265666978900d0a6e6565646c650d0a707265666978910d0a6e6565646c650d0a707265666978920d0a6e6565646c650d0a707265666978930d0a6e6565646c650d0a707265666978940d0a6e6565646c650d0a707265666978950d0a6e6565646c650d0a707265666978960d0a6e6565646c650d0a707265666978970d0a6e6565646c650d0a707265666978980d0a6e6565646c650d0a707265666978990d0a6e6565646c650d0a7072656669789a0d0a6e6565646c650d0a7072656669789b0d0a6e6565646c650d0a7072656669789c0d0a6e6565646c650d0a7072656669789d0d0a6e6565646c650d0a7072656669789e0d0a6e6565646c650d0a7072656669789f0d0a6e6565646c650d0a707265666978a00d0a6e6565646c650d0a707265666978a10d0a6e6565646c650d0a707265666978a20d0a6e6565646c650d0a707265666978a30d0a6e6565646c650d0a707265666978a40d0a6e6565646c650d0a707265666978a50d0a6e6565646c650d0a707265666978a60d0a6e6565646c650d0a707265666978a70d0a6e6565646c650d0a707265666978a80d0a6e6565646c650d0a707265666978a90d0a6e6565646c650d0a707265666978aa0d0a6e6565646c650d0a707265666978ab0d0a6e6565646c650d0a707265666978ac0d0a6e6565646c650d0a707265666978ad0d0a6e6565646c650d0a707265666978ae0d0a6e6565646c650d0a707265666978af0d0a6e6565646c650d0a707265666978b00d0a6e6565646c650d0a707265666978b10d0a6e6565646c650d0a707265666978b20d0a6e6565646c650d0a707265666978b30d0a6e6565646c650d0a707265666978b40d0a6e6565646c650d0a707265666978b50d0a6e6565646c650d0a707265666978b60d0a6e6565646c650d0a707265666978b70d0a6e6565646c650d0a707265666978b80d0a6e6565646c650d0a707265666978b90d0a6e6565646c650d0a707265666978ba0d0a6e6565646c650d0a707265666978bb0d0a6e6565646c650d0a707265666978bc0d0a6e6565646c650d0a707265666978bd0d0a6e6565646c650d0a707265666978be0d0a6e6565646c650d0a707265666978bf0d0a6e6565646c650d0a707265666978c00d0a6e6565646c650d0a707265666978c10d0a6e6565646c650d0a707265666978c20d0a6e6565646c650d0a707265666978c30d0a6e6565646c650d0a707265666978c40d0a6e6565646c650d0a707265666978c50d0a6e6565646c650d0a707265666978c60d0a6e6565646c650d0a707265666978c70d0a6e6565646c650d0a707265666978c80d0a6e6565646c650d0a707265666978c90d0a6e6565646c650d0a707265666978ca0d0a6e6565646c650d0a707265666978cb0d0a6e6565646c650d0a707265666978cc0d0a6e6565646c650d0a707265666978cd0d0a6e6565646c650d0a707265666978ce0d0a6e6565646c650d0a707265666978cf0d0a6e6565646c650d0a707265666978d00d0a6e6565646c650d0a707265666978d10d0a6e6565646c650d0a707265666978d20d0a6e6565646c650d0a707265666978d30d0a6e6565646c650d0a707265666978d40d0a6e6565646c650d0a707265666978d50d0a6e6565646c650d0a707265666978d60d0a6e6565646c650d0a707265666978d70d0a6e6565646c650d0a707265666978d80d0a6e6565646c650d0a707265666978d90d0a6e6565646c650d0a707265666978da0d0a6e6565646c650d0a707265666978db0d0a6e6565646c650d0a707265666978dc0d0a6e6565646c650d0a707265666978dd0d0a6e6565646c650d0a707265666978de0d0a6e6565646c650d0a707265666978df0d0a6e6565646c650d0a707265666978e00d0a6e6565646c650d0a707265666978e10d0a6e6565646c650d0a707265666978e20d0a6e6565646c650d0a707265666978e30d0a6e6565646c650d0a707265666978e40d0a6e6565646c650d0a707265666978e50d0a6e6565646c650d0a707265666978e60d0a6e6565646c650d0a707265666978e70d0a6e6565646c650d0a707265666978e80d0a6e6565646c650d0a707265666978e90d0a6e6565646c650d0a707265666978ea0d0a6e6565646c650d0a707265666978eb0d0a6e6565646c650d0a707265666978ec0d0a6e6565646c650d0a707265666978ed0d0a6e6565646c650d0a707265666978ee0d0a6e6565646c650d0a707265666978ef0d0a6e6565646c650d0a707265666978f00d0a6e6565646c650d0a707265666978f10d0a6e6565646c650d0a707265666978f20d0a6e6565646c650d0a707265666978f30d0a6e6565646c650d0a707265666978f40d0a6e6565646c650d0a707265666978f50d0a6e6565646c650d0a707265666978f60d0a6e6565646c650d0a707265666978f70d0a6e6565646c650d0a707265666978f80d0a6e6565646c650d0a707265666978f90d0a6e6565646c650d0a707265666978fa0d0a6e6565646c650d0a707265666978fb0d0a6e6565646c650d0a707265666978fc0d0a6e6565646c650d0a707265666978fd0d0a6e6565646c650d0a707265666978fe0d0a6e6565646c650d0a707265666978ff0d0a6e6565646c650d0a",
+            "BALTIC.TXT": "707265666978800d0ae5756e0d0a707265666978810d0ae5756e0d0a707265666978820d0ae5756e0d0a707265666978830d0ae5756e0d0a707265666978840d0ae5756e0d0a707265666978850d0ae5756e0d0a707265666978860d0ae5756e0d0a707265666978870d0ae5756e0d0a707265666978880d0ae5756e0d0a707265666978890d0ae5756e0d0a7072656669788a0d0ae5756e0d0a7072656669788b0d0ae5756e0d0a7072656669788c0d0ae5756e0d0a7072656669788d0d0ae5756e0d0a7072656669788e0d0ae5756e0d0a7072656669788f0d0ae5756e0d0a707265666978900d0ae5756e0d0a707265666978910d0ae5756e0d0a707265666978920d0ae5756e0d0a707265666978930d0ae5756e0d0a707265666978940d0ae5756e0d0a707265666978950d0ae5756e0d0a707265666978960d0ae5756e0d0a707265666978970d0ae5756e0d0a707265666978980d0ae5756e0d0a707265666978990d0ae5756e0d0a7072656669789a0d0ae5756e0d0a7072656669789b0d0ae5756e0d0a7072656669789c0d0ae5756e0d0a7072656669789d0d0ae5756e0d0a7072656669789e0d0ae5756e0d0a7072656669789f0d0ae5756e0d0a707265666978a00d0ae5756e0d0a707265666978a10d0ae5756e0d0a707265666978a20d0ae5756e0d0a707265666978a30d0ae5756e0d0a707265666978a40d0ae5756e0d0a707265666978a50d0ae5756e0d0a707265666978a60d0ae5756e0d0a707265666978a70d0ae5756e0d0a707265666978a80d0ae5756e0d0a707265666978a90d0ae5756e0d0a707265666978aa0d0ae5756e0d0a707265666978ab0d0ae5756e0d0a707265666978ac0d0ae5756e0d0a707265666978ad0d0ae5756e0d0a707265666978ae0d0ae5756e0d0a707265666978af0d0ae5756e0d0a707265666978b00d0ae5756e0d0a707265666978b10d0ae5756e0d0a707265666978b20d0ae5756e0d0a707265666978b30d0ae5756e0d0a707265666978b40d0ae5756e0d0a707265666978b50d0ae5756e0d0a707265666978b60d0ae5756e0d0a707265666978b70d0ae5756e0d0a707265666978b80d0ae5756e0d0a707265666978b90d0ae5756e0d0a707265666978ba0d0ae5756e0d0a707265666978bb0d0ae5756e0d0a707265666978bc0d0ae5756e0d0a707265666978bd0d0ae5756e0d0a707265666978be0d0ae5756e0d0a707265666978bf0d0ae5756e0d0a707265666978c00d0ae5756e0d0a707265666978c10d0ae5756e0d0a707265666978c20d0ae5756e0d0a707265666978c30d0ae5756e0d0a707265666978c40d0ae5756e0d0a707265666978c50d0ae5756e0d0a707265666978c60d0ae5756e0d0a707265666978c70d0ae5756e0d0a707265666978c80d0ae5756e0d0a707265666978c90d0ae5756e0d0a707265666978ca0d0ae5756e0d0a707265666978cb0d0ae5756e0d0a707265666978cc0d0ae5756e0d0a707265666978cd0d0ae5756e0d0a707265666978ce0d0ae5756e0d0a707265666978cf0d0ae5756e0d0a707265666978d00d0ae5756e0d0a707265666978d10d0ae5756e0d0a707265666978d20d0ae5756e0d0a707265666978d30d0ae5756e0d0a707265666978d40d0ae5756e0d0a707265666978d50d0ae5756e0d0a707265666978d60d0ae5756e0d0a707265666978d70d0ae5756e0d0a707265666978d80d0ae5756e0d0a707265666978d90d0ae5756e0d0a707265666978da0d0ae5756e0d0a707265666978db0d0ae5756e0d0a707265666978dc0d0ae5756e0d0a707265666978dd0d0ae5756e0d0a707265666978de0d0ae5756e0d0a707265666978df0d0ae5756e0d0a707265666978e00d0ae5756e0d0a707265666978e10d0ae5756e0d0a707265666978e20d0ae5756e0d0a707265666978e30d0ae5756e0d0a707265666978e40d0ae5756e0d0a707265666978e50d0ae5756e0d0a707265666978e60d0ae5756e0d0a707265666978e70d0ae5756e0d0a707265666978e80d0ae5756e0d0a707265666978e90d0ae5756e0d0a707265666978ea0d0ae5756e0d0a707265666978eb0d0ae5756e0d0a707265666978ec0d0ae5756e0d0a707265666978ed0d0ae5756e0d0a707265666978ee0d0ae5756e0d0a707265666978ef0d0ae5756e0d0a707265666978f00d0ae5756e0d0a707265666978f10d0ae5756e0d0a707265666978f20d0ae5756e0d0a707265666978f30d0ae5756e0d0a707265666978f40d0ae5756e0d0a707265666978f50d0ae5756e0d0a707265666978f60d0ae5756e0d0a707265666978f70d0ae5756e0d0a707265666978f80d0ae5756e0d0a707265666978f90d0ae5756e0d0a707265666978fa0d0ae5756e0d0a707265666978fb0d0ae5756e0d0a707265666978fc0d0ae5756e0d0a707265666978fd0d0ae5756e0d0a707265666978fe0d0ae5756e0d0a707265666978ff0d0ae5756e0d0a"
+          },
+          "log": {
+            "path": "review/text-find-low.log",
+            "sha256": "ccea84cfc7537d505068c81bba678b9f6bd071e0781e6c5903ff689e0c9fc80b"
+          }
+        }
+      ]
+    },
+    "old_find_control": {
+      "status": "old-cross-line-bug-detected",
+      "find_sha256": "813f099cbd6b2bb5f63937bd0006d5d004da50ec9412db908883bbd4717e013e",
+      "failure": "(PosixPath('/Users/ddanila/fun/msdos/out/find-sbcs-10vwo7x1/high'), 'AYES.OUT', 'line boundary mismatch', 2176, 1024)",
+      "output": {
+        "path": "review/text-find-old-incorrect-output.bin",
+        "sha256": "7ca51eb2845b640db7c52e5daf2b66cf8b767a1627dc01ab6712ce999f076ed6"
+      },
+      "log": {
+        "path": "review/text-find-old.log",
+        "sha256": "5314780070fb9c6330eb74b9517499f98f519bdc1e780528ce1595254076f6b6"
+      }
+    },
+    "runtime-regression": {
+      "path": "review/text-runtime-regression.log",
+      "sha256": "4ef71314586a5c9eb08d7d77d099c630846d994278e2b420dd5425251c145b03"
+    },
+    "coverage": {
+      "path": "review/text-coverage.log",
+      "sha256": "57d6bb9a0b0cbcae156629f836eafe52117dddb806cd9728def34efb124f83c4"
+    }
+  },
+  "inputs": {
+    "Makefile": {
+      "sha256": "ed8bbafc3d61e8c83b11b44f41f4b510b35fc8dd72ecdaeea3adddde8d113335",
+      "size": 58048
+    },
+    "tests/test_baltic_text_qemu.py": {
+      "sha256": "d67f0438b6ec63dbaa622f161edcb5ca27edcc68e3379b3a9d5bdcc45cdaa7e3",
+      "size": 5183
+    },
+    "tests/test_ru_text_qemu.py": {
+      "sha256": "cef99103dfdfd18cea31205d10dae6bdc442ddf4f74e9b104cd237038af05199",
+      "size": 13873
+    },
+    "tests/ru_vnc_console.py": {
+      "sha256": "732790d5b4d9f88f9136d31b24b829d29c9f64fd99440bbd747e8cb663944d16",
+      "size": 1840
+    },
+    "tests/test_find_sbcs_qemu.py": {
+      "sha256": "55da34541434dbeee9d2f3285d621be7968b29e50bb0a1156451c8037104e6e5",
+      "size": 4124
+    },
+    "tests/ru_profiles.py": {
+      "sha256": "d8f7a498c146ae4bf85139f943f94d27a26c7e55661a4cd08a5d1346bd66a536",
+      "size": 1054
+    },
+    "tests/screen_expect.py": {
+      "sha256": "1a923f350a189a3823ff3745da8bf8129ec0b1f20d191078895f2d728fc0f405",
+      "size": 7540
+    },
+    "tests/test_baltic_keyboard_qemu.py": {
+      "sha256": "f06dbe139469a5caa294cea3b9f607686b9199bf69eb0be35ad65ec2f2ba5434",
+      "size": 8504
+    },
+    "tests/test_ru_cpi.py": {
+      "sha256": "cbc84a60021e763280dba915cfc0f17a839595f6a02273f271eee8f7ee0c7402",
+      "size": 4815
+    },
+    "tests/ru_profile_probe.asm": {
+      "sha256": "ed4d4e1b6ca454860debc90e27d0eb42ce097f863a9e028eab64d3675fad4c09",
+      "size": 1009
+    },
+    "tests/test_ru_legacy_keyboard_86box.py": {
+      "sha256": "4fd750c6ab88916380ba4d86acc593bf0d2b54d1fae6246f17416d006a3071a4",
+      "size": 15640
+    },
+    "src/CMD/FIND/FIND.ASM": {
+      "sha256": "31d0335e0b7a08c63e5a0a58e3cbd7dac7df98e14363a2f7c2110694c3932e26",
+      "size": 61903
+    },
+    "src/CMD/FIND/FIND.EXE": {
+      "sha256": "bce1e2a4df29876ae4720bec538cb8034d833c5eb945718e6a05d7510d1c399e",
+      "size": 10094
+    },
+    "src/CMD/EDLIN/EDLIN.COM": {
+      "sha256": "21dcc094437d6e7dbed8d8cf34d5b7bb6629d6fd8f9b0256710bc038a77e132a",
+      "size": 13781
+    },
+    "src/CMD/KEYB/KEYB.COM": {
+      "sha256": "924edf011009fe4a747d045f24ae5da817b613e914cbf58b66ca22e3637ffa3e",
+      "size": 15360
+    },
+    "src/DEV/KEYBOARD/KEYBRD2.SYS": {
+      "sha256": "d003716471ffbe12803ac7beaf511a8a4e2d6a0b8ef5e3d214eee2a69584cf06",
+      "size": 3702
+    },
+    "src/DEV/DISPLAY/EGA/EGA775.CPI": {
+      "sha256": "ab38fe5b8acae0ba3933ac6b66596c58b32bc23385285b8cc68fec1fa8f15255",
+      "size": 9921
+    },
+    "src/DEV/DISPLAY/DISPLAY.SYS": {
+      "sha256": "0ebd3bfad4e87d79e05219c02ea71ce4e94f9e11b432efdf652a022488d9ac08",
+      "size": 15672
+    },
+    "src/DEV/COUNTRY/COUNTRY.SYS": {
+      "sha256": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c",
+      "size": 20946
+    },
+    "src/CMD/NLSFUNC/NLSFUNC.EXE": {
+      "sha256": "bc2a0c9b0900bcac03a6cfe072ea56ea01bd2333b1d1bf8f810f28e668340e67",
+      "size": 6685
+    },
+    "src/CMD/MODE/MODE.COM": {
+      "sha256": "c385aad5697fcec3a9113f58b983b978a7f969e99b153ebd496b12dab0e3767d",
+      "size": 23200
+    },
+    "locales/baltic/review/keyboard-expectations.json": {
+      "sha256": "09a0a925cf85cbcb0294f1bb63554729f5e3d4cd41316f3cb834b4376aee19f2",
+      "size": 38857
+    }
+  },
+  "core_sha256": {
+    "IO.SYS": "793169a292df40bb117eb487136a0d8e7f4334ca223e8206bf53f33141f24715",
+    "MSDOS.SYS": "1475174f50c8c349bedd7cd4a0be88bce055f2e411b7454b5f68fffbff269b62",
+    "COMMAND.COM": "6742b5889141a9c61d41e336445014d8055c19758febf4263f4f8ebe3c2f2c29",
+    "HIMEM.SYS": "340cbfd1f0e835755adce99d80c607f8edeb48ea2b20a6a142402a25434f8d13",
+    "EMM386.EXE": "58266b6614594de7a9cfde9eda75e3eb241b9e2e941e67b70645a0f8a197dae6"
+  },
+  "emulator_sha256": "798ac6072d5147ed4dca7540ca5303da1e4c2d190853c227dde9ea3b33583c18",
+  "qemu": {
+    "version": "QEMU emulator version 11.1.1",
+    "sha256": "d257f22f63fe113e7373e1aaddc90390ae768784bee448c3508bbf5751602831"
+  },
+  "old_find_source": {
+    "commit": "626bbad",
+    "path": "src/CMD/FIND/FIND.ASM",
+    "sha256": "fc3802bf9ebe8813cc097271e11af008e1e74e4a40598534d5e8e42652a01439"
+  },
+  "build": {
+    "command": "make /Users/ddanila/fun/msdos/src/CMD/FIND/FIND.EXE",
+    "log": {
+      "path": "review/text-find-build.log",
+      "sha256": "eb1aa7ea9f54f4bdba2f91249d3530898c3f7f15714581ea47cf154d0d9fb7c6"
+    }
+  },
+  "commands": [
+    "MEMORY_CORE_DIR=out/memory-production/files FLOPPY_IMAGE=out/baltic-pack-floppy.img python3 tests/test_baltic_text_qemu.py",
+    "MEMORY_CORE_DIR=out/memory-production/files FLOPPY_IMAGE=out/baltic-pack-floppy.img python3 tests/test_baltic_text_qemu.py --language lv",
+    "MEMORY_CORE_DIR=out/memory-production/files FLOPPY_IMAGE=out/baltic-pack-floppy.img python3 tests/test_baltic_text_qemu.py --emulator \"$BOX86_BIN\" --roms \"$BOX86_ROMS\" --qt-platform offscreen",
+    "MEMORY_CORE_DIR=out/memory-production/files FLOPPY_IMAGE=out/baltic-pack-floppy.img python3 tests/test_baltic_text_qemu.py --language lv --emulator \"$BOX86_BIN\" --roms \"$BOX86_ROMS\" --qt-platform offscreen",
+    "MEMORY_CORE_DIR=out/memory-production/files FLOPPY_IMAGE=out/baltic-pack-floppy.img python3 tests/test_ru_text_qemu.py",
+    "MEMORY_CORE_DIR=out/memory-production/files FLOPPY_IMAGE=out/baltic-pack-floppy.img python3 tests/test_find_sbcs_qemu.py",
+    "MEMORY_CORE_DIR=out/memory-production/files FLOPPY_IMAGE=out/baltic-pack-floppy.img python3 tests/test_find_sbcs_qemu.py --find out/baltic-find-before.exe",
+    "FAIL_ON_SKIP=1 bash tests/run_tests.sh",
+    "make test-coverage-manifest test-runtime-coverage-manifest test-oracle-mutation-coverage"
+  ],
+  "backend_provenance": "../ru/text-286-qualification.json",
+  "roms": {
+    "machines/ibmat/BIOS_5170_15NOV85_U27.BIN": {
+      "sha256": "096ce496a06002eb68a5bc5db128a38dd7f27a4eda16ad7342c8076f1fc40683",
+      "size": 32768
+    },
+    "machines/ibmat/BIOS_5170_15NOV85_U47.BIN": {
+      "sha256": "4e4692031297e74053e37c8632dc73706de97d847d8f0e12995b4f009e5c71fe",
+      "size": 32768
+    },
+    "video/vga/ibm_vga.bin": {
+      "sha256": "51b49761f72780a696c36f3d2e74a8168c1c99b865070f7f90b8e621a8b5ae17",
+      "size": 32768
+    }
+  },
+  "visual_review": "Reviewed reopened Estonian, Latvian and Lithuanian screenshots on both backends for readable national diacritics; complete glyph-mask assertions and exact saved-file assertions pass independently."
+}

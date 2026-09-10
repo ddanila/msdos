@@ -340,3 +340,28 @@ The dump-only and inactive-page probe options leave existing default probe
 binaries unchanged. These QEMU checks do not replace rendered-font evidence,
 real-BIOS resource-failure cases, installed-path failure tests or complete
 application/file workflows. The shared driver behavior is unchanged.
+
+## Typed text workflows
+
+[Text qualification](text-qualification.json) records physical COMMAND and
+EDLIN workflows with CP775 files. The samples include every required national
+letter in both cases, mixed ASCII and reference dead-key compositions where
+available. Keys are injected physically; sample files are created by the guest.
+The gate checks shell backspace editing, EDLIN insert/replacement/save/reopen,
+redirection and a FIND pipeline. Saved file bytes and rendered glyph pixels
+must agree with the expected text.
+
+Run `make test-baltic-text-qemu` for the HIGH/LOW QEMU matrix. The wrapper also
+accepts `--emulator`, `--roms` and `--qt-platform` for the real-BIOS LOW backend,
+using the qualified VNC console. The record distinguishes backend results.
+
+The workflow exposed FIND reading beyond a line whose last byte is a non-ASCII
+single-byte character. It could match text on the following line and report
+both lines. The corrected character-advance routine stops when no bytes remain.
+`make test-find-sbcs-qemu` covers every high-byte line ending with ASCII and
+national search strings, including inverted selection; the old executable is
+a retained failure control. Existing native command tests and Russian text
+workflows regress separately.
+
+National filename/directory operations, reboot persistence, installed-path
+workflows and final source-matched release qualification remain open.

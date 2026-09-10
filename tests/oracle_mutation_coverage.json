@@ -31,7 +31,7 @@
     "FASTOPEN.EXE": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_fastopen_cache_qemu.sh"},
     "FILESYS.EXE": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_ifsfunc_filesys_qemu.sh"},
     "FC.EXE": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_backup_restore.sh"},
-    "FIND.EXE": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_misc_qemu.sh"},
+    "FIND.EXE": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_misc_qemu.sh", "note": "The old high-byte line-boundary bug is also detected by tests/test_find_sbcs_qemu.py; text-workflow qualification retains the old-executable failure control."},
     "FLUSH13.EXE": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_smartdrv_flush_qemu.sh"},
     "FORMAT.COM": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_format.sh", "args": ["SWITCHC", "SWITCHZ"]},
     "GRAFTABL.COM": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_graftabl_qemu.sh"},

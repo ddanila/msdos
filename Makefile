@@ -575,6 +575,14 @@ test: test-baltic-country-qemu
 test-baltic-country-qemu: deploy $(SRC)/DEV/DISPLAY/EGA/EGA775.CPI
 	python3 tests/test_baltic_country_qemu.py
 
+.PHONY: test-baltic-text-qemu test-find-sbcs-qemu
+test: test-baltic-text-qemu test-find-sbcs-qemu
+test-baltic-text-qemu: deploy
+	python3 tests/test_baltic_text_qemu.py
+
+test-find-sbcs-qemu: deploy
+	python3 tests/test_find_sbcs_qemu.py
+
 .PHONY: test-baltic-font-resources-qemu
 test: test-baltic-font-resources-qemu
 test-baltic-font-resources-qemu: deploy

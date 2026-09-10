@@ -6,7 +6,7 @@ from test_ru_legacy_keyboard_86box import VNCKeyboard
 
 
 class VNCConsole(VNCKeyboard):
-    KEYS = dict(VNCKeyboard.KEYS, minus=ord('-'))
+    KEYS = dict(VNCKeyboard.KEYS, minus=ord('-'), f2=0xffbf)
     def __init__(self, proc):
         super().__init__(proc)
         assert self.pixel_format == bytes.fromhex('2020000100ff00ff00ff100800000000')

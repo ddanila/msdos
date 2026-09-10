@@ -1,0 +1,464 @@
+=== Section 1: output files exist ===
+  PASS: MESSAGES/USA-MS.IDX
+  PASS: MAPPER/MAPPER.LIB
+  PASS: INC/boot.inc
+  PASS: BIOS/IO.SYS
+  PASS: BIOS/SYSMENU.OVL
+  PASS: DOS/MSDOS.SYS
+  PASS: DEV/HIMEM/HIMEM.SYS
+  PASS: CMD/COMMAND/COMMAND.COM
+  PASS: CMD/SYS/SYS.COM
+  PASS: CMD/FORMAT/FORMAT.COM
+  PASS: CMD/EXPAND/EXPAND.EXE
+  PASS: CMD/SETUP/SETUP.EXE
+  PASS: CMD/CHKDSK/CHKDSK.COM
+  PASS: CMD/CHOICE/CHOICE.COM
+  PASS: CMD/DELTREE/DELTREE.EXE
+  PASS: CMD/DEFRAG/DEFRAG.EXE
+  PASS: CMD/LOADFIX/LOADFIX.COM
+  PASS: CMD/MOVE/MOVE.EXE
+  PASS: CMD/MSD/MSD.EXE
+  PASS: CMD/SCANDISK/SCANDISK.EXE
+  PASS: CMD/SCANDISK/SCANDISK.INI
+  PASS: CMD/MEMMAKER/MEMMAKER.EXE
+  PASS: CMD/INTERLNK/INTERLNK.EXE
+  PASS: CMD/INTERSVR/INTERSVR.EXE
+  PASS: DEV/ANSI/ANSI.SYS
+  PASS: DEV/VDISK/VDISK.SYS
+  PASS: DEV/COUNTRY/COUNTRY.SYS
+  PASS: DEV/RAMDRIVE/RAMDRIVE.SYS
+  PASS: DEV/KEYBOARD/KEYBOARD.SYS
+  PASS: DEV/PRINTER/PRINTER.SYS
+  PASS: DEV/DISPLAY/DISPLAY.SYS
+  PASS: DEV/SMARTDRV/SMARTDRV.EXE
+  PASS: DEV/SMARTDRV/FLUSH13.EXE
+  PASS: DEV/DRIVER/DRIVER.SYS
+  PASS: DEV/XMA2EMS/XMA2EMS.SYS
+  PASS: DEV/XMAEM/XMAEM.SYS
+  PASS: SELECT/SELECT.EXE
+  PASS: SELECT/SELECT.COM
+  PASS: SELECT/SELECT.HLP
+  PASS: SELECT/SELECT.DAT
+  PASS: CMD/DEBUG/DEBUG.COM
+  PASS: CMD/MEM/MEM.EXE
+  PASS: CMD/FDISK/FDISK.EXE
+  PASS: CMD/MORE/MORE.COM
+  PASS: CMD/SORT/SORT.EXE
+  PASS: CMD/LABEL/LABEL.COM
+  PASS: CMD/FIND/FIND.EXE
+  PASS: CMD/TREE/TREE.COM
+  PASS: CMD/COMP/COMP.COM
+  PASS: CMD/ATTRIB/ATTRIB.EXE
+  PASS: CMD/EDLIN/EDLIN.COM
+  PASS: CMD/FC/FC.EXE
+  PASS: CMD/NLSFUNC/NLSFUNC.EXE
+  PASS: CMD/ASSIGN/ASSIGN.COM
+  PASS: CMD/XCOPY/XCOPY.EXE
+  PASS: CMD/DISKCOMP/DISKCOMP.COM
+  PASS: CMD/DISKCOPY/DISKCOPY.COM
+  PASS: CMD/SETVER/SETVER.COM
+  PASS: CMD/DOSKEY/DOSKEY.COM
+  PASS: CMD/HELP/HELP.COM
+  PASS: CMD/HELP/FASTHELP.COM
+  PASS: CMD/HELP/HELP.HLP
+  PASS: CMD/MIRROR/MIRROR.COM
+  PASS: CMD/UNDELETE/UNDELETE.COM
+  PASS: CMD/UNFORMAT/UNFORMAT.COM
+  PASS: CMD/APPEND/APPEND.EXE
+  PASS: CMD/RECOVER/RECOVER.COM
+  PASS: CMD/FASTOPEN/FASTOPEN.EXE
+  PASS: CMD/PRINT/PRINT.COM
+  PASS: CMD/FILESYS/FILESYS.EXE
+  PASS: CMD/REPLACE/REPLACE.EXE
+  PASS: CMD/JOIN/JOIN.EXE
+  PASS: CMD/SUBST/SUBST.EXE
+  PASS: CMD/BACKUP/BACKUP.COM
+  PASS: CMD/RESTORE/RESTORE.COM
+  PASS: CMD/GRAFTABL/GRAFTABL.COM
+  PASS: CMD/KEYB/KEYB.COM
+  PASS: CMD/SHARE/SHARE.EXE
+  PASS: CMD/EXE2BIN/EXE2BIN.EXE
+  PASS: CMD/GRAPHICS/GRAPHICS.COM
+  PASS: CMD/IFSFUNC/IFSFUNC.EXE
+  PASS: CMD/MODE/MODE.COM
+  PASS: MEMM/MEMM/EMM386.EXE
+
+=== Section 2: kvikdos smoke tests ===
+kvikdos[pid=73451]: dos terminate int=0x21 ah=0x4c al=0 cs=9407 ip=2931
+  PASS: COMMAND.COM /C EXIT
+
+=== Section 3: /? help smoke tests ===
+  PASS: MEM /?
+  PASS: ATTRIB /?
+  PASS: XCOPY /?
+  PASS: FORMAT /?
+  PASS: FC /?
+  PASS: JOIN /?
+  PASS: SUBST /?
+  PASS: REPLACE /?
+  PASS: SORT /?
+  PASS: FIND /?
+  PASS: NLSFUNC /?
+  PASS: TREE /?
+  PASS: BACKUP /?
+  PASS: RESTORE /?
+  PASS: DISKCOMP /?
+  PASS: DISKCOPY /?
+  PASS: SETVER /?
+  PASS: DOSKEY /?
+  PASS: GRAFTABL /?
+  PASS: LABEL /?
+  PASS: COMP /?
+  PASS: ASSIGN /?
+  PASS: SHARE /?
+  PASS: APPEND /?
+  PASS: MORE /?
+  PASS: SYS /?
+  PASS: EXE2BIN /?
+  PASS: FASTOPEN /?
+  PASS: KEYB /?
+  PASS: GRAPHICS /?
+  PASS: MODE /?
+  PASS: PRINT /?
+  PASS: POWER /?
+  PASS: SMARTDRV /?
+  PASS: EDLIN /?
+  PASS: RECOVER /?
+  PASS: CHKDSK /?
+  PASS: CHOICE /?
+  PASS: DELTREE /?
+  PASS: DEFRAG /?
+  PASS: LOADFIX /?
+  PASS: MOVE /?
+  PASS: MSD /?
+  PASS: SCANDISK /?
+  PASS: MEMMAKER /?
+  PASS: FILESYS /?
+  PASS: DEBUG /?
+  PASS: FDISK /?
+  PASS: IFSFUNC /?
+  PASS: INTERLNK /?
+  PASS: INTERSVR /?
+  PASS: EXPAND /?
+  PASS: SETUP /?
+  PASS: HELP /?
+  PASS: FASTHELP /?
+  PASS: MIRROR /?
+  PASS: UNDELETE /?
+  PASS: UNFORMAT /?
+
+=== Section 4: COMMAND.COM built-in /? help (static check) ===
+  PASS: VER /? (static)
+  PASS: DIR /? (static)
+  PASS: COPY /? (static)
+  PASS: SET /? (static)
+  PASS: PROMPT /? (static)
+  PASS: PATH /? (static)
+  PASS: CD /? (static)
+  PASS: CHDIR /? (static)
+  PASS: MD /? (static)
+  PASS: MKDIR /? (static)
+  PASS: RD /? (static)
+  PASS: RMDIR /? (static)
+  PASS: PAUSE /? (static)
+  PASS: ERASE /? (static)
+  PASS: DEL /? (static)
+  PASS: RENAME /? (static)
+  PASS: TYPE /? (static)
+  PASS: VOL /? (static)
+  PASS: ECHO /? (static)
+  PASS: BREAK /? (static)
+  PASS: VERIFY /? (static)
+  PASS: CLS /? (static)
+  PASS: EXIT /? (static)
+  PASS: CTTY /? (static)
+  PASS: CHCP /? (static)
+  PASS: TRUENAME /? (static)
+  PASS: REM /? (static)
+  PASS: GOTO /? (static)
+  PASS: SHIFT /? (static)
+  PASS: IF /? (static)
+  PASS: FOR /? (static)
+  PASS: CALL /? (static)
+
+=== Section 5: E2E functional tests (kvikdos) ===
+  PASS: MEM (basic memory report)
+  PASS: FIND (search file for string)
+  PASS: FIND /V (inverted match)
+  PASS: FIND /N (line numbers)
+  PASS: FIND /C (count matches)
+  PASS: FIND /I (case-insensitive match)
+  PASS: FIND default matching remains case-sensitive
+  PASS: FIND /I folds letters only
+  PASS: FIND (multiple files)
+  PASS: FIND (no matches)
+  PASS: FIND /V /C (count non-matching)
+  PASS: FIND /V /N (numbered inverted matches)
+  PASS: FIND /C /N (count mode takes precedence over numbering)
+  PASS: FIND /V /C /N (inverted count takes precedence over numbering)
+  PASS: FIND duplicate switch (accepted idempotently)
+  PASS: FIND unknown switch (rejected with parser diagnostic and errorlevel 2)
+  PASS: FIND missing quoted search string (rejected with errorlevel 2)
+  PASS: FIND second quoted search string (rejected with errorlevel 2)
+  PASS: FIND errorlevel 2 (no args → exit code 2)
+  PASS: FC (identical files)
+  PASS: FC (different files)
+  PASS: FC /N (line numbers)
+  PASS: FC /B (binary diff)
+  PASS: FC /B (identical, binary)
+  PASS: FC automatic binary mode (.COM extension)
+  PASS: FC /B /L (incompatible line mode rejected)
+  PASS: FC /B /N (incompatible line mode rejected)
+  PASS: FC /B /2 (incompatible line mode rejected)
+  PASS: FC unknown switch (usage and errorlevel 1)
+  PASS: FC extra filename (usage and errorlevel 1)
+  PASS: FC /C (case-insensitive)
+  PASS: FC /W (compress whitespace)
+  PASS: FC /L (explicit ASCII)
+  PASS: FC /T (tabs preserved, files differ)
+  PASS: FC /T control (tabs expanded, files match)
+  PASS: FC /5 (higher resync count merges diff blocks)
+  PASS: TREE (directory listing)
+  PASS: TREE /F (filenames mode runs)
+  PASS: TREE (specific path)
+  PASS: TREE /A (alternate ASCII graphic chars)
+  PASS: TREE duplicate switch (rejected with parser error and errorlevel 1)
+  PASS: TREE unknown switch (rejected with parser error and errorlevel 1)
+  PASS: SORT (sort lines from stdin)
+  PASS: SORT /R (reverse sort)
+  PASS: SORT /+2 (sort by column)
+  PASS: SORT /+1 (accepted parser range endpoint)
+  PASS: SORT /+65535 (accepted parser range endpoint)
+  PASS: SORT /+0 (rejected outside parser range)
+  PASS: SORT /+65536 (rejected outside parser range)
+  PASS: SORT unknown switch (rejected with errorlevel 1)
+  PASS: SORT (from file)
+  PASS: COMP (identical files)
+  PASS: COMP (different files)
+  PASS: COMP (byte difference at offset)
+  PASS: COMP (hex byte values)
+  PASS: COMP (multiple differences — 4 errors)
+  PASS: COMP (10 mismatch limit)
+  PASS: COMP (file not found)
+  PASS: COMP (third filespec rejected with parser errorlevel 1)
+  PASS: ATTRIB (show attributes)
+  PASS: ATTRIB +R (set read-only)
+  PASS: ATTRIB -R (clear read-only)
+  PASS: ATTRIB +R +A (combined flags)
+  PASS: ATTRIB -A (clear archive)
+  PASS: ATTRIB +A (set archive)
+  PASS: ATTRIB +H +S (set hidden and system attributes)
+  PASS: ATTRIB -H -S (clear hidden and system attributes)
+  PASS: ATTRIB (missing file error)
+  PASS: ATTRIB (invalid switch error)
+  PASS: ATTRIB transitions preserve file payload
+  PASS: ATTRIB /S (recursive listing)
+  PASS: MORE (piped stdin)
+  PASS: MORE (from file)
+  PASS: DEBUG (launch and quit)
+  PASS: DEBUG R (register dump)
+  PASS: DEBUG R AX (set register)
+  PASS: DEBUG E+D (enter + dump bytes)
+  PASS: DEBUG F+D (fill memory)
+  PASS: DEBUG H (hex add/subtract: 1244 1224)
+  PASS: DEBUG C (compare memory — found difference)
+  PASS: DEBUG M+D (move memory)
+  PASS: DEBUG S (search memory — found 'll' at 102)
+  PASS: DEBUG A+U (assemble + unassemble)
+  PASS: DEBUG N+W (write file)
+  PASS: DEBUG N+W (file content verified)
+  PASS: DEBUG N+L (load file)
+  PASS: LABEL (show volume info)
+  PASS: EDLIN (open + list)
+  PASS: EDLIN (new file)
+  PASS: EDLIN (insert + list)
+  PASS: EDLIN (exit saves file)
+  PASS: EDLIN (delete line)
+  PASS: EDLIN (delete range)
+  PASS: EDLIN (edit line)
+  PASS: EDLIN (copy lines)
+  PASS: EDLIN (move lines)
+  PASS: EDLIN (search found)
+  PASS: EDLIN (search not found)
+  PASS: EDLIN (replace text)
+  PASS: EDLIN P (page displays lines)
+  PASS: EDLIN W setup (file created)
+  PASS: EDLIN (transfer file)
+  PASS: EDLIN /B (LINE3 visible after embedded ^Z)
+  PASS: EDLIN /B (LINE1 and LINE2 also present)
+  PASS: EDLIN (no /B: LINE3 absent — ^Z stops load)
+  PASS: REPLACE /A (add mode)
+  PASS: REPLACE (no args error)
+  PASS: REPLACE /A /S (incompatible combination rejected)
+  PASS: REPLACE /A /U (incompatible combination rejected)
+  PASS: REPLACE /A duplicate rejected
+  PASS: REPLACE /P duplicate rejected
+  PASS: REPLACE /R duplicate rejected
+  PASS: REPLACE /S duplicate rejected
+  PASS: REPLACE /U duplicate rejected
+  PASS: REPLACE /W duplicate rejected
+  PASS: REPLACE unknown switch rejected
+  PASS: REPLACE excess filespec rejected
+  PASS: REPLACE /U (source newer, replaced)
+  PASS: REPLACE /U (source older, no replacement)
+  PASS: XCOPY (no args error)
+  PASS: XCOPY /A duplicate rejected
+  PASS: XCOPY /E duplicate rejected
+  PASS: XCOPY /M duplicate rejected
+  PASS: XCOPY /P duplicate rejected
+  PASS: XCOPY /S duplicate rejected
+  PASS: XCOPY /V duplicate rejected
+  PASS: XCOPY /W duplicate rejected
+  PASS: XCOPY /D duplicate rejected
+  PASS: XCOPY unknown switch rejected
+  PASS: XCOPY excess filespec rejected
+  PASS: XCOPY date below DOS range rejected
+  PASS: XCOPY (copy single file)
+  PASS: XCOPY (file content verified)
+  PASS: XCOPY /S (copy subdirectory tree)
+  PASS: XCOPY /S (subdirectory file verified)
+  PASS: XCOPY /S /E (empty subdirectory created)
+  PASS: GRAFTABL /STATUS (code page info)
+  PASS: GRAFTABL /STA (short status synonym reaches code page query)
+  PASS: SUBST (no args, lists substitutions)
+  PASS: JOIN (no args, lists joins)
+  PASS: GRAFTABL 437 (load code page)
+  PASS: GRAFTABL 850 (load code page)
+  PASS: ASSIGN /STATUS (lists assignments)
+  PASS: EXE2BIN (minimal EXE to 1-byte BIN)
+  PASS: EXE2BIN (missing file error message)
+  PASS: MEM /PROGRAM (program listing)
+  PASS: MEM /DEBUG (debug listing)
+  PASS: MEM /DEBUG /PROGRAM (second switch rejected)
+  PASS: MEM /DEBUG /DEBUG (second switch rejected)
+  PASS: MEM /PROGRAM /PROGRAM (second switch rejected)
+  PASS: MEM unknown switch (rejected with errorlevel 1)
+  PASS: MEM positional operand (rejected with errorlevel 1)
+  PASS: MEM switch matching is case-insensitive
+  PASS: FC (nonexistent file error)
+  PASS: FC /A (abbreviated output with '...')
+  PASS: FC /LB1 (line buffer size applied)
+  PASS: FC /LB20 (line buffer size applied)
+  PASS: FC /LB without digits (historical default-buffer behavior)
+  PASS: FC /LB0 (zero-sized buffer rejected by allocation path)
+  PASS: FC /A control (no '...' without /A)
+  PASS: XCOPY /V (copy with verify)
+  PASS: XCOPY /V (file content verified)
+  PASS: XCOPY /A (copied only archived file)
+  PASS: XCOPY /A (archive bit preserved on source)
+  PASS: XCOPY /M (copied only archived file)
+  PASS: XCOPY /M (archive bit cleared on source)
+  PASS: XCOPY /A /M (last archive mode controls source attribute)
+  PASS: XCOPY /M /A (last archive mode controls source attribute)
+  PASS: XCOPY /D:01-01-90 (copied file dated 06/15/90)
+  PASS: XCOPY /D:12-31-90 (skipped file dated 06/15/90)
+  PASS: XCOPY /W (waited for key, then copied file)
+  PASS: REPLACE /R (replace read-only file)
+  PASS: REPLACE /S (recursive replacement)
+  PASS: REPLACE /S (SUB1 file content verified)
+  PASS: REPLACE /S (SUB2 file content verified)
+  PASS: REPLACE /W (waited for key, then replaced file)
+
+=== Section 6: COMMAND.COM built-in E2E tests (kvikdos) ===
+  PASS: COMMAND.COM /E:160 (minimum environment size accepted)
+  PASS: COMMAND.COM /E:32768 (maximum environment size accepted)
+  PASS: COMMAND.COM /E:159 (below-range value diagnosed before /C)
+  PASS: COMMAND.COM /E:32769 (above-range value diagnosed before /C)
+  PASS: COMMAND.COM duplicate /E (diagnosed before /C)
+  PASS: COMMAND.COM /MSG without /P (required relationship diagnosed)
+  PASS: COMMAND.COM /D (startup date/time suppression switch accepted)
+  PASS: COMMAND.COM /F (critical-error fail switch accepted)
+  PASS: COMMAND.COM /C consumes the remaining command line verbatim
+  PASS: COMMAND.COM VER reports the DOS 6.22 product version
+  PASS: COMMAND.COM ECHO
+  PASS: COMMAND.COM SET (lists env)
+  PASS: COMMAND.COM PATH (show)
+  PASS: COMMAND.COM DIR
+  PASS: COMMAND.COM DIR /W
+  PASS: COMMAND.COM DIR /B (bare name without header or trailer)
+  PASS: COMMAND.COM DIR /L (lowercase bare listing)
+  PASS: COMMAND.COM DIR /A:-D (excludes directories)
+  PASS: COMMAND.COM DIR duplicate /P (rejected by parser)
+  PASS: COMMAND.COM DIR unknown switch (rejected by parser)
+  PASS: COMMAND.COM DIRCMD defaults and /- switch overrides
+  PASS: COMMAND.COM DIR /O:N (name order)
+  PASS: COMMAND.COM DIR /O:-N (reverse name order)
+  PASS: COMMAND.COM DIR /O:E (extension order)
+  PASS: COMMAND.COM DIR /O:S (size order)
+  PASS: COMMAND.COM DIR /O:D (date order)
+  PASS: COMMAND.COM DIR /O:G-N (multi-key directory grouping)
+  PASS: COMMAND.COM DIR /S /B (recursive full paths and wildcard filtering)
+  PASS: COMMAND.COM DIR invalid /O key rejected
+  PASS: COMMAND.COM DIR duplicate /O rejected
+  PASS: COMMAND.COM CHCP (queries active code page 437)
+  PASS: COMMAND.COM CLS (emits exact ESC[2J clear-screen sequence)
+  PASS: COMMAND.COM VOL
+  PASS: COMMAND.COM BREAK (show state)
+  PASS: COMMAND.COM VERIFY (show state)
+  PASS: COMMAND.COM TYPE
+  PASS: COMMAND.COM GOTO
+  PASS: COMMAND.COM REM
+  PASS: COMMAND.COM IF EXIST
+  PASS: COMMAND.COM IF NOT EXIST
+  PASS: COMMAND.COM IF string==string
+  PASS: COMMAND.COM IF NOT string==string
+  PASS: COMMAND.COM CALL
+  PASS: COMMAND.COM SHIFT
+  PASS: COMMAND.COM FOR (loop iterates all items)
+  PASS: COMMAND.COM ECHO. (blank line)
+  PASS: COMMAND.COM ECHO OFF/ON
+  PASS: COMMAND.COM BREAK ON/OFF toggle
+  PASS: COMMAND.COM VERIFY ON/OFF toggle
+  PASS: COMMAND.COM PATH set and clear
+  PASS: COMMAND.COM SET assign, query, and remove
+  PASS: COMMAND.COM SET missing equals sign (exact syntax rejection)
+  PASS: COMMAND.COM SET second equals sign (exact syntax rejection)
+  PASS: COMMAND.COM COPY
+  PASS: COMMAND.COM COPY /V
+  PASS: COMMAND.COM REN
+  PASS: COMMAND.COM RENAME (long synonym mutates the file namespace)
+  PASS: COMMAND.COM REN missing source (exact path diagnostic)
+  PASS: COMMAND.COM REN excess operand (exact parser rejection)
+  PASS: COMMAND.COM DEL
+  PASS: COMMAND.COM ERASE (DEL synonym)
+  PASS: COMMAND.COM DEL wildcard
+  PASS: COMMAND.COM DEL duplicate /P (rejected by parser)
+  PASS: COMMAND.COM ERASE unknown switch (rejected by parser)
+  PASS: COMMAND.COM COPY duplicate /V (rejected by parser)
+  PASS: COMMAND.COM COPY unknown switch (rejected by parser)
+  PASS: COMMAND.COM MD + RD
+  PASS: COMMAND.COM MKDIR + RMDIR (long synonyms mutate directories)
+  PASS: COMMAND.COM MD existing + RD non-empty (state preserved)
+  PASS: COMMAND.COM MD excess operand (exact parser rejection)
+  PASS: COMMAND.COM RD excess operand (exact parser rejection)
+  PASS: COMMAND.COM MD nested
+  PASS: COMMAND.COM IF ERRORLEVEL (0 >= 0 true, 0 >= 1 false)
+  PASS: COMMAND.COM IF NOT ERRORLEVEL (NOT 0>=1 true, NOT 0>=0 false)
+  PASS: COMMAND.COM CD (change and verify directory)
+  PASS: COMMAND.COM CD missing path (current directory preserved)
+  PASS: COMMAND.COM CD excess operand (exact parser rejection)
+  PASS: COMMAND.COM CHDIR (long synonym changes and reports directory)
+  PASS: COMMAND.COM PROMPT (set and verify)
+  PASS: COMMAND.COM TRUENAME (resolve path)
+  PASS: COMMAND.COM TYPE missing file (exact diagnostic)
+  PASS: COMMAND.COM TYPE excess operand (exact parser rejection)
+  PASS: COMMAND.COM VOL unavailable drive (exact diagnostic)
+  PASS: COMMAND.COM VOL excess drive (exact parser rejection)
+  PASS: COMMAND.COM SET/PROMPT stress (10 alternating calls, no hang)
+  PASS: COMMAND.COM PAUSE (displayed prompt, continued after piped keystroke)
+  PASS: COMMAND.COM DATE (showed current date, accepted empty input)
+  PASS: COMMAND.COM TIME (showed current time, accepted empty input)
+  PASS: COMMAND.COM COPY a+b c (concatenation)
+  PASS: COMMAND.COM COPY /B (binary: full file past ^Z,       12 bytes)
+  PASS: COMMAND.COM COPY /A (ASCII: stopped at ^Z,        7 bytes)
+  PASS: COMMAND.COM COPY self-copy (rejected with exact payload preserved)
+  PASS: COMMAND.COM COPY missing source (existing destination preserved)
+  PASS: COMMAND.COM COPY concatenation skips a missing later source
+  PASS: COMMAND.COM COPY wildcard expansion (both exact payloads copied)
+  PASS: COMMAND.COM COPY destination /A preserves the exact source bytes
+  PASS: COMMAND.COM COPY source /A plus destination /B retains one EOF marker
+  PASS: COMMAND.COM COPY missing source (exact parser rejection)
+  PASS: COMMAND.COM COPY excess operand (exact parser rejection)
+  PASS: COMMAND.COM parser boundary (argbuf >= 0x8000, jae unsigned compare)
+
+Results: 450 passed, 0 failed, 0 skipped
