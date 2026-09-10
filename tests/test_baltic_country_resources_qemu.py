@@ -20,6 +20,32 @@ def mutations(data):
     for offset in range(1,8):
         bad=bytearray(data);bad[offset]^=1;cases[f'bad-signature-{offset}']=bytes(bad)
     bad=bytearray(data);bad[18]=0;cases['bad-info-type']=bytes(bad)
+    for remaining in (0,1):
+        bad=bytearray(data);bad[19:23]=(len(data)-remaining).to_bytes(4,'little')
+        cases[f'directory-short-{remaining}']=bytes(bad)
+        bad=bytearray(data);directory=int.from_bytes(data[19:23],'little');position=directory+2
+        for _ in range(int.from_bytes(data[directory:directory+2],'little')):
+            size=int.from_bytes(data[position:position+2],'little')
+            country=int.from_bytes(data[position+2:position+4],'little');page=int.from_bytes(data[position+4:position+6],'little')
+            if country in LANGUAGES.values() and page==775:
+                bad[position+10:position+14]=(len(data)-remaining).to_bytes(4,'little')
+            position+=size+2
+        cases[f'objects-short-{remaining}']=bytes(bad)
+    for kind in ('zero-count','short-record','truncated-list','excess-count','oversize-record','overflow-record'):
+        bad=bytearray(data);directory=int.from_bytes(data[19:23],'little');position=directory+2
+        for _ in range(int.from_bytes(data[directory:directory+2],'little')):
+            size=int.from_bytes(data[position:position+2],'little')
+            country=int.from_bytes(data[position+2:position+4],'little');page=int.from_bytes(data[position+4:position+6],'little')
+            if country in LANGUAGES.values() and page==775:
+                target=int.from_bytes(data[position+10:position+14],'little')
+                if kind=='zero-count':bad[target:target+2]=bytes(2)
+                elif kind=='excess-count':bad[target:target+2]=b'\xff\xff'
+                elif kind in ('short-record','oversize-record','overflow-record'):
+                    bad[target+2:target+4]={'short-record':5,'oversize-record':256,'overflow-record':65535}[kind].to_bytes(2,'little')
+                else:
+                    bad[position+10:position+14]=len(bad).to_bytes(4,'little');bad+=data[target:target+10]
+            position+=size+2
+        cases['objects-'+kind]=bytes(bad)
     return cases
 
 

@@ -185,6 +185,9 @@ ordering, MOVE/XCOPY trees, raw FAT entries and fresh-boot reads/cleanup on
 QEMU HIGH/LOW and real-BIOS 286 LOW.
 [Country resource qualification](locales/baltic/country-resource-qualification.json)
 covers NLSFUNC runtime header rejection, active-state preservation and recovery.
+[Country directory qualification](locales/baltic/country-directory-qualification.json)
+extends rejection to short control reads and malformed object lists before
+DOS table writes.
 Deeper malformed-resource cases, legacy lifecycle failures, installed text and
 file workflows, and final source-matched release/reproducibility gates remain
 open. Existing Russian evidence does not establish Baltic support.

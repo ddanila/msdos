@@ -544,6 +544,13 @@ The old executable demonstrates that the signature-corruption oracle detects
 acceptance. Deeper directory/object validation, boot fallback, installed paths
 and real-BIOS failure cases remain separate requirements.
 
+The [country directory qualification](../locales/baltic/country-directory-qualification.json)
+extends the same resource gate to missing count bytes and malformed object
+lists. Actual read bounds, complete record extents and length overflow are
+checked before any DOS table write. Old-executable controls detect an accepted
+query and an accepted country switch. Country-directory record validation,
+object data and later-read transactions remain open.
+
 ## External DOS API suite
 
 `make test-dosemu2-qemu` runs selected upstream DOSEMU2 FAT tests against the

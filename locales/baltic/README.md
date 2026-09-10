@@ -404,6 +404,28 @@ using buffered offsets. Previously a damaged signature could be accepted.
 The old executable is a failure control for the guest gate. Run
 `make test-baltic-country-resources-qemu` for the per-language HIGH/LOW matrix.
 
-This is runtime header validation. Directory/object bounds, truncated table
-bodies, transactional preservation after a later read fails, CONFIG.SYS boot
-fallback, real-BIOS resource failures and installed-path failures remain open.
+This is runtime header validation. The control-block checks below extend it.
+Country-directory records, object data offsets and bodies, transactional
+preservation after a later read fails, CONFIG.SYS boot fallback, real-BIOS
+resource failures and installed-path failures remain open.
+
+
+## Country control blocks
+
+[Country directory qualification](country-directory-qualification.json)
+extends runtime rejection to out-of-file directory/object-list pointers,
+missing count bytes, empty or excessive object counts, incomplete lists and
+object records with short, oversized or overflowing lengths. NLSFUNC records
+the bytes actually read and validates the complete object list before it can
+copy any table into DOS. Valid records may retain additional trailing bytes;
+the check requires their mandatory fields to fit within the declared record.
+
+Old-executable controls demonstrate accepted queries with an undersized record
+and an accepted country switch with an object-list pointer at EOF. The guest
+gate checks rejection, the complete prior active-country state and recovery
+with a valid file. The record distinguishes the new HIGH/LOW language matrix,
+the focused header regression, and existing country/legacy regressions.
+
+Country-directory entry/count validation and object data offsets, signatures,
+lengths and read-failure transactions remain open. These control-block checks
+do not qualify CONFIG.SYS boot fallback or real-BIOS/installed failure paths.

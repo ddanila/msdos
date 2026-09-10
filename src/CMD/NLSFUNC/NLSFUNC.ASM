@@ -132,6 +132,7 @@ DS_DOSLOCATE	dw	0
 SAVEDX		dw	0		;=FC  file offset
 SAVECX		dw	0		;=FC
 NOFFSET 	dw	2		;=FC
+CTL_BYTES	dw	0		;bytes returned by the last control read
 CSIZE		dw	0
 CCODE		dw	0
 CPAGE		dw	0
@@ -492,6 +493,10 @@ FOUND_CTY:		       ;found the matching entry
 		jnc	NUM_ENTRY
 		jmp	END_TRANS		;=G
 NUM_ENTRY:
+		call	VALID_OBJECTS
+		jnc	OBJECTS_VALID
+		jmp	BAD_FILE
+OBJECTS_VALID:
 		mov	cx, word ptr ds:[si]	;get the number of entries to handle.
 		inc	si
 		inc	si			;SI -> first entry
@@ -783,6 +788,41 @@ GETEXT_CTY	endp
 ;*****************************END GETEXT_CTY*************************************
 subttl read into control buffer
 page
+; Validate the complete object directory before any DOS table is changed.
+; Each record needs its length, id/reserved bytes and a doubleword pointer.
+VALID_OBJECTS proc near
+		push	cx
+		push	dx
+		push	si
+		mov	dx,CTL_BYTES
+		sub	dx,2
+		mov	cx,word ptr ds:[si]
+		jcxz	VO_BAD
+		add	si,2
+VO_NEXT:
+		cmp	dx,2
+		jb	VO_BAD
+		mov	ax,word ptr ds:[si]
+		cmp	ax,6
+		jb	VO_BAD
+		add	ax,2
+		jc	VO_BAD
+		cmp	ax,dx
+		ja	VO_BAD
+		sub	dx,ax
+		add	si,ax
+		loop	VO_NEXT
+		clc
+		jmp	short VO_DONE
+VO_BAD:
+		stc
+VO_DONE:
+		pop	si
+		pop	dx
+		pop	cx
+		ret
+VALID_OBJECTS endp
+
 ;**************************READ_CTLBUFF*****************************************
 ;
 READ_CTLBUFF		proc	near
@@ -809,6 +849,13 @@ READ_CTLBUFF		proc	near
 		mov	cx, CTL_BUFF		  ;XXX bytes. Size of the information
 		CallInstall Dosread,multdos,41,<bx,cx,dx,ds,es,di,si>,<si,di,es,ds,dx,cx,bx>	;should be less than XXX bytes.
 		jc	NO_READ1
+		mov	CTL_BYTES,ax
+		; Every control block starts with a word. EOF must not reuse
+		; a prior directory or object count still in the buffer.
+		cmp	ax,2
+		jae	RICB_exit
+		mov	ALL_DONE,INVALID_FUNCTION
+		stc
 		jmp	short RICB_exit
 
 
