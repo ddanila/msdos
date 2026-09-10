@@ -545,18 +545,26 @@ test-ru-display-qemu: deploy $(SRC)/DEV/DISPLAY/EGA/EGA866.CPI
 test-ru-font-sources:
 	python3 tests/test_ru_font_sources.py
 
-.PHONY: test-baltic-font-sources test-baltic-country-contract
-test: test-baltic-font-sources test-baltic-country-contract
+.PHONY: test-baltic-font-sources test-baltic-country-contract test-baltic-keyboard-contract
+test: test-baltic-font-sources test-baltic-country-contract test-baltic-keyboard-contract
 test-baltic-font-sources:
 	python3 tests/test_baltic_font_sources.py
 
 test-baltic-country-contract:
 	python3 tests/test_baltic_country_contract.py
 
+test-baltic-keyboard-contract:
+	python3 tests/test_baltic_keyboard_contract.py
+
+.PHONY: test-baltic-country-records
+test: test-baltic-country-records
+test-baltic-country-records: $(SRC)/DEV/COUNTRY/COUNTRY.SYS
+	python3 tests/test_baltic_country_records.py
+
 test-keyboard-records: $(KEYBOARD_SYS)
 	python3 tests/test_keyboard_records.py
 
-test-country-records: $(COUNTRY_SYS)
+test-country-records: $(SRC)/DEV/COUNTRY/COUNTRY.SYS
 	python3 tests/test_country_records.py
 
 test-country-matrix-qemu: deploy

@@ -120,6 +120,16 @@ cntrycnt=0
 	ctryent <CENTRYSIZE,CID_RU,437,,,ru437_data>
 	ctryent <CENTRYSIZE,CID_RU,850,,,ru850_data>
 
+	ctryent <CENTRYSIZE,CID_ET,775,,,et775_data>
+	ctryent <CENTRYSIZE,CID_ET,437,,,et437_data>
+	ctryent <CENTRYSIZE,CID_ET,850,,,et850_data>
+	ctryent <CENTRYSIZE,CID_LV,775,,,lv775_data>
+	ctryent <CENTRYSIZE,CID_LV,437,,,lv437_data>
+	ctryent <CENTRYSIZE,CID_LV,850,,,lv850_data>
+	ctryent <CENTRYSIZE,CID_LT,775,,,lt775_data>
+	ctryent <CENTRYSIZE,CID_LT,437,,,lt437_data>
+	ctryent <CENTRYSIZE,CID_LT,850,,,lt850_data>
+
 dummy	macro	p
 finalCNT	equ	p
 	endm
@@ -2405,6 +2415,7 @@ page
 include D5CNTRY.INC
 include D5C850.INC
 include RUCOUNTRY.INC
+include BALTCOUN.INC
 
 include copyrigh.inc
 

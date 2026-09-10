@@ -1,0 +1,1906 @@
+{
+  "schema_version": 1,
+  "status": "captured-reference-runtime-unqualified",
+  "scope": "CP775 overrides, composition and scan-code facts; null means BIOS fallback. Physical modifier selection, US mode and legacy hardware require separate guest qualification.",
+  "profiles": {
+    "et": {
+      "planes": [
+        "normal",
+        "shift",
+        "AltGr | Shift",
+        "Shift AltGr",
+        "Ctrl"
+      ],
+      "keys": {
+        "3": [
+          null,
+          {
+            "kind": "character",
+            "byte": 34,
+            "scan": 3,
+            "caps": false
+          },
+          {
+            "kind": "character",
+            "byte": 64,
+            "scan": 3,
+            "caps": false
+          },
+          null,
+          null
+        ],
+        "4": [
+          null,
+          null,
+          {
+            "kind": "character",
+            "byte": 156,
+            "scan": 4,
+            "caps": false
+          },
+          null,
+          null
+        ],
+        "5": [
+          null,
+          {
+            "kind": "character",
+            "byte": 159,
+            "scan": 5,
+            "caps": false
+          },
+          {
+            "kind": "character",
+            "byte": 36,
+            "scan": 5,
+            "caps": false
+          },
+          null,
+          null
+        ],
+        "7": [
+          null,
+          {
+            "kind": "character",
+            "byte": 38,
+            "scan": 7,
+            "caps": false
+          },
+          null,
+          null,
+          null
+        ],
+        "8": [
+          null,
+          {
+            "kind": "character",
+            "byte": 47,
+            "scan": 8,
+            "caps": false
+          },
+          {
+            "kind": "character",
+            "byte": 123,
+            "scan": 8,
+            "caps": false
+          },
+          null,
+          null
+        ],
+        "9": [
+          null,
+          {
+            "kind": "character",
+            "byte": 40,
+            "scan": 9,
+            "caps": false
+          },
+          {
+            "kind": "character",
+            "byte": 91,
+            "scan": 9,
+            "caps": false
+          },
+          null,
+          {
+            "kind": "character",
+            "byte": 27,
+            "scan": 9,
+            "caps": false
+          }
+        ],
+        "10": [
+          null,
+          {
+            "kind": "character",
+            "byte": 41,
+            "scan": 10,
+            "caps": false
+          },
+          {
+            "kind": "character",
+            "byte": 93,
+            "scan": 10,
+            "caps": false
+          },
+          null,
+          {
+            "kind": "character",
+            "byte": 29,
+            "scan": 10,
+            "caps": false
+          }
+        ],
+        "11": [
+          null,
+          {
+            "kind": "character",
+            "byte": 61,
+            "scan": 11,
+            "caps": false
+          },
+          {
+            "kind": "character",
+            "byte": 125,
+            "scan": 11,
+            "caps": false
+          },
+          null,
+          null
+        ],
+        "12": [
+          {
+            "kind": "character",
+            "byte": 43,
+            "scan": 12,
+            "caps": false
+          },
+          {
+            "kind": "character",
+            "byte": 63,
+            "scan": 12,
+            "caps": false
+          },
+          {
+            "kind": "character",
+            "byte": 92,
+            "scan": 12,
+            "caps": false
+          },
+          null,
+          {
+            "kind": "character",
+            "byte": 28,
+            "scan": 12,
+            "caps": false
+          }
+        ],
+        "13": [
+          {
+            "kind": "dead",
+            "id": 4,
+            "caps": false
+          },
+          {
+            "kind": "dead",
+            "id": 1,
+            "caps": false
+          },
+          null,
+          null,
+          null
+        ],
+        "18": [
+          {
+            "kind": "character",
+            "byte": 101,
+            "scan": 18,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 69,
+            "scan": 18,
+            "caps": true
+          },
+          null,
+          null,
+          null
+        ],
+        "19": [
+          {
+            "kind": "character",
+            "byte": 114,
+            "scan": 19,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 82,
+            "scan": 19,
+            "caps": true
+          },
+          null,
+          null,
+          null
+        ],
+        "21": [
+          {
+            "kind": "character",
+            "byte": 121,
+            "scan": 21,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 89,
+            "scan": 21,
+            "caps": true
+          },
+          null,
+          null,
+          null
+        ],
+        "22": [
+          {
+            "kind": "character",
+            "byte": 117,
+            "scan": 22,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 85,
+            "scan": 22,
+            "caps": true
+          },
+          null,
+          null,
+          null
+        ],
+        "23": [
+          {
+            "kind": "character",
+            "byte": 105,
+            "scan": 23,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 73,
+            "scan": 23,
+            "caps": true
+          },
+          null,
+          null,
+          null
+        ],
+        "24": [
+          {
+            "kind": "character",
+            "byte": 111,
+            "scan": 24,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 79,
+            "scan": 24,
+            "caps": true
+          },
+          null,
+          null,
+          null
+        ],
+        "26": [
+          {
+            "kind": "character",
+            "byte": 129,
+            "scan": 26,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 154,
+            "scan": 26,
+            "caps": true
+          },
+          null,
+          null,
+          null
+        ],
+        "27": [
+          {
+            "kind": "character",
+            "byte": 228,
+            "scan": 27,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 229,
+            "scan": 27,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 245,
+            "scan": 27,
+            "caps": true
+          },
+          null,
+          null
+        ],
+        "30": [
+          {
+            "kind": "character",
+            "byte": 97,
+            "scan": 30,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 65,
+            "scan": 30,
+            "caps": true
+          },
+          null,
+          null,
+          null
+        ],
+        "31": [
+          {
+            "kind": "character",
+            "byte": 115,
+            "scan": 31,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 83,
+            "scan": 31,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 213,
+            "scan": 31,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 190,
+            "scan": 31,
+            "caps": true
+          },
+          null
+        ],
+        "34": [
+          {
+            "kind": "character",
+            "byte": 103,
+            "scan": 34,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 71,
+            "scan": 34,
+            "caps": true
+          },
+          null,
+          null,
+          null
+        ],
+        "37": [
+          {
+            "kind": "character",
+            "byte": 107,
+            "scan": 37,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 75,
+            "scan": 37,
+            "caps": true
+          },
+          null,
+          null,
+          null
+        ],
+        "38": [
+          {
+            "kind": "character",
+            "byte": 108,
+            "scan": 38,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 76,
+            "scan": 38,
+            "caps": true
+          },
+          null,
+          null,
+          null
+        ],
+        "39": [
+          {
+            "kind": "character",
+            "byte": 148,
+            "scan": 39,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 153,
+            "scan": 39,
+            "caps": true
+          },
+          null,
+          null,
+          null
+        ],
+        "40": [
+          {
+            "kind": "character",
+            "byte": 132,
+            "scan": 40,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 142,
+            "scan": 40,
+            "caps": true
+          },
+          {
+            "kind": "dead",
+            "id": 3,
+            "caps": true
+          },
+          null,
+          {
+            "kind": "character",
+            "byte": 30,
+            "scan": 40,
+            "caps": true
+          }
+        ],
+        "41": [
+          {
+            "kind": "dead",
+            "id": 5,
+            "caps": false
+          },
+          {
+            "kind": "dead",
+            "id": 2,
+            "caps": false
+          },
+          null,
+          null,
+          null
+        ],
+        "43": [
+          {
+            "kind": "character",
+            "byte": 39,
+            "scan": 43,
+            "caps": false
+          },
+          {
+            "kind": "character",
+            "byte": 42,
+            "scan": 43,
+            "caps": false
+          },
+          {
+            "kind": "character",
+            "byte": 171,
+            "scan": 43,
+            "caps": false
+          },
+          null,
+          null
+        ],
+        "44": [
+          {
+            "kind": "character",
+            "byte": 122,
+            "scan": 44,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 90,
+            "scan": 44,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 216,
+            "scan": 44,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 207,
+            "scan": 44,
+            "caps": true
+          },
+          null
+        ],
+        "46": [
+          {
+            "kind": "character",
+            "byte": 99,
+            "scan": 46,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 67,
+            "scan": 46,
+            "caps": true
+          },
+          null,
+          null,
+          null
+        ],
+        "49": [
+          {
+            "kind": "character",
+            "byte": 110,
+            "scan": 49,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 78,
+            "scan": 49,
+            "caps": true
+          },
+          null,
+          null,
+          null
+        ],
+        "51": [
+          null,
+          {
+            "kind": "character",
+            "byte": 59,
+            "scan": 51,
+            "caps": false
+          },
+          {
+            "kind": "character",
+            "byte": 60,
+            "scan": 51,
+            "caps": false
+          },
+          null,
+          null
+        ],
+        "52": [
+          null,
+          {
+            "kind": "character",
+            "byte": 58,
+            "scan": 52,
+            "caps": false
+          },
+          {
+            "kind": "character",
+            "byte": 62,
+            "scan": 52,
+            "caps": false
+          },
+          null,
+          null
+        ],
+        "53": [
+          {
+            "kind": "character",
+            "byte": 45,
+            "scan": 53,
+            "caps": false
+          },
+          {
+            "kind": "character",
+            "byte": 95,
+            "scan": 53,
+            "caps": false
+          },
+          {
+            "kind": "character",
+            "byte": 124,
+            "scan": 53,
+            "caps": false
+          },
+          null,
+          {
+            "kind": "character",
+            "byte": 31,
+            "scan": 53,
+            "caps": false
+          }
+        ],
+        "57": [
+          {
+            "kind": "character",
+            "byte": 32,
+            "scan": 57,
+            "caps": false
+          },
+          null,
+          null,
+          null,
+          null
+        ],
+        "86": [
+          {
+            "kind": "character",
+            "byte": 60,
+            "scan": 86,
+            "caps": false
+          },
+          {
+            "kind": "character",
+            "byte": 62,
+            "scan": 86,
+            "caps": false
+          },
+          {
+            "kind": "character",
+            "byte": 124,
+            "scan": 86,
+            "caps": false
+          },
+          null,
+          null
+        ]
+      },
+      "dead_keys": {
+        "1": {
+          "literal": 96,
+          "pairs": {
+            "97": 131,
+            "101": 137,
+            "105": 140,
+            "111": 147,
+            "117": 215,
+            "65": 160,
+            "69": 237,
+            "73": 161,
+            "79": 226,
+            "85": 199,
+            "32": 96
+          }
+        },
+        "2": {
+          "literal": 126,
+          "pairs": {
+            "111": 228,
+            "79": 229,
+            "32": 126
+          }
+        },
+        "3": {
+          "literal": 94,
+          "pairs": {
+            "97": 208,
+            "101": 210,
+            "105": 212,
+            "117": 214,
+            "103": 133,
+            "107": 233,
+            "108": 235,
+            "110": 236,
+            "114": 139,
+            "65": 181,
+            "69": 183,
+            "73": 189,
+            "85": 198,
+            "71": 149,
+            "75": 232,
+            "76": 234,
+            "78": 238,
+            "82": 138,
+            "32": 94
+          }
+        },
+        "4": {
+          "literal": 239,
+          "pairs": {
+            "99": 135,
+            "101": 130,
+            "110": 231,
+            "111": 162,
+            "115": 152,
+            "122": 165,
+            "67": 128,
+            "69": 144,
+            "78": 227,
+            "79": 224,
+            "83": 151,
+            "90": 141,
+            "32": 239
+          }
+        },
+        "5": {
+          "literal": 39,
+          "pairs": {
+            "99": 209,
+            "115": 213,
+            "122": 216,
+            "67": 182,
+            "83": 190,
+            "90": 207,
+            "32": 39
+          }
+        }
+      },
+      "names": [
+        "Name=,ET",
+        "Name=,EE",
+        "Name=454,ET",
+        "Name=454,EE"
+      ],
+      "source_sha256": "a0cc2d353cf13a63f8ebd988817916e20b4540f8f9d10bfb574c121fe07ef4aa"
+    },
+    "lv": {
+      "planes": [
+        "normal",
+        "shift",
+        "AltGr | Shift",
+        "Shift AltGr",
+        "Alt"
+      ],
+      "keys": {
+        "2": [
+          null,
+          null,
+          {
+            "kind": "character",
+            "byte": 255,
+            "scan": 2,
+            "caps": false
+          },
+          null,
+          null
+        ],
+        "3": [
+          null,
+          null,
+          {
+            "kind": "character",
+            "byte": 174,
+            "scan": 3,
+            "caps": false
+          },
+          null,
+          null
+        ],
+        "4": [
+          null,
+          null,
+          {
+            "kind": "character",
+            "byte": 175,
+            "scan": 4,
+            "caps": false
+          },
+          null,
+          null
+        ],
+        "5": [
+          null,
+          null,
+          null,
+          {
+            "kind": "character",
+            "byte": 245,
+            "scan": 5,
+            "caps": false
+          },
+          null
+        ],
+        "6": [
+          null,
+          null,
+          null,
+          {
+            "kind": "character",
+            "byte": 248,
+            "scan": 6,
+            "caps": false
+          },
+          null
+        ],
+        "8": [
+          null,
+          null,
+          null,
+          {
+            "kind": "character",
+            "byte": 241,
+            "scan": 8,
+            "caps": false
+          },
+          null
+        ],
+        "9": [
+          null,
+          null,
+          null,
+          {
+            "kind": "character",
+            "byte": 158,
+            "scan": 9,
+            "caps": false
+          },
+          null
+        ],
+        "18": [
+          {
+            "kind": "character",
+            "byte": 101,
+            "scan": 18,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 69,
+            "scan": 18,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 137,
+            "scan": 18,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 237,
+            "scan": 18,
+            "caps": true
+          },
+          null
+        ],
+        "19": [
+          null,
+          null,
+          {
+            "kind": "character",
+            "byte": 139,
+            "scan": 19,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 138,
+            "scan": 19,
+            "caps": true
+          },
+          null
+        ],
+        "22": [
+          {
+            "kind": "character",
+            "byte": 117,
+            "scan": 22,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 85,
+            "scan": 22,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 215,
+            "scan": 22,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 199,
+            "scan": 22,
+            "caps": true
+          },
+          null
+        ],
+        "23": [
+          null,
+          null,
+          {
+            "kind": "character",
+            "byte": 140,
+            "scan": 23,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 161,
+            "scan": 23,
+            "caps": true
+          },
+          null
+        ],
+        "24": [
+          {
+            "kind": "character",
+            "byte": 111,
+            "scan": 24,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 79,
+            "scan": 24,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 228,
+            "scan": 24,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 229,
+            "scan": 24,
+            "caps": true
+          },
+          null
+        ],
+        "30": [
+          {
+            "kind": "character",
+            "byte": 97,
+            "scan": 30,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 65,
+            "scan": 30,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 131,
+            "scan": 30,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 160,
+            "scan": 30,
+            "caps": true
+          },
+          null
+        ],
+        "31": [
+          {
+            "kind": "character",
+            "byte": 115,
+            "scan": 31,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 83,
+            "scan": 31,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 213,
+            "scan": 31,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 190,
+            "scan": 31,
+            "caps": true
+          },
+          null
+        ],
+        "34": [
+          null,
+          null,
+          {
+            "kind": "character",
+            "byte": 133,
+            "scan": 34,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 149,
+            "scan": 34,
+            "caps": true
+          },
+          null
+        ],
+        "37": [
+          null,
+          null,
+          {
+            "kind": "character",
+            "byte": 233,
+            "scan": 37,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 232,
+            "scan": 37,
+            "caps": true
+          },
+          null
+        ],
+        "38": [
+          null,
+          null,
+          {
+            "kind": "character",
+            "byte": 235,
+            "scan": 38,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 234,
+            "scan": 38,
+            "caps": true
+          },
+          null
+        ],
+        "40": [
+          null,
+          null,
+          {
+            "kind": "dead",
+            "id": 3,
+            "caps": false
+          },
+          {
+            "kind": "dead",
+            "id": 4,
+            "caps": false
+          },
+          null
+        ],
+        "41": [
+          null,
+          {
+            "kind": "dead",
+            "id": 2,
+            "caps": false
+          },
+          {
+            "kind": "character",
+            "byte": 45,
+            "scan": 41,
+            "caps": false
+          },
+          null,
+          null
+        ],
+        "43": [
+          {
+            "kind": "dead",
+            "id": 1,
+            "caps": false
+          },
+          {
+            "kind": "character",
+            "byte": 124,
+            "scan": 43,
+            "caps": false
+          },
+          {
+            "kind": "character",
+            "byte": 92,
+            "scan": 43,
+            "caps": false
+          },
+          null,
+          null
+        ],
+        "44": [
+          {
+            "kind": "character",
+            "byte": 122,
+            "scan": 44,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 90,
+            "scan": 44,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 216,
+            "scan": 44,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 207,
+            "scan": 44,
+            "caps": true
+          },
+          null
+        ],
+        "46": [
+          {
+            "kind": "character",
+            "byte": 99,
+            "scan": 46,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 67,
+            "scan": 46,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 209,
+            "scan": 46,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 182,
+            "scan": 46,
+            "caps": true
+          },
+          null
+        ],
+        "49": [
+          {
+            "kind": "character",
+            "byte": 110,
+            "scan": 49,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 78,
+            "scan": 49,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 236,
+            "scan": 49,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 238,
+            "scan": 49,
+            "caps": true
+          },
+          null
+        ],
+        "57": [
+          {
+            "kind": "character",
+            "byte": 32,
+            "scan": 57,
+            "caps": false
+          },
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "dead_keys": {
+        "1": {
+          "literal": 248,
+          "pairs": {
+            "97": 134,
+            "101": 211,
+            "122": 164,
+            "65": 143,
+            "69": 184,
+            "90": 163,
+            "32": 248
+          }
+        },
+        "2": {
+          "literal": 126,
+          "pairs": {
+            "111": 228,
+            "79": 229,
+            "32": 126
+          }
+        },
+        "3": {
+          "literal": 239,
+          "pairs": {
+            "99": 135,
+            "101": 130,
+            "110": 231,
+            "111": 162,
+            "115": 152,
+            "122": 165,
+            "67": 128,
+            "69": 144,
+            "78": 227,
+            "79": 224,
+            "83": 151,
+            "90": 141,
+            "32": 239
+          }
+        },
+        "4": {
+          "literal": 34,
+          "pairs": {
+            "97": 132,
+            "111": 148,
+            "117": 129,
+            "65": 142,
+            "79": 153,
+            "85": 154,
+            "32": 34
+          }
+        }
+      },
+      "names": [
+        "Name=,LV"
+      ],
+      "source_sha256": "9458dfffa4e68d0981b71c97dc188cdf05b24aa694e3730e6b063a9b40f67e9a"
+    },
+    "lt": {
+      "planes": [
+        "normal",
+        "shift",
+        "AltGr | Shift",
+        "Ctrl",
+        "Alt"
+      ],
+      "keys": {
+        "2": [
+          {
+            "kind": "character",
+            "byte": 33,
+            "scan": 2,
+            "caps": false
+          },
+          {
+            "kind": "character",
+            "byte": 49,
+            "scan": 2,
+            "caps": false
+          },
+          {
+            "kind": "character",
+            "byte": 64,
+            "scan": 2,
+            "caps": false
+          },
+          null,
+          null
+        ],
+        "3": [
+          {
+            "kind": "character",
+            "byte": 45,
+            "scan": 3,
+            "caps": false
+          },
+          {
+            "kind": "character",
+            "byte": 50,
+            "scan": 3,
+            "caps": false
+          },
+          {
+            "kind": "character",
+            "byte": 95,
+            "scan": 3,
+            "caps": false
+          },
+          {
+            "kind": "character",
+            "byte": 31,
+            "scan": 3,
+            "caps": false
+          },
+          null
+        ],
+        "4": [
+          {
+            "kind": "character",
+            "byte": 47,
+            "scan": 4,
+            "caps": false
+          },
+          {
+            "kind": "character",
+            "byte": 51,
+            "scan": 4,
+            "caps": false
+          },
+          {
+            "kind": "character",
+            "byte": 35,
+            "scan": 4,
+            "caps": false
+          },
+          null,
+          null
+        ],
+        "5": [
+          {
+            "kind": "character",
+            "byte": 59,
+            "scan": 5,
+            "caps": false
+          },
+          {
+            "kind": "character",
+            "byte": 52,
+            "scan": 5,
+            "caps": false
+          },
+          {
+            "kind": "character",
+            "byte": 36,
+            "scan": 5,
+            "caps": false
+          },
+          null,
+          null
+        ],
+        "6": [
+          {
+            "kind": "character",
+            "byte": 58,
+            "scan": 6,
+            "caps": false
+          },
+          {
+            "kind": "character",
+            "byte": 53,
+            "scan": 6,
+            "caps": false
+          },
+          {
+            "kind": "character",
+            "byte": 245,
+            "scan": 6,
+            "caps": false
+          },
+          null,
+          null
+        ],
+        "7": [
+          {
+            "kind": "character",
+            "byte": 44,
+            "scan": 7,
+            "caps": false
+          },
+          {
+            "kind": "character",
+            "byte": 54,
+            "scan": 7,
+            "caps": false
+          },
+          {
+            "kind": "character",
+            "byte": 94,
+            "scan": 7,
+            "caps": false
+          },
+          null,
+          null
+        ],
+        "8": [
+          {
+            "kind": "character",
+            "byte": 46,
+            "scan": 8,
+            "caps": false
+          },
+          {
+            "kind": "character",
+            "byte": 55,
+            "scan": 8,
+            "caps": false
+          },
+          {
+            "kind": "character",
+            "byte": 38,
+            "scan": 8,
+            "caps": false
+          },
+          null,
+          null
+        ],
+        "9": [
+          {
+            "kind": "character",
+            "byte": 61,
+            "scan": 9,
+            "caps": false
+          },
+          {
+            "kind": "character",
+            "byte": 56,
+            "scan": 9,
+            "caps": false
+          },
+          {
+            "kind": "character",
+            "byte": 42,
+            "scan": 9,
+            "caps": false
+          },
+          null,
+          null
+        ],
+        "10": [
+          {
+            "kind": "character",
+            "byte": 40,
+            "scan": 10,
+            "caps": false
+          },
+          {
+            "kind": "character",
+            "byte": 57,
+            "scan": 10,
+            "caps": false
+          },
+          {
+            "kind": "character",
+            "byte": 91,
+            "scan": 10,
+            "caps": false
+          },
+          {
+            "kind": "character",
+            "byte": 27,
+            "scan": 10,
+            "caps": false
+          },
+          null
+        ],
+        "11": [
+          {
+            "kind": "character",
+            "byte": 41,
+            "scan": 11,
+            "caps": false
+          },
+          {
+            "kind": "character",
+            "byte": 48,
+            "scan": 11,
+            "caps": false
+          },
+          {
+            "kind": "character",
+            "byte": 93,
+            "scan": 11,
+            "caps": false
+          },
+          {
+            "kind": "character",
+            "byte": 29,
+            "scan": 11,
+            "caps": false
+          },
+          null
+        ],
+        "12": [
+          {
+            "kind": "character",
+            "byte": 63,
+            "scan": 12,
+            "caps": false
+          },
+          {
+            "kind": "character",
+            "byte": 43,
+            "scan": 12,
+            "caps": false
+          },
+          {
+            "kind": "character",
+            "byte": 39,
+            "scan": 12,
+            "caps": false
+          },
+          null,
+          null
+        ],
+        "13": [
+          {
+            "kind": "character",
+            "byte": 120,
+            "scan": 45,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 88,
+            "scan": 45,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 37,
+            "scan": 131,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 24,
+            "scan": 45,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 0,
+            "scan": 131,
+            "caps": true
+          }
+        ],
+        "16": [
+          {
+            "kind": "character",
+            "byte": 208,
+            "scan": 16,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 181,
+            "scan": 16,
+            "caps": true
+          },
+          null,
+          null,
+          null
+        ],
+        "17": [
+          {
+            "kind": "character",
+            "byte": 216,
+            "scan": 17,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 207,
+            "scan": 17,
+            "caps": true
+          },
+          null,
+          null,
+          null
+        ],
+        "26": [
+          {
+            "kind": "character",
+            "byte": 212,
+            "scan": 26,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 189,
+            "scan": 26,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 123,
+            "scan": 26,
+            "caps": true
+          },
+          null,
+          null
+        ],
+        "27": [
+          {
+            "kind": "character",
+            "byte": 119,
+            "scan": 17,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 87,
+            "scan": 17,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 125,
+            "scan": 17,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 23,
+            "scan": 17,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 0,
+            "scan": 17,
+            "caps": true
+          }
+        ],
+        "33": [
+          {
+            "kind": "character",
+            "byte": 213,
+            "scan": 33,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 190,
+            "scan": 33,
+            "caps": true
+          },
+          null,
+          null,
+          null
+        ],
+        "39": [
+          {
+            "kind": "character",
+            "byte": 214,
+            "scan": 39,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 198,
+            "scan": 39,
+            "caps": true
+          },
+          null,
+          null,
+          null
+        ],
+        "40": [
+          {
+            "kind": "character",
+            "byte": 211,
+            "scan": 40,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 184,
+            "scan": 40,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 34,
+            "scan": 40,
+            "caps": true
+          },
+          null,
+          null
+        ],
+        "41": [
+          {
+            "kind": "character",
+            "byte": 96,
+            "scan": 41,
+            "caps": false
+          },
+          {
+            "kind": "character",
+            "byte": 126,
+            "scan": 41,
+            "caps": false
+          },
+          {
+            "kind": "character",
+            "byte": 239,
+            "scan": 41,
+            "caps": false
+          },
+          null,
+          null
+        ],
+        "43": [
+          {
+            "kind": "character",
+            "byte": 113,
+            "scan": 16,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 81,
+            "scan": 16,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 124,
+            "scan": 16,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 17,
+            "scan": 16,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 0,
+            "scan": 16,
+            "caps": true
+          }
+        ],
+        "45": [
+          {
+            "kind": "character",
+            "byte": 215,
+            "scan": 45,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 199,
+            "scan": 45,
+            "caps": true
+          },
+          null,
+          null,
+          null
+        ],
+        "51": [
+          {
+            "kind": "character",
+            "byte": 209,
+            "scan": 51,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 182,
+            "scan": 51,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 247,
+            "scan": 51,
+            "caps": true
+          },
+          null,
+          null
+        ],
+        "52": [
+          {
+            "kind": "character",
+            "byte": 102,
+            "scan": 33,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 70,
+            "scan": 33,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 242,
+            "scan": 33,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 6,
+            "scan": 33,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 0,
+            "scan": 33,
+            "caps": true
+          }
+        ],
+        "53": [
+          {
+            "kind": "character",
+            "byte": 210,
+            "scan": 53,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 183,
+            "scan": 53,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 92,
+            "scan": 53,
+            "caps": true
+          },
+          {
+            "kind": "character",
+            "byte": 28,
+            "scan": 53,
+            "caps": true
+          },
+          null
+        ],
+        "57": [
+          {
+            "kind": "character",
+            "byte": 32,
+            "scan": 57,
+            "caps": false
+          },
+          null,
+          null,
+          null,
+          null
+        ],
+        "86": [
+          {
+            "kind": "character",
+            "byte": 60,
+            "scan": 86,
+            "caps": false
+          },
+          {
+            "kind": "character",
+            "byte": 62,
+            "scan": 86,
+            "caps": false
+          },
+          {
+            "kind": "character",
+            "byte": 45,
+            "scan": 86,
+            "caps": false
+          },
+          null,
+          null
+        ]
+      },
+      "dead_keys": {},
+      "names": [
+        "Name=221,LT"
+      ],
+      "source_sha256": "f744e0c7a9b24550e6bc9fe3b58a25e9551af03ff66211cd60545b2caadb9aea"
+    }
+  }
+}

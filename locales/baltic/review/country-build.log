@@ -1,0 +1,3 @@
+cd /Users/ddanila/fun/msdos/src/DEV/COUNTRY && /Users/ddanila/fun/msdos/bin/jwasm-masm "-Mx -t -I. -ID:\\TOOLS\\INC -I..\\..\\INC -I..\\..\\DOS" "MKCNTRY.ASM,MKCNTRY.OBJ;"
+cd /Users/ddanila/fun/msdos/src/DEV/COUNTRY && /Users/ddanila/fun/msdos/bin/wlink "MKCNTRY;"
+cd /Users/ddanila/fun/msdos/src/DEV/COUNTRY && /Users/ddanila/fun/msdos/bin/mkcntry MKCNTRY.EXE COUNTRY.SYS

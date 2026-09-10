@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "sources": [
+    {
+      "path": "upstream/keydos/Et.key",
+      "archive_url": "https://www.ibiblio.org/pub/micro/pc-stuff/freedos/files/dos/keyb/kblayout/kpdos-3.1/kpdos31s.zip",
+      "archive_sha256": "1dcd3e132418eb6c470c77612007087e096f7fc89e27c2085a743dbb14db7b64",
+      "archive_member": "Source/Keydos/Et.key",
+      "sha256": "a0cc2d353cf13a63f8ebd988817916e20b4540f8f9d10bfb574c121fe07ef4aa",
+      "license": "GPL-2.0-or-later",
+      "scope": "Unmodified reference data/documentation; not linked into product drivers."
+    },
+    {
+      "path": "upstream/keydos/Lv.key",
+      "archive_url": "https://www.ibiblio.org/pub/micro/pc-stuff/freedos/files/dos/keyb/kblayout/kpdos-3.1/kpdos31s.zip",
+      "archive_sha256": "1dcd3e132418eb6c470c77612007087e096f7fc89e27c2085a743dbb14db7b64",
+      "archive_member": "Source/Keydos/Lv.key",
+      "sha256": "9458dfffa4e68d0981b71c97dc188cdf05b24aa694e3730e6b063a9b40f67e9a",
+      "license": "GPL-2.0-or-later",
+      "scope": "Unmodified reference data/documentation; not linked into product drivers."
+    },
+    {
+      "path": "upstream/keydos/Lt221.key",
+      "archive_url": "https://www.ibiblio.org/pub/micro/pc-stuff/freedos/files/dos/keyb/kblayout/kpdos-3.1/kpdos31s.zip",
+      "archive_sha256": "1dcd3e132418eb6c470c77612007087e096f7fc89e27c2085a743dbb14db7b64",
+      "archive_member": "Source/Keydos/Lt221.key",
+      "sha256": "f744e0c7a9b24550e6bc9fe3b58a25e9551af03ff66211cd60545b2caadb9aea",
+      "license": "GPL-2.0-or-later",
+      "scope": "Unmodified reference data/documentation; not linked into product drivers."
+    },
+    {
+      "path": "upstream/keydos/Copying.txt",
+      "archive_url": "https://www.ibiblio.org/pub/micro/pc-stuff/freedos/files/dos/keyb/kblayout/kpdos-3.1/kpdos31s.zip",
+      "archive_sha256": "1dcd3e132418eb6c470c77612007087e096f7fc89e27c2085a743dbb14db7b64",
+      "archive_member": "Doc/Keydos/Copying.txt",
+      "sha256": "edc9945e0af7d456a06bd84a4492cff4cb2d47e046dc0c8a33a1690f6f500fc1",
+      "license": "GPL-2.0-or-later",
+      "scope": "Unmodified reference data/documentation; not linked into product drivers."
+    },
+    {
+      "path": "upstream/keydos/Readme.txt",
+      "archive_url": "https://www.ibiblio.org/pub/micro/pc-stuff/freedos/files/dos/keyb/kblayout/kpdos-3.1/kpdos31s.zip",
+      "archive_sha256": "1dcd3e132418eb6c470c77612007087e096f7fc89e27c2085a743dbb14db7b64",
+      "archive_member": "Doc/Keydos/Readme.txt",
+      "sha256": "fbc5a9d2afea5caa95a8d74a686d44dca9129c192d2d57bf66e118abc9ef3585",
+      "license": "GPL-2.0-or-later",
+      "scope": "Unmodified reference data/documentation; not linked into product drivers."
+    },
+    {
+      "path": "upstream/keydos/Layouts.txt",
+      "archive_url": "https://www.ibiblio.org/pub/micro/pc-stuff/freedos/files/dos/keyb/kblayout/kpdos-3.1/kpdos31s.zip",
+      "archive_sha256": "1dcd3e132418eb6c470c77612007087e096f7fc89e27c2085a743dbb14db7b64",
+      "archive_member": "Doc/Keydos/Layouts.txt",
+      "sha256": "400fb14b8758077fba8065dde9234bb970699bad16ef17306e92405833ca5583",
+      "license": "GPL-2.0-or-later",
+      "scope": "Unmodified reference data/documentation; not linked into product drivers."
+    },
+    {
+      "path": "upstream/kc/KEY.TXT",
+      "archive_url": "https://www.ibiblio.org/pub/micro/pc-stuff/freedos/files/dos/keyb/fdkeyb-2.0/kc200s.zip",
+      "archive_sha256": "6fb0a0ffa398620b0c91fc4a5ff394c07601557b2cd955a7e055c7f1e5897001",
+      "archive_member": "DOC/KC/KEY.TXT",
+      "sha256": "26593cd346fa331d8aa95f4e65cd3ec6f004ac806dbacad0f39dd15d75e2e213",
+      "license": "GPL-2.0-or-later",
+      "scope": "Unmodified reference data/documentation; not linked into product drivers."
+    },
+    {
+      "path": "upstream/kc/README.TXT",
+      "archive_url": "https://www.ibiblio.org/pub/micro/pc-stuff/freedos/files/dos/keyb/fdkeyb-2.0/kc200s.zip",
+      "archive_sha256": "6fb0a0ffa398620b0c91fc4a5ff394c07601557b2cd955a7e055c7f1e5897001",
+      "archive_member": "DOC/KC/README.TXT",
+      "sha256": "55238f9f7b22cfdc9e3c36a8f7c6ec8a8d112a6d8f2afef1f1a763049a2867d3",
+      "license": "GPL-2.0-or-later",
+      "scope": "Unmodified reference data/documentation; not linked into product drivers."
+    },
+    {
+      "path": "upstream/kc/COPYING.TXT",
+      "archive_url": "https://www.ibiblio.org/pub/micro/pc-stuff/freedos/files/dos/keyb/fdkeyb-2.0/kc200s.zip",
+      "archive_sha256": "6fb0a0ffa398620b0c91fc4a5ff394c07601557b2cd955a7e055c7f1e5897001",
+      "archive_member": "DOC/KC/COPYING.TXT",
+      "sha256": "edc9945e0af7d456a06bd84a4492cff4cb2d47e046dc0c8a33a1690f6f500fc1",
+      "license": "GPL-2.0-or-later",
+      "scope": "Unmodified reference data/documentation; not linked into product drivers."
+    }
+  ]
+}

@@ -157,10 +157,9 @@ DOS-era country contract.
 - [Coverage contracts](tests/COVERAGE.md), [emulator roles](EMULATION.md), and
   [release gates](ARCHITECTURE.md) define qualification requirements.
 
-The [Baltic inputs and candidate audit](locales/baltic/README.md) implement the
-encoding/source foundation. [Contract research](locales/baltic/contract-research.json)
-keeps national keyboard decisions open. The [country contract](locales/baltic/country-contract.json)
-selects formatting and explicit DOS ordering with retained expectations; guest
-qualification remains open. Existing Russian evidence
-does not establish CP775 or Baltic language support; new profiles require their
-own qualification.
+The [Baltic implementation records](locales/baltic/README.md) contain pinned
+encoding/font inputs and selected national country and keyboard contracts.
+COUNTRY.SYS includes the Baltic records with static checks against retained
+expectations and preservation of prior records. Keyboard driver data, CP775 font
+loading and all runtime/install/release qualification remain open. Existing
+Russian evidence does not establish Baltic support.

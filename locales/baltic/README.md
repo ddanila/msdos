@@ -8,8 +8,8 @@ encoding inputs and a candidate font audit, not an installable locale pack.
 the existing local Cozette and 512_8 sources by path, revision and hash. Their
 MIT, public-domain and Unicode license notices remain with the original inputs.
 Builds and audits require no downloads. The [country contract](country-contract.json) selects national formatting and
-explicit DOS sorting rules. Keyboard contracts remain open; Unicode mapping
-does not define either DOS sorting or keys.
+explicit DOS sorting rules. The [keyboard contract](keyboard-contract.json)
+selects the national input profiles. Unicode mapping alone defines neither.
 
 Run `make test-baltic-font-sources` for independent encoding, language-letter,
 candidate-coverage, retained-output and corruption checks. It is included in
@@ -28,8 +28,8 @@ need explicit edits and visual/runtime qualification, including border geometry.
 The Russian auditor's default invocation and retained outputs are preserved.
 
 The [contract research record](contract-research.json) identifies candidate
-keyboard references and the limitations of current country data. It is evidence
-for the next implementation decisions, not a completed compatibility contract.
+keyboard references and the limitations of current country data. Selected
+contracts and their pending runtime qualification are recorded separately.
 
 [Foundation qualification](foundation-qualification.json) retains the command,
 log and review hashes, including the existing Russian source/CPI regressions.
@@ -45,4 +45,20 @@ positions, and unrepresentable uppercase partners leave DOS bytes unchanged.
 
 Run `python3 tools/baltic_country_contract.py --check` from the repository root
 to verify the retained expectations. The materializer does not build COUNTRY.SYS;
-production record integration and guest API qualification remain open.
+production records are checked separately against its output. Guest API
+qualification remains open.
+
+[Keyboard contract qualification](keyboard-contract-qualification.json) records
+`make test-baltic-keyboard-contract`. The pinned FreeDOS KEY sources and compiler
+format documentation retain their GPL notices. A byte-preserving parser captures
+CP775/common-table fallback, modifiers, composition pairs and explicit BIOS scan
+remaps into [keyboard expectations](review/keyboard-expectations.json). It does
+not emit resident code. ET/454, LV/default and LT/221 are the selected profiles;
+other variants are deferred. Physical input and composition lifecycle still
+require guest qualification.
+
+[Country record qualification](country-record-qualification.json) records the
+rebuilt COUNTRY.SYS and `make test-baltic-country-records`. The new Baltic objects
+match retained expectations and every pre-Baltic object's contents are preserved,
+including Russian. Case/collation corruption controls are included. Static
+record correctness does not establish active CONFIG/NLSFUNC/CHCP behavior.

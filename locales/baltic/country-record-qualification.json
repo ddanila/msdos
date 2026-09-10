@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "status": "country-records-built-static-qualified-runtime-pending",
+  "commands": [
+    "make /Users/ddanila/fun/msdos/src/DEV/COUNTRY/COUNTRY.SYS",
+    "make test-baltic-country-records test-ru-country-records test-country-records"
+  ],
+  "exit_codes": [
+    0,
+    0
+  ],
+  "country_sys_sha256": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c",
+  "logs": [
+    {
+      "path": "review/country-build.log",
+      "sha256": "735759f13dc03bbc99f80bf90d7b68b73e373279985253b42a7f6d9149707891"
+    },
+    {
+      "path": "review/country-record-tests.log",
+      "sha256": "39eeff23810e2e9123c514e1c52ae5b921dd40bd731b73cd4159656524eb3e33"
+    }
+  ],
+  "scope": "Every new country object matches retained expectations. All previous object signatures/payloads, including Russian, are unchanged. Directory offsets and full file hash change when records are added. This does not qualify CONFIG loading or guest NLS APIs.",
+  "expectations": {
+    "path": "review/country-expectations.json",
+    "sha256": "c1c7d9807785f0c80ff6c6edf727b9e07be845ee412ce7b5c33c8a71d6714466"
+  },
+  "prior_records": {
+    "path": "prior-country-records.json",
+    "sha256": "eae44caddb4112caf1523a25fbb1dd6aef0c1a4d76364a21c60156d085e6bac6"
+  },
+  "negative_controls": [
+    "Wrong CP775 uppercase entry",
+    "Wrong CP775 collation entry"
+  ],
+  "remaining": [
+    "Country/NLS guest API and code-page transition/rejection gates on HIGH/LOW and real BIOS.",
+    "CP775 CPI and Baltic keyboard implementation, installed recipes and full BALTIC.md release qualification."
+  ]
+}

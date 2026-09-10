@@ -1,2 +1,4 @@
 CP775.TXT -text
 cldr/* -text -whitespace
+keydos/* -text -whitespace
+kc/* -text -whitespace

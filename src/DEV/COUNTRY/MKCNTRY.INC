@@ -23,6 +23,10 @@ CDATAITEMS      EQU     SETDBCS - 1     ; NUMBER OF ENTRIES IN COUNTRY DATA
 
 ;
 ; country id's
+; Baltic extension identifiers, see locales/baltic/country-contract.json.
+CID_ET          EQU     372
+CID_LV          EQU     371
+CID_LT          EQU     370
 ;
 CID_UK          EQU     044             ; United Kingdom
 CID_FR          EQU     033             ; France

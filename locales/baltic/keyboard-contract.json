@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "status": "selected-runtime-unqualified",
+  "profiles": {
+    "et": {
+      "code": "ET",
+      "id": 454,
+      "aliases": [
+        "EE"
+      ],
+      "layout": "Estonian QWERTY",
+      "code_page": 775,
+      "default_for_code": true,
+      "reference": "review/keyboard-expectations.json",
+      "status": "selected-runtime-unqualified"
+    },
+    "lv": {
+      "code": "LV",
+      "id": 0,
+      "aliases": [],
+      "layout": "Latvian standard QWERTY",
+      "code_page": 775,
+      "default_for_code": true,
+      "reference": "review/keyboard-expectations.json",
+      "status": "selected-runtime-unqualified"
+    },
+    "lt": {
+      "code": "LT",
+      "id": 221,
+      "aliases": [],
+      "layout": "Lithuanian LST 1582",
+      "code_page": 775,
+      "default_for_code": true,
+      "reference": "review/keyboard-expectations.json",
+      "status": "selected-runtime-unqualified"
+    }
+  },
+  "compatibility": "Selected FreeDOS 3.1 physical-layout facts, implemented as an explicit extension in the existing Microsoft-format KEYB library. No claim that these are retail DOS 6.22 Baltic layouts.",
+  "library": "KEYBRD2.SYS",
+  "id_policy": "ET 454 and LT 221 follow reference numeric identifiers. LV has no numeric ID in the reference: this implementation assigns 0 to its sole/default LV entry. Other Baltic variants and non-775 keyboard pages are rejected.",
+  "mode_policy": {
+    "initial": "national",
+    "us": "Ctrl+Alt+F1",
+    "national": "Ctrl+Alt+F2",
+    "basis": "Existing KEYB hot-key behavior; no Russian Alt+Shift feature flags for these profiles."
+  },
+  "modifiers": {
+    "third_level": "Right Alt or Ctrl+Alt; Shift selects the shifted third-level plane where the reference defines one.",
+    "caps_lock": "Swaps normal and Shift effects on C-marked keys only; does not change third-level planes.",
+    "precedence": "Third-level selection precedes plain Ctrl or Alt; use explicit Ctrl/Alt reference entries where present, otherwise preserve BIOS handling.",
+    "fallback": "Unassigned key/plane falls through common mapping and then the BIOS; explicit remapped scan codes are retained.",
+    "hardware": "Enhanced PC keyboard plus AT-84 and XT-83 where keys exist. Ctrl+Alt provides third-level access on keyboards without right Alt.",
+    "legacy_exclusions": [
+      "Physical scan 86 (extra ISO key) and separate right Alt/Ctrl are unavailable on AT-84/XT-83.",
+      "Unavailable physical keys are not injected or counted as tested; national letters must still be reachable through the supported keys."
+    ]
+  },
+  "composition": {
+    "table": "Use every selected CP775 dead-key pair and literal from the retained reference. Lithuanian LST 1582 has no CP775 dead keys.",
+    "space": "Dead key plus space emits its literal once.",
+    "unmatched": "Emit the pending literal followed by the new character, then clear pending state.",
+    "controls": "Qualify pending-state cleanup, cancellation/reload, repeated dead keys and ordinary control/navigation input in the guest.",
+    "scan_scope": "Explicit reference scan remaps are frozen. Composition/fallback scan behavior must be compared with the existing KEYB interpreter before finalizing physical BIOS expectations."
+  },
+  "remaining": [
+    "Implement Baltic data/logic in KEYBRD2.SYS while preserving RU.",
+    "Qualify full modifier precedence and pending-composition control behavior against actual guest output.",
+    "Run both BIOS/DOS byte tests and supported legacy-hardware matrices with all BALTIC.md integration/release gates."
+  ]
+}

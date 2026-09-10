@@ -384,3 +384,15 @@ for native and legacy code pages. `make test-baltic-country-contract`, included
 in `make test`, checks DOS field encoding, independent national ordering examples,
 case behavior and rejection of incomplete/ambiguous letter groups. This is a
 reference-data gate; installed COUNTRY.SYS and guest API qualification remain open.
+
+The [Baltic keyboard contract qualification](../locales/baltic/keyboard-contract-qualification.json)
+records `make test-baltic-keyboard-contract`, including pinned reference parsing,
+fixed national scan/byte facts, composition pairs and byte-preserving handling
+of CP775 values that Unicode treats as whitespace. The reference parser does
+not emit keyboard driver data; physical BIOS/DOS qualification remains separate.
+
+The [Baltic country record qualification](../locales/baltic/country-record-qualification.json)
+records `make test-baltic-country-records`. It rebuilds COUNTRY.SYS, checks every
+Baltic object against retained expectations, verifies all prior object contents
+and detects incorrect case/collation bytes. Both targets are included in
+`make test`. Country guest API and transition/rejection coverage remains open.

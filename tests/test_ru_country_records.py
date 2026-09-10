@@ -35,7 +35,8 @@ class RussianCountryRecords(unittest.TestCase):
         actual = {
             f"{country}/{page}": {str(kind): hashlib.sha256(obj["signature"] + obj["payload"]).hexdigest()
                                   for kind, obj in objects.items()}
-            for (country, page), objects in read_records(COUNTRY.read_bytes()).items() if country != 7
+            for (country, page), objects in read_records(COUNTRY.read_bytes()).items()
+            if country not in (7, 370, 371, 372)
         }
         self.assertEqual(actual, expected)
 

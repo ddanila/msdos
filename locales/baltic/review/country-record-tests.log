@@ -1,0 +1,14 @@
+python3 tests/test_baltic_country_records.py
+...
+----------------------------------------------------------------------
+Ran 3 tests in 0.005s
+
+OK
+python3 tests/test_ru_country_records.py
+....
+----------------------------------------------------------------------
+Ran 4 tests in 0.004s
+
+OK
+python3 tests/test_country_records.py
+DOS 5 BR/YU/CZ/PL/HU country records: PASS

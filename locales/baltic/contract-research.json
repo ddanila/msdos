@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "status": "research-in-progress",
+  "status": "references-selected-runtime-pending",
   "keyboard_reference": {
     "name": "FreeDOS official keyboard layouts 3.1",
     "url": "https://www.ibiblio.org/pub/micro/pc-stuff/freedos/files/dos/keyb/kblayout/kpdos-3.1/kpdos31s.zip",
@@ -13,21 +13,21 @@
         "sha256": "a0cc2d353cf13a63f8ebd988817916e20b4540f8f9d10bfb574c121fe07ef4aa",
         "identification": "ET /454; EE alias in reference",
         "code_page": 775,
-        "status": "candidate-not-frozen"
+        "status": "selected-see-keyboard-contract"
       },
       "lv": {
         "archive_member": "Source/Keydos/Lv.key",
         "sha256": "9458dfffa4e68d0981b71c97dc188cdf05b24aa694e3730e6b063a9b40f67e9a",
         "identification": "LV default standard",
         "code_page": 775,
-        "status": "candidate-not-frozen"
+        "status": "selected-see-keyboard-contract"
       },
       "lt": {
         "archive_member": "Source/Keydos/Lt221.key",
         "sha256": "f744e0c7a9b24550e6bc9fe3b58a25e9551af03ff66211cd60545b2caadb9aea",
         "identification": "LT /221; LST 1582 standard",
         "code_page": 775,
-        "status": "candidate-not-frozen"
+        "status": "selected-see-keyboard-contract"
       }
     }
   },
@@ -50,9 +50,10 @@
     "resolution": "Use separately pinned historical formatting evidence and explicit CLDR-informed DOS single-byte ordering, with compatibility limits in country-contract.json. Current FreeDOS Baltic collation bytes are not adopted."
   },
   "remaining": [
-    "Choose and freeze national keyboard variants, modifiers, dead-key and legacy hardware behavior with independent input expectations.",
+    "Implement selected keyboard profiles and qualify modifier/composition behavior on supported hardware.",
     "Implement and qualify the selected country contract; retain its explicit distinction from retail DOS 6.22.",
     "Complete the font edits, driver data, installed recipes and runtime/release qualification from BALTIC.md."
   ],
-  "country_contract": "country-contract.json"
+  "country_contract": "country-contract.json",
+  "keyboard_contract": "keyboard-contract.json"
 }

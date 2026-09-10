@@ -2,7 +2,7 @@
   "schema_version": 1,
   "locale": "baltic",
   "code_page": 775,
-  "status": "encoding-pinned-contract-research-in-progress",
+  "status": "encoding-country-and-keyboard-contracts-selected-runtime-pending",
   "sources": [
     {
       "path": "upstream/CP775.TXT",
@@ -612,7 +612,19 @@
       "required_lowercase": "\u00e4\u00f6\u00f5\u00fc\u0161\u017e",
       "required_uppercase": "\u00c4\u00d6\u00d5\u00dc\u0160\u017d",
       "sample_text": "Tere, \u00f5un ja \u00f6\u00f6!",
-      "keyboard": null,
+      "keyboard": {
+        "code": "ET",
+        "id": 454,
+        "aliases": [
+          "EE"
+        ],
+        "layout": "Estonian QWERTY",
+        "code_page": 775,
+        "default_for_code": true,
+        "reference": "review/keyboard-expectations.json",
+        "status": "selected-runtime-unqualified",
+        "contract": "keyboard-contract.json"
+      },
       "country": {
         "id": 372,
         "default_code_page": 775,
@@ -622,7 +634,7 @@
           850
         ],
         "contract": "country-contract.json",
-        "status": "selected-runtime-unqualified"
+        "status": "records-built-static-qualified-runtime-pending"
       }
     },
     "lv": {
@@ -630,7 +642,17 @@
       "required_lowercase": "\u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e",
       "required_uppercase": "\u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d",
       "sample_text": "Labr\u012bt, R\u012bga!",
-      "keyboard": null,
+      "keyboard": {
+        "code": "LV",
+        "id": 0,
+        "aliases": [],
+        "layout": "Latvian standard QWERTY",
+        "code_page": 775,
+        "default_for_code": true,
+        "reference": "review/keyboard-expectations.json",
+        "status": "selected-runtime-unqualified",
+        "contract": "keyboard-contract.json"
+      },
       "country": {
         "id": 371,
         "default_code_page": 775,
@@ -640,7 +662,7 @@
           850
         ],
         "contract": "country-contract.json",
-        "status": "selected-runtime-unqualified"
+        "status": "records-built-static-qualified-runtime-pending"
       }
     },
     "lt": {
@@ -648,7 +670,17 @@
       "required_lowercase": "\u0105\u010d\u0119\u0117\u012f\u0161\u0173\u016b\u017e",
       "required_uppercase": "\u0104\u010c\u0118\u0116\u012e\u0160\u0172\u016a\u017d",
       "sample_text": "Labas, \u0105\u017euolas!",
-      "keyboard": null,
+      "keyboard": {
+        "code": "LT",
+        "id": 221,
+        "aliases": [],
+        "layout": "Lithuanian LST 1582",
+        "code_page": 775,
+        "default_for_code": true,
+        "reference": "review/keyboard-expectations.json",
+        "status": "selected-runtime-unqualified",
+        "contract": "keyboard-contract.json"
+      },
       "country": {
         "id": 370,
         "default_code_page": 775,
@@ -658,13 +690,13 @@
           850
         ],
         "contract": "country-contract.json",
-        "status": "selected-runtime-unqualified"
+        "status": "records-built-static-qualified-runtime-pending"
       }
     }
   },
   "unresolved": [
-    "Freeze the selected national keyboard variants and independent BIOS/DOS byte oracles.",
-    "Implement selected country contracts in COUNTRY.SYS and qualify DOS APIs, transitions and rejection on every required profile.",
+    "Implement selected keyboard contracts and qualify physical BIOS/DOS input, modifiers and composition lifecycle.",
+    "Qualify built country records through DOS APIs, transitions and rejection on every required profile.",
     "Review and repair candidate font gaps and qualify actual loaded/rendered CP775 fonts.",
     "Implement, package and qualify all three language profiles and complete release gates in BALTIC.md."
   ]
