@@ -542,7 +542,7 @@ markers and a persisted result before stopping the backend; its scope is
 recorded separately.
 
 Earlier workflow records apply to their recorded cores. Installed text/file
-workflows are qualified below. Real-BIOS resource failures, later media-error
+workflows and real-BIOS resource failures are qualified below. Later media-error
 rollback and full source-matched release/reproducibility remain open for this
 core.
 
@@ -562,6 +562,35 @@ and retains input events, text files, screenshots, directory captures and guest
 logs. This refresh applies to QEMU HIGH/LOW. Real-BIOS workflow evidence must
 also match the selected core. Installed text/file workflows are qualified
 below; the final release/reproducibility gates remain open.
+
+## Real-BIOS resource recovery gate
+
+[Real-BIOS resource qualification](resources-286-qualification.json) retains
+the country and font failure/recovery matrix with the rebuilt private core.
+`tests/test_baltic_resources_86box.py` exercises country boot fallback, runtime
+country rejection and CP775 font recovery on the IBM AT 286 VGA LOW profile.
+Select the matching private core and supply the locally built emulator and
+licensed ROM directory:
+
+```sh
+MEMORY_CORE_DIR=out/baltic-country-boot-core2/files \
+python3 tests/test_baltic_resources_86box.py \
+  --emulator /path/to/86Box --roms /path/to/roms \
+  --qt-platform offscreen --jobs 2
+```
+
+The default run covers every Baltic language and supported font height.
+`--language`, `--family` and `--height` select focused cases. The software
+renderer permits isolated concurrent cases without a shared VNC port; each
+guest must request a successful emulator exit within `--timeout` seconds.
+The results record the exact mutation scope, core/resource hashes, startup
+commands, guest markers, country snapshots and font-plane hashes. Country
+fallback must match a clean default boot before restoring the national profile.
+Font checks distinguish missing-file selection preservation from the inactive
+slot after opened invalid data, and require valid-resource recovery.
+
+This gate captures actual font bytes; physical typing, rendered application
+text, installed paths and HIGH/UMB behavior have separate workflow gates.
 
 ## Installed application workflows
 

@@ -209,6 +209,10 @@ Real-BIOS workflows must also match the selected core before release.
 [Installed workflow qualification](locales/baltic/installed-workflows-qualification.json)
 extends physical text editing and national filename operations to installed
 HIGH/LOW profiles, preserving the installed payloads and startup recipes.
+[Real-BIOS resource qualification](locales/baltic/resources-286-qualification.json)
+checks country boot fallback, runtime country rejection and font recovery on
+the IBM AT 286 for every Baltic language and supported font height. It uses
+the rebuilt core and requires guest-triggered emulator completion.
 Deeper malformed-resource cases, legacy lifecycle failures, real-BIOS workflow
 requalification and final source-matched release/reproducibility gates remain
 open. Existing Russian evidence does not establish Baltic support.

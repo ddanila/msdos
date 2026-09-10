@@ -1,0 +1,586 @@
+{
+  "schema_version": 1,
+  "sources": [
+    {
+      "name": "COUNTRY.SYS",
+      "size": 26936,
+      "sha256": "59362ad35595e7f830ee8a2db3e6ec2fa0e5e479411be409b530131bb1b1b3b9",
+      "edition": "English MS-DOS 6.22, media timestamp 1994-05-31 06:22"
+    },
+    {
+      "name": "KEYBRD2.SYS",
+      "size": 31942,
+      "sha256": "da925ca6ed4741df02e82bf618b3b98dd5bfd72788485b5fa639c7b5f8a20327",
+      "edition": "English MS-DOS 6.22, media timestamp 1994-05-31 06:22"
+    }
+  ],
+  "country_records": {
+    "866": {
+      "offset": 5975,
+      "objects": {
+        "1": {
+          "offset": 11905,
+          "signature": "ff435459494e464f",
+          "payload": "070062030100e02e00000020002e002e003a00030201000000003b0000000000000000000000"
+        },
+        "6": {
+          "offset": 24707,
+          "signature": "ff434f4c4c415445",
+          "payload": "fefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefe0108101e191f1c0f11121a2005040b0a262728292a2b2c2d2e2f0706212223091831333537393b3d3f41434547494b4d4f51535557595b5d5f6163131b140d020c30323436383a3c3e40424446484a4c4e50525456585a5c5e60621524160eac6567696b6d6f737577797b7d7f81838587898b8d8f91939597999b9d9fa1a3a56466686a6c6e727476787a7c7e808284f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f086888a8c8e90929496989a9c9ea0a2a47170a7a6a9a8abaa252525ad1d19f0ff"
+        },
+        "2": {
+          "offset": 24973,
+          "signature": "ff55434153452020",
+          "payload": "808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9f808182838485868788898a8b8c8d8e8fb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedf909192939495969798999a9b9c9d9e9ff0f0f2f2f4f4f6f6f8f9fafbfcfdfeff"
+        },
+        "3": {
+          "offset": 25111,
+          "signature": "ff4c434153452020",
+          "payload": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f406162636465666768696a6b6c6d6e6f707172737475767778797a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7fa0a1a2a3a4a5a6a7a8a9aaabacadaeafe0e1e2e3e4e5e6e7e8e9eaebecedeeefa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeeff1f1f3f3f5f5f7f7f8f9fafbfcfdfeff"
+        },
+        "4": {
+          "offset": 24973,
+          "signature": "ff55434153452020",
+          "payload": "808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9f808182838485868788898a8b8c8d8e8fb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedf909192939495969798999a9b9c9d9e9ff0f0f2f2f4f4f6f6f8f9fafbfcfdfeff"
+        },
+        "7": {
+          "offset": 26749,
+          "signature": "ff44424353202020",
+          "payload": ""
+        }
+      }
+    },
+    "437": {
+      "offset": 6025,
+      "objects": {
+        "1": {
+          "offset": 11953,
+          "signature": "ff435459494e464f",
+          "payload": "0700b5010100722e00000020002e002e003a00030201000000003b0000000000000000000000"
+        },
+        "6": {
+          "offset": 13681,
+          "signature": "ff434f4c4c415445",
+          "payload": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f604142434445464748494a4b4c4d4e4f505152535455565758595a7b7c7d7e7f435545414141414345454549494941414541414f4f4f5555594f55242424242441494f554e4ea6a73fa9aaabac212222b0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe053e2e3e4e5e6e7e8e9eaebecedeeeff0f1f2f3f4f5f6f7f8f9fafbfcfdfeff"
+        },
+        "2": {
+          "offset": 15277,
+          "signature": "ff55434153452020",
+          "payload": "809a45418e418f804545454949498e8f9092924f994f555559999a9b9c9d9e9f41494f55a5a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeeff0f1f2f3f4f5f6f7f8f9fafbfcfdfeff"
+        },
+        "4": {
+          "offset": 15277,
+          "signature": "ff55434153452020",
+          "payload": "809a45418e418f804545454949498e8f9092924f994f555559999a9b9c9d9e9f41494f55a5a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeeff0f1f2f3f4f5f6f7f8f9fafbfcfdfeff"
+        },
+        "5": {
+          "offset": 26717,
+          "signature": "ff46434841522020",
+          "payload": "0100ff000020020e2e222f5c5b5d3a7c3c3e2b3d3b2c"
+        },
+        "7": {
+          "offset": 26749,
+          "signature": "ff44424353202020",
+          "payload": ""
+        }
+      }
+    },
+    "850": {
+      "offset": 6075,
+      "objects": {
+        "1": {
+          "offset": 12001,
+          "signature": "ff435459494e464f",
+          "payload": "070052030100722e00000020002e002e003a00030201000000003b0000000000000000000000"
+        },
+        "6": {
+          "offset": 16371,
+          "signature": "ff434f4c4c415445",
+          "payload": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f604142434445464748494a4b4c4d4e4f505152535455565758595a7b7c7d7e7f435545414141414345454549494941414541414f4f4f5555594f554f244f9e2441494f554e4ea6a73fa9aaabac212222b0b1b2b3b4414141b8b9babbbc2424bfc0c1c2c3c4c54141c8c9cacbcccdce24444445454549494949d9dadbdcdd49df4f534f4f4f4fe6e8e85555555959eeeff0f1f2f3f4f5f6f7f8f9fafbfcfdfeff"
+        },
+        "2": {
+          "offset": 19297,
+          "signature": "ff55434153452020",
+          "payload": "435545414141414345454549494941414592924f4f4f5555594f554f9c4f9e9f41494f55a5a5a6a7a8a9aaabacadaeafb0b1b2b3b4414141b8b9babbbcbdbebfc0c1c2c3c4c54141c8c9cacbcccdcecfd1d145454549494949d9dadbdcdd49df4fe14f4f4f4fe6e8e85555555959eeeff0f1f2f3f4f5f6f7f8f9fafbfcfdfeff"
+        },
+        "4": {
+          "offset": 19297,
+          "signature": "ff55434153452020",
+          "payload": "435545414141414345454549494941414592924f4f4f5555594f554f9c4f9e9f41494f55a5a5a6a7a8a9aaabacadaeafb0b1b2b3b4414141b8b9babbbcbdbebfc0c1c2c3c4c54141c8c9cacbcccdcecfd1d145454549494949d9dadbdcdd49df4fe14f4f4f4fe6e8e85555555959eeeff0f1f2f3f4f5f6f7f8f9fafbfcfdfeff"
+        },
+        "5": {
+          "offset": 26717,
+          "signature": "ff46434841522020",
+          "payload": "0100ff000020020e2e222f5c5b5d3a7c3c3e2b3d3b2c"
+        },
+        "7": {
+          "offset": 26749,
+          "signature": "ff44424353202020",
+          "payload": ""
+        }
+      }
+    }
+  },
+  "keyboard": {
+    "identifier": 441,
+    "entry_offset": 302,
+    "cp866_offset": 28332,
+    "states": {
+      "5": {
+        "keyboard_mask": 65535,
+        "translations": [
+          {
+            "scan": 53,
+            "byte": 46,
+            "bios_scan": 53
+          }
+        ]
+      },
+      "6": {
+        "keyboard_mask": 65535,
+        "translations": [
+          {
+            "scan": 3,
+            "byte": 34,
+            "bios_scan": 3
+          },
+          {
+            "scan": 4,
+            "byte": 252,
+            "bios_scan": 4
+          },
+          {
+            "scan": 5,
+            "byte": 59,
+            "bios_scan": 5
+          },
+          {
+            "scan": 7,
+            "byte": 58,
+            "bios_scan": 7
+          },
+          {
+            "scan": 8,
+            "byte": 63,
+            "bios_scan": 8
+          },
+          {
+            "scan": 43,
+            "byte": 47,
+            "bios_scan": 43
+          },
+          {
+            "scan": 53,
+            "byte": 44,
+            "bios_scan": 53
+          }
+        ]
+      },
+      "7": {
+        "keyboard_mask": 65535,
+        "translations": [
+          {
+            "scan": 3,
+            "byte": 64,
+            "bios_scan": 3
+          },
+          {
+            "scan": 4,
+            "byte": 35,
+            "bios_scan": 4
+          },
+          {
+            "scan": 5,
+            "byte": 253,
+            "bios_scan": 5
+          },
+          {
+            "scan": 7,
+            "byte": 94,
+            "bios_scan": 7
+          },
+          {
+            "scan": 8,
+            "byte": 38,
+            "bios_scan": 8
+          },
+          {
+            "scan": 9,
+            "byte": 36,
+            "bios_scan": 9
+          },
+          {
+            "scan": 26,
+            "byte": 91,
+            "bios_scan": 26
+          },
+          {
+            "scan": 27,
+            "byte": 93,
+            "bios_scan": 27
+          },
+          {
+            "scan": 43,
+            "byte": 124,
+            "bios_scan": 43
+          },
+          {
+            "scan": 51,
+            "byte": 60,
+            "bios_scan": 51
+          },
+          {
+            "scan": 52,
+            "byte": 62,
+            "bios_scan": 52
+          },
+          {
+            "scan": 53,
+            "byte": 47,
+            "bios_scan": 53
+          }
+        ]
+      },
+      "3": {
+        "keyboard_mask": 65535,
+        "translations": [
+          {
+            "scan": 16,
+            "byte": 169,
+            "bios_scan": 0
+          },
+          {
+            "scan": 17,
+            "byte": 230,
+            "bios_scan": 0
+          },
+          {
+            "scan": 18,
+            "byte": 227,
+            "bios_scan": 0
+          },
+          {
+            "scan": 19,
+            "byte": 170,
+            "bios_scan": 0
+          },
+          {
+            "scan": 20,
+            "byte": 165,
+            "bios_scan": 0
+          },
+          {
+            "scan": 21,
+            "byte": 173,
+            "bios_scan": 0
+          },
+          {
+            "scan": 22,
+            "byte": 163,
+            "bios_scan": 0
+          },
+          {
+            "scan": 23,
+            "byte": 232,
+            "bios_scan": 0
+          },
+          {
+            "scan": 24,
+            "byte": 233,
+            "bios_scan": 0
+          },
+          {
+            "scan": 25,
+            "byte": 167,
+            "bios_scan": 0
+          },
+          {
+            "scan": 26,
+            "byte": 229,
+            "bios_scan": 0
+          },
+          {
+            "scan": 27,
+            "byte": 234,
+            "bios_scan": 0
+          },
+          {
+            "scan": 30,
+            "byte": 228,
+            "bios_scan": 0
+          },
+          {
+            "scan": 31,
+            "byte": 235,
+            "bios_scan": 0
+          },
+          {
+            "scan": 32,
+            "byte": 162,
+            "bios_scan": 0
+          },
+          {
+            "scan": 33,
+            "byte": 160,
+            "bios_scan": 0
+          },
+          {
+            "scan": 34,
+            "byte": 175,
+            "bios_scan": 0
+          },
+          {
+            "scan": 35,
+            "byte": 224,
+            "bios_scan": 0
+          },
+          {
+            "scan": 36,
+            "byte": 174,
+            "bios_scan": 0
+          },
+          {
+            "scan": 37,
+            "byte": 171,
+            "bios_scan": 0
+          },
+          {
+            "scan": 38,
+            "byte": 164,
+            "bios_scan": 0
+          },
+          {
+            "scan": 39,
+            "byte": 166,
+            "bios_scan": 0
+          },
+          {
+            "scan": 40,
+            "byte": 237,
+            "bios_scan": 0
+          },
+          {
+            "scan": 41,
+            "byte": 241,
+            "bios_scan": 0
+          },
+          {
+            "scan": 44,
+            "byte": 239,
+            "bios_scan": 0
+          },
+          {
+            "scan": 45,
+            "byte": 231,
+            "bios_scan": 0
+          },
+          {
+            "scan": 46,
+            "byte": 225,
+            "bios_scan": 0
+          },
+          {
+            "scan": 47,
+            "byte": 172,
+            "bios_scan": 0
+          },
+          {
+            "scan": 48,
+            "byte": 168,
+            "bios_scan": 0
+          },
+          {
+            "scan": 49,
+            "byte": 226,
+            "bios_scan": 0
+          },
+          {
+            "scan": 50,
+            "byte": 236,
+            "bios_scan": 0
+          },
+          {
+            "scan": 51,
+            "byte": 161,
+            "bios_scan": 0
+          },
+          {
+            "scan": 52,
+            "byte": 238,
+            "bios_scan": 0
+          }
+        ]
+      },
+      "4": {
+        "keyboard_mask": 65535,
+        "translations": [
+          {
+            "scan": 16,
+            "byte": 137,
+            "bios_scan": 0
+          },
+          {
+            "scan": 17,
+            "byte": 150,
+            "bios_scan": 0
+          },
+          {
+            "scan": 18,
+            "byte": 147,
+            "bios_scan": 0
+          },
+          {
+            "scan": 19,
+            "byte": 138,
+            "bios_scan": 0
+          },
+          {
+            "scan": 20,
+            "byte": 133,
+            "bios_scan": 0
+          },
+          {
+            "scan": 21,
+            "byte": 141,
+            "bios_scan": 0
+          },
+          {
+            "scan": 22,
+            "byte": 131,
+            "bios_scan": 0
+          },
+          {
+            "scan": 23,
+            "byte": 152,
+            "bios_scan": 0
+          },
+          {
+            "scan": 24,
+            "byte": 153,
+            "bios_scan": 0
+          },
+          {
+            "scan": 25,
+            "byte": 135,
+            "bios_scan": 0
+          },
+          {
+            "scan": 26,
+            "byte": 149,
+            "bios_scan": 0
+          },
+          {
+            "scan": 27,
+            "byte": 154,
+            "bios_scan": 0
+          },
+          {
+            "scan": 30,
+            "byte": 148,
+            "bios_scan": 0
+          },
+          {
+            "scan": 31,
+            "byte": 155,
+            "bios_scan": 0
+          },
+          {
+            "scan": 32,
+            "byte": 130,
+            "bios_scan": 0
+          },
+          {
+            "scan": 33,
+            "byte": 128,
+            "bios_scan": 0
+          },
+          {
+            "scan": 34,
+            "byte": 143,
+            "bios_scan": 0
+          },
+          {
+            "scan": 35,
+            "byte": 144,
+            "bios_scan": 0
+          },
+          {
+            "scan": 36,
+            "byte": 142,
+            "bios_scan": 0
+          },
+          {
+            "scan": 37,
+            "byte": 139,
+            "bios_scan": 0
+          },
+          {
+            "scan": 38,
+            "byte": 132,
+            "bios_scan": 0
+          },
+          {
+            "scan": 39,
+            "byte": 134,
+            "bios_scan": 0
+          },
+          {
+            "scan": 40,
+            "byte": 157,
+            "bios_scan": 0
+          },
+          {
+            "scan": 41,
+            "byte": 240,
+            "bios_scan": 0
+          },
+          {
+            "scan": 44,
+            "byte": 159,
+            "bios_scan": 0
+          },
+          {
+            "scan": 45,
+            "byte": 151,
+            "bios_scan": 0
+          },
+          {
+            "scan": 46,
+            "byte": 145,
+            "bios_scan": 0
+          },
+          {
+            "scan": 47,
+            "byte": 140,
+            "bios_scan": 0
+          },
+          {
+            "scan": 48,
+            "byte": 136,
+            "bios_scan": 0
+          },
+          {
+            "scan": 49,
+            "byte": 146,
+            "bios_scan": 0
+          },
+          {
+            "scan": 50,
+            "byte": 156,
+            "bios_scan": 0
+          },
+          {
+            "scan": 51,
+            "byte": 129,
+            "bios_scan": 0
+          },
+          {
+            "scan": 52,
+            "byte": 158,
+            "bios_scan": 0
+          }
+        ]
+      }
+    }
+  }
+}

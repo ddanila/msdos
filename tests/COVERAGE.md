@@ -516,7 +516,7 @@ inactive prepared slot after bad data, then requires recovery through valid
 PREPARE/SELECT. Actual VGA glyph rows, full plane identity and country services
 are checked before/after errors and recovery. This qualifies QEMU resource
 handling; installed paths, real-BIOS failure cases and application workflows
-remain open.
+have separate qualification below.
 
 The [Baltic text qualification](../locales/baltic/text-qualification.json)
 records `test-baltic-text-qemu` and `test-find-sbcs-qemu`, included in `make test`.
@@ -605,6 +605,18 @@ a fresh boot for filename reads and cleanup. Root utilities that could hide
 the installed EDLIN or FIND are rejected before boot. `--installed-run` can
 reuse a completed installation only when its payload hashes match current
 inputs. Real-BIOS workflow and release scopes remain separate requirements.
+
+The [real-BIOS resource qualification](../locales/baltic/resources-286-qualification.json)
+records the manual `tests/test_baltic_resources_86box.py` gate. On the IBM AT
+286 VGA LOW profile, failed country boots must match the clean default table
+snapshot before recovery. Runtime country failures must preserve the active
+national tables and recover after restoring the resource. Each supported font
+height must reject malformed CPI data, preserve actual VGA glyph bytes and
+recover through valid preparation/selection. Every case requires guest-requested
+emulator exit zero. The record includes exact mutations, startup files, logs,
+font and country captures, selected core/resource hashes and backend identities.
+Physical input, rendered application text and installed paths have separate
+workflow gates; this suite does not replace the full release requirements.
 
 ## External DOS API suite
 
