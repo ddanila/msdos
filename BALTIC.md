@@ -183,6 +183,8 @@ high-byte regression and an old-binary failure control.
 national short names, alternate-case lookup, wildcard and country-specific DIR
 ordering, MOVE/XCOPY trees, raw FAT entries and fresh-boot reads/cleanup on
 QEMU HIGH/LOW and real-BIOS 286 LOW.
+[Country resource qualification](locales/baltic/country-resource-qualification.json)
+covers NLSFUNC runtime header rejection, active-state preservation and recovery.
 Deeper malformed-resource cases, legacy lifecycle failures, installed text and
 file workflows, and final source-matched release/reproducibility gates remain
 open. Existing Russian evidence does not establish Baltic support.

@@ -389,3 +389,21 @@ Run `make test-baltic-files-qemu` for QEMU. The wrapper accepts `--emulator`,
 `--roms` and `--qt-platform` for the real-BIOS LOW backend. This qualification
 uses private floppy images and the recorded selected core. Installed hard-disk
 paths and final source-matched release qualification remain separate work.
+
+## Country resource headers
+
+[Country resource qualification](country-resource-qualification.json) covers
+NLSFUNC queries and country selection after the resident service has already
+read a valid resource. Missing files, empty and short headers, damaged signature
+bytes and an unsupported information type must be rejected. The full active
+country/page/case/collation probe must still pass, and restoring the valid
+resource must allow a query and successful country switch without reboot.
+
+NLSFUNC now checks the returned header length and the COUNTRY signature before
+using buffered offsets. Previously a damaged signature could be accepted.
+The old executable is a failure control for the guest gate. Run
+`make test-baltic-country-resources-qemu` for the per-language HIGH/LOW matrix.
+
+This is runtime header validation. Directory/object bounds, truncated table
+bodies, transactional preservation after a later read fails, CONFIG.SYS boot
+fallback, real-BIOS resource failures and installed-path failures remain open.

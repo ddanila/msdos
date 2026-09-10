@@ -391,8 +391,24 @@ TRANSTART:
 		xor	dx,dx			;at the beginning of the
 						;file
 		call	READ_CTLBUFF		;Read in the file header
-		jnc	CHK_INFOTYPE
+		jnc	CHECK_HEADER
 		jmp	END_TRANS		;=G
+
+CHECK_HEADER:
+		; Reject a short or unidentified file before using buffered offsets.
+		cmp	ax,23
+		jb	INVALID_HEADER
+		cmp	word ptr ds:[si],043ffh
+		jne	INVALID_HEADER
+		cmp	word ptr ds:[si+2],0554fh
+		jne	INVALID_HEADER
+		cmp	word ptr ds:[si+4],0544eh
+		jne	INVALID_HEADER
+		cmp	word ptr ds:[si+6],05952h
+		jne	INVALID_HEADER
+		jmp	short CHK_INFOTYPE
+INVALID_HEADER:
+		jmp	BAD_FILE
 
 CHK_INFOTYPE:
 		add	si,LOCATE_INFOTYPE	;si > Country info type

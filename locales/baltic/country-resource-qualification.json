@@ -1,0 +1,3204 @@
+{
+  "status": "passed",
+  "core_sha256": {
+    "IO.SYS": "793169a292df40bb117eb487136a0d8e7f4334ca223e8206bf53f33141f24715",
+    "MSDOS.SYS": "1475174f50c8c349bedd7cd4a0be88bce055f2e411b7454b5f68fffbff269b62",
+    "COMMAND.COM": "6742b5889141a9c61d41e336445014d8055c19758febf4263f4f8ebe3c2f2c29",
+    "HIMEM.SYS": "340cbfd1f0e835755adce99d80c607f8edeb48ea2b20a6a142402a25434f8d13",
+    "EMM386.EXE": "58266b6614594de7a9cfde9eda75e3eb241b9e2e941e67b70645a0f8a197dae6"
+  },
+  "nlsfunc_sha256": "c15b395726688038278b24b2574fb75a3c326b32a766428778c21f6f5613215c",
+  "cases": [
+    {
+      "language": "et",
+      "profile": "high",
+      "mutation": "missing",
+      "mutant_sha256": null,
+      "mutant_size": null,
+      "actions": [
+        "HIGH.COM",
+        "P372775.COM",
+        "NLSFUNC A:\\BAD.SYS",
+        "Q371775.COM",
+        "DEL BAD.SYS",
+        "REJECT.COM",
+        "P372775.COM",
+        "COPY /Y COUNTRY.SYS BAD.SYS >NUL",
+        "Q371775.COM",
+        "S371775.COM",
+        "P371775.COM"
+      ],
+      "emulator_exit": 33,
+      "expected_error": 2,
+      "log": {
+        "path": "review/country-resource-et-high-missing.log",
+        "sha256": "0ec8bff58faac44361794345a883d117ce3ca790ffa56e04e9eb67134bcefbaa"
+      },
+      "private_artifacts": "out/baltic-country-resources-k1unn7wk/et/high/missing",
+      "CONFIG.SYS": "COUNTRY=372,775,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\n",
+      "AUTOEXEC.BAT": "@ECHO OFF\r\nCTTY AUX\r\nHIGH.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC A:\\BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREJECT.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY /Y COUNTRY.SYS BAD.SYS >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nS371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO BALTIC_RESOURCE_DONE\r\nQEXIT.COM\r\n:FAIL\r\nECHO BALTIC_RESOURCE_CASE_FAIL\r\nQEXIT.COM\r\n"
+    },
+    {
+      "language": "et",
+      "profile": "high",
+      "mutation": "empty",
+      "mutant_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mutant_size": 0,
+      "actions": [
+        "HIGH.COM",
+        "P372775.COM",
+        "NLSFUNC A:\\BAD.SYS",
+        "Q371775.COM",
+        "DEL BAD.SYS",
+        "REN BROKEN.SYS BAD.SYS",
+        "REJECT.COM",
+        "P372775.COM",
+        "COPY /Y COUNTRY.SYS BAD.SYS >NUL",
+        "Q371775.COM",
+        "S371775.COM",
+        "P371775.COM"
+      ],
+      "emulator_exit": 33,
+      "expected_error": 1,
+      "log": {
+        "path": "review/country-resource-et-high-empty.log",
+        "sha256": "0ec8bff58faac44361794345a883d117ce3ca790ffa56e04e9eb67134bcefbaa"
+      },
+      "private_artifacts": "out/baltic-country-resources-k1unn7wk/et/high/empty",
+      "CONFIG.SYS": "COUNTRY=372,775,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\n",
+      "AUTOEXEC.BAT": "@ECHO OFF\r\nCTTY AUX\r\nHIGH.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC A:\\BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREN BROKEN.SYS BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREJECT.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY /Y COUNTRY.SYS BAD.SYS >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nS371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO BALTIC_RESOURCE_DONE\r\nQEXIT.COM\r\n:FAIL\r\nECHO BALTIC_RESOURCE_CASE_FAIL\r\nQEXIT.COM\r\n"
+    },
+    {
+      "language": "et",
+      "profile": "high",
+      "mutation": "short-signature",
+      "mutant_sha256": "c6811d30dda19ad4b90a59519a5f73dcea9aa2cbdb1e2aec32ebcb8fae9b67d3",
+      "mutant_size": 7,
+      "actions": [
+        "HIGH.COM",
+        "P372775.COM",
+        "NLSFUNC A:\\BAD.SYS",
+        "Q371775.COM",
+        "DEL BAD.SYS",
+        "REN BROKEN.SYS BAD.SYS",
+        "REJECT.COM",
+        "P372775.COM",
+        "COPY /Y COUNTRY.SYS BAD.SYS >NUL",
+        "Q371775.COM",
+        "S371775.COM",
+        "P371775.COM"
+      ],
+      "emulator_exit": 33,
+      "expected_error": 1,
+      "log": {
+        "path": "review/country-resource-et-high-short-signature.log",
+        "sha256": "0ec8bff58faac44361794345a883d117ce3ca790ffa56e04e9eb67134bcefbaa"
+      },
+      "private_artifacts": "out/baltic-country-resources-k1unn7wk/et/high/short-signature",
+      "CONFIG.SYS": "COUNTRY=372,775,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\n",
+      "AUTOEXEC.BAT": "@ECHO OFF\r\nCTTY AUX\r\nHIGH.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC A:\\BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREN BROKEN.SYS BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREJECT.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY /Y COUNTRY.SYS BAD.SYS >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nS371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO BALTIC_RESOURCE_DONE\r\nQEXIT.COM\r\n:FAIL\r\nECHO BALTIC_RESOURCE_CASE_FAIL\r\nQEXIT.COM\r\n"
+    },
+    {
+      "language": "et",
+      "profile": "high",
+      "mutation": "short-header",
+      "mutant_sha256": "541f7c3b94a3164160f5da4badfb01480dab07283797aad5340924dc0147fc25",
+      "mutant_size": 22,
+      "actions": [
+        "HIGH.COM",
+        "P372775.COM",
+        "NLSFUNC A:\\BAD.SYS",
+        "Q371775.COM",
+        "DEL BAD.SYS",
+        "REN BROKEN.SYS BAD.SYS",
+        "REJECT.COM",
+        "P372775.COM",
+        "COPY /Y COUNTRY.SYS BAD.SYS >NUL",
+        "Q371775.COM",
+        "S371775.COM",
+        "P371775.COM"
+      ],
+      "emulator_exit": 33,
+      "expected_error": 1,
+      "log": {
+        "path": "review/country-resource-et-high-short-header.log",
+        "sha256": "0ec8bff58faac44361794345a883d117ce3ca790ffa56e04e9eb67134bcefbaa"
+      },
+      "private_artifacts": "out/baltic-country-resources-k1unn7wk/et/high/short-header",
+      "CONFIG.SYS": "COUNTRY=372,775,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\n",
+      "AUTOEXEC.BAT": "@ECHO OFF\r\nCTTY AUX\r\nHIGH.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC A:\\BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREN BROKEN.SYS BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREJECT.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY /Y COUNTRY.SYS BAD.SYS >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nS371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO BALTIC_RESOURCE_DONE\r\nQEXIT.COM\r\n:FAIL\r\nECHO BALTIC_RESOURCE_CASE_FAIL\r\nQEXIT.COM\r\n"
+    },
+    {
+      "language": "et",
+      "profile": "high",
+      "mutation": "bad-signature",
+      "mutant_sha256": "103f86fc56813740595c65d3703b1dc61dbeca9e3be6bc32f96aed1ffa7cbe3b",
+      "mutant_size": 20946,
+      "actions": [
+        "HIGH.COM",
+        "P372775.COM",
+        "NLSFUNC A:\\BAD.SYS",
+        "Q371775.COM",
+        "DEL BAD.SYS",
+        "REN BROKEN.SYS BAD.SYS",
+        "REJECT.COM",
+        "P372775.COM",
+        "COPY /Y COUNTRY.SYS BAD.SYS >NUL",
+        "Q371775.COM",
+        "S371775.COM",
+        "P371775.COM"
+      ],
+      "emulator_exit": 33,
+      "expected_error": 1,
+      "log": {
+        "path": "review/country-resource-et-high-bad-signature.log",
+        "sha256": "0ec8bff58faac44361794345a883d117ce3ca790ffa56e04e9eb67134bcefbaa"
+      },
+      "private_artifacts": "out/baltic-country-resources-k1unn7wk/et/high/bad-signature",
+      "CONFIG.SYS": "COUNTRY=372,775,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\n",
+      "AUTOEXEC.BAT": "@ECHO OFF\r\nCTTY AUX\r\nHIGH.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC A:\\BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREN BROKEN.SYS BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREJECT.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY /Y COUNTRY.SYS BAD.SYS >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nS371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO BALTIC_RESOURCE_DONE\r\nQEXIT.COM\r\n:FAIL\r\nECHO BALTIC_RESOURCE_CASE_FAIL\r\nQEXIT.COM\r\n"
+    },
+    {
+      "language": "et",
+      "profile": "high",
+      "mutation": "bad-signature-1",
+      "mutant_sha256": "7cf1eb9b781c1c355c51f0672eb1a2801591d279a8b388e08d9cece3ad674663",
+      "mutant_size": 20946,
+      "actions": [
+        "HIGH.COM",
+        "P372775.COM",
+        "NLSFUNC A:\\BAD.SYS",
+        "Q371775.COM",
+        "DEL BAD.SYS",
+        "REN BROKEN.SYS BAD.SYS",
+        "REJECT.COM",
+        "P372775.COM",
+        "COPY /Y COUNTRY.SYS BAD.SYS >NUL",
+        "Q371775.COM",
+        "S371775.COM",
+        "P371775.COM"
+      ],
+      "emulator_exit": 33,
+      "expected_error": 1,
+      "log": {
+        "path": "review/country-resource-et-high-bad-signature-1.log",
+        "sha256": "0ec8bff58faac44361794345a883d117ce3ca790ffa56e04e9eb67134bcefbaa"
+      },
+      "private_artifacts": "out/baltic-country-resources-k1unn7wk/et/high/bad-signature-1",
+      "CONFIG.SYS": "COUNTRY=372,775,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\n",
+      "AUTOEXEC.BAT": "@ECHO OFF\r\nCTTY AUX\r\nHIGH.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC A:\\BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREN BROKEN.SYS BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREJECT.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY /Y COUNTRY.SYS BAD.SYS >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nS371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO BALTIC_RESOURCE_DONE\r\nQEXIT.COM\r\n:FAIL\r\nECHO BALTIC_RESOURCE_CASE_FAIL\r\nQEXIT.COM\r\n"
+    },
+    {
+      "language": "et",
+      "profile": "high",
+      "mutation": "bad-signature-2",
+      "mutant_sha256": "e35dd8174f6fbddcc3cd6d2810e1bc2ba1d3b1a8bbac51fc717015f7d16814e8",
+      "mutant_size": 20946,
+      "actions": [
+        "HIGH.COM",
+        "P372775.COM",
+        "NLSFUNC A:\\BAD.SYS",
+        "Q371775.COM",
+        "DEL BAD.SYS",
+        "REN BROKEN.SYS BAD.SYS",
+        "REJECT.COM",
+        "P372775.COM",
+        "COPY /Y COUNTRY.SYS BAD.SYS >NUL",
+        "Q371775.COM",
+        "S371775.COM",
+        "P371775.COM"
+      ],
+      "emulator_exit": 33,
+      "expected_error": 1,
+      "log": {
+        "path": "review/country-resource-et-high-bad-signature-2.log",
+        "sha256": "0ec8bff58faac44361794345a883d117ce3ca790ffa56e04e9eb67134bcefbaa"
+      },
+      "private_artifacts": "out/baltic-country-resources-k1unn7wk/et/high/bad-signature-2",
+      "CONFIG.SYS": "COUNTRY=372,775,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\n",
+      "AUTOEXEC.BAT": "@ECHO OFF\r\nCTTY AUX\r\nHIGH.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC A:\\BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREN BROKEN.SYS BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREJECT.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY /Y COUNTRY.SYS BAD.SYS >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nS371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO BALTIC_RESOURCE_DONE\r\nQEXIT.COM\r\n:FAIL\r\nECHO BALTIC_RESOURCE_CASE_FAIL\r\nQEXIT.COM\r\n"
+    },
+    {
+      "language": "et",
+      "profile": "high",
+      "mutation": "bad-signature-3",
+      "mutant_sha256": "7d5182a366f198a95604784861f686ed1e633e5192f3863d937d94ac1fc45407",
+      "mutant_size": 20946,
+      "actions": [
+        "HIGH.COM",
+        "P372775.COM",
+        "NLSFUNC A:\\BAD.SYS",
+        "Q371775.COM",
+        "DEL BAD.SYS",
+        "REN BROKEN.SYS BAD.SYS",
+        "REJECT.COM",
+        "P372775.COM",
+        "COPY /Y COUNTRY.SYS BAD.SYS >NUL",
+        "Q371775.COM",
+        "S371775.COM",
+        "P371775.COM"
+      ],
+      "emulator_exit": 33,
+      "expected_error": 1,
+      "log": {
+        "path": "review/country-resource-et-high-bad-signature-3.log",
+        "sha256": "0ec8bff58faac44361794345a883d117ce3ca790ffa56e04e9eb67134bcefbaa"
+      },
+      "private_artifacts": "out/baltic-country-resources-k1unn7wk/et/high/bad-signature-3",
+      "CONFIG.SYS": "COUNTRY=372,775,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\n",
+      "AUTOEXEC.BAT": "@ECHO OFF\r\nCTTY AUX\r\nHIGH.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC A:\\BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREN BROKEN.SYS BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREJECT.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY /Y COUNTRY.SYS BAD.SYS >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nS371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO BALTIC_RESOURCE_DONE\r\nQEXIT.COM\r\n:FAIL\r\nECHO BALTIC_RESOURCE_CASE_FAIL\r\nQEXIT.COM\r\n"
+    },
+    {
+      "language": "et",
+      "profile": "high",
+      "mutation": "bad-signature-4",
+      "mutant_sha256": "6a4ac6f3317dc3297004bb751f1b6c74a9a232a8008c913a8224563ff7f5340b",
+      "mutant_size": 20946,
+      "actions": [
+        "HIGH.COM",
+        "P372775.COM",
+        "NLSFUNC A:\\BAD.SYS",
+        "Q371775.COM",
+        "DEL BAD.SYS",
+        "REN BROKEN.SYS BAD.SYS",
+        "REJECT.COM",
+        "P372775.COM",
+        "COPY /Y COUNTRY.SYS BAD.SYS >NUL",
+        "Q371775.COM",
+        "S371775.COM",
+        "P371775.COM"
+      ],
+      "emulator_exit": 33,
+      "expected_error": 1,
+      "log": {
+        "path": "review/country-resource-et-high-bad-signature-4.log",
+        "sha256": "0ec8bff58faac44361794345a883d117ce3ca790ffa56e04e9eb67134bcefbaa"
+      },
+      "private_artifacts": "out/baltic-country-resources-k1unn7wk/et/high/bad-signature-4",
+      "CONFIG.SYS": "COUNTRY=372,775,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\n",
+      "AUTOEXEC.BAT": "@ECHO OFF\r\nCTTY AUX\r\nHIGH.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC A:\\BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREN BROKEN.SYS BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREJECT.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY /Y COUNTRY.SYS BAD.SYS >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nS371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO BALTIC_RESOURCE_DONE\r\nQEXIT.COM\r\n:FAIL\r\nECHO BALTIC_RESOURCE_CASE_FAIL\r\nQEXIT.COM\r\n"
+    },
+    {
+      "language": "et",
+      "profile": "high",
+      "mutation": "bad-signature-5",
+      "mutant_sha256": "f91364e0df789b6db215789fd7ee0fe7da83492159fb00628eb658164cf9997d",
+      "mutant_size": 20946,
+      "actions": [
+        "HIGH.COM",
+        "P372775.COM",
+        "NLSFUNC A:\\BAD.SYS",
+        "Q371775.COM",
+        "DEL BAD.SYS",
+        "REN BROKEN.SYS BAD.SYS",
+        "REJECT.COM",
+        "P372775.COM",
+        "COPY /Y COUNTRY.SYS BAD.SYS >NUL",
+        "Q371775.COM",
+        "S371775.COM",
+        "P371775.COM"
+      ],
+      "emulator_exit": 33,
+      "expected_error": 1,
+      "log": {
+        "path": "review/country-resource-et-high-bad-signature-5.log",
+        "sha256": "0ec8bff58faac44361794345a883d117ce3ca790ffa56e04e9eb67134bcefbaa"
+      },
+      "private_artifacts": "out/baltic-country-resources-k1unn7wk/et/high/bad-signature-5",
+      "CONFIG.SYS": "COUNTRY=372,775,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\n",
+      "AUTOEXEC.BAT": "@ECHO OFF\r\nCTTY AUX\r\nHIGH.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC A:\\BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREN BROKEN.SYS BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREJECT.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY /Y COUNTRY.SYS BAD.SYS >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nS371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO BALTIC_RESOURCE_DONE\r\nQEXIT.COM\r\n:FAIL\r\nECHO BALTIC_RESOURCE_CASE_FAIL\r\nQEXIT.COM\r\n"
+    },
+    {
+      "language": "et",
+      "profile": "high",
+      "mutation": "bad-signature-6",
+      "mutant_sha256": "6b2e7856843ca048eea3e44b881adf58a416b213fe99bb30cd7b208fd26af468",
+      "mutant_size": 20946,
+      "actions": [
+        "HIGH.COM",
+        "P372775.COM",
+        "NLSFUNC A:\\BAD.SYS",
+        "Q371775.COM",
+        "DEL BAD.SYS",
+        "REN BROKEN.SYS BAD.SYS",
+        "REJECT.COM",
+        "P372775.COM",
+        "COPY /Y COUNTRY.SYS BAD.SYS >NUL",
+        "Q371775.COM",
+        "S371775.COM",
+        "P371775.COM"
+      ],
+      "emulator_exit": 33,
+      "expected_error": 1,
+      "log": {
+        "path": "review/country-resource-et-high-bad-signature-6.log",
+        "sha256": "0ec8bff58faac44361794345a883d117ce3ca790ffa56e04e9eb67134bcefbaa"
+      },
+      "private_artifacts": "out/baltic-country-resources-k1unn7wk/et/high/bad-signature-6",
+      "CONFIG.SYS": "COUNTRY=372,775,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\n",
+      "AUTOEXEC.BAT": "@ECHO OFF\r\nCTTY AUX\r\nHIGH.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC A:\\BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREN BROKEN.SYS BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREJECT.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY /Y COUNTRY.SYS BAD.SYS >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nS371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO BALTIC_RESOURCE_DONE\r\nQEXIT.COM\r\n:FAIL\r\nECHO BALTIC_RESOURCE_CASE_FAIL\r\nQEXIT.COM\r\n"
+    },
+    {
+      "language": "et",
+      "profile": "high",
+      "mutation": "bad-signature-7",
+      "mutant_sha256": "5aefa9f335b447fd58dc536b7f815d6f70e752cd85344f639054b282d43cb95d",
+      "mutant_size": 20946,
+      "actions": [
+        "HIGH.COM",
+        "P372775.COM",
+        "NLSFUNC A:\\BAD.SYS",
+        "Q371775.COM",
+        "DEL BAD.SYS",
+        "REN BROKEN.SYS BAD.SYS",
+        "REJECT.COM",
+        "P372775.COM",
+        "COPY /Y COUNTRY.SYS BAD.SYS >NUL",
+        "Q371775.COM",
+        "S371775.COM",
+        "P371775.COM"
+      ],
+      "emulator_exit": 33,
+      "expected_error": 1,
+      "log": {
+        "path": "review/country-resource-et-high-bad-signature-7.log",
+        "sha256": "0ec8bff58faac44361794345a883d117ce3ca790ffa56e04e9eb67134bcefbaa"
+      },
+      "private_artifacts": "out/baltic-country-resources-k1unn7wk/et/high/bad-signature-7",
+      "CONFIG.SYS": "COUNTRY=372,775,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\n",
+      "AUTOEXEC.BAT": "@ECHO OFF\r\nCTTY AUX\r\nHIGH.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC A:\\BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREN BROKEN.SYS BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREJECT.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY /Y COUNTRY.SYS BAD.SYS >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nS371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO BALTIC_RESOURCE_DONE\r\nQEXIT.COM\r\n:FAIL\r\nECHO BALTIC_RESOURCE_CASE_FAIL\r\nQEXIT.COM\r\n"
+    },
+    {
+      "language": "et",
+      "profile": "high",
+      "mutation": "bad-info-type",
+      "mutant_sha256": "c2329a95554ed3dd88d067eb75ad70fd2c54a405ae79f77d5946606a86483741",
+      "mutant_size": 20946,
+      "actions": [
+        "HIGH.COM",
+        "P372775.COM",
+        "NLSFUNC A:\\BAD.SYS",
+        "Q371775.COM",
+        "DEL BAD.SYS",
+        "REN BROKEN.SYS BAD.SYS",
+        "REJECT.COM",
+        "P372775.COM",
+        "COPY /Y COUNTRY.SYS BAD.SYS >NUL",
+        "Q371775.COM",
+        "S371775.COM",
+        "P371775.COM"
+      ],
+      "emulator_exit": 33,
+      "expected_error": 1,
+      "log": {
+        "path": "review/country-resource-et-high-bad-info-type.log",
+        "sha256": "0ec8bff58faac44361794345a883d117ce3ca790ffa56e04e9eb67134bcefbaa"
+      },
+      "private_artifacts": "out/baltic-country-resources-k1unn7wk/et/high/bad-info-type",
+      "CONFIG.SYS": "COUNTRY=372,775,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\n",
+      "AUTOEXEC.BAT": "@ECHO OFF\r\nCTTY AUX\r\nHIGH.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC A:\\BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREN BROKEN.SYS BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREJECT.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY /Y COUNTRY.SYS BAD.SYS >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nS371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO BALTIC_RESOURCE_DONE\r\nQEXIT.COM\r\n:FAIL\r\nECHO BALTIC_RESOURCE_CASE_FAIL\r\nQEXIT.COM\r\n"
+    },
+    {
+      "language": "et",
+      "profile": "low",
+      "mutation": "missing",
+      "mutant_sha256": null,
+      "mutant_size": null,
+      "actions": [
+        "LOW.COM",
+        "P372775.COM",
+        "NLSFUNC A:\\BAD.SYS",
+        "Q371775.COM",
+        "DEL BAD.SYS",
+        "REJECT.COM",
+        "P372775.COM",
+        "COPY /Y COUNTRY.SYS BAD.SYS >NUL",
+        "Q371775.COM",
+        "S371775.COM",
+        "P371775.COM"
+      ],
+      "emulator_exit": 33,
+      "expected_error": 2,
+      "log": {
+        "path": "review/country-resource-et-low-missing.log",
+        "sha256": "8f2ecdaa1da6a694ce531ab2760fde38c8e4b3b2608515f13f5b454e88e366a2"
+      },
+      "private_artifacts": "out/baltic-country-resources-k1unn7wk/et/low/missing",
+      "CONFIG.SYS": "COUNTRY=372,775,COUNTRY.SYS\r\nDOS=LOW\r\n",
+      "AUTOEXEC.BAT": "@ECHO OFF\r\nCTTY AUX\r\nLOW.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC A:\\BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREJECT.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY /Y COUNTRY.SYS BAD.SYS >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nS371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO BALTIC_RESOURCE_DONE\r\nQEXIT.COM\r\n:FAIL\r\nECHO BALTIC_RESOURCE_CASE_FAIL\r\nQEXIT.COM\r\n"
+    },
+    {
+      "language": "et",
+      "profile": "low",
+      "mutation": "empty",
+      "mutant_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mutant_size": 0,
+      "actions": [
+        "LOW.COM",
+        "P372775.COM",
+        "NLSFUNC A:\\BAD.SYS",
+        "Q371775.COM",
+        "DEL BAD.SYS",
+        "REN BROKEN.SYS BAD.SYS",
+        "REJECT.COM",
+        "P372775.COM",
+        "COPY /Y COUNTRY.SYS BAD.SYS >NUL",
+        "Q371775.COM",
+        "S371775.COM",
+        "P371775.COM"
+      ],
+      "emulator_exit": 33,
+      "expected_error": 1,
+      "log": {
+        "path": "review/country-resource-et-low-empty.log",
+        "sha256": "8f2ecdaa1da6a694ce531ab2760fde38c8e4b3b2608515f13f5b454e88e366a2"
+      },
+      "private_artifacts": "out/baltic-country-resources-k1unn7wk/et/low/empty",
+      "CONFIG.SYS": "COUNTRY=372,775,COUNTRY.SYS\r\nDOS=LOW\r\n",
+      "AUTOEXEC.BAT": "@ECHO OFF\r\nCTTY AUX\r\nLOW.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC A:\\BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREN BROKEN.SYS BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREJECT.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY /Y COUNTRY.SYS BAD.SYS >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nS371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO BALTIC_RESOURCE_DONE\r\nQEXIT.COM\r\n:FAIL\r\nECHO BALTIC_RESOURCE_CASE_FAIL\r\nQEXIT.COM\r\n"
+    },
+    {
+      "language": "et",
+      "profile": "low",
+      "mutation": "short-signature",
+      "mutant_sha256": "c6811d30dda19ad4b90a59519a5f73dcea9aa2cbdb1e2aec32ebcb8fae9b67d3",
+      "mutant_size": 7,
+      "actions": [
+        "LOW.COM",
+        "P372775.COM",
+        "NLSFUNC A:\\BAD.SYS",
+        "Q371775.COM",
+        "DEL BAD.SYS",
+        "REN BROKEN.SYS BAD.SYS",
+        "REJECT.COM",
+        "P372775.COM",
+        "COPY /Y COUNTRY.SYS BAD.SYS >NUL",
+        "Q371775.COM",
+        "S371775.COM",
+        "P371775.COM"
+      ],
+      "emulator_exit": 33,
+      "expected_error": 1,
+      "log": {
+        "path": "review/country-resource-et-low-short-signature.log",
+        "sha256": "8f2ecdaa1da6a694ce531ab2760fde38c8e4b3b2608515f13f5b454e88e366a2"
+      },
+      "private_artifacts": "out/baltic-country-resources-k1unn7wk/et/low/short-signature",
+      "CONFIG.SYS": "COUNTRY=372,775,COUNTRY.SYS\r\nDOS=LOW\r\n",
+      "AUTOEXEC.BAT": "@ECHO OFF\r\nCTTY AUX\r\nLOW.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC A:\\BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREN BROKEN.SYS BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREJECT.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY /Y COUNTRY.SYS BAD.SYS >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nS371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO BALTIC_RESOURCE_DONE\r\nQEXIT.COM\r\n:FAIL\r\nECHO BALTIC_RESOURCE_CASE_FAIL\r\nQEXIT.COM\r\n"
+    },
+    {
+      "language": "et",
+      "profile": "low",
+      "mutation": "short-header",
+      "mutant_sha256": "541f7c3b94a3164160f5da4badfb01480dab07283797aad5340924dc0147fc25",
+      "mutant_size": 22,
+      "actions": [
+        "LOW.COM",
+        "P372775.COM",
+        "NLSFUNC A:\\BAD.SYS",
+        "Q371775.COM",
+        "DEL BAD.SYS",
+        "REN BROKEN.SYS BAD.SYS",
+        "REJECT.COM",
+        "P372775.COM",
+        "COPY /Y COUNTRY.SYS BAD.SYS >NUL",
+        "Q371775.COM",
+        "S371775.COM",
+        "P371775.COM"
+      ],
+      "emulator_exit": 33,
+      "expected_error": 1,
+      "log": {
+        "path": "review/country-resource-et-low-short-header.log",
+        "sha256": "8f2ecdaa1da6a694ce531ab2760fde38c8e4b3b2608515f13f5b454e88e366a2"
+      },
+      "private_artifacts": "out/baltic-country-resources-k1unn7wk/et/low/short-header",
+      "CONFIG.SYS": "COUNTRY=372,775,COUNTRY.SYS\r\nDOS=LOW\r\n",
+      "AUTOEXEC.BAT": "@ECHO OFF\r\nCTTY AUX\r\nLOW.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC A:\\BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREN BROKEN.SYS BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREJECT.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY /Y COUNTRY.SYS BAD.SYS >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nS371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO BALTIC_RESOURCE_DONE\r\nQEXIT.COM\r\n:FAIL\r\nECHO BALTIC_RESOURCE_CASE_FAIL\r\nQEXIT.COM\r\n"
+    },
+    {
+      "language": "et",
+      "profile": "low",
+      "mutation": "bad-signature",
+      "mutant_sha256": "103f86fc56813740595c65d3703b1dc61dbeca9e3be6bc32f96aed1ffa7cbe3b",
+      "mutant_size": 20946,
+      "actions": [
+        "LOW.COM",
+        "P372775.COM",
+        "NLSFUNC A:\\BAD.SYS",
+        "Q371775.COM",
+        "DEL BAD.SYS",
+        "REN BROKEN.SYS BAD.SYS",
+        "REJECT.COM",
+        "P372775.COM",
+        "COPY /Y COUNTRY.SYS BAD.SYS >NUL",
+        "Q371775.COM",
+        "S371775.COM",
+        "P371775.COM"
+      ],
+      "emulator_exit": 33,
+      "expected_error": 1,
+      "log": {
+        "path": "review/country-resource-et-low-bad-signature.log",
+        "sha256": "8f2ecdaa1da6a694ce531ab2760fde38c8e4b3b2608515f13f5b454e88e366a2"
+      },
+      "private_artifacts": "out/baltic-country-resources-k1unn7wk/et/low/bad-signature",
+      "CONFIG.SYS": "COUNTRY=372,775,COUNTRY.SYS\r\nDOS=LOW\r\n",
+      "AUTOEXEC.BAT": "@ECHO OFF\r\nCTTY AUX\r\nLOW.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC A:\\BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREN BROKEN.SYS BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREJECT.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY /Y COUNTRY.SYS BAD.SYS >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nS371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO BALTIC_RESOURCE_DONE\r\nQEXIT.COM\r\n:FAIL\r\nECHO BALTIC_RESOURCE_CASE_FAIL\r\nQEXIT.COM\r\n"
+    },
+    {
+      "language": "et",
+      "profile": "low",
+      "mutation": "bad-signature-1",
+      "mutant_sha256": "7cf1eb9b781c1c355c51f0672eb1a2801591d279a8b388e08d9cece3ad674663",
+      "mutant_size": 20946,
+      "actions": [
+        "LOW.COM",
+        "P372775.COM",
+        "NLSFUNC A:\\BAD.SYS",
+        "Q371775.COM",
+        "DEL BAD.SYS",
+        "REN BROKEN.SYS BAD.SYS",
+        "REJECT.COM",
+        "P372775.COM",
+        "COPY /Y COUNTRY.SYS BAD.SYS >NUL",
+        "Q371775.COM",
+        "S371775.COM",
+        "P371775.COM"
+      ],
+      "emulator_exit": 33,
+      "expected_error": 1,
+      "log": {
+        "path": "review/country-resource-et-low-bad-signature-1.log",
+        "sha256": "8f2ecdaa1da6a694ce531ab2760fde38c8e4b3b2608515f13f5b454e88e366a2"
+      },
+      "private_artifacts": "out/baltic-country-resources-k1unn7wk/et/low/bad-signature-1",
+      "CONFIG.SYS": "COUNTRY=372,775,COUNTRY.SYS\r\nDOS=LOW\r\n",
+      "AUTOEXEC.BAT": "@ECHO OFF\r\nCTTY AUX\r\nLOW.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC A:\\BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREN BROKEN.SYS BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREJECT.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY /Y COUNTRY.SYS BAD.SYS >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nS371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO BALTIC_RESOURCE_DONE\r\nQEXIT.COM\r\n:FAIL\r\nECHO BALTIC_RESOURCE_CASE_FAIL\r\nQEXIT.COM\r\n"
+    },
+    {
+      "language": "et",
+      "profile": "low",
+      "mutation": "bad-signature-2",
+      "mutant_sha256": "e35dd8174f6fbddcc3cd6d2810e1bc2ba1d3b1a8bbac51fc717015f7d16814e8",
+      "mutant_size": 20946,
+      "actions": [
+        "LOW.COM",
+        "P372775.COM",
+        "NLSFUNC A:\\BAD.SYS",
+        "Q371775.COM",
+        "DEL BAD.SYS",
+        "REN BROKEN.SYS BAD.SYS",
+        "REJECT.COM",
+        "P372775.COM",
+        "COPY /Y COUNTRY.SYS BAD.SYS >NUL",
+        "Q371775.COM",
+        "S371775.COM",
+        "P371775.COM"
+      ],
+      "emulator_exit": 33,
+      "expected_error": 1,
+      "log": {
+        "path": "review/country-resource-et-low-bad-signature-2.log",
+        "sha256": "8f2ecdaa1da6a694ce531ab2760fde38c8e4b3b2608515f13f5b454e88e366a2"
+      },
+      "private_artifacts": "out/baltic-country-resources-k1unn7wk/et/low/bad-signature-2",
+      "CONFIG.SYS": "COUNTRY=372,775,COUNTRY.SYS\r\nDOS=LOW\r\n",
+      "AUTOEXEC.BAT": "@ECHO OFF\r\nCTTY AUX\r\nLOW.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC A:\\BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREN BROKEN.SYS BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREJECT.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY /Y COUNTRY.SYS BAD.SYS >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nS371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO BALTIC_RESOURCE_DONE\r\nQEXIT.COM\r\n:FAIL\r\nECHO BALTIC_RESOURCE_CASE_FAIL\r\nQEXIT.COM\r\n"
+    },
+    {
+      "language": "et",
+      "profile": "low",
+      "mutation": "bad-signature-3",
+      "mutant_sha256": "7d5182a366f198a95604784861f686ed1e633e5192f3863d937d94ac1fc45407",
+      "mutant_size": 20946,
+      "actions": [
+        "LOW.COM",
+        "P372775.COM",
+        "NLSFUNC A:\\BAD.SYS",
+        "Q371775.COM",
+        "DEL BAD.SYS",
+        "REN BROKEN.SYS BAD.SYS",
+        "REJECT.COM",
+        "P372775.COM",
+        "COPY /Y COUNTRY.SYS BAD.SYS >NUL",
+        "Q371775.COM",
+        "S371775.COM",
+        "P371775.COM"
+      ],
+      "emulator_exit": 33,
+      "expected_error": 1,
+      "log": {
+        "path": "review/country-resource-et-low-bad-signature-3.log",
+        "sha256": "8f2ecdaa1da6a694ce531ab2760fde38c8e4b3b2608515f13f5b454e88e366a2"
+      },
+      "private_artifacts": "out/baltic-country-resources-k1unn7wk/et/low/bad-signature-3",
+      "CONFIG.SYS": "COUNTRY=372,775,COUNTRY.SYS\r\nDOS=LOW\r\n",
+      "AUTOEXEC.BAT": "@ECHO OFF\r\nCTTY AUX\r\nLOW.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC A:\\BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREN BROKEN.SYS BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREJECT.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY /Y COUNTRY.SYS BAD.SYS >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nS371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO BALTIC_RESOURCE_DONE\r\nQEXIT.COM\r\n:FAIL\r\nECHO BALTIC_RESOURCE_CASE_FAIL\r\nQEXIT.COM\r\n"
+    },
+    {
+      "language": "et",
+      "profile": "low",
+      "mutation": "bad-signature-4",
+      "mutant_sha256": "6a4ac6f3317dc3297004bb751f1b6c74a9a232a8008c913a8224563ff7f5340b",
+      "mutant_size": 20946,
+      "actions": [
+        "LOW.COM",
+        "P372775.COM",
+        "NLSFUNC A:\\BAD.SYS",
+        "Q371775.COM",
+        "DEL BAD.SYS",
+        "REN BROKEN.SYS BAD.SYS",
+        "REJECT.COM",
+        "P372775.COM",
+        "COPY /Y COUNTRY.SYS BAD.SYS >NUL",
+        "Q371775.COM",
+        "S371775.COM",
+        "P371775.COM"
+      ],
+      "emulator_exit": 33,
+      "expected_error": 1,
+      "log": {
+        "path": "review/country-resource-et-low-bad-signature-4.log",
+        "sha256": "8f2ecdaa1da6a694ce531ab2760fde38c8e4b3b2608515f13f5b454e88e366a2"
+      },
+      "private_artifacts": "out/baltic-country-resources-k1unn7wk/et/low/bad-signature-4",
+      "CONFIG.SYS": "COUNTRY=372,775,COUNTRY.SYS\r\nDOS=LOW\r\n",
+      "AUTOEXEC.BAT": "@ECHO OFF\r\nCTTY AUX\r\nLOW.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC A:\\BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREN BROKEN.SYS BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREJECT.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY /Y COUNTRY.SYS BAD.SYS >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nS371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO BALTIC_RESOURCE_DONE\r\nQEXIT.COM\r\n:FAIL\r\nECHO BALTIC_RESOURCE_CASE_FAIL\r\nQEXIT.COM\r\n"
+    },
+    {
+      "language": "et",
+      "profile": "low",
+      "mutation": "bad-signature-5",
+      "mutant_sha256": "f91364e0df789b6db215789fd7ee0fe7da83492159fb00628eb658164cf9997d",
+      "mutant_size": 20946,
+      "actions": [
+        "LOW.COM",
+        "P372775.COM",
+        "NLSFUNC A:\\BAD.SYS",
+        "Q371775.COM",
+        "DEL BAD.SYS",
+        "REN BROKEN.SYS BAD.SYS",
+        "REJECT.COM",
+        "P372775.COM",
+        "COPY /Y COUNTRY.SYS BAD.SYS >NUL",
+        "Q371775.COM",
+        "S371775.COM",
+        "P371775.COM"
+      ],
+      "emulator_exit": 33,
+      "expected_error": 1,
+      "log": {
+        "path": "review/country-resource-et-low-bad-signature-5.log",
+        "sha256": "8f2ecdaa1da6a694ce531ab2760fde38c8e4b3b2608515f13f5b454e88e366a2"
+      },
+      "private_artifacts": "out/baltic-country-resources-k1unn7wk/et/low/bad-signature-5",
+      "CONFIG.SYS": "COUNTRY=372,775,COUNTRY.SYS\r\nDOS=LOW\r\n",
+      "AUTOEXEC.BAT": "@ECHO OFF\r\nCTTY AUX\r\nLOW.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC A:\\BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREN BROKEN.SYS BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREJECT.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY /Y COUNTRY.SYS BAD.SYS >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nS371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO BALTIC_RESOURCE_DONE\r\nQEXIT.COM\r\n:FAIL\r\nECHO BALTIC_RESOURCE_CASE_FAIL\r\nQEXIT.COM\r\n"
+    },
+    {
+      "language": "et",
+      "profile": "low",
+      "mutation": "bad-signature-6",
+      "mutant_sha256": "6b2e7856843ca048eea3e44b881adf58a416b213fe99bb30cd7b208fd26af468",
+      "mutant_size": 20946,
+      "actions": [
+        "LOW.COM",
+        "P372775.COM",
+        "NLSFUNC A:\\BAD.SYS",
+        "Q371775.COM",
+        "DEL BAD.SYS",
+        "REN BROKEN.SYS BAD.SYS",
+        "REJECT.COM",
+        "P372775.COM",
+        "COPY /Y COUNTRY.SYS BAD.SYS >NUL",
+        "Q371775.COM",
+        "S371775.COM",
+        "P371775.COM"
+      ],
+      "emulator_exit": 33,
+      "expected_error": 1,
+      "log": {
+        "path": "review/country-resource-et-low-bad-signature-6.log",
+        "sha256": "8f2ecdaa1da6a694ce531ab2760fde38c8e4b3b2608515f13f5b454e88e366a2"
+      },
+      "private_artifacts": "out/baltic-country-resources-k1unn7wk/et/low/bad-signature-6",
+      "CONFIG.SYS": "COUNTRY=372,775,COUNTRY.SYS\r\nDOS=LOW\r\n",
+      "AUTOEXEC.BAT": "@ECHO OFF\r\nCTTY AUX\r\nLOW.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC A:\\BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREN BROKEN.SYS BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREJECT.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY /Y COUNTRY.SYS BAD.SYS >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nS371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO BALTIC_RESOURCE_DONE\r\nQEXIT.COM\r\n:FAIL\r\nECHO BALTIC_RESOURCE_CASE_FAIL\r\nQEXIT.COM\r\n"
+    },
+    {
+      "language": "et",
+      "profile": "low",
+      "mutation": "bad-signature-7",
+      "mutant_sha256": "5aefa9f335b447fd58dc536b7f815d6f70e752cd85344f639054b282d43cb95d",
+      "mutant_size": 20946,
+      "actions": [
+        "LOW.COM",
+        "P372775.COM",
+        "NLSFUNC A:\\BAD.SYS",
+        "Q371775.COM",
+        "DEL BAD.SYS",
+        "REN BROKEN.SYS BAD.SYS",
+        "REJECT.COM",
+        "P372775.COM",
+        "COPY /Y COUNTRY.SYS BAD.SYS >NUL",
+        "Q371775.COM",
+        "S371775.COM",
+        "P371775.COM"
+      ],
+      "emulator_exit": 33,
+      "expected_error": 1,
+      "log": {
+        "path": "review/country-resource-et-low-bad-signature-7.log",
+        "sha256": "8f2ecdaa1da6a694ce531ab2760fde38c8e4b3b2608515f13f5b454e88e366a2"
+      },
+      "private_artifacts": "out/baltic-country-resources-k1unn7wk/et/low/bad-signature-7",
+      "CONFIG.SYS": "COUNTRY=372,775,COUNTRY.SYS\r\nDOS=LOW\r\n",
+      "AUTOEXEC.BAT": "@ECHO OFF\r\nCTTY AUX\r\nLOW.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC A:\\BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREN BROKEN.SYS BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREJECT.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY /Y COUNTRY.SYS BAD.SYS >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nS371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO BALTIC_RESOURCE_DONE\r\nQEXIT.COM\r\n:FAIL\r\nECHO BALTIC_RESOURCE_CASE_FAIL\r\nQEXIT.COM\r\n"
+    },
+    {
+      "language": "et",
+      "profile": "low",
+      "mutation": "bad-info-type",
+      "mutant_sha256": "c2329a95554ed3dd88d067eb75ad70fd2c54a405ae79f77d5946606a86483741",
+      "mutant_size": 20946,
+      "actions": [
+        "LOW.COM",
+        "P372775.COM",
+        "NLSFUNC A:\\BAD.SYS",
+        "Q371775.COM",
+        "DEL BAD.SYS",
+        "REN BROKEN.SYS BAD.SYS",
+        "REJECT.COM",
+        "P372775.COM",
+        "COPY /Y COUNTRY.SYS BAD.SYS >NUL",
+        "Q371775.COM",
+        "S371775.COM",
+        "P371775.COM"
+      ],
+      "emulator_exit": 33,
+      "expected_error": 1,
+      "log": {
+        "path": "review/country-resource-et-low-bad-info-type.log",
+        "sha256": "8f2ecdaa1da6a694ce531ab2760fde38c8e4b3b2608515f13f5b454e88e366a2"
+      },
+      "private_artifacts": "out/baltic-country-resources-k1unn7wk/et/low/bad-info-type",
+      "CONFIG.SYS": "COUNTRY=372,775,COUNTRY.SYS\r\nDOS=LOW\r\n",
+      "AUTOEXEC.BAT": "@ECHO OFF\r\nCTTY AUX\r\nLOW.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC A:\\BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREN BROKEN.SYS BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREJECT.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY /Y COUNTRY.SYS BAD.SYS >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nS371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO BALTIC_RESOURCE_DONE\r\nQEXIT.COM\r\n:FAIL\r\nECHO BALTIC_RESOURCE_CASE_FAIL\r\nQEXIT.COM\r\n"
+    },
+    {
+      "language": "lv",
+      "profile": "high",
+      "mutation": "missing",
+      "mutant_sha256": null,
+      "mutant_size": null,
+      "actions": [
+        "HIGH.COM",
+        "P371775.COM",
+        "NLSFUNC A:\\BAD.SYS",
+        "Q372775.COM",
+        "DEL BAD.SYS",
+        "REJECT.COM",
+        "P371775.COM",
+        "COPY /Y COUNTRY.SYS BAD.SYS >NUL",
+        "Q372775.COM",
+        "S372775.COM",
+        "P372775.COM"
+      ],
+      "emulator_exit": 33,
+      "expected_error": 2,
+      "log": {
+        "path": "review/country-resource-lv-high-missing.log",
+        "sha256": "0ec8bff58faac44361794345a883d117ce3ca790ffa56e04e9eb67134bcefbaa"
+      },
+      "private_artifacts": "out/baltic-country-resources-k1unn7wk/lv/high/missing",
+      "CONFIG.SYS": "COUNTRY=371,775,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\n",
+      "AUTOEXEC.BAT": "@ECHO OFF\r\nCTTY AUX\r\nHIGH.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC A:\\BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREJECT.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY /Y COUNTRY.SYS BAD.SYS >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nS372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO BALTIC_RESOURCE_DONE\r\nQEXIT.COM\r\n:FAIL\r\nECHO BALTIC_RESOURCE_CASE_FAIL\r\nQEXIT.COM\r\n"
+    },
+    {
+      "language": "lv",
+      "profile": "high",
+      "mutation": "empty",
+      "mutant_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mutant_size": 0,
+      "actions": [
+        "HIGH.COM",
+        "P371775.COM",
+        "NLSFUNC A:\\BAD.SYS",
+        "Q372775.COM",
+        "DEL BAD.SYS",
+        "REN BROKEN.SYS BAD.SYS",
+        "REJECT.COM",
+        "P371775.COM",
+        "COPY /Y COUNTRY.SYS BAD.SYS >NUL",
+        "Q372775.COM",
+        "S372775.COM",
+        "P372775.COM"
+      ],
+      "emulator_exit": 33,
+      "expected_error": 1,
+      "log": {
+        "path": "review/country-resource-lv-high-empty.log",
+        "sha256": "0ec8bff58faac44361794345a883d117ce3ca790ffa56e04e9eb67134bcefbaa"
+      },
+      "private_artifacts": "out/baltic-country-resources-k1unn7wk/lv/high/empty",
+      "CONFIG.SYS": "COUNTRY=371,775,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\n",
+      "AUTOEXEC.BAT": "@ECHO OFF\r\nCTTY AUX\r\nHIGH.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC A:\\BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREN BROKEN.SYS BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREJECT.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY /Y COUNTRY.SYS BAD.SYS >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nS372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO BALTIC_RESOURCE_DONE\r\nQEXIT.COM\r\n:FAIL\r\nECHO BALTIC_RESOURCE_CASE_FAIL\r\nQEXIT.COM\r\n"
+    },
+    {
+      "language": "lv",
+      "profile": "high",
+      "mutation": "short-signature",
+      "mutant_sha256": "c6811d30dda19ad4b90a59519a5f73dcea9aa2cbdb1e2aec32ebcb8fae9b67d3",
+      "mutant_size": 7,
+      "actions": [
+        "HIGH.COM",
+        "P371775.COM",
+        "NLSFUNC A:\\BAD.SYS",
+        "Q372775.COM",
+        "DEL BAD.SYS",
+        "REN BROKEN.SYS BAD.SYS",
+        "REJECT.COM",
+        "P371775.COM",
+        "COPY /Y COUNTRY.SYS BAD.SYS >NUL",
+        "Q372775.COM",
+        "S372775.COM",
+        "P372775.COM"
+      ],
+      "emulator_exit": 33,
+      "expected_error": 1,
+      "log": {
+        "path": "review/country-resource-lv-high-short-signature.log",
+        "sha256": "0ec8bff58faac44361794345a883d117ce3ca790ffa56e04e9eb67134bcefbaa"
+      },
+      "private_artifacts": "out/baltic-country-resources-k1unn7wk/lv/high/short-signature",
+      "CONFIG.SYS": "COUNTRY=371,775,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\n",
+      "AUTOEXEC.BAT": "@ECHO OFF\r\nCTTY AUX\r\nHIGH.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC A:\\BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREN BROKEN.SYS BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREJECT.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY /Y COUNTRY.SYS BAD.SYS >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nS372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO BALTIC_RESOURCE_DONE\r\nQEXIT.COM\r\n:FAIL\r\nECHO BALTIC_RESOURCE_CASE_FAIL\r\nQEXIT.COM\r\n"
+    },
+    {
+      "language": "lv",
+      "profile": "high",
+      "mutation": "short-header",
+      "mutant_sha256": "541f7c3b94a3164160f5da4badfb01480dab07283797aad5340924dc0147fc25",
+      "mutant_size": 22,
+      "actions": [
+        "HIGH.COM",
+        "P371775.COM",
+        "NLSFUNC A:\\BAD.SYS",
+        "Q372775.COM",
+        "DEL BAD.SYS",
+        "REN BROKEN.SYS BAD.SYS",
+        "REJECT.COM",
+        "P371775.COM",
+        "COPY /Y COUNTRY.SYS BAD.SYS >NUL",
+        "Q372775.COM",
+        "S372775.COM",
+        "P372775.COM"
+      ],
+      "emulator_exit": 33,
+      "expected_error": 1,
+      "log": {
+        "path": "review/country-resource-lv-high-short-header.log",
+        "sha256": "0ec8bff58faac44361794345a883d117ce3ca790ffa56e04e9eb67134bcefbaa"
+      },
+      "private_artifacts": "out/baltic-country-resources-k1unn7wk/lv/high/short-header",
+      "CONFIG.SYS": "COUNTRY=371,775,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\n",
+      "AUTOEXEC.BAT": "@ECHO OFF\r\nCTTY AUX\r\nHIGH.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC A:\\BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREN BROKEN.SYS BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREJECT.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY /Y COUNTRY.SYS BAD.SYS >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nS372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO BALTIC_RESOURCE_DONE\r\nQEXIT.COM\r\n:FAIL\r\nECHO BALTIC_RESOURCE_CASE_FAIL\r\nQEXIT.COM\r\n"
+    },
+    {
+      "language": "lv",
+      "profile": "high",
+      "mutation": "bad-signature",
+      "mutant_sha256": "103f86fc56813740595c65d3703b1dc61dbeca9e3be6bc32f96aed1ffa7cbe3b",
+      "mutant_size": 20946,
+      "actions": [
+        "HIGH.COM",
+        "P371775.COM",
+        "NLSFUNC A:\\BAD.SYS",
+        "Q372775.COM",
+        "DEL BAD.SYS",
+        "REN BROKEN.SYS BAD.SYS",
+        "REJECT.COM",
+        "P371775.COM",
+        "COPY /Y COUNTRY.SYS BAD.SYS >NUL",
+        "Q372775.COM",
+        "S372775.COM",
+        "P372775.COM"
+      ],
+      "emulator_exit": 33,
+      "expected_error": 1,
+      "log": {
+        "path": "review/country-resource-lv-high-bad-signature.log",
+        "sha256": "0ec8bff58faac44361794345a883d117ce3ca790ffa56e04e9eb67134bcefbaa"
+      },
+      "private_artifacts": "out/baltic-country-resources-k1unn7wk/lv/high/bad-signature",
+      "CONFIG.SYS": "COUNTRY=371,775,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\n",
+      "AUTOEXEC.BAT": "@ECHO OFF\r\nCTTY AUX\r\nHIGH.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC A:\\BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREN BROKEN.SYS BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREJECT.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY /Y COUNTRY.SYS BAD.SYS >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nS372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO BALTIC_RESOURCE_DONE\r\nQEXIT.COM\r\n:FAIL\r\nECHO BALTIC_RESOURCE_CASE_FAIL\r\nQEXIT.COM\r\n"
+    },
+    {
+      "language": "lv",
+      "profile": "high",
+      "mutation": "bad-signature-1",
+      "mutant_sha256": "7cf1eb9b781c1c355c51f0672eb1a2801591d279a8b388e08d9cece3ad674663",
+      "mutant_size": 20946,
+      "actions": [
+        "HIGH.COM",
+        "P371775.COM",
+        "NLSFUNC A:\\BAD.SYS",
+        "Q372775.COM",
+        "DEL BAD.SYS",
+        "REN BROKEN.SYS BAD.SYS",
+        "REJECT.COM",
+        "P371775.COM",
+        "COPY /Y COUNTRY.SYS BAD.SYS >NUL",
+        "Q372775.COM",
+        "S372775.COM",
+        "P372775.COM"
+      ],
+      "emulator_exit": 33,
+      "expected_error": 1,
+      "log": {
+        "path": "review/country-resource-lv-high-bad-signature-1.log",
+        "sha256": "0ec8bff58faac44361794345a883d117ce3ca790ffa56e04e9eb67134bcefbaa"
+      },
+      "private_artifacts": "out/baltic-country-resources-k1unn7wk/lv/high/bad-signature-1",
+      "CONFIG.SYS": "COUNTRY=371,775,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\n",
+      "AUTOEXEC.BAT": "@ECHO OFF\r\nCTTY AUX\r\nHIGH.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC A:\\BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREN BROKEN.SYS BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREJECT.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY /Y COUNTRY.SYS BAD.SYS >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nS372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO BALTIC_RESOURCE_DONE\r\nQEXIT.COM\r\n:FAIL\r\nECHO BALTIC_RESOURCE_CASE_FAIL\r\nQEXIT.COM\r\n"
+    },
+    {
+      "language": "lv",
+      "profile": "high",
+      "mutation": "bad-signature-2",
+      "mutant_sha256": "e35dd8174f6fbddcc3cd6d2810e1bc2ba1d3b1a8bbac51fc717015f7d16814e8",
+      "mutant_size": 20946,
+      "actions": [
+        "HIGH.COM",
+        "P371775.COM",
+        "NLSFUNC A:\\BAD.SYS",
+        "Q372775.COM",
+        "DEL BAD.SYS",
+        "REN BROKEN.SYS BAD.SYS",
+        "REJECT.COM",
+        "P371775.COM",
+        "COPY /Y COUNTRY.SYS BAD.SYS >NUL",
+        "Q372775.COM",
+        "S372775.COM",
+        "P372775.COM"
+      ],
+      "emulator_exit": 33,
+      "expected_error": 1,
+      "log": {
+        "path": "review/country-resource-lv-high-bad-signature-2.log",
+        "sha256": "0ec8bff58faac44361794345a883d117ce3ca790ffa56e04e9eb67134bcefbaa"
+      },
+      "private_artifacts": "out/baltic-country-resources-k1unn7wk/lv/high/bad-signature-2",
+      "CONFIG.SYS": "COUNTRY=371,775,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\n",
+      "AUTOEXEC.BAT": "@ECHO OFF\r\nCTTY AUX\r\nHIGH.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC A:\\BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREN BROKEN.SYS BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREJECT.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY /Y COUNTRY.SYS BAD.SYS >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nS372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO BALTIC_RESOURCE_DONE\r\nQEXIT.COM\r\n:FAIL\r\nECHO BALTIC_RESOURCE_CASE_FAIL\r\nQEXIT.COM\r\n"
+    },
+    {
+      "language": "lv",
+      "profile": "high",
+      "mutation": "bad-signature-3",
+      "mutant_sha256": "7d5182a366f198a95604784861f686ed1e633e5192f3863d937d94ac1fc45407",
+      "mutant_size": 20946,
+      "actions": [
+        "HIGH.COM",
+        "P371775.COM",
+        "NLSFUNC A:\\BAD.SYS",
+        "Q372775.COM",
+        "DEL BAD.SYS",
+        "REN BROKEN.SYS BAD.SYS",
+        "REJECT.COM",
+        "P371775.COM",
+        "COPY /Y COUNTRY.SYS BAD.SYS >NUL",
+        "Q372775.COM",
+        "S372775.COM",
+        "P372775.COM"
+      ],
+      "emulator_exit": 33,
+      "expected_error": 1,
+      "log": {
+        "path": "review/country-resource-lv-high-bad-signature-3.log",
+        "sha256": "0ec8bff58faac44361794345a883d117ce3ca790ffa56e04e9eb67134bcefbaa"
+      },
+      "private_artifacts": "out/baltic-country-resources-k1unn7wk/lv/high/bad-signature-3",
+      "CONFIG.SYS": "COUNTRY=371,775,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\n",
+      "AUTOEXEC.BAT": "@ECHO OFF\r\nCTTY AUX\r\nHIGH.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC A:\\BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREN BROKEN.SYS BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREJECT.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY /Y COUNTRY.SYS BAD.SYS >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nS372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO BALTIC_RESOURCE_DONE\r\nQEXIT.COM\r\n:FAIL\r\nECHO BALTIC_RESOURCE_CASE_FAIL\r\nQEXIT.COM\r\n"
+    },
+    {
+      "language": "lv",
+      "profile": "high",
+      "mutation": "bad-signature-4",
+      "mutant_sha256": "6a4ac6f3317dc3297004bb751f1b6c74a9a232a8008c913a8224563ff7f5340b",
+      "mutant_size": 20946,
+      "actions": [
+        "HIGH.COM",
+        "P371775.COM",
+        "NLSFUNC A:\\BAD.SYS",
+        "Q372775.COM",
+        "DEL BAD.SYS",
+        "REN BROKEN.SYS BAD.SYS",
+        "REJECT.COM",
+        "P371775.COM",
+        "COPY /Y COUNTRY.SYS BAD.SYS >NUL",
+        "Q372775.COM",
+        "S372775.COM",
+        "P372775.COM"
+      ],
+      "emulator_exit": 33,
+      "expected_error": 1,
+      "log": {
+        "path": "review/country-resource-lv-high-bad-signature-4.log",
+        "sha256": "0ec8bff58faac44361794345a883d117ce3ca790ffa56e04e9eb67134bcefbaa"
+      },
+      "private_artifacts": "out/baltic-country-resources-k1unn7wk/lv/high/bad-signature-4",
+      "CONFIG.SYS": "COUNTRY=371,775,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\n",
+      "AUTOEXEC.BAT": "@ECHO OFF\r\nCTTY AUX\r\nHIGH.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC A:\\BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREN BROKEN.SYS BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREJECT.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY /Y COUNTRY.SYS BAD.SYS >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nS372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO BALTIC_RESOURCE_DONE\r\nQEXIT.COM\r\n:FAIL\r\nECHO BALTIC_RESOURCE_CASE_FAIL\r\nQEXIT.COM\r\n"
+    },
+    {
+      "language": "lv",
+      "profile": "high",
+      "mutation": "bad-signature-5",
+      "mutant_sha256": "f91364e0df789b6db215789fd7ee0fe7da83492159fb00628eb658164cf9997d",
+      "mutant_size": 20946,
+      "actions": [
+        "HIGH.COM",
+        "P371775.COM",
+        "NLSFUNC A:\\BAD.SYS",
+        "Q372775.COM",
+        "DEL BAD.SYS",
+        "REN BROKEN.SYS BAD.SYS",
+        "REJECT.COM",
+        "P371775.COM",
+        "COPY /Y COUNTRY.SYS BAD.SYS >NUL",
+        "Q372775.COM",
+        "S372775.COM",
+        "P372775.COM"
+      ],
+      "emulator_exit": 33,
+      "expected_error": 1,
+      "log": {
+        "path": "review/country-resource-lv-high-bad-signature-5.log",
+        "sha256": "0ec8bff58faac44361794345a883d117ce3ca790ffa56e04e9eb67134bcefbaa"
+      },
+      "private_artifacts": "out/baltic-country-resources-k1unn7wk/lv/high/bad-signature-5",
+      "CONFIG.SYS": "COUNTRY=371,775,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\n",
+      "AUTOEXEC.BAT": "@ECHO OFF\r\nCTTY AUX\r\nHIGH.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC A:\\BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREN BROKEN.SYS BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREJECT.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY /Y COUNTRY.SYS BAD.SYS >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nS372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO BALTIC_RESOURCE_DONE\r\nQEXIT.COM\r\n:FAIL\r\nECHO BALTIC_RESOURCE_CASE_FAIL\r\nQEXIT.COM\r\n"
+    },
+    {
+      "language": "lv",
+      "profile": "high",
+      "mutation": "bad-signature-6",
+      "mutant_sha256": "6b2e7856843ca048eea3e44b881adf58a416b213fe99bb30cd7b208fd26af468",
+      "mutant_size": 20946,
+      "actions": [
+        "HIGH.COM",
+        "P371775.COM",
+        "NLSFUNC A:\\BAD.SYS",
+        "Q372775.COM",
+        "DEL BAD.SYS",
+        "REN BROKEN.SYS BAD.SYS",
+        "REJECT.COM",
+        "P371775.COM",
+        "COPY /Y COUNTRY.SYS BAD.SYS >NUL",
+        "Q372775.COM",
+        "S372775.COM",
+        "P372775.COM"
+      ],
+      "emulator_exit": 33,
+      "expected_error": 1,
+      "log": {
+        "path": "review/country-resource-lv-high-bad-signature-6.log",
+        "sha256": "0ec8bff58faac44361794345a883d117ce3ca790ffa56e04e9eb67134bcefbaa"
+      },
+      "private_artifacts": "out/baltic-country-resources-k1unn7wk/lv/high/bad-signature-6",
+      "CONFIG.SYS": "COUNTRY=371,775,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\n",
+      "AUTOEXEC.BAT": "@ECHO OFF\r\nCTTY AUX\r\nHIGH.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC A:\\BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREN BROKEN.SYS BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREJECT.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY /Y COUNTRY.SYS BAD.SYS >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nS372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO BALTIC_RESOURCE_DONE\r\nQEXIT.COM\r\n:FAIL\r\nECHO BALTIC_RESOURCE_CASE_FAIL\r\nQEXIT.COM\r\n"
+    },
+    {
+      "language": "lv",
+      "profile": "high",
+      "mutation": "bad-signature-7",
+      "mutant_sha256": "5aefa9f335b447fd58dc536b7f815d6f70e752cd85344f639054b282d43cb95d",
+      "mutant_size": 20946,
+      "actions": [
+        "HIGH.COM",
+        "P371775.COM",
+        "NLSFUNC A:\\BAD.SYS",
+        "Q372775.COM",
+        "DEL BAD.SYS",
+        "REN BROKEN.SYS BAD.SYS",
+        "REJECT.COM",
+        "P371775.COM",
+        "COPY /Y COUNTRY.SYS BAD.SYS >NUL",
+        "Q372775.COM",
+        "S372775.COM",
+        "P372775.COM"
+      ],
+      "emulator_exit": 33,
+      "expected_error": 1,
+      "log": {
+        "path": "review/country-resource-lv-high-bad-signature-7.log",
+        "sha256": "0ec8bff58faac44361794345a883d117ce3ca790ffa56e04e9eb67134bcefbaa"
+      },
+      "private_artifacts": "out/baltic-country-resources-k1unn7wk/lv/high/bad-signature-7",
+      "CONFIG.SYS": "COUNTRY=371,775,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\n",
+      "AUTOEXEC.BAT": "@ECHO OFF\r\nCTTY AUX\r\nHIGH.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC A:\\BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREN BROKEN.SYS BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREJECT.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY /Y COUNTRY.SYS BAD.SYS >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nS372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO BALTIC_RESOURCE_DONE\r\nQEXIT.COM\r\n:FAIL\r\nECHO BALTIC_RESOURCE_CASE_FAIL\r\nQEXIT.COM\r\n"
+    },
+    {
+      "language": "lv",
+      "profile": "high",
+      "mutation": "bad-info-type",
+      "mutant_sha256": "c2329a95554ed3dd88d067eb75ad70fd2c54a405ae79f77d5946606a86483741",
+      "mutant_size": 20946,
+      "actions": [
+        "HIGH.COM",
+        "P371775.COM",
+        "NLSFUNC A:\\BAD.SYS",
+        "Q372775.COM",
+        "DEL BAD.SYS",
+        "REN BROKEN.SYS BAD.SYS",
+        "REJECT.COM",
+        "P371775.COM",
+        "COPY /Y COUNTRY.SYS BAD.SYS >NUL",
+        "Q372775.COM",
+        "S372775.COM",
+        "P372775.COM"
+      ],
+      "emulator_exit": 33,
+      "expected_error": 1,
+      "log": {
+        "path": "review/country-resource-lv-high-bad-info-type.log",
+        "sha256": "0ec8bff58faac44361794345a883d117ce3ca790ffa56e04e9eb67134bcefbaa"
+      },
+      "private_artifacts": "out/baltic-country-resources-k1unn7wk/lv/high/bad-info-type",
+      "CONFIG.SYS": "COUNTRY=371,775,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\n",
+      "AUTOEXEC.BAT": "@ECHO OFF\r\nCTTY AUX\r\nHIGH.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC A:\\BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREN BROKEN.SYS BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREJECT.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY /Y COUNTRY.SYS BAD.SYS >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nS372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO BALTIC_RESOURCE_DONE\r\nQEXIT.COM\r\n:FAIL\r\nECHO BALTIC_RESOURCE_CASE_FAIL\r\nQEXIT.COM\r\n"
+    },
+    {
+      "language": "lv",
+      "profile": "low",
+      "mutation": "missing",
+      "mutant_sha256": null,
+      "mutant_size": null,
+      "actions": [
+        "LOW.COM",
+        "P371775.COM",
+        "NLSFUNC A:\\BAD.SYS",
+        "Q372775.COM",
+        "DEL BAD.SYS",
+        "REJECT.COM",
+        "P371775.COM",
+        "COPY /Y COUNTRY.SYS BAD.SYS >NUL",
+        "Q372775.COM",
+        "S372775.COM",
+        "P372775.COM"
+      ],
+      "emulator_exit": 33,
+      "expected_error": 2,
+      "log": {
+        "path": "review/country-resource-lv-low-missing.log",
+        "sha256": "8f2ecdaa1da6a694ce531ab2760fde38c8e4b3b2608515f13f5b454e88e366a2"
+      },
+      "private_artifacts": "out/baltic-country-resources-k1unn7wk/lv/low/missing",
+      "CONFIG.SYS": "COUNTRY=371,775,COUNTRY.SYS\r\nDOS=LOW\r\n",
+      "AUTOEXEC.BAT": "@ECHO OFF\r\nCTTY AUX\r\nLOW.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC A:\\BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREJECT.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY /Y COUNTRY.SYS BAD.SYS >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nS372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO BALTIC_RESOURCE_DONE\r\nQEXIT.COM\r\n:FAIL\r\nECHO BALTIC_RESOURCE_CASE_FAIL\r\nQEXIT.COM\r\n"
+    },
+    {
+      "language": "lv",
+      "profile": "low",
+      "mutation": "empty",
+      "mutant_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mutant_size": 0,
+      "actions": [
+        "LOW.COM",
+        "P371775.COM",
+        "NLSFUNC A:\\BAD.SYS",
+        "Q372775.COM",
+        "DEL BAD.SYS",
+        "REN BROKEN.SYS BAD.SYS",
+        "REJECT.COM",
+        "P371775.COM",
+        "COPY /Y COUNTRY.SYS BAD.SYS >NUL",
+        "Q372775.COM",
+        "S372775.COM",
+        "P372775.COM"
+      ],
+      "emulator_exit": 33,
+      "expected_error": 1,
+      "log": {
+        "path": "review/country-resource-lv-low-empty.log",
+        "sha256": "8f2ecdaa1da6a694ce531ab2760fde38c8e4b3b2608515f13f5b454e88e366a2"
+      },
+      "private_artifacts": "out/baltic-country-resources-k1unn7wk/lv/low/empty",
+      "CONFIG.SYS": "COUNTRY=371,775,COUNTRY.SYS\r\nDOS=LOW\r\n",
+      "AUTOEXEC.BAT": "@ECHO OFF\r\nCTTY AUX\r\nLOW.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC A:\\BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREN BROKEN.SYS BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREJECT.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY /Y COUNTRY.SYS BAD.SYS >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nS372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO BALTIC_RESOURCE_DONE\r\nQEXIT.COM\r\n:FAIL\r\nECHO BALTIC_RESOURCE_CASE_FAIL\r\nQEXIT.COM\r\n"
+    },
+    {
+      "language": "lv",
+      "profile": "low",
+      "mutation": "short-signature",
+      "mutant_sha256": "c6811d30dda19ad4b90a59519a5f73dcea9aa2cbdb1e2aec32ebcb8fae9b67d3",
+      "mutant_size": 7,
+      "actions": [
+        "LOW.COM",
+        "P371775.COM",
+        "NLSFUNC A:\\BAD.SYS",
+        "Q372775.COM",
+        "DEL BAD.SYS",
+        "REN BROKEN.SYS BAD.SYS",
+        "REJECT.COM",
+        "P371775.COM",
+        "COPY /Y COUNTRY.SYS BAD.SYS >NUL",
+        "Q372775.COM",
+        "S372775.COM",
+        "P372775.COM"
+      ],
+      "emulator_exit": 33,
+      "expected_error": 1,
+      "log": {
+        "path": "review/country-resource-lv-low-short-signature.log",
+        "sha256": "8f2ecdaa1da6a694ce531ab2760fde38c8e4b3b2608515f13f5b454e88e366a2"
+      },
+      "private_artifacts": "out/baltic-country-resources-k1unn7wk/lv/low/short-signature",
+      "CONFIG.SYS": "COUNTRY=371,775,COUNTRY.SYS\r\nDOS=LOW\r\n",
+      "AUTOEXEC.BAT": "@ECHO OFF\r\nCTTY AUX\r\nLOW.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC A:\\BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREN BROKEN.SYS BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREJECT.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY /Y COUNTRY.SYS BAD.SYS >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nS372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO BALTIC_RESOURCE_DONE\r\nQEXIT.COM\r\n:FAIL\r\nECHO BALTIC_RESOURCE_CASE_FAIL\r\nQEXIT.COM\r\n"
+    },
+    {
+      "language": "lv",
+      "profile": "low",
+      "mutation": "short-header",
+      "mutant_sha256": "541f7c3b94a3164160f5da4badfb01480dab07283797aad5340924dc0147fc25",
+      "mutant_size": 22,
+      "actions": [
+        "LOW.COM",
+        "P371775.COM",
+        "NLSFUNC A:\\BAD.SYS",
+        "Q372775.COM",
+        "DEL BAD.SYS",
+        "REN BROKEN.SYS BAD.SYS",
+        "REJECT.COM",
+        "P371775.COM",
+        "COPY /Y COUNTRY.SYS BAD.SYS >NUL",
+        "Q372775.COM",
+        "S372775.COM",
+        "P372775.COM"
+      ],
+      "emulator_exit": 33,
+      "expected_error": 1,
+      "log": {
+        "path": "review/country-resource-lv-low-short-header.log",
+        "sha256": "8f2ecdaa1da6a694ce531ab2760fde38c8e4b3b2608515f13f5b454e88e366a2"
+      },
+      "private_artifacts": "out/baltic-country-resources-k1unn7wk/lv/low/short-header",
+      "CONFIG.SYS": "COUNTRY=371,775,COUNTRY.SYS\r\nDOS=LOW\r\n",
+      "AUTOEXEC.BAT": "@ECHO OFF\r\nCTTY AUX\r\nLOW.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC A:\\BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREN BROKEN.SYS BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREJECT.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY /Y COUNTRY.SYS BAD.SYS >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nS372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO BALTIC_RESOURCE_DONE\r\nQEXIT.COM\r\n:FAIL\r\nECHO BALTIC_RESOURCE_CASE_FAIL\r\nQEXIT.COM\r\n"
+    },
+    {
+      "language": "lv",
+      "profile": "low",
+      "mutation": "bad-signature",
+      "mutant_sha256": "103f86fc56813740595c65d3703b1dc61dbeca9e3be6bc32f96aed1ffa7cbe3b",
+      "mutant_size": 20946,
+      "actions": [
+        "LOW.COM",
+        "P371775.COM",
+        "NLSFUNC A:\\BAD.SYS",
+        "Q372775.COM",
+        "DEL BAD.SYS",
+        "REN BROKEN.SYS BAD.SYS",
+        "REJECT.COM",
+        "P371775.COM",
+        "COPY /Y COUNTRY.SYS BAD.SYS >NUL",
+        "Q372775.COM",
+        "S372775.COM",
+        "P372775.COM"
+      ],
+      "emulator_exit": 33,
+      "expected_error": 1,
+      "log": {
+        "path": "review/country-resource-lv-low-bad-signature.log",
+        "sha256": "8f2ecdaa1da6a694ce531ab2760fde38c8e4b3b2608515f13f5b454e88e366a2"
+      },
+      "private_artifacts": "out/baltic-country-resources-k1unn7wk/lv/low/bad-signature",
+      "CONFIG.SYS": "COUNTRY=371,775,COUNTRY.SYS\r\nDOS=LOW\r\n",
+      "AUTOEXEC.BAT": "@ECHO OFF\r\nCTTY AUX\r\nLOW.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC A:\\BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREN BROKEN.SYS BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREJECT.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY /Y COUNTRY.SYS BAD.SYS >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nS372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO BALTIC_RESOURCE_DONE\r\nQEXIT.COM\r\n:FAIL\r\nECHO BALTIC_RESOURCE_CASE_FAIL\r\nQEXIT.COM\r\n"
+    },
+    {
+      "language": "lv",
+      "profile": "low",
+      "mutation": "bad-signature-1",
+      "mutant_sha256": "7cf1eb9b781c1c355c51f0672eb1a2801591d279a8b388e08d9cece3ad674663",
+      "mutant_size": 20946,
+      "actions": [
+        "LOW.COM",
+        "P371775.COM",
+        "NLSFUNC A:\\BAD.SYS",
+        "Q372775.COM",
+        "DEL BAD.SYS",
+        "REN BROKEN.SYS BAD.SYS",
+        "REJECT.COM",
+        "P371775.COM",
+        "COPY /Y COUNTRY.SYS BAD.SYS >NUL",
+        "Q372775.COM",
+        "S372775.COM",
+        "P372775.COM"
+      ],
+      "emulator_exit": 33,
+      "expected_error": 1,
+      "log": {
+        "path": "review/country-resource-lv-low-bad-signature-1.log",
+        "sha256": "8f2ecdaa1da6a694ce531ab2760fde38c8e4b3b2608515f13f5b454e88e366a2"
+      },
+      "private_artifacts": "out/baltic-country-resources-k1unn7wk/lv/low/bad-signature-1",
+      "CONFIG.SYS": "COUNTRY=371,775,COUNTRY.SYS\r\nDOS=LOW\r\n",
+      "AUTOEXEC.BAT": "@ECHO OFF\r\nCTTY AUX\r\nLOW.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC A:\\BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREN BROKEN.SYS BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREJECT.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY /Y COUNTRY.SYS BAD.SYS >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nS372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO BALTIC_RESOURCE_DONE\r\nQEXIT.COM\r\n:FAIL\r\nECHO BALTIC_RESOURCE_CASE_FAIL\r\nQEXIT.COM\r\n"
+    },
+    {
+      "language": "lv",
+      "profile": "low",
+      "mutation": "bad-signature-2",
+      "mutant_sha256": "e35dd8174f6fbddcc3cd6d2810e1bc2ba1d3b1a8bbac51fc717015f7d16814e8",
+      "mutant_size": 20946,
+      "actions": [
+        "LOW.COM",
+        "P371775.COM",
+        "NLSFUNC A:\\BAD.SYS",
+        "Q372775.COM",
+        "DEL BAD.SYS",
+        "REN BROKEN.SYS BAD.SYS",
+        "REJECT.COM",
+        "P371775.COM",
+        "COPY /Y COUNTRY.SYS BAD.SYS >NUL",
+        "Q372775.COM",
+        "S372775.COM",
+        "P372775.COM"
+      ],
+      "emulator_exit": 33,
+      "expected_error": 1,
+      "log": {
+        "path": "review/country-resource-lv-low-bad-signature-2.log",
+        "sha256": "8f2ecdaa1da6a694ce531ab2760fde38c8e4b3b2608515f13f5b454e88e366a2"
+      },
+      "private_artifacts": "out/baltic-country-resources-k1unn7wk/lv/low/bad-signature-2",
+      "CONFIG.SYS": "COUNTRY=371,775,COUNTRY.SYS\r\nDOS=LOW\r\n",
+      "AUTOEXEC.BAT": "@ECHO OFF\r\nCTTY AUX\r\nLOW.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC A:\\BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREN BROKEN.SYS BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREJECT.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY /Y COUNTRY.SYS BAD.SYS >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nS372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO BALTIC_RESOURCE_DONE\r\nQEXIT.COM\r\n:FAIL\r\nECHO BALTIC_RESOURCE_CASE_FAIL\r\nQEXIT.COM\r\n"
+    },
+    {
+      "language": "lv",
+      "profile": "low",
+      "mutation": "bad-signature-3",
+      "mutant_sha256": "7d5182a366f198a95604784861f686ed1e633e5192f3863d937d94ac1fc45407",
+      "mutant_size": 20946,
+      "actions": [
+        "LOW.COM",
+        "P371775.COM",
+        "NLSFUNC A:\\BAD.SYS",
+        "Q372775.COM",
+        "DEL BAD.SYS",
+        "REN BROKEN.SYS BAD.SYS",
+        "REJECT.COM",
+        "P371775.COM",
+        "COPY /Y COUNTRY.SYS BAD.SYS >NUL",
+        "Q372775.COM",
+        "S372775.COM",
+        "P372775.COM"
+      ],
+      "emulator_exit": 33,
+      "expected_error": 1,
+      "log": {
+        "path": "review/country-resource-lv-low-bad-signature-3.log",
+        "sha256": "8f2ecdaa1da6a694ce531ab2760fde38c8e4b3b2608515f13f5b454e88e366a2"
+      },
+      "private_artifacts": "out/baltic-country-resources-k1unn7wk/lv/low/bad-signature-3",
+      "CONFIG.SYS": "COUNTRY=371,775,COUNTRY.SYS\r\nDOS=LOW\r\n",
+      "AUTOEXEC.BAT": "@ECHO OFF\r\nCTTY AUX\r\nLOW.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC A:\\BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREN BROKEN.SYS BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREJECT.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY /Y COUNTRY.SYS BAD.SYS >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nS372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO BALTIC_RESOURCE_DONE\r\nQEXIT.COM\r\n:FAIL\r\nECHO BALTIC_RESOURCE_CASE_FAIL\r\nQEXIT.COM\r\n"
+    },
+    {
+      "language": "lv",
+      "profile": "low",
+      "mutation": "bad-signature-4",
+      "mutant_sha256": "6a4ac6f3317dc3297004bb751f1b6c74a9a232a8008c913a8224563ff7f5340b",
+      "mutant_size": 20946,
+      "actions": [
+        "LOW.COM",
+        "P371775.COM",
+        "NLSFUNC A:\\BAD.SYS",
+        "Q372775.COM",
+        "DEL BAD.SYS",
+        "REN BROKEN.SYS BAD.SYS",
+        "REJECT.COM",
+        "P371775.COM",
+        "COPY /Y COUNTRY.SYS BAD.SYS >NUL",
+        "Q372775.COM",
+        "S372775.COM",
+        "P372775.COM"
+      ],
+      "emulator_exit": 33,
+      "expected_error": 1,
+      "log": {
+        "path": "review/country-resource-lv-low-bad-signature-4.log",
+        "sha256": "8f2ecdaa1da6a694ce531ab2760fde38c8e4b3b2608515f13f5b454e88e366a2"
+      },
+      "private_artifacts": "out/baltic-country-resources-k1unn7wk/lv/low/bad-signature-4",
+      "CONFIG.SYS": "COUNTRY=371,775,COUNTRY.SYS\r\nDOS=LOW\r\n",
+      "AUTOEXEC.BAT": "@ECHO OFF\r\nCTTY AUX\r\nLOW.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC A:\\BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREN BROKEN.SYS BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREJECT.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY /Y COUNTRY.SYS BAD.SYS >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nS372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO BALTIC_RESOURCE_DONE\r\nQEXIT.COM\r\n:FAIL\r\nECHO BALTIC_RESOURCE_CASE_FAIL\r\nQEXIT.COM\r\n"
+    },
+    {
+      "language": "lv",
+      "profile": "low",
+      "mutation": "bad-signature-5",
+      "mutant_sha256": "f91364e0df789b6db215789fd7ee0fe7da83492159fb00628eb658164cf9997d",
+      "mutant_size": 20946,
+      "actions": [
+        "LOW.COM",
+        "P371775.COM",
+        "NLSFUNC A:\\BAD.SYS",
+        "Q372775.COM",
+        "DEL BAD.SYS",
+        "REN BROKEN.SYS BAD.SYS",
+        "REJECT.COM",
+        "P371775.COM",
+        "COPY /Y COUNTRY.SYS BAD.SYS >NUL",
+        "Q372775.COM",
+        "S372775.COM",
+        "P372775.COM"
+      ],
+      "emulator_exit": 33,
+      "expected_error": 1,
+      "log": {
+        "path": "review/country-resource-lv-low-bad-signature-5.log",
+        "sha256": "8f2ecdaa1da6a694ce531ab2760fde38c8e4b3b2608515f13f5b454e88e366a2"
+      },
+      "private_artifacts": "out/baltic-country-resources-k1unn7wk/lv/low/bad-signature-5",
+      "CONFIG.SYS": "COUNTRY=371,775,COUNTRY.SYS\r\nDOS=LOW\r\n",
+      "AUTOEXEC.BAT": "@ECHO OFF\r\nCTTY AUX\r\nLOW.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC A:\\BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREN BROKEN.SYS BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREJECT.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY /Y COUNTRY.SYS BAD.SYS >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nS372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO BALTIC_RESOURCE_DONE\r\nQEXIT.COM\r\n:FAIL\r\nECHO BALTIC_RESOURCE_CASE_FAIL\r\nQEXIT.COM\r\n"
+    },
+    {
+      "language": "lv",
+      "profile": "low",
+      "mutation": "bad-signature-6",
+      "mutant_sha256": "6b2e7856843ca048eea3e44b881adf58a416b213fe99bb30cd7b208fd26af468",
+      "mutant_size": 20946,
+      "actions": [
+        "LOW.COM",
+        "P371775.COM",
+        "NLSFUNC A:\\BAD.SYS",
+        "Q372775.COM",
+        "DEL BAD.SYS",
+        "REN BROKEN.SYS BAD.SYS",
+        "REJECT.COM",
+        "P371775.COM",
+        "COPY /Y COUNTRY.SYS BAD.SYS >NUL",
+        "Q372775.COM",
+        "S372775.COM",
+        "P372775.COM"
+      ],
+      "emulator_exit": 33,
+      "expected_error": 1,
+      "log": {
+        "path": "review/country-resource-lv-low-bad-signature-6.log",
+        "sha256": "8f2ecdaa1da6a694ce531ab2760fde38c8e4b3b2608515f13f5b454e88e366a2"
+      },
+      "private_artifacts": "out/baltic-country-resources-k1unn7wk/lv/low/bad-signature-6",
+      "CONFIG.SYS": "COUNTRY=371,775,COUNTRY.SYS\r\nDOS=LOW\r\n",
+      "AUTOEXEC.BAT": "@ECHO OFF\r\nCTTY AUX\r\nLOW.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC A:\\BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREN BROKEN.SYS BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREJECT.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY /Y COUNTRY.SYS BAD.SYS >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nS372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO BALTIC_RESOURCE_DONE\r\nQEXIT.COM\r\n:FAIL\r\nECHO BALTIC_RESOURCE_CASE_FAIL\r\nQEXIT.COM\r\n"
+    },
+    {
+      "language": "lv",
+      "profile": "low",
+      "mutation": "bad-signature-7",
+      "mutant_sha256": "5aefa9f335b447fd58dc536b7f815d6f70e752cd85344f639054b282d43cb95d",
+      "mutant_size": 20946,
+      "actions": [
+        "LOW.COM",
+        "P371775.COM",
+        "NLSFUNC A:\\BAD.SYS",
+        "Q372775.COM",
+        "DEL BAD.SYS",
+        "REN BROKEN.SYS BAD.SYS",
+        "REJECT.COM",
+        "P371775.COM",
+        "COPY /Y COUNTRY.SYS BAD.SYS >NUL",
+        "Q372775.COM",
+        "S372775.COM",
+        "P372775.COM"
+      ],
+      "emulator_exit": 33,
+      "expected_error": 1,
+      "log": {
+        "path": "review/country-resource-lv-low-bad-signature-7.log",
+        "sha256": "8f2ecdaa1da6a694ce531ab2760fde38c8e4b3b2608515f13f5b454e88e366a2"
+      },
+      "private_artifacts": "out/baltic-country-resources-k1unn7wk/lv/low/bad-signature-7",
+      "CONFIG.SYS": "COUNTRY=371,775,COUNTRY.SYS\r\nDOS=LOW\r\n",
+      "AUTOEXEC.BAT": "@ECHO OFF\r\nCTTY AUX\r\nLOW.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC A:\\BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREN BROKEN.SYS BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREJECT.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY /Y COUNTRY.SYS BAD.SYS >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nS372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO BALTIC_RESOURCE_DONE\r\nQEXIT.COM\r\n:FAIL\r\nECHO BALTIC_RESOURCE_CASE_FAIL\r\nQEXIT.COM\r\n"
+    },
+    {
+      "language": "lv",
+      "profile": "low",
+      "mutation": "bad-info-type",
+      "mutant_sha256": "c2329a95554ed3dd88d067eb75ad70fd2c54a405ae79f77d5946606a86483741",
+      "mutant_size": 20946,
+      "actions": [
+        "LOW.COM",
+        "P371775.COM",
+        "NLSFUNC A:\\BAD.SYS",
+        "Q372775.COM",
+        "DEL BAD.SYS",
+        "REN BROKEN.SYS BAD.SYS",
+        "REJECT.COM",
+        "P371775.COM",
+        "COPY /Y COUNTRY.SYS BAD.SYS >NUL",
+        "Q372775.COM",
+        "S372775.COM",
+        "P372775.COM"
+      ],
+      "emulator_exit": 33,
+      "expected_error": 1,
+      "log": {
+        "path": "review/country-resource-lv-low-bad-info-type.log",
+        "sha256": "8f2ecdaa1da6a694ce531ab2760fde38c8e4b3b2608515f13f5b454e88e366a2"
+      },
+      "private_artifacts": "out/baltic-country-resources-k1unn7wk/lv/low/bad-info-type",
+      "CONFIG.SYS": "COUNTRY=371,775,COUNTRY.SYS\r\nDOS=LOW\r\n",
+      "AUTOEXEC.BAT": "@ECHO OFF\r\nCTTY AUX\r\nLOW.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC A:\\BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREN BROKEN.SYS BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREJECT.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP371775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY /Y COUNTRY.SYS BAD.SYS >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nS372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO BALTIC_RESOURCE_DONE\r\nQEXIT.COM\r\n:FAIL\r\nECHO BALTIC_RESOURCE_CASE_FAIL\r\nQEXIT.COM\r\n"
+    },
+    {
+      "language": "lt",
+      "profile": "high",
+      "mutation": "missing",
+      "mutant_sha256": null,
+      "mutant_size": null,
+      "actions": [
+        "HIGH.COM",
+        "P370775.COM",
+        "NLSFUNC A:\\BAD.SYS",
+        "Q372775.COM",
+        "DEL BAD.SYS",
+        "REJECT.COM",
+        "P370775.COM",
+        "COPY /Y COUNTRY.SYS BAD.SYS >NUL",
+        "Q372775.COM",
+        "S372775.COM",
+        "P372775.COM"
+      ],
+      "emulator_exit": 33,
+      "expected_error": 2,
+      "log": {
+        "path": "review/country-resource-lt-high-missing.log",
+        "sha256": "0ec8bff58faac44361794345a883d117ce3ca790ffa56e04e9eb67134bcefbaa"
+      },
+      "private_artifacts": "out/baltic-country-resources-k1unn7wk/lt/high/missing",
+      "CONFIG.SYS": "COUNTRY=370,775,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\n",
+      "AUTOEXEC.BAT": "@ECHO OFF\r\nCTTY AUX\r\nHIGH.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP370775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC A:\\BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREJECT.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP370775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY /Y COUNTRY.SYS BAD.SYS >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nS372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO BALTIC_RESOURCE_DONE\r\nQEXIT.COM\r\n:FAIL\r\nECHO BALTIC_RESOURCE_CASE_FAIL\r\nQEXIT.COM\r\n"
+    },
+    {
+      "language": "lt",
+      "profile": "high",
+      "mutation": "empty",
+      "mutant_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mutant_size": 0,
+      "actions": [
+        "HIGH.COM",
+        "P370775.COM",
+        "NLSFUNC A:\\BAD.SYS",
+        "Q372775.COM",
+        "DEL BAD.SYS",
+        "REN BROKEN.SYS BAD.SYS",
+        "REJECT.COM",
+        "P370775.COM",
+        "COPY /Y COUNTRY.SYS BAD.SYS >NUL",
+        "Q372775.COM",
+        "S372775.COM",
+        "P372775.COM"
+      ],
+      "emulator_exit": 33,
+      "expected_error": 1,
+      "log": {
+        "path": "review/country-resource-lt-high-empty.log",
+        "sha256": "0ec8bff58faac44361794345a883d117ce3ca790ffa56e04e9eb67134bcefbaa"
+      },
+      "private_artifacts": "out/baltic-country-resources-k1unn7wk/lt/high/empty",
+      "CONFIG.SYS": "COUNTRY=370,775,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\n",
+      "AUTOEXEC.BAT": "@ECHO OFF\r\nCTTY AUX\r\nHIGH.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP370775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC A:\\BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREN BROKEN.SYS BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREJECT.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP370775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY /Y COUNTRY.SYS BAD.SYS >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nS372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO BALTIC_RESOURCE_DONE\r\nQEXIT.COM\r\n:FAIL\r\nECHO BALTIC_RESOURCE_CASE_FAIL\r\nQEXIT.COM\r\n"
+    },
+    {
+      "language": "lt",
+      "profile": "high",
+      "mutation": "short-signature",
+      "mutant_sha256": "c6811d30dda19ad4b90a59519a5f73dcea9aa2cbdb1e2aec32ebcb8fae9b67d3",
+      "mutant_size": 7,
+      "actions": [
+        "HIGH.COM",
+        "P370775.COM",
+        "NLSFUNC A:\\BAD.SYS",
+        "Q372775.COM",
+        "DEL BAD.SYS",
+        "REN BROKEN.SYS BAD.SYS",
+        "REJECT.COM",
+        "P370775.COM",
+        "COPY /Y COUNTRY.SYS BAD.SYS >NUL",
+        "Q372775.COM",
+        "S372775.COM",
+        "P372775.COM"
+      ],
+      "emulator_exit": 33,
+      "expected_error": 1,
+      "log": {
+        "path": "review/country-resource-lt-high-short-signature.log",
+        "sha256": "0ec8bff58faac44361794345a883d117ce3ca790ffa56e04e9eb67134bcefbaa"
+      },
+      "private_artifacts": "out/baltic-country-resources-k1unn7wk/lt/high/short-signature",
+      "CONFIG.SYS": "COUNTRY=370,775,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\n",
+      "AUTOEXEC.BAT": "@ECHO OFF\r\nCTTY AUX\r\nHIGH.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP370775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC A:\\BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREN BROKEN.SYS BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREJECT.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP370775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY /Y COUNTRY.SYS BAD.SYS >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nS372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO BALTIC_RESOURCE_DONE\r\nQEXIT.COM\r\n:FAIL\r\nECHO BALTIC_RESOURCE_CASE_FAIL\r\nQEXIT.COM\r\n"
+    },
+    {
+      "language": "lt",
+      "profile": "high",
+      "mutation": "short-header",
+      "mutant_sha256": "541f7c3b94a3164160f5da4badfb01480dab07283797aad5340924dc0147fc25",
+      "mutant_size": 22,
+      "actions": [
+        "HIGH.COM",
+        "P370775.COM",
+        "NLSFUNC A:\\BAD.SYS",
+        "Q372775.COM",
+        "DEL BAD.SYS",
+        "REN BROKEN.SYS BAD.SYS",
+        "REJECT.COM",
+        "P370775.COM",
+        "COPY /Y COUNTRY.SYS BAD.SYS >NUL",
+        "Q372775.COM",
+        "S372775.COM",
+        "P372775.COM"
+      ],
+      "emulator_exit": 33,
+      "expected_error": 1,
+      "log": {
+        "path": "review/country-resource-lt-high-short-header.log",
+        "sha256": "0ec8bff58faac44361794345a883d117ce3ca790ffa56e04e9eb67134bcefbaa"
+      },
+      "private_artifacts": "out/baltic-country-resources-k1unn7wk/lt/high/short-header",
+      "CONFIG.SYS": "COUNTRY=370,775,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\n",
+      "AUTOEXEC.BAT": "@ECHO OFF\r\nCTTY AUX\r\nHIGH.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP370775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC A:\\BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREN BROKEN.SYS BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREJECT.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP370775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY /Y COUNTRY.SYS BAD.SYS >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nS372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO BALTIC_RESOURCE_DONE\r\nQEXIT.COM\r\n:FAIL\r\nECHO BALTIC_RESOURCE_CASE_FAIL\r\nQEXIT.COM\r\n"
+    },
+    {
+      "language": "lt",
+      "profile": "high",
+      "mutation": "bad-signature",
+      "mutant_sha256": "103f86fc56813740595c65d3703b1dc61dbeca9e3be6bc32f96aed1ffa7cbe3b",
+      "mutant_size": 20946,
+      "actions": [
+        "HIGH.COM",
+        "P370775.COM",
+        "NLSFUNC A:\\BAD.SYS",
+        "Q372775.COM",
+        "DEL BAD.SYS",
+        "REN BROKEN.SYS BAD.SYS",
+        "REJECT.COM",
+        "P370775.COM",
+        "COPY /Y COUNTRY.SYS BAD.SYS >NUL",
+        "Q372775.COM",
+        "S372775.COM",
+        "P372775.COM"
+      ],
+      "emulator_exit": 33,
+      "expected_error": 1,
+      "log": {
+        "path": "review/country-resource-lt-high-bad-signature.log",
+        "sha256": "0ec8bff58faac44361794345a883d117ce3ca790ffa56e04e9eb67134bcefbaa"
+      },
+      "private_artifacts": "out/baltic-country-resources-k1unn7wk/lt/high/bad-signature",
+      "CONFIG.SYS": "COUNTRY=370,775,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\n",
+      "AUTOEXEC.BAT": "@ECHO OFF\r\nCTTY AUX\r\nHIGH.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP370775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC A:\\BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREN BROKEN.SYS BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREJECT.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP370775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY /Y COUNTRY.SYS BAD.SYS >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nS372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO BALTIC_RESOURCE_DONE\r\nQEXIT.COM\r\n:FAIL\r\nECHO BALTIC_RESOURCE_CASE_FAIL\r\nQEXIT.COM\r\n"
+    },
+    {
+      "language": "lt",
+      "profile": "high",
+      "mutation": "bad-signature-1",
+      "mutant_sha256": "7cf1eb9b781c1c355c51f0672eb1a2801591d279a8b388e08d9cece3ad674663",
+      "mutant_size": 20946,
+      "actions": [
+        "HIGH.COM",
+        "P370775.COM",
+        "NLSFUNC A:\\BAD.SYS",
+        "Q372775.COM",
+        "DEL BAD.SYS",
+        "REN BROKEN.SYS BAD.SYS",
+        "REJECT.COM",
+        "P370775.COM",
+        "COPY /Y COUNTRY.SYS BAD.SYS >NUL",
+        "Q372775.COM",
+        "S372775.COM",
+        "P372775.COM"
+      ],
+      "emulator_exit": 33,
+      "expected_error": 1,
+      "log": {
+        "path": "review/country-resource-lt-high-bad-signature-1.log",
+        "sha256": "0ec8bff58faac44361794345a883d117ce3ca790ffa56e04e9eb67134bcefbaa"
+      },
+      "private_artifacts": "out/baltic-country-resources-k1unn7wk/lt/high/bad-signature-1",
+      "CONFIG.SYS": "COUNTRY=370,775,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\n",
+      "AUTOEXEC.BAT": "@ECHO OFF\r\nCTTY AUX\r\nHIGH.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP370775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC A:\\BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREN BROKEN.SYS BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREJECT.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP370775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY /Y COUNTRY.SYS BAD.SYS >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nS372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO BALTIC_RESOURCE_DONE\r\nQEXIT.COM\r\n:FAIL\r\nECHO BALTIC_RESOURCE_CASE_FAIL\r\nQEXIT.COM\r\n"
+    },
+    {
+      "language": "lt",
+      "profile": "high",
+      "mutation": "bad-signature-2",
+      "mutant_sha256": "e35dd8174f6fbddcc3cd6d2810e1bc2ba1d3b1a8bbac51fc717015f7d16814e8",
+      "mutant_size": 20946,
+      "actions": [
+        "HIGH.COM",
+        "P370775.COM",
+        "NLSFUNC A:\\BAD.SYS",
+        "Q372775.COM",
+        "DEL BAD.SYS",
+        "REN BROKEN.SYS BAD.SYS",
+        "REJECT.COM",
+        "P370775.COM",
+        "COPY /Y COUNTRY.SYS BAD.SYS >NUL",
+        "Q372775.COM",
+        "S372775.COM",
+        "P372775.COM"
+      ],
+      "emulator_exit": 33,
+      "expected_error": 1,
+      "log": {
+        "path": "review/country-resource-lt-high-bad-signature-2.log",
+        "sha256": "0ec8bff58faac44361794345a883d117ce3ca790ffa56e04e9eb67134bcefbaa"
+      },
+      "private_artifacts": "out/baltic-country-resources-k1unn7wk/lt/high/bad-signature-2",
+      "CONFIG.SYS": "COUNTRY=370,775,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\n",
+      "AUTOEXEC.BAT": "@ECHO OFF\r\nCTTY AUX\r\nHIGH.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP370775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC A:\\BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREN BROKEN.SYS BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREJECT.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP370775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY /Y COUNTRY.SYS BAD.SYS >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nS372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO BALTIC_RESOURCE_DONE\r\nQEXIT.COM\r\n:FAIL\r\nECHO BALTIC_RESOURCE_CASE_FAIL\r\nQEXIT.COM\r\n"
+    },
+    {
+      "language": "lt",
+      "profile": "high",
+      "mutation": "bad-signature-3",
+      "mutant_sha256": "7d5182a366f198a95604784861f686ed1e633e5192f3863d937d94ac1fc45407",
+      "mutant_size": 20946,
+      "actions": [
+        "HIGH.COM",
+        "P370775.COM",
+        "NLSFUNC A:\\BAD.SYS",
+        "Q372775.COM",
+        "DEL BAD.SYS",
+        "REN BROKEN.SYS BAD.SYS",
+        "REJECT.COM",
+        "P370775.COM",
+        "COPY /Y COUNTRY.SYS BAD.SYS >NUL",
+        "Q372775.COM",
+        "S372775.COM",
+        "P372775.COM"
+      ],
+      "emulator_exit": 33,
+      "expected_error": 1,
+      "log": {
+        "path": "review/country-resource-lt-high-bad-signature-3.log",
+        "sha256": "0ec8bff58faac44361794345a883d117ce3ca790ffa56e04e9eb67134bcefbaa"
+      },
+      "private_artifacts": "out/baltic-country-resources-k1unn7wk/lt/high/bad-signature-3",
+      "CONFIG.SYS": "COUNTRY=370,775,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\n",
+      "AUTOEXEC.BAT": "@ECHO OFF\r\nCTTY AUX\r\nHIGH.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP370775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC A:\\BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREN BROKEN.SYS BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREJECT.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP370775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY /Y COUNTRY.SYS BAD.SYS >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nS372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO BALTIC_RESOURCE_DONE\r\nQEXIT.COM\r\n:FAIL\r\nECHO BALTIC_RESOURCE_CASE_FAIL\r\nQEXIT.COM\r\n"
+    },
+    {
+      "language": "lt",
+      "profile": "high",
+      "mutation": "bad-signature-4",
+      "mutant_sha256": "6a4ac6f3317dc3297004bb751f1b6c74a9a232a8008c913a8224563ff7f5340b",
+      "mutant_size": 20946,
+      "actions": [
+        "HIGH.COM",
+        "P370775.COM",
+        "NLSFUNC A:\\BAD.SYS",
+        "Q372775.COM",
+        "DEL BAD.SYS",
+        "REN BROKEN.SYS BAD.SYS",
+        "REJECT.COM",
+        "P370775.COM",
+        "COPY /Y COUNTRY.SYS BAD.SYS >NUL",
+        "Q372775.COM",
+        "S372775.COM",
+        "P372775.COM"
+      ],
+      "emulator_exit": 33,
+      "expected_error": 1,
+      "log": {
+        "path": "review/country-resource-lt-high-bad-signature-4.log",
+        "sha256": "0ec8bff58faac44361794345a883d117ce3ca790ffa56e04e9eb67134bcefbaa"
+      },
+      "private_artifacts": "out/baltic-country-resources-k1unn7wk/lt/high/bad-signature-4",
+      "CONFIG.SYS": "COUNTRY=370,775,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\n",
+      "AUTOEXEC.BAT": "@ECHO OFF\r\nCTTY AUX\r\nHIGH.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP370775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC A:\\BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREN BROKEN.SYS BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREJECT.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP370775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY /Y COUNTRY.SYS BAD.SYS >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nS372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO BALTIC_RESOURCE_DONE\r\nQEXIT.COM\r\n:FAIL\r\nECHO BALTIC_RESOURCE_CASE_FAIL\r\nQEXIT.COM\r\n"
+    },
+    {
+      "language": "lt",
+      "profile": "high",
+      "mutation": "bad-signature-5",
+      "mutant_sha256": "f91364e0df789b6db215789fd7ee0fe7da83492159fb00628eb658164cf9997d",
+      "mutant_size": 20946,
+      "actions": [
+        "HIGH.COM",
+        "P370775.COM",
+        "NLSFUNC A:\\BAD.SYS",
+        "Q372775.COM",
+        "DEL BAD.SYS",
+        "REN BROKEN.SYS BAD.SYS",
+        "REJECT.COM",
+        "P370775.COM",
+        "COPY /Y COUNTRY.SYS BAD.SYS >NUL",
+        "Q372775.COM",
+        "S372775.COM",
+        "P372775.COM"
+      ],
+      "emulator_exit": 33,
+      "expected_error": 1,
+      "log": {
+        "path": "review/country-resource-lt-high-bad-signature-5.log",
+        "sha256": "0ec8bff58faac44361794345a883d117ce3ca790ffa56e04e9eb67134bcefbaa"
+      },
+      "private_artifacts": "out/baltic-country-resources-k1unn7wk/lt/high/bad-signature-5",
+      "CONFIG.SYS": "COUNTRY=370,775,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\n",
+      "AUTOEXEC.BAT": "@ECHO OFF\r\nCTTY AUX\r\nHIGH.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP370775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC A:\\BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREN BROKEN.SYS BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREJECT.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP370775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY /Y COUNTRY.SYS BAD.SYS >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nS372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO BALTIC_RESOURCE_DONE\r\nQEXIT.COM\r\n:FAIL\r\nECHO BALTIC_RESOURCE_CASE_FAIL\r\nQEXIT.COM\r\n"
+    },
+    {
+      "language": "lt",
+      "profile": "high",
+      "mutation": "bad-signature-6",
+      "mutant_sha256": "6b2e7856843ca048eea3e44b881adf58a416b213fe99bb30cd7b208fd26af468",
+      "mutant_size": 20946,
+      "actions": [
+        "HIGH.COM",
+        "P370775.COM",
+        "NLSFUNC A:\\BAD.SYS",
+        "Q372775.COM",
+        "DEL BAD.SYS",
+        "REN BROKEN.SYS BAD.SYS",
+        "REJECT.COM",
+        "P370775.COM",
+        "COPY /Y COUNTRY.SYS BAD.SYS >NUL",
+        "Q372775.COM",
+        "S372775.COM",
+        "P372775.COM"
+      ],
+      "emulator_exit": 33,
+      "expected_error": 1,
+      "log": {
+        "path": "review/country-resource-lt-high-bad-signature-6.log",
+        "sha256": "0ec8bff58faac44361794345a883d117ce3ca790ffa56e04e9eb67134bcefbaa"
+      },
+      "private_artifacts": "out/baltic-country-resources-k1unn7wk/lt/high/bad-signature-6",
+      "CONFIG.SYS": "COUNTRY=370,775,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\n",
+      "AUTOEXEC.BAT": "@ECHO OFF\r\nCTTY AUX\r\nHIGH.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP370775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC A:\\BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREN BROKEN.SYS BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREJECT.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP370775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY /Y COUNTRY.SYS BAD.SYS >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nS372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO BALTIC_RESOURCE_DONE\r\nQEXIT.COM\r\n:FAIL\r\nECHO BALTIC_RESOURCE_CASE_FAIL\r\nQEXIT.COM\r\n"
+    },
+    {
+      "language": "lt",
+      "profile": "high",
+      "mutation": "bad-signature-7",
+      "mutant_sha256": "5aefa9f335b447fd58dc536b7f815d6f70e752cd85344f639054b282d43cb95d",
+      "mutant_size": 20946,
+      "actions": [
+        "HIGH.COM",
+        "P370775.COM",
+        "NLSFUNC A:\\BAD.SYS",
+        "Q372775.COM",
+        "DEL BAD.SYS",
+        "REN BROKEN.SYS BAD.SYS",
+        "REJECT.COM",
+        "P370775.COM",
+        "COPY /Y COUNTRY.SYS BAD.SYS >NUL",
+        "Q372775.COM",
+        "S372775.COM",
+        "P372775.COM"
+      ],
+      "emulator_exit": 33,
+      "expected_error": 1,
+      "log": {
+        "path": "review/country-resource-lt-high-bad-signature-7.log",
+        "sha256": "0ec8bff58faac44361794345a883d117ce3ca790ffa56e04e9eb67134bcefbaa"
+      },
+      "private_artifacts": "out/baltic-country-resources-k1unn7wk/lt/high/bad-signature-7",
+      "CONFIG.SYS": "COUNTRY=370,775,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\n",
+      "AUTOEXEC.BAT": "@ECHO OFF\r\nCTTY AUX\r\nHIGH.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP370775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC A:\\BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREN BROKEN.SYS BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREJECT.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP370775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY /Y COUNTRY.SYS BAD.SYS >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nS372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO BALTIC_RESOURCE_DONE\r\nQEXIT.COM\r\n:FAIL\r\nECHO BALTIC_RESOURCE_CASE_FAIL\r\nQEXIT.COM\r\n"
+    },
+    {
+      "language": "lt",
+      "profile": "high",
+      "mutation": "bad-info-type",
+      "mutant_sha256": "c2329a95554ed3dd88d067eb75ad70fd2c54a405ae79f77d5946606a86483741",
+      "mutant_size": 20946,
+      "actions": [
+        "HIGH.COM",
+        "P370775.COM",
+        "NLSFUNC A:\\BAD.SYS",
+        "Q372775.COM",
+        "DEL BAD.SYS",
+        "REN BROKEN.SYS BAD.SYS",
+        "REJECT.COM",
+        "P370775.COM",
+        "COPY /Y COUNTRY.SYS BAD.SYS >NUL",
+        "Q372775.COM",
+        "S372775.COM",
+        "P372775.COM"
+      ],
+      "emulator_exit": 33,
+      "expected_error": 1,
+      "log": {
+        "path": "review/country-resource-lt-high-bad-info-type.log",
+        "sha256": "0ec8bff58faac44361794345a883d117ce3ca790ffa56e04e9eb67134bcefbaa"
+      },
+      "private_artifacts": "out/baltic-country-resources-k1unn7wk/lt/high/bad-info-type",
+      "CONFIG.SYS": "COUNTRY=370,775,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\n",
+      "AUTOEXEC.BAT": "@ECHO OFF\r\nCTTY AUX\r\nHIGH.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP370775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC A:\\BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREN BROKEN.SYS BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREJECT.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP370775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY /Y COUNTRY.SYS BAD.SYS >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nS372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO BALTIC_RESOURCE_DONE\r\nQEXIT.COM\r\n:FAIL\r\nECHO BALTIC_RESOURCE_CASE_FAIL\r\nQEXIT.COM\r\n"
+    },
+    {
+      "language": "lt",
+      "profile": "low",
+      "mutation": "missing",
+      "mutant_sha256": null,
+      "mutant_size": null,
+      "actions": [
+        "LOW.COM",
+        "P370775.COM",
+        "NLSFUNC A:\\BAD.SYS",
+        "Q372775.COM",
+        "DEL BAD.SYS",
+        "REJECT.COM",
+        "P370775.COM",
+        "COPY /Y COUNTRY.SYS BAD.SYS >NUL",
+        "Q372775.COM",
+        "S372775.COM",
+        "P372775.COM"
+      ],
+      "emulator_exit": 33,
+      "expected_error": 2,
+      "log": {
+        "path": "review/country-resource-lt-low-missing.log",
+        "sha256": "8f2ecdaa1da6a694ce531ab2760fde38c8e4b3b2608515f13f5b454e88e366a2"
+      },
+      "private_artifacts": "out/baltic-country-resources-k1unn7wk/lt/low/missing",
+      "CONFIG.SYS": "COUNTRY=370,775,COUNTRY.SYS\r\nDOS=LOW\r\n",
+      "AUTOEXEC.BAT": "@ECHO OFF\r\nCTTY AUX\r\nLOW.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP370775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC A:\\BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREJECT.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP370775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY /Y COUNTRY.SYS BAD.SYS >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nS372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO BALTIC_RESOURCE_DONE\r\nQEXIT.COM\r\n:FAIL\r\nECHO BALTIC_RESOURCE_CASE_FAIL\r\nQEXIT.COM\r\n"
+    },
+    {
+      "language": "lt",
+      "profile": "low",
+      "mutation": "empty",
+      "mutant_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mutant_size": 0,
+      "actions": [
+        "LOW.COM",
+        "P370775.COM",
+        "NLSFUNC A:\\BAD.SYS",
+        "Q372775.COM",
+        "DEL BAD.SYS",
+        "REN BROKEN.SYS BAD.SYS",
+        "REJECT.COM",
+        "P370775.COM",
+        "COPY /Y COUNTRY.SYS BAD.SYS >NUL",
+        "Q372775.COM",
+        "S372775.COM",
+        "P372775.COM"
+      ],
+      "emulator_exit": 33,
+      "expected_error": 1,
+      "log": {
+        "path": "review/country-resource-lt-low-empty.log",
+        "sha256": "8f2ecdaa1da6a694ce531ab2760fde38c8e4b3b2608515f13f5b454e88e366a2"
+      },
+      "private_artifacts": "out/baltic-country-resources-k1unn7wk/lt/low/empty",
+      "CONFIG.SYS": "COUNTRY=370,775,COUNTRY.SYS\r\nDOS=LOW\r\n",
+      "AUTOEXEC.BAT": "@ECHO OFF\r\nCTTY AUX\r\nLOW.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP370775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC A:\\BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREN BROKEN.SYS BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREJECT.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP370775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY /Y COUNTRY.SYS BAD.SYS >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nS372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO BALTIC_RESOURCE_DONE\r\nQEXIT.COM\r\n:FAIL\r\nECHO BALTIC_RESOURCE_CASE_FAIL\r\nQEXIT.COM\r\n"
+    },
+    {
+      "language": "lt",
+      "profile": "low",
+      "mutation": "short-signature",
+      "mutant_sha256": "c6811d30dda19ad4b90a59519a5f73dcea9aa2cbdb1e2aec32ebcb8fae9b67d3",
+      "mutant_size": 7,
+      "actions": [
+        "LOW.COM",
+        "P370775.COM",
+        "NLSFUNC A:\\BAD.SYS",
+        "Q372775.COM",
+        "DEL BAD.SYS",
+        "REN BROKEN.SYS BAD.SYS",
+        "REJECT.COM",
+        "P370775.COM",
+        "COPY /Y COUNTRY.SYS BAD.SYS >NUL",
+        "Q372775.COM",
+        "S372775.COM",
+        "P372775.COM"
+      ],
+      "emulator_exit": 33,
+      "expected_error": 1,
+      "log": {
+        "path": "review/country-resource-lt-low-short-signature.log",
+        "sha256": "8f2ecdaa1da6a694ce531ab2760fde38c8e4b3b2608515f13f5b454e88e366a2"
+      },
+      "private_artifacts": "out/baltic-country-resources-k1unn7wk/lt/low/short-signature",
+      "CONFIG.SYS": "COUNTRY=370,775,COUNTRY.SYS\r\nDOS=LOW\r\n",
+      "AUTOEXEC.BAT": "@ECHO OFF\r\nCTTY AUX\r\nLOW.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP370775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC A:\\BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREN BROKEN.SYS BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREJECT.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP370775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY /Y COUNTRY.SYS BAD.SYS >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nS372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO BALTIC_RESOURCE_DONE\r\nQEXIT.COM\r\n:FAIL\r\nECHO BALTIC_RESOURCE_CASE_FAIL\r\nQEXIT.COM\r\n"
+    },
+    {
+      "language": "lt",
+      "profile": "low",
+      "mutation": "short-header",
+      "mutant_sha256": "541f7c3b94a3164160f5da4badfb01480dab07283797aad5340924dc0147fc25",
+      "mutant_size": 22,
+      "actions": [
+        "LOW.COM",
+        "P370775.COM",
+        "NLSFUNC A:\\BAD.SYS",
+        "Q372775.COM",
+        "DEL BAD.SYS",
+        "REN BROKEN.SYS BAD.SYS",
+        "REJECT.COM",
+        "P370775.COM",
+        "COPY /Y COUNTRY.SYS BAD.SYS >NUL",
+        "Q372775.COM",
+        "S372775.COM",
+        "P372775.COM"
+      ],
+      "emulator_exit": 33,
+      "expected_error": 1,
+      "log": {
+        "path": "review/country-resource-lt-low-short-header.log",
+        "sha256": "8f2ecdaa1da6a694ce531ab2760fde38c8e4b3b2608515f13f5b454e88e366a2"
+      },
+      "private_artifacts": "out/baltic-country-resources-k1unn7wk/lt/low/short-header",
+      "CONFIG.SYS": "COUNTRY=370,775,COUNTRY.SYS\r\nDOS=LOW\r\n",
+      "AUTOEXEC.BAT": "@ECHO OFF\r\nCTTY AUX\r\nLOW.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP370775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC A:\\BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREN BROKEN.SYS BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREJECT.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP370775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY /Y COUNTRY.SYS BAD.SYS >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nS372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO BALTIC_RESOURCE_DONE\r\nQEXIT.COM\r\n:FAIL\r\nECHO BALTIC_RESOURCE_CASE_FAIL\r\nQEXIT.COM\r\n"
+    },
+    {
+      "language": "lt",
+      "profile": "low",
+      "mutation": "bad-signature",
+      "mutant_sha256": "103f86fc56813740595c65d3703b1dc61dbeca9e3be6bc32f96aed1ffa7cbe3b",
+      "mutant_size": 20946,
+      "actions": [
+        "LOW.COM",
+        "P370775.COM",
+        "NLSFUNC A:\\BAD.SYS",
+        "Q372775.COM",
+        "DEL BAD.SYS",
+        "REN BROKEN.SYS BAD.SYS",
+        "REJECT.COM",
+        "P370775.COM",
+        "COPY /Y COUNTRY.SYS BAD.SYS >NUL",
+        "Q372775.COM",
+        "S372775.COM",
+        "P372775.COM"
+      ],
+      "emulator_exit": 33,
+      "expected_error": 1,
+      "log": {
+        "path": "review/country-resource-lt-low-bad-signature.log",
+        "sha256": "8f2ecdaa1da6a694ce531ab2760fde38c8e4b3b2608515f13f5b454e88e366a2"
+      },
+      "private_artifacts": "out/baltic-country-resources-k1unn7wk/lt/low/bad-signature",
+      "CONFIG.SYS": "COUNTRY=370,775,COUNTRY.SYS\r\nDOS=LOW\r\n",
+      "AUTOEXEC.BAT": "@ECHO OFF\r\nCTTY AUX\r\nLOW.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP370775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC A:\\BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREN BROKEN.SYS BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREJECT.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP370775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY /Y COUNTRY.SYS BAD.SYS >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nS372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO BALTIC_RESOURCE_DONE\r\nQEXIT.COM\r\n:FAIL\r\nECHO BALTIC_RESOURCE_CASE_FAIL\r\nQEXIT.COM\r\n"
+    },
+    {
+      "language": "lt",
+      "profile": "low",
+      "mutation": "bad-signature-1",
+      "mutant_sha256": "7cf1eb9b781c1c355c51f0672eb1a2801591d279a8b388e08d9cece3ad674663",
+      "mutant_size": 20946,
+      "actions": [
+        "LOW.COM",
+        "P370775.COM",
+        "NLSFUNC A:\\BAD.SYS",
+        "Q372775.COM",
+        "DEL BAD.SYS",
+        "REN BROKEN.SYS BAD.SYS",
+        "REJECT.COM",
+        "P370775.COM",
+        "COPY /Y COUNTRY.SYS BAD.SYS >NUL",
+        "Q372775.COM",
+        "S372775.COM",
+        "P372775.COM"
+      ],
+      "emulator_exit": 33,
+      "expected_error": 1,
+      "log": {
+        "path": "review/country-resource-lt-low-bad-signature-1.log",
+        "sha256": "8f2ecdaa1da6a694ce531ab2760fde38c8e4b3b2608515f13f5b454e88e366a2"
+      },
+      "private_artifacts": "out/baltic-country-resources-k1unn7wk/lt/low/bad-signature-1",
+      "CONFIG.SYS": "COUNTRY=370,775,COUNTRY.SYS\r\nDOS=LOW\r\n",
+      "AUTOEXEC.BAT": "@ECHO OFF\r\nCTTY AUX\r\nLOW.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP370775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC A:\\BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREN BROKEN.SYS BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREJECT.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP370775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY /Y COUNTRY.SYS BAD.SYS >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nS372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO BALTIC_RESOURCE_DONE\r\nQEXIT.COM\r\n:FAIL\r\nECHO BALTIC_RESOURCE_CASE_FAIL\r\nQEXIT.COM\r\n"
+    },
+    {
+      "language": "lt",
+      "profile": "low",
+      "mutation": "bad-signature-2",
+      "mutant_sha256": "e35dd8174f6fbddcc3cd6d2810e1bc2ba1d3b1a8bbac51fc717015f7d16814e8",
+      "mutant_size": 20946,
+      "actions": [
+        "LOW.COM",
+        "P370775.COM",
+        "NLSFUNC A:\\BAD.SYS",
+        "Q372775.COM",
+        "DEL BAD.SYS",
+        "REN BROKEN.SYS BAD.SYS",
+        "REJECT.COM",
+        "P370775.COM",
+        "COPY /Y COUNTRY.SYS BAD.SYS >NUL",
+        "Q372775.COM",
+        "S372775.COM",
+        "P372775.COM"
+      ],
+      "emulator_exit": 33,
+      "expected_error": 1,
+      "log": {
+        "path": "review/country-resource-lt-low-bad-signature-2.log",
+        "sha256": "8f2ecdaa1da6a694ce531ab2760fde38c8e4b3b2608515f13f5b454e88e366a2"
+      },
+      "private_artifacts": "out/baltic-country-resources-k1unn7wk/lt/low/bad-signature-2",
+      "CONFIG.SYS": "COUNTRY=370,775,COUNTRY.SYS\r\nDOS=LOW\r\n",
+      "AUTOEXEC.BAT": "@ECHO OFF\r\nCTTY AUX\r\nLOW.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP370775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC A:\\BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREN BROKEN.SYS BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREJECT.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP370775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY /Y COUNTRY.SYS BAD.SYS >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nS372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO BALTIC_RESOURCE_DONE\r\nQEXIT.COM\r\n:FAIL\r\nECHO BALTIC_RESOURCE_CASE_FAIL\r\nQEXIT.COM\r\n"
+    },
+    {
+      "language": "lt",
+      "profile": "low",
+      "mutation": "bad-signature-3",
+      "mutant_sha256": "7d5182a366f198a95604784861f686ed1e633e5192f3863d937d94ac1fc45407",
+      "mutant_size": 20946,
+      "actions": [
+        "LOW.COM",
+        "P370775.COM",
+        "NLSFUNC A:\\BAD.SYS",
+        "Q372775.COM",
+        "DEL BAD.SYS",
+        "REN BROKEN.SYS BAD.SYS",
+        "REJECT.COM",
+        "P370775.COM",
+        "COPY /Y COUNTRY.SYS BAD.SYS >NUL",
+        "Q372775.COM",
+        "S372775.COM",
+        "P372775.COM"
+      ],
+      "emulator_exit": 33,
+      "expected_error": 1,
+      "log": {
+        "path": "review/country-resource-lt-low-bad-signature-3.log",
+        "sha256": "8f2ecdaa1da6a694ce531ab2760fde38c8e4b3b2608515f13f5b454e88e366a2"
+      },
+      "private_artifacts": "out/baltic-country-resources-k1unn7wk/lt/low/bad-signature-3",
+      "CONFIG.SYS": "COUNTRY=370,775,COUNTRY.SYS\r\nDOS=LOW\r\n",
+      "AUTOEXEC.BAT": "@ECHO OFF\r\nCTTY AUX\r\nLOW.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP370775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC A:\\BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREN BROKEN.SYS BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREJECT.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP370775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY /Y COUNTRY.SYS BAD.SYS >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nS372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO BALTIC_RESOURCE_DONE\r\nQEXIT.COM\r\n:FAIL\r\nECHO BALTIC_RESOURCE_CASE_FAIL\r\nQEXIT.COM\r\n"
+    },
+    {
+      "language": "lt",
+      "profile": "low",
+      "mutation": "bad-signature-4",
+      "mutant_sha256": "6a4ac6f3317dc3297004bb751f1b6c74a9a232a8008c913a8224563ff7f5340b",
+      "mutant_size": 20946,
+      "actions": [
+        "LOW.COM",
+        "P370775.COM",
+        "NLSFUNC A:\\BAD.SYS",
+        "Q372775.COM",
+        "DEL BAD.SYS",
+        "REN BROKEN.SYS BAD.SYS",
+        "REJECT.COM",
+        "P370775.COM",
+        "COPY /Y COUNTRY.SYS BAD.SYS >NUL",
+        "Q372775.COM",
+        "S372775.COM",
+        "P372775.COM"
+      ],
+      "emulator_exit": 33,
+      "expected_error": 1,
+      "log": {
+        "path": "review/country-resource-lt-low-bad-signature-4.log",
+        "sha256": "8f2ecdaa1da6a694ce531ab2760fde38c8e4b3b2608515f13f5b454e88e366a2"
+      },
+      "private_artifacts": "out/baltic-country-resources-k1unn7wk/lt/low/bad-signature-4",
+      "CONFIG.SYS": "COUNTRY=370,775,COUNTRY.SYS\r\nDOS=LOW\r\n",
+      "AUTOEXEC.BAT": "@ECHO OFF\r\nCTTY AUX\r\nLOW.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP370775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC A:\\BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREN BROKEN.SYS BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREJECT.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP370775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY /Y COUNTRY.SYS BAD.SYS >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nS372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO BALTIC_RESOURCE_DONE\r\nQEXIT.COM\r\n:FAIL\r\nECHO BALTIC_RESOURCE_CASE_FAIL\r\nQEXIT.COM\r\n"
+    },
+    {
+      "language": "lt",
+      "profile": "low",
+      "mutation": "bad-signature-5",
+      "mutant_sha256": "f91364e0df789b6db215789fd7ee0fe7da83492159fb00628eb658164cf9997d",
+      "mutant_size": 20946,
+      "actions": [
+        "LOW.COM",
+        "P370775.COM",
+        "NLSFUNC A:\\BAD.SYS",
+        "Q372775.COM",
+        "DEL BAD.SYS",
+        "REN BROKEN.SYS BAD.SYS",
+        "REJECT.COM",
+        "P370775.COM",
+        "COPY /Y COUNTRY.SYS BAD.SYS >NUL",
+        "Q372775.COM",
+        "S372775.COM",
+        "P372775.COM"
+      ],
+      "emulator_exit": 33,
+      "expected_error": 1,
+      "log": {
+        "path": "review/country-resource-lt-low-bad-signature-5.log",
+        "sha256": "8f2ecdaa1da6a694ce531ab2760fde38c8e4b3b2608515f13f5b454e88e366a2"
+      },
+      "private_artifacts": "out/baltic-country-resources-k1unn7wk/lt/low/bad-signature-5",
+      "CONFIG.SYS": "COUNTRY=370,775,COUNTRY.SYS\r\nDOS=LOW\r\n",
+      "AUTOEXEC.BAT": "@ECHO OFF\r\nCTTY AUX\r\nLOW.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP370775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC A:\\BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREN BROKEN.SYS BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREJECT.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP370775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY /Y COUNTRY.SYS BAD.SYS >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nS372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO BALTIC_RESOURCE_DONE\r\nQEXIT.COM\r\n:FAIL\r\nECHO BALTIC_RESOURCE_CASE_FAIL\r\nQEXIT.COM\r\n"
+    },
+    {
+      "language": "lt",
+      "profile": "low",
+      "mutation": "bad-signature-6",
+      "mutant_sha256": "6b2e7856843ca048eea3e44b881adf58a416b213fe99bb30cd7b208fd26af468",
+      "mutant_size": 20946,
+      "actions": [
+        "LOW.COM",
+        "P370775.COM",
+        "NLSFUNC A:\\BAD.SYS",
+        "Q372775.COM",
+        "DEL BAD.SYS",
+        "REN BROKEN.SYS BAD.SYS",
+        "REJECT.COM",
+        "P370775.COM",
+        "COPY /Y COUNTRY.SYS BAD.SYS >NUL",
+        "Q372775.COM",
+        "S372775.COM",
+        "P372775.COM"
+      ],
+      "emulator_exit": 33,
+      "expected_error": 1,
+      "log": {
+        "path": "review/country-resource-lt-low-bad-signature-6.log",
+        "sha256": "8f2ecdaa1da6a694ce531ab2760fde38c8e4b3b2608515f13f5b454e88e366a2"
+      },
+      "private_artifacts": "out/baltic-country-resources-k1unn7wk/lt/low/bad-signature-6",
+      "CONFIG.SYS": "COUNTRY=370,775,COUNTRY.SYS\r\nDOS=LOW\r\n",
+      "AUTOEXEC.BAT": "@ECHO OFF\r\nCTTY AUX\r\nLOW.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP370775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC A:\\BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREN BROKEN.SYS BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREJECT.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP370775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY /Y COUNTRY.SYS BAD.SYS >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nS372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO BALTIC_RESOURCE_DONE\r\nQEXIT.COM\r\n:FAIL\r\nECHO BALTIC_RESOURCE_CASE_FAIL\r\nQEXIT.COM\r\n"
+    },
+    {
+      "language": "lt",
+      "profile": "low",
+      "mutation": "bad-signature-7",
+      "mutant_sha256": "5aefa9f335b447fd58dc536b7f815d6f70e752cd85344f639054b282d43cb95d",
+      "mutant_size": 20946,
+      "actions": [
+        "LOW.COM",
+        "P370775.COM",
+        "NLSFUNC A:\\BAD.SYS",
+        "Q372775.COM",
+        "DEL BAD.SYS",
+        "REN BROKEN.SYS BAD.SYS",
+        "REJECT.COM",
+        "P370775.COM",
+        "COPY /Y COUNTRY.SYS BAD.SYS >NUL",
+        "Q372775.COM",
+        "S372775.COM",
+        "P372775.COM"
+      ],
+      "emulator_exit": 33,
+      "expected_error": 1,
+      "log": {
+        "path": "review/country-resource-lt-low-bad-signature-7.log",
+        "sha256": "8f2ecdaa1da6a694ce531ab2760fde38c8e4b3b2608515f13f5b454e88e366a2"
+      },
+      "private_artifacts": "out/baltic-country-resources-k1unn7wk/lt/low/bad-signature-7",
+      "CONFIG.SYS": "COUNTRY=370,775,COUNTRY.SYS\r\nDOS=LOW\r\n",
+      "AUTOEXEC.BAT": "@ECHO OFF\r\nCTTY AUX\r\nLOW.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP370775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC A:\\BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREN BROKEN.SYS BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREJECT.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP370775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY /Y COUNTRY.SYS BAD.SYS >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nS372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO BALTIC_RESOURCE_DONE\r\nQEXIT.COM\r\n:FAIL\r\nECHO BALTIC_RESOURCE_CASE_FAIL\r\nQEXIT.COM\r\n"
+    },
+    {
+      "language": "lt",
+      "profile": "low",
+      "mutation": "bad-info-type",
+      "mutant_sha256": "c2329a95554ed3dd88d067eb75ad70fd2c54a405ae79f77d5946606a86483741",
+      "mutant_size": 20946,
+      "actions": [
+        "LOW.COM",
+        "P370775.COM",
+        "NLSFUNC A:\\BAD.SYS",
+        "Q372775.COM",
+        "DEL BAD.SYS",
+        "REN BROKEN.SYS BAD.SYS",
+        "REJECT.COM",
+        "P370775.COM",
+        "COPY /Y COUNTRY.SYS BAD.SYS >NUL",
+        "Q372775.COM",
+        "S372775.COM",
+        "P372775.COM"
+      ],
+      "emulator_exit": 33,
+      "expected_error": 1,
+      "log": {
+        "path": "review/country-resource-lt-low-bad-info-type.log",
+        "sha256": "8f2ecdaa1da6a694ce531ab2760fde38c8e4b3b2608515f13f5b454e88e366a2"
+      },
+      "private_artifacts": "out/baltic-country-resources-k1unn7wk/lt/low/bad-info-type",
+      "CONFIG.SYS": "COUNTRY=370,775,COUNTRY.SYS\r\nDOS=LOW\r\n",
+      "AUTOEXEC.BAT": "@ECHO OFF\r\nCTTY AUX\r\nLOW.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP370775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC A:\\BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREN BROKEN.SYS BAD.SYS\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREJECT.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP370775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY /Y COUNTRY.SYS BAD.SYS >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nQ372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nS372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nP372775.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO BALTIC_RESOURCE_DONE\r\nQEXIT.COM\r\n:FAIL\r\nECHO BALTIC_RESOURCE_CASE_FAIL\r\nQEXIT.COM\r\n"
+    }
+  ],
+  "schema_version": 1,
+  "scope": "NLSFUNC runtime missing-file and header rejection after a valid external-country query, active Baltic country/page/case/collation preservation, then valid-resource recovery and country switching. QEMU HIGH/LOW with the recorded selected core. Directory/object bounds, truncated bodies, later-read transactional behavior, CONFIG boot fallback, real-BIOS resource failures, installed paths and final source-matched release remain open.",
+  "old_executable_control": {
+    "status": "invalid-signature-query-acceptance-detected",
+    "nlsfunc_sha256": "bc2a0c9b0900bcac03a6cfe072ea56ea01bd2333b1d1bf8f810f28e668340e67",
+    "log": {
+      "path": "review/country-resource-old-signature.log",
+      "sha256": "5342708c73d152437300025f9353ab44d43c59101c2ebcfd6d567f1cf66cc5f2"
+    },
+    "failure": "(PosixPath('/Users/ddanila/fun/msdos/out/baltic-country-resources-b2kghqhb/et/low/bad-signature'), b'\\r\\nRU_LOW_PASS\\r\\nRU_COUNTRY_PASS\\r\\nRU_QUERY_PASS\\r\\nBALTIC_RESOURCE_FAIL QUERY_ACCEPTED\\r\\nBALTIC_RESOURCE_CASE_FAIL\\r\\n')",
+    "source_commit": "a5c0338",
+    "source_sha256": "b34932eac3594f61d2e886caa28a98eb0058b5b6a653088e91434a588e47adb2"
+  },
+  "qemu": {
+    "sha256": "d257f22f63fe113e7373e1aaddc90390ae768784bee448c3508bbf5751602831",
+    "version": "QEMU emulator version 11.1.1"
+  },
+  "regressions": {
+    "baltic-country": {
+      "schema_version": 1,
+      "status": "passed",
+      "core_sha256": {
+        "IO.SYS": "793169a292df40bb117eb487136a0d8e7f4334ca223e8206bf53f33141f24715",
+        "MSDOS.SYS": "1475174f50c8c349bedd7cd4a0be88bce055f2e411b7454b5f68fffbff269b62",
+        "COMMAND.COM": "6742b5889141a9c61d41e336445014d8055c19758febf4263f4f8ebe3c2f2c29",
+        "HIMEM.SYS": "340cbfd1f0e835755adce99d80c607f8edeb48ea2b20a6a142402a25434f8d13",
+        "EMM386.EXE": "58266b6614594de7a9cfde9eda75e3eb241b9e2e941e67b70645a0f8a197dae6"
+      },
+      "country_sha256": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c",
+      "base_image_sha256": "3346f89ce67c8ab368764e36b6f05cc14d98affe68cdb3d57fdc06a16229283a",
+      "cases": [
+        {
+          "profile": "high",
+          "name": "config-et-775",
+          "emulator_exit": 33,
+          "config": "COUNTRY=372,775,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+          "actions": [
+            "P372775.COM"
+          ],
+          "corruption": null,
+          "log": {
+            "path": "review/country-resource-baltic-country-high-config-et-775-serial.log",
+            "sha256": "a7a1252df5c8c0e0c9ada11c1592503d80c67070648667052011aeae4261f1bb"
+          }
+        },
+        {
+          "profile": "high",
+          "name": "config-et-437",
+          "emulator_exit": 33,
+          "config": "COUNTRY=372,437,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+          "actions": [
+            "P372437.COM"
+          ],
+          "corruption": null,
+          "log": {
+            "path": "review/country-resource-baltic-country-high-config-et-437-serial.log",
+            "sha256": "a7a1252df5c8c0e0c9ada11c1592503d80c67070648667052011aeae4261f1bb"
+          }
+        },
+        {
+          "profile": "high",
+          "name": "config-et-850",
+          "emulator_exit": 33,
+          "config": "COUNTRY=372,850,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+          "actions": [
+            "P372850.COM"
+          ],
+          "corruption": null,
+          "log": {
+            "path": "review/country-resource-baltic-country-high-config-et-850-serial.log",
+            "sha256": "a7a1252df5c8c0e0c9ada11c1592503d80c67070648667052011aeae4261f1bb"
+          }
+        },
+        {
+          "profile": "high",
+          "name": "config-et-default",
+          "emulator_exit": 33,
+          "config": "COUNTRY=372,,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+          "actions": [
+            "P372775.COM"
+          ],
+          "corruption": null,
+          "log": {
+            "path": "review/country-resource-baltic-country-high-config-et-default-serial.log",
+            "sha256": "a7a1252df5c8c0e0c9ada11c1592503d80c67070648667052011aeae4261f1bb"
+          }
+        },
+        {
+          "profile": "high",
+          "name": "config-lv-775",
+          "emulator_exit": 33,
+          "config": "COUNTRY=371,775,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+          "actions": [
+            "P371775.COM"
+          ],
+          "corruption": null,
+          "log": {
+            "path": "review/country-resource-baltic-country-high-config-lv-775-serial.log",
+            "sha256": "a7a1252df5c8c0e0c9ada11c1592503d80c67070648667052011aeae4261f1bb"
+          }
+        },
+        {
+          "profile": "high",
+          "name": "config-lv-437",
+          "emulator_exit": 33,
+          "config": "COUNTRY=371,437,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+          "actions": [
+            "P371437.COM"
+          ],
+          "corruption": null,
+          "log": {
+            "path": "review/country-resource-baltic-country-high-config-lv-437-serial.log",
+            "sha256": "a7a1252df5c8c0e0c9ada11c1592503d80c67070648667052011aeae4261f1bb"
+          }
+        },
+        {
+          "profile": "high",
+          "name": "config-lv-850",
+          "emulator_exit": 33,
+          "config": "COUNTRY=371,850,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+          "actions": [
+            "P371850.COM"
+          ],
+          "corruption": null,
+          "log": {
+            "path": "review/country-resource-baltic-country-high-config-lv-850-serial.log",
+            "sha256": "a7a1252df5c8c0e0c9ada11c1592503d80c67070648667052011aeae4261f1bb"
+          }
+        },
+        {
+          "profile": "high",
+          "name": "config-lv-default",
+          "emulator_exit": 33,
+          "config": "COUNTRY=371,,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+          "actions": [
+            "P371775.COM"
+          ],
+          "corruption": null,
+          "log": {
+            "path": "review/country-resource-baltic-country-high-config-lv-default-serial.log",
+            "sha256": "a7a1252df5c8c0e0c9ada11c1592503d80c67070648667052011aeae4261f1bb"
+          }
+        },
+        {
+          "profile": "high",
+          "name": "config-lt-775",
+          "emulator_exit": 33,
+          "config": "COUNTRY=370,775,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+          "actions": [
+            "P370775.COM"
+          ],
+          "corruption": null,
+          "log": {
+            "path": "review/country-resource-baltic-country-high-config-lt-775-serial.log",
+            "sha256": "a7a1252df5c8c0e0c9ada11c1592503d80c67070648667052011aeae4261f1bb"
+          }
+        },
+        {
+          "profile": "high",
+          "name": "config-lt-437",
+          "emulator_exit": 33,
+          "config": "COUNTRY=370,437,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+          "actions": [
+            "P370437.COM"
+          ],
+          "corruption": null,
+          "log": {
+            "path": "review/country-resource-baltic-country-high-config-lt-437-serial.log",
+            "sha256": "a7a1252df5c8c0e0c9ada11c1592503d80c67070648667052011aeae4261f1bb"
+          }
+        },
+        {
+          "profile": "high",
+          "name": "config-lt-850",
+          "emulator_exit": 33,
+          "config": "COUNTRY=370,850,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+          "actions": [
+            "P370850.COM"
+          ],
+          "corruption": null,
+          "log": {
+            "path": "review/country-resource-baltic-country-high-config-lt-850-serial.log",
+            "sha256": "a7a1252df5c8c0e0c9ada11c1592503d80c67070648667052011aeae4261f1bb"
+          }
+        },
+        {
+          "profile": "high",
+          "name": "config-lt-default",
+          "emulator_exit": 33,
+          "config": "COUNTRY=370,,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+          "actions": [
+            "P370775.COM"
+          ],
+          "corruption": null,
+          "log": {
+            "path": "review/country-resource-baltic-country-high-config-lt-default-serial.log",
+            "sha256": "a7a1252df5c8c0e0c9ada11c1592503d80c67070648667052011aeae4261f1bb"
+          }
+        },
+        {
+          "profile": "high",
+          "name": "transitions",
+          "emulator_exit": 33,
+          "config": "COUNTRY=372,775,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+          "actions": [
+            "P372775.COM",
+            "NLSFUNC",
+            "MODE CON CP PREPARE=((775) EGA775.CPI)",
+            "MODE CON CP PREPARE=((,437,850) EGA.CPI)",
+            "S372775.COM",
+            "Q371775.COM",
+            "P372775.COM",
+            "CHCP 775",
+            "CPCHK.COM",
+            "P372775.COM",
+            "Q372850.COM",
+            "CHCP 437",
+            "CPCHK.COM",
+            "P372437.COM",
+            "Q372775.COM",
+            "CHCP 850",
+            "CPCHK.COM",
+            "P372850.COM",
+            "Q372775.COM",
+            "CHCP 775",
+            "CPCHK.COM",
+            "P372775.COM",
+            "Q372850.COM",
+            "R372.COM",
+            "CPCHK.COM",
+            "P372775.COM",
+            "S371775.COM",
+            "Q372775.COM",
+            "P371775.COM",
+            "CHCP 775",
+            "CPCHK.COM",
+            "P371775.COM",
+            "Q371850.COM",
+            "CHCP 437",
+            "CPCHK.COM",
+            "P371437.COM",
+            "Q371775.COM",
+            "CHCP 850",
+            "CPCHK.COM",
+            "P371850.COM",
+            "Q371775.COM",
+            "CHCP 775",
+            "CPCHK.COM",
+            "P371775.COM",
+            "Q371850.COM",
+            "R371.COM",
+            "CPCHK.COM",
+            "P371775.COM",
+            "S370775.COM",
+            "Q372775.COM",
+            "P370775.COM",
+            "CHCP 775",
+            "CPCHK.COM",
+            "P370775.COM",
+            "Q370850.COM",
+            "CHCP 437",
+            "CPCHK.COM",
+            "P370437.COM",
+            "Q370775.COM",
+            "CHCP 850",
+            "CPCHK.COM",
+            "P370850.COM",
+            "Q370775.COM",
+            "CHCP 775",
+            "CPCHK.COM",
+            "P370775.COM",
+            "Q370850.COM",
+            "R370.COM",
+            "CPCHK.COM",
+            "P370775.COM",
+            "S372775.COM",
+            "Q371775.COM",
+            "P372775.COM",
+            "CHCP 775",
+            "CPCHK.COM",
+            "P372775.COM",
+            "Q372850.COM",
+            "CHCP 437",
+            "CPCHK.COM",
+            "P372437.COM",
+            "Q372775.COM",
+            "CHCP 850",
+            "CPCHK.COM",
+            "P372850.COM",
+            "Q372775.COM",
+            "CHCP 775",
+            "CPCHK.COM",
+            "P372775.COM",
+            "Q372850.COM",
+            "R372.COM",
+            "CPCHK.COM",
+            "P372775.COM"
+          ],
+          "corruption": null,
+          "log": {
+            "path": "review/country-resource-baltic-country-high-transitions-serial.log",
+            "sha256": "b67452b750cb1aa362a19a7b42280cbc5e3abf1bd88ba5090aef2c5042636cf7"
+          }
+        },
+        {
+          "profile": "high",
+          "name": "wrong-case",
+          "emulator_exit": 33,
+          "config": "COUNTRY=372,775,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+          "actions": [
+            "P372775.COM"
+          ],
+          "corruption": "case",
+          "log": {
+            "path": "review/country-resource-baltic-country-high-wrong-case-serial.log",
+            "sha256": "15fd6fca670898c4511afaa50abb3d3e075894e973293f3982a31e589fee0059"
+          }
+        },
+        {
+          "profile": "high",
+          "name": "wrong-collation",
+          "emulator_exit": 33,
+          "config": "COUNTRY=372,775,COUNTRY.SYS\r\nDEVICE=HIMEM.SYS\r\nDEVICE=EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+          "actions": [
+            "P372775.COM"
+          ],
+          "corruption": "collation",
+          "log": {
+            "path": "review/country-resource-baltic-country-high-wrong-collation-serial.log",
+            "sha256": "4338c40233e3469f7b0d202b1afbc44fa832ea960f3ba0181d32da5f23be009a"
+          }
+        },
+        {
+          "profile": "low",
+          "name": "config-et-775",
+          "emulator_exit": 33,
+          "config": "COUNTRY=372,775,COUNTRY.SYS\r\nDOS=LOW\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+          "actions": [
+            "P372775.COM"
+          ],
+          "corruption": null,
+          "log": {
+            "path": "review/country-resource-baltic-country-low-config-et-775-serial.log",
+            "sha256": "1423951fe0da5c8698152543e8882f17e663f9c4a6bbeb62153ce0edeef39d67"
+          }
+        },
+        {
+          "profile": "low",
+          "name": "config-et-437",
+          "emulator_exit": 33,
+          "config": "COUNTRY=372,437,COUNTRY.SYS\r\nDOS=LOW\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+          "actions": [
+            "P372437.COM"
+          ],
+          "corruption": null,
+          "log": {
+            "path": "review/country-resource-baltic-country-low-config-et-437-serial.log",
+            "sha256": "1423951fe0da5c8698152543e8882f17e663f9c4a6bbeb62153ce0edeef39d67"
+          }
+        },
+        {
+          "profile": "low",
+          "name": "config-et-850",
+          "emulator_exit": 33,
+          "config": "COUNTRY=372,850,COUNTRY.SYS\r\nDOS=LOW\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+          "actions": [
+            "P372850.COM"
+          ],
+          "corruption": null,
+          "log": {
+            "path": "review/country-resource-baltic-country-low-config-et-850-serial.log",
+            "sha256": "1423951fe0da5c8698152543e8882f17e663f9c4a6bbeb62153ce0edeef39d67"
+          }
+        },
+        {
+          "profile": "low",
+          "name": "config-et-default",
+          "emulator_exit": 33,
+          "config": "COUNTRY=372,,COUNTRY.SYS\r\nDOS=LOW\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+          "actions": [
+            "P372775.COM"
+          ],
+          "corruption": null,
+          "log": {
+            "path": "review/country-resource-baltic-country-low-config-et-default-serial.log",
+            "sha256": "1423951fe0da5c8698152543e8882f17e663f9c4a6bbeb62153ce0edeef39d67"
+          }
+        },
+        {
+          "profile": "low",
+          "name": "config-lv-775",
+          "emulator_exit": 33,
+          "config": "COUNTRY=371,775,COUNTRY.SYS\r\nDOS=LOW\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+          "actions": [
+            "P371775.COM"
+          ],
+          "corruption": null,
+          "log": {
+            "path": "review/country-resource-baltic-country-low-config-lv-775-serial.log",
+            "sha256": "1423951fe0da5c8698152543e8882f17e663f9c4a6bbeb62153ce0edeef39d67"
+          }
+        },
+        {
+          "profile": "low",
+          "name": "config-lv-437",
+          "emulator_exit": 33,
+          "config": "COUNTRY=371,437,COUNTRY.SYS\r\nDOS=LOW\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+          "actions": [
+            "P371437.COM"
+          ],
+          "corruption": null,
+          "log": {
+            "path": "review/country-resource-baltic-country-low-config-lv-437-serial.log",
+            "sha256": "1423951fe0da5c8698152543e8882f17e663f9c4a6bbeb62153ce0edeef39d67"
+          }
+        },
+        {
+          "profile": "low",
+          "name": "config-lv-850",
+          "emulator_exit": 33,
+          "config": "COUNTRY=371,850,COUNTRY.SYS\r\nDOS=LOW\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+          "actions": [
+            "P371850.COM"
+          ],
+          "corruption": null,
+          "log": {
+            "path": "review/country-resource-baltic-country-low-config-lv-850-serial.log",
+            "sha256": "1423951fe0da5c8698152543e8882f17e663f9c4a6bbeb62153ce0edeef39d67"
+          }
+        },
+        {
+          "profile": "low",
+          "name": "config-lv-default",
+          "emulator_exit": 33,
+          "config": "COUNTRY=371,,COUNTRY.SYS\r\nDOS=LOW\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+          "actions": [
+            "P371775.COM"
+          ],
+          "corruption": null,
+          "log": {
+            "path": "review/country-resource-baltic-country-low-config-lv-default-serial.log",
+            "sha256": "1423951fe0da5c8698152543e8882f17e663f9c4a6bbeb62153ce0edeef39d67"
+          }
+        },
+        {
+          "profile": "low",
+          "name": "config-lt-775",
+          "emulator_exit": 33,
+          "config": "COUNTRY=370,775,COUNTRY.SYS\r\nDOS=LOW\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+          "actions": [
+            "P370775.COM"
+          ],
+          "corruption": null,
+          "log": {
+            "path": "review/country-resource-baltic-country-low-config-lt-775-serial.log",
+            "sha256": "1423951fe0da5c8698152543e8882f17e663f9c4a6bbeb62153ce0edeef39d67"
+          }
+        },
+        {
+          "profile": "low",
+          "name": "config-lt-437",
+          "emulator_exit": 33,
+          "config": "COUNTRY=370,437,COUNTRY.SYS\r\nDOS=LOW\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+          "actions": [
+            "P370437.COM"
+          ],
+          "corruption": null,
+          "log": {
+            "path": "review/country-resource-baltic-country-low-config-lt-437-serial.log",
+            "sha256": "1423951fe0da5c8698152543e8882f17e663f9c4a6bbeb62153ce0edeef39d67"
+          }
+        },
+        {
+          "profile": "low",
+          "name": "config-lt-850",
+          "emulator_exit": 33,
+          "config": "COUNTRY=370,850,COUNTRY.SYS\r\nDOS=LOW\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+          "actions": [
+            "P370850.COM"
+          ],
+          "corruption": null,
+          "log": {
+            "path": "review/country-resource-baltic-country-low-config-lt-850-serial.log",
+            "sha256": "1423951fe0da5c8698152543e8882f17e663f9c4a6bbeb62153ce0edeef39d67"
+          }
+        },
+        {
+          "profile": "low",
+          "name": "config-lt-default",
+          "emulator_exit": 33,
+          "config": "COUNTRY=370,,COUNTRY.SYS\r\nDOS=LOW\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+          "actions": [
+            "P370775.COM"
+          ],
+          "corruption": null,
+          "log": {
+            "path": "review/country-resource-baltic-country-low-config-lt-default-serial.log",
+            "sha256": "1423951fe0da5c8698152543e8882f17e663f9c4a6bbeb62153ce0edeef39d67"
+          }
+        },
+        {
+          "profile": "low",
+          "name": "transitions",
+          "emulator_exit": 33,
+          "config": "COUNTRY=372,775,COUNTRY.SYS\r\nDOS=LOW\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+          "actions": [
+            "P372775.COM",
+            "NLSFUNC",
+            "MODE CON CP PREPARE=((775) EGA775.CPI)",
+            "MODE CON CP PREPARE=((,437,850) EGA.CPI)",
+            "S372775.COM",
+            "Q371775.COM",
+            "P372775.COM",
+            "CHCP 775",
+            "CPCHK.COM",
+            "P372775.COM",
+            "Q372850.COM",
+            "CHCP 437",
+            "CPCHK.COM",
+            "P372437.COM",
+            "Q372775.COM",
+            "CHCP 850",
+            "CPCHK.COM",
+            "P372850.COM",
+            "Q372775.COM",
+            "CHCP 775",
+            "CPCHK.COM",
+            "P372775.COM",
+            "Q372850.COM",
+            "R372.COM",
+            "CPCHK.COM",
+            "P372775.COM",
+            "S371775.COM",
+            "Q372775.COM",
+            "P371775.COM",
+            "CHCP 775",
+            "CPCHK.COM",
+            "P371775.COM",
+            "Q371850.COM",
+            "CHCP 437",
+            "CPCHK.COM",
+            "P371437.COM",
+            "Q371775.COM",
+            "CHCP 850",
+            "CPCHK.COM",
+            "P371850.COM",
+            "Q371775.COM",
+            "CHCP 775",
+            "CPCHK.COM",
+            "P371775.COM",
+            "Q371850.COM",
+            "R371.COM",
+            "CPCHK.COM",
+            "P371775.COM",
+            "S370775.COM",
+            "Q372775.COM",
+            "P370775.COM",
+            "CHCP 775",
+            "CPCHK.COM",
+            "P370775.COM",
+            "Q370850.COM",
+            "CHCP 437",
+            "CPCHK.COM",
+            "P370437.COM",
+            "Q370775.COM",
+            "CHCP 850",
+            "CPCHK.COM",
+            "P370850.COM",
+            "Q370775.COM",
+            "CHCP 775",
+            "CPCHK.COM",
+            "P370775.COM",
+            "Q370850.COM",
+            "R370.COM",
+            "CPCHK.COM",
+            "P370775.COM",
+            "S372775.COM",
+            "Q371775.COM",
+            "P372775.COM",
+            "CHCP 775",
+            "CPCHK.COM",
+            "P372775.COM",
+            "Q372850.COM",
+            "CHCP 437",
+            "CPCHK.COM",
+            "P372437.COM",
+            "Q372775.COM",
+            "CHCP 850",
+            "CPCHK.COM",
+            "P372850.COM",
+            "Q372775.COM",
+            "CHCP 775",
+            "CPCHK.COM",
+            "P372775.COM",
+            "Q372850.COM",
+            "R372.COM",
+            "CPCHK.COM",
+            "P372775.COM"
+          ],
+          "corruption": null,
+          "log": {
+            "path": "review/country-resource-baltic-country-low-transitions-serial.log",
+            "sha256": "3d0ec509fa73d2a9bd47313fa06f0e7416907d053ee308dd49442809321288e9"
+          }
+        },
+        {
+          "profile": "low",
+          "name": "wrong-case",
+          "emulator_exit": 33,
+          "config": "COUNTRY=372,775,COUNTRY.SYS\r\nDOS=LOW\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+          "actions": [
+            "P372775.COM"
+          ],
+          "corruption": "case",
+          "log": {
+            "path": "review/country-resource-baltic-country-low-wrong-case-serial.log",
+            "sha256": "e15f5b5d28e49df259fd9440adb74bb61c491068fafa549315edf32a15f644d7"
+          }
+        },
+        {
+          "profile": "low",
+          "name": "wrong-collation",
+          "emulator_exit": 33,
+          "config": "COUNTRY=372,775,COUNTRY.SYS\r\nDOS=LOW\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+          "actions": [
+            "P372775.COM"
+          ],
+          "corruption": "collation",
+          "log": {
+            "path": "review/country-resource-baltic-country-low-wrong-collation-serial.log",
+            "sha256": "f23601062a33cb5581edc648cab7a1f387c06c5ba618238e4b8c87d518623f40"
+          }
+        }
+      ],
+      "summary": {
+        "path": "review/country-resource-baltic-country.log",
+        "sha256": "cc16df6c6473caabdfc6d1f9b5e3ce471dfe5c82bb92372527acdb1079c92f1b"
+      },
+      "private_artifacts": "out/baltic-country-p3y38cy0"
+    },
+    "russian-country": {
+      "schema_version": 1,
+      "country_sys_sha256": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c",
+      "base_image_sha256": "3346f89ce67c8ab368764e36b6f05cc14d98affe68cdb3d57fdc06a16229283a",
+      "cases": [
+        {
+          "profile": null,
+          "name": "config-866",
+          "emulator_exit": 33,
+          "country_probe_passes": 1,
+          "negative_control": false,
+          "config": "COUNTRY=007,866,COUNTRY.SYS\r\n",
+          "actions": [
+            "P866.COM"
+          ],
+          "log": {
+            "path": "review/country-resource-russian-country-config-866-serial.log",
+            "sha256": "23e9e95b0e7a64cf0ee9316c26dc867acb1c7f919c496014fadb32bb57ca948c"
+          }
+        },
+        {
+          "profile": null,
+          "name": "config-437",
+          "emulator_exit": 33,
+          "country_probe_passes": 1,
+          "negative_control": false,
+          "config": "COUNTRY=007,437,COUNTRY.SYS\r\n",
+          "actions": [
+            "P437.COM"
+          ],
+          "log": {
+            "path": "review/country-resource-russian-country-config-437-serial.log",
+            "sha256": "23e9e95b0e7a64cf0ee9316c26dc867acb1c7f919c496014fadb32bb57ca948c"
+          }
+        },
+        {
+          "profile": null,
+          "name": "config-850",
+          "emulator_exit": 33,
+          "country_probe_passes": 1,
+          "negative_control": false,
+          "config": "COUNTRY=007,850,COUNTRY.SYS\r\n",
+          "actions": [
+            "P850.COM"
+          ],
+          "log": {
+            "path": "review/country-resource-russian-country-config-850-serial.log",
+            "sha256": "23e9e95b0e7a64cf0ee9316c26dc867acb1c7f919c496014fadb32bb57ca948c"
+          }
+        },
+        {
+          "profile": null,
+          "name": "config-default",
+          "emulator_exit": 33,
+          "country_probe_passes": 1,
+          "negative_control": false,
+          "config": "COUNTRY=007,,COUNTRY.SYS\r\n",
+          "actions": [
+            "P866.COM"
+          ],
+          "log": {
+            "path": "review/country-resource-russian-country-config-default-serial.log",
+            "sha256": "23e9e95b0e7a64cf0ee9316c26dc867acb1c7f919c496014fadb32bb57ca948c"
+          }
+        },
+        {
+          "profile": null,
+          "name": "transitions",
+          "emulator_exit": 33,
+          "country_probe_passes": 6,
+          "negative_control": false,
+          "config": "COUNTRY=007,866,COUNTRY.SYS\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n",
+          "actions": [
+            "P866.COM",
+            "NLSFUNC",
+            "MODE CON CP PREPARE=((866) EGA866.CPI)",
+            "MODE CON CP PREPARE=((,437,850) EGA.CPI)",
+            "CHCP 866",
+            "CPCHK.COM",
+            "P866.COM",
+            "Q850.COM",
+            "CHCP 437",
+            "CPCHK.COM",
+            "P437.COM",
+            "Q866.COM",
+            "CHCP 850",
+            "CPCHK.COM",
+            "P850.COM",
+            "Q866.COM",
+            "CHCP 866",
+            "CPCHK.COM",
+            "P866.COM",
+            "Q850.COM",
+            "REJECT.COM",
+            "CPCHK.COM",
+            "P866.COM"
+          ],
+          "log": {
+            "path": "review/country-resource-russian-country-transitions-serial.log",
+            "sha256": "13ac435337e012a0fd57bbb90968166f37d95bd5abfda0b2e6010128e476099c"
+          }
+        },
+        {
+          "profile": null,
+          "name": "wrong-case",
+          "emulator_exit": 33,
+          "country_probe_passes": 0,
+          "negative_control": true,
+          "config": "COUNTRY=007,866,COUNTRY.SYS\r\n",
+          "actions": [
+            "P866.COM"
+          ],
+          "log": {
+            "path": "review/country-resource-russian-country-wrong-case-serial.log",
+            "sha256": "7919a1ce74d819cd04bfcac42c8d60438e29f8365af97f57252298fb4cbd7c04"
+          }
+        }
+      ],
+      "summary": {
+        "path": "review/country-resource-russian-country.log",
+        "sha256": "abf52436b33abcb9d4df5e78b7c6e45d78d9116e0cc7515a66a2f71209cc2395"
+      },
+      "private_artifacts": "out/ru-country-6jg3dmci"
+    },
+    "legacy": {
+      "path": "review/country-resource-legacy.log",
+      "sha256": "4860ed2b3dcd72778ce4cb7c6ddeef15114218af1d6ae6465b7e63c22984b1b5"
+    },
+    "coverage": {
+      "path": "review/country-resource-coverage.log",
+      "sha256": "57d6bb9a0b0cbcae156629f836eafe52117dddb806cd9728def34efb124f83c4"
+    }
+  },
+  "build": {
+    "path": "review/country-resource-build.log",
+    "sha256": "18af20bc746111e9f04188bfb8dcc999530bda15ed2e4e56c1f392765d8dfbc4"
+  },
+  "commands": [
+    "make /Users/ddanila/fun/msdos/src/CMD/NLSFUNC/NLSFUNC.EXE",
+    "MEMORY_CORE_DIR=out/memory-production/files FLOPPY_IMAGE=out/baltic-pack-floppy.img python3 tests/test_baltic_country_resources_qemu.py",
+    "MEMORY_CORE_DIR=out/memory-production/files FLOPPY_IMAGE=out/baltic-pack-floppy.img python3 tests/test_baltic_country_resources_qemu.py --language et --profile low --case bad-signature --nlsfunc out/baltic-country-nlsfunc-before.exe",
+    "MEMORY_CORE_DIR=out/memory-production/files FLOPPY_IMAGE=out/baltic-pack-floppy.img python3 tests/test_baltic_country_qemu.py",
+    "MEMORY_CORE_DIR=out/memory-production/files FLOPPY_IMAGE=out/baltic-pack-floppy.img python3 tests/test_ru_country_qemu.py",
+    "FLOPPY_IMAGE=out/baltic-country-nlsfunc-regression.img bash tests/test_share_nlsfunc_exe2bin.sh",
+    "make test-coverage-manifest test-runtime-coverage-manifest test-oracle-mutation-coverage"
+  ],
+  "legacy_base": "Private copy of out/baltic-pack-floppy.img with the new NLSFUNC.EXE copied over before the legacy gate.",
+  "inputs": {
+    "Makefile": {
+      "sha256": "6dcef329d974ab854f747696468aeea3d36385fbba39109aaaf6986911d18551",
+      "size": 58460
+    },
+    "src/CMD/NLSFUNC/NLSFUNC.ASM": {
+      "sha256": "59ca61f086c0cae8051515d917dcaf07e47cee925255580ecb4ae98fc1a5624e",
+      "size": 40169
+    },
+    "src/CMD/NLSFUNC/NLSFUNC.EXE": {
+      "sha256": "c15b395726688038278b24b2574fb75a3c326b32a766428778c21f6f5613215c",
+      "size": 6722
+    },
+    "src/DEV/COUNTRY/COUNTRY.SYS": {
+      "sha256": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c",
+      "size": 20946
+    },
+    "tests/test_baltic_country_resources_qemu.py": {
+      "sha256": "4d50305b98345b5789e2789bf88e1cc580a613f7c023e929e20b096fc4691e8e",
+      "size": 5024
+    },
+    "tests/baltic_country_resource_probe.asm": {
+      "sha256": "750cd57364dece7ba0cf506aafa4ede3f9641d7b6f64302cacc910c6b0b9cbd2",
+      "size": 953
+    },
+    "tests/test_baltic_country_qemu.py": {
+      "sha256": "7c871a213364fa790bfd756f0e7cc08e5235c4268996a547691cbd1f8bb0133a",
+      "size": 8416
+    },
+    "tests/test_ru_country_qemu.py": {
+      "sha256": "2adb3132fbbedbd8a2e0d1bb7a1d8c8f49966ff0515ccf45d55f155a92a0fcda",
+      "size": 7072
+    },
+    "tests/ru_country_probe.asm": {
+      "sha256": "b436f026930842e02daf259117689642fd5ea9874a1924980fbb0173807fac58",
+      "size": 4657
+    },
+    "tests/ru_profiles.py": {
+      "sha256": "d8f7a498c146ae4bf85139f943f94d27a26c7e55661a4cd08a5d1346bd66a536",
+      "size": 1054
+    },
+    "tests/ru_profile_probe.asm": {
+      "sha256": "ed4d4e1b6ca454860debc90e27d0eb42ce097f863a9e028eab64d3675fad4c09",
+      "size": 1009
+    },
+    "tests/ru_country_reject.asm": {
+      "sha256": "834c868dcb0c988fb9d73578669955f296baeb068805d1ad936766e8e12b8f7e",
+      "size": 942
+    },
+    "tests/ru_codepage_probe.asm": {
+      "sha256": "6802ddb382fe13d508d677991d974ba0f946c3e75ef3f8f5e3845904ec1bffa9",
+      "size": 389
+    },
+    "tests/qemu_exit.asm": {
+      "sha256": "4352604dd707f9c8371904500100f6cfa5f85dea58c1872e79809e5e18b50c2f",
+      "size": 76
+    },
+    "tests/country_records.py": {
+      "sha256": "9afa4cb12400b85ff7a968d67dc8b82482bb3e961f70de54b4349a2de892a1df",
+      "size": 1652
+    },
+    "tests/test_share_nlsfunc_exe2bin.sh": {
+      "sha256": "4a0d1fccb69a8cdb570dc75beb287c41b04718a22766c582d241ae4a5dd76345",
+      "size": 11509
+    },
+    "locales/baltic/review/country-expectations.json": {
+      "sha256": "c1c7d9807785f0c80ff6c6edf727b9e07be845ee412ce7b5c33c8a71d6714466",
+      "size": 16114
+    }
+  }
+}

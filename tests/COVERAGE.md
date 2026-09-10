@@ -536,6 +536,14 @@ then fresh-boot reads and deletion. Estonian names beginning with CP775 E5
 exercise FAT's 05 escape. Russian filesystem regressions cover shared runner
 changes; installed paths and source-matched release remain separate gates.
 
+The [Baltic country resource qualification](../locales/baltic/country-resource-qualification.json)
+records `test-baltic-country-resources-qemu`, included in `make test`. NLSFUNC
+must reject missing files and invalid headers after a previous valid read,
+preserve the active country state and recover when the valid file is restored.
+The old executable demonstrates that the signature-corruption oracle detects
+acceptance. Deeper directory/object validation, boot fallback, installed paths
+and real-BIOS failure cases remain separate requirements.
+
 ## External DOS API suite
 
 `make test-dosemu2-qemu` runs selected upstream DOSEMU2 FAT tests against the
