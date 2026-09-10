@@ -46,11 +46,13 @@
       "Current Baltic records use EUR, not DOS-era national currencies.",
       "The Baltic collation section is explicitly marked REVIEW NEEDED for exact diacritic ordering.",
       "Country numbers are useful evidence; formatting and collations are not yet accepted implementation oracles."
-    ]
+    ],
+    "resolution": "Use separately pinned historical formatting evidence and explicit CLDR-informed DOS single-byte ordering, with compatibility limits in country-contract.json. Current FreeDOS Baltic collation bytes are not adopted."
   },
   "remaining": [
     "Choose and freeze national keyboard variants, modifiers, dead-key and legacy hardware behavior with independent input expectations.",
-    "Resolve historical country records or explicitly specified extensions using independently supported formatting and collation rules.",
+    "Implement and qualify the selected country contract; retain its explicit distinction from retail DOS 6.22.",
     "Complete the font edits, driver data, installed recipes and runtime/release qualification from BALTIC.md."
-  ]
+  ],
+  "country_contract": "country-contract.json"
 }

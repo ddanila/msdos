@@ -613,7 +613,17 @@
       "required_uppercase": "\u00c4\u00d6\u00d5\u00dc\u0160\u017d",
       "sample_text": "Tere, \u00f5un ja \u00f6\u00f6!",
       "keyboard": null,
-      "country": null
+      "country": {
+        "id": 372,
+        "default_code_page": 775,
+        "supported_code_pages": [
+          775,
+          437,
+          850
+        ],
+        "contract": "country-contract.json",
+        "status": "selected-runtime-unqualified"
+      }
     },
     "lv": {
       "name": "Latvian",
@@ -621,7 +631,17 @@
       "required_uppercase": "\u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d",
       "sample_text": "Labr\u012bt, R\u012bga!",
       "keyboard": null,
-      "country": null
+      "country": {
+        "id": 371,
+        "default_code_page": 775,
+        "supported_code_pages": [
+          775,
+          437,
+          850
+        ],
+        "contract": "country-contract.json",
+        "status": "selected-runtime-unqualified"
+      }
     },
     "lt": {
       "name": "Lithuanian",
@@ -629,12 +649,22 @@
       "required_uppercase": "\u0104\u010c\u0118\u0116\u012e\u0160\u0172\u016a\u017d",
       "sample_text": "Labas, \u0105\u017euolas!",
       "keyboard": null,
-      "country": null
+      "country": {
+        "id": 370,
+        "default_code_page": 775,
+        "supported_code_pages": [
+          775,
+          437,
+          850
+        ],
+        "contract": "country-contract.json",
+        "status": "selected-runtime-unqualified"
+      }
     }
   },
   "unresolved": [
     "Freeze the selected national keyboard variants and independent BIOS/DOS byte oracles.",
-    "Resolve period-appropriate country formatting, uppercase, filename and collation contracts for each language.",
+    "Implement selected country contracts in COUNTRY.SYS and qualify DOS APIs, transitions and rejection on every required profile.",
     "Review and repair candidate font gaps and qualify actual loaded/rendered CP775 fonts.",
     "Implement, package and qualify all three language profiles and complete release gates in BALTIC.md."
   ]

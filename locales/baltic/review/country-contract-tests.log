@@ -1,0 +1,12 @@
+python3 tests/test_baltic_country_contract.py
+.....
+----------------------------------------------------------------------
+Ran 5 tests in 0.004s
+
+OK
+python3 tests/test_baltic_font_sources.py
+.....
+----------------------------------------------------------------------
+Ran 5 tests in 0.151s
+
+OK

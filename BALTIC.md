@@ -159,6 +159,8 @@ DOS-era country contract.
 
 The [Baltic inputs and candidate audit](locales/baltic/README.md) implement the
 encoding/source foundation. [Contract research](locales/baltic/contract-research.json)
-keeps national keyboard and country decisions open. Existing Russian evidence
+keeps national keyboard decisions open. The [country contract](locales/baltic/country-contract.json)
+selects formatting and explicit DOS ordering with retained expectations; guest
+qualification remains open. Existing Russian evidence
 does not establish CP775 or Baltic language support; new profiles require their
 own qualification.

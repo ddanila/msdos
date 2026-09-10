@@ -377,3 +377,10 @@ pinned CP775 mapping against an independent codec, required national letters,
 candidate glyph coverage, reproducible review artifacts and corrupted source/
 mapping rejection. Shared-auditor changes also pass the existing Russian source
 and CPI gates. This does not qualify Baltic keyboard, country or runtime support.
+
+The [Baltic country contract qualification](../locales/baltic/country-contract-qualification.json)
+records the selected per-country formatting, uppercase and collation expectations
+for native and legacy code pages. `make test-baltic-country-contract`, included
+in `make test`, checks DOS field encoding, independent national ordering examples,
+case behavior and rejection of incomplete/ambiguous letter groups. This is a
+reference-data gate; installed COUNTRY.SYS and guest API qualification remain open.
