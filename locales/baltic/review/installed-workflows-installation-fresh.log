@@ -1,0 +1,10 @@
+
+MS-DOS 6.22 Setup
+Fresh installation to C:\DOS
+
+Continue (Y/N)? YConfigure HIMEM and 386+ EMM386 (Y/N)? YLoad SMARTDrive at startup (Y/N)? NEnable UNDELETE Delete Sentry at startup (Y/N)? NSystem transferred
+
+Insert MS-DOS 6.22 Disk 2 in drive A and press ENTER.
+
+Setup completed successfully.
+RU_INSTALLED_DONE

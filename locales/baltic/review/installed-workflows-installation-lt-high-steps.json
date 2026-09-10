@@ -1,0 +1,4378 @@
+[
+  {
+    "name": "normal () scan 2",
+    "keys": [
+      [
+        "1",
+        true
+      ],
+      [
+        "1",
+        false
+      ]
+    ],
+    "bios_ax": 545
+  },
+  {
+    "name": "Caps normal scan 2",
+    "keys": [
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ],
+      [
+        "1",
+        true
+      ],
+      [
+        "1",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ]
+    ],
+    "bios_ax": 545
+  },
+  {
+    "name": "normal () scan 3",
+    "keys": [
+      [
+        "2",
+        true
+      ],
+      [
+        "2",
+        false
+      ]
+    ],
+    "bios_ax": 813
+  },
+  {
+    "name": "Caps normal scan 3",
+    "keys": [
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ],
+      [
+        "2",
+        true
+      ],
+      [
+        "2",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ]
+    ],
+    "bios_ax": 813
+  },
+  {
+    "name": "normal () scan 4",
+    "keys": [
+      [
+        "3",
+        true
+      ],
+      [
+        "3",
+        false
+      ]
+    ],
+    "bios_ax": 1071
+  },
+  {
+    "name": "Caps normal scan 4",
+    "keys": [
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ],
+      [
+        "3",
+        true
+      ],
+      [
+        "3",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ]
+    ],
+    "bios_ax": 1071
+  },
+  {
+    "name": "normal () scan 5",
+    "keys": [
+      [
+        "4",
+        true
+      ],
+      [
+        "4",
+        false
+      ]
+    ],
+    "bios_ax": 1339
+  },
+  {
+    "name": "Caps normal scan 5",
+    "keys": [
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ],
+      [
+        "4",
+        true
+      ],
+      [
+        "4",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ]
+    ],
+    "bios_ax": 1339
+  },
+  {
+    "name": "normal () scan 6",
+    "keys": [
+      [
+        "5",
+        true
+      ],
+      [
+        "5",
+        false
+      ]
+    ],
+    "bios_ax": 1594
+  },
+  {
+    "name": "Caps normal scan 6",
+    "keys": [
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ],
+      [
+        "5",
+        true
+      ],
+      [
+        "5",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ]
+    ],
+    "bios_ax": 1594
+  },
+  {
+    "name": "normal () scan 7",
+    "keys": [
+      [
+        "6",
+        true
+      ],
+      [
+        "6",
+        false
+      ]
+    ],
+    "bios_ax": 1836
+  },
+  {
+    "name": "Caps normal scan 7",
+    "keys": [
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ],
+      [
+        "6",
+        true
+      ],
+      [
+        "6",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ]
+    ],
+    "bios_ax": 1836
+  },
+  {
+    "name": "normal () scan 8",
+    "keys": [
+      [
+        "7",
+        true
+      ],
+      [
+        "7",
+        false
+      ]
+    ],
+    "bios_ax": 2094
+  },
+  {
+    "name": "Caps normal scan 8",
+    "keys": [
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ],
+      [
+        "7",
+        true
+      ],
+      [
+        "7",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ]
+    ],
+    "bios_ax": 2094
+  },
+  {
+    "name": "normal () scan 9",
+    "keys": [
+      [
+        "8",
+        true
+      ],
+      [
+        "8",
+        false
+      ]
+    ],
+    "bios_ax": 2365
+  },
+  {
+    "name": "Caps normal scan 9",
+    "keys": [
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ],
+      [
+        "8",
+        true
+      ],
+      [
+        "8",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ]
+    ],
+    "bios_ax": 2365
+  },
+  {
+    "name": "normal () scan 10",
+    "keys": [
+      [
+        "9",
+        true
+      ],
+      [
+        "9",
+        false
+      ]
+    ],
+    "bios_ax": 2600
+  },
+  {
+    "name": "Caps normal scan 10",
+    "keys": [
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ],
+      [
+        "9",
+        true
+      ],
+      [
+        "9",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ]
+    ],
+    "bios_ax": 2600
+  },
+  {
+    "name": "normal () scan 11",
+    "keys": [
+      [
+        "0",
+        true
+      ],
+      [
+        "0",
+        false
+      ]
+    ],
+    "bios_ax": 2857
+  },
+  {
+    "name": "Caps normal scan 11",
+    "keys": [
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ],
+      [
+        "0",
+        true
+      ],
+      [
+        "0",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ]
+    ],
+    "bios_ax": 2857
+  },
+  {
+    "name": "normal () scan 12",
+    "keys": [
+      [
+        "minus",
+        true
+      ],
+      [
+        "minus",
+        false
+      ]
+    ],
+    "bios_ax": 3135
+  },
+  {
+    "name": "Caps normal scan 12",
+    "keys": [
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ],
+      [
+        "minus",
+        true
+      ],
+      [
+        "minus",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ]
+    ],
+    "bios_ax": 3135
+  },
+  {
+    "name": "normal () scan 13",
+    "keys": [
+      [
+        "equal",
+        true
+      ],
+      [
+        "equal",
+        false
+      ]
+    ],
+    "bios_ax": 11640
+  },
+  {
+    "name": "Caps normal scan 13",
+    "keys": [
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ],
+      [
+        "equal",
+        true
+      ],
+      [
+        "equal",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ]
+    ],
+    "bios_ax": 11608
+  },
+  {
+    "name": "normal () scan 16",
+    "keys": [
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ]
+    ],
+    "bios_ax": 4304
+  },
+  {
+    "name": "Caps normal scan 16",
+    "keys": [
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ],
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ]
+    ],
+    "bios_ax": 4277
+  },
+  {
+    "name": "normal () scan 17",
+    "keys": [
+      [
+        "w",
+        true
+      ],
+      [
+        "w",
+        false
+      ]
+    ],
+    "bios_ax": 4568
+  },
+  {
+    "name": "Caps normal scan 17",
+    "keys": [
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ],
+      [
+        "w",
+        true
+      ],
+      [
+        "w",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ]
+    ],
+    "bios_ax": 4559
+  },
+  {
+    "name": "normal () scan 26",
+    "keys": [
+      [
+        "bracket_left",
+        true
+      ],
+      [
+        "bracket_left",
+        false
+      ]
+    ],
+    "bios_ax": 6868
+  },
+  {
+    "name": "Caps normal scan 26",
+    "keys": [
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ],
+      [
+        "bracket_left",
+        true
+      ],
+      [
+        "bracket_left",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ]
+    ],
+    "bios_ax": 6845
+  },
+  {
+    "name": "normal () scan 27",
+    "keys": [
+      [
+        "bracket_right",
+        true
+      ],
+      [
+        "bracket_right",
+        false
+      ]
+    ],
+    "bios_ax": 4471
+  },
+  {
+    "name": "Caps normal scan 27",
+    "keys": [
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ],
+      [
+        "bracket_right",
+        true
+      ],
+      [
+        "bracket_right",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ]
+    ],
+    "bios_ax": 4439
+  },
+  {
+    "name": "normal () scan 33",
+    "keys": [
+      [
+        "f",
+        true
+      ],
+      [
+        "f",
+        false
+      ]
+    ],
+    "bios_ax": 8661
+  },
+  {
+    "name": "Caps normal scan 33",
+    "keys": [
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ],
+      [
+        "f",
+        true
+      ],
+      [
+        "f",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ]
+    ],
+    "bios_ax": 8638
+  },
+  {
+    "name": "normal () scan 39",
+    "keys": [
+      [
+        "semicolon",
+        true
+      ],
+      [
+        "semicolon",
+        false
+      ]
+    ],
+    "bios_ax": 10198
+  },
+  {
+    "name": "Caps normal scan 39",
+    "keys": [
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ],
+      [
+        "semicolon",
+        true
+      ],
+      [
+        "semicolon",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ]
+    ],
+    "bios_ax": 10182
+  },
+  {
+    "name": "normal () scan 40",
+    "keys": [
+      [
+        "apostrophe",
+        true
+      ],
+      [
+        "apostrophe",
+        false
+      ]
+    ],
+    "bios_ax": 10451
+  },
+  {
+    "name": "Caps normal scan 40",
+    "keys": [
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ],
+      [
+        "apostrophe",
+        true
+      ],
+      [
+        "apostrophe",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ]
+    ],
+    "bios_ax": 10424
+  },
+  {
+    "name": "normal () scan 41",
+    "keys": [
+      [
+        "grave_accent",
+        true
+      ],
+      [
+        "grave_accent",
+        false
+      ]
+    ],
+    "bios_ax": 10592
+  },
+  {
+    "name": "Caps normal scan 41",
+    "keys": [
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ],
+      [
+        "grave_accent",
+        true
+      ],
+      [
+        "grave_accent",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ]
+    ],
+    "bios_ax": 10592
+  },
+  {
+    "name": "normal () scan 43",
+    "keys": [
+      [
+        "backslash",
+        true
+      ],
+      [
+        "backslash",
+        false
+      ]
+    ],
+    "bios_ax": 4209
+  },
+  {
+    "name": "Caps normal scan 43",
+    "keys": [
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ],
+      [
+        "backslash",
+        true
+      ],
+      [
+        "backslash",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ]
+    ],
+    "bios_ax": 4177
+  },
+  {
+    "name": "normal () scan 45",
+    "keys": [
+      [
+        "x",
+        true
+      ],
+      [
+        "x",
+        false
+      ]
+    ],
+    "bios_ax": 11735
+  },
+  {
+    "name": "Caps normal scan 45",
+    "keys": [
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ],
+      [
+        "x",
+        true
+      ],
+      [
+        "x",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ]
+    ],
+    "bios_ax": 11719
+  },
+  {
+    "name": "normal () scan 51",
+    "keys": [
+      [
+        "comma",
+        true
+      ],
+      [
+        "comma",
+        false
+      ]
+    ],
+    "bios_ax": 13265
+  },
+  {
+    "name": "Caps normal scan 51",
+    "keys": [
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ],
+      [
+        "comma",
+        true
+      ],
+      [
+        "comma",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ]
+    ],
+    "bios_ax": 13238
+  },
+  {
+    "name": "normal () scan 52",
+    "keys": [
+      [
+        "dot",
+        true
+      ],
+      [
+        "dot",
+        false
+      ]
+    ],
+    "bios_ax": 8550
+  },
+  {
+    "name": "Caps normal scan 52",
+    "keys": [
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ],
+      [
+        "dot",
+        true
+      ],
+      [
+        "dot",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ]
+    ],
+    "bios_ax": 8518
+  },
+  {
+    "name": "normal () scan 53",
+    "keys": [
+      [
+        "slash",
+        true
+      ],
+      [
+        "slash",
+        false
+      ]
+    ],
+    "bios_ax": 13778
+  },
+  {
+    "name": "Caps normal scan 53",
+    "keys": [
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ],
+      [
+        "slash",
+        true
+      ],
+      [
+        "slash",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ]
+    ],
+    "bios_ax": 13751
+  },
+  {
+    "name": "normal () scan 57",
+    "keys": [
+      [
+        "spc",
+        true
+      ],
+      [
+        "spc",
+        false
+      ]
+    ],
+    "bios_ax": 14624
+  },
+  {
+    "name": "normal () scan 86",
+    "keys": [
+      [
+        "less",
+        true
+      ],
+      [
+        "less",
+        false
+      ]
+    ],
+    "bios_ax": 22076
+  },
+  {
+    "name": "Caps normal scan 86",
+    "keys": [
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ],
+      [
+        "less",
+        true
+      ],
+      [
+        "less",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ]
+    ],
+    "bios_ax": 22076
+  },
+  {
+    "name": "shift ('shift',) scan 2",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "1",
+        true
+      ],
+      [
+        "1",
+        false
+      ],
+      [
+        "shift",
+        false
+      ]
+    ],
+    "bios_ax": 561
+  },
+  {
+    "name": "Caps shift scan 2",
+    "keys": [
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ],
+      [
+        "shift",
+        true
+      ],
+      [
+        "1",
+        true
+      ],
+      [
+        "1",
+        false
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ]
+    ],
+    "bios_ax": 561
+  },
+  {
+    "name": "shift ('shift',) scan 3",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "2",
+        true
+      ],
+      [
+        "2",
+        false
+      ],
+      [
+        "shift",
+        false
+      ]
+    ],
+    "bios_ax": 818
+  },
+  {
+    "name": "Caps shift scan 3",
+    "keys": [
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ],
+      [
+        "shift",
+        true
+      ],
+      [
+        "2",
+        true
+      ],
+      [
+        "2",
+        false
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ]
+    ],
+    "bios_ax": 818
+  },
+  {
+    "name": "shift ('shift',) scan 4",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "3",
+        true
+      ],
+      [
+        "3",
+        false
+      ],
+      [
+        "shift",
+        false
+      ]
+    ],
+    "bios_ax": 1075
+  },
+  {
+    "name": "Caps shift scan 4",
+    "keys": [
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ],
+      [
+        "shift",
+        true
+      ],
+      [
+        "3",
+        true
+      ],
+      [
+        "3",
+        false
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ]
+    ],
+    "bios_ax": 1075
+  },
+  {
+    "name": "shift ('shift',) scan 5",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "4",
+        true
+      ],
+      [
+        "4",
+        false
+      ],
+      [
+        "shift",
+        false
+      ]
+    ],
+    "bios_ax": 1332
+  },
+  {
+    "name": "Caps shift scan 5",
+    "keys": [
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ],
+      [
+        "shift",
+        true
+      ],
+      [
+        "4",
+        true
+      ],
+      [
+        "4",
+        false
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ]
+    ],
+    "bios_ax": 1332
+  },
+  {
+    "name": "shift ('shift',) scan 6",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "5",
+        true
+      ],
+      [
+        "5",
+        false
+      ],
+      [
+        "shift",
+        false
+      ]
+    ],
+    "bios_ax": 1589
+  },
+  {
+    "name": "Caps shift scan 6",
+    "keys": [
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ],
+      [
+        "shift",
+        true
+      ],
+      [
+        "5",
+        true
+      ],
+      [
+        "5",
+        false
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ]
+    ],
+    "bios_ax": 1589
+  },
+  {
+    "name": "shift ('shift',) scan 7",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "6",
+        true
+      ],
+      [
+        "6",
+        false
+      ],
+      [
+        "shift",
+        false
+      ]
+    ],
+    "bios_ax": 1846
+  },
+  {
+    "name": "Caps shift scan 7",
+    "keys": [
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ],
+      [
+        "shift",
+        true
+      ],
+      [
+        "6",
+        true
+      ],
+      [
+        "6",
+        false
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ]
+    ],
+    "bios_ax": 1846
+  },
+  {
+    "name": "shift ('shift',) scan 8",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "7",
+        true
+      ],
+      [
+        "7",
+        false
+      ],
+      [
+        "shift",
+        false
+      ]
+    ],
+    "bios_ax": 2103
+  },
+  {
+    "name": "Caps shift scan 8",
+    "keys": [
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ],
+      [
+        "shift",
+        true
+      ],
+      [
+        "7",
+        true
+      ],
+      [
+        "7",
+        false
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ]
+    ],
+    "bios_ax": 2103
+  },
+  {
+    "name": "shift ('shift',) scan 9",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "8",
+        true
+      ],
+      [
+        "8",
+        false
+      ],
+      [
+        "shift",
+        false
+      ]
+    ],
+    "bios_ax": 2360
+  },
+  {
+    "name": "Caps shift scan 9",
+    "keys": [
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ],
+      [
+        "shift",
+        true
+      ],
+      [
+        "8",
+        true
+      ],
+      [
+        "8",
+        false
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ]
+    ],
+    "bios_ax": 2360
+  },
+  {
+    "name": "shift ('shift',) scan 10",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "9",
+        true
+      ],
+      [
+        "9",
+        false
+      ],
+      [
+        "shift",
+        false
+      ]
+    ],
+    "bios_ax": 2617
+  },
+  {
+    "name": "Caps shift scan 10",
+    "keys": [
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ],
+      [
+        "shift",
+        true
+      ],
+      [
+        "9",
+        true
+      ],
+      [
+        "9",
+        false
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ]
+    ],
+    "bios_ax": 2617
+  },
+  {
+    "name": "shift ('shift',) scan 11",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "0",
+        true
+      ],
+      [
+        "0",
+        false
+      ],
+      [
+        "shift",
+        false
+      ]
+    ],
+    "bios_ax": 2864
+  },
+  {
+    "name": "Caps shift scan 11",
+    "keys": [
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ],
+      [
+        "shift",
+        true
+      ],
+      [
+        "0",
+        true
+      ],
+      [
+        "0",
+        false
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ]
+    ],
+    "bios_ax": 2864
+  },
+  {
+    "name": "shift ('shift',) scan 12",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "minus",
+        true
+      ],
+      [
+        "minus",
+        false
+      ],
+      [
+        "shift",
+        false
+      ]
+    ],
+    "bios_ax": 3115
+  },
+  {
+    "name": "Caps shift scan 12",
+    "keys": [
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ],
+      [
+        "shift",
+        true
+      ],
+      [
+        "minus",
+        true
+      ],
+      [
+        "minus",
+        false
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ]
+    ],
+    "bios_ax": 3115
+  },
+  {
+    "name": "shift ('shift',) scan 13",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "equal",
+        true
+      ],
+      [
+        "equal",
+        false
+      ],
+      [
+        "shift",
+        false
+      ]
+    ],
+    "bios_ax": 11608
+  },
+  {
+    "name": "Caps shift scan 13",
+    "keys": [
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ],
+      [
+        "shift",
+        true
+      ],
+      [
+        "equal",
+        true
+      ],
+      [
+        "equal",
+        false
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ]
+    ],
+    "bios_ax": 11640
+  },
+  {
+    "name": "shift ('shift',) scan 16",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ],
+      [
+        "shift",
+        false
+      ]
+    ],
+    "bios_ax": 4277
+  },
+  {
+    "name": "Caps shift scan 16",
+    "keys": [
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ],
+      [
+        "shift",
+        true
+      ],
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ]
+    ],
+    "bios_ax": 4304
+  },
+  {
+    "name": "shift ('shift',) scan 17",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "w",
+        true
+      ],
+      [
+        "w",
+        false
+      ],
+      [
+        "shift",
+        false
+      ]
+    ],
+    "bios_ax": 4559
+  },
+  {
+    "name": "Caps shift scan 17",
+    "keys": [
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ],
+      [
+        "shift",
+        true
+      ],
+      [
+        "w",
+        true
+      ],
+      [
+        "w",
+        false
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ]
+    ],
+    "bios_ax": 4568
+  },
+  {
+    "name": "shift ('shift',) scan 26",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "bracket_left",
+        true
+      ],
+      [
+        "bracket_left",
+        false
+      ],
+      [
+        "shift",
+        false
+      ]
+    ],
+    "bios_ax": 6845
+  },
+  {
+    "name": "Caps shift scan 26",
+    "keys": [
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ],
+      [
+        "shift",
+        true
+      ],
+      [
+        "bracket_left",
+        true
+      ],
+      [
+        "bracket_left",
+        false
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ]
+    ],
+    "bios_ax": 6868
+  },
+  {
+    "name": "shift ('shift',) scan 27",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "bracket_right",
+        true
+      ],
+      [
+        "bracket_right",
+        false
+      ],
+      [
+        "shift",
+        false
+      ]
+    ],
+    "bios_ax": 4439
+  },
+  {
+    "name": "Caps shift scan 27",
+    "keys": [
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ],
+      [
+        "shift",
+        true
+      ],
+      [
+        "bracket_right",
+        true
+      ],
+      [
+        "bracket_right",
+        false
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ]
+    ],
+    "bios_ax": 4471
+  },
+  {
+    "name": "shift ('shift',) scan 33",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "f",
+        true
+      ],
+      [
+        "f",
+        false
+      ],
+      [
+        "shift",
+        false
+      ]
+    ],
+    "bios_ax": 8638
+  },
+  {
+    "name": "Caps shift scan 33",
+    "keys": [
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ],
+      [
+        "shift",
+        true
+      ],
+      [
+        "f",
+        true
+      ],
+      [
+        "f",
+        false
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ]
+    ],
+    "bios_ax": 8661
+  },
+  {
+    "name": "shift ('shift',) scan 39",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "semicolon",
+        true
+      ],
+      [
+        "semicolon",
+        false
+      ],
+      [
+        "shift",
+        false
+      ]
+    ],
+    "bios_ax": 10182
+  },
+  {
+    "name": "Caps shift scan 39",
+    "keys": [
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ],
+      [
+        "shift",
+        true
+      ],
+      [
+        "semicolon",
+        true
+      ],
+      [
+        "semicolon",
+        false
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ]
+    ],
+    "bios_ax": 10198
+  },
+  {
+    "name": "shift ('shift',) scan 40",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "apostrophe",
+        true
+      ],
+      [
+        "apostrophe",
+        false
+      ],
+      [
+        "shift",
+        false
+      ]
+    ],
+    "bios_ax": 10424
+  },
+  {
+    "name": "Caps shift scan 40",
+    "keys": [
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ],
+      [
+        "shift",
+        true
+      ],
+      [
+        "apostrophe",
+        true
+      ],
+      [
+        "apostrophe",
+        false
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ]
+    ],
+    "bios_ax": 10451
+  },
+  {
+    "name": "shift ('shift',) scan 41",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "grave_accent",
+        true
+      ],
+      [
+        "grave_accent",
+        false
+      ],
+      [
+        "shift",
+        false
+      ]
+    ],
+    "bios_ax": 10622
+  },
+  {
+    "name": "Caps shift scan 41",
+    "keys": [
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ],
+      [
+        "shift",
+        true
+      ],
+      [
+        "grave_accent",
+        true
+      ],
+      [
+        "grave_accent",
+        false
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ]
+    ],
+    "bios_ax": 10622
+  },
+  {
+    "name": "shift ('shift',) scan 43",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "backslash",
+        true
+      ],
+      [
+        "backslash",
+        false
+      ],
+      [
+        "shift",
+        false
+      ]
+    ],
+    "bios_ax": 4177
+  },
+  {
+    "name": "Caps shift scan 43",
+    "keys": [
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ],
+      [
+        "shift",
+        true
+      ],
+      [
+        "backslash",
+        true
+      ],
+      [
+        "backslash",
+        false
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ]
+    ],
+    "bios_ax": 4209
+  },
+  {
+    "name": "shift ('shift',) scan 45",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "x",
+        true
+      ],
+      [
+        "x",
+        false
+      ],
+      [
+        "shift",
+        false
+      ]
+    ],
+    "bios_ax": 11719
+  },
+  {
+    "name": "Caps shift scan 45",
+    "keys": [
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ],
+      [
+        "shift",
+        true
+      ],
+      [
+        "x",
+        true
+      ],
+      [
+        "x",
+        false
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ]
+    ],
+    "bios_ax": 11735
+  },
+  {
+    "name": "shift ('shift',) scan 51",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "comma",
+        true
+      ],
+      [
+        "comma",
+        false
+      ],
+      [
+        "shift",
+        false
+      ]
+    ],
+    "bios_ax": 13238
+  },
+  {
+    "name": "Caps shift scan 51",
+    "keys": [
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ],
+      [
+        "shift",
+        true
+      ],
+      [
+        "comma",
+        true
+      ],
+      [
+        "comma",
+        false
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ]
+    ],
+    "bios_ax": 13265
+  },
+  {
+    "name": "shift ('shift',) scan 52",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "dot",
+        true
+      ],
+      [
+        "dot",
+        false
+      ],
+      [
+        "shift",
+        false
+      ]
+    ],
+    "bios_ax": 8518
+  },
+  {
+    "name": "Caps shift scan 52",
+    "keys": [
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ],
+      [
+        "shift",
+        true
+      ],
+      [
+        "dot",
+        true
+      ],
+      [
+        "dot",
+        false
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ]
+    ],
+    "bios_ax": 8550
+  },
+  {
+    "name": "shift ('shift',) scan 53",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "slash",
+        true
+      ],
+      [
+        "slash",
+        false
+      ],
+      [
+        "shift",
+        false
+      ]
+    ],
+    "bios_ax": 13751
+  },
+  {
+    "name": "Caps shift scan 53",
+    "keys": [
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ],
+      [
+        "shift",
+        true
+      ],
+      [
+        "slash",
+        true
+      ],
+      [
+        "slash",
+        false
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ]
+    ],
+    "bios_ax": 13778
+  },
+  {
+    "name": "shift ('shift',) scan 86",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "less",
+        true
+      ],
+      [
+        "less",
+        false
+      ],
+      [
+        "shift",
+        false
+      ]
+    ],
+    "bios_ax": 22078
+  },
+  {
+    "name": "Caps shift scan 86",
+    "keys": [
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ],
+      [
+        "shift",
+        true
+      ],
+      [
+        "less",
+        true
+      ],
+      [
+        "less",
+        false
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ]
+    ],
+    "bios_ax": 22078
+  },
+  {
+    "name": "AltGr | Shift ('alt_r',) scan 2",
+    "keys": [
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "1",
+        true
+      ],
+      [
+        "1",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ]
+    ],
+    "bios_ax": 576
+  },
+  {
+    "name": "AltGr | Shift ('ctrl', 'alt') scan 2",
+    "keys": [
+      [
+        "ctrl",
+        true
+      ],
+      [
+        "alt",
+        true
+      ],
+      [
+        "1",
+        true
+      ],
+      [
+        "1",
+        false
+      ],
+      [
+        "alt",
+        false
+      ],
+      [
+        "ctrl",
+        false
+      ]
+    ],
+    "bios_ax": 576
+  },
+  {
+    "name": "AltGr | Shift ('alt_r',) scan 3",
+    "keys": [
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "2",
+        true
+      ],
+      [
+        "2",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ]
+    ],
+    "bios_ax": 863
+  },
+  {
+    "name": "AltGr | Shift ('ctrl', 'alt') scan 3",
+    "keys": [
+      [
+        "ctrl",
+        true
+      ],
+      [
+        "alt",
+        true
+      ],
+      [
+        "2",
+        true
+      ],
+      [
+        "2",
+        false
+      ],
+      [
+        "alt",
+        false
+      ],
+      [
+        "ctrl",
+        false
+      ]
+    ],
+    "bios_ax": 863
+  },
+  {
+    "name": "AltGr | Shift ('alt_r',) scan 4",
+    "keys": [
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "3",
+        true
+      ],
+      [
+        "3",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ]
+    ],
+    "bios_ax": 1059
+  },
+  {
+    "name": "AltGr | Shift ('ctrl', 'alt') scan 4",
+    "keys": [
+      [
+        "ctrl",
+        true
+      ],
+      [
+        "alt",
+        true
+      ],
+      [
+        "3",
+        true
+      ],
+      [
+        "3",
+        false
+      ],
+      [
+        "alt",
+        false
+      ],
+      [
+        "ctrl",
+        false
+      ]
+    ],
+    "bios_ax": 1059
+  },
+  {
+    "name": "AltGr | Shift ('alt_r',) scan 5",
+    "keys": [
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "4",
+        true
+      ],
+      [
+        "4",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ]
+    ],
+    "bios_ax": 1316
+  },
+  {
+    "name": "AltGr | Shift ('ctrl', 'alt') scan 5",
+    "keys": [
+      [
+        "ctrl",
+        true
+      ],
+      [
+        "alt",
+        true
+      ],
+      [
+        "4",
+        true
+      ],
+      [
+        "4",
+        false
+      ],
+      [
+        "alt",
+        false
+      ],
+      [
+        "ctrl",
+        false
+      ]
+    ],
+    "bios_ax": 1316
+  },
+  {
+    "name": "AltGr | Shift ('alt_r',) scan 6",
+    "keys": [
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "5",
+        true
+      ],
+      [
+        "5",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ]
+    ],
+    "bios_ax": 1781
+  },
+  {
+    "name": "AltGr | Shift ('ctrl', 'alt') scan 6",
+    "keys": [
+      [
+        "ctrl",
+        true
+      ],
+      [
+        "alt",
+        true
+      ],
+      [
+        "5",
+        true
+      ],
+      [
+        "5",
+        false
+      ],
+      [
+        "alt",
+        false
+      ],
+      [
+        "ctrl",
+        false
+      ]
+    ],
+    "bios_ax": 1781
+  },
+  {
+    "name": "AltGr | Shift ('alt_r',) scan 7",
+    "keys": [
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "6",
+        true
+      ],
+      [
+        "6",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ]
+    ],
+    "bios_ax": 1886
+  },
+  {
+    "name": "AltGr | Shift ('ctrl', 'alt') scan 7",
+    "keys": [
+      [
+        "ctrl",
+        true
+      ],
+      [
+        "alt",
+        true
+      ],
+      [
+        "6",
+        true
+      ],
+      [
+        "6",
+        false
+      ],
+      [
+        "alt",
+        false
+      ],
+      [
+        "ctrl",
+        false
+      ]
+    ],
+    "bios_ax": 1886
+  },
+  {
+    "name": "AltGr | Shift ('alt_r',) scan 8",
+    "keys": [
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "7",
+        true
+      ],
+      [
+        "7",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ]
+    ],
+    "bios_ax": 2086
+  },
+  {
+    "name": "AltGr | Shift ('ctrl', 'alt') scan 8",
+    "keys": [
+      [
+        "ctrl",
+        true
+      ],
+      [
+        "alt",
+        true
+      ],
+      [
+        "7",
+        true
+      ],
+      [
+        "7",
+        false
+      ],
+      [
+        "alt",
+        false
+      ],
+      [
+        "ctrl",
+        false
+      ]
+    ],
+    "bios_ax": 2086
+  },
+  {
+    "name": "AltGr | Shift ('alt_r',) scan 9",
+    "keys": [
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "8",
+        true
+      ],
+      [
+        "8",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ]
+    ],
+    "bios_ax": 2346
+  },
+  {
+    "name": "AltGr | Shift ('ctrl', 'alt') scan 9",
+    "keys": [
+      [
+        "ctrl",
+        true
+      ],
+      [
+        "alt",
+        true
+      ],
+      [
+        "8",
+        true
+      ],
+      [
+        "8",
+        false
+      ],
+      [
+        "alt",
+        false
+      ],
+      [
+        "ctrl",
+        false
+      ]
+    ],
+    "bios_ax": 2346
+  },
+  {
+    "name": "AltGr | Shift ('alt_r',) scan 10",
+    "keys": [
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "9",
+        true
+      ],
+      [
+        "9",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ]
+    ],
+    "bios_ax": 2651
+  },
+  {
+    "name": "AltGr | Shift ('ctrl', 'alt') scan 10",
+    "keys": [
+      [
+        "ctrl",
+        true
+      ],
+      [
+        "alt",
+        true
+      ],
+      [
+        "9",
+        true
+      ],
+      [
+        "9",
+        false
+      ],
+      [
+        "alt",
+        false
+      ],
+      [
+        "ctrl",
+        false
+      ]
+    ],
+    "bios_ax": 2651
+  },
+  {
+    "name": "AltGr | Shift ('alt_r',) scan 11",
+    "keys": [
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "0",
+        true
+      ],
+      [
+        "0",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ]
+    ],
+    "bios_ax": 2909
+  },
+  {
+    "name": "AltGr | Shift ('ctrl', 'alt') scan 11",
+    "keys": [
+      [
+        "ctrl",
+        true
+      ],
+      [
+        "alt",
+        true
+      ],
+      [
+        "0",
+        true
+      ],
+      [
+        "0",
+        false
+      ],
+      [
+        "alt",
+        false
+      ],
+      [
+        "ctrl",
+        false
+      ]
+    ],
+    "bios_ax": 2909
+  },
+  {
+    "name": "AltGr | Shift ('alt_r',) scan 12",
+    "keys": [
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "minus",
+        true
+      ],
+      [
+        "minus",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ]
+    ],
+    "bios_ax": 3111
+  },
+  {
+    "name": "AltGr | Shift ('ctrl', 'alt') scan 12",
+    "keys": [
+      [
+        "ctrl",
+        true
+      ],
+      [
+        "alt",
+        true
+      ],
+      [
+        "minus",
+        true
+      ],
+      [
+        "minus",
+        false
+      ],
+      [
+        "alt",
+        false
+      ],
+      [
+        "ctrl",
+        false
+      ]
+    ],
+    "bios_ax": 3111
+  },
+  {
+    "name": "AltGr | Shift ('alt_r',) scan 13",
+    "keys": [
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "equal",
+        true
+      ],
+      [
+        "equal",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ]
+    ],
+    "bios_ax": 33573
+  },
+  {
+    "name": "AltGr | Shift ('ctrl', 'alt') scan 13",
+    "keys": [
+      [
+        "ctrl",
+        true
+      ],
+      [
+        "alt",
+        true
+      ],
+      [
+        "equal",
+        true
+      ],
+      [
+        "equal",
+        false
+      ],
+      [
+        "alt",
+        false
+      ],
+      [
+        "ctrl",
+        false
+      ]
+    ],
+    "bios_ax": 33573
+  },
+  {
+    "name": "AltGr | Shift ('alt_r',) scan 26",
+    "keys": [
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "bracket_left",
+        true
+      ],
+      [
+        "bracket_left",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ]
+    ],
+    "bios_ax": 6779
+  },
+  {
+    "name": "AltGr | Shift ('ctrl', 'alt') scan 26",
+    "keys": [
+      [
+        "ctrl",
+        true
+      ],
+      [
+        "alt",
+        true
+      ],
+      [
+        "bracket_left",
+        true
+      ],
+      [
+        "bracket_left",
+        false
+      ],
+      [
+        "alt",
+        false
+      ],
+      [
+        "ctrl",
+        false
+      ]
+    ],
+    "bios_ax": 6779
+  },
+  {
+    "name": "AltGr | Shift ('alt_r',) scan 27",
+    "keys": [
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "bracket_right",
+        true
+      ],
+      [
+        "bracket_right",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ]
+    ],
+    "bios_ax": 4477
+  },
+  {
+    "name": "AltGr | Shift ('ctrl', 'alt') scan 27",
+    "keys": [
+      [
+        "ctrl",
+        true
+      ],
+      [
+        "alt",
+        true
+      ],
+      [
+        "bracket_right",
+        true
+      ],
+      [
+        "bracket_right",
+        false
+      ],
+      [
+        "alt",
+        false
+      ],
+      [
+        "ctrl",
+        false
+      ]
+    ],
+    "bios_ax": 4477
+  },
+  {
+    "name": "AltGr | Shift ('alt_r',) scan 40",
+    "keys": [
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "apostrophe",
+        true
+      ],
+      [
+        "apostrophe",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ]
+    ],
+    "bios_ax": 10274
+  },
+  {
+    "name": "AltGr | Shift ('ctrl', 'alt') scan 40",
+    "keys": [
+      [
+        "ctrl",
+        true
+      ],
+      [
+        "alt",
+        true
+      ],
+      [
+        "apostrophe",
+        true
+      ],
+      [
+        "apostrophe",
+        false
+      ],
+      [
+        "alt",
+        false
+      ],
+      [
+        "ctrl",
+        false
+      ]
+    ],
+    "bios_ax": 10274
+  },
+  {
+    "name": "AltGr | Shift ('alt_r',) scan 41",
+    "keys": [
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "grave_accent",
+        true
+      ],
+      [
+        "grave_accent",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ]
+    ],
+    "bios_ax": 10735
+  },
+  {
+    "name": "AltGr | Shift ('ctrl', 'alt') scan 41",
+    "keys": [
+      [
+        "ctrl",
+        true
+      ],
+      [
+        "alt",
+        true
+      ],
+      [
+        "grave_accent",
+        true
+      ],
+      [
+        "grave_accent",
+        false
+      ],
+      [
+        "alt",
+        false
+      ],
+      [
+        "ctrl",
+        false
+      ]
+    ],
+    "bios_ax": 10735
+  },
+  {
+    "name": "AltGr | Shift ('alt_r',) scan 43",
+    "keys": [
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "backslash",
+        true
+      ],
+      [
+        "backslash",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ]
+    ],
+    "bios_ax": 4220
+  },
+  {
+    "name": "AltGr | Shift ('ctrl', 'alt') scan 43",
+    "keys": [
+      [
+        "ctrl",
+        true
+      ],
+      [
+        "alt",
+        true
+      ],
+      [
+        "backslash",
+        true
+      ],
+      [
+        "backslash",
+        false
+      ],
+      [
+        "alt",
+        false
+      ],
+      [
+        "ctrl",
+        false
+      ]
+    ],
+    "bios_ax": 4220
+  },
+  {
+    "name": "AltGr | Shift ('alt_r',) scan 51",
+    "keys": [
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "comma",
+        true
+      ],
+      [
+        "comma",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ]
+    ],
+    "bios_ax": 13303
+  },
+  {
+    "name": "AltGr | Shift ('ctrl', 'alt') scan 51",
+    "keys": [
+      [
+        "ctrl",
+        true
+      ],
+      [
+        "alt",
+        true
+      ],
+      [
+        "comma",
+        true
+      ],
+      [
+        "comma",
+        false
+      ],
+      [
+        "alt",
+        false
+      ],
+      [
+        "ctrl",
+        false
+      ]
+    ],
+    "bios_ax": 13303
+  },
+  {
+    "name": "AltGr | Shift ('alt_r',) scan 52",
+    "keys": [
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "dot",
+        true
+      ],
+      [
+        "dot",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ]
+    ],
+    "bios_ax": 8690
+  },
+  {
+    "name": "AltGr | Shift ('ctrl', 'alt') scan 52",
+    "keys": [
+      [
+        "ctrl",
+        true
+      ],
+      [
+        "alt",
+        true
+      ],
+      [
+        "dot",
+        true
+      ],
+      [
+        "dot",
+        false
+      ],
+      [
+        "alt",
+        false
+      ],
+      [
+        "ctrl",
+        false
+      ]
+    ],
+    "bios_ax": 8690
+  },
+  {
+    "name": "AltGr | Shift ('alt_r',) scan 53",
+    "keys": [
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "slash",
+        true
+      ],
+      [
+        "slash",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ]
+    ],
+    "bios_ax": 13660
+  },
+  {
+    "name": "AltGr | Shift ('ctrl', 'alt') scan 53",
+    "keys": [
+      [
+        "ctrl",
+        true
+      ],
+      [
+        "alt",
+        true
+      ],
+      [
+        "slash",
+        true
+      ],
+      [
+        "slash",
+        false
+      ],
+      [
+        "alt",
+        false
+      ],
+      [
+        "ctrl",
+        false
+      ]
+    ],
+    "bios_ax": 13660
+  },
+  {
+    "name": "AltGr | Shift ('alt_r',) scan 86",
+    "keys": [
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "less",
+        true
+      ],
+      [
+        "less",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ]
+    ],
+    "bios_ax": 22061
+  },
+  {
+    "name": "AltGr | Shift ('ctrl', 'alt') scan 86",
+    "keys": [
+      [
+        "ctrl",
+        true
+      ],
+      [
+        "alt",
+        true
+      ],
+      [
+        "less",
+        true
+      ],
+      [
+        "less",
+        false
+      ],
+      [
+        "alt",
+        false
+      ],
+      [
+        "ctrl",
+        false
+      ]
+    ],
+    "bios_ax": 22061
+  },
+  {
+    "name": "Ctrl ('ctrl',) scan 3",
+    "keys": [
+      [
+        "ctrl",
+        true
+      ],
+      [
+        "2",
+        true
+      ],
+      [
+        "2",
+        false
+      ],
+      [
+        "ctrl",
+        false
+      ]
+    ],
+    "bios_ax": 799
+  },
+  {
+    "name": "Ctrl ('ctrl_r',) scan 3",
+    "keys": [
+      [
+        "ctrl_r",
+        true
+      ],
+      [
+        "2",
+        true
+      ],
+      [
+        "2",
+        false
+      ],
+      [
+        "ctrl_r",
+        false
+      ]
+    ],
+    "bios_ax": 799
+  },
+  {
+    "name": "Ctrl ('ctrl',) scan 10",
+    "keys": [
+      [
+        "ctrl",
+        true
+      ],
+      [
+        "9",
+        true
+      ],
+      [
+        "9",
+        false
+      ],
+      [
+        "ctrl",
+        false
+      ]
+    ],
+    "bios_ax": 2587
+  },
+  {
+    "name": "Ctrl ('ctrl_r',) scan 10",
+    "keys": [
+      [
+        "ctrl_r",
+        true
+      ],
+      [
+        "9",
+        true
+      ],
+      [
+        "9",
+        false
+      ],
+      [
+        "ctrl_r",
+        false
+      ]
+    ],
+    "bios_ax": 2587
+  },
+  {
+    "name": "Ctrl ('ctrl',) scan 11",
+    "keys": [
+      [
+        "ctrl",
+        true
+      ],
+      [
+        "0",
+        true
+      ],
+      [
+        "0",
+        false
+      ],
+      [
+        "ctrl",
+        false
+      ]
+    ],
+    "bios_ax": 2845
+  },
+  {
+    "name": "Ctrl ('ctrl_r',) scan 11",
+    "keys": [
+      [
+        "ctrl_r",
+        true
+      ],
+      [
+        "0",
+        true
+      ],
+      [
+        "0",
+        false
+      ],
+      [
+        "ctrl_r",
+        false
+      ]
+    ],
+    "bios_ax": 2845
+  },
+  {
+    "name": "Ctrl ('ctrl',) scan 13",
+    "keys": [
+      [
+        "ctrl",
+        true
+      ],
+      [
+        "equal",
+        true
+      ],
+      [
+        "equal",
+        false
+      ],
+      [
+        "ctrl",
+        false
+      ]
+    ],
+    "bios_ax": 11544
+  },
+  {
+    "name": "Ctrl ('ctrl_r',) scan 13",
+    "keys": [
+      [
+        "ctrl_r",
+        true
+      ],
+      [
+        "equal",
+        true
+      ],
+      [
+        "equal",
+        false
+      ],
+      [
+        "ctrl_r",
+        false
+      ]
+    ],
+    "bios_ax": 11544
+  },
+  {
+    "name": "Ctrl ('ctrl',) scan 27",
+    "keys": [
+      [
+        "ctrl",
+        true
+      ],
+      [
+        "bracket_right",
+        true
+      ],
+      [
+        "bracket_right",
+        false
+      ],
+      [
+        "ctrl",
+        false
+      ]
+    ],
+    "bios_ax": 4375
+  },
+  {
+    "name": "Ctrl ('ctrl_r',) scan 27",
+    "keys": [
+      [
+        "ctrl_r",
+        true
+      ],
+      [
+        "bracket_right",
+        true
+      ],
+      [
+        "bracket_right",
+        false
+      ],
+      [
+        "ctrl_r",
+        false
+      ]
+    ],
+    "bios_ax": 4375
+  },
+  {
+    "name": "Ctrl ('ctrl',) scan 43",
+    "keys": [
+      [
+        "ctrl",
+        true
+      ],
+      [
+        "backslash",
+        true
+      ],
+      [
+        "backslash",
+        false
+      ],
+      [
+        "ctrl",
+        false
+      ]
+    ],
+    "bios_ax": 4113
+  },
+  {
+    "name": "Ctrl ('ctrl_r',) scan 43",
+    "keys": [
+      [
+        "ctrl_r",
+        true
+      ],
+      [
+        "backslash",
+        true
+      ],
+      [
+        "backslash",
+        false
+      ],
+      [
+        "ctrl_r",
+        false
+      ]
+    ],
+    "bios_ax": 4113
+  },
+  {
+    "name": "Ctrl ('ctrl',) scan 52",
+    "keys": [
+      [
+        "ctrl",
+        true
+      ],
+      [
+        "dot",
+        true
+      ],
+      [
+        "dot",
+        false
+      ],
+      [
+        "ctrl",
+        false
+      ]
+    ],
+    "bios_ax": 8454
+  },
+  {
+    "name": "Ctrl ('ctrl_r',) scan 52",
+    "keys": [
+      [
+        "ctrl_r",
+        true
+      ],
+      [
+        "dot",
+        true
+      ],
+      [
+        "dot",
+        false
+      ],
+      [
+        "ctrl_r",
+        false
+      ]
+    ],
+    "bios_ax": 8454
+  },
+  {
+    "name": "Ctrl ('ctrl',) scan 53",
+    "keys": [
+      [
+        "ctrl",
+        true
+      ],
+      [
+        "slash",
+        true
+      ],
+      [
+        "slash",
+        false
+      ],
+      [
+        "ctrl",
+        false
+      ]
+    ],
+    "bios_ax": 13596
+  },
+  {
+    "name": "Ctrl ('ctrl_r',) scan 53",
+    "keys": [
+      [
+        "ctrl_r",
+        true
+      ],
+      [
+        "slash",
+        true
+      ],
+      [
+        "slash",
+        false
+      ],
+      [
+        "ctrl_r",
+        false
+      ]
+    ],
+    "bios_ax": 13596
+  },
+  {
+    "name": "Alt ('alt',) scan 13",
+    "keys": [
+      [
+        "alt",
+        true
+      ],
+      [
+        "equal",
+        true
+      ],
+      [
+        "equal",
+        false
+      ],
+      [
+        "alt",
+        false
+      ]
+    ],
+    "bios_ax": 33536
+  },
+  {
+    "name": "Alt ('alt',) scan 27",
+    "keys": [
+      [
+        "alt",
+        true
+      ],
+      [
+        "bracket_right",
+        true
+      ],
+      [
+        "bracket_right",
+        false
+      ],
+      [
+        "alt",
+        false
+      ]
+    ],
+    "bios_ax": 4352
+  },
+  {
+    "name": "Alt ('alt',) scan 43",
+    "keys": [
+      [
+        "alt",
+        true
+      ],
+      [
+        "backslash",
+        true
+      ],
+      [
+        "backslash",
+        false
+      ],
+      [
+        "alt",
+        false
+      ]
+    ],
+    "bios_ax": 4096
+  },
+  {
+    "name": "Alt ('alt',) scan 52",
+    "keys": [
+      [
+        "alt",
+        true
+      ],
+      [
+        "dot",
+        true
+      ],
+      [
+        "dot",
+        false
+      ],
+      [
+        "alt",
+        false
+      ]
+    ],
+    "bios_ax": 8448
+  },
+  {
+    "name": "control/navigation esc",
+    "keys": [
+      [
+        "esc",
+        true
+      ],
+      [
+        "esc",
+        false
+      ]
+    ],
+    "bios_ax": 283
+  },
+  {
+    "name": "control/navigation ret",
+    "keys": [
+      [
+        "ret",
+        true
+      ],
+      [
+        "ret",
+        false
+      ]
+    ],
+    "bios_ax": 7181
+  },
+  {
+    "name": "control/navigation backspace",
+    "keys": [
+      [
+        "backspace",
+        true
+      ],
+      [
+        "backspace",
+        false
+      ]
+    ],
+    "bios_ax": 3592
+  },
+  {
+    "name": "control/navigation tab",
+    "keys": [
+      [
+        "tab",
+        true
+      ],
+      [
+        "tab",
+        false
+      ]
+    ],
+    "bios_ax": 3849
+  },
+  {
+    "name": "control/navigation spc",
+    "keys": [
+      [
+        "spc",
+        true
+      ],
+      [
+        "spc",
+        false
+      ]
+    ],
+    "bios_ax": 14624
+  },
+  {
+    "name": "control/navigation f1",
+    "keys": [
+      [
+        "f1",
+        true
+      ],
+      [
+        "f1",
+        false
+      ]
+    ],
+    "bios_ax": 15104
+  },
+  {
+    "name": "control/navigation up",
+    "keys": [
+      [
+        "up",
+        true
+      ],
+      [
+        "up",
+        false
+      ]
+    ],
+    "bios_ax": 18656
+  },
+  {
+    "name": "control/navigation left",
+    "keys": [
+      [
+        "left",
+        true
+      ],
+      [
+        "left",
+        false
+      ]
+    ],
+    "bios_ax": 19424
+  },
+  {
+    "name": "control/navigation delete",
+    "keys": [
+      [
+        "delete",
+        true
+      ],
+      [
+        "delete",
+        false
+      ]
+    ],
+    "bios_ax": 21472
+  }
+]

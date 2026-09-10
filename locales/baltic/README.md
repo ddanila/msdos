@@ -505,8 +505,9 @@ Every profile finishes with physical national keyboard input and a check of
 all restored installed payloads. The retained record links the installation
 baseline, commands, exact mutation scope, memory/core identities, logs, startup
 files and font captures. Boot fallback is covered below. Real-BIOS installed
-failures, later media-error transactions, installed text/file workflows and
-final source-matched release qualification remain separate gates.
+failures and later media-error transactions remain separate gates. Installed
+text/file workflows are qualified below; final source-matched release remains
+open.
 
 
 ## Country boot fallback
@@ -540,9 +541,10 @@ emulator completion. The legacy memory-fallback harness instead checks guest
 markers and a persisted result before stopping the backend; its scope is
 recorded separately.
 
-Earlier workflow records apply to their recorded cores. Real-BIOS resource
-failures, installed text/file workflows, later media-error rollback and the
-full source-matched release/reproducibility gates remain open for this core.
+Earlier workflow records apply to their recorded cores. Installed text/file
+workflows are qualified below. Real-BIOS resource failures, later media-error
+rollback and full source-matched release/reproducibility remain open for this
+core.
 
 ## Current-core workflow checks
 
@@ -558,5 +560,27 @@ fresh boot for reads and cleanup.
 The record checks the core and utility bytes actually present in each image
 and retains input events, text files, screenshots, directory captures and guest
 logs. This refresh applies to QEMU HIGH/LOW. Real-BIOS workflow evidence must
-also match the selected core; installed text/file workflows and the final
-release/reproducibility gates remain open.
+also match the selected core. Installed text/file workflows are qualified
+below; the final release/reproducibility gates remain open.
+
+## Installed application workflows
+
+[Installed workflow qualification](installed-workflows-qualification.json)
+exercises COMMAND/EDLIN text input and national filenames on private copies of
+fresh/upgraded installations. `make test-baltic-installed-workflows-qemu`
+creates the installations by default; `--installed-run` can reuse a completed
+run whose core and complete installed payload hashes match current inputs.
+
+Every language runs in HIGH/LOW with its installed CONFIG recipe and startup
+commands. The test adds `PATH C:\DOS` for interactive utility lookup and rejects
+root copies of EDLIN or FIND that could hide the installed versions. Physical
+input exercises editing, save/reopen, redirection and pipes; exact CP775 bytes
+and rendered glyphs must match the language samples. The filename gate uses
+installed MOVE/XCOPY and checks national case, wildcards, country ordering,
+directory trees, raw FAT16 entries and reads/cleanup after a fresh boot.
+
+All installed payloads, the default root COMMAND and the baseline images must
+remain intact. The record retains commands, input events, text and directory
+bytes, screenshots and guest logs. This gate qualifies installed QEMU HIGH/LOW
+workflows; real-BIOS workflow and final release/reproducibility gates must be
+qualified against the selected core separately.

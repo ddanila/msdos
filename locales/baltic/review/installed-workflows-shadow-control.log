@@ -1,0 +1,9 @@
+Baltic installed workflow artifacts: /Users/ddanila/fun/msdos/out/baltic-installed-workflows-pql4ce51
+Traceback (most recent call last):
+  File "/Users/ddanila/fun/msdos/tests/test_baltic_installed_workflows_qemu.py", line 110, in <module>
+    main()
+  File "/Users/ddanila/fun/msdos/tests/test_baltic_installed_workflows_qemu.py", line 78, in main
+    image = installed/(name+'.img'); verify_files(image)
+  File "/Users/ddanila/fun/msdos/tests/test_baltic_installed_workflows_qemu.py", line 64, in verify_files
+    assert (stem.ljust(8)+extension).encode('ascii') not in entries, (image, stem, extension)
+AssertionError: (PosixPath('out/baltic-installed-shadow-control-3g6p_p8e/et-high.img'), 'EDLIN', 'COM')

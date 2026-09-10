@@ -206,6 +206,9 @@ must use the recorded core hashes.
 rechecks physical text editing, rendered CP775 text and national filename
 workflows in QEMU HIGH/LOW for each language against that rebuilt core.
 Real-BIOS workflows must also match the selected core before release.
-Deeper malformed-resource cases, legacy lifecycle failures, installed text and
-file workflows, and final source-matched release/reproducibility gates remain
+[Installed workflow qualification](locales/baltic/installed-workflows-qualification.json)
+extends physical text editing and national filename operations to installed
+HIGH/LOW profiles, preserving the installed payloads and startup recipes.
+Deeper malformed-resource cases, legacy lifecycle failures, real-BIOS workflow
+requalification and final source-matched release/reproducibility gates remain
 open. Existing Russian evidence does not establish Baltic support.

@@ -526,7 +526,7 @@ The FIND regression covers high-byte line endings and detects the previous
 cross-line match with the old executable. Backend and memory-profile scope,
 Russian regressions and native command results are recorded explicitly.
 Filename/directory and fresh-boot checks have separate qualification below;
-installed workflows remain open.
+installed workflows have separate qualification below.
 
 The [Baltic filesystem qualification](../locales/baltic/filesystem-qualification.json)
 records `test-baltic-files-qemu`, included in `make test`, and the real-BIOS
@@ -573,7 +573,8 @@ exercises country/font rejection and recovery through installed paths in each
 Baltic HIGH/LOW profile, checks actual VGA font bytes and active country state,
 and finishes with physical national input and restored payload hashes. It
 covers runtime failures at the shipped font height; boot fallback, real-BIOS
-installed failures and installed text/file workflows remain separate gates.
+installed failures remain a separate gate; installed text/file workflows have
+qualification below.
 
 The [country boot qualification](../locales/baltic/country-boot-qualification.json)
 records `test-baltic-country-boot-qemu` and `test-nlsfunc-filecase-qemu`, both
@@ -591,8 +592,19 @@ the rebuilt country-boot core. It checks the actual core and utility hashes
 in every image, physical text input, saved/reopened CP775 bytes, rendered
 glyphs, national short-name operations and fresh-boot reads/cleanup. Retained
 events, screenshots, raw directory captures and guest logs establish this
-backend scope; real-BIOS and installed workflows require matching evidence
-before the Baltic release gates can close.
+backend scope. Installed workflows are qualified below; real-BIOS workflows
+still require matching evidence before the Baltic release gates can close.
+
+The [installed workflow qualification](../locales/baltic/installed-workflows-qualification.json)
+records `test-baltic-installed-workflows-qemu`, included in `make test`. Its
+default run creates fresh/upgraded installations and then exercises physical
+text editing and national filename workflows through installed paths in each
+language's HIGH/LOW profile. It checks all installed payloads, the root shell,
+startup recipes, rendered text, saved bytes and FAT16 directory data, including
+a fresh boot for filename reads and cleanup. Root utilities that could hide
+the installed EDLIN or FIND are rejected before boot. `--installed-run` can
+reuse a completed installation only when its payload hashes match current
+inputs. Real-BIOS workflow and release scopes remain separate requirements.
 
 ## External DOS API suite
 
