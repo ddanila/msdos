@@ -543,3 +543,20 @@ recorded separately.
 Earlier workflow records apply to their recorded cores. Real-BIOS resource
 failures, installed text/file workflows, later media-error rollback and the
 full source-matched release/reproducibility gates remain open for this core.
+
+## Current-core workflow checks
+
+[Current-core workflow qualification](current-workflows-qualification.json)
+repeats the QEMU HIGH/LOW text and filesystem workflows with the private core
+from country-boot qualification. Physical keyboard input creates and edits
+each language's CP775 text in COMMAND and EDLIN; saved/reopened bytes,
+redirection, FIND output and rendered glyphs must match the language samples.
+National filename batch workflows check case lookup, wildcards, country DIR
+ordering, copies and directory trees, followed by raw FAT inspection and a
+fresh boot for reads and cleanup.
+
+The record checks the core and utility bytes actually present in each image
+and retains input events, text files, screenshots, directory captures and guest
+logs. This refresh applies to QEMU HIGH/LOW. Real-BIOS workflow evidence must
+also match the selected core; installed text/file workflows and the final
+release/reproducibility gates remain open.

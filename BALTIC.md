@@ -202,6 +202,10 @@ covers malformed-country boot fallback and recovery, plus legacy filename-case
 signature compatibility. Its rebuilt private core has matched memory, country,
 installation and scoped 286 regressions; remaining workflow and release gates
 must use the recorded core hashes.
+[Current-core workflow qualification](locales/baltic/current-workflows-qualification.json)
+rechecks physical text editing, rendered CP775 text and national filename
+workflows in QEMU HIGH/LOW for each language against that rebuilt core.
+Real-BIOS workflows must also match the selected core before release.
 Deeper malformed-resource cases, legacy lifecycle failures, installed text and
 file workflows, and final source-matched release/reproducibility gates remain
 open. Existing Russian evidence does not establish Baltic support.

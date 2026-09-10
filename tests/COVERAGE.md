@@ -585,6 +585,15 @@ and a deliberately non-default snapshot. The rebuilt private core has matched
 memory, installation and country regressions with explicit backend scopes;
 full workflow and release qualification remain separate gates.
 
+The [current-core workflow qualification](../locales/baltic/current-workflows-qualification.json)
+repeats the existing Baltic text and filesystem gates in QEMU HIGH/LOW with
+the rebuilt country-boot core. It checks the actual core and utility hashes
+in every image, physical text input, saved/reopened CP775 bytes, rendered
+glyphs, national short-name operations and fresh-boot reads/cleanup. Retained
+events, screenshots, raw directory captures and guest logs establish this
+backend scope; real-BIOS and installed workflows require matching evidence
+before the Baltic release gates can close.
+
 ## External DOS API suite
 
 `make test-dosemu2-qemu` runs selected upstream DOSEMU2 FAT tests against the
