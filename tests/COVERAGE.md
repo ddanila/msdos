@@ -680,3 +680,13 @@ its phase plan and records the prepared pages. It retains the original
 unprepared-page failure, passing physical selection/rejection/reload results,
 XT media-capacity check and byte-identical ordinary guest payload regressions.
 Full AT/XT BIOS/DOS lifecycle completion remains a separate requirement.
+
+
+The [additional Baltic release qualification](../locales/baltic/extra-release-qualification.json)
+records pristine ordinary-baseline `test-286-acceptance`, the historical baseline
+memory/kernel matrix and Baltic/CP866 static contracts. The runtime commands
+use `MEMORY_PROFILE=baseline` and `FAIL_ON_SKIP=1`. All declared ordinary
+artifacts still match the pristine build record. Logs, linker maps and backend
+identities are retained; historical 286 marker/persisted-result checks are
+scoped separately from composed-core guest-exit workflows. Full default release
+and final deployment/distribution remain independent gates.

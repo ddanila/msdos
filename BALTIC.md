@@ -227,5 +227,9 @@ AT/XT BIOS/DOS mode, selection, resource and pending-accent matrices.
 [Legacy cross-page selection qualification](locales/baltic/legacy-selection-qualification.json)
 checks the complete AT BIOS selection plan with both CP775 and CP866 prepared,
 including Baltic/Russian/German reloads and rejected selections.
-The full legacy matrices and final source-matched release gates remain open.
+[Additional release qualification](locales/baltic/extra-release-qualification.json)
+records passing pristine ordinary-baseline 286 acceptance, baseline memory/kernel
+regressions and Baltic/CP866 static checks. Its artifacts retain the pristine
+build hashes. The full legacy matrices, default release suite and final
+deployment/distribution checks remain open.
 Existing Russian evidence does not establish Baltic support.

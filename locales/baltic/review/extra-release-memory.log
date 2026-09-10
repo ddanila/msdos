@@ -1,0 +1,456 @@
+# A single jobserver-aware submake prevents parallel image and build paths
+# from racing on their shared generated message and include files.
+make /Users/ddanila/fun/msdos/out/baltic-repro-m5lr8g72/j4/out/floppy.img
+make[1]: Entering directory '/Users/ddanila/fun/msdos/out/baltic-repro-m5lr8g72/j4'
+mkdir -p /Users/ddanila/fun/msdos/out/baltic-repro-m5lr8g72/j4/out
+make[1]: Leaving directory '/Users/ddanila/fun/msdos/out/baltic-repro-m5lr8g72/j4'
+python3 tests/test_himem_testmem_qemu.py
+Artifacts: /Users/ddanila/fun/msdos/out/baltic-repro-m5lr8g72/j4/out/himem-testmem-0a63bmi0
+PASS one-kib: both A20 entry states, CPU state and memory guard
+PASS full-chunk: both A20 entry states, CPU state and memory guard
+PASS partial-tail: both A20 entry states, CPU state and memory guard
+PASS fault-first: both A20 entry states, CPU state and memory guard
+PASS fault-boundary: both A20 entry states, CPU state and memory guard
+PASS fault-last-byte: both A20 entry states, CPU state and memory guard
+PASS fault-second-pattern: both A20 entry states, CPU state and memory guard
+PASS nmi-phase-1: both A20 entry states, CPU state and memory guard
+PASS nmi-phase-2: both A20 entry states, CPU state and memory guard
+PASS nmi-phase-3: both A20 entry states, CPU state and memory guard
+PASS nmi-phase-4: both A20 entry states, CPU state and memory guard
+PASS nmi-phase-5: both A20 entry states, CPU state and memory guard
+python3 tests/test_himem_testmem_qemu.py --production
+Artifacts: /Users/ddanila/fun/msdos/out/baltic-repro-m5lr8g72/j4/out/himem-testmem-oeolra8i
+PASS one-kib: both A20 entry states, CPU state and memory guard
+PASS full-chunk: both A20 entry states, CPU state and memory guard
+PASS partial-tail: both A20 entry states, CPU state and memory guard
+PASS fault-first: both A20 entry states, CPU state and memory guard
+PASS fault-boundary: both A20 entry states, CPU state and memory guard
+PASS fault-last-byte: both A20 entry states, CPU state and memory guard
+PASS fault-second-pattern: both A20 entry states, CPU state and memory guard
+PASS nmi-phase-1: both A20 entry states, CPU state and memory guard
+PASS nmi-phase-2: both A20 entry states, CPU state and memory guard
+PASS nmi-phase-3: both A20 entry states, CPU state and memory guard
+PASS nmi-phase-4: both A20 entry states, CPU state and memory guard
+PASS nmi-phase-5: both A20 entry states, CPU state and memory guard
+python3 tests/test_himem_testmem_qemu.py --production --a20-backend bios --case partial-tail --case nmi-phase-2 --case nmi-phase-4
+Artifacts: /Users/ddanila/fun/msdos/out/baltic-repro-m5lr8g72/j4/out/himem-testmem-1y3xy210
+PASS partial-tail: both A20 entry states, CPU state and memory guard
+PASS nmi-phase-2: both A20 entry states, CPU state and memory guard
+PASS nmi-phase-4: both A20 entry states, CPU state and memory guard
+python3 tests/test_himem_testmem_qemu.py --production --a20-backend kbc --case partial-tail --case nmi-phase-2 --case nmi-phase-4
+Artifacts: /Users/ddanila/fun/msdos/out/baltic-repro-m5lr8g72/j4/out/himem-testmem-t1ndhzr_
+PASS partial-tail: both A20 entry states, CPU state and memory guard
+PASS nmi-phase-2: both A20 entry states, CPU state and memory guard
+PASS nmi-phase-4: both A20 entry states, CPU state and memory guard
+bash tests/test_himem_qemu.sh
+INIT.ASM(126) : Warning A4184: Instructions and initialized data not supported in AT segments
+INIT.ASM(127) : Warning A4184: Instructions and initialized data not supported in AT segments
+INIT.ASM(130) : Warning A4184: Instructions and initialized data not supported in AT segments
+INIT.ASM(131) : Warning A4184: Instructions and initialized data not supported in AT segments
+ROM_SRCH.ASM(238) : Warning A4073: Size not specified, assuming: WORD
+ROM_SRCH.ASM(242) : Warning A4073: Size not specified, assuming: WORD
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EMMFUNCT.C(296): Warning! W131: No prototype found for function 'AllocateRawPages'
+EMMFUNCT.C(297): Warning! W107: Missing return value for function 'AllocatePages'
+EMMFUNCT.C(354): Warning! W107: Missing return value for function 'AllocateRawPages'
+EMMFUNCT.C(375): Warning! W131: No prototype found for function 'ReallocatePages'
+EMMFUNCT.C(399): Warning! W107: Missing return value for function 'DeallocatePages'
+EMM40.C(147): Warning! W131: No prototype found for function 'get_pages'
+EMM40.C(158): Warning! W131: No prototype found for function 'free_pages'
+EMM40.C(165): Warning! W107: Missing return value for function 'ReallocatePages'
+EMM40.C(213): Warning! W131: No prototype found for function 'GetUnallocatedPageCount'
+EMM40.C(216): Warning! W107: Missing return value for function 'GetInformation'
+EMMFUNCT.C(424): Warning! W107: Missing return value for function 'GetEMMHandlePages'
+EMMFUNCT.C(458): Warning! W107: Missing return value for function 'GetAllEMMHandlePages'
+EMM40.C(268): Warning! W131: No prototype found for function 'GetHandleDirectory'
+EMM40.C(286): Warning! W107: Missing return value for function 'GetSetHandleName'
+EMM40.C(347): Warning! W131: No prototype found for function 'copyin'
+EMM40.C(378): Warning! W107: Missing return value for function 'GetHandleDirectory'
+EMMP.ASM(840) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(840): Main line code
+EMM40.C(415): Warning! W131: No prototype found for function 'Get_Key_Val'
+EMM40.C(433): Warning! W107: Missing return value for function 'OSDisable'
+EMMP.ASM(788) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(788): Main line code
+EMMP.ASM(898) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(898): Main line code
+EMMP.ASM(1002) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(1002): Main line code
+EMMP.ASM(1054) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(1054): Main line code
+EMMP.ASM(1095) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(1095): Main line code
+EMMP.ASM(1482) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(1482): Main line code
+EMMP.ASM(2968) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(2968): Main line code
+EMMP.ASM(2999) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(2999): Main line code
+EMMP.ASM(3032) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(3032): Main line code
+EMMP.ASM(3079) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(3079): Main line code
+Warning! W1080: file rrtrap.obj is a 32-bit object file
+Warning! W1080: file vmtrap.obj is a 32-bit object file
+Warning! W1080: file rrtraphi.obj is a 32-bit object file
+Warning! W1080: file initepg.obj is a 32-bit object file
+Warning! W1080: file vminit.obj is a 32-bit object file
+Warning! W1080: file em286ll.obj is a 32-bit object file
+INIT.ASM(126) : Warning A4184: Instructions and initialized data not supported in AT segments
+INIT.ASM(127) : Warning A4184: Instructions and initialized data not supported in AT segments
+INIT.ASM(130) : Warning A4184: Instructions and initialized data not supported in AT segments
+INIT.ASM(131) : Warning A4184: Instructions and initialized data not supported in AT segments
+ROM_SRCH.ASM(238) : Warning A4073: Size not specified, assuming: WORD
+ROM_SRCH.ASM(242) : Warning A4073: Size not specified, assuming: WORD
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EMMFUNCT.C(296): Warning! W131: No prototype found for function 'AllocateRawPages'
+EMMFUNCT.C(297): Warning! W107: Missing return value for function 'AllocatePages'
+EMMFUNCT.C(354): Warning! W107: Missing return value for function 'AllocateRawPages'
+EMMFUNCT.C(375): Warning! W131: No prototype found for function 'ReallocatePages'
+EMMFUNCT.C(399): Warning! W107: Missing return value for function 'DeallocatePages'
+EMM40.C(147): Warning! W131: No prototype found for function 'get_pages'
+EMM40.C(158): Warning! W131: No prototype found for function 'free_pages'
+EMM40.C(165): Warning! W107: Missing return value for function 'ReallocatePages'
+EMM40.C(213): Warning! W131: No prototype found for function 'GetUnallocatedPageCount'
+EMM40.C(216): Warning! W107: Missing return value for function 'GetInformation'
+EMMFUNCT.C(424): Warning! W107: Missing return value for function 'GetEMMHandlePages'
+EMMFUNCT.C(458): Warning! W107: Missing return value for function 'GetAllEMMHandlePages'
+EMM40.C(268): Warning! W131: No prototype found for function 'GetHandleDirectory'
+EMM40.C(286): Warning! W107: Missing return value for function 'GetSetHandleName'
+EMM40.C(347): Warning! W131: No prototype found for function 'copyin'
+EMM40.C(378): Warning! W107: Missing return value for function 'GetHandleDirectory'
+EMMP.ASM(840) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(840): Main line code
+EMM40.C(415): Warning! W131: No prototype found for function 'Get_Key_Val'
+EMM40.C(433): Warning! W107: Missing return value for function 'OSDisable'
+EMMP.ASM(788) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(788): Main line code
+EMMP.ASM(898) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(898): Main line code
+EMMP.ASM(1002) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(1002): Main line code
+EMMP.ASM(1054) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(1054): Main line code
+EMMP.ASM(1095) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(1095): Main line code
+EMMP.ASM(1482) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(1482): Main line code
+EMMP.ASM(2968) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(2968): Main line code
+EMMP.ASM(2999) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(2999): Main line code
+EMMP.ASM(3032) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(3032): Main line code
+EMMP.ASM(3079) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(3079): Main line code
+Warning! W1080: file rrtrap.obj is a 32-bit object file
+Warning! W1080: file vmtrap.obj is a 32-bit object file
+Warning! W1080: file rrtraphi.obj is a 32-bit object file
+Warning! W1080: file initepg.obj is a 32-bit object file
+Warning! W1080: file vminit.obj is a 32-bit object file
+Warning! W1080: file em286ll.obj is a 32-bit object file
+INIT.ASM(126) : Warning A4184: Instructions and initialized data not supported in AT segments
+INIT.ASM(127) : Warning A4184: Instructions and initialized data not supported in AT segments
+INIT.ASM(130) : Warning A4184: Instructions and initialized data not supported in AT segments
+INIT.ASM(131) : Warning A4184: Instructions and initialized data not supported in AT segments
+ROM_SRCH.ASM(238) : Warning A4073: Size not specified, assuming: WORD
+ROM_SRCH.ASM(242) : Warning A4073: Size not specified, assuming: WORD
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EMMFUNCT.C(296): Warning! W131: No prototype found for function 'AllocateRawPages'
+EMMFUNCT.C(297): Warning! W107: Missing return value for function 'AllocatePages'
+EMMFUNCT.C(354): Warning! W107: Missing return value for function 'AllocateRawPages'
+EMMFUNCT.C(375): Warning! W131: No prototype found for function 'ReallocatePages'
+EMMFUNCT.C(399): Warning! W107: Missing return value for function 'DeallocatePages'
+EMM40.C(147): Warning! W131: No prototype found for function 'get_pages'
+EMM40.C(158): Warning! W131: No prototype found for function 'free_pages'
+EMM40.C(165): Warning! W107: Missing return value for function 'ReallocatePages'
+EMM40.C(213): Warning! W131: No prototype found for function 'GetUnallocatedPageCount'
+EMM40.C(216): Warning! W107: Missing return value for function 'GetInformation'
+EMMFUNCT.C(424): Warning! W107: Missing return value for function 'GetEMMHandlePages'
+EMMFUNCT.C(458): Warning! W107: Missing return value for function 'GetAllEMMHandlePages'
+EMM40.C(268): Warning! W131: No prototype found for function 'GetHandleDirectory'
+EMM40.C(286): Warning! W107: Missing return value for function 'GetSetHandleName'
+EMM40.C(347): Warning! W131: No prototype found for function 'copyin'
+EMM40.C(378): Warning! W107: Missing return value for function 'GetHandleDirectory'
+EMMP.ASM(840) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(840): Main line code
+EMM40.C(415): Warning! W131: No prototype found for function 'Get_Key_Val'
+EMM40.C(433): Warning! W107: Missing return value for function 'OSDisable'
+EMMP.ASM(788) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(788): Main line code
+EMMP.ASM(898) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(898): Main line code
+EMMP.ASM(1002) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(1002): Main line code
+EMMP.ASM(1054) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(1054): Main line code
+EMMP.ASM(1095) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(1095): Main line code
+EMMP.ASM(1482) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(1482): Main line code
+EMMP.ASM(2968) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(2968): Main line code
+EMMP.ASM(2999) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(2999): Main line code
+EMMP.ASM(3032) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(3032): Main line code
+EMMP.ASM(3079) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(3079): Main line code
+Warning! W1080: file rrtrap.obj is a 32-bit object file
+Warning! W1080: file vmtrap.obj is a 32-bit object file
+Warning! W1080: file rrtraphi.obj is a 32-bit object file
+Warning! W1080: file initepg.obj is a 32-bit object file
+Warning! W1080: file vminit.obj is a 32-bit object file
+Warning! W1080: file em286ll.obj is a 32-bit object file
+INIT.ASM(126) : Warning A4184: Instructions and initialized data not supported in AT segments
+INIT.ASM(127) : Warning A4184: Instructions and initialized data not supported in AT segments
+INIT.ASM(130) : Warning A4184: Instructions and initialized data not supported in AT segments
+INIT.ASM(131) : Warning A4184: Instructions and initialized data not supported in AT segments
+ROM_SRCH.ASM(238) : Warning A4073: Size not specified, assuming: WORD
+ROM_SRCH.ASM(242) : Warning A4073: Size not specified, assuming: WORD
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EM286LL.ASM(124) : Warning A4184: Instructions and initialized data not supported in AT segments
+EMMFUNCT.C(296): Warning! W131: No prototype found for function 'AllocateRawPages'
+EMMFUNCT.C(297): Warning! W107: Missing return value for function 'AllocatePages'
+EMMFUNCT.C(354): Warning! W107: Missing return value for function 'AllocateRawPages'
+EMMFUNCT.C(375): Warning! W131: No prototype found for function 'ReallocatePages'
+EMMFUNCT.C(399): Warning! W107: Missing return value for function 'DeallocatePages'
+EMM40.C(147): Warning! W131: No prototype found for function 'get_pages'
+EMM40.C(158): Warning! W131: No prototype found for function 'free_pages'
+EMM40.C(165): Warning! W107: Missing return value for function 'ReallocatePages'
+EMM40.C(213): Warning! W131: No prototype found for function 'GetUnallocatedPageCount'
+EMM40.C(216): Warning! W107: Missing return value for function 'GetInformation'
+EMMFUNCT.C(424): Warning! W107: Missing return value for function 'GetEMMHandlePages'
+EMMFUNCT.C(458): Warning! W107: Missing return value for function 'GetAllEMMHandlePages'
+EMM40.C(268): Warning! W131: No prototype found for function 'GetHandleDirectory'
+EMM40.C(286): Warning! W107: Missing return value for function 'GetSetHandleName'
+EMM40.C(347): Warning! W131: No prototype found for function 'copyin'
+EMM40.C(378): Warning! W107: Missing return value for function 'GetHandleDirectory'
+EMMP.ASM(840) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(840): Main line code
+EMM40.C(415): Warning! W131: No prototype found for function 'Get_Key_Val'
+EMM40.C(433): Warning! W107: Missing return value for function 'OSDisable'
+EMMP.ASM(788) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(788): Main line code
+EMMP.ASM(898) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(898): Main line code
+EMMP.ASM(1002) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(1002): Main line code
+EMMP.ASM(1054) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(1054): Main line code
+EMMP.ASM(1095) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(1095): Main line code
+EMMP.ASM(1482) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(1482): Main line code
+EMMP.ASM(2968) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(2968): Main line code
+EMMP.ASM(2999) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(2999): Main line code
+EMMP.ASM(3032) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(3032): Main line code
+EMMP.ASM(3079) : Warning A4130: Incompatible with segment alignment: 4
+ Dword_Align(1)[emmdef.inc]: Macro called from
+  EMMP.ASM(3079): Main line code
+Warning! W1080: file rrtrap.obj is a 32-bit object file
+Warning! W1080: file vmtrap.obj is a 32-bit object file
+Warning! W1080: file rrtraphi.obj is a 32-bit object file
+Warning! W1080: file initepg.obj is a 32-bit object file
+Warning! W1080: file vminit.obj is a 32-bit object file
+Warning! W1080: file em286ll.obj is a 32-bit object file
+  PASS: repository XMS core, concurrent UMB/EMS, rollback, and warm reboot
+bash tests/test_hma_qemu.sh
+Artifacts: /Users/ddanila/fun/msdos/out/baltic-repro-m5lr8g72/j4/out/hma-qemu.bD3Kjf
+screen_expect: 1 rules, connecting to /tmp/msdos-hma-qmp.qLJknI/qmp
+  rule[0] matched: HMA not available: Loading DOS low
+screen_expect: all 1 rules matched.
+  PASS: DOS=HIGH ownership, fallback, code-tail reclaim, A20 recovery, and EXEC
+bash tests/test_mem_umb_qemu.sh
+Evidence: /Users/ddanila/fun/msdos/out/baltic-repro-m5lr8g72/j4/out/mem-umb.ujseQL
+  PASS: MEM UMB reporting, state restoration, and memory-manager footprint budgets
+bash tests/test_loadhigh_qemu.sh
+  PASS: LOADHIGH/LH regions, minima, shrinking, fallback, restoration, and DOS=HIGH
+bash tests/test_devicehigh_qemu.sh
+  PASS: DEVICEHIGH regions, minima, shrinking, DOS= ordering, and fallback
+bash tests/test_installhigh_qemu.sh
+  PASS: INSTALLHIGH TSR placement, tail, state restoration, and fallback
+bash tests/test_xms_umb_transaction_qemu.sh
+  PASS: XMS transactions, UMB allocator lifecycle/model stress, loader sequence, and register contract
+bash tests/test_emm386_qemu.sh
+  PASS: EMM386 driver API and complete runtime command grammar passed
+bash tests/test_emm386_frames_qemu.sh
+EMM386 M1-M9, FRAME=, and /P page-frame selectors passed
+EMM386 M10-M14 low-memory page-frame selectors passed
+EMM386 B= banking boundaries passed
+EMM386 Pn= sparse physical-page assignment passed
+bash tests/test_emm386_load_options_qemu.sh
+EMM386 driver-load ON/OFF/AUTO and W= options passed; equal allocatable paragraphs 8DDE
+EMM386 H= handle limit passed
+EMM386 L= XMS and D= DMA reservations passed
+EMM386 A= alternate-register limit passed
+EMM386 A=254 alternate-register boundary passed
+bash tests/test_config_stacks_qemu.sh
+  PASS: STACKS=9,128 uses 116 paragraphs; STACKS=9,256 uses 188
+bash tests/test_config_dos_qemu.sh
+  PASS: DOS= accepts case-insensitive HIGH/LOW and UMB/NOUMB combinations
+bash tests/test_ifsfunc_filesys_qemu.sh
+  PASS: DOS=HIGH FILESYS/IFSFUNC lifecycle
+  PASS: FILESYS/IFSFUNC lifecycle with DOS resident low and high
+bash tests/test_int21_file_memory_qemu.sh
+  PASS: INT 21h file, directory, search, error, memory, and exhaustion contracts
+bash tests/test_int21_process_qemu.sh
+  PASS: INT 21h EXEC success/error, wait, IOCTL, and NLS contracts
+bash tests/test_int21_media_qemu.sh
+  PASS: INT 21h media ID readback and raw-image metadata update
+bash tests/test_dos_async_interrupt_qemu.sh
+Artifacts: /Users/ddanila/fun/msdos/out/baltic-repro-m5lr8g72/j4/out/dos-async-interrupt.Xm370r
+Artifacts: /Users/ddanila/fun/msdos/out/baltic-repro-m5lr8g72/j4/out/dos-async-interrupt.sAcCve
+  PASS: DOS=HIGH asynchronous callbacks
+  PASS: DOS INT 23h Ctrl-Break and INT 28h idle callbacks low and high
+bash tests/test_doskey_qemu.sh
+  PASS: DOSKEY APIs, macros, redirected input, navigation keys, modes, sizing, and reinstall

@@ -1,0 +1,136 @@
+{
+  "schema_version": 1,
+  "status": "extra-release-gates-passed",
+  "scope": "Pristine ordinary-baseline IBM AT acceptance and the historical baseline memory/kernel matrix, plus Baltic/CP866 static contracts. The 286 shell gates check guest markers and persisted results before host termination, with their documented private driver/probe variants; this is separate from composed-core guest-exit workflow qualification. Full default release tests and final deployment/distribution remain separate.",
+  "baseline": {
+    "status": "passed",
+    "source_commit": "1c3047e332be958f2b7511a0d7435c726e373d86",
+    "cwd": "/Users/ddanila/fun/msdos/out/baltic-repro-m5lr8g72/j4",
+    "environment": {
+      "FAIL_ON_SKIP": "1",
+      "BOX86_BIN": "/Users/ddanila/fun/msdos/out/ru-86box-vnc-bs283qnk/build/src/86Box",
+      "QT_QPA_PLATFORM": "offscreen",
+      "MEMORY_CORE_DIR": null,
+      "FLOPPY_IMAGE": null
+    },
+    "runs": [
+      {
+        "family": "286",
+        "command": [
+          "make",
+          "MEMORY_PROFILE=baseline",
+          "-k",
+          "-j1",
+          "test-286-acceptance"
+        ],
+        "started": 1789080514.118699,
+        "status": "passed",
+        "log": {
+          "path": "review/extra-release-286.log",
+          "sha256": "44906db43b6722a15269baa6676e0e8906b88ca981dcb46baa4c72a5ceb1daee"
+        },
+        "exit_code": 0,
+        "finished": 1789081040.905337,
+        "private_log": "out/baltic-pristine-baseline-286.log"
+      },
+      {
+        "family": "memory",
+        "command": [
+          "make",
+          "MEMORY_PROFILE=baseline",
+          "-k",
+          "-j1",
+          "test-himem-qemu",
+          "test-hma-qemu",
+          "test-mem-umb-qemu",
+          "test-loadhigh-qemu",
+          "test-devicehigh-qemu",
+          "test-installhigh-qemu",
+          "test-xms-umb-transaction-qemu",
+          "test-emm386-qemu",
+          "test-emm386-frames-qemu",
+          "test-emm386-load-options-qemu",
+          "test-config-stacks-qemu",
+          "test-config-dos-qemu",
+          "test-ifsfunc-filesys-qemu",
+          "test-int21-file-memory-qemu",
+          "test-int21-process-qemu",
+          "test-int21-media-qemu",
+          "test-dos-async-interrupt-qemu",
+          "test-doskey-qemu"
+        ],
+        "started": 1789081040.905847,
+        "status": "passed",
+        "log": {
+          "path": "review/extra-release-memory.log",
+          "sha256": "9f68320b48328ae39e911a14f20ca1bc427f9f85adaf4754bcdbb4b7260a7443"
+        },
+        "exit_code": 0,
+        "finished": 1789081369.5935931,
+        "private_log": "out/baltic-pristine-baseline-memory.log"
+      }
+    ]
+  },
+  "ordinary_core_sha256": {
+    "IO.SYS": "a1bad90c5681944e93cbebd6f5443976c5a2232155e8f6db9037b1927542e9a1",
+    "MSDOS.SYS": "b495ab1ccc6fd3e7672b4724a7cccde519d8a65171c0c0ed6bad73cd331a42e9",
+    "COMMAND.COM": "798ceb24eb752c8413e47400685b0574479eaf8750a4b76b7353fe2c542c2461",
+    "HIMEM.SYS": "9bbf85d769542e700f4e5ed73ba997756f51dd26ef2e7aac8cdc94ae555e8dab",
+    "EMM386.EXE": "0bba6763ffdaff89c7cbdfe591527374199a7a6a74b9a27e81e44a75c204f2dc"
+  },
+  "pristine_provenance": "pristine-qualification.json",
+  "static": {
+    "source_commit": "1c3047e332be958f2b7511a0d7435c726e373d86",
+    "cwd": "out/baltic-repro-m5lr8g72/j8",
+    "command": [
+      "make",
+      "-j1",
+      "test-baltic-font-sources",
+      "test-baltic-country-contract",
+      "test-baltic-keyboard-contract",
+      "test-baltic-country-records",
+      "test-baltic-cpi",
+      "test-baltic-keyboard-records",
+      "test-ru-font-sources",
+      "test-ru-cpi"
+    ],
+    "exit_code": 0,
+    "log": {
+      "path": "review/extra-release-static.log",
+      "sha256": "294a61636c372aa5479f5ab301668358e3cc7633390864b43685b9a0ea6a530e"
+    }
+  },
+  "production_source_parity": {
+    "against_commit": "e9533cbc16b3f395b4dc28f4a2c900b1f33d84a5",
+    "changed_files": []
+  },
+  "maps": {
+    "src/DOS/MSDOS.MAP": {
+      "path": "review/extra-release-MSDOS.MAP",
+      "sha256": "e7bf885b5df565e5c816ec868cc23274126670fb7315e7e142f5811c411b7c1f"
+    },
+    "src/BIOS/msBIO.map": {
+      "path": "review/extra-release-MSBIO.MAP",
+      "sha256": "9afd8058327443d4feb87937f25d35201c3f7f583fc2308db8ee0f78e8d35b5a"
+    },
+    "src/CMD/COMMAND/COMMAND.MAP": {
+      "path": "review/extra-release-COMMAND.MAP",
+      "sha256": "0a72c36e612bb25609ad9d7a146e7f70068c92735624f4cc2e471e2d717e5de7"
+    }
+  },
+  "backend": {
+    "86box_sha256": "798ac6072d5147ed4dca7540ca5303da1e4c2d190853c227dde9ea3b33583c18",
+    "roms": {
+      "machines/ibmat/BIOS_5170_15NOV85_U27.BIN": {
+        "sha256": "096ce496a06002eb68a5bc5db128a38dd7f27a4eda16ad7342c8076f1fc40683",
+        "size": 32768
+      },
+      "machines/ibmat/BIOS_5170_15NOV85_U47.BIN": {
+        "sha256": "4e4692031297e74053e37c8632dc73706de97d847d8f0e12995b4f009e5c71fe",
+        "size": 32768
+      }
+    },
+    "qemu_sha256": "d257f22f63fe113e7373e1aaddc90390ae768784bee448c3508bbf5751602831",
+    "qemu_version": "QEMU emulator version 11.1.1\nCopyright (c) 2003-2026 Fabrice Bellard and the QEMU Project developers"
+  }
+}

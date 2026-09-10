@@ -699,3 +699,19 @@ Other legacy plans keep their single prepared page. Reconstructed Russian and
 Baltic resource images preserve every guest payload and startup command from
 their previously passed images byte for byte. The qualification distinguishes
 these image checks from the completed physical AT selection run.
+
+
+## Additional release gates
+
+[Additional release qualification](extra-release-qualification.json) retains
+the pristine ordinary-baseline IBM AT acceptance and historical memory/kernel
+matrix, plus the Baltic and CP866 static contracts. All declared ordinary
+artifacts still match the pristine build hashes. The record preserves commands,
+source identity, backend hashes, logs and ordinary linker maps.
+
+These baseline gates complement the composed-core country, memory and workflow
+records. The historical 286 shell tests verify guest markers and persisted
+results before host termination, using their documented private driver/probe
+variants. They have a different scope from the composed-core workflows that
+require guest-triggered emulator exit. Full default release and final
+installation-media qualification remain separate requirements.
