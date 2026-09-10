@@ -30,6 +30,13 @@ org 100h
     mov dx,newline
     mov ah,9
     int 21h
+%ifdef GROUPED_INPUT
+    xor dx,dx
+    mov dl,[si]
+    inc si
+    push dx
+.group_read:
+%endif
 %ifdef DOS_INPUT
     mov ah,07h
     int 21h
@@ -53,6 +60,15 @@ org 100h
 %endif
     cmp ax,[si]
     jne fail
+%ifdef GROUPED_INPUT
+    add si,2
+    pop dx
+    dec dx
+    jz .group_done
+    push dx
+    jmp .group_read
+.group_done:
+%endif
     ; Let queued break events reach the IRQ handler before checking held bits.
     push ds
     mov ax,40h
@@ -81,7 +97,9 @@ org 100h
 %endif
     int 16h
     jnz fail
+%ifndef GROUPED_INPUT
     add si,2
+%endif
     inc bp
     cmp si,expected_end
     jb .next

@@ -57,9 +57,11 @@ def generate():
         lines += [f"DB '{code}'", f"DW OFFSET {code}_ENTRY,0"]
     for code, number, target, page in entries:
         lines += [f"DW {number},OFFSET {code}_ENTRY,0"]
+    # ID lookup begins at the first 454 entry and walks its declared group.
+    # Include the following EE alias so an explicit EE /ID:454 can match.
     for code, number, target, page in entries:
         lines += [f"{code}_ENTRY:", f"DB '{code}'", f"DW {number},OFFSET {target}_LOGIC,0",
-                  "DB 1,1", f"DW {page},OFFSET {target}_PAGE,0"]
+                  "DB 2,1" if code == "ET" else "DB 1,1", f"DW {page},OFFSET {target}_PAGE,0"]
     lines += ["INCLUDE KDFRUTAB.INC"]
 
     for language, profile in profiles.items():

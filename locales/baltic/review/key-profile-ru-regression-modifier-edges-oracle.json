@@ -1,0 +1,1492 @@
+[
+  {
+    "name": "select Russian",
+    "keys": [
+      [
+        "alt",
+        true
+      ],
+      [
+        "shift_r",
+        true
+      ],
+      [
+        "shift_r",
+        false
+      ],
+      [
+        "alt",
+        false
+      ],
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ]
+    ],
+    "bios_ax": 169
+  },
+  {
+    "name": "both Shifts count as Shift",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "shift_r",
+        true
+      ],
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ],
+      [
+        "shift_r",
+        false
+      ],
+      [
+        "shift",
+        false
+      ]
+    ],
+    "bios_ax": 137
+  },
+  {
+    "name": "Caps enabled",
+    "keys": [
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ],
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ]
+    ],
+    "bios_ax": 137
+  },
+  {
+    "name": "Caps with both Shifts",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "shift_r",
+        true
+      ],
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ],
+      [
+        "shift_r",
+        false
+      ],
+      [
+        "shift",
+        false
+      ]
+    ],
+    "bios_ax": 169
+  },
+  {
+    "name": "Caps punctuation slash",
+    "keys": [
+      [
+        "slash",
+        true
+      ],
+      [
+        "slash",
+        false
+      ]
+    ],
+    "bios_ax": 13614
+  },
+  {
+    "name": "Caps shifted punctuation slash",
+    "keys": [
+      [
+        "shift_r",
+        true
+      ],
+      [
+        "slash",
+        true
+      ],
+      [
+        "slash",
+        false
+      ],
+      [
+        "shift_r",
+        false
+      ]
+    ],
+    "bios_ax": 13612
+  },
+  {
+    "name": "Caps punctuation 3",
+    "keys": [
+      [
+        "3",
+        true
+      ],
+      [
+        "3",
+        false
+      ]
+    ],
+    "bios_ax": 1075
+  },
+  {
+    "name": "Caps shifted punctuation 3",
+    "keys": [
+      [
+        "shift_r",
+        true
+      ],
+      [
+        "3",
+        true
+      ],
+      [
+        "3",
+        false
+      ],
+      [
+        "shift_r",
+        false
+      ]
+    ],
+    "bios_ax": 1276
+  },
+  {
+    "name": "Caps punctuation 4",
+    "keys": [
+      [
+        "4",
+        true
+      ],
+      [
+        "4",
+        false
+      ]
+    ],
+    "bios_ax": 1332
+  },
+  {
+    "name": "Caps shifted punctuation 4",
+    "keys": [
+      [
+        "shift_r",
+        true
+      ],
+      [
+        "4",
+        true
+      ],
+      [
+        "4",
+        false
+      ],
+      [
+        "shift_r",
+        false
+      ]
+    ],
+    "bios_ax": 1339
+  },
+  {
+    "name": "Caps punctuation 6",
+    "keys": [
+      [
+        "6",
+        true
+      ],
+      [
+        "6",
+        false
+      ]
+    ],
+    "bios_ax": 1846
+  },
+  {
+    "name": "Caps shifted punctuation 6",
+    "keys": [
+      [
+        "shift_r",
+        true
+      ],
+      [
+        "6",
+        true
+      ],
+      [
+        "6",
+        false
+      ],
+      [
+        "shift_r",
+        false
+      ]
+    ],
+    "bios_ax": 1850
+  },
+  {
+    "name": "Caps punctuation 7",
+    "keys": [
+      [
+        "7",
+        true
+      ],
+      [
+        "7",
+        false
+      ]
+    ],
+    "bios_ax": 2103
+  },
+  {
+    "name": "Caps shifted punctuation 7",
+    "keys": [
+      [
+        "shift_r",
+        true
+      ],
+      [
+        "7",
+        true
+      ],
+      [
+        "7",
+        false
+      ],
+      [
+        "shift_r",
+        false
+      ]
+    ],
+    "bios_ax": 2111
+  },
+  {
+    "name": "Caps punctuation backslash",
+    "keys": [
+      [
+        "backslash",
+        true
+      ],
+      [
+        "backslash",
+        false
+      ]
+    ],
+    "bios_ax": 11100
+  },
+  {
+    "name": "Caps shifted punctuation backslash",
+    "keys": [
+      [
+        "shift_r",
+        true
+      ],
+      [
+        "backslash",
+        true
+      ],
+      [
+        "backslash",
+        false
+      ],
+      [
+        "shift_r",
+        false
+      ]
+    ],
+    "bios_ax": 11055
+  },
+  {
+    "name": "Caps ctrl q",
+    "keys": [
+      [
+        "ctrl",
+        true
+      ],
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ],
+      [
+        "ctrl",
+        false
+      ]
+    ],
+    "bios_ax": 4113
+  },
+  {
+    "name": "Caps Shift ctrl q",
+    "keys": [
+      [
+        "shift_r",
+        true
+      ],
+      [
+        "ctrl",
+        true
+      ],
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ],
+      [
+        "ctrl",
+        false
+      ],
+      [
+        "shift_r",
+        false
+      ]
+    ],
+    "bios_ax": 4113
+  },
+  {
+    "name": "Caps ctrl a",
+    "keys": [
+      [
+        "ctrl",
+        true
+      ],
+      [
+        "a",
+        true
+      ],
+      [
+        "a",
+        false
+      ],
+      [
+        "ctrl",
+        false
+      ]
+    ],
+    "bios_ax": 7681
+  },
+  {
+    "name": "Caps Shift ctrl a",
+    "keys": [
+      [
+        "shift_r",
+        true
+      ],
+      [
+        "ctrl",
+        true
+      ],
+      [
+        "a",
+        true
+      ],
+      [
+        "a",
+        false
+      ],
+      [
+        "ctrl",
+        false
+      ],
+      [
+        "shift_r",
+        false
+      ]
+    ],
+    "bios_ax": 7681
+  },
+  {
+    "name": "Caps ctrl z",
+    "keys": [
+      [
+        "ctrl",
+        true
+      ],
+      [
+        "z",
+        true
+      ],
+      [
+        "z",
+        false
+      ],
+      [
+        "ctrl",
+        false
+      ]
+    ],
+    "bios_ax": 11290
+  },
+  {
+    "name": "Caps Shift ctrl z",
+    "keys": [
+      [
+        "shift_r",
+        true
+      ],
+      [
+        "ctrl",
+        true
+      ],
+      [
+        "z",
+        true
+      ],
+      [
+        "z",
+        false
+      ],
+      [
+        "ctrl",
+        false
+      ],
+      [
+        "shift_r",
+        false
+      ]
+    ],
+    "bios_ax": 11290
+  },
+  {
+    "name": "Caps ctrl_r q",
+    "keys": [
+      [
+        "ctrl_r",
+        true
+      ],
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ],
+      [
+        "ctrl_r",
+        false
+      ]
+    ],
+    "bios_ax": 4113
+  },
+  {
+    "name": "Caps Shift ctrl_r q",
+    "keys": [
+      [
+        "shift_r",
+        true
+      ],
+      [
+        "ctrl_r",
+        true
+      ],
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ],
+      [
+        "ctrl_r",
+        false
+      ],
+      [
+        "shift_r",
+        false
+      ]
+    ],
+    "bios_ax": 4113
+  },
+  {
+    "name": "Caps ctrl_r a",
+    "keys": [
+      [
+        "ctrl_r",
+        true
+      ],
+      [
+        "a",
+        true
+      ],
+      [
+        "a",
+        false
+      ],
+      [
+        "ctrl_r",
+        false
+      ]
+    ],
+    "bios_ax": 7681
+  },
+  {
+    "name": "Caps Shift ctrl_r a",
+    "keys": [
+      [
+        "shift_r",
+        true
+      ],
+      [
+        "ctrl_r",
+        true
+      ],
+      [
+        "a",
+        true
+      ],
+      [
+        "a",
+        false
+      ],
+      [
+        "ctrl_r",
+        false
+      ],
+      [
+        "shift_r",
+        false
+      ]
+    ],
+    "bios_ax": 7681
+  },
+  {
+    "name": "Caps ctrl_r z",
+    "keys": [
+      [
+        "ctrl_r",
+        true
+      ],
+      [
+        "z",
+        true
+      ],
+      [
+        "z",
+        false
+      ],
+      [
+        "ctrl_r",
+        false
+      ]
+    ],
+    "bios_ax": 11290
+  },
+  {
+    "name": "Caps Shift ctrl_r z",
+    "keys": [
+      [
+        "shift_r",
+        true
+      ],
+      [
+        "ctrl_r",
+        true
+      ],
+      [
+        "z",
+        true
+      ],
+      [
+        "z",
+        false
+      ],
+      [
+        "ctrl_r",
+        false
+      ],
+      [
+        "shift_r",
+        false
+      ]
+    ],
+    "bios_ax": 11290
+  },
+  {
+    "name": "Caps disabled",
+    "keys": [
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ],
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ]
+    ],
+    "bios_ax": 169
+  },
+  {
+    "name": "Alt-letter BIOS passthrough ('alt',)",
+    "keys": [
+      [
+        "alt",
+        true
+      ],
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ],
+      [
+        "alt",
+        false
+      ]
+    ],
+    "bios_ax": 4096
+  },
+  {
+    "name": "Alt-letter BIOS passthrough ('alt_r',)",
+    "keys": [
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ]
+    ],
+    "bios_ax": 4096
+  },
+  {
+    "name": "Alt-letter BIOS passthrough ('ctrl', 'alt')",
+    "keys": [
+      [
+        "ctrl",
+        true
+      ],
+      [
+        "alt",
+        true
+      ],
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ],
+      [
+        "alt",
+        false
+      ],
+      [
+        "ctrl",
+        false
+      ]
+    ],
+    "bios_ax": 4096
+  },
+  {
+    "name": "third shift priority ('alt_r', 'shift_r') 3",
+    "keys": [
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "shift_r",
+        true
+      ],
+      [
+        "3",
+        true
+      ],
+      [
+        "3",
+        false
+      ],
+      [
+        "shift_r",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ]
+    ],
+    "bios_ax": 1059
+  },
+  {
+    "name": "third shift priority ('alt_r', 'shift_r') 4",
+    "keys": [
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "shift_r",
+        true
+      ],
+      [
+        "4",
+        true
+      ],
+      [
+        "4",
+        false
+      ],
+      [
+        "shift_r",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ]
+    ],
+    "bios_ax": 1533
+  },
+  {
+    "name": "third shift priority ('alt_r', 'shift_r') slash",
+    "keys": [
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "shift_r",
+        true
+      ],
+      [
+        "slash",
+        true
+      ],
+      [
+        "slash",
+        false
+      ],
+      [
+        "shift_r",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ]
+    ],
+    "bios_ax": 13615
+  },
+  {
+    "name": "third shift priority ('ctrl', 'alt', 'shift_r') 3",
+    "keys": [
+      [
+        "ctrl",
+        true
+      ],
+      [
+        "alt",
+        true
+      ],
+      [
+        "shift_r",
+        true
+      ],
+      [
+        "3",
+        true
+      ],
+      [
+        "3",
+        false
+      ],
+      [
+        "shift_r",
+        false
+      ],
+      [
+        "alt",
+        false
+      ],
+      [
+        "ctrl",
+        false
+      ]
+    ],
+    "bios_ax": 1059
+  },
+  {
+    "name": "third shift priority ('ctrl', 'alt', 'shift_r') 4",
+    "keys": [
+      [
+        "ctrl",
+        true
+      ],
+      [
+        "alt",
+        true
+      ],
+      [
+        "shift_r",
+        true
+      ],
+      [
+        "4",
+        true
+      ],
+      [
+        "4",
+        false
+      ],
+      [
+        "shift_r",
+        false
+      ],
+      [
+        "alt",
+        false
+      ],
+      [
+        "ctrl",
+        false
+      ]
+    ],
+    "bios_ax": 1533
+  },
+  {
+    "name": "third shift priority ('ctrl', 'alt', 'shift_r') slash",
+    "keys": [
+      [
+        "ctrl",
+        true
+      ],
+      [
+        "alt",
+        true
+      ],
+      [
+        "shift_r",
+        true
+      ],
+      [
+        "slash",
+        true
+      ],
+      [
+        "slash",
+        false
+      ],
+      [
+        "shift_r",
+        false
+      ],
+      [
+        "alt",
+        false
+      ],
+      [
+        "ctrl",
+        false
+      ]
+    ],
+    "bios_ax": 13615
+  },
+  {
+    "name": "third shift priority ('ctrl_r', 'alt', 'shift_r') 3",
+    "keys": [
+      [
+        "ctrl_r",
+        true
+      ],
+      [
+        "alt",
+        true
+      ],
+      [
+        "shift_r",
+        true
+      ],
+      [
+        "3",
+        true
+      ],
+      [
+        "3",
+        false
+      ],
+      [
+        "shift_r",
+        false
+      ],
+      [
+        "alt",
+        false
+      ],
+      [
+        "ctrl_r",
+        false
+      ]
+    ],
+    "bios_ax": 1059
+  },
+  {
+    "name": "third shift priority ('ctrl_r', 'alt', 'shift_r') 4",
+    "keys": [
+      [
+        "ctrl_r",
+        true
+      ],
+      [
+        "alt",
+        true
+      ],
+      [
+        "shift_r",
+        true
+      ],
+      [
+        "4",
+        true
+      ],
+      [
+        "4",
+        false
+      ],
+      [
+        "shift_r",
+        false
+      ],
+      [
+        "alt",
+        false
+      ],
+      [
+        "ctrl_r",
+        false
+      ]
+    ],
+    "bios_ax": 1533
+  },
+  {
+    "name": "third shift priority ('ctrl_r', 'alt', 'shift_r') slash",
+    "keys": [
+      [
+        "ctrl_r",
+        true
+      ],
+      [
+        "alt",
+        true
+      ],
+      [
+        "shift_r",
+        true
+      ],
+      [
+        "slash",
+        true
+      ],
+      [
+        "slash",
+        false
+      ],
+      [
+        "shift_r",
+        false
+      ],
+      [
+        "alt",
+        false
+      ],
+      [
+        "ctrl_r",
+        false
+      ]
+    ],
+    "bios_ax": 13615
+  },
+  {
+    "name": "third shift priority ('ctrl', 'alt_r', 'shift_r') 3",
+    "keys": [
+      [
+        "ctrl",
+        true
+      ],
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "shift_r",
+        true
+      ],
+      [
+        "3",
+        true
+      ],
+      [
+        "3",
+        false
+      ],
+      [
+        "shift_r",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ],
+      [
+        "ctrl",
+        false
+      ]
+    ],
+    "bios_ax": 1059
+  },
+  {
+    "name": "third shift priority ('ctrl', 'alt_r', 'shift_r') 4",
+    "keys": [
+      [
+        "ctrl",
+        true
+      ],
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "shift_r",
+        true
+      ],
+      [
+        "4",
+        true
+      ],
+      [
+        "4",
+        false
+      ],
+      [
+        "shift_r",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ],
+      [
+        "ctrl",
+        false
+      ]
+    ],
+    "bios_ax": 1533
+  },
+  {
+    "name": "third shift priority ('ctrl', 'alt_r', 'shift_r') slash",
+    "keys": [
+      [
+        "ctrl",
+        true
+      ],
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "shift_r",
+        true
+      ],
+      [
+        "slash",
+        true
+      ],
+      [
+        "slash",
+        false
+      ],
+      [
+        "shift_r",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ],
+      [
+        "ctrl",
+        false
+      ]
+    ],
+    "bios_ax": 13615
+  },
+  {
+    "name": "selection precedence ('alt', 'shift_r', 'shift')",
+    "keys": [
+      [
+        "alt",
+        true
+      ],
+      [
+        "shift_r",
+        true
+      ],
+      [
+        "shift",
+        true
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "shift_r",
+        false
+      ],
+      [
+        "alt",
+        false
+      ],
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ]
+    ],
+    "bios_ax": 4209
+  },
+  {
+    "name": "selection precedence ('alt', 'shift', 'shift_r')",
+    "keys": [
+      [
+        "alt",
+        true
+      ],
+      [
+        "shift",
+        true
+      ],
+      [
+        "shift_r",
+        true
+      ],
+      [
+        "shift_r",
+        false
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "alt",
+        false
+      ],
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ]
+    ],
+    "bios_ax": 169
+  },
+  {
+    "name": "selection precedence ('shift', 'shift_r', 'alt')",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "shift_r",
+        true
+      ],
+      [
+        "alt",
+        true
+      ],
+      [
+        "alt",
+        false
+      ],
+      [
+        "shift_r",
+        false
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ]
+    ],
+    "bios_ax": 169
+  },
+  {
+    "name": "selection precedence ('shift_r', 'shift', 'alt')",
+    "keys": [
+      [
+        "shift_r",
+        true
+      ],
+      [
+        "shift",
+        true
+      ],
+      [
+        "alt",
+        true
+      ],
+      [
+        "alt",
+        false
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "shift_r",
+        false
+      ],
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ]
+    ],
+    "bios_ax": 169
+  },
+  {
+    "name": "selection precedence ('alt_r', 'shift')",
+    "keys": [
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "shift",
+        true
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ],
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ]
+    ],
+    "bios_ax": 4209
+  },
+  {
+    "name": "selection precedence ('alt_r', 'shift_r')",
+    "keys": [
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "shift_r",
+        true
+      ],
+      [
+        "shift_r",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ],
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ]
+    ],
+    "bios_ax": 169
+  },
+  {
+    "name": "ordinary Russian after releases",
+    "keys": [
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ]
+    ],
+    "bios_ax": 169
+  },
+  {
+    "name": "return Latin",
+    "keys": [
+      [
+        "alt",
+        true
+      ],
+      [
+        "shift",
+        true
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "alt",
+        false
+      ],
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ]
+    ],
+    "bios_ax": 4209
+  },
+  {
+    "name": "Latin Caps",
+    "keys": [
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ],
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ]
+    ],
+    "bios_ax": 4177
+  },
+  {
+    "name": "Latin Caps Shift",
+    "keys": [
+      [
+        "shift_r",
+        true
+      ],
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ],
+      [
+        "shift_r",
+        false
+      ]
+    ],
+    "bios_ax": 4209
+  },
+  {
+    "name": "Latin Caps off",
+    "keys": [
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ],
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ]
+    ],
+    "bios_ax": 4209
+  }
+]

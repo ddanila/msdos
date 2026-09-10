@@ -426,3 +426,14 @@ suppressed FF and a scan-bearing E0 character. Russian physical/modifier/
 resource regressions and expanded-library RU/GR reloads are retained separately.
 The focused Baltic boots do not establish composed HIGH/LOW, legacy BIOS,
 installed profiles or full pending-composition lifecycle behavior.
+
+The [Baltic keyboard profile qualification](../locales/baltic/keyboard-profile-qualification.json)
+records HIGH/LOW physical input and corruption gates, grouped composition
+lifecycle checks, and layout/ID selection and rejection. Runtime memory probes
+must pass before and after successful input. Selection phases check status,
+physical bytes and guest completion; failed selections preserve the active
+layout. The EE explicit-ID case guards the shared ET/EE directory group.
+`test-baltic-keyboard-lifecycle-qemu` and `test-baltic-keyboard-selection-qemu`
+are included in `make test`. Pending composition across mode/reload boundaries,
+additional modifier/fallback edges, deep library validation and legacy BIOS
+remain open; these gates do not establish installed or complete text workflows.

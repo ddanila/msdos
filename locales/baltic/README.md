@@ -122,7 +122,30 @@ without this bit retain the original FF ignore behavior. The pack therefore
 requires the matching project KEYB executable. The retained sources and their
 notices remain linked from the selected keyboard contract.
 
-Baltic selection/reload/rejection, pending composition lifecycle, remaining
-modifier edges, legacy BIOS input and complete language workflows remain open.
+Further keyboard profile and lifecycle qualification is recorded below.
+Legacy BIOS input and complete language workflows remain open.
 The Russian keyboard regression suite uses the same expanded library and
 matching KEYB executable.
+
+[Keyboard profile qualification](keyboard-profile-qualification.json) extends
+the physical input matrix to HIGH/UMB and LOW with runtime profile probes
+before and after input. `test-baltic-keyboard-qemu` now includes both profiles
+for BIOS/DOS input and corruption controls. The selected library groups ET and
+EE together for explicit ID lookup, allowing `EE /ID:454` to find the alias.
+The record validator also rejects a regressed alias-group count.
+
+`test-baltic-keyboard-lifecycle-qemu` checks grouped output for unmatched,
+repeated and changed accents, pending accents followed by control/navigation
+keys, cleanup after those sequences, modifier release and US/national hotkeys.
+It runs BIOS and DOS reads on both memory profiles. Each group must leave the
+keyboard queue empty and modifiers released.
+
+`test-baltic-keyboard-selection-qemu` exercises defaults and explicit IDs,
+Baltic/Russian/German transitions, unsupported pages, absent and mismatched
+IDs, missing files, bad signatures and short headers. Each phase checks status
+and physical input; rejected loads must preserve the active language. These
+gates are included in `make test`.
+
+Pending accents across US/national changes or KEYB reloads, additional modifier
+and fallback edges, deeply malformed libraries, legacy keyboards, installation
+and complete language workflows remain separate open requirements.

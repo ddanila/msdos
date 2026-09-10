@@ -1,0 +1,130 @@
+[
+  {
+    "name": "initial national",
+    "keys": [
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ]
+    ],
+    "bios_words": [
+      4304
+    ]
+  },
+  {
+    "name": "US hotkey",
+    "keys": [
+      [
+        "ctrl",
+        true
+      ],
+      [
+        "alt",
+        true
+      ],
+      [
+        "f1",
+        true
+      ],
+      [
+        "f1",
+        false
+      ],
+      [
+        "alt",
+        false
+      ],
+      [
+        "ctrl",
+        false
+      ],
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ]
+    ],
+    "bios_words": [
+      4209
+    ]
+  },
+  {
+    "name": "national hotkey",
+    "keys": [
+      [
+        "ctrl",
+        true
+      ],
+      [
+        "alt",
+        true
+      ],
+      [
+        "f2",
+        true
+      ],
+      [
+        "f2",
+        false
+      ],
+      [
+        "alt",
+        false
+      ],
+      [
+        "ctrl",
+        false
+      ],
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ]
+    ],
+    "bios_words": [
+      4304
+    ]
+  },
+  {
+    "name": "Alt Shift keeps national",
+    "keys": [
+      [
+        "alt",
+        true
+      ],
+      [
+        "shift",
+        true
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "alt",
+        false
+      ],
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ]
+    ],
+    "bios_words": [
+      4304
+    ]
+  }
+]

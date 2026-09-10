@@ -1385,6 +1385,15 @@ test-baltic-keyboard-records: $(BIN)/jwasm-bin $(SRC)/DEV/KEYBOARD/KDFBALT.ASM
 .PHONY: test-baltic-keyboard-qemu
 test: test-baltic-keyboard-qemu
 test-baltic-keyboard-qemu: deploy $(SRC)/DEV/KEYBOARD/KEYBRD2.SYS $(SRC)/CMD/KEYB/KEYB.COM
-	python3 tests/test_baltic_keyboard_qemu.py
-	python3 tests/test_baltic_keyboard_qemu.py --dos
-	python3 tests/test_baltic_keyboard_qemu.py --controls-only
+	python3 tests/test_baltic_keyboard_qemu.py --profile high --profile low
+	python3 tests/test_baltic_keyboard_qemu.py --dos --profile high --profile low
+	python3 tests/test_baltic_keyboard_qemu.py --controls-only --profile high --profile low
+
+.PHONY: test-baltic-keyboard-lifecycle-qemu test-baltic-keyboard-selection-qemu
+test: test-baltic-keyboard-lifecycle-qemu test-baltic-keyboard-selection-qemu
+test-baltic-keyboard-lifecycle-qemu: deploy $(SRC)/DEV/KEYBOARD/KEYBRD2.SYS $(SRC)/CMD/KEYB/KEYB.COM
+	python3 tests/test_baltic_keyboard_lifecycle_qemu.py
+	python3 tests/test_baltic_keyboard_lifecycle_qemu.py --dos
+
+test-baltic-keyboard-selection-qemu: deploy $(SRC)/DEV/KEYBOARD/KEYBRD2.SYS $(SRC)/CMD/KEYB/KEYB.COM
+	python3 tests/test_baltic_keyboard_selection_qemu.py

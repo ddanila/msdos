@@ -89,6 +89,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--language', choices=['et', 'lv', 'lt'], action='append')
     parser.add_argument('--dos', action='store_true')
+    parser.add_argument('--profile', choices=['high','low'], action='append')
     parser.add_argument('--controls-only', action='store_true')
     parser.add_argument('--library', type=Path, default=ROOT/'src/DEV/KEYBOARD/KEYBRD2.SYS')
     args = parser.parse_args()
@@ -105,52 +106,53 @@ def main():
         (work/'results.json').write_text(json.dumps(report, indent=2) + '\n')
     save()
     try:
-        for language in ([] if args.controls_only else args.language or profiles):
-            report['cases'].append(run_case(
-                work, base, language, dos=args.dos, enhanced=True, cases=steps(profiles[language], dos=args.dos),
-                library_source=args.library.resolve(),
-                keyb_selection=language.upper()+',775,KEYBRD2.SYS',
-                country={'et': 372, 'lv': 371, 'lt': 370}[language]))
-            save()
-        if args.controls_only:
-            original = args.library.read_bytes()
-            sections = validate(original)
-            for name, language, dos, events, expected, failure in [
-                    ('wrong-tilde', 'et', False, tap('bracket_right'), 0x1be4, b'actual=1BE5'),
-                    ('suppressed-ff', 'lv', False, tap('alt_r','1')+tap('a'), 0x02ff, b'actual=1E61'),
-                    ('nonzero-e0-scan', 'et', True, tap('equal')+tap('shift','o'), 0x00e0, b'actual=0700')]:
-                data = bytearray(original)
-                _, pos, end = sections[language.upper()]
-                pos += 4
-                mutations = 0
-                while pos < end-2:
-                    size = struct.unpack_from('<H', data, pos)[0]
-                    table = pos+7
-                    length = struct.unpack_from('<H', data, table)[0]
-                    if length:
-                        for index in range(data[table+3]):
-                            entry = table+4+3*index
-                            scan, byte, output_scan = data[entry:entry+3]
-                            if name == 'wrong-tilde' and scan == 27 and byte == 228:
-                                data[entry+1] = 229
-                                mutations += 1
-                            elif name == 'suppressed-ff' and byte == 255:
-                                data[table+2] &= ~16
-                                mutations += 1
-                            elif name == 'nonzero-e0-scan' and byte == 224:
-                                assert output_scan == 0
-                                data[entry+2] = scan
-                                mutations += 1
-                    pos += size
-                assert mutations
-                mutated = work/(name+'.sys')
-                mutated.write_bytes(data)
+        for memory in args.profile or [None]:
+            for language in ([] if args.controls_only else args.language or profiles):
                 report['cases'].append(run_case(
-                    work, base, name, dos=dos, enhanced=True,
-                    cases=[{'name': name, 'keys': events, 'bios_ax': expected}],
-                    library_source=mutated, keyb_selection=language.upper()+',775,KEYBRD2.SYS',
-                    country={'et':372,'lv':371}[language], expected_failure=b'RU_KEY_FAIL '+failure))
+                    work, base, (memory+'-' if memory else '')+language, memory_profile=memory, dos=args.dos, enhanced=True, cases=steps(profiles[language], dos=args.dos),
+                    library_source=args.library.resolve(),
+                    keyb_selection=language.upper()+',775,KEYBRD2.SYS',
+                    country={'et': 372, 'lv': 371, 'lt': 370}[language]))
                 save()
+            if args.controls_only:
+                original = args.library.read_bytes()
+                sections = validate(original)
+                for name, language, dos, events, expected, failure in [
+                        ('wrong-tilde', 'et', False, tap('bracket_right'), 0x1be4, b'actual=1BE5'),
+                        ('suppressed-ff', 'lv', False, tap('alt_r','1')+tap('a'), 0x02ff, b'actual=1E61'),
+                        ('nonzero-e0-scan', 'et', True, tap('equal')+tap('shift','o'), 0x00e0, b'actual=0700')]:
+                    data = bytearray(original)
+                    _, pos, end = sections[language.upper()]
+                    pos += 4
+                    mutations = 0
+                    while pos < end-2:
+                        size = struct.unpack_from('<H', data, pos)[0]
+                        table = pos+7
+                        length = struct.unpack_from('<H', data, table)[0]
+                        if length:
+                            for index in range(data[table+3]):
+                                entry = table+4+3*index
+                                scan, byte, output_scan = data[entry:entry+3]
+                                if name == 'wrong-tilde' and scan == 27 and byte == 228:
+                                    data[entry+1] = 229
+                                    mutations += 1
+                                elif name == 'suppressed-ff' and byte == 255:
+                                    data[table+2] &= ~16
+                                    mutations += 1
+                                elif name == 'nonzero-e0-scan' and byte == 224:
+                                    assert output_scan == 0
+                                    data[entry+2] = scan
+                                    mutations += 1
+                        pos += size
+                    assert mutations
+                    mutated = work/(name+'.sys')
+                    mutated.write_bytes(data)
+                    report['cases'].append(run_case(
+                        work, base, (memory+'-' if memory else '')+name, memory_profile=memory, dos=dos, enhanced=True,
+                        cases=[{'name': name, 'keys': events, 'bios_ax': expected}],
+                        library_source=mutated, keyb_selection=language.upper()+',775,KEYBRD2.SYS',
+                        country={'et':372,'lv':371}[language], expected_failure=b'RU_KEY_FAIL '+failure))
+                    save()
     except Exception as error:
         report.update(status='failed', failure=str(error))
         save()

@@ -26,7 +26,7 @@ def validate(data):
         require(entry == 88 + 16 * index, 'entry boundary')
         require(word(directory+30) == identifier and pointer(directory+32) == entry, 'identifier directory')
         require(take(entry, 4) == code.encode() + struct.pack('<H', identifier), 'entry identity')
-        require(take(entry+8, 2) == b'\x01\x01' and word(entry+10) == page_id, 'page directory')
+        require(take(entry+8, 2) == bytes([2 if code == 'ET' else 1, 1]) and word(entry+10) == page_id, 'page directory')
         logic, page = pointer(entry+4), pointer(entry+12)
         common = logic + word(logic)
         end = page + word(page)

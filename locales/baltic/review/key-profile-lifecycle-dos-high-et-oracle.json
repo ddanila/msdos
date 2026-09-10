@@ -1,0 +1,3102 @@
+[
+  {
+    "name": "initial national",
+    "keys": [
+      [
+        "bracket_right",
+        true
+      ],
+      [
+        "bracket_right",
+        false
+      ]
+    ],
+    "bios_words": [
+      7140
+    ]
+  },
+  {
+    "name": "US hotkey",
+    "keys": [
+      [
+        "ctrl",
+        true
+      ],
+      [
+        "alt",
+        true
+      ],
+      [
+        "f1",
+        true
+      ],
+      [
+        "f1",
+        false
+      ],
+      [
+        "alt",
+        false
+      ],
+      [
+        "ctrl",
+        false
+      ],
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ]
+    ],
+    "bios_words": [
+      4209
+    ]
+  },
+  {
+    "name": "national hotkey",
+    "keys": [
+      [
+        "ctrl",
+        true
+      ],
+      [
+        "alt",
+        true
+      ],
+      [
+        "f2",
+        true
+      ],
+      [
+        "f2",
+        false
+      ],
+      [
+        "alt",
+        false
+      ],
+      [
+        "ctrl",
+        false
+      ],
+      [
+        "bracket_right",
+        true
+      ],
+      [
+        "bracket_right",
+        false
+      ]
+    ],
+    "bios_words": [
+      7140
+    ]
+  },
+  {
+    "name": "Alt Shift keeps national",
+    "keys": [
+      [
+        "alt",
+        true
+      ],
+      [
+        "shift",
+        true
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "alt",
+        false
+      ],
+      [
+        "bracket_right",
+        true
+      ],
+      [
+        "bracket_right",
+        false
+      ]
+    ],
+    "bios_words": [
+      7140
+    ]
+  },
+  {
+    "name": "unmatched 4",
+    "keys": [
+      [
+        "equal",
+        true
+      ],
+      [
+        "equal",
+        false
+      ],
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ]
+    ],
+    "bios_words": [
+      239,
+      4209
+    ]
+  },
+  {
+    "name": "cleared after unmatched 4",
+    "keys": [
+      [
+        "a",
+        true
+      ],
+      [
+        "a",
+        false
+      ]
+    ],
+    "bios_words": [
+      7777
+    ]
+  },
+  {
+    "name": "repeated 4",
+    "keys": [
+      [
+        "equal",
+        true
+      ],
+      [
+        "equal",
+        false
+      ],
+      [
+        "equal",
+        true
+      ],
+      [
+        "equal",
+        false
+      ],
+      [
+        "spc",
+        true
+      ],
+      [
+        "spc",
+        false
+      ]
+    ],
+    "bios_words": [
+      239,
+      239
+    ]
+  },
+  {
+    "name": "cleared after repeated 4",
+    "keys": [
+      [
+        "a",
+        true
+      ],
+      [
+        "a",
+        false
+      ]
+    ],
+    "bios_words": [
+      7777
+    ]
+  },
+  {
+    "name": "pending 4 control tab",
+    "keys": [
+      [
+        "equal",
+        true
+      ],
+      [
+        "equal",
+        false
+      ],
+      [
+        "tab",
+        true
+      ],
+      [
+        "tab",
+        false
+      ]
+    ],
+    "bios_words": [
+      239,
+      3849
+    ]
+  },
+  {
+    "name": "cleared after control 4 tab",
+    "keys": [
+      [
+        "a",
+        true
+      ],
+      [
+        "a",
+        false
+      ]
+    ],
+    "bios_words": [
+      7777
+    ]
+  },
+  {
+    "name": "pending 4 control backspace",
+    "keys": [
+      [
+        "equal",
+        true
+      ],
+      [
+        "equal",
+        false
+      ],
+      [
+        "backspace",
+        true
+      ],
+      [
+        "backspace",
+        false
+      ]
+    ],
+    "bios_words": [
+      239,
+      3592
+    ]
+  },
+  {
+    "name": "cleared after control 4 backspace",
+    "keys": [
+      [
+        "a",
+        true
+      ],
+      [
+        "a",
+        false
+      ]
+    ],
+    "bios_words": [
+      7777
+    ]
+  },
+  {
+    "name": "pending 4 control ret",
+    "keys": [
+      [
+        "equal",
+        true
+      ],
+      [
+        "equal",
+        false
+      ],
+      [
+        "ret",
+        true
+      ],
+      [
+        "ret",
+        false
+      ]
+    ],
+    "bios_words": [
+      239,
+      7181
+    ]
+  },
+  {
+    "name": "cleared after control 4 ret",
+    "keys": [
+      [
+        "a",
+        true
+      ],
+      [
+        "a",
+        false
+      ]
+    ],
+    "bios_words": [
+      7777
+    ]
+  },
+  {
+    "name": "pending 4 control esc",
+    "keys": [
+      [
+        "equal",
+        true
+      ],
+      [
+        "equal",
+        false
+      ],
+      [
+        "esc",
+        true
+      ],
+      [
+        "esc",
+        false
+      ]
+    ],
+    "bios_words": [
+      239,
+      283
+    ]
+  },
+  {
+    "name": "cleared after control 4 esc",
+    "keys": [
+      [
+        "a",
+        true
+      ],
+      [
+        "a",
+        false
+      ]
+    ],
+    "bios_words": [
+      7777
+    ]
+  },
+  {
+    "name": "pending 4 control f3",
+    "keys": [
+      [
+        "equal",
+        true
+      ],
+      [
+        "equal",
+        false
+      ],
+      [
+        "f3",
+        true
+      ],
+      [
+        "f3",
+        false
+      ]
+    ],
+    "bios_words": [
+      239,
+      15616
+    ]
+  },
+  {
+    "name": "cleared after control 4 f3",
+    "keys": [
+      [
+        "a",
+        true
+      ],
+      [
+        "a",
+        false
+      ]
+    ],
+    "bios_words": [
+      7777
+    ]
+  },
+  {
+    "name": "pending 4 control left",
+    "keys": [
+      [
+        "equal",
+        true
+      ],
+      [
+        "equal",
+        false
+      ],
+      [
+        "left",
+        true
+      ],
+      [
+        "left",
+        false
+      ]
+    ],
+    "bios_words": [
+      239,
+      19200
+    ]
+  },
+  {
+    "name": "cleared after control 4 left",
+    "keys": [
+      [
+        "a",
+        true
+      ],
+      [
+        "a",
+        false
+      ]
+    ],
+    "bios_words": [
+      7777
+    ]
+  },
+  {
+    "name": "modifier release preserves pending 4",
+    "keys": [
+      [
+        "equal",
+        true
+      ],
+      [
+        "equal",
+        false
+      ],
+      [
+        "shift",
+        true
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "ctrl",
+        true
+      ],
+      [
+        "ctrl",
+        false
+      ],
+      [
+        "c",
+        true
+      ],
+      [
+        "c",
+        false
+      ]
+    ],
+    "bios_words": [
+      11911
+    ]
+  },
+  {
+    "name": "change accent 4 to 1",
+    "keys": [
+      [
+        "equal",
+        true
+      ],
+      [
+        "equal",
+        false
+      ],
+      [
+        "shift",
+        true
+      ],
+      [
+        "equal",
+        true
+      ],
+      [
+        "equal",
+        false
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "spc",
+        true
+      ],
+      [
+        "spc",
+        false
+      ]
+    ],
+    "bios_words": [
+      239,
+      96
+    ]
+  },
+  {
+    "name": "change accent 4 to 3",
+    "keys": [
+      [
+        "equal",
+        true
+      ],
+      [
+        "equal",
+        false
+      ],
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "apostrophe",
+        true
+      ],
+      [
+        "apostrophe",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ],
+      [
+        "spc",
+        true
+      ],
+      [
+        "spc",
+        false
+      ]
+    ],
+    "bios_words": [
+      239,
+      94
+    ]
+  },
+  {
+    "name": "change accent 4 to 5",
+    "keys": [
+      [
+        "equal",
+        true
+      ],
+      [
+        "equal",
+        false
+      ],
+      [
+        "grave_accent",
+        true
+      ],
+      [
+        "grave_accent",
+        false
+      ],
+      [
+        "spc",
+        true
+      ],
+      [
+        "spc",
+        false
+      ]
+    ],
+    "bios_words": [
+      239,
+      39
+    ]
+  },
+  {
+    "name": "change accent 4 to 2",
+    "keys": [
+      [
+        "equal",
+        true
+      ],
+      [
+        "equal",
+        false
+      ],
+      [
+        "shift",
+        true
+      ],
+      [
+        "grave_accent",
+        true
+      ],
+      [
+        "grave_accent",
+        false
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "spc",
+        true
+      ],
+      [
+        "spc",
+        false
+      ]
+    ],
+    "bios_words": [
+      239,
+      126
+    ]
+  },
+  {
+    "name": "unmatched 1",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "equal",
+        true
+      ],
+      [
+        "equal",
+        false
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ]
+    ],
+    "bios_words": [
+      96,
+      4209
+    ]
+  },
+  {
+    "name": "cleared after unmatched 1",
+    "keys": [
+      [
+        "a",
+        true
+      ],
+      [
+        "a",
+        false
+      ]
+    ],
+    "bios_words": [
+      7777
+    ]
+  },
+  {
+    "name": "repeated 1",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "equal",
+        true
+      ],
+      [
+        "equal",
+        false
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "shift",
+        true
+      ],
+      [
+        "equal",
+        true
+      ],
+      [
+        "equal",
+        false
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "spc",
+        true
+      ],
+      [
+        "spc",
+        false
+      ]
+    ],
+    "bios_words": [
+      96,
+      96
+    ]
+  },
+  {
+    "name": "cleared after repeated 1",
+    "keys": [
+      [
+        "a",
+        true
+      ],
+      [
+        "a",
+        false
+      ]
+    ],
+    "bios_words": [
+      7777
+    ]
+  },
+  {
+    "name": "pending 1 control tab",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "equal",
+        true
+      ],
+      [
+        "equal",
+        false
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "tab",
+        true
+      ],
+      [
+        "tab",
+        false
+      ]
+    ],
+    "bios_words": [
+      96,
+      3849
+    ]
+  },
+  {
+    "name": "cleared after control 1 tab",
+    "keys": [
+      [
+        "a",
+        true
+      ],
+      [
+        "a",
+        false
+      ]
+    ],
+    "bios_words": [
+      7777
+    ]
+  },
+  {
+    "name": "pending 1 control backspace",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "equal",
+        true
+      ],
+      [
+        "equal",
+        false
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "backspace",
+        true
+      ],
+      [
+        "backspace",
+        false
+      ]
+    ],
+    "bios_words": [
+      96,
+      3592
+    ]
+  },
+  {
+    "name": "cleared after control 1 backspace",
+    "keys": [
+      [
+        "a",
+        true
+      ],
+      [
+        "a",
+        false
+      ]
+    ],
+    "bios_words": [
+      7777
+    ]
+  },
+  {
+    "name": "pending 1 control ret",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "equal",
+        true
+      ],
+      [
+        "equal",
+        false
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "ret",
+        true
+      ],
+      [
+        "ret",
+        false
+      ]
+    ],
+    "bios_words": [
+      96,
+      7181
+    ]
+  },
+  {
+    "name": "cleared after control 1 ret",
+    "keys": [
+      [
+        "a",
+        true
+      ],
+      [
+        "a",
+        false
+      ]
+    ],
+    "bios_words": [
+      7777
+    ]
+  },
+  {
+    "name": "pending 1 control esc",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "equal",
+        true
+      ],
+      [
+        "equal",
+        false
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "esc",
+        true
+      ],
+      [
+        "esc",
+        false
+      ]
+    ],
+    "bios_words": [
+      96,
+      283
+    ]
+  },
+  {
+    "name": "cleared after control 1 esc",
+    "keys": [
+      [
+        "a",
+        true
+      ],
+      [
+        "a",
+        false
+      ]
+    ],
+    "bios_words": [
+      7777
+    ]
+  },
+  {
+    "name": "pending 1 control f3",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "equal",
+        true
+      ],
+      [
+        "equal",
+        false
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "f3",
+        true
+      ],
+      [
+        "f3",
+        false
+      ]
+    ],
+    "bios_words": [
+      96,
+      15616
+    ]
+  },
+  {
+    "name": "cleared after control 1 f3",
+    "keys": [
+      [
+        "a",
+        true
+      ],
+      [
+        "a",
+        false
+      ]
+    ],
+    "bios_words": [
+      7777
+    ]
+  },
+  {
+    "name": "pending 1 control left",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "equal",
+        true
+      ],
+      [
+        "equal",
+        false
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "left",
+        true
+      ],
+      [
+        "left",
+        false
+      ]
+    ],
+    "bios_words": [
+      96,
+      19200
+    ]
+  },
+  {
+    "name": "cleared after control 1 left",
+    "keys": [
+      [
+        "a",
+        true
+      ],
+      [
+        "a",
+        false
+      ]
+    ],
+    "bios_words": [
+      7777
+    ]
+  },
+  {
+    "name": "modifier release preserves pending 1",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "equal",
+        true
+      ],
+      [
+        "equal",
+        false
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "shift",
+        true
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "ctrl",
+        true
+      ],
+      [
+        "ctrl",
+        false
+      ],
+      [
+        "a",
+        true
+      ],
+      [
+        "a",
+        false
+      ]
+    ],
+    "bios_words": [
+      7811
+    ]
+  },
+  {
+    "name": "change accent 1 to 4",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "equal",
+        true
+      ],
+      [
+        "equal",
+        false
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "equal",
+        true
+      ],
+      [
+        "equal",
+        false
+      ],
+      [
+        "spc",
+        true
+      ],
+      [
+        "spc",
+        false
+      ]
+    ],
+    "bios_words": [
+      96,
+      239
+    ]
+  },
+  {
+    "name": "change accent 1 to 3",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "equal",
+        true
+      ],
+      [
+        "equal",
+        false
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "apostrophe",
+        true
+      ],
+      [
+        "apostrophe",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ],
+      [
+        "spc",
+        true
+      ],
+      [
+        "spc",
+        false
+      ]
+    ],
+    "bios_words": [
+      96,
+      94
+    ]
+  },
+  {
+    "name": "change accent 1 to 5",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "equal",
+        true
+      ],
+      [
+        "equal",
+        false
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "grave_accent",
+        true
+      ],
+      [
+        "grave_accent",
+        false
+      ],
+      [
+        "spc",
+        true
+      ],
+      [
+        "spc",
+        false
+      ]
+    ],
+    "bios_words": [
+      96,
+      39
+    ]
+  },
+  {
+    "name": "change accent 1 to 2",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "equal",
+        true
+      ],
+      [
+        "equal",
+        false
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "shift",
+        true
+      ],
+      [
+        "grave_accent",
+        true
+      ],
+      [
+        "grave_accent",
+        false
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "spc",
+        true
+      ],
+      [
+        "spc",
+        false
+      ]
+    ],
+    "bios_words": [
+      96,
+      126
+    ]
+  },
+  {
+    "name": "unmatched 3",
+    "keys": [
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "apostrophe",
+        true
+      ],
+      [
+        "apostrophe",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ],
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ]
+    ],
+    "bios_words": [
+      94,
+      4209
+    ]
+  },
+  {
+    "name": "cleared after unmatched 3",
+    "keys": [
+      [
+        "a",
+        true
+      ],
+      [
+        "a",
+        false
+      ]
+    ],
+    "bios_words": [
+      7777
+    ]
+  },
+  {
+    "name": "repeated 3",
+    "keys": [
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "apostrophe",
+        true
+      ],
+      [
+        "apostrophe",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ],
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "apostrophe",
+        true
+      ],
+      [
+        "apostrophe",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ],
+      [
+        "spc",
+        true
+      ],
+      [
+        "spc",
+        false
+      ]
+    ],
+    "bios_words": [
+      94,
+      94
+    ]
+  },
+  {
+    "name": "cleared after repeated 3",
+    "keys": [
+      [
+        "a",
+        true
+      ],
+      [
+        "a",
+        false
+      ]
+    ],
+    "bios_words": [
+      7777
+    ]
+  },
+  {
+    "name": "pending 3 control tab",
+    "keys": [
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "apostrophe",
+        true
+      ],
+      [
+        "apostrophe",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ],
+      [
+        "tab",
+        true
+      ],
+      [
+        "tab",
+        false
+      ]
+    ],
+    "bios_words": [
+      94,
+      3849
+    ]
+  },
+  {
+    "name": "cleared after control 3 tab",
+    "keys": [
+      [
+        "a",
+        true
+      ],
+      [
+        "a",
+        false
+      ]
+    ],
+    "bios_words": [
+      7777
+    ]
+  },
+  {
+    "name": "pending 3 control backspace",
+    "keys": [
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "apostrophe",
+        true
+      ],
+      [
+        "apostrophe",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ],
+      [
+        "backspace",
+        true
+      ],
+      [
+        "backspace",
+        false
+      ]
+    ],
+    "bios_words": [
+      94,
+      3592
+    ]
+  },
+  {
+    "name": "cleared after control 3 backspace",
+    "keys": [
+      [
+        "a",
+        true
+      ],
+      [
+        "a",
+        false
+      ]
+    ],
+    "bios_words": [
+      7777
+    ]
+  },
+  {
+    "name": "pending 3 control ret",
+    "keys": [
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "apostrophe",
+        true
+      ],
+      [
+        "apostrophe",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ],
+      [
+        "ret",
+        true
+      ],
+      [
+        "ret",
+        false
+      ]
+    ],
+    "bios_words": [
+      94,
+      7181
+    ]
+  },
+  {
+    "name": "cleared after control 3 ret",
+    "keys": [
+      [
+        "a",
+        true
+      ],
+      [
+        "a",
+        false
+      ]
+    ],
+    "bios_words": [
+      7777
+    ]
+  },
+  {
+    "name": "pending 3 control esc",
+    "keys": [
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "apostrophe",
+        true
+      ],
+      [
+        "apostrophe",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ],
+      [
+        "esc",
+        true
+      ],
+      [
+        "esc",
+        false
+      ]
+    ],
+    "bios_words": [
+      94,
+      283
+    ]
+  },
+  {
+    "name": "cleared after control 3 esc",
+    "keys": [
+      [
+        "a",
+        true
+      ],
+      [
+        "a",
+        false
+      ]
+    ],
+    "bios_words": [
+      7777
+    ]
+  },
+  {
+    "name": "pending 3 control f3",
+    "keys": [
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "apostrophe",
+        true
+      ],
+      [
+        "apostrophe",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ],
+      [
+        "f3",
+        true
+      ],
+      [
+        "f3",
+        false
+      ]
+    ],
+    "bios_words": [
+      94,
+      15616
+    ]
+  },
+  {
+    "name": "cleared after control 3 f3",
+    "keys": [
+      [
+        "a",
+        true
+      ],
+      [
+        "a",
+        false
+      ]
+    ],
+    "bios_words": [
+      7777
+    ]
+  },
+  {
+    "name": "pending 3 control left",
+    "keys": [
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "apostrophe",
+        true
+      ],
+      [
+        "apostrophe",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ],
+      [
+        "left",
+        true
+      ],
+      [
+        "left",
+        false
+      ]
+    ],
+    "bios_words": [
+      94,
+      19200
+    ]
+  },
+  {
+    "name": "cleared after control 3 left",
+    "keys": [
+      [
+        "a",
+        true
+      ],
+      [
+        "a",
+        false
+      ]
+    ],
+    "bios_words": [
+      7777
+    ]
+  },
+  {
+    "name": "modifier release preserves pending 3",
+    "keys": [
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "apostrophe",
+        true
+      ],
+      [
+        "apostrophe",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ],
+      [
+        "shift",
+        true
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "ctrl",
+        true
+      ],
+      [
+        "ctrl",
+        false
+      ],
+      [
+        "a",
+        true
+      ],
+      [
+        "a",
+        false
+      ]
+    ],
+    "bios_words": [
+      7888
+    ]
+  },
+  {
+    "name": "change accent 3 to 4",
+    "keys": [
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "apostrophe",
+        true
+      ],
+      [
+        "apostrophe",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ],
+      [
+        "equal",
+        true
+      ],
+      [
+        "equal",
+        false
+      ],
+      [
+        "spc",
+        true
+      ],
+      [
+        "spc",
+        false
+      ]
+    ],
+    "bios_words": [
+      94,
+      239
+    ]
+  },
+  {
+    "name": "change accent 3 to 1",
+    "keys": [
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "apostrophe",
+        true
+      ],
+      [
+        "apostrophe",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ],
+      [
+        "shift",
+        true
+      ],
+      [
+        "equal",
+        true
+      ],
+      [
+        "equal",
+        false
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "spc",
+        true
+      ],
+      [
+        "spc",
+        false
+      ]
+    ],
+    "bios_words": [
+      94,
+      96
+    ]
+  },
+  {
+    "name": "change accent 3 to 5",
+    "keys": [
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "apostrophe",
+        true
+      ],
+      [
+        "apostrophe",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ],
+      [
+        "grave_accent",
+        true
+      ],
+      [
+        "grave_accent",
+        false
+      ],
+      [
+        "spc",
+        true
+      ],
+      [
+        "spc",
+        false
+      ]
+    ],
+    "bios_words": [
+      94,
+      39
+    ]
+  },
+  {
+    "name": "change accent 3 to 2",
+    "keys": [
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "apostrophe",
+        true
+      ],
+      [
+        "apostrophe",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ],
+      [
+        "shift",
+        true
+      ],
+      [
+        "grave_accent",
+        true
+      ],
+      [
+        "grave_accent",
+        false
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "spc",
+        true
+      ],
+      [
+        "spc",
+        false
+      ]
+    ],
+    "bios_words": [
+      94,
+      126
+    ]
+  },
+  {
+    "name": "unmatched 5",
+    "keys": [
+      [
+        "grave_accent",
+        true
+      ],
+      [
+        "grave_accent",
+        false
+      ],
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ]
+    ],
+    "bios_words": [
+      39,
+      4209
+    ]
+  },
+  {
+    "name": "cleared after unmatched 5",
+    "keys": [
+      [
+        "a",
+        true
+      ],
+      [
+        "a",
+        false
+      ]
+    ],
+    "bios_words": [
+      7777
+    ]
+  },
+  {
+    "name": "repeated 5",
+    "keys": [
+      [
+        "grave_accent",
+        true
+      ],
+      [
+        "grave_accent",
+        false
+      ],
+      [
+        "grave_accent",
+        true
+      ],
+      [
+        "grave_accent",
+        false
+      ],
+      [
+        "spc",
+        true
+      ],
+      [
+        "spc",
+        false
+      ]
+    ],
+    "bios_words": [
+      39,
+      39
+    ]
+  },
+  {
+    "name": "cleared after repeated 5",
+    "keys": [
+      [
+        "a",
+        true
+      ],
+      [
+        "a",
+        false
+      ]
+    ],
+    "bios_words": [
+      7777
+    ]
+  },
+  {
+    "name": "pending 5 control tab",
+    "keys": [
+      [
+        "grave_accent",
+        true
+      ],
+      [
+        "grave_accent",
+        false
+      ],
+      [
+        "tab",
+        true
+      ],
+      [
+        "tab",
+        false
+      ]
+    ],
+    "bios_words": [
+      39,
+      3849
+    ]
+  },
+  {
+    "name": "cleared after control 5 tab",
+    "keys": [
+      [
+        "a",
+        true
+      ],
+      [
+        "a",
+        false
+      ]
+    ],
+    "bios_words": [
+      7777
+    ]
+  },
+  {
+    "name": "pending 5 control backspace",
+    "keys": [
+      [
+        "grave_accent",
+        true
+      ],
+      [
+        "grave_accent",
+        false
+      ],
+      [
+        "backspace",
+        true
+      ],
+      [
+        "backspace",
+        false
+      ]
+    ],
+    "bios_words": [
+      39,
+      3592
+    ]
+  },
+  {
+    "name": "cleared after control 5 backspace",
+    "keys": [
+      [
+        "a",
+        true
+      ],
+      [
+        "a",
+        false
+      ]
+    ],
+    "bios_words": [
+      7777
+    ]
+  },
+  {
+    "name": "pending 5 control ret",
+    "keys": [
+      [
+        "grave_accent",
+        true
+      ],
+      [
+        "grave_accent",
+        false
+      ],
+      [
+        "ret",
+        true
+      ],
+      [
+        "ret",
+        false
+      ]
+    ],
+    "bios_words": [
+      39,
+      7181
+    ]
+  },
+  {
+    "name": "cleared after control 5 ret",
+    "keys": [
+      [
+        "a",
+        true
+      ],
+      [
+        "a",
+        false
+      ]
+    ],
+    "bios_words": [
+      7777
+    ]
+  },
+  {
+    "name": "pending 5 control esc",
+    "keys": [
+      [
+        "grave_accent",
+        true
+      ],
+      [
+        "grave_accent",
+        false
+      ],
+      [
+        "esc",
+        true
+      ],
+      [
+        "esc",
+        false
+      ]
+    ],
+    "bios_words": [
+      39,
+      283
+    ]
+  },
+  {
+    "name": "cleared after control 5 esc",
+    "keys": [
+      [
+        "a",
+        true
+      ],
+      [
+        "a",
+        false
+      ]
+    ],
+    "bios_words": [
+      7777
+    ]
+  },
+  {
+    "name": "pending 5 control f3",
+    "keys": [
+      [
+        "grave_accent",
+        true
+      ],
+      [
+        "grave_accent",
+        false
+      ],
+      [
+        "f3",
+        true
+      ],
+      [
+        "f3",
+        false
+      ]
+    ],
+    "bios_words": [
+      39,
+      15616
+    ]
+  },
+  {
+    "name": "cleared after control 5 f3",
+    "keys": [
+      [
+        "a",
+        true
+      ],
+      [
+        "a",
+        false
+      ]
+    ],
+    "bios_words": [
+      7777
+    ]
+  },
+  {
+    "name": "pending 5 control left",
+    "keys": [
+      [
+        "grave_accent",
+        true
+      ],
+      [
+        "grave_accent",
+        false
+      ],
+      [
+        "left",
+        true
+      ],
+      [
+        "left",
+        false
+      ]
+    ],
+    "bios_words": [
+      39,
+      19200
+    ]
+  },
+  {
+    "name": "cleared after control 5 left",
+    "keys": [
+      [
+        "a",
+        true
+      ],
+      [
+        "a",
+        false
+      ]
+    ],
+    "bios_words": [
+      7777
+    ]
+  },
+  {
+    "name": "modifier release preserves pending 5",
+    "keys": [
+      [
+        "grave_accent",
+        true
+      ],
+      [
+        "grave_accent",
+        false
+      ],
+      [
+        "shift",
+        true
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "ctrl",
+        true
+      ],
+      [
+        "ctrl",
+        false
+      ],
+      [
+        "c",
+        true
+      ],
+      [
+        "c",
+        false
+      ]
+    ],
+    "bios_words": [
+      11985
+    ]
+  },
+  {
+    "name": "change accent 5 to 4",
+    "keys": [
+      [
+        "grave_accent",
+        true
+      ],
+      [
+        "grave_accent",
+        false
+      ],
+      [
+        "equal",
+        true
+      ],
+      [
+        "equal",
+        false
+      ],
+      [
+        "spc",
+        true
+      ],
+      [
+        "spc",
+        false
+      ]
+    ],
+    "bios_words": [
+      39,
+      239
+    ]
+  },
+  {
+    "name": "change accent 5 to 1",
+    "keys": [
+      [
+        "grave_accent",
+        true
+      ],
+      [
+        "grave_accent",
+        false
+      ],
+      [
+        "shift",
+        true
+      ],
+      [
+        "equal",
+        true
+      ],
+      [
+        "equal",
+        false
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "spc",
+        true
+      ],
+      [
+        "spc",
+        false
+      ]
+    ],
+    "bios_words": [
+      39,
+      96
+    ]
+  },
+  {
+    "name": "change accent 5 to 3",
+    "keys": [
+      [
+        "grave_accent",
+        true
+      ],
+      [
+        "grave_accent",
+        false
+      ],
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "apostrophe",
+        true
+      ],
+      [
+        "apostrophe",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ],
+      [
+        "spc",
+        true
+      ],
+      [
+        "spc",
+        false
+      ]
+    ],
+    "bios_words": [
+      39,
+      94
+    ]
+  },
+  {
+    "name": "change accent 5 to 2",
+    "keys": [
+      [
+        "grave_accent",
+        true
+      ],
+      [
+        "grave_accent",
+        false
+      ],
+      [
+        "shift",
+        true
+      ],
+      [
+        "grave_accent",
+        true
+      ],
+      [
+        "grave_accent",
+        false
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "spc",
+        true
+      ],
+      [
+        "spc",
+        false
+      ]
+    ],
+    "bios_words": [
+      39,
+      126
+    ]
+  },
+  {
+    "name": "unmatched 2",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "grave_accent",
+        true
+      ],
+      [
+        "grave_accent",
+        false
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ]
+    ],
+    "bios_words": [
+      126,
+      4209
+    ]
+  },
+  {
+    "name": "cleared after unmatched 2",
+    "keys": [
+      [
+        "a",
+        true
+      ],
+      [
+        "a",
+        false
+      ]
+    ],
+    "bios_words": [
+      7777
+    ]
+  },
+  {
+    "name": "repeated 2",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "grave_accent",
+        true
+      ],
+      [
+        "grave_accent",
+        false
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "shift",
+        true
+      ],
+      [
+        "grave_accent",
+        true
+      ],
+      [
+        "grave_accent",
+        false
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "spc",
+        true
+      ],
+      [
+        "spc",
+        false
+      ]
+    ],
+    "bios_words": [
+      126,
+      126
+    ]
+  },
+  {
+    "name": "cleared after repeated 2",
+    "keys": [
+      [
+        "a",
+        true
+      ],
+      [
+        "a",
+        false
+      ]
+    ],
+    "bios_words": [
+      7777
+    ]
+  },
+  {
+    "name": "pending 2 control tab",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "grave_accent",
+        true
+      ],
+      [
+        "grave_accent",
+        false
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "tab",
+        true
+      ],
+      [
+        "tab",
+        false
+      ]
+    ],
+    "bios_words": [
+      126,
+      3849
+    ]
+  },
+  {
+    "name": "cleared after control 2 tab",
+    "keys": [
+      [
+        "a",
+        true
+      ],
+      [
+        "a",
+        false
+      ]
+    ],
+    "bios_words": [
+      7777
+    ]
+  },
+  {
+    "name": "pending 2 control backspace",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "grave_accent",
+        true
+      ],
+      [
+        "grave_accent",
+        false
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "backspace",
+        true
+      ],
+      [
+        "backspace",
+        false
+      ]
+    ],
+    "bios_words": [
+      126,
+      3592
+    ]
+  },
+  {
+    "name": "cleared after control 2 backspace",
+    "keys": [
+      [
+        "a",
+        true
+      ],
+      [
+        "a",
+        false
+      ]
+    ],
+    "bios_words": [
+      7777
+    ]
+  },
+  {
+    "name": "pending 2 control ret",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "grave_accent",
+        true
+      ],
+      [
+        "grave_accent",
+        false
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "ret",
+        true
+      ],
+      [
+        "ret",
+        false
+      ]
+    ],
+    "bios_words": [
+      126,
+      7181
+    ]
+  },
+  {
+    "name": "cleared after control 2 ret",
+    "keys": [
+      [
+        "a",
+        true
+      ],
+      [
+        "a",
+        false
+      ]
+    ],
+    "bios_words": [
+      7777
+    ]
+  },
+  {
+    "name": "pending 2 control esc",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "grave_accent",
+        true
+      ],
+      [
+        "grave_accent",
+        false
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "esc",
+        true
+      ],
+      [
+        "esc",
+        false
+      ]
+    ],
+    "bios_words": [
+      126,
+      283
+    ]
+  },
+  {
+    "name": "cleared after control 2 esc",
+    "keys": [
+      [
+        "a",
+        true
+      ],
+      [
+        "a",
+        false
+      ]
+    ],
+    "bios_words": [
+      7777
+    ]
+  },
+  {
+    "name": "pending 2 control f3",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "grave_accent",
+        true
+      ],
+      [
+        "grave_accent",
+        false
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "f3",
+        true
+      ],
+      [
+        "f3",
+        false
+      ]
+    ],
+    "bios_words": [
+      126,
+      15616
+    ]
+  },
+  {
+    "name": "cleared after control 2 f3",
+    "keys": [
+      [
+        "a",
+        true
+      ],
+      [
+        "a",
+        false
+      ]
+    ],
+    "bios_words": [
+      7777
+    ]
+  },
+  {
+    "name": "pending 2 control left",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "grave_accent",
+        true
+      ],
+      [
+        "grave_accent",
+        false
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "left",
+        true
+      ],
+      [
+        "left",
+        false
+      ]
+    ],
+    "bios_words": [
+      126,
+      19200
+    ]
+  },
+  {
+    "name": "cleared after control 2 left",
+    "keys": [
+      [
+        "a",
+        true
+      ],
+      [
+        "a",
+        false
+      ]
+    ],
+    "bios_words": [
+      7777
+    ]
+  },
+  {
+    "name": "modifier release preserves pending 2",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "grave_accent",
+        true
+      ],
+      [
+        "grave_accent",
+        false
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "shift",
+        true
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "ctrl",
+        true
+      ],
+      [
+        "ctrl",
+        false
+      ],
+      [
+        "o",
+        true
+      ],
+      [
+        "o",
+        false
+      ]
+    ],
+    "bios_words": [
+      6372
+    ]
+  },
+  {
+    "name": "change accent 2 to 4",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "grave_accent",
+        true
+      ],
+      [
+        "grave_accent",
+        false
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "equal",
+        true
+      ],
+      [
+        "equal",
+        false
+      ],
+      [
+        "spc",
+        true
+      ],
+      [
+        "spc",
+        false
+      ]
+    ],
+    "bios_words": [
+      126,
+      239
+    ]
+  },
+  {
+    "name": "change accent 2 to 1",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "grave_accent",
+        true
+      ],
+      [
+        "grave_accent",
+        false
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "shift",
+        true
+      ],
+      [
+        "equal",
+        true
+      ],
+      [
+        "equal",
+        false
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "spc",
+        true
+      ],
+      [
+        "spc",
+        false
+      ]
+    ],
+    "bios_words": [
+      126,
+      96
+    ]
+  },
+  {
+    "name": "change accent 2 to 3",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "grave_accent",
+        true
+      ],
+      [
+        "grave_accent",
+        false
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "apostrophe",
+        true
+      ],
+      [
+        "apostrophe",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ],
+      [
+        "spc",
+        true
+      ],
+      [
+        "spc",
+        false
+      ]
+    ],
+    "bios_words": [
+      126,
+      94
+    ]
+  },
+  {
+    "name": "change accent 2 to 5",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "grave_accent",
+        true
+      ],
+      [
+        "grave_accent",
+        false
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "grave_accent",
+        true
+      ],
+      [
+        "grave_accent",
+        false
+      ],
+      [
+        "spc",
+        true
+      ],
+      [
+        "spc",
+        false
+      ]
+    ],
+    "bios_words": [
+      126,
+      39
+    ]
+  }
+]

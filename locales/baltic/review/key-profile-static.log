@@ -1,0 +1,18 @@
+python3 tests/test_baltic_keyboard_records.py
+......
+----------------------------------------------------------------------
+Ran 6 tests in 0.062s
+
+OK
+python3 tests/test_ru_keyboard_records.py
+....
+----------------------------------------------------------------------
+Ran 4 tests in 0.004s
+
+OK
+python3 tests/test_baltic_keyboard_contract.py
+......
+----------------------------------------------------------------------
+Ran 6 tests in 0.005s
+
+OK

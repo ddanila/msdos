@@ -12,6 +12,7 @@ import tempfile
 import time
 
 from screen_expect import QMPConnection
+from ru_profiles import CONFIG, require_profile
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -120,10 +121,12 @@ def modifier_steps():
     return cases
 
 
-def run_case(work, base, name, corrupt=False, dos=False, reload=False, reject=None, recipe=False, cases=None, library_source=None, keyb_selection=None, country=7, enhanced=False, expected_failure=None):
+def run_case(work, base, name, corrupt=False, dos=False, reload=False, reject=None, recipe=False, cases=None, library_source=None, keyb_selection=None, country=7, enhanced=False, expected_failure=None, grouped=False, memory_profile=None, layout_phases=None, extra_files=None):
     directory=work/name
     directory.mkdir()
     cases=steps() if cases is None else cases
+    if layout_phases:
+        cases=[case for phase in layout_phases for case in phase['cases']]
     if reload:
         def tap(*keys):
             return [(key,True) for key in keys]+[(key,False) for key in reversed(keys)]
@@ -139,8 +142,10 @@ def run_case(work, base, name, corrupt=False, dos=False, reload=False, reject=No
         cases=[{'name':'initial Latin','keys':[('q',True),('q',False)],'bios_ax':0x1071},
                {'name':'select Russian','keys':[('alt',True),('shift_r',True),('shift_r',False),('alt',False),('q',True),('q',False)],'bios_ax':0xa9},
                {'name':'Russian after rejected load','keys':[('q',True),('q',False)],'bios_ax':0xa9}]
-    (directory/'expected.bin').write_bytes(b''.join(struct.pack('<H',s['bios_ax']) for s in cases))
-    command('nasm','-f','bin',*(['-DDOS_INPUT'] if dos else []),*(['-DENHANCED_INPUT'] if enhanced else []),str(ROOT/'tests/ru_keyboard_probe.asm'),'-o',str(directory/'PROBE.COM'),cwd=directory)
+    (directory/'expected.bin').write_bytes(b''.join(
+        bytes([len(s['bios_words'])])+b''.join(struct.pack('<H', word) for word in s['bios_words'])
+        if grouped else struct.pack('<H', s['bios_ax']) for s in cases))
+    command('nasm','-f','bin',*(['-DDOS_INPUT'] if dos else []),*(['-DENHANCED_INPUT'] if enhanced else []),*(['-DGROUPED_INPUT'] if grouped else []),str(ROOT/'tests/ru_keyboard_probe.asm'),'-o',str(directory/'PROBE.COM'),cwd=directory)
     if reload or reject:
         phases = [(0,2,'PROBE.COM'),(2,4,'GPROBE.COM'),(4,7,'RPROBE.COM')] if reload else [(0,2,'PROBE.COM'),(2,3,'RPROBE.COM')]
         for start,end,program in phases:
@@ -212,6 +217,36 @@ def run_case(work, base, name, corrupt=False, dos=False, reload=False, reject=No
                               (directory/'CPCHK.COM','CPCHK.COM')]:
             command('mcopy','-o','-i',str(image),str(source),'::'+target)
         batch=batch.replace('ECHO RU_KEY_DONE','CPCHK\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO RU_KEY_DONE')
+    for target, source in (extra_files or {}).items():
+        command('mcopy','-o','-i',str(image),str(source),'::'+target)
+    if layout_phases:
+        actions=[]
+        start=0
+        for index, phase in enumerate(layout_phases):
+            program=f'P{index:02d}.COM'
+            selected=phase['cases']
+            (directory/'expected.bin').write_bytes(b''.join(struct.pack('<H', item['bios_ax']) for item in selected))
+            command('nasm','-f','bin',f'-DSTART_INDEX={start}',
+                    *(['-DENHANCED_INPUT'] if enhanced else []),
+                    str(ROOT/'tests/ru_keyboard_probe.asm'),'-o',str(directory/program),cwd=directory)
+            command('mcopy','-o','-i',str(image),str(directory/program),'::'+program)
+            actions.append(f'ECHO BALTIC_PHASE_{index:02d}')
+            if phase.get('command'):
+                actions += [phase['command'], 'IF '+('NOT ' if phase.get('reject') else '')+'ERRORLEVEL 1 GOTO FAIL']
+            actions += ['KEYB', program[:-4], 'IF ERRORLEVEL 1 GOTO FAIL']
+            start += len(selected)
+        command('mcopy','-o','-i',str(image),str(ROOT/'src/DEV/KEYBOARD/KEYBOARD.SYS'),'::KEYBOARD.SYS')
+        batch=batch.replace('PROBE\r\n', '\r\n'.join(actions)+'\r\n')
+    if memory_profile:
+        config += CONFIG[memory_profile]
+        command('nasm','-f','bin',f'-DHIGH={int(memory_profile == "high")}',
+                str(ROOT/'tests/ru_profile_probe.asm'),'-o',str(directory/'PROFILE.COM'))
+        command('mcopy','-o','-i',str(image),str(directory/'PROFILE.COM'),'::PROFILE.COM')
+        if layout_phases:
+            batch=batch.replace('CTTY AUX\r\n', 'CTTY AUX\r\nPROFILE\r\nIF ERRORLEVEL 1 GOTO FAIL\r\n')
+        else:
+            batch=batch.replace('\r\nPROBE\r\n', '\r\nPROFILE\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nPROBE\r\n')
+        batch=batch.replace('ECHO RU_KEY_DONE', 'PROFILE\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO RU_KEY_DONE')
     for target,data in [('CONFIG.SYS',config),('AUTOEXEC.BAT',batch)]:
         command('mcopy','-o','-i',str(image),'-','::'+target,input=data.encode())
     log=directory/'serial.log'
@@ -256,10 +291,23 @@ def run_case(work, base, name, corrupt=False, dos=False, reload=False, reject=No
         assert b'RU_KEY_FAIL actual=00F0' in output and b'RU_KEY_DONE' not in output, (log,output)
     else:
         assert b'RU_KEY_DONE' in output and b'RU_KEY_PASS' in output and b'FAIL' not in output,(log,output)
+        assert output.count(b'RU_KEY_READY') == len(cases), (log, 'incomplete input sequence')
+    if layout_phases:
+        for index, phase in enumerate(layout_phases):
+            chunk=output.split(f'BALTIC_PHASE_{index:02d}\r\n'.encode(),1)[1]
+            chunk=chunk.split(f'BALTIC_PHASE_{index+1:02d}\r\n'.encode(),1)[0]
+            marker=f"Current keyboard code: {phase['status_code']}  code page: {phase['status_page']}".encode()
+            assert marker in chunk, (log, index, marker, chunk)
+        assert output.count(b'RU_KEY_PASS') == len(layout_phases), (log, 'missing phase completion')
+    if memory_profile:
+        require_profile(output, memory_profile)
+        if not corrupt and expected_failure is None:
+            marker = b'RU_HIGH_UMB_PASS' if memory_profile == 'high' else b'RU_LOW_PASS'
+            assert output.count(marker) == 2, (log, 'profile must pass before and after input')
     if recipe:
         assert b'RU_CODEPAGE_PASS' in output,(log,output)
     print(f'PASS: {name}',flush=True)
-    return {'name':name,'enhanced_bios_input':enhanced,'negative_control':corrupt or expected_failure is not None,'dos_input':dos,'reload_existing':reload,'rejection':reject,'documented_recipe':recipe,'emulator_exit':result,'steps':cases,
+    return {'name':name,'memory_profile':memory_profile,'grouped_input':grouped,'layout_phases':layout_phases,'enhanced_bios_input':enhanced,'negative_control':corrupt or expected_failure is not None,'expected_failure':expected_failure.decode('ascii') if expected_failure else None,'dos_input':dos,'reload_existing':reload,'rejection':reject,'documented_recipe':recipe,'emulator_exit':result,'steps':cases,
             'completed_reads':output.count(b'RU_KEY_READY'),'log':str(log.relative_to(work)),
             'log_sha256':hashlib.sha256(output).hexdigest()}
 

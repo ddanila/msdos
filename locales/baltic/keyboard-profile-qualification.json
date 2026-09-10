@@ -1,0 +1,5456 @@
+{
+  "schema_version": 1,
+  "status": "qemu-keyboard-profiles-selection-and-basic-lifecycle-passed-release-pending",
+  "scope": "All three Baltic direct-input matrices through enhanced BIOS and DOS on HIGH/UMB and LOW; within-layout grouped composition and hotkeys; explicit IDs/alias, reloads, rejected selections and bad/missing header preservation. Deep library validation and pending-state mode/reload boundaries are separate open gates.",
+  "machine": {
+    "emulator": "QEMU PC",
+    "memory_mib": 4,
+    "input": "QMP physical key make/break events",
+    "profile_proof": "Guest HMA and UMB checks for HIGH; conventional DOS placement for LOW. Successful cases require profile markers before and after input; negative controls require the initial marker."
+  },
+  "artifact_sha256": {
+    "src/CMD/KEYB/KEYB.COM": "410118fcf2c7b40282619c9eb063edd25ee1fda5ca2cb7ef761d97b35ca463e4",
+    "src/DEV/KEYBOARD/KEYBRD2.SYS": "a4c47ad578f8804a74a3f2f9a4194eb4a096cb31ecdc7b8224f08dc9b558ed0b",
+    "src/DEV/KEYBOARD/KEYBOARD.SYS": "57571a4b10040dd0645998d0ccb8caa6e02be904ded253c9c81d542750ae4d9d",
+    "src/DEV/COUNTRY/COUNTRY.SYS": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c"
+  },
+  "core_sha256": {
+    "IO.SYS": "793169a292df40bb117eb487136a0d8e7f4334ca223e8206bf53f33141f24715",
+    "MSDOS.SYS": "1475174f50c8c349bedd7cd4a0be88bce055f2e411b7454b5f68fffbff269b62",
+    "COMMAND.COM": "6742b5889141a9c61d41e336445014d8055c19758febf4263f4f8ebe3c2f2c29",
+    "HIMEM.SYS": "340cbfd1f0e835755adce99d80c607f8edeb48ea2b20a6a142402a25434f8d13",
+    "EMM386.EXE": "58266b6614594de7a9cfde9eda75e3eb241b9e2e941e67b70645a0f8a197dae6"
+  },
+  "library_change": {
+    "previous_sha256": "d9f1a9146251f3646900e7c25cd64ae16fad4bf58c130ee5a454d17e41bffd8c",
+    "current_sha256": "a4c47ad578f8804a74a3f2f9a4194eb4a096cb31ecdc7b8224f08dc9b558ed0b",
+    "changed_bytes": [
+      {
+        "offset": 112,
+        "before": 1,
+        "after": 2
+      }
+    ],
+    "rationale": "ID lookup starts at the first 454 directory entry. Its group must include both ET and EE for explicit EE /ID:454. Translation logic, common sections and page data remain byte-identical."
+  },
+  "static": {
+    "command": "make test-baltic-keyboard-records test-ru-keyboard-records test-baltic-keyboard-contract",
+    "status": "passed",
+    "log": {
+      "path": "review/key-profile-static.log",
+      "sha256": "b0ac531533eabce3ec6c11229f0a18d0818492b0af1ea9a330db4a6e7ad249de"
+    }
+  },
+  "retention": "Identical ordered physical-input oracles are retained once and referenced by hash. Source report hashes identify the private raw reports; all case metadata, input oracles, serial logs, startup files and final compiled expected includes are retained here. For multi-program phases, expected.bin is the last phase; layout_phases retains every phase command and oracle.",
+  "probe_compatibility": "Default BIOS, enhanced BIOS and DOS probe binaries were assembled from HEAD and the new source against identical expected data and compared byte-identical. GROUPED_INPUT is opt-in.",
+  "runs": [
+    {
+      "name": "input-bios",
+      "command": "MEMORY_CORE_DIR=out/memory-production/files python3 tests/test_baltic_keyboard_qemu.py --profile high --profile low",
+      "status": "passed",
+      "source_report_sha256": "b3afd2fa28d09cb0fc7dc3fd34192f4c62d687fadbcdb25210c1ed76641976b5",
+      "cases": [
+        {
+          "name": "high-et",
+          "memory_profile": "high",
+          "grouped_input": false,
+          "layout_phases": null,
+          "enhanced_bios_input": true,
+          "negative_control": false,
+          "dos_input": false,
+          "reload_existing": false,
+          "rejection": null,
+          "documented_recipe": false,
+          "emulator_exit": 33,
+          "completed_reads": 225,
+          "log": "high-et/serial.log",
+          "log_sha256": "360fe6c6b8250b6df4a7166e676240c07e287f80f022a1958c36b444b66aef96",
+          "input_oracle": {
+            "path": "review/key-profile-input-bios-high-et-oracle.json",
+            "sha256": "3ca58eb75c773b5b72c41dfc10c8d69ab5f45c1f8592882c1f8d116b1cd02259"
+          },
+          "step_count": 225,
+          "expected_word_count": 225,
+          "retained_serial": {
+            "path": "review/key-profile-input-bios-high-et.log",
+            "sha256": "360fe6c6b8250b6df4a7166e676240c07e287f80f022a1958c36b444b66aef96"
+          },
+          "startup": [
+            {
+              "path": "review/key-profile-input-bios-high-et-config.sys.cfg",
+              "sha256": "f76b3460215a82c7cd75112f01c2be68160793913dad080cf848843cd0f3b618"
+            },
+            {
+              "path": "review/key-profile-input-bios-high-et-autoexec.bat.cfg",
+              "sha256": "2bd286dee7a333bfc674fd872ddfc9cd102701cca44c8716d5dfe284c7c2d9c7"
+            }
+          ],
+          "guest_resource_sha256": {
+            "KEYB.COM": "410118fcf2c7b40282619c9eb063edd25ee1fda5ca2cb7ef761d97b35ca463e4",
+            "KEYBRD2.SYS": "a4c47ad578f8804a74a3f2f9a4194eb4a096cb31ecdc7b8224f08dc9b558ed0b",
+            "COUNTRY.SYS": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c"
+          },
+          "retained_final_expected_include": {
+            "path": "review/key-profile-input-bios-high-et-expected.bin",
+            "sha256": "53ba91d9ba8de70ffbfa609987a0b966125124b00dc72bb1e1a1b2ef7eae27ea"
+          }
+        },
+        {
+          "name": "high-lv",
+          "memory_profile": "high",
+          "grouped_input": false,
+          "layout_phases": null,
+          "enhanced_bios_input": true,
+          "negative_control": false,
+          "dos_input": false,
+          "reload_existing": false,
+          "rejection": null,
+          "documented_recipe": false,
+          "emulator_exit": 33,
+          "completed_reads": 163,
+          "log": "high-lv/serial.log",
+          "log_sha256": "0df96036aebaeaafa325f8044a48e4783b8f6b0febb90d33c062296eb4b91f9d",
+          "input_oracle": {
+            "path": "review/key-profile-input-bios-high-lv-oracle.json",
+            "sha256": "ff4c7c31ec754d335128fc6372e3cf88fb88c567a405b5bf32d0f0f3d3967fad"
+          },
+          "step_count": 163,
+          "expected_word_count": 163,
+          "retained_serial": {
+            "path": "review/key-profile-input-bios-high-lv.log",
+            "sha256": "0df96036aebaeaafa325f8044a48e4783b8f6b0febb90d33c062296eb4b91f9d"
+          },
+          "startup": [
+            {
+              "path": "review/key-profile-input-bios-high-lv-config.sys.cfg",
+              "sha256": "b35f0ba224cd509db9c638987cfd6a78642c5283130abf65b7343afaa1c80f01"
+            },
+            {
+              "path": "review/key-profile-input-bios-high-lv-autoexec.bat.cfg",
+              "sha256": "9a64e748ecfa729d6dad0840569c8b7bff0b95c2130031b18ec2d70655ebc4f1"
+            }
+          ],
+          "guest_resource_sha256": {
+            "KEYB.COM": "410118fcf2c7b40282619c9eb063edd25ee1fda5ca2cb7ef761d97b35ca463e4",
+            "KEYBRD2.SYS": "a4c47ad578f8804a74a3f2f9a4194eb4a096cb31ecdc7b8224f08dc9b558ed0b",
+            "COUNTRY.SYS": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c"
+          },
+          "retained_final_expected_include": {
+            "path": "review/key-profile-input-bios-high-lv-expected.bin",
+            "sha256": "e5b365f1602e2c9f5376424f0277f53ca2993a5452d48c1baaa390c91210501d"
+          }
+        },
+        {
+          "name": "high-lt",
+          "memory_profile": "high",
+          "grouped_input": false,
+          "layout_phases": null,
+          "enhanced_bios_input": true,
+          "negative_control": false,
+          "dos_input": false,
+          "reload_existing": false,
+          "rejection": null,
+          "documented_recipe": false,
+          "emulator_exit": 33,
+          "completed_reads": 176,
+          "log": "high-lt/serial.log",
+          "log_sha256": "2edecbcdd5f3eddf8376cb47d53c211e3f1a24fdfa3846fd23c6aaa3c3c6bfcc",
+          "input_oracle": {
+            "path": "review/key-profile-input-bios-high-lt-oracle.json",
+            "sha256": "2d0c328b6385e412d4e116fa997ffde87fc6ce1de66cf0d837c1789217627e47"
+          },
+          "step_count": 176,
+          "expected_word_count": 176,
+          "retained_serial": {
+            "path": "review/key-profile-input-bios-high-lt.log",
+            "sha256": "2edecbcdd5f3eddf8376cb47d53c211e3f1a24fdfa3846fd23c6aaa3c3c6bfcc"
+          },
+          "startup": [
+            {
+              "path": "review/key-profile-input-bios-high-lt-config.sys.cfg",
+              "sha256": "b236e5a0c576b888d1c77f296c50eea0df0b4dabb2203eae386ca0c5460a3d05"
+            },
+            {
+              "path": "review/key-profile-input-bios-high-lt-autoexec.bat.cfg",
+              "sha256": "4c607344f243031da666603d46257dfc89e729ad9388c35182d7412f3c29263d"
+            }
+          ],
+          "guest_resource_sha256": {
+            "KEYB.COM": "410118fcf2c7b40282619c9eb063edd25ee1fda5ca2cb7ef761d97b35ca463e4",
+            "KEYBRD2.SYS": "a4c47ad578f8804a74a3f2f9a4194eb4a096cb31ecdc7b8224f08dc9b558ed0b",
+            "COUNTRY.SYS": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c"
+          },
+          "retained_final_expected_include": {
+            "path": "review/key-profile-input-bios-high-lt-expected.bin",
+            "sha256": "d44a1389e93816c21e487a58b8ab94102c9acd2c3f1b3bdb566ca3bfc4d7fab8"
+          }
+        },
+        {
+          "name": "low-et",
+          "memory_profile": "low",
+          "grouped_input": false,
+          "layout_phases": null,
+          "enhanced_bios_input": true,
+          "negative_control": false,
+          "dos_input": false,
+          "reload_existing": false,
+          "rejection": null,
+          "documented_recipe": false,
+          "emulator_exit": 33,
+          "completed_reads": 225,
+          "log": "low-et/serial.log",
+          "log_sha256": "c56fce82019791128bc7906d96446b08c2a6b25bdfe9ba6c293431f77a7d44f4",
+          "input_oracle": {
+            "path": "review/key-profile-input-bios-high-et-oracle.json",
+            "sha256": "3ca58eb75c773b5b72c41dfc10c8d69ab5f45c1f8592882c1f8d116b1cd02259"
+          },
+          "step_count": 225,
+          "expected_word_count": 225,
+          "retained_serial": {
+            "path": "review/key-profile-input-bios-low-et.log",
+            "sha256": "c56fce82019791128bc7906d96446b08c2a6b25bdfe9ba6c293431f77a7d44f4"
+          },
+          "startup": [
+            {
+              "path": "review/key-profile-input-bios-low-et-config.sys.cfg",
+              "sha256": "3cda7b278ea952d7873d1b8c361d4085b2f5ebb8529fe4b9e95d3b9074bbf03e"
+            },
+            {
+              "path": "review/key-profile-input-bios-low-et-autoexec.bat.cfg",
+              "sha256": "2bd286dee7a333bfc674fd872ddfc9cd102701cca44c8716d5dfe284c7c2d9c7"
+            }
+          ],
+          "guest_resource_sha256": {
+            "KEYB.COM": "410118fcf2c7b40282619c9eb063edd25ee1fda5ca2cb7ef761d97b35ca463e4",
+            "KEYBRD2.SYS": "a4c47ad578f8804a74a3f2f9a4194eb4a096cb31ecdc7b8224f08dc9b558ed0b",
+            "COUNTRY.SYS": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c"
+          },
+          "retained_final_expected_include": {
+            "path": "review/key-profile-input-bios-low-et-expected.bin",
+            "sha256": "53ba91d9ba8de70ffbfa609987a0b966125124b00dc72bb1e1a1b2ef7eae27ea"
+          }
+        },
+        {
+          "name": "low-lv",
+          "memory_profile": "low",
+          "grouped_input": false,
+          "layout_phases": null,
+          "enhanced_bios_input": true,
+          "negative_control": false,
+          "dos_input": false,
+          "reload_existing": false,
+          "rejection": null,
+          "documented_recipe": false,
+          "emulator_exit": 33,
+          "completed_reads": 163,
+          "log": "low-lv/serial.log",
+          "log_sha256": "6a154f567c4b62196a975ee485d4ba17d2728e20abc7ef0ed0197e3a6cd2c79d",
+          "input_oracle": {
+            "path": "review/key-profile-input-bios-high-lv-oracle.json",
+            "sha256": "ff4c7c31ec754d335128fc6372e3cf88fb88c567a405b5bf32d0f0f3d3967fad"
+          },
+          "step_count": 163,
+          "expected_word_count": 163,
+          "retained_serial": {
+            "path": "review/key-profile-input-bios-low-lv.log",
+            "sha256": "6a154f567c4b62196a975ee485d4ba17d2728e20abc7ef0ed0197e3a6cd2c79d"
+          },
+          "startup": [
+            {
+              "path": "review/key-profile-input-bios-low-lv-config.sys.cfg",
+              "sha256": "b3935f8a2c2d2a9c84acb28564ce9f79beaf1b05b9b3695d345d1acbe7a5da9d"
+            },
+            {
+              "path": "review/key-profile-input-bios-low-lv-autoexec.bat.cfg",
+              "sha256": "9a64e748ecfa729d6dad0840569c8b7bff0b95c2130031b18ec2d70655ebc4f1"
+            }
+          ],
+          "guest_resource_sha256": {
+            "KEYB.COM": "410118fcf2c7b40282619c9eb063edd25ee1fda5ca2cb7ef761d97b35ca463e4",
+            "KEYBRD2.SYS": "a4c47ad578f8804a74a3f2f9a4194eb4a096cb31ecdc7b8224f08dc9b558ed0b",
+            "COUNTRY.SYS": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c"
+          },
+          "retained_final_expected_include": {
+            "path": "review/key-profile-input-bios-low-lv-expected.bin",
+            "sha256": "e5b365f1602e2c9f5376424f0277f53ca2993a5452d48c1baaa390c91210501d"
+          }
+        },
+        {
+          "name": "low-lt",
+          "memory_profile": "low",
+          "grouped_input": false,
+          "layout_phases": null,
+          "enhanced_bios_input": true,
+          "negative_control": false,
+          "dos_input": false,
+          "reload_existing": false,
+          "rejection": null,
+          "documented_recipe": false,
+          "emulator_exit": 33,
+          "completed_reads": 176,
+          "log": "low-lt/serial.log",
+          "log_sha256": "47a00710905376c08a75ed850eb8449fc0c29b971d0ebb17bb8faee0ca902a74",
+          "input_oracle": {
+            "path": "review/key-profile-input-bios-high-lt-oracle.json",
+            "sha256": "2d0c328b6385e412d4e116fa997ffde87fc6ce1de66cf0d837c1789217627e47"
+          },
+          "step_count": 176,
+          "expected_word_count": 176,
+          "retained_serial": {
+            "path": "review/key-profile-input-bios-low-lt.log",
+            "sha256": "47a00710905376c08a75ed850eb8449fc0c29b971d0ebb17bb8faee0ca902a74"
+          },
+          "startup": [
+            {
+              "path": "review/key-profile-input-bios-low-lt-config.sys.cfg",
+              "sha256": "609733726e3bc48644eb48f8dcd70b4133bfe9baeff432eaf00a7358323cde06"
+            },
+            {
+              "path": "review/key-profile-input-bios-low-lt-autoexec.bat.cfg",
+              "sha256": "4c607344f243031da666603d46257dfc89e729ad9388c35182d7412f3c29263d"
+            }
+          ],
+          "guest_resource_sha256": {
+            "KEYB.COM": "410118fcf2c7b40282619c9eb063edd25ee1fda5ca2cb7ef761d97b35ca463e4",
+            "KEYBRD2.SYS": "a4c47ad578f8804a74a3f2f9a4194eb4a096cb31ecdc7b8224f08dc9b558ed0b",
+            "COUNTRY.SYS": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c"
+          },
+          "retained_final_expected_include": {
+            "path": "review/key-profile-input-bios-low-lt-expected.bin",
+            "sha256": "d44a1389e93816c21e487a58b8ab94102c9acd2c3f1b3bdb566ca3bfc4d7fab8"
+          }
+        }
+      ]
+    },
+    {
+      "name": "input-dos",
+      "command": "MEMORY_CORE_DIR=out/memory-production/files python3 tests/test_baltic_keyboard_qemu.py --profile high --profile low --dos",
+      "status": "passed",
+      "source_report_sha256": "cbdc7770fe415e1b8c728501d34330e7fb94d2cb7280952f39826e4565946b07",
+      "cases": [
+        {
+          "name": "high-et",
+          "memory_profile": "high",
+          "grouped_input": false,
+          "layout_phases": null,
+          "enhanced_bios_input": true,
+          "negative_control": false,
+          "dos_input": true,
+          "reload_existing": false,
+          "rejection": null,
+          "documented_recipe": false,
+          "emulator_exit": 33,
+          "completed_reads": 225,
+          "log": "high-et/serial.log",
+          "log_sha256": "360fe6c6b8250b6df4a7166e676240c07e287f80f022a1958c36b444b66aef96",
+          "input_oracle": {
+            "path": "review/key-profile-input-dos-high-et-oracle.json",
+            "sha256": "220b41807d4c72cdf50af70a008ec316a4d8f279bb079b11f7fb84dd63fb34e3"
+          },
+          "step_count": 225,
+          "expected_word_count": 225,
+          "retained_serial": {
+            "path": "review/key-profile-input-dos-high-et.log",
+            "sha256": "360fe6c6b8250b6df4a7166e676240c07e287f80f022a1958c36b444b66aef96"
+          },
+          "startup": [
+            {
+              "path": "review/key-profile-input-dos-high-et-config.sys.cfg",
+              "sha256": "f76b3460215a82c7cd75112f01c2be68160793913dad080cf848843cd0f3b618"
+            },
+            {
+              "path": "review/key-profile-input-dos-high-et-autoexec.bat.cfg",
+              "sha256": "2bd286dee7a333bfc674fd872ddfc9cd102701cca44c8716d5dfe284c7c2d9c7"
+            }
+          ],
+          "guest_resource_sha256": {
+            "KEYB.COM": "410118fcf2c7b40282619c9eb063edd25ee1fda5ca2cb7ef761d97b35ca463e4",
+            "KEYBRD2.SYS": "a4c47ad578f8804a74a3f2f9a4194eb4a096cb31ecdc7b8224f08dc9b558ed0b",
+            "COUNTRY.SYS": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c"
+          },
+          "retained_final_expected_include": {
+            "path": "review/key-profile-input-dos-high-et-expected.bin",
+            "sha256": "580137579427eec85afcb9d8329539f1b0c25d054c2695600414f34533b1f66c"
+          }
+        },
+        {
+          "name": "high-lv",
+          "memory_profile": "high",
+          "grouped_input": false,
+          "layout_phases": null,
+          "enhanced_bios_input": true,
+          "negative_control": false,
+          "dos_input": true,
+          "reload_existing": false,
+          "rejection": null,
+          "documented_recipe": false,
+          "emulator_exit": 33,
+          "completed_reads": 163,
+          "log": "high-lv/serial.log",
+          "log_sha256": "0df96036aebaeaafa325f8044a48e4783b8f6b0febb90d33c062296eb4b91f9d",
+          "input_oracle": {
+            "path": "review/key-profile-input-dos-high-lv-oracle.json",
+            "sha256": "a66483f15a8b09f193e1319ae5fded78a7578c37da1b56c1f89b841267389925"
+          },
+          "step_count": 163,
+          "expected_word_count": 163,
+          "retained_serial": {
+            "path": "review/key-profile-input-dos-high-lv.log",
+            "sha256": "0df96036aebaeaafa325f8044a48e4783b8f6b0febb90d33c062296eb4b91f9d"
+          },
+          "startup": [
+            {
+              "path": "review/key-profile-input-dos-high-lv-config.sys.cfg",
+              "sha256": "b35f0ba224cd509db9c638987cfd6a78642c5283130abf65b7343afaa1c80f01"
+            },
+            {
+              "path": "review/key-profile-input-dos-high-lv-autoexec.bat.cfg",
+              "sha256": "9a64e748ecfa729d6dad0840569c8b7bff0b95c2130031b18ec2d70655ebc4f1"
+            }
+          ],
+          "guest_resource_sha256": {
+            "KEYB.COM": "410118fcf2c7b40282619c9eb063edd25ee1fda5ca2cb7ef761d97b35ca463e4",
+            "KEYBRD2.SYS": "a4c47ad578f8804a74a3f2f9a4194eb4a096cb31ecdc7b8224f08dc9b558ed0b",
+            "COUNTRY.SYS": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c"
+          },
+          "retained_final_expected_include": {
+            "path": "review/key-profile-input-dos-high-lv-expected.bin",
+            "sha256": "a4b561bca83e0b422704870394068e748caecdf71175792580ec35e389864024"
+          }
+        },
+        {
+          "name": "high-lt",
+          "memory_profile": "high",
+          "grouped_input": false,
+          "layout_phases": null,
+          "enhanced_bios_input": true,
+          "negative_control": false,
+          "dos_input": true,
+          "reload_existing": false,
+          "rejection": null,
+          "documented_recipe": false,
+          "emulator_exit": 33,
+          "completed_reads": 176,
+          "log": "high-lt/serial.log",
+          "log_sha256": "2edecbcdd5f3eddf8376cb47d53c211e3f1a24fdfa3846fd23c6aaa3c3c6bfcc",
+          "input_oracle": {
+            "path": "review/key-profile-input-dos-high-lt-oracle.json",
+            "sha256": "df2fc9ba8caa9e5a5fa1ae6cbc964c0c401ee7f7a71585a07181ee94efb29525"
+          },
+          "step_count": 176,
+          "expected_word_count": 176,
+          "retained_serial": {
+            "path": "review/key-profile-input-dos-high-lt.log",
+            "sha256": "2edecbcdd5f3eddf8376cb47d53c211e3f1a24fdfa3846fd23c6aaa3c3c6bfcc"
+          },
+          "startup": [
+            {
+              "path": "review/key-profile-input-dos-high-lt-config.sys.cfg",
+              "sha256": "b236e5a0c576b888d1c77f296c50eea0df0b4dabb2203eae386ca0c5460a3d05"
+            },
+            {
+              "path": "review/key-profile-input-dos-high-lt-autoexec.bat.cfg",
+              "sha256": "4c607344f243031da666603d46257dfc89e729ad9388c35182d7412f3c29263d"
+            }
+          ],
+          "guest_resource_sha256": {
+            "KEYB.COM": "410118fcf2c7b40282619c9eb063edd25ee1fda5ca2cb7ef761d97b35ca463e4",
+            "KEYBRD2.SYS": "a4c47ad578f8804a74a3f2f9a4194eb4a096cb31ecdc7b8224f08dc9b558ed0b",
+            "COUNTRY.SYS": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c"
+          },
+          "retained_final_expected_include": {
+            "path": "review/key-profile-input-dos-high-lt-expected.bin",
+            "sha256": "fad605f1d86ecadab9e50e26987aaf1dcffb6edf809ac54dc27885ed44d4566b"
+          }
+        },
+        {
+          "name": "low-et",
+          "memory_profile": "low",
+          "grouped_input": false,
+          "layout_phases": null,
+          "enhanced_bios_input": true,
+          "negative_control": false,
+          "dos_input": true,
+          "reload_existing": false,
+          "rejection": null,
+          "documented_recipe": false,
+          "emulator_exit": 33,
+          "completed_reads": 225,
+          "log": "low-et/serial.log",
+          "log_sha256": "c56fce82019791128bc7906d96446b08c2a6b25bdfe9ba6c293431f77a7d44f4",
+          "input_oracle": {
+            "path": "review/key-profile-input-dos-high-et-oracle.json",
+            "sha256": "220b41807d4c72cdf50af70a008ec316a4d8f279bb079b11f7fb84dd63fb34e3"
+          },
+          "step_count": 225,
+          "expected_word_count": 225,
+          "retained_serial": {
+            "path": "review/key-profile-input-dos-low-et.log",
+            "sha256": "c56fce82019791128bc7906d96446b08c2a6b25bdfe9ba6c293431f77a7d44f4"
+          },
+          "startup": [
+            {
+              "path": "review/key-profile-input-dos-low-et-config.sys.cfg",
+              "sha256": "3cda7b278ea952d7873d1b8c361d4085b2f5ebb8529fe4b9e95d3b9074bbf03e"
+            },
+            {
+              "path": "review/key-profile-input-dos-low-et-autoexec.bat.cfg",
+              "sha256": "2bd286dee7a333bfc674fd872ddfc9cd102701cca44c8716d5dfe284c7c2d9c7"
+            }
+          ],
+          "guest_resource_sha256": {
+            "KEYB.COM": "410118fcf2c7b40282619c9eb063edd25ee1fda5ca2cb7ef761d97b35ca463e4",
+            "KEYBRD2.SYS": "a4c47ad578f8804a74a3f2f9a4194eb4a096cb31ecdc7b8224f08dc9b558ed0b",
+            "COUNTRY.SYS": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c"
+          },
+          "retained_final_expected_include": {
+            "path": "review/key-profile-input-dos-low-et-expected.bin",
+            "sha256": "580137579427eec85afcb9d8329539f1b0c25d054c2695600414f34533b1f66c"
+          }
+        },
+        {
+          "name": "low-lv",
+          "memory_profile": "low",
+          "grouped_input": false,
+          "layout_phases": null,
+          "enhanced_bios_input": true,
+          "negative_control": false,
+          "dos_input": true,
+          "reload_existing": false,
+          "rejection": null,
+          "documented_recipe": false,
+          "emulator_exit": 33,
+          "completed_reads": 163,
+          "log": "low-lv/serial.log",
+          "log_sha256": "6a154f567c4b62196a975ee485d4ba17d2728e20abc7ef0ed0197e3a6cd2c79d",
+          "input_oracle": {
+            "path": "review/key-profile-input-dos-high-lv-oracle.json",
+            "sha256": "a66483f15a8b09f193e1319ae5fded78a7578c37da1b56c1f89b841267389925"
+          },
+          "step_count": 163,
+          "expected_word_count": 163,
+          "retained_serial": {
+            "path": "review/key-profile-input-dos-low-lv.log",
+            "sha256": "6a154f567c4b62196a975ee485d4ba17d2728e20abc7ef0ed0197e3a6cd2c79d"
+          },
+          "startup": [
+            {
+              "path": "review/key-profile-input-dos-low-lv-config.sys.cfg",
+              "sha256": "b3935f8a2c2d2a9c84acb28564ce9f79beaf1b05b9b3695d345d1acbe7a5da9d"
+            },
+            {
+              "path": "review/key-profile-input-dos-low-lv-autoexec.bat.cfg",
+              "sha256": "9a64e748ecfa729d6dad0840569c8b7bff0b95c2130031b18ec2d70655ebc4f1"
+            }
+          ],
+          "guest_resource_sha256": {
+            "KEYB.COM": "410118fcf2c7b40282619c9eb063edd25ee1fda5ca2cb7ef761d97b35ca463e4",
+            "KEYBRD2.SYS": "a4c47ad578f8804a74a3f2f9a4194eb4a096cb31ecdc7b8224f08dc9b558ed0b",
+            "COUNTRY.SYS": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c"
+          },
+          "retained_final_expected_include": {
+            "path": "review/key-profile-input-dos-low-lv-expected.bin",
+            "sha256": "a4b561bca83e0b422704870394068e748caecdf71175792580ec35e389864024"
+          }
+        },
+        {
+          "name": "low-lt",
+          "memory_profile": "low",
+          "grouped_input": false,
+          "layout_phases": null,
+          "enhanced_bios_input": true,
+          "negative_control": false,
+          "dos_input": true,
+          "reload_existing": false,
+          "rejection": null,
+          "documented_recipe": false,
+          "emulator_exit": 33,
+          "completed_reads": 176,
+          "log": "low-lt/serial.log",
+          "log_sha256": "47a00710905376c08a75ed850eb8449fc0c29b971d0ebb17bb8faee0ca902a74",
+          "input_oracle": {
+            "path": "review/key-profile-input-dos-high-lt-oracle.json",
+            "sha256": "df2fc9ba8caa9e5a5fa1ae6cbc964c0c401ee7f7a71585a07181ee94efb29525"
+          },
+          "step_count": 176,
+          "expected_word_count": 176,
+          "retained_serial": {
+            "path": "review/key-profile-input-dos-low-lt.log",
+            "sha256": "47a00710905376c08a75ed850eb8449fc0c29b971d0ebb17bb8faee0ca902a74"
+          },
+          "startup": [
+            {
+              "path": "review/key-profile-input-dos-low-lt-config.sys.cfg",
+              "sha256": "609733726e3bc48644eb48f8dcd70b4133bfe9baeff432eaf00a7358323cde06"
+            },
+            {
+              "path": "review/key-profile-input-dos-low-lt-autoexec.bat.cfg",
+              "sha256": "4c607344f243031da666603d46257dfc89e729ad9388c35182d7412f3c29263d"
+            }
+          ],
+          "guest_resource_sha256": {
+            "KEYB.COM": "410118fcf2c7b40282619c9eb063edd25ee1fda5ca2cb7ef761d97b35ca463e4",
+            "KEYBRD2.SYS": "a4c47ad578f8804a74a3f2f9a4194eb4a096cb31ecdc7b8224f08dc9b558ed0b",
+            "COUNTRY.SYS": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c"
+          },
+          "retained_final_expected_include": {
+            "path": "review/key-profile-input-dos-low-lt-expected.bin",
+            "sha256": "fad605f1d86ecadab9e50e26987aaf1dcffb6edf809ac54dc27885ed44d4566b"
+          }
+        }
+      ]
+    },
+    {
+      "name": "lifecycle-bios",
+      "command": "MEMORY_CORE_DIR=out/memory-production/files python3 tests/test_baltic_keyboard_lifecycle_qemu.py",
+      "status": "passed",
+      "source_report_sha256": "480432ff30d1ba51e9f276a87e8d1131019921f92032da22ffe55eaf42ae81ef",
+      "cases": [
+        {
+          "name": "high-et",
+          "memory_profile": "high",
+          "grouped_input": true,
+          "layout_phases": null,
+          "enhanced_bios_input": true,
+          "negative_control": false,
+          "dos_input": false,
+          "reload_existing": false,
+          "rejection": null,
+          "documented_recipe": false,
+          "emulator_exit": 33,
+          "completed_reads": 109,
+          "log": "high-et/serial.log",
+          "log_sha256": "1da9a432dd69fba6b7857299a63869da5194f345174e3806272a738d0ed82c1d",
+          "input_oracle": {
+            "path": "review/key-profile-lifecycle-bios-high-et-oracle.json",
+            "sha256": "300ca9574ca9c66e64cd866e999ca3feba9706e98d15b178d72a91f0ce8afb7d"
+          },
+          "step_count": 109,
+          "expected_word_count": 169,
+          "retained_serial": {
+            "path": "review/key-profile-lifecycle-bios-high-et.log",
+            "sha256": "1da9a432dd69fba6b7857299a63869da5194f345174e3806272a738d0ed82c1d"
+          },
+          "startup": [
+            {
+              "path": "review/key-profile-lifecycle-bios-high-et-config.sys.cfg",
+              "sha256": "f76b3460215a82c7cd75112f01c2be68160793913dad080cf848843cd0f3b618"
+            },
+            {
+              "path": "review/key-profile-lifecycle-bios-high-et-autoexec.bat.cfg",
+              "sha256": "2bd286dee7a333bfc674fd872ddfc9cd102701cca44c8716d5dfe284c7c2d9c7"
+            }
+          ],
+          "guest_resource_sha256": {
+            "KEYB.COM": "410118fcf2c7b40282619c9eb063edd25ee1fda5ca2cb7ef761d97b35ca463e4",
+            "KEYBRD2.SYS": "a4c47ad578f8804a74a3f2f9a4194eb4a096cb31ecdc7b8224f08dc9b558ed0b",
+            "COUNTRY.SYS": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c"
+          },
+          "retained_final_expected_include": {
+            "path": "review/key-profile-lifecycle-bios-high-et-expected.bin",
+            "sha256": "162b636b3c40476f2d59cf0554f2679463280e853b9640919ebb2f9ebd8d9dbf"
+          }
+        },
+        {
+          "name": "high-lv",
+          "memory_profile": "high",
+          "grouped_input": true,
+          "layout_phases": null,
+          "enhanced_bios_input": true,
+          "negative_control": false,
+          "dos_input": false,
+          "reload_existing": false,
+          "rejection": null,
+          "documented_recipe": false,
+          "emulator_exit": 33,
+          "completed_reads": 84,
+          "log": "high-lv/serial.log",
+          "log_sha256": "df4fd2e6a8f880d4ed93c56a15c845757d82eb750108f5769bb3444f95934988",
+          "input_oracle": {
+            "path": "review/key-profile-lifecycle-bios-high-lv-oracle.json",
+            "sha256": "d9aad7cefff83a2b66fa153c4ba9d7ad518d7030295f46aa58f01fe8381fba06"
+          },
+          "step_count": 84,
+          "expected_word_count": 128,
+          "retained_serial": {
+            "path": "review/key-profile-lifecycle-bios-high-lv.log",
+            "sha256": "df4fd2e6a8f880d4ed93c56a15c845757d82eb750108f5769bb3444f95934988"
+          },
+          "startup": [
+            {
+              "path": "review/key-profile-lifecycle-bios-high-lv-config.sys.cfg",
+              "sha256": "b35f0ba224cd509db9c638987cfd6a78642c5283130abf65b7343afaa1c80f01"
+            },
+            {
+              "path": "review/key-profile-lifecycle-bios-high-lv-autoexec.bat.cfg",
+              "sha256": "9a64e748ecfa729d6dad0840569c8b7bff0b95c2130031b18ec2d70655ebc4f1"
+            }
+          ],
+          "guest_resource_sha256": {
+            "KEYB.COM": "410118fcf2c7b40282619c9eb063edd25ee1fda5ca2cb7ef761d97b35ca463e4",
+            "KEYBRD2.SYS": "a4c47ad578f8804a74a3f2f9a4194eb4a096cb31ecdc7b8224f08dc9b558ed0b",
+            "COUNTRY.SYS": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c"
+          },
+          "retained_final_expected_include": {
+            "path": "review/key-profile-lifecycle-bios-high-lv-expected.bin",
+            "sha256": "926949c6a8ba01308c41dae5b50b3e4d6c7b7aab74ffadb7d36a77bf348237ba"
+          }
+        },
+        {
+          "name": "high-lt",
+          "memory_profile": "high",
+          "grouped_input": true,
+          "layout_phases": null,
+          "enhanced_bios_input": true,
+          "negative_control": false,
+          "dos_input": false,
+          "reload_existing": false,
+          "rejection": null,
+          "documented_recipe": false,
+          "emulator_exit": 33,
+          "completed_reads": 4,
+          "log": "high-lt/serial.log",
+          "log_sha256": "4eac01f28b6dc5c1e1da6e0a9b2d05a0cb4966ef6754d4eba4ac40522613cb0e",
+          "input_oracle": {
+            "path": "review/key-profile-lifecycle-bios-high-lt-oracle.json",
+            "sha256": "544e899d2e9ae8044730fc1614cc37c3038c509a5d5919c2d4297388d55cc13d"
+          },
+          "step_count": 4,
+          "expected_word_count": 4,
+          "retained_serial": {
+            "path": "review/key-profile-lifecycle-bios-high-lt.log",
+            "sha256": "4eac01f28b6dc5c1e1da6e0a9b2d05a0cb4966ef6754d4eba4ac40522613cb0e"
+          },
+          "startup": [
+            {
+              "path": "review/key-profile-lifecycle-bios-high-lt-config.sys.cfg",
+              "sha256": "b236e5a0c576b888d1c77f296c50eea0df0b4dabb2203eae386ca0c5460a3d05"
+            },
+            {
+              "path": "review/key-profile-lifecycle-bios-high-lt-autoexec.bat.cfg",
+              "sha256": "4c607344f243031da666603d46257dfc89e729ad9388c35182d7412f3c29263d"
+            }
+          ],
+          "guest_resource_sha256": {
+            "KEYB.COM": "410118fcf2c7b40282619c9eb063edd25ee1fda5ca2cb7ef761d97b35ca463e4",
+            "KEYBRD2.SYS": "a4c47ad578f8804a74a3f2f9a4194eb4a096cb31ecdc7b8224f08dc9b558ed0b",
+            "COUNTRY.SYS": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c"
+          },
+          "retained_final_expected_include": {
+            "path": "review/key-profile-lifecycle-bios-high-lt-expected.bin",
+            "sha256": "6e63d4fd2be22a20b5b66dbec312f3c8f226e3cfea3774fec5dcf70cedb7668b"
+          }
+        },
+        {
+          "name": "low-et",
+          "memory_profile": "low",
+          "grouped_input": true,
+          "layout_phases": null,
+          "enhanced_bios_input": true,
+          "negative_control": false,
+          "dos_input": false,
+          "reload_existing": false,
+          "rejection": null,
+          "documented_recipe": false,
+          "emulator_exit": 33,
+          "completed_reads": 109,
+          "log": "low-et/serial.log",
+          "log_sha256": "0dded6f85ffce671ad4515ddb3e0e8ec03993067b7b9a87be8e9c196b7aa95df",
+          "input_oracle": {
+            "path": "review/key-profile-lifecycle-bios-high-et-oracle.json",
+            "sha256": "300ca9574ca9c66e64cd866e999ca3feba9706e98d15b178d72a91f0ce8afb7d"
+          },
+          "step_count": 109,
+          "expected_word_count": 169,
+          "retained_serial": {
+            "path": "review/key-profile-lifecycle-bios-low-et.log",
+            "sha256": "0dded6f85ffce671ad4515ddb3e0e8ec03993067b7b9a87be8e9c196b7aa95df"
+          },
+          "startup": [
+            {
+              "path": "review/key-profile-lifecycle-bios-low-et-config.sys.cfg",
+              "sha256": "3cda7b278ea952d7873d1b8c361d4085b2f5ebb8529fe4b9e95d3b9074bbf03e"
+            },
+            {
+              "path": "review/key-profile-lifecycle-bios-low-et-autoexec.bat.cfg",
+              "sha256": "2bd286dee7a333bfc674fd872ddfc9cd102701cca44c8716d5dfe284c7c2d9c7"
+            }
+          ],
+          "guest_resource_sha256": {
+            "KEYB.COM": "410118fcf2c7b40282619c9eb063edd25ee1fda5ca2cb7ef761d97b35ca463e4",
+            "KEYBRD2.SYS": "a4c47ad578f8804a74a3f2f9a4194eb4a096cb31ecdc7b8224f08dc9b558ed0b",
+            "COUNTRY.SYS": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c"
+          },
+          "retained_final_expected_include": {
+            "path": "review/key-profile-lifecycle-bios-low-et-expected.bin",
+            "sha256": "162b636b3c40476f2d59cf0554f2679463280e853b9640919ebb2f9ebd8d9dbf"
+          }
+        },
+        {
+          "name": "low-lv",
+          "memory_profile": "low",
+          "grouped_input": true,
+          "layout_phases": null,
+          "enhanced_bios_input": true,
+          "negative_control": false,
+          "dos_input": false,
+          "reload_existing": false,
+          "rejection": null,
+          "documented_recipe": false,
+          "emulator_exit": 33,
+          "completed_reads": 84,
+          "log": "low-lv/serial.log",
+          "log_sha256": "c7210f0b868802f06ca7cbb472f5cc4f8d1a7ed0cf2556846abf49801bc60aa1",
+          "input_oracle": {
+            "path": "review/key-profile-lifecycle-bios-high-lv-oracle.json",
+            "sha256": "d9aad7cefff83a2b66fa153c4ba9d7ad518d7030295f46aa58f01fe8381fba06"
+          },
+          "step_count": 84,
+          "expected_word_count": 128,
+          "retained_serial": {
+            "path": "review/key-profile-lifecycle-bios-low-lv.log",
+            "sha256": "c7210f0b868802f06ca7cbb472f5cc4f8d1a7ed0cf2556846abf49801bc60aa1"
+          },
+          "startup": [
+            {
+              "path": "review/key-profile-lifecycle-bios-low-lv-config.sys.cfg",
+              "sha256": "b3935f8a2c2d2a9c84acb28564ce9f79beaf1b05b9b3695d345d1acbe7a5da9d"
+            },
+            {
+              "path": "review/key-profile-lifecycle-bios-low-lv-autoexec.bat.cfg",
+              "sha256": "9a64e748ecfa729d6dad0840569c8b7bff0b95c2130031b18ec2d70655ebc4f1"
+            }
+          ],
+          "guest_resource_sha256": {
+            "KEYB.COM": "410118fcf2c7b40282619c9eb063edd25ee1fda5ca2cb7ef761d97b35ca463e4",
+            "KEYBRD2.SYS": "a4c47ad578f8804a74a3f2f9a4194eb4a096cb31ecdc7b8224f08dc9b558ed0b",
+            "COUNTRY.SYS": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c"
+          },
+          "retained_final_expected_include": {
+            "path": "review/key-profile-lifecycle-bios-low-lv-expected.bin",
+            "sha256": "926949c6a8ba01308c41dae5b50b3e4d6c7b7aab74ffadb7d36a77bf348237ba"
+          }
+        },
+        {
+          "name": "low-lt",
+          "memory_profile": "low",
+          "grouped_input": true,
+          "layout_phases": null,
+          "enhanced_bios_input": true,
+          "negative_control": false,
+          "dos_input": false,
+          "reload_existing": false,
+          "rejection": null,
+          "documented_recipe": false,
+          "emulator_exit": 33,
+          "completed_reads": 4,
+          "log": "low-lt/serial.log",
+          "log_sha256": "00ca11f968222b7467f5cee2519cd264154b8fb125ec69af6aaff63b82664f83",
+          "input_oracle": {
+            "path": "review/key-profile-lifecycle-bios-high-lt-oracle.json",
+            "sha256": "544e899d2e9ae8044730fc1614cc37c3038c509a5d5919c2d4297388d55cc13d"
+          },
+          "step_count": 4,
+          "expected_word_count": 4,
+          "retained_serial": {
+            "path": "review/key-profile-lifecycle-bios-low-lt.log",
+            "sha256": "00ca11f968222b7467f5cee2519cd264154b8fb125ec69af6aaff63b82664f83"
+          },
+          "startup": [
+            {
+              "path": "review/key-profile-lifecycle-bios-low-lt-config.sys.cfg",
+              "sha256": "609733726e3bc48644eb48f8dcd70b4133bfe9baeff432eaf00a7358323cde06"
+            },
+            {
+              "path": "review/key-profile-lifecycle-bios-low-lt-autoexec.bat.cfg",
+              "sha256": "4c607344f243031da666603d46257dfc89e729ad9388c35182d7412f3c29263d"
+            }
+          ],
+          "guest_resource_sha256": {
+            "KEYB.COM": "410118fcf2c7b40282619c9eb063edd25ee1fda5ca2cb7ef761d97b35ca463e4",
+            "KEYBRD2.SYS": "a4c47ad578f8804a74a3f2f9a4194eb4a096cb31ecdc7b8224f08dc9b558ed0b",
+            "COUNTRY.SYS": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c"
+          },
+          "retained_final_expected_include": {
+            "path": "review/key-profile-lifecycle-bios-low-lt-expected.bin",
+            "sha256": "6e63d4fd2be22a20b5b66dbec312f3c8f226e3cfea3774fec5dcf70cedb7668b"
+          }
+        }
+      ]
+    },
+    {
+      "name": "lifecycle-dos",
+      "command": "MEMORY_CORE_DIR=out/memory-production/files python3 tests/test_baltic_keyboard_lifecycle_qemu.py --dos",
+      "status": "passed",
+      "source_report_sha256": "7bff587a6f86f965d72082fbfd7273b9a29318277e9e0a9ff0a76436e68b7a66",
+      "cases": [
+        {
+          "name": "high-et",
+          "memory_profile": "high",
+          "grouped_input": true,
+          "layout_phases": null,
+          "enhanced_bios_input": true,
+          "negative_control": false,
+          "dos_input": true,
+          "reload_existing": false,
+          "rejection": null,
+          "documented_recipe": false,
+          "emulator_exit": 33,
+          "completed_reads": 109,
+          "log": "high-et/serial.log",
+          "log_sha256": "1da9a432dd69fba6b7857299a63869da5194f345174e3806272a738d0ed82c1d",
+          "input_oracle": {
+            "path": "review/key-profile-lifecycle-dos-high-et-oracle.json",
+            "sha256": "04f05e31fbec324fbfe2d8052a93e1e28691ced7bafdb9e9a44ec6db6a541d8a"
+          },
+          "step_count": 109,
+          "expected_word_count": 169,
+          "retained_serial": {
+            "path": "review/key-profile-lifecycle-dos-high-et.log",
+            "sha256": "1da9a432dd69fba6b7857299a63869da5194f345174e3806272a738d0ed82c1d"
+          },
+          "startup": [
+            {
+              "path": "review/key-profile-lifecycle-dos-high-et-config.sys.cfg",
+              "sha256": "f76b3460215a82c7cd75112f01c2be68160793913dad080cf848843cd0f3b618"
+            },
+            {
+              "path": "review/key-profile-lifecycle-dos-high-et-autoexec.bat.cfg",
+              "sha256": "2bd286dee7a333bfc674fd872ddfc9cd102701cca44c8716d5dfe284c7c2d9c7"
+            }
+          ],
+          "guest_resource_sha256": {
+            "KEYB.COM": "410118fcf2c7b40282619c9eb063edd25ee1fda5ca2cb7ef761d97b35ca463e4",
+            "KEYBRD2.SYS": "a4c47ad578f8804a74a3f2f9a4194eb4a096cb31ecdc7b8224f08dc9b558ed0b",
+            "COUNTRY.SYS": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c"
+          },
+          "retained_final_expected_include": {
+            "path": "review/key-profile-lifecycle-dos-high-et-expected.bin",
+            "sha256": "6328726230bbb02a3d84f56ceb98a4db89820ef31ea22ec27643bd7d9bebbb59"
+          }
+        },
+        {
+          "name": "high-lv",
+          "memory_profile": "high",
+          "grouped_input": true,
+          "layout_phases": null,
+          "enhanced_bios_input": true,
+          "negative_control": false,
+          "dos_input": true,
+          "reload_existing": false,
+          "rejection": null,
+          "documented_recipe": false,
+          "emulator_exit": 33,
+          "completed_reads": 84,
+          "log": "high-lv/serial.log",
+          "log_sha256": "df4fd2e6a8f880d4ed93c56a15c845757d82eb750108f5769bb3444f95934988",
+          "input_oracle": {
+            "path": "review/key-profile-lifecycle-dos-high-lv-oracle.json",
+            "sha256": "6e8d0368c92f72966e9d516710fac2fe12d8027167d7fc1bd68a96e1f3b47f89"
+          },
+          "step_count": 84,
+          "expected_word_count": 128,
+          "retained_serial": {
+            "path": "review/key-profile-lifecycle-dos-high-lv.log",
+            "sha256": "df4fd2e6a8f880d4ed93c56a15c845757d82eb750108f5769bb3444f95934988"
+          },
+          "startup": [
+            {
+              "path": "review/key-profile-lifecycle-dos-high-lv-config.sys.cfg",
+              "sha256": "b35f0ba224cd509db9c638987cfd6a78642c5283130abf65b7343afaa1c80f01"
+            },
+            {
+              "path": "review/key-profile-lifecycle-dos-high-lv-autoexec.bat.cfg",
+              "sha256": "9a64e748ecfa729d6dad0840569c8b7bff0b95c2130031b18ec2d70655ebc4f1"
+            }
+          ],
+          "guest_resource_sha256": {
+            "KEYB.COM": "410118fcf2c7b40282619c9eb063edd25ee1fda5ca2cb7ef761d97b35ca463e4",
+            "KEYBRD2.SYS": "a4c47ad578f8804a74a3f2f9a4194eb4a096cb31ecdc7b8224f08dc9b558ed0b",
+            "COUNTRY.SYS": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c"
+          },
+          "retained_final_expected_include": {
+            "path": "review/key-profile-lifecycle-dos-high-lv-expected.bin",
+            "sha256": "66093a7e5981a58820e736586ee67cd47264e452692e0d3b14840c775a5d825c"
+          }
+        },
+        {
+          "name": "high-lt",
+          "memory_profile": "high",
+          "grouped_input": true,
+          "layout_phases": null,
+          "enhanced_bios_input": true,
+          "negative_control": false,
+          "dos_input": true,
+          "reload_existing": false,
+          "rejection": null,
+          "documented_recipe": false,
+          "emulator_exit": 33,
+          "completed_reads": 4,
+          "log": "high-lt/serial.log",
+          "log_sha256": "4eac01f28b6dc5c1e1da6e0a9b2d05a0cb4966ef6754d4eba4ac40522613cb0e",
+          "input_oracle": {
+            "path": "review/key-profile-lifecycle-bios-high-lt-oracle.json",
+            "sha256": "544e899d2e9ae8044730fc1614cc37c3038c509a5d5919c2d4297388d55cc13d"
+          },
+          "step_count": 4,
+          "expected_word_count": 4,
+          "retained_serial": {
+            "path": "review/key-profile-lifecycle-dos-high-lt.log",
+            "sha256": "4eac01f28b6dc5c1e1da6e0a9b2d05a0cb4966ef6754d4eba4ac40522613cb0e"
+          },
+          "startup": [
+            {
+              "path": "review/key-profile-lifecycle-dos-high-lt-config.sys.cfg",
+              "sha256": "b236e5a0c576b888d1c77f296c50eea0df0b4dabb2203eae386ca0c5460a3d05"
+            },
+            {
+              "path": "review/key-profile-lifecycle-dos-high-lt-autoexec.bat.cfg",
+              "sha256": "4c607344f243031da666603d46257dfc89e729ad9388c35182d7412f3c29263d"
+            }
+          ],
+          "guest_resource_sha256": {
+            "KEYB.COM": "410118fcf2c7b40282619c9eb063edd25ee1fda5ca2cb7ef761d97b35ca463e4",
+            "KEYBRD2.SYS": "a4c47ad578f8804a74a3f2f9a4194eb4a096cb31ecdc7b8224f08dc9b558ed0b",
+            "COUNTRY.SYS": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c"
+          },
+          "retained_final_expected_include": {
+            "path": "review/key-profile-lifecycle-dos-high-lt-expected.bin",
+            "sha256": "6e63d4fd2be22a20b5b66dbec312f3c8f226e3cfea3774fec5dcf70cedb7668b"
+          }
+        },
+        {
+          "name": "low-et",
+          "memory_profile": "low",
+          "grouped_input": true,
+          "layout_phases": null,
+          "enhanced_bios_input": true,
+          "negative_control": false,
+          "dos_input": true,
+          "reload_existing": false,
+          "rejection": null,
+          "documented_recipe": false,
+          "emulator_exit": 33,
+          "completed_reads": 109,
+          "log": "low-et/serial.log",
+          "log_sha256": "0dded6f85ffce671ad4515ddb3e0e8ec03993067b7b9a87be8e9c196b7aa95df",
+          "input_oracle": {
+            "path": "review/key-profile-lifecycle-dos-high-et-oracle.json",
+            "sha256": "04f05e31fbec324fbfe2d8052a93e1e28691ced7bafdb9e9a44ec6db6a541d8a"
+          },
+          "step_count": 109,
+          "expected_word_count": 169,
+          "retained_serial": {
+            "path": "review/key-profile-lifecycle-dos-low-et.log",
+            "sha256": "0dded6f85ffce671ad4515ddb3e0e8ec03993067b7b9a87be8e9c196b7aa95df"
+          },
+          "startup": [
+            {
+              "path": "review/key-profile-lifecycle-dos-low-et-config.sys.cfg",
+              "sha256": "3cda7b278ea952d7873d1b8c361d4085b2f5ebb8529fe4b9e95d3b9074bbf03e"
+            },
+            {
+              "path": "review/key-profile-lifecycle-dos-low-et-autoexec.bat.cfg",
+              "sha256": "2bd286dee7a333bfc674fd872ddfc9cd102701cca44c8716d5dfe284c7c2d9c7"
+            }
+          ],
+          "guest_resource_sha256": {
+            "KEYB.COM": "410118fcf2c7b40282619c9eb063edd25ee1fda5ca2cb7ef761d97b35ca463e4",
+            "KEYBRD2.SYS": "a4c47ad578f8804a74a3f2f9a4194eb4a096cb31ecdc7b8224f08dc9b558ed0b",
+            "COUNTRY.SYS": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c"
+          },
+          "retained_final_expected_include": {
+            "path": "review/key-profile-lifecycle-dos-low-et-expected.bin",
+            "sha256": "6328726230bbb02a3d84f56ceb98a4db89820ef31ea22ec27643bd7d9bebbb59"
+          }
+        },
+        {
+          "name": "low-lv",
+          "memory_profile": "low",
+          "grouped_input": true,
+          "layout_phases": null,
+          "enhanced_bios_input": true,
+          "negative_control": false,
+          "dos_input": true,
+          "reload_existing": false,
+          "rejection": null,
+          "documented_recipe": false,
+          "emulator_exit": 33,
+          "completed_reads": 84,
+          "log": "low-lv/serial.log",
+          "log_sha256": "c7210f0b868802f06ca7cbb472f5cc4f8d1a7ed0cf2556846abf49801bc60aa1",
+          "input_oracle": {
+            "path": "review/key-profile-lifecycle-dos-high-lv-oracle.json",
+            "sha256": "6e8d0368c92f72966e9d516710fac2fe12d8027167d7fc1bd68a96e1f3b47f89"
+          },
+          "step_count": 84,
+          "expected_word_count": 128,
+          "retained_serial": {
+            "path": "review/key-profile-lifecycle-dos-low-lv.log",
+            "sha256": "c7210f0b868802f06ca7cbb472f5cc4f8d1a7ed0cf2556846abf49801bc60aa1"
+          },
+          "startup": [
+            {
+              "path": "review/key-profile-lifecycle-dos-low-lv-config.sys.cfg",
+              "sha256": "b3935f8a2c2d2a9c84acb28564ce9f79beaf1b05b9b3695d345d1acbe7a5da9d"
+            },
+            {
+              "path": "review/key-profile-lifecycle-dos-low-lv-autoexec.bat.cfg",
+              "sha256": "9a64e748ecfa729d6dad0840569c8b7bff0b95c2130031b18ec2d70655ebc4f1"
+            }
+          ],
+          "guest_resource_sha256": {
+            "KEYB.COM": "410118fcf2c7b40282619c9eb063edd25ee1fda5ca2cb7ef761d97b35ca463e4",
+            "KEYBRD2.SYS": "a4c47ad578f8804a74a3f2f9a4194eb4a096cb31ecdc7b8224f08dc9b558ed0b",
+            "COUNTRY.SYS": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c"
+          },
+          "retained_final_expected_include": {
+            "path": "review/key-profile-lifecycle-dos-low-lv-expected.bin",
+            "sha256": "66093a7e5981a58820e736586ee67cd47264e452692e0d3b14840c775a5d825c"
+          }
+        },
+        {
+          "name": "low-lt",
+          "memory_profile": "low",
+          "grouped_input": true,
+          "layout_phases": null,
+          "enhanced_bios_input": true,
+          "negative_control": false,
+          "dos_input": true,
+          "reload_existing": false,
+          "rejection": null,
+          "documented_recipe": false,
+          "emulator_exit": 33,
+          "completed_reads": 4,
+          "log": "low-lt/serial.log",
+          "log_sha256": "00ca11f968222b7467f5cee2519cd264154b8fb125ec69af6aaff63b82664f83",
+          "input_oracle": {
+            "path": "review/key-profile-lifecycle-bios-high-lt-oracle.json",
+            "sha256": "544e899d2e9ae8044730fc1614cc37c3038c509a5d5919c2d4297388d55cc13d"
+          },
+          "step_count": 4,
+          "expected_word_count": 4,
+          "retained_serial": {
+            "path": "review/key-profile-lifecycle-dos-low-lt.log",
+            "sha256": "00ca11f968222b7467f5cee2519cd264154b8fb125ec69af6aaff63b82664f83"
+          },
+          "startup": [
+            {
+              "path": "review/key-profile-lifecycle-dos-low-lt-config.sys.cfg",
+              "sha256": "609733726e3bc48644eb48f8dcd70b4133bfe9baeff432eaf00a7358323cde06"
+            },
+            {
+              "path": "review/key-profile-lifecycle-dos-low-lt-autoexec.bat.cfg",
+              "sha256": "4c607344f243031da666603d46257dfc89e729ad9388c35182d7412f3c29263d"
+            }
+          ],
+          "guest_resource_sha256": {
+            "KEYB.COM": "410118fcf2c7b40282619c9eb063edd25ee1fda5ca2cb7ef761d97b35ca463e4",
+            "KEYBRD2.SYS": "a4c47ad578f8804a74a3f2f9a4194eb4a096cb31ecdc7b8224f08dc9b558ed0b",
+            "COUNTRY.SYS": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c"
+          },
+          "retained_final_expected_include": {
+            "path": "review/key-profile-lifecycle-dos-low-lt-expected.bin",
+            "sha256": "6e63d4fd2be22a20b5b66dbec312f3c8f226e3cfea3774fec5dcf70cedb7668b"
+          }
+        }
+      ]
+    },
+    {
+      "name": "selection",
+      "command": "MEMORY_CORE_DIR=out/memory-production/files python3 tests/test_baltic_keyboard_selection_qemu.py",
+      "status": "passed",
+      "source_report_sha256": "1dde87b520276864cc10e30b0a033023c0c454dc706bdfbd337bc2378332e2ee",
+      "cases": [
+        {
+          "name": "high",
+          "memory_profile": "high",
+          "grouped_input": false,
+          "layout_phases": [
+            {
+              "command": null,
+              "reject": false,
+              "status_code": "ET",
+              "status_page": 775,
+              "cases": [
+                {
+                  "name": "Estonian lower",
+                  "keys": [
+                    [
+                      "bracket_right",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 7140
+                },
+                {
+                  "name": "Estonian upper",
+                  "keys": [
+                    [
+                      "shift",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      false
+                    ],
+                    [
+                      "shift",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 7141
+                }
+              ]
+            },
+            {
+              "command": "KEYB ET,775,KEYBRD2.SYS",
+              "reject": false,
+              "status_code": "ET",
+              "status_page": 775,
+              "cases": [
+                {
+                  "name": "Estonian lower",
+                  "keys": [
+                    [
+                      "bracket_right",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 7140
+                },
+                {
+                  "name": "Estonian upper",
+                  "keys": [
+                    [
+                      "shift",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      false
+                    ],
+                    [
+                      "shift",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 7141
+                }
+              ]
+            },
+            {
+              "command": "KEYB ET,775,KEYBRD2.SYS /ID:454",
+              "reject": false,
+              "status_code": "ET",
+              "status_page": 775,
+              "cases": [
+                {
+                  "name": "Estonian lower",
+                  "keys": [
+                    [
+                      "bracket_right",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 7140
+                },
+                {
+                  "name": "Estonian upper",
+                  "keys": [
+                    [
+                      "shift",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      false
+                    ],
+                    [
+                      "shift",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 7141
+                }
+              ]
+            },
+            {
+              "command": "KEYB ET,866,KEYBRD2.SYS",
+              "reject": true,
+              "status_code": "ET",
+              "status_page": 775,
+              "cases": [
+                {
+                  "name": "Estonian lower",
+                  "keys": [
+                    [
+                      "bracket_right",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 7140
+                },
+                {
+                  "name": "Estonian upper",
+                  "keys": [
+                    [
+                      "shift",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      false
+                    ],
+                    [
+                      "shift",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 7141
+                }
+              ]
+            },
+            {
+              "command": "KEYB ET,775,KEYBRD2.SYS /ID:999",
+              "reject": true,
+              "status_code": "ET",
+              "status_page": 775,
+              "cases": [
+                {
+                  "name": "Estonian lower",
+                  "keys": [
+                    [
+                      "bracket_right",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 7140
+                },
+                {
+                  "name": "Estonian upper",
+                  "keys": [
+                    [
+                      "shift",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      false
+                    ],
+                    [
+                      "shift",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 7141
+                }
+              ]
+            },
+            {
+              "command": "KEYB ET,775,KEYBRD2.SYS /ID:221",
+              "reject": true,
+              "status_code": "ET",
+              "status_page": 775,
+              "cases": [
+                {
+                  "name": "Estonian lower",
+                  "keys": [
+                    [
+                      "bracket_right",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 7140
+                },
+                {
+                  "name": "Estonian upper",
+                  "keys": [
+                    [
+                      "shift",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      false
+                    ],
+                    [
+                      "shift",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 7141
+                }
+              ]
+            },
+            {
+              "command": "KEYB ET,775,MISSING.SYS",
+              "reject": true,
+              "status_code": "ET",
+              "status_page": 775,
+              "cases": [
+                {
+                  "name": "Estonian lower",
+                  "keys": [
+                    [
+                      "bracket_right",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 7140
+                },
+                {
+                  "name": "Estonian upper",
+                  "keys": [
+                    [
+                      "shift",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      false
+                    ],
+                    [
+                      "shift",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 7141
+                }
+              ]
+            },
+            {
+              "command": "KEYB ET,775,BAD.SYS",
+              "reject": true,
+              "status_code": "ET",
+              "status_page": 775,
+              "cases": [
+                {
+                  "name": "Estonian lower",
+                  "keys": [
+                    [
+                      "bracket_right",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 7140
+                },
+                {
+                  "name": "Estonian upper",
+                  "keys": [
+                    [
+                      "shift",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      false
+                    ],
+                    [
+                      "shift",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 7141
+                }
+              ]
+            },
+            {
+              "command": "KEYB ET,775,SHORT.SYS",
+              "reject": true,
+              "status_code": "ET",
+              "status_page": 775,
+              "cases": [
+                {
+                  "name": "Estonian lower",
+                  "keys": [
+                    [
+                      "bracket_right",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 7140
+                },
+                {
+                  "name": "Estonian upper",
+                  "keys": [
+                    [
+                      "shift",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      false
+                    ],
+                    [
+                      "shift",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 7141
+                }
+              ]
+            },
+            {
+              "command": "KEYB EE,775,KEYBRD2.SYS",
+              "reject": false,
+              "status_code": "EE",
+              "status_page": 775,
+              "cases": [
+                {
+                  "name": "Estonian lower",
+                  "keys": [
+                    [
+                      "bracket_right",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 7140
+                },
+                {
+                  "name": "Estonian upper",
+                  "keys": [
+                    [
+                      "shift",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      false
+                    ],
+                    [
+                      "shift",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 7141
+                }
+              ]
+            },
+            {
+              "command": "KEYB EE,775,KEYBRD2.SYS /ID:454",
+              "reject": false,
+              "status_code": "EE",
+              "status_page": 775,
+              "cases": [
+                {
+                  "name": "Estonian lower",
+                  "keys": [
+                    [
+                      "bracket_right",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 7140
+                },
+                {
+                  "name": "Estonian upper",
+                  "keys": [
+                    [
+                      "shift",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      false
+                    ],
+                    [
+                      "shift",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 7141
+                }
+              ]
+            },
+            {
+              "command": "KEYB EE,866,KEYBRD2.SYS",
+              "reject": true,
+              "status_code": "EE",
+              "status_page": 775,
+              "cases": [
+                {
+                  "name": "Estonian lower",
+                  "keys": [
+                    [
+                      "bracket_right",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 7140
+                },
+                {
+                  "name": "Estonian upper",
+                  "keys": [
+                    [
+                      "shift",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      false
+                    ],
+                    [
+                      "shift",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 7141
+                }
+              ]
+            },
+            {
+              "command": "KEYB EE,775,KEYBRD2.SYS /ID:999",
+              "reject": true,
+              "status_code": "EE",
+              "status_page": 775,
+              "cases": [
+                {
+                  "name": "Estonian lower",
+                  "keys": [
+                    [
+                      "bracket_right",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 7140
+                },
+                {
+                  "name": "Estonian upper",
+                  "keys": [
+                    [
+                      "shift",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      false
+                    ],
+                    [
+                      "shift",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 7141
+                }
+              ]
+            },
+            {
+              "command": "KEYB EE,775,KEYBRD2.SYS /ID:221",
+              "reject": true,
+              "status_code": "EE",
+              "status_page": 775,
+              "cases": [
+                {
+                  "name": "Estonian lower",
+                  "keys": [
+                    [
+                      "bracket_right",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 7140
+                },
+                {
+                  "name": "Estonian upper",
+                  "keys": [
+                    [
+                      "shift",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      false
+                    ],
+                    [
+                      "shift",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 7141
+                }
+              ]
+            },
+            {
+              "command": "KEYB EE,775,MISSING.SYS",
+              "reject": true,
+              "status_code": "EE",
+              "status_page": 775,
+              "cases": [
+                {
+                  "name": "Estonian lower",
+                  "keys": [
+                    [
+                      "bracket_right",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 7140
+                },
+                {
+                  "name": "Estonian upper",
+                  "keys": [
+                    [
+                      "shift",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      false
+                    ],
+                    [
+                      "shift",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 7141
+                }
+              ]
+            },
+            {
+              "command": "KEYB EE,775,BAD.SYS",
+              "reject": true,
+              "status_code": "EE",
+              "status_page": 775,
+              "cases": [
+                {
+                  "name": "Estonian lower",
+                  "keys": [
+                    [
+                      "bracket_right",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 7140
+                },
+                {
+                  "name": "Estonian upper",
+                  "keys": [
+                    [
+                      "shift",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      false
+                    ],
+                    [
+                      "shift",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 7141
+                }
+              ]
+            },
+            {
+              "command": "KEYB EE,775,SHORT.SYS",
+              "reject": true,
+              "status_code": "EE",
+              "status_page": 775,
+              "cases": [
+                {
+                  "name": "Estonian lower",
+                  "keys": [
+                    [
+                      "bracket_right",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 7140
+                },
+                {
+                  "name": "Estonian upper",
+                  "keys": [
+                    [
+                      "shift",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      false
+                    ],
+                    [
+                      "shift",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 7141
+                }
+              ]
+            },
+            {
+              "command": "KEYB LV,775,KEYBRD2.SYS",
+              "reject": false,
+              "status_code": "LV",
+              "status_page": 775,
+              "cases": [
+                {
+                  "name": "Latvian lower",
+                  "keys": [
+                    [
+                      "alt_r",
+                      true
+                    ],
+                    [
+                      "g",
+                      true
+                    ],
+                    [
+                      "g",
+                      false
+                    ],
+                    [
+                      "alt_r",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 8837
+                },
+                {
+                  "name": "Latvian upper",
+                  "keys": [
+                    [
+                      "shift",
+                      true
+                    ],
+                    [
+                      "alt_r",
+                      true
+                    ],
+                    [
+                      "g",
+                      true
+                    ],
+                    [
+                      "g",
+                      false
+                    ],
+                    [
+                      "alt_r",
+                      false
+                    ],
+                    [
+                      "shift",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 8853
+                }
+              ]
+            },
+            {
+              "command": "KEYB LV,775,KEYBRD2.SYS /ID:0",
+              "reject": false,
+              "status_code": "LV",
+              "status_page": 775,
+              "cases": [
+                {
+                  "name": "Latvian lower",
+                  "keys": [
+                    [
+                      "alt_r",
+                      true
+                    ],
+                    [
+                      "g",
+                      true
+                    ],
+                    [
+                      "g",
+                      false
+                    ],
+                    [
+                      "alt_r",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 8837
+                },
+                {
+                  "name": "Latvian upper",
+                  "keys": [
+                    [
+                      "shift",
+                      true
+                    ],
+                    [
+                      "alt_r",
+                      true
+                    ],
+                    [
+                      "g",
+                      true
+                    ],
+                    [
+                      "g",
+                      false
+                    ],
+                    [
+                      "alt_r",
+                      false
+                    ],
+                    [
+                      "shift",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 8853
+                }
+              ]
+            },
+            {
+              "command": "KEYB LV,866,KEYBRD2.SYS",
+              "reject": true,
+              "status_code": "LV",
+              "status_page": 775,
+              "cases": [
+                {
+                  "name": "Latvian lower",
+                  "keys": [
+                    [
+                      "alt_r",
+                      true
+                    ],
+                    [
+                      "g",
+                      true
+                    ],
+                    [
+                      "g",
+                      false
+                    ],
+                    [
+                      "alt_r",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 8837
+                },
+                {
+                  "name": "Latvian upper",
+                  "keys": [
+                    [
+                      "shift",
+                      true
+                    ],
+                    [
+                      "alt_r",
+                      true
+                    ],
+                    [
+                      "g",
+                      true
+                    ],
+                    [
+                      "g",
+                      false
+                    ],
+                    [
+                      "alt_r",
+                      false
+                    ],
+                    [
+                      "shift",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 8853
+                }
+              ]
+            },
+            {
+              "command": "KEYB LV,775,KEYBRD2.SYS /ID:999",
+              "reject": true,
+              "status_code": "LV",
+              "status_page": 775,
+              "cases": [
+                {
+                  "name": "Latvian lower",
+                  "keys": [
+                    [
+                      "alt_r",
+                      true
+                    ],
+                    [
+                      "g",
+                      true
+                    ],
+                    [
+                      "g",
+                      false
+                    ],
+                    [
+                      "alt_r",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 8837
+                },
+                {
+                  "name": "Latvian upper",
+                  "keys": [
+                    [
+                      "shift",
+                      true
+                    ],
+                    [
+                      "alt_r",
+                      true
+                    ],
+                    [
+                      "g",
+                      true
+                    ],
+                    [
+                      "g",
+                      false
+                    ],
+                    [
+                      "alt_r",
+                      false
+                    ],
+                    [
+                      "shift",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 8853
+                }
+              ]
+            },
+            {
+              "command": "KEYB LV,775,KEYBRD2.SYS /ID:454",
+              "reject": true,
+              "status_code": "LV",
+              "status_page": 775,
+              "cases": [
+                {
+                  "name": "Latvian lower",
+                  "keys": [
+                    [
+                      "alt_r",
+                      true
+                    ],
+                    [
+                      "g",
+                      true
+                    ],
+                    [
+                      "g",
+                      false
+                    ],
+                    [
+                      "alt_r",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 8837
+                },
+                {
+                  "name": "Latvian upper",
+                  "keys": [
+                    [
+                      "shift",
+                      true
+                    ],
+                    [
+                      "alt_r",
+                      true
+                    ],
+                    [
+                      "g",
+                      true
+                    ],
+                    [
+                      "g",
+                      false
+                    ],
+                    [
+                      "alt_r",
+                      false
+                    ],
+                    [
+                      "shift",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 8853
+                }
+              ]
+            },
+            {
+              "command": "KEYB LV,775,MISSING.SYS",
+              "reject": true,
+              "status_code": "LV",
+              "status_page": 775,
+              "cases": [
+                {
+                  "name": "Latvian lower",
+                  "keys": [
+                    [
+                      "alt_r",
+                      true
+                    ],
+                    [
+                      "g",
+                      true
+                    ],
+                    [
+                      "g",
+                      false
+                    ],
+                    [
+                      "alt_r",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 8837
+                },
+                {
+                  "name": "Latvian upper",
+                  "keys": [
+                    [
+                      "shift",
+                      true
+                    ],
+                    [
+                      "alt_r",
+                      true
+                    ],
+                    [
+                      "g",
+                      true
+                    ],
+                    [
+                      "g",
+                      false
+                    ],
+                    [
+                      "alt_r",
+                      false
+                    ],
+                    [
+                      "shift",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 8853
+                }
+              ]
+            },
+            {
+              "command": "KEYB LV,775,BAD.SYS",
+              "reject": true,
+              "status_code": "LV",
+              "status_page": 775,
+              "cases": [
+                {
+                  "name": "Latvian lower",
+                  "keys": [
+                    [
+                      "alt_r",
+                      true
+                    ],
+                    [
+                      "g",
+                      true
+                    ],
+                    [
+                      "g",
+                      false
+                    ],
+                    [
+                      "alt_r",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 8837
+                },
+                {
+                  "name": "Latvian upper",
+                  "keys": [
+                    [
+                      "shift",
+                      true
+                    ],
+                    [
+                      "alt_r",
+                      true
+                    ],
+                    [
+                      "g",
+                      true
+                    ],
+                    [
+                      "g",
+                      false
+                    ],
+                    [
+                      "alt_r",
+                      false
+                    ],
+                    [
+                      "shift",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 8853
+                }
+              ]
+            },
+            {
+              "command": "KEYB LV,775,SHORT.SYS",
+              "reject": true,
+              "status_code": "LV",
+              "status_page": 775,
+              "cases": [
+                {
+                  "name": "Latvian lower",
+                  "keys": [
+                    [
+                      "alt_r",
+                      true
+                    ],
+                    [
+                      "g",
+                      true
+                    ],
+                    [
+                      "g",
+                      false
+                    ],
+                    [
+                      "alt_r",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 8837
+                },
+                {
+                  "name": "Latvian upper",
+                  "keys": [
+                    [
+                      "shift",
+                      true
+                    ],
+                    [
+                      "alt_r",
+                      true
+                    ],
+                    [
+                      "g",
+                      true
+                    ],
+                    [
+                      "g",
+                      false
+                    ],
+                    [
+                      "alt_r",
+                      false
+                    ],
+                    [
+                      "shift",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 8853
+                }
+              ]
+            },
+            {
+              "command": "KEYB LT,775,KEYBRD2.SYS",
+              "reject": false,
+              "status_code": "LT",
+              "status_page": 775,
+              "cases": [
+                {
+                  "name": "Lithuanian lower",
+                  "keys": [
+                    [
+                      "q",
+                      true
+                    ],
+                    [
+                      "q",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 4304
+                },
+                {
+                  "name": "Lithuanian upper",
+                  "keys": [
+                    [
+                      "shift",
+                      true
+                    ],
+                    [
+                      "q",
+                      true
+                    ],
+                    [
+                      "q",
+                      false
+                    ],
+                    [
+                      "shift",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 4277
+                }
+              ]
+            },
+            {
+              "command": "KEYB LT,775,KEYBRD2.SYS /ID:221",
+              "reject": false,
+              "status_code": "LT",
+              "status_page": 775,
+              "cases": [
+                {
+                  "name": "Lithuanian lower",
+                  "keys": [
+                    [
+                      "q",
+                      true
+                    ],
+                    [
+                      "q",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 4304
+                },
+                {
+                  "name": "Lithuanian upper",
+                  "keys": [
+                    [
+                      "shift",
+                      true
+                    ],
+                    [
+                      "q",
+                      true
+                    ],
+                    [
+                      "q",
+                      false
+                    ],
+                    [
+                      "shift",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 4277
+                }
+              ]
+            },
+            {
+              "command": "KEYB LT,866,KEYBRD2.SYS",
+              "reject": true,
+              "status_code": "LT",
+              "status_page": 775,
+              "cases": [
+                {
+                  "name": "Lithuanian lower",
+                  "keys": [
+                    [
+                      "q",
+                      true
+                    ],
+                    [
+                      "q",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 4304
+                },
+                {
+                  "name": "Lithuanian upper",
+                  "keys": [
+                    [
+                      "shift",
+                      true
+                    ],
+                    [
+                      "q",
+                      true
+                    ],
+                    [
+                      "q",
+                      false
+                    ],
+                    [
+                      "shift",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 4277
+                }
+              ]
+            },
+            {
+              "command": "KEYB LT,775,KEYBRD2.SYS /ID:999",
+              "reject": true,
+              "status_code": "LT",
+              "status_page": 775,
+              "cases": [
+                {
+                  "name": "Lithuanian lower",
+                  "keys": [
+                    [
+                      "q",
+                      true
+                    ],
+                    [
+                      "q",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 4304
+                },
+                {
+                  "name": "Lithuanian upper",
+                  "keys": [
+                    [
+                      "shift",
+                      true
+                    ],
+                    [
+                      "q",
+                      true
+                    ],
+                    [
+                      "q",
+                      false
+                    ],
+                    [
+                      "shift",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 4277
+                }
+              ]
+            },
+            {
+              "command": "KEYB LT,775,KEYBRD2.SYS /ID:454",
+              "reject": true,
+              "status_code": "LT",
+              "status_page": 775,
+              "cases": [
+                {
+                  "name": "Lithuanian lower",
+                  "keys": [
+                    [
+                      "q",
+                      true
+                    ],
+                    [
+                      "q",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 4304
+                },
+                {
+                  "name": "Lithuanian upper",
+                  "keys": [
+                    [
+                      "shift",
+                      true
+                    ],
+                    [
+                      "q",
+                      true
+                    ],
+                    [
+                      "q",
+                      false
+                    ],
+                    [
+                      "shift",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 4277
+                }
+              ]
+            },
+            {
+              "command": "KEYB LT,775,MISSING.SYS",
+              "reject": true,
+              "status_code": "LT",
+              "status_page": 775,
+              "cases": [
+                {
+                  "name": "Lithuanian lower",
+                  "keys": [
+                    [
+                      "q",
+                      true
+                    ],
+                    [
+                      "q",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 4304
+                },
+                {
+                  "name": "Lithuanian upper",
+                  "keys": [
+                    [
+                      "shift",
+                      true
+                    ],
+                    [
+                      "q",
+                      true
+                    ],
+                    [
+                      "q",
+                      false
+                    ],
+                    [
+                      "shift",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 4277
+                }
+              ]
+            },
+            {
+              "command": "KEYB LT,775,BAD.SYS",
+              "reject": true,
+              "status_code": "LT",
+              "status_page": 775,
+              "cases": [
+                {
+                  "name": "Lithuanian lower",
+                  "keys": [
+                    [
+                      "q",
+                      true
+                    ],
+                    [
+                      "q",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 4304
+                },
+                {
+                  "name": "Lithuanian upper",
+                  "keys": [
+                    [
+                      "shift",
+                      true
+                    ],
+                    [
+                      "q",
+                      true
+                    ],
+                    [
+                      "q",
+                      false
+                    ],
+                    [
+                      "shift",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 4277
+                }
+              ]
+            },
+            {
+              "command": "KEYB LT,775,SHORT.SYS",
+              "reject": true,
+              "status_code": "LT",
+              "status_page": 775,
+              "cases": [
+                {
+                  "name": "Lithuanian lower",
+                  "keys": [
+                    [
+                      "q",
+                      true
+                    ],
+                    [
+                      "q",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 4304
+                },
+                {
+                  "name": "Lithuanian upper",
+                  "keys": [
+                    [
+                      "shift",
+                      true
+                    ],
+                    [
+                      "q",
+                      true
+                    ],
+                    [
+                      "q",
+                      false
+                    ],
+                    [
+                      "shift",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 4277
+                }
+              ]
+            },
+            {
+              "command": "KEYB ZZ,775,KEYBRD2.SYS",
+              "reject": true,
+              "status_code": "LT",
+              "status_page": 775,
+              "cases": [
+                {
+                  "name": "Lithuanian lower",
+                  "keys": [
+                    [
+                      "q",
+                      true
+                    ],
+                    [
+                      "q",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 4304
+                },
+                {
+                  "name": "Lithuanian upper",
+                  "keys": [
+                    [
+                      "shift",
+                      true
+                    ],
+                    [
+                      "q",
+                      true
+                    ],
+                    [
+                      "q",
+                      false
+                    ],
+                    [
+                      "shift",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 4277
+                }
+              ]
+            },
+            {
+              "command": "KEYB RU,866,KEYBRD2.SYS /ID:441",
+              "reject": false,
+              "status_code": "RU",
+              "status_page": 866,
+              "cases": [
+                {
+                  "name": "Russian initial Latin",
+                  "keys": [
+                    [
+                      "q",
+                      true
+                    ],
+                    [
+                      "q",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 4209
+                },
+                {
+                  "name": "Russian selected",
+                  "keys": [
+                    [
+                      "alt",
+                      true
+                    ],
+                    [
+                      "shift_r",
+                      true
+                    ],
+                    [
+                      "shift_r",
+                      false
+                    ],
+                    [
+                      "alt",
+                      false
+                    ],
+                    [
+                      "q",
+                      true
+                    ],
+                    [
+                      "q",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 169
+                }
+              ]
+            },
+            {
+              "command": "KEYB ET,775,KEYBRD2.SYS /ID:454",
+              "reject": false,
+              "status_code": "ET",
+              "status_page": 775,
+              "cases": [
+                {
+                  "name": "Estonian lower",
+                  "keys": [
+                    [
+                      "bracket_right",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 7140
+                },
+                {
+                  "name": "Estonian upper",
+                  "keys": [
+                    [
+                      "shift",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      false
+                    ],
+                    [
+                      "shift",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 7141
+                }
+              ]
+            },
+            {
+              "command": "KEYB GR,437,KEYBOARD.SYS",
+              "reject": false,
+              "status_code": "GR",
+              "status_page": 437,
+              "cases": [
+                {
+                  "name": "German y",
+                  "keys": [
+                    [
+                      "y",
+                      true
+                    ],
+                    [
+                      "y",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 5498
+                },
+                {
+                  "name": "German z",
+                  "keys": [
+                    [
+                      "z",
+                      true
+                    ],
+                    [
+                      "z",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 11385
+                }
+              ]
+            },
+            {
+              "command": "KEYB LV,775,KEYBRD2.SYS",
+              "reject": false,
+              "status_code": "LV",
+              "status_page": 775,
+              "cases": [
+                {
+                  "name": "Latvian lower",
+                  "keys": [
+                    [
+                      "alt_r",
+                      true
+                    ],
+                    [
+                      "g",
+                      true
+                    ],
+                    [
+                      "g",
+                      false
+                    ],
+                    [
+                      "alt_r",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 8837
+                },
+                {
+                  "name": "Latvian upper",
+                  "keys": [
+                    [
+                      "shift",
+                      true
+                    ],
+                    [
+                      "alt_r",
+                      true
+                    ],
+                    [
+                      "g",
+                      true
+                    ],
+                    [
+                      "g",
+                      false
+                    ],
+                    [
+                      "alt_r",
+                      false
+                    ],
+                    [
+                      "shift",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 8853
+                }
+              ]
+            },
+            {
+              "command": "KEYB LT,775,KEYBRD2.SYS /ID:221",
+              "reject": false,
+              "status_code": "LT",
+              "status_page": 775,
+              "cases": [
+                {
+                  "name": "Lithuanian lower",
+                  "keys": [
+                    [
+                      "q",
+                      true
+                    ],
+                    [
+                      "q",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 4304
+                },
+                {
+                  "name": "Lithuanian upper",
+                  "keys": [
+                    [
+                      "shift",
+                      true
+                    ],
+                    [
+                      "q",
+                      true
+                    ],
+                    [
+                      "q",
+                      false
+                    ],
+                    [
+                      "shift",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 4277
+                }
+              ]
+            },
+            {
+              "command": "KEYB EE,775,KEYBRD2.SYS",
+              "reject": false,
+              "status_code": "EE",
+              "status_page": 775,
+              "cases": [
+                {
+                  "name": "Estonian lower",
+                  "keys": [
+                    [
+                      "bracket_right",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 7140
+                },
+                {
+                  "name": "Estonian upper",
+                  "keys": [
+                    [
+                      "shift",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      false
+                    ],
+                    [
+                      "shift",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 7141
+                }
+              ]
+            }
+          ],
+          "enhanced_bios_input": true,
+          "negative_control": false,
+          "dos_input": false,
+          "reload_existing": false,
+          "rejection": null,
+          "documented_recipe": false,
+          "emulator_exit": 33,
+          "completed_reads": 80,
+          "log": "high/serial.log",
+          "log_sha256": "c36b480878bec4cc87637d88b1e0f83de5a9eed3d4af82782ba09199333ab972",
+          "input_oracle": {
+            "path": "review/key-profile-selection-high-oracle.json",
+            "sha256": "e1398bda138aab6a3fa32c4d7c2f39743aa863514c9747cb2b8e05531aac2247"
+          },
+          "step_count": 80,
+          "expected_word_count": 80,
+          "retained_serial": {
+            "path": "review/key-profile-selection-high.log",
+            "sha256": "c36b480878bec4cc87637d88b1e0f83de5a9eed3d4af82782ba09199333ab972"
+          },
+          "startup": [
+            {
+              "path": "review/key-profile-selection-high-config.sys.cfg",
+              "sha256": "f76b3460215a82c7cd75112f01c2be68160793913dad080cf848843cd0f3b618"
+            },
+            {
+              "path": "review/key-profile-selection-high-autoexec.bat.cfg",
+              "sha256": "db5caa97ac0c47dae1173b156ac582c00fea6d73880f657f502b67cb6f1d4782"
+            }
+          ],
+          "guest_resource_sha256": {
+            "KEYB.COM": "410118fcf2c7b40282619c9eb063edd25ee1fda5ca2cb7ef761d97b35ca463e4",
+            "KEYBRD2.SYS": "a4c47ad578f8804a74a3f2f9a4194eb4a096cb31ecdc7b8224f08dc9b558ed0b",
+            "COUNTRY.SYS": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c"
+          },
+          "retained_final_expected_include": {
+            "path": "review/key-profile-selection-high-expected.bin",
+            "sha256": "f05cec3eab28a51727238e6531e2964b58634f682264bf0b149b6f2d57af638d"
+          }
+        },
+        {
+          "name": "low",
+          "memory_profile": "low",
+          "grouped_input": false,
+          "layout_phases": [
+            {
+              "command": null,
+              "reject": false,
+              "status_code": "ET",
+              "status_page": 775,
+              "cases": [
+                {
+                  "name": "Estonian lower",
+                  "keys": [
+                    [
+                      "bracket_right",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 7140
+                },
+                {
+                  "name": "Estonian upper",
+                  "keys": [
+                    [
+                      "shift",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      false
+                    ],
+                    [
+                      "shift",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 7141
+                }
+              ]
+            },
+            {
+              "command": "KEYB ET,775,KEYBRD2.SYS",
+              "reject": false,
+              "status_code": "ET",
+              "status_page": 775,
+              "cases": [
+                {
+                  "name": "Estonian lower",
+                  "keys": [
+                    [
+                      "bracket_right",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 7140
+                },
+                {
+                  "name": "Estonian upper",
+                  "keys": [
+                    [
+                      "shift",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      false
+                    ],
+                    [
+                      "shift",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 7141
+                }
+              ]
+            },
+            {
+              "command": "KEYB ET,775,KEYBRD2.SYS /ID:454",
+              "reject": false,
+              "status_code": "ET",
+              "status_page": 775,
+              "cases": [
+                {
+                  "name": "Estonian lower",
+                  "keys": [
+                    [
+                      "bracket_right",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 7140
+                },
+                {
+                  "name": "Estonian upper",
+                  "keys": [
+                    [
+                      "shift",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      false
+                    ],
+                    [
+                      "shift",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 7141
+                }
+              ]
+            },
+            {
+              "command": "KEYB ET,866,KEYBRD2.SYS",
+              "reject": true,
+              "status_code": "ET",
+              "status_page": 775,
+              "cases": [
+                {
+                  "name": "Estonian lower",
+                  "keys": [
+                    [
+                      "bracket_right",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 7140
+                },
+                {
+                  "name": "Estonian upper",
+                  "keys": [
+                    [
+                      "shift",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      false
+                    ],
+                    [
+                      "shift",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 7141
+                }
+              ]
+            },
+            {
+              "command": "KEYB ET,775,KEYBRD2.SYS /ID:999",
+              "reject": true,
+              "status_code": "ET",
+              "status_page": 775,
+              "cases": [
+                {
+                  "name": "Estonian lower",
+                  "keys": [
+                    [
+                      "bracket_right",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 7140
+                },
+                {
+                  "name": "Estonian upper",
+                  "keys": [
+                    [
+                      "shift",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      false
+                    ],
+                    [
+                      "shift",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 7141
+                }
+              ]
+            },
+            {
+              "command": "KEYB ET,775,KEYBRD2.SYS /ID:221",
+              "reject": true,
+              "status_code": "ET",
+              "status_page": 775,
+              "cases": [
+                {
+                  "name": "Estonian lower",
+                  "keys": [
+                    [
+                      "bracket_right",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 7140
+                },
+                {
+                  "name": "Estonian upper",
+                  "keys": [
+                    [
+                      "shift",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      false
+                    ],
+                    [
+                      "shift",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 7141
+                }
+              ]
+            },
+            {
+              "command": "KEYB ET,775,MISSING.SYS",
+              "reject": true,
+              "status_code": "ET",
+              "status_page": 775,
+              "cases": [
+                {
+                  "name": "Estonian lower",
+                  "keys": [
+                    [
+                      "bracket_right",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 7140
+                },
+                {
+                  "name": "Estonian upper",
+                  "keys": [
+                    [
+                      "shift",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      false
+                    ],
+                    [
+                      "shift",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 7141
+                }
+              ]
+            },
+            {
+              "command": "KEYB ET,775,BAD.SYS",
+              "reject": true,
+              "status_code": "ET",
+              "status_page": 775,
+              "cases": [
+                {
+                  "name": "Estonian lower",
+                  "keys": [
+                    [
+                      "bracket_right",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 7140
+                },
+                {
+                  "name": "Estonian upper",
+                  "keys": [
+                    [
+                      "shift",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      false
+                    ],
+                    [
+                      "shift",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 7141
+                }
+              ]
+            },
+            {
+              "command": "KEYB ET,775,SHORT.SYS",
+              "reject": true,
+              "status_code": "ET",
+              "status_page": 775,
+              "cases": [
+                {
+                  "name": "Estonian lower",
+                  "keys": [
+                    [
+                      "bracket_right",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 7140
+                },
+                {
+                  "name": "Estonian upper",
+                  "keys": [
+                    [
+                      "shift",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      false
+                    ],
+                    [
+                      "shift",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 7141
+                }
+              ]
+            },
+            {
+              "command": "KEYB EE,775,KEYBRD2.SYS",
+              "reject": false,
+              "status_code": "EE",
+              "status_page": 775,
+              "cases": [
+                {
+                  "name": "Estonian lower",
+                  "keys": [
+                    [
+                      "bracket_right",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 7140
+                },
+                {
+                  "name": "Estonian upper",
+                  "keys": [
+                    [
+                      "shift",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      false
+                    ],
+                    [
+                      "shift",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 7141
+                }
+              ]
+            },
+            {
+              "command": "KEYB EE,775,KEYBRD2.SYS /ID:454",
+              "reject": false,
+              "status_code": "EE",
+              "status_page": 775,
+              "cases": [
+                {
+                  "name": "Estonian lower",
+                  "keys": [
+                    [
+                      "bracket_right",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 7140
+                },
+                {
+                  "name": "Estonian upper",
+                  "keys": [
+                    [
+                      "shift",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      false
+                    ],
+                    [
+                      "shift",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 7141
+                }
+              ]
+            },
+            {
+              "command": "KEYB EE,866,KEYBRD2.SYS",
+              "reject": true,
+              "status_code": "EE",
+              "status_page": 775,
+              "cases": [
+                {
+                  "name": "Estonian lower",
+                  "keys": [
+                    [
+                      "bracket_right",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 7140
+                },
+                {
+                  "name": "Estonian upper",
+                  "keys": [
+                    [
+                      "shift",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      false
+                    ],
+                    [
+                      "shift",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 7141
+                }
+              ]
+            },
+            {
+              "command": "KEYB EE,775,KEYBRD2.SYS /ID:999",
+              "reject": true,
+              "status_code": "EE",
+              "status_page": 775,
+              "cases": [
+                {
+                  "name": "Estonian lower",
+                  "keys": [
+                    [
+                      "bracket_right",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 7140
+                },
+                {
+                  "name": "Estonian upper",
+                  "keys": [
+                    [
+                      "shift",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      false
+                    ],
+                    [
+                      "shift",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 7141
+                }
+              ]
+            },
+            {
+              "command": "KEYB EE,775,KEYBRD2.SYS /ID:221",
+              "reject": true,
+              "status_code": "EE",
+              "status_page": 775,
+              "cases": [
+                {
+                  "name": "Estonian lower",
+                  "keys": [
+                    [
+                      "bracket_right",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 7140
+                },
+                {
+                  "name": "Estonian upper",
+                  "keys": [
+                    [
+                      "shift",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      false
+                    ],
+                    [
+                      "shift",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 7141
+                }
+              ]
+            },
+            {
+              "command": "KEYB EE,775,MISSING.SYS",
+              "reject": true,
+              "status_code": "EE",
+              "status_page": 775,
+              "cases": [
+                {
+                  "name": "Estonian lower",
+                  "keys": [
+                    [
+                      "bracket_right",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 7140
+                },
+                {
+                  "name": "Estonian upper",
+                  "keys": [
+                    [
+                      "shift",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      false
+                    ],
+                    [
+                      "shift",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 7141
+                }
+              ]
+            },
+            {
+              "command": "KEYB EE,775,BAD.SYS",
+              "reject": true,
+              "status_code": "EE",
+              "status_page": 775,
+              "cases": [
+                {
+                  "name": "Estonian lower",
+                  "keys": [
+                    [
+                      "bracket_right",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 7140
+                },
+                {
+                  "name": "Estonian upper",
+                  "keys": [
+                    [
+                      "shift",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      false
+                    ],
+                    [
+                      "shift",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 7141
+                }
+              ]
+            },
+            {
+              "command": "KEYB EE,775,SHORT.SYS",
+              "reject": true,
+              "status_code": "EE",
+              "status_page": 775,
+              "cases": [
+                {
+                  "name": "Estonian lower",
+                  "keys": [
+                    [
+                      "bracket_right",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 7140
+                },
+                {
+                  "name": "Estonian upper",
+                  "keys": [
+                    [
+                      "shift",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      false
+                    ],
+                    [
+                      "shift",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 7141
+                }
+              ]
+            },
+            {
+              "command": "KEYB LV,775,KEYBRD2.SYS",
+              "reject": false,
+              "status_code": "LV",
+              "status_page": 775,
+              "cases": [
+                {
+                  "name": "Latvian lower",
+                  "keys": [
+                    [
+                      "alt_r",
+                      true
+                    ],
+                    [
+                      "g",
+                      true
+                    ],
+                    [
+                      "g",
+                      false
+                    ],
+                    [
+                      "alt_r",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 8837
+                },
+                {
+                  "name": "Latvian upper",
+                  "keys": [
+                    [
+                      "shift",
+                      true
+                    ],
+                    [
+                      "alt_r",
+                      true
+                    ],
+                    [
+                      "g",
+                      true
+                    ],
+                    [
+                      "g",
+                      false
+                    ],
+                    [
+                      "alt_r",
+                      false
+                    ],
+                    [
+                      "shift",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 8853
+                }
+              ]
+            },
+            {
+              "command": "KEYB LV,775,KEYBRD2.SYS /ID:0",
+              "reject": false,
+              "status_code": "LV",
+              "status_page": 775,
+              "cases": [
+                {
+                  "name": "Latvian lower",
+                  "keys": [
+                    [
+                      "alt_r",
+                      true
+                    ],
+                    [
+                      "g",
+                      true
+                    ],
+                    [
+                      "g",
+                      false
+                    ],
+                    [
+                      "alt_r",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 8837
+                },
+                {
+                  "name": "Latvian upper",
+                  "keys": [
+                    [
+                      "shift",
+                      true
+                    ],
+                    [
+                      "alt_r",
+                      true
+                    ],
+                    [
+                      "g",
+                      true
+                    ],
+                    [
+                      "g",
+                      false
+                    ],
+                    [
+                      "alt_r",
+                      false
+                    ],
+                    [
+                      "shift",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 8853
+                }
+              ]
+            },
+            {
+              "command": "KEYB LV,866,KEYBRD2.SYS",
+              "reject": true,
+              "status_code": "LV",
+              "status_page": 775,
+              "cases": [
+                {
+                  "name": "Latvian lower",
+                  "keys": [
+                    [
+                      "alt_r",
+                      true
+                    ],
+                    [
+                      "g",
+                      true
+                    ],
+                    [
+                      "g",
+                      false
+                    ],
+                    [
+                      "alt_r",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 8837
+                },
+                {
+                  "name": "Latvian upper",
+                  "keys": [
+                    [
+                      "shift",
+                      true
+                    ],
+                    [
+                      "alt_r",
+                      true
+                    ],
+                    [
+                      "g",
+                      true
+                    ],
+                    [
+                      "g",
+                      false
+                    ],
+                    [
+                      "alt_r",
+                      false
+                    ],
+                    [
+                      "shift",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 8853
+                }
+              ]
+            },
+            {
+              "command": "KEYB LV,775,KEYBRD2.SYS /ID:999",
+              "reject": true,
+              "status_code": "LV",
+              "status_page": 775,
+              "cases": [
+                {
+                  "name": "Latvian lower",
+                  "keys": [
+                    [
+                      "alt_r",
+                      true
+                    ],
+                    [
+                      "g",
+                      true
+                    ],
+                    [
+                      "g",
+                      false
+                    ],
+                    [
+                      "alt_r",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 8837
+                },
+                {
+                  "name": "Latvian upper",
+                  "keys": [
+                    [
+                      "shift",
+                      true
+                    ],
+                    [
+                      "alt_r",
+                      true
+                    ],
+                    [
+                      "g",
+                      true
+                    ],
+                    [
+                      "g",
+                      false
+                    ],
+                    [
+                      "alt_r",
+                      false
+                    ],
+                    [
+                      "shift",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 8853
+                }
+              ]
+            },
+            {
+              "command": "KEYB LV,775,KEYBRD2.SYS /ID:454",
+              "reject": true,
+              "status_code": "LV",
+              "status_page": 775,
+              "cases": [
+                {
+                  "name": "Latvian lower",
+                  "keys": [
+                    [
+                      "alt_r",
+                      true
+                    ],
+                    [
+                      "g",
+                      true
+                    ],
+                    [
+                      "g",
+                      false
+                    ],
+                    [
+                      "alt_r",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 8837
+                },
+                {
+                  "name": "Latvian upper",
+                  "keys": [
+                    [
+                      "shift",
+                      true
+                    ],
+                    [
+                      "alt_r",
+                      true
+                    ],
+                    [
+                      "g",
+                      true
+                    ],
+                    [
+                      "g",
+                      false
+                    ],
+                    [
+                      "alt_r",
+                      false
+                    ],
+                    [
+                      "shift",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 8853
+                }
+              ]
+            },
+            {
+              "command": "KEYB LV,775,MISSING.SYS",
+              "reject": true,
+              "status_code": "LV",
+              "status_page": 775,
+              "cases": [
+                {
+                  "name": "Latvian lower",
+                  "keys": [
+                    [
+                      "alt_r",
+                      true
+                    ],
+                    [
+                      "g",
+                      true
+                    ],
+                    [
+                      "g",
+                      false
+                    ],
+                    [
+                      "alt_r",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 8837
+                },
+                {
+                  "name": "Latvian upper",
+                  "keys": [
+                    [
+                      "shift",
+                      true
+                    ],
+                    [
+                      "alt_r",
+                      true
+                    ],
+                    [
+                      "g",
+                      true
+                    ],
+                    [
+                      "g",
+                      false
+                    ],
+                    [
+                      "alt_r",
+                      false
+                    ],
+                    [
+                      "shift",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 8853
+                }
+              ]
+            },
+            {
+              "command": "KEYB LV,775,BAD.SYS",
+              "reject": true,
+              "status_code": "LV",
+              "status_page": 775,
+              "cases": [
+                {
+                  "name": "Latvian lower",
+                  "keys": [
+                    [
+                      "alt_r",
+                      true
+                    ],
+                    [
+                      "g",
+                      true
+                    ],
+                    [
+                      "g",
+                      false
+                    ],
+                    [
+                      "alt_r",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 8837
+                },
+                {
+                  "name": "Latvian upper",
+                  "keys": [
+                    [
+                      "shift",
+                      true
+                    ],
+                    [
+                      "alt_r",
+                      true
+                    ],
+                    [
+                      "g",
+                      true
+                    ],
+                    [
+                      "g",
+                      false
+                    ],
+                    [
+                      "alt_r",
+                      false
+                    ],
+                    [
+                      "shift",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 8853
+                }
+              ]
+            },
+            {
+              "command": "KEYB LV,775,SHORT.SYS",
+              "reject": true,
+              "status_code": "LV",
+              "status_page": 775,
+              "cases": [
+                {
+                  "name": "Latvian lower",
+                  "keys": [
+                    [
+                      "alt_r",
+                      true
+                    ],
+                    [
+                      "g",
+                      true
+                    ],
+                    [
+                      "g",
+                      false
+                    ],
+                    [
+                      "alt_r",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 8837
+                },
+                {
+                  "name": "Latvian upper",
+                  "keys": [
+                    [
+                      "shift",
+                      true
+                    ],
+                    [
+                      "alt_r",
+                      true
+                    ],
+                    [
+                      "g",
+                      true
+                    ],
+                    [
+                      "g",
+                      false
+                    ],
+                    [
+                      "alt_r",
+                      false
+                    ],
+                    [
+                      "shift",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 8853
+                }
+              ]
+            },
+            {
+              "command": "KEYB LT,775,KEYBRD2.SYS",
+              "reject": false,
+              "status_code": "LT",
+              "status_page": 775,
+              "cases": [
+                {
+                  "name": "Lithuanian lower",
+                  "keys": [
+                    [
+                      "q",
+                      true
+                    ],
+                    [
+                      "q",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 4304
+                },
+                {
+                  "name": "Lithuanian upper",
+                  "keys": [
+                    [
+                      "shift",
+                      true
+                    ],
+                    [
+                      "q",
+                      true
+                    ],
+                    [
+                      "q",
+                      false
+                    ],
+                    [
+                      "shift",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 4277
+                }
+              ]
+            },
+            {
+              "command": "KEYB LT,775,KEYBRD2.SYS /ID:221",
+              "reject": false,
+              "status_code": "LT",
+              "status_page": 775,
+              "cases": [
+                {
+                  "name": "Lithuanian lower",
+                  "keys": [
+                    [
+                      "q",
+                      true
+                    ],
+                    [
+                      "q",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 4304
+                },
+                {
+                  "name": "Lithuanian upper",
+                  "keys": [
+                    [
+                      "shift",
+                      true
+                    ],
+                    [
+                      "q",
+                      true
+                    ],
+                    [
+                      "q",
+                      false
+                    ],
+                    [
+                      "shift",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 4277
+                }
+              ]
+            },
+            {
+              "command": "KEYB LT,866,KEYBRD2.SYS",
+              "reject": true,
+              "status_code": "LT",
+              "status_page": 775,
+              "cases": [
+                {
+                  "name": "Lithuanian lower",
+                  "keys": [
+                    [
+                      "q",
+                      true
+                    ],
+                    [
+                      "q",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 4304
+                },
+                {
+                  "name": "Lithuanian upper",
+                  "keys": [
+                    [
+                      "shift",
+                      true
+                    ],
+                    [
+                      "q",
+                      true
+                    ],
+                    [
+                      "q",
+                      false
+                    ],
+                    [
+                      "shift",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 4277
+                }
+              ]
+            },
+            {
+              "command": "KEYB LT,775,KEYBRD2.SYS /ID:999",
+              "reject": true,
+              "status_code": "LT",
+              "status_page": 775,
+              "cases": [
+                {
+                  "name": "Lithuanian lower",
+                  "keys": [
+                    [
+                      "q",
+                      true
+                    ],
+                    [
+                      "q",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 4304
+                },
+                {
+                  "name": "Lithuanian upper",
+                  "keys": [
+                    [
+                      "shift",
+                      true
+                    ],
+                    [
+                      "q",
+                      true
+                    ],
+                    [
+                      "q",
+                      false
+                    ],
+                    [
+                      "shift",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 4277
+                }
+              ]
+            },
+            {
+              "command": "KEYB LT,775,KEYBRD2.SYS /ID:454",
+              "reject": true,
+              "status_code": "LT",
+              "status_page": 775,
+              "cases": [
+                {
+                  "name": "Lithuanian lower",
+                  "keys": [
+                    [
+                      "q",
+                      true
+                    ],
+                    [
+                      "q",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 4304
+                },
+                {
+                  "name": "Lithuanian upper",
+                  "keys": [
+                    [
+                      "shift",
+                      true
+                    ],
+                    [
+                      "q",
+                      true
+                    ],
+                    [
+                      "q",
+                      false
+                    ],
+                    [
+                      "shift",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 4277
+                }
+              ]
+            },
+            {
+              "command": "KEYB LT,775,MISSING.SYS",
+              "reject": true,
+              "status_code": "LT",
+              "status_page": 775,
+              "cases": [
+                {
+                  "name": "Lithuanian lower",
+                  "keys": [
+                    [
+                      "q",
+                      true
+                    ],
+                    [
+                      "q",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 4304
+                },
+                {
+                  "name": "Lithuanian upper",
+                  "keys": [
+                    [
+                      "shift",
+                      true
+                    ],
+                    [
+                      "q",
+                      true
+                    ],
+                    [
+                      "q",
+                      false
+                    ],
+                    [
+                      "shift",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 4277
+                }
+              ]
+            },
+            {
+              "command": "KEYB LT,775,BAD.SYS",
+              "reject": true,
+              "status_code": "LT",
+              "status_page": 775,
+              "cases": [
+                {
+                  "name": "Lithuanian lower",
+                  "keys": [
+                    [
+                      "q",
+                      true
+                    ],
+                    [
+                      "q",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 4304
+                },
+                {
+                  "name": "Lithuanian upper",
+                  "keys": [
+                    [
+                      "shift",
+                      true
+                    ],
+                    [
+                      "q",
+                      true
+                    ],
+                    [
+                      "q",
+                      false
+                    ],
+                    [
+                      "shift",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 4277
+                }
+              ]
+            },
+            {
+              "command": "KEYB LT,775,SHORT.SYS",
+              "reject": true,
+              "status_code": "LT",
+              "status_page": 775,
+              "cases": [
+                {
+                  "name": "Lithuanian lower",
+                  "keys": [
+                    [
+                      "q",
+                      true
+                    ],
+                    [
+                      "q",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 4304
+                },
+                {
+                  "name": "Lithuanian upper",
+                  "keys": [
+                    [
+                      "shift",
+                      true
+                    ],
+                    [
+                      "q",
+                      true
+                    ],
+                    [
+                      "q",
+                      false
+                    ],
+                    [
+                      "shift",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 4277
+                }
+              ]
+            },
+            {
+              "command": "KEYB ZZ,775,KEYBRD2.SYS",
+              "reject": true,
+              "status_code": "LT",
+              "status_page": 775,
+              "cases": [
+                {
+                  "name": "Lithuanian lower",
+                  "keys": [
+                    [
+                      "q",
+                      true
+                    ],
+                    [
+                      "q",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 4304
+                },
+                {
+                  "name": "Lithuanian upper",
+                  "keys": [
+                    [
+                      "shift",
+                      true
+                    ],
+                    [
+                      "q",
+                      true
+                    ],
+                    [
+                      "q",
+                      false
+                    ],
+                    [
+                      "shift",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 4277
+                }
+              ]
+            },
+            {
+              "command": "KEYB RU,866,KEYBRD2.SYS /ID:441",
+              "reject": false,
+              "status_code": "RU",
+              "status_page": 866,
+              "cases": [
+                {
+                  "name": "Russian initial Latin",
+                  "keys": [
+                    [
+                      "q",
+                      true
+                    ],
+                    [
+                      "q",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 4209
+                },
+                {
+                  "name": "Russian selected",
+                  "keys": [
+                    [
+                      "alt",
+                      true
+                    ],
+                    [
+                      "shift_r",
+                      true
+                    ],
+                    [
+                      "shift_r",
+                      false
+                    ],
+                    [
+                      "alt",
+                      false
+                    ],
+                    [
+                      "q",
+                      true
+                    ],
+                    [
+                      "q",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 169
+                }
+              ]
+            },
+            {
+              "command": "KEYB ET,775,KEYBRD2.SYS /ID:454",
+              "reject": false,
+              "status_code": "ET",
+              "status_page": 775,
+              "cases": [
+                {
+                  "name": "Estonian lower",
+                  "keys": [
+                    [
+                      "bracket_right",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 7140
+                },
+                {
+                  "name": "Estonian upper",
+                  "keys": [
+                    [
+                      "shift",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      false
+                    ],
+                    [
+                      "shift",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 7141
+                }
+              ]
+            },
+            {
+              "command": "KEYB GR,437,KEYBOARD.SYS",
+              "reject": false,
+              "status_code": "GR",
+              "status_page": 437,
+              "cases": [
+                {
+                  "name": "German y",
+                  "keys": [
+                    [
+                      "y",
+                      true
+                    ],
+                    [
+                      "y",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 5498
+                },
+                {
+                  "name": "German z",
+                  "keys": [
+                    [
+                      "z",
+                      true
+                    ],
+                    [
+                      "z",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 11385
+                }
+              ]
+            },
+            {
+              "command": "KEYB LV,775,KEYBRD2.SYS",
+              "reject": false,
+              "status_code": "LV",
+              "status_page": 775,
+              "cases": [
+                {
+                  "name": "Latvian lower",
+                  "keys": [
+                    [
+                      "alt_r",
+                      true
+                    ],
+                    [
+                      "g",
+                      true
+                    ],
+                    [
+                      "g",
+                      false
+                    ],
+                    [
+                      "alt_r",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 8837
+                },
+                {
+                  "name": "Latvian upper",
+                  "keys": [
+                    [
+                      "shift",
+                      true
+                    ],
+                    [
+                      "alt_r",
+                      true
+                    ],
+                    [
+                      "g",
+                      true
+                    ],
+                    [
+                      "g",
+                      false
+                    ],
+                    [
+                      "alt_r",
+                      false
+                    ],
+                    [
+                      "shift",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 8853
+                }
+              ]
+            },
+            {
+              "command": "KEYB LT,775,KEYBRD2.SYS /ID:221",
+              "reject": false,
+              "status_code": "LT",
+              "status_page": 775,
+              "cases": [
+                {
+                  "name": "Lithuanian lower",
+                  "keys": [
+                    [
+                      "q",
+                      true
+                    ],
+                    [
+                      "q",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 4304
+                },
+                {
+                  "name": "Lithuanian upper",
+                  "keys": [
+                    [
+                      "shift",
+                      true
+                    ],
+                    [
+                      "q",
+                      true
+                    ],
+                    [
+                      "q",
+                      false
+                    ],
+                    [
+                      "shift",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 4277
+                }
+              ]
+            },
+            {
+              "command": "KEYB EE,775,KEYBRD2.SYS",
+              "reject": false,
+              "status_code": "EE",
+              "status_page": 775,
+              "cases": [
+                {
+                  "name": "Estonian lower",
+                  "keys": [
+                    [
+                      "bracket_right",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 7140
+                },
+                {
+                  "name": "Estonian upper",
+                  "keys": [
+                    [
+                      "shift",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      true
+                    ],
+                    [
+                      "bracket_right",
+                      false
+                    ],
+                    [
+                      "shift",
+                      false
+                    ]
+                  ],
+                  "bios_ax": 7141
+                }
+              ]
+            }
+          ],
+          "enhanced_bios_input": true,
+          "negative_control": false,
+          "dos_input": false,
+          "reload_existing": false,
+          "rejection": null,
+          "documented_recipe": false,
+          "emulator_exit": 33,
+          "completed_reads": 80,
+          "log": "low/serial.log",
+          "log_sha256": "2a31264446526544ec88998b93e9422cc9a1fd4665280beae9e078e4353bae29",
+          "input_oracle": {
+            "path": "review/key-profile-selection-high-oracle.json",
+            "sha256": "e1398bda138aab6a3fa32c4d7c2f39743aa863514c9747cb2b8e05531aac2247"
+          },
+          "step_count": 80,
+          "expected_word_count": 80,
+          "retained_serial": {
+            "path": "review/key-profile-selection-low.log",
+            "sha256": "2a31264446526544ec88998b93e9422cc9a1fd4665280beae9e078e4353bae29"
+          },
+          "startup": [
+            {
+              "path": "review/key-profile-selection-low-config.sys.cfg",
+              "sha256": "3cda7b278ea952d7873d1b8c361d4085b2f5ebb8529fe4b9e95d3b9074bbf03e"
+            },
+            {
+              "path": "review/key-profile-selection-low-autoexec.bat.cfg",
+              "sha256": "db5caa97ac0c47dae1173b156ac582c00fea6d73880f657f502b67cb6f1d4782"
+            }
+          ],
+          "guest_resource_sha256": {
+            "KEYB.COM": "410118fcf2c7b40282619c9eb063edd25ee1fda5ca2cb7ef761d97b35ca463e4",
+            "KEYBRD2.SYS": "a4c47ad578f8804a74a3f2f9a4194eb4a096cb31ecdc7b8224f08dc9b558ed0b",
+            "COUNTRY.SYS": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c"
+          },
+          "retained_final_expected_include": {
+            "path": "review/key-profile-selection-low-expected.bin",
+            "sha256": "f05cec3eab28a51727238e6531e2964b58634f682264bf0b149b6f2d57af638d"
+          }
+        }
+      ]
+    },
+    {
+      "name": "controls",
+      "command": "MEMORY_CORE_DIR=out/memory-production/files python3 tests/test_baltic_keyboard_qemu.py --controls-only --profile high --profile low",
+      "status": "passed",
+      "source_report_sha256": "18b2f4dde5a880e1668d8ebbc54d1f87c1ae1546e4d96360494d3c23edd31fdc",
+      "cases": [
+        {
+          "name": "high-wrong-tilde",
+          "memory_profile": "high",
+          "grouped_input": false,
+          "layout_phases": null,
+          "enhanced_bios_input": true,
+          "negative_control": true,
+          "dos_input": false,
+          "reload_existing": false,
+          "rejection": null,
+          "documented_recipe": false,
+          "emulator_exit": 33,
+          "completed_reads": 1,
+          "log": "high-wrong-tilde/serial.log",
+          "log_sha256": "d395c310cc77c7a462405c408511a7e753305c0defa10e98d596836059e33496",
+          "input_oracle": {
+            "path": "review/key-profile-controls-high-wrong-tilde-oracle.json",
+            "sha256": "74e3f9f17e0a188796b863008d859807fa33e141dd6a89703cfdf8f379a64274"
+          },
+          "step_count": 1,
+          "expected_word_count": 1,
+          "retained_serial": {
+            "path": "review/key-profile-controls-high-wrong-tilde.log",
+            "sha256": "d395c310cc77c7a462405c408511a7e753305c0defa10e98d596836059e33496"
+          },
+          "startup": [
+            {
+              "path": "review/key-profile-controls-high-wrong-tilde-config.sys.cfg",
+              "sha256": "f76b3460215a82c7cd75112f01c2be68160793913dad080cf848843cd0f3b618"
+            },
+            {
+              "path": "review/key-profile-controls-high-wrong-tilde-autoexec.bat.cfg",
+              "sha256": "2bd286dee7a333bfc674fd872ddfc9cd102701cca44c8716d5dfe284c7c2d9c7"
+            }
+          ],
+          "guest_resource_sha256": {
+            "KEYB.COM": "410118fcf2c7b40282619c9eb063edd25ee1fda5ca2cb7ef761d97b35ca463e4",
+            "KEYBRD2.SYS": "410c0af515ffad492c02321f371ce17293603bf6c59bfb28009774ee7858a092",
+            "COUNTRY.SYS": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c"
+          },
+          "retained_final_expected_include": {
+            "path": "review/key-profile-controls-high-wrong-tilde-expected.bin",
+            "sha256": "f00b57bfa050c3ef688c3ec78ccf14785b4df720707c19638d03511edd79a42a"
+          },
+          "expected_failure": "RU_KEY_FAIL actual=1BE5"
+        },
+        {
+          "name": "high-suppressed-ff",
+          "memory_profile": "high",
+          "grouped_input": false,
+          "layout_phases": null,
+          "enhanced_bios_input": true,
+          "negative_control": true,
+          "dos_input": false,
+          "reload_existing": false,
+          "rejection": null,
+          "documented_recipe": false,
+          "emulator_exit": 33,
+          "completed_reads": 1,
+          "log": "high-suppressed-ff/serial.log",
+          "log_sha256": "1318aeef3bb82148c7202064590e4fe66303817a0afa95b21a7a2c80051a428c",
+          "input_oracle": {
+            "path": "review/key-profile-controls-high-suppressed-ff-oracle.json",
+            "sha256": "9e8f30079bcdbd4165c76b406577fe45a4c3cee7a9fb6ef918f29b0bae3ec92c"
+          },
+          "step_count": 1,
+          "expected_word_count": 1,
+          "retained_serial": {
+            "path": "review/key-profile-controls-high-suppressed-ff.log",
+            "sha256": "1318aeef3bb82148c7202064590e4fe66303817a0afa95b21a7a2c80051a428c"
+          },
+          "startup": [
+            {
+              "path": "review/key-profile-controls-high-suppressed-ff-config.sys.cfg",
+              "sha256": "b35f0ba224cd509db9c638987cfd6a78642c5283130abf65b7343afaa1c80f01"
+            },
+            {
+              "path": "review/key-profile-controls-high-suppressed-ff-autoexec.bat.cfg",
+              "sha256": "9a64e748ecfa729d6dad0840569c8b7bff0b95c2130031b18ec2d70655ebc4f1"
+            }
+          ],
+          "guest_resource_sha256": {
+            "KEYB.COM": "410118fcf2c7b40282619c9eb063edd25ee1fda5ca2cb7ef761d97b35ca463e4",
+            "KEYBRD2.SYS": "d80c25cd245deff68f6d7989d93858df501491ec86dea276b4f6e4f98b1ee4ec",
+            "COUNTRY.SYS": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c"
+          },
+          "retained_final_expected_include": {
+            "path": "review/key-profile-controls-high-suppressed-ff-expected.bin",
+            "sha256": "1cfcb0bd04645357156bdeaab8c62ef2c2747ba06b48c83a5bf0c40b9b079c40"
+          },
+          "expected_failure": "RU_KEY_FAIL actual=1E61"
+        },
+        {
+          "name": "high-nonzero-e0-scan",
+          "memory_profile": "high",
+          "grouped_input": false,
+          "layout_phases": null,
+          "enhanced_bios_input": true,
+          "negative_control": true,
+          "dos_input": true,
+          "reload_existing": false,
+          "rejection": null,
+          "documented_recipe": false,
+          "emulator_exit": 33,
+          "completed_reads": 1,
+          "log": "high-nonzero-e0-scan/serial.log",
+          "log_sha256": "304f4b0fec2608b155881e49cbf63aadfce442a94ad42abe36ceb3dfcafe26f9",
+          "input_oracle": {
+            "path": "review/key-profile-controls-high-nonzero-e0-scan-oracle.json",
+            "sha256": "76b91c175b2ca06b2d983791e1d11b7790c793252964c66e4219fff9151a3bf4"
+          },
+          "step_count": 1,
+          "expected_word_count": 1,
+          "retained_serial": {
+            "path": "review/key-profile-controls-high-nonzero-e0-scan.log",
+            "sha256": "304f4b0fec2608b155881e49cbf63aadfce442a94ad42abe36ceb3dfcafe26f9"
+          },
+          "startup": [
+            {
+              "path": "review/key-profile-controls-high-nonzero-e0-scan-config.sys.cfg",
+              "sha256": "f76b3460215a82c7cd75112f01c2be68160793913dad080cf848843cd0f3b618"
+            },
+            {
+              "path": "review/key-profile-controls-high-nonzero-e0-scan-autoexec.bat.cfg",
+              "sha256": "2bd286dee7a333bfc674fd872ddfc9cd102701cca44c8716d5dfe284c7c2d9c7"
+            }
+          ],
+          "guest_resource_sha256": {
+            "KEYB.COM": "410118fcf2c7b40282619c9eb063edd25ee1fda5ca2cb7ef761d97b35ca463e4",
+            "KEYBRD2.SYS": "ce133d8529080099fbfcc9be4bec8ba23fd19b593471959ece86d85027962a7f",
+            "COUNTRY.SYS": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c"
+          },
+          "retained_final_expected_include": {
+            "path": "review/key-profile-controls-high-nonzero-e0-scan-expected.bin",
+            "sha256": "be81fe4316df9b2c7b167f68bf1236a93ac7885211be33ebff7d638c095b2f15"
+          },
+          "expected_failure": "RU_KEY_FAIL actual=0700"
+        },
+        {
+          "name": "low-wrong-tilde",
+          "memory_profile": "low",
+          "grouped_input": false,
+          "layout_phases": null,
+          "enhanced_bios_input": true,
+          "negative_control": true,
+          "dos_input": false,
+          "reload_existing": false,
+          "rejection": null,
+          "documented_recipe": false,
+          "emulator_exit": 33,
+          "completed_reads": 1,
+          "log": "low-wrong-tilde/serial.log",
+          "log_sha256": "55c3571f8b22eb6d5a7ba4627e65ba1d9828b8c094c46539734129ad4be905b7",
+          "input_oracle": {
+            "path": "review/key-profile-controls-high-wrong-tilde-oracle.json",
+            "sha256": "74e3f9f17e0a188796b863008d859807fa33e141dd6a89703cfdf8f379a64274"
+          },
+          "step_count": 1,
+          "expected_word_count": 1,
+          "retained_serial": {
+            "path": "review/key-profile-controls-low-wrong-tilde.log",
+            "sha256": "55c3571f8b22eb6d5a7ba4627e65ba1d9828b8c094c46539734129ad4be905b7"
+          },
+          "startup": [
+            {
+              "path": "review/key-profile-controls-low-wrong-tilde-config.sys.cfg",
+              "sha256": "3cda7b278ea952d7873d1b8c361d4085b2f5ebb8529fe4b9e95d3b9074bbf03e"
+            },
+            {
+              "path": "review/key-profile-controls-low-wrong-tilde-autoexec.bat.cfg",
+              "sha256": "2bd286dee7a333bfc674fd872ddfc9cd102701cca44c8716d5dfe284c7c2d9c7"
+            }
+          ],
+          "guest_resource_sha256": {
+            "KEYB.COM": "410118fcf2c7b40282619c9eb063edd25ee1fda5ca2cb7ef761d97b35ca463e4",
+            "KEYBRD2.SYS": "410c0af515ffad492c02321f371ce17293603bf6c59bfb28009774ee7858a092",
+            "COUNTRY.SYS": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c"
+          },
+          "retained_final_expected_include": {
+            "path": "review/key-profile-controls-low-wrong-tilde-expected.bin",
+            "sha256": "f00b57bfa050c3ef688c3ec78ccf14785b4df720707c19638d03511edd79a42a"
+          },
+          "expected_failure": "RU_KEY_FAIL actual=1BE5"
+        },
+        {
+          "name": "low-suppressed-ff",
+          "memory_profile": "low",
+          "grouped_input": false,
+          "layout_phases": null,
+          "enhanced_bios_input": true,
+          "negative_control": true,
+          "dos_input": false,
+          "reload_existing": false,
+          "rejection": null,
+          "documented_recipe": false,
+          "emulator_exit": 33,
+          "completed_reads": 1,
+          "log": "low-suppressed-ff/serial.log",
+          "log_sha256": "f62c08d5e8211674db722d8096f099fb83329dc981469f68c7f8859a5f48e979",
+          "input_oracle": {
+            "path": "review/key-profile-controls-high-suppressed-ff-oracle.json",
+            "sha256": "9e8f30079bcdbd4165c76b406577fe45a4c3cee7a9fb6ef918f29b0bae3ec92c"
+          },
+          "step_count": 1,
+          "expected_word_count": 1,
+          "retained_serial": {
+            "path": "review/key-profile-controls-low-suppressed-ff.log",
+            "sha256": "f62c08d5e8211674db722d8096f099fb83329dc981469f68c7f8859a5f48e979"
+          },
+          "startup": [
+            {
+              "path": "review/key-profile-controls-low-suppressed-ff-config.sys.cfg",
+              "sha256": "b3935f8a2c2d2a9c84acb28564ce9f79beaf1b05b9b3695d345d1acbe7a5da9d"
+            },
+            {
+              "path": "review/key-profile-controls-low-suppressed-ff-autoexec.bat.cfg",
+              "sha256": "9a64e748ecfa729d6dad0840569c8b7bff0b95c2130031b18ec2d70655ebc4f1"
+            }
+          ],
+          "guest_resource_sha256": {
+            "KEYB.COM": "410118fcf2c7b40282619c9eb063edd25ee1fda5ca2cb7ef761d97b35ca463e4",
+            "KEYBRD2.SYS": "d80c25cd245deff68f6d7989d93858df501491ec86dea276b4f6e4f98b1ee4ec",
+            "COUNTRY.SYS": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c"
+          },
+          "retained_final_expected_include": {
+            "path": "review/key-profile-controls-low-suppressed-ff-expected.bin",
+            "sha256": "1cfcb0bd04645357156bdeaab8c62ef2c2747ba06b48c83a5bf0c40b9b079c40"
+          },
+          "expected_failure": "RU_KEY_FAIL actual=1E61"
+        },
+        {
+          "name": "low-nonzero-e0-scan",
+          "memory_profile": "low",
+          "grouped_input": false,
+          "layout_phases": null,
+          "enhanced_bios_input": true,
+          "negative_control": true,
+          "dos_input": true,
+          "reload_existing": false,
+          "rejection": null,
+          "documented_recipe": false,
+          "emulator_exit": 33,
+          "completed_reads": 1,
+          "log": "low-nonzero-e0-scan/serial.log",
+          "log_sha256": "bb6ad3d36da5e2db087676db10e48c88f99b15c6905e606a7c9f2d4a771b4e41",
+          "input_oracle": {
+            "path": "review/key-profile-controls-high-nonzero-e0-scan-oracle.json",
+            "sha256": "76b91c175b2ca06b2d983791e1d11b7790c793252964c66e4219fff9151a3bf4"
+          },
+          "step_count": 1,
+          "expected_word_count": 1,
+          "retained_serial": {
+            "path": "review/key-profile-controls-low-nonzero-e0-scan.log",
+            "sha256": "bb6ad3d36da5e2db087676db10e48c88f99b15c6905e606a7c9f2d4a771b4e41"
+          },
+          "startup": [
+            {
+              "path": "review/key-profile-controls-low-nonzero-e0-scan-config.sys.cfg",
+              "sha256": "3cda7b278ea952d7873d1b8c361d4085b2f5ebb8529fe4b9e95d3b9074bbf03e"
+            },
+            {
+              "path": "review/key-profile-controls-low-nonzero-e0-scan-autoexec.bat.cfg",
+              "sha256": "2bd286dee7a333bfc674fd872ddfc9cd102701cca44c8716d5dfe284c7c2d9c7"
+            }
+          ],
+          "guest_resource_sha256": {
+            "KEYB.COM": "410118fcf2c7b40282619c9eb063edd25ee1fda5ca2cb7ef761d97b35ca463e4",
+            "KEYBRD2.SYS": "ce133d8529080099fbfcc9be4bec8ba23fd19b593471959ece86d85027962a7f",
+            "COUNTRY.SYS": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c"
+          },
+          "retained_final_expected_include": {
+            "path": "review/key-profile-controls-low-nonzero-e0-scan-expected.bin",
+            "sha256": "be81fe4316df9b2c7b167f68bf1236a93ac7885211be33ebff7d638c095b2f15"
+          },
+          "expected_failure": "RU_KEY_FAIL actual=0700"
+        }
+      ]
+    },
+    {
+      "name": "ru-regression",
+      "command": "python3 tests/test_ru_keyboard_qemu.py --case reload-existing --case modifier-edges",
+      "status": "passed",
+      "source_report_sha256": "b445e675cd8d2986e4d3ae73deec3774bf572f723353e098869546391e687256",
+      "cases": [
+        {
+          "name": "reload-existing",
+          "memory_profile": null,
+          "grouped_input": false,
+          "layout_phases": null,
+          "enhanced_bios_input": false,
+          "negative_control": false,
+          "dos_input": false,
+          "reload_existing": true,
+          "rejection": null,
+          "documented_recipe": false,
+          "emulator_exit": 33,
+          "completed_reads": 7,
+          "log": "reload-existing/serial.log",
+          "log_sha256": "c928d62eac0eba6b6b0f4b41511423c0d541c95b6c40c037e9fbd7b5ccaef231",
+          "input_oracle": {
+            "path": "review/key-profile-ru-regression-reload-existing-oracle.json",
+            "sha256": "086f4a817778e658db572e114e9ce670a564e521f9b969a0ae089a9ce7519e19"
+          },
+          "step_count": 7,
+          "expected_word_count": 7,
+          "retained_serial": {
+            "path": "review/key-profile-ru-regression-reload-existing.log",
+            "sha256": "c928d62eac0eba6b6b0f4b41511423c0d541c95b6c40c037e9fbd7b5ccaef231"
+          },
+          "startup": [
+            {
+              "path": "review/key-profile-ru-regression-reload-existing-config.sys.cfg",
+              "sha256": "ba5f6b4bec5c23e0f9483978c8142895788e2c5feee3476b929d860fcb4b8c43"
+            },
+            {
+              "path": "review/key-profile-ru-regression-reload-existing-autoexec.bat.cfg",
+              "sha256": "763e769dcc73700c21cd01f79461ca4f2aebc31c3b5b7f26b1bd191ed229667b"
+            }
+          ],
+          "guest_resource_sha256": {
+            "KEYB.COM": "410118fcf2c7b40282619c9eb063edd25ee1fda5ca2cb7ef761d97b35ca463e4",
+            "KEYBRD2.SYS": "a4c47ad578f8804a74a3f2f9a4194eb4a096cb31ecdc7b8224f08dc9b558ed0b",
+            "COUNTRY.SYS": "dcad40266140a3155a44323bc3f3876ea70e1aa779175cf6ab18b532b36037c3"
+          },
+          "retained_final_expected_include": {
+            "path": "review/key-profile-ru-regression-reload-existing-expected.bin",
+            "sha256": "9469705568e1b99c271ddda7c6962edc8210e9773435e8c84b5a3aa2fff159a1"
+          }
+        },
+        {
+          "name": "modifier-edges",
+          "memory_profile": null,
+          "grouped_input": false,
+          "layout_phases": null,
+          "enhanced_bios_input": false,
+          "negative_control": false,
+          "dos_input": false,
+          "reload_existing": false,
+          "rejection": null,
+          "documented_recipe": false,
+          "emulator_exit": 33,
+          "completed_reads": 55,
+          "log": "modifier-edges/serial.log",
+          "log_sha256": "26734b63912315cef81c140b043c9946f317ea7eafcc9816b439add6978f8dc9",
+          "input_oracle": {
+            "path": "review/key-profile-ru-regression-modifier-edges-oracle.json",
+            "sha256": "5932c4fa3c93b51cff34a2b39658d95265924e26c4aeadf2010387a4f266610f"
+          },
+          "step_count": 55,
+          "expected_word_count": 55,
+          "retained_serial": {
+            "path": "review/key-profile-ru-regression-modifier-edges.log",
+            "sha256": "26734b63912315cef81c140b043c9946f317ea7eafcc9816b439add6978f8dc9"
+          },
+          "startup": [
+            {
+              "path": "review/key-profile-ru-regression-modifier-edges-config.sys.cfg",
+              "sha256": "ba5f6b4bec5c23e0f9483978c8142895788e2c5feee3476b929d860fcb4b8c43"
+            },
+            {
+              "path": "review/key-profile-ru-regression-modifier-edges-autoexec.bat.cfg",
+              "sha256": "b3c63194edcd5bef23acf52e521ef1ef25e2977dc329a712ac2687b85612e4cd"
+            }
+          ],
+          "guest_resource_sha256": {
+            "KEYB.COM": "410118fcf2c7b40282619c9eb063edd25ee1fda5ca2cb7ef761d97b35ca463e4",
+            "KEYBRD2.SYS": "a4c47ad578f8804a74a3f2f9a4194eb4a096cb31ecdc7b8224f08dc9b558ed0b",
+            "COUNTRY.SYS": "dcad40266140a3155a44323bc3f3876ea70e1aa779175cf6ab18b532b36037c3"
+          },
+          "retained_final_expected_include": {
+            "path": "review/key-profile-ru-regression-modifier-edges-expected.bin",
+            "sha256": "6875b2f02e8aa03bf090fabe396d9fa6f54c91225d915a0043d275f6ddc306f4"
+          }
+        }
+      ]
+    }
+  ],
+  "remaining": [
+    "Pending dead-key state across US/national selection, successful/rejected KEYB reloads and country/codepage switches.",
+    "Additional modifier/fallback/hardware-specific edges and deeply malformed section/directory/logic/page data, preserving resident state after rejection.",
+    "Supported AT-84/XT-83 and other real-BIOS keyboard/country/font qualification.",
+    "Installed pack, recipes/notices, physical COMMAND/EDLIN and national filename workflows, artifact coverage and full BALTIC.md release gates."
+  ]
+}

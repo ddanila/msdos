@@ -50,6 +50,13 @@ class BalticKeyboardRecords(unittest.TestCase):
             with self.assertRaises(ValueError):
                 validate(data)
 
+    def test_alias_group_count(self):
+        data = bytearray(self.data)
+        et_entry = struct.unpack_from('<I', data, 36)[0]
+        data[et_entry+8] = 1
+        with self.assertRaisesRegex(ValueError, 'page directory'):
+            validate(data)
+
     def test_dead_state_wrong_section_and_count(self):
         logic, _, _ = validate(self.data)['ET']
         common = logic + struct.unpack_from('<H', self.data, logic)[0]

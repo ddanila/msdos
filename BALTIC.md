@@ -164,6 +164,8 @@ expectations and preservation of prior records. EGA775.CPI passes the shared
 font build and QEMU HIGH/LOW font-plane/rendering gates. Baltic country APIs
 and NLS transitions pass the QEMU HIGH/LOW matrix. KEYBRD2.SYS includes all
 three Baltic layouts, with focused BIOS/DOS physical-input and corruption
-checks. Keyboard lifecycle/profile tests, real-BIOS and remaining runtime/
-install/release qualification remain open.
+checks on HIGH/LOW profiles. Selection, alias/ID, failed-load preservation
+and within-layout composition tests also pass. Remaining keyboard lifecycle
+and malformed-resource tests, real-BIOS and runtime/install/release
+qualification remain open.
 Existing Russian evidence does not establish Baltic support.
