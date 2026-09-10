@@ -480,8 +480,8 @@ records remain externally queryable from a Baltic HIGH/LOW environment, with
 unchanged active Baltic state. This is a compatibility check for those records,
 not qualification of installed DBCS environments. Preflight and repeated read
 validation do not provide rollback for a media error after an earlier table
-has already been copied. Boot and installed failures and final release gates
-remain separate work.
+has already been copied. Installed failures and boot fallback have separate
+qualification records below; final release gates remain open.
 
 
 ## Installed resource failures
@@ -504,6 +504,42 @@ profiles for every language.
 Every profile finishes with physical national keyboard input and a check of
 all restored installed payloads. The retained record links the installation
 baseline, commands, exact mutation scope, memory/core identities, logs, startup
-files and font captures. CONFIG boot fallback, real-BIOS installed failures,
-later media-error transactions, installed text/file workflows and final
-source-matched release qualification remain separate gates.
+files and font captures. Boot fallback is covered below. Real-BIOS installed
+failures, later media-error transactions, installed text/file workflows and
+final source-matched release qualification remain separate gates.
+
+
+## Country boot fallback
+
+[Country boot qualification](country-boot-qualification.json) covers BIOS
+country loading in each Baltic HIGH/LOW profile. A truncated collation object
+previously left the requested country/page and formatting installed alongside
+default case tables. The boot loader now validates the complete control lists
+and object data before writing DOS tables, then validates each object again
+when loading it. It retains the boot loader's fixed-buffer directory limits;
+NLSFUNC's wider runtime directory scan has separate qualification.
+
+The boot oracle compares country/page identifiers and country-format,
+uppercase, filename, collation and DBCS tables with a clean default boot.
+Runtime pointer addresses are normalized. Each invalid-file case then restores
+a valid resource and checks recovery to the requested Baltic profile. The
+record retains the original partial-initialization failure and a valid-file
+control that must fail the fallback comparison.
+
+Both loaders accept the shipped `UCASE` and legacy `FUCASE` filename-uppercase
+signatures. `make test-nlsfunc-filecase-qemu` checks external queries against the
+retained legacy expectations and preserves the active Baltic state. Valid and
+damaged alternative signatures also run through the resource gate. The earlier
+NLSFUNC binary's rejected valid query is retained as a regression control.
+
+The rebuilt private core includes existing repository kernel and HIMEM updates.
+Its qualification retains build inputs, matching maps, the memory fault matrix,
+country/API and legacy regressions, fresh/upgrade installation and installed
+resource failures. Real-BIOS country boots/transitions require guest-triggered
+emulator completion. The legacy memory-fallback harness instead checks guest
+markers and a persisted result before stopping the backend; its scope is
+recorded separately.
+
+Earlier workflow records apply to their recorded cores. Real-BIOS resource
+failures, installed text/file workflows, later media-error rollback and the
+full source-matched release/reproducibility gates remain open for this core.

@@ -1,0 +1,101 @@
+[
+  {
+    "argv": [
+      "/Users/ddanila/fun/msdos/bin/jwasm-masm",
+      "-Mx -t -DI386 -DNoBugMode -DNOHIMEM -DUMB_SUBPAGE_DISCOVERY -DUMB_SUBPAGE_MAPPING -DEMM_COMMON_XMS_TEST -DEMM_UMB_OWNER_TEST -DEMM_UMB_RESULTS_TEST -DEMM_XMS_COPY_TEST -DEMM_XMS_OWNER_TEST -DEMM_AUTHORITATIVE_OWNER_TEST -DEMM_HIGH_TABLES -DEMM_SPLIT_PREPARE -DEMM_DEFER_PROVIDER -DPROVIDER_REBASE -DEMM_BOOTSTRAP_PRODUCTION -I. -I../EMM -I../../INC -I../../DEV/HIMEM",
+      "PPAGE.ASM,PPAGE.OBJ;"
+    ],
+    "cwd": "/Users/ddanila/fun/msdos/out/baltic-country-boot-core2-uv12hty4/provider/MEMM/MEMM"
+  },
+  {
+    "argv": [
+      "/Users/ddanila/fun/msdos/bin/jwasm-masm",
+      "-Mx -t -DI386 -DNoBugMode -DNOHIMEM -DUMB_SUBPAGE_DISCOVERY -DUMB_SUBPAGE_MAPPING -DEMM_COMMON_XMS_TEST -DEMM_UMB_OWNER_TEST -DEMM_UMB_RESULTS_TEST -DEMM_XMS_COPY_TEST -DEMM_XMS_OWNER_TEST -DEMM_AUTHORITATIVE_OWNER_TEST -DEMM_HIGH_TABLES -DEMM_SPLIT_PREPARE -DEMM_DEFER_PROVIDER -DPROVIDER_REBASE -DEMM_BOOTSTRAP_PRODUCTION -I. -I../EMM -I../../INC -I../../DEV/HIMEM",
+      "MOVEB.ASM,MOVEB.OBJ;"
+    ],
+    "cwd": "/Users/ddanila/fun/msdos/out/baltic-country-boot-core2-uv12hty4/provider/MEMM/MEMM"
+  },
+  {
+    "argv": [
+      "/Users/ddanila/fun/msdos/bin/jwasm-masm",
+      "-Mx -t -DI386 -DNoBugMode -DNOHIMEM -DUMB_SUBPAGE_DISCOVERY -DUMB_SUBPAGE_MAPPING -DEMM_COMMON_XMS_TEST -DEMM_UMB_OWNER_TEST -DEMM_UMB_RESULTS_TEST -DEMM_XMS_COPY_TEST -DEMM_XMS_OWNER_TEST -DEMM_AUTHORITATIVE_OWNER_TEST -DEMM_HIGH_TABLES -DEMM_SPLIT_PREPARE -DEMM_DEFER_PROVIDER -DPROVIDER_REBASE -DEMM_BOOTSTRAP_PRODUCTION -I. -I../EMM -I../../INC -I../../DEV/HIMEM -DRRTRAP_LOW_ONLY",
+      "RRTRAP.ASM,RRTRAP.OBJ;"
+    ],
+    "cwd": "/Users/ddanila/fun/msdos/out/baltic-country-boot-core2-uv12hty4/provider/MEMM/MEMM"
+  },
+  {
+    "argv": [
+      "/Users/ddanila/fun/msdos/bin/jwasm-masm",
+      "-Mx -t -DI386 -DNoBugMode -DNOHIMEM -DUMB_SUBPAGE_DISCOVERY -DUMB_SUBPAGE_MAPPING -DEMM_COMMON_XMS_TEST -DEMM_UMB_OWNER_TEST -DEMM_UMB_RESULTS_TEST -DEMM_XMS_COPY_TEST -DEMM_XMS_OWNER_TEST -DEMM_AUTHORITATIVE_OWNER_TEST -DEMM_HIGH_TABLES -DEMM_SPLIT_PREPARE -DEMM_DEFER_PROVIDER -DPROVIDER_REBASE -DEMM_BOOTSTRAP_PRODUCTION -I. -I../EMM -I../../INC -I../../DEV/HIMEM",
+      "EMMINIT.ASM,EMMINIT.OBJ;"
+    ],
+    "cwd": "/Users/ddanila/fun/msdos/out/baltic-country-boot-core2-uv12hty4/provider/MEMM/MEMM"
+  },
+  {
+    "argv": [
+      "/Users/ddanila/fun/msdos/bin/jwasm-masm",
+      "-Mx -t -DI386 -DNoBugMode -DNOHIMEM -DUMB_SUBPAGE_DISCOVERY -DUMB_SUBPAGE_MAPPING -DEMM_COMMON_XMS_TEST -DEMM_UMB_OWNER_TEST -DEMM_UMB_RESULTS_TEST -DEMM_XMS_COPY_TEST -DEMM_XMS_OWNER_TEST -DEMM_AUTHORITATIVE_OWNER_TEST -DEMM_HIGH_TABLES -DEMM_SPLIT_PREPARE -DEMM_DEFER_PROVIDER -DPROVIDER_REBASE -DEMM_BOOTSTRAP_PRODUCTION -I. -I../EMM -I../../INC -I../../DEV/HIMEM",
+      "INITTAB.ASM,INITTAB.OBJ;"
+    ],
+    "cwd": "/Users/ddanila/fun/msdos/out/baltic-country-boot-core2-uv12hty4/provider/MEMM/MEMM"
+  },
+  {
+    "argv": [
+      "/Users/ddanila/fun/msdos/bin/jwasm-masm",
+      "-Mx -t -DI386 -DNoBugMode -DNOHIMEM -DUMB_SUBPAGE_DISCOVERY -DUMB_SUBPAGE_MAPPING -DEMM_COMMON_XMS_TEST -DEMM_UMB_OWNER_TEST -DEMM_UMB_RESULTS_TEST -DEMM_XMS_COPY_TEST -DEMM_XMS_OWNER_TEST -DEMM_AUTHORITATIVE_OWNER_TEST -DEMM_HIGH_TABLES -DEMM_SPLIT_PREPARE -DEMM_DEFER_PROVIDER -DPROVIDER_REBASE -DEMM_BOOTSTRAP_PRODUCTION -I. -I../EMM -I../../INC -I../../DEV/HIMEM",
+      "SHIPHI.ASM,SHIPHI.OBJ;"
+    ],
+    "cwd": "/Users/ddanila/fun/msdos/out/baltic-country-boot-core2-uv12hty4/provider/MEMM/MEMM"
+  },
+  {
+    "argv": [
+      "/Users/ddanila/fun/msdos/bin/jwasm-masm",
+      "-Mx -t -DI386 -DNoBugMode -DNOHIMEM -DUMB_SUBPAGE_DISCOVERY -DUMB_SUBPAGE_MAPPING -DEMM_COMMON_XMS_TEST -DEMM_UMB_OWNER_TEST -DEMM_UMB_RESULTS_TEST -DEMM_XMS_COPY_TEST -DEMM_XMS_OWNER_TEST -DEMM_AUTHORITATIVE_OWNER_TEST -DEMM_HIGH_TABLES -DEMM_SPLIT_PREPARE -DEMM_DEFER_PROVIDER -DPROVIDER_REBASE -DEMM_BOOTSTRAP_PRODUCTION -I. -I../EMM -I../../INC -I../../DEV/HIMEM",
+      "TABDEF.ASM,TABDEF.OBJ;"
+    ],
+    "cwd": "/Users/ddanila/fun/msdos/out/baltic-country-boot-core2-uv12hty4/provider/MEMM/MEMM"
+  },
+  {
+    "argv": [
+      "/Users/ddanila/fun/msdos/bin/jwasm-masm",
+      "-Mx -t -DI386 -DNoBugMode -DNOHIMEM -DUMB_SUBPAGE_DISCOVERY -DUMB_SUBPAGE_MAPPING -DEMM_COMMON_XMS_TEST -DEMM_UMB_OWNER_TEST -DEMM_UMB_RESULTS_TEST -DEMM_XMS_COPY_TEST -DEMM_XMS_OWNER_TEST -DEMM_AUTHORITATIVE_OWNER_TEST -DEMM_HIGH_TABLES -DEMM_SPLIT_PREPARE -DEMM_DEFER_PROVIDER -DPROVIDER_REBASE -DEMM_BOOTSTRAP_PRODUCTION -I. -I../EMM -I../../INC -I../../DEV/HIMEM",
+      "INIT.ASM,INIT.OBJ;"
+    ],
+    "cwd": "/Users/ddanila/fun/msdos/out/baltic-country-boot-core2-uv12hty4/provider/MEMM/MEMM"
+  },
+  {
+    "argv": [
+      "/Users/ddanila/fun/msdos/bin/jwasm-masm",
+      "-Mx -t -DI386 -DNoBugMode -DNOHIMEM -DUMB_SUBPAGE_DISCOVERY -DUMB_SUBPAGE_MAPPING -DEMM_COMMON_XMS_TEST -DEMM_UMB_OWNER_TEST -DEMM_UMB_RESULTS_TEST -DEMM_XMS_COPY_TEST -DEMM_XMS_OWNER_TEST -DEMM_AUTHORITATIVE_OWNER_TEST -DEMM_HIGH_TABLES -DEMM_SPLIT_PREPARE -DEMM_DEFER_PROVIDER -DPROVIDER_REBASE -DEMM_BOOTSTRAP_PRODUCTION -I../MEMM",
+      "EMMSUP.ASM,EMMSUP.OBJ;"
+    ],
+    "cwd": "/Users/ddanila/fun/msdos/out/baltic-country-boot-core2-uv12hty4/provider/MEMM/EMM"
+  },
+  {
+    "argv": [
+      "/Users/ddanila/fun/msdos/bin/wlink",
+      "/NOI /PACKDATA:1 @EMM386.LNK"
+    ],
+    "cwd": "/Users/ddanila/fun/msdos/out/baltic-country-boot-core2-uv12hty4/provider/MEMM/MEMM"
+  },
+  {
+    "argv": [
+      "/Users/ddanila/fun/msdos/bin/jwasm-bin",
+      "-q",
+      "-bin",
+      "-Sa",
+      "-Fl=/Users/ddanila/fun/msdos/out/baltic-country-boot-core2-uv12hty4/provider/HIMEM.LST",
+      "-DHIMEM_UMB_HANDOFF_TEST",
+      "-DHIMEM_UMB_RESULTS_TEST",
+      "-DHIMEM_COMMON_XMS_TEST",
+      "-DHIMEM_BOOTSTRAP_STAGE_TEST",
+      "-DHIMEM_PROTECTED_COPY_TEST",
+      "-DHIMEM_PROTECTED_OWNER_TEST",
+      "-DHIMEM_AUTHORITATIVE_OWNER_TEST",
+      "-I/Users/ddanila/fun/msdos/out/baltic-country-boot-core2-uv12hty4/provider/INC",
+      "-Fo/Users/ddanila/fun/msdos/out/baltic-country-boot-core2-uv12hty4/provider/HIMEM.SYS",
+      "/Users/ddanila/fun/msdos/out/baltic-country-boot-core2-uv12hty4/provider/DEV/HIMEM/HIMEM.ASM"
+    ],
+    "cwd": "/Users/ddanila/fun/msdos/out/baltic-country-boot-core2-uv12hty4/provider/MEMM/MEMM"
+  }
+]

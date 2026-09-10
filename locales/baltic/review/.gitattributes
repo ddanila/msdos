@@ -5,3 +5,6 @@
 # Preserve startup files extracted from installed DOS images.
 *install-*.BAT -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
 *install-*.SYS -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+
+# Preserve generated linker maps, including their divider lines.
+*.MAP -text -diff -whitespace

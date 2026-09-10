@@ -968,6 +968,8 @@ SetDOSCountryInfo	proc	near
 	mov	ax, 512 		;read 512 bytes
 	call	ReadInControlBuffer	;Read the file header
 	jc	SetDOSData_fail
+	cmp	ax,23
+	jb	SetDOSData_fail
 	push	es
 	push	si
 	push	cs
@@ -987,6 +989,8 @@ SetDOSCountryInfo	proc	near
 	mov	cx, word ptr ds:[si+2]
 	mov	ax, 1024		;read 1024 bytes.
 	call	ReadInControlBuffer	;Read INFO
+	jc	SetDOSData_fail
+	call	ValidateCountryDirectory
 	jc	SetDOSData_fail
 	mov	cx, word ptr ds:[si]	;get the # of country, codepage combination entries
 	cmp	cx, 72			;cannot handle more than 72 entries.
@@ -1029,6 +1033,8 @@ SetDOSCntry_got_it:			;found the matching entry
 	mov	ax, 512 		;read 512 bytes
 	call	ReadInControlBuffer
 	jc	SetDOSCntry_fail
+	call	ValidateCountryObjects
+	jc	SetDOSCntry_fail
 	mov	cx, word ptr ds:[si]	;get the number of entries to handle.
 	inc	si
 	inc	si			;SI -> first entry
@@ -1043,42 +1049,8 @@ SetDOSCntry_data:
 	jc	SetDOSCntry_data_next	;No matching data entry id in DOS
 
 
-	mov	dx, word ptr ds:[si+4]	;get offset of data
-	mov	cx, word ptr ds:[si+6]
-	mov	ax, 4200h
-	stc
-	int	21h			;move pointer
+	call	ValidateCountryData
 	jc	SetDOSData_fail
-	mov	dx, 512 		;start of data buffer
-;	 mov	 cx, word ptr es:[di]	 ;length of the corresponding data in DOS.
-;	 add	 cx, 10 		 ;Signature + A word for the length itself
-	mov	cx, 20			;read 20 bytes only. We only need to
-	mov	ah, 3fh 		;look at the length of the data in the file.
-	stc
-	int	21h			;read the country.sys data
-	jc	SetDOSData_fail 	;read failure
-	cmp	ax, cx
-	jne	SetDOSData_fail
-
-	mov	dx, word ptr ds:[si+4]	;AN008;get offset of data again.
-	mov	cx, word ptr ds:[si+6]
-	mov	ax, 4200h
-	stc
-	int	21h			;AN008;move pointer back again
-	jc	SetDOSData_fail
-
-	push	si
-	mov	si, (512+8)		;AN008;get length of the data from the file
-	mov	cx, word ptr ds:[si]
-	pop	si
-	mov	dx, 512 		;AN008;start of data buffer
-	add	cx, 10			;AN008;Signature + A word for the length itself
-	mov	ah, 3fh 		;AN008;Read the data from the file.
-	stc
-	int	21h
-	jc	SetDOSData_fail
-	cmp	ax, cx
-	jne	SetDOSData_fail
 
 	mov	al, byte ptr ds:[si+2]	;save Data id for future use.
 	mov	si, (512+8)		;SI-> data buffer + id tag field
@@ -1122,6 +1094,204 @@ SetDOSCntry_OK:
 	ret
 SetDOSCountryInfo	endp
 ;
+
+
+; Validate complete control records before using their pointers. AX is the
+; actual control read count; the original DS:SI and caller registers survive.
+ValidateCountryDirectory proc near
+        push ax
+        push cx
+        push dx
+        push si
+        cmp ax,2
+        jb VCD_BAD
+        mov dx,ax
+        sub dx,2
+        mov cx,word ptr ds:[si]
+        jcxz VCD_BAD
+        cmp cx,72
+        ja VCD_BAD
+        add si,2
+VCD_NEXT:
+        cmp dx,2
+        jb VCD_BAD
+        mov ax,word ptr ds:[si]
+        cmp ax,12
+        jb VCD_BAD
+        add ax,2
+        jc VCD_BAD
+        cmp ax,dx
+        ja VCD_BAD
+        sub dx,ax
+        add si,ax
+        loop VCD_NEXT
+        clc
+        jmp short VCD_DONE
+VCD_BAD:
+        stc
+VCD_DONE:
+        pop si
+        pop dx
+        pop cx
+        pop ax
+        ret
+ValidateCountryDirectory endp
+
+; Preflight every object's data before any DOS table is changed.
+ValidateCountryObjects proc near
+        push ax
+        push cx
+        push dx
+        push si
+        cmp ax,2
+        jb VCO_BAD
+        mov dx,ax
+        sub dx,2
+        mov cx,word ptr ds:[si]
+        jcxz VCO_BAD
+        add si,2
+VCO_NEXT:
+        cmp dx,2
+        jb VCO_BAD
+        mov ax,word ptr ds:[si]
+        cmp ax,6
+        jb VCO_BAD
+        add ax,2
+        jc VCO_BAD
+        cmp ax,dx
+        ja VCO_BAD
+        call ValidateCountryData
+        jc VCO_DONE
+        sub dx,ax
+        add si,ax
+        loop VCO_NEXT
+        clc
+        jmp short VCO_DONE
+VCO_BAD:
+        stc
+VCO_DONE:
+        pop si
+        pop dx
+        pop cx
+        pop ax
+        ret
+ValidateCountryObjects endp
+
+; Read a bounded complete object into DS:512. Capacity limits follow DOSMES.
+; Keep rules in CS because DS is the separate temporary COUNTRY.SYS buffer.
+ValidateCountryData proc near
+        push ax
+        push cx
+        push dx
+        push si
+        push di
+        push es
+        mov al,byte ptr ds:[si+2]
+        mov di,offset CountryObjectRules
+VCData_RULE:
+        cmp byte ptr cs:[di],al
+        je VCData_READ
+        cmp byte ptr cs:[di],0
+        je VCData_READ
+        add di,13
+        jmp short VCData_RULE
+VCData_READ:
+        mov dx,word ptr ds:[si+4]
+        mov cx,word ptr ds:[si+6]
+        mov ax,4200h
+        stc
+        int 21h
+        jc VCData_DONE
+        mov dx,512
+        mov cx,272
+        mov ah,3fh
+        stc
+        int 21h
+        jc VCData_DONE
+        cmp ax,10
+        jb VCData_BAD
+        mov cx,word ptr ds:[520]
+        cmp cx,word ptr cs:[di+1]
+        jb VCData_BAD
+        cmp cx,word ptr cs:[di+3]
+        ja VCData_BAD
+        sub ax,10
+        cmp cx,ax
+        ja VCData_BAD
+        cmp byte ptr cs:[di],0
+        je VCData_OK
+        mov al,byte ptr cs:[di]
+        push cs
+        pop es
+        mov si,512
+        add di,5
+        cmp al,4
+        jne VCData_SIGNATURE
+        cmp byte ptr ds:[si+1],'F'
+        jne VCData_SIGNATURE
+        mov di,offset CountryFileUpperSignature
+VCData_SIGNATURE:
+        mov cx,8
+        cld
+        repe cmpsb
+        jne VCData_BAD
+        cmp al,5
+        je VCData_FILE
+        cmp al,7
+        jne VCData_OK
+        mov cx,word ptr ds:[520]
+        test cl,1
+        jnz VCData_BAD
+        jcxz VCData_OK
+        mov si,522
+        add si,cx
+        cmp word ptr ds:[si-2],0
+        jne VCData_BAD
+        jmp short VCData_OK
+VCData_FILE:
+        xor ax,ax
+        mov al,byte ptr ds:[529]
+        add ax,8
+        cmp ax,word ptr ds:[520]
+        ja VCData_BAD
+VCData_OK:
+        clc
+        jmp short VCData_DONE
+VCData_BAD:
+        stc
+VCData_DONE:
+        pop es
+        pop di
+        pop si
+        pop dx
+        pop cx
+        pop ax
+        ret
+ValidateCountryData endp
+
+CountryFileUpperSignature db 0ffh,'FUCASE '
+CountryObjectRules label byte
+        db 1
+        dw 38,38
+        db 0ffh,'CTYINFO'
+        db 2
+        dw 128,128
+        db 0ffh,'UCASE  '
+        db 4
+        dw 128,128
+        db 0ffh,'UCASE  '
+        db 5
+        dw 8,46
+        db 0ffh,'FCHAR  '
+        db 6
+        dw 256,256
+        db 0ffh,'COLLATE'
+        db 7
+        dw 0,16
+        db 0ffh,'DBCS   '
+        db 0
+        dw 0,262
+        db 8 dup (0)
 
 GetCountryDestination	proc	near
 ;Get the destination address in the DOS country info table.

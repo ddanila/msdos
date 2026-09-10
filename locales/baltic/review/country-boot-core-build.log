@@ -1,0 +1,10 @@
+INIT.ASM(126) : Warning A4184: Instructions and initialized data not supported in AT segments
+INIT.ASM(127) : Warning A4184: Instructions and initialized data not supported in AT segments
+INIT.ASM(130) : Warning A4184: Instructions and initialized data not supported in AT segments
+INIT.ASM(131) : Warning A4184: Instructions and initialized data not supported in AT segments
+Warning! W1080: file rrtrap.obj is a 32-bit object file
+Warning! W1080: file vmtrap.obj is a 32-bit object file
+Warning! W1080: file rrtraphi.obj is a 32-bit object file
+Warning! W1080: file initepg.obj is a 32-bit object file
+Warning! W1080: file vminit.obj is a 32-bit object file
+Warning! W1080: file em286ll.obj is a 32-bit object file

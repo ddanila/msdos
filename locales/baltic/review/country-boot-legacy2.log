@@ -1,0 +1,6 @@
+  PASS: COUNTRY=055,850 loads the retail DOS 5 record
+  PASS: COUNTRY=038,852 loads the retail DOS 5 record
+  PASS: COUNTRY=042,852 loads the retail DOS 5 record
+  PASS: COUNTRY=048,852 loads the retail DOS 5 record
+  PASS: COUNTRY=036,852 loads the retail DOS 5 record
+Results: 5 passed, 0 failed

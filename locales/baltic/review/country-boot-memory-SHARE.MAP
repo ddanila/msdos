@@ -1,0 +1,465 @@
+Open Watcom Linker Version 2.0 beta Aug 27 2026 05:38:07 (64-bit)** EXPERIMENTAL (HLL) ** 
+Copyright (c) 2002-2026 The Open Watcom Contributors. All Rights Reserved.
+Portions Copyright (c) 1985-2002 Sybase, Inc. All Rights Reserved.
+Created on:       26/09/08 13:03:31
+Executable Image: SHARE.EXE
+creating a DOS executable
+
+
+                        +------------+
+                        |   Groups   |
+                        +------------+
+
+Group                           Address              Size
+=====                           =======              ====
+
+DOSGROUP                        01e3:0000            0000131b
+
+
+
+                        +--------------+
+                        |   Segments   |
+                        +--------------+
+
+Segment                Class          Group          Address         Size
+=======                =====          =====          =======         ====
+
+SHARE                  SHARE          AUTO           0000:0000       00001e27
+START                  START          DOSGROUP       01e3:0000       00000003
+CONSTANTS              CONST          DOSGROUP       01e3:0004       00000200
+DATA                   DATA           DOSGROUP       0203:0004       000006f7
+TABLE                  TABLE          DOSGROUP       0272:000b       0000031b
+CODE                   CODE           DOSGROUP       02a4:0006       0000005a
+LAST                   LAST           DOSGROUP       02aa:0000       0000047b
+HIGH_TABLE             HIGH_TABLE     DOSGROUP       02f1:000b       00000230
+STACK                                 AUTO           0315:0000       00000196
+
+
+                        +----------------+
+                        |   Memory Map   |
+                        +----------------+
+
+* = unreferenced symbol
++ = symbol only referenced locally
+
+Address        Symbol
+=======        ======
+
+Module: gshare.obj(gshare.obj)
+0000:0000      FreLock
+0000:0002      Serial
+0000:0006      mft_enter
+0000:0029      MFTclose
+0000:0055      MFTclU
+0000:0069      MFTcloseP
+0000:0081      MFTcloN
+0000:00c9      Set_Mult_Block
+0000:00ec*     Load_Regs
+0000:0104      clr_mult_block
+0000:012d*     Clr_List
+0000:0134*     Set_Block
+0000:0176*     Clr_Block
+0000:01bb*     CLP
+0000:01f1      Chk_Block
+0000:0235      MFT_get
+0000:02a9*     ASC
+0000:030a*     BCS
+0000:0386*     CSL
+0000:03cd*     CUCA
+0000:03eb*     CUC
+0000:043f*     CSI
+0000:045d*     GOM
+Module: gshare2.obj(gshare2.obj)
+0000:0487      fnm
+0000:054b*     GCM
+0000:059e      rmn
+0000:05d4*     MRG
+0000:05f7      rsc
+0000:0652      sle
+0000:06c4      ofl
+0000:06db      cps
+0000:0740*     CPJ
+0000:0758*     SFM
+0000:075d*     ShChk
+0000:0775*     ShSave
+0000:0790*     ShCol
+0000:0815*     ShCloseFile
+0000:0883*     ShSU
+0000:0922*     New_Sft
+0000:095d*     Call_IFS
+0000:0965      interr
+0000:099e      skip_check
+0000:0a63      EcritShare
+0000:0a6b      LcritShare
+0000:0a73      MFT
+0000:0ae7*     Init
+0000:0ce3*     SHAREINIT
+0000:0d9f*     ShLoadMsg
+0000:0dc0*     ShDispMsg
+0000:0e19*     Get_DOS_Error
+0000:0e2a*     ShComndParse
+Module: sharesr.obj(sharesr.obj)
+0000:10b0      SYSDISPMSG
+0000:0fa3      SYSLOADMSG
+0000:173d      SYSPARSE
+0000:15d7      $M_CLS_1
+0000:1613      $M_MSGSERV_1
+0000:1691      $M_MSGSERV_2
+0000:0ebf      $M_RT
+0000:135b      $M_GET_MSG_ADDRESS
+Module: sharelnk.obj(sharelnk.obj)
+01e3:0c16      SetverResidentTable
+01e3:0c16      IRETT
+01e3:0c18      SWAP_AREA_LEN
+01e3:0c1a      Hash_Temp
+01e3:0c1c      LCRITDEVICE
+01e3:0c1d      SETMEM
+01e3:0c1e      SKIPONE
+01e3:0c1f      TWOESC
+01e3:0c20*     $STD_CON_STRING_INPUT_NO_ECHO
+01e3:0c21      $STD_CON_INPUT_NO_ECHO
+01e3:0c22      INT2F
+01e3:0c23      $dup_pdb
+01e3:0c24      LEAVEDOS
+01e3:0c25      GETCH
+01e3:0c26      COPYONE
+01e3:0c27      $SETDPB
+01e3:0c28      CALL_ENTRY
+01e3:0c29      ECRITDISK
+01e3:0c2a      COPYLIN
+01e3:0c2b      LCRITDISK
+01e3:0c2c      QUIT
+01e3:0c2d      BACKSP
+01e3:0c2e      DIVOV
+01e3:0c2f      STAY_RESIDENT
+01e3:0c30      CTRLZ
+01e3:0c31      EXITINS
+01e3:0c32      OKCALL
+01e3:0c33      SKIPSTR
+01e3:0c34      ABSDWRT
+01e3:0c35      BADCALL
+01e3:0c36      REEDIT
+01e3:0c37      INULDEV
+01e3:0c38      ABSDRD
+01e3:0c39      SNULDEV
+01e3:0c3a      COPYSTR
+01e3:0c3b      ECRITDEVICE
+01e3:0c3c      COMMAND
+01e3:0c3d      ENTERINS
+01e3:0c3e      DEVIOCALL2
+01e3:0c3f      FASTOPENTABLE
+01e3:0c40      HEADER
+01e3:0c41      SYSINITTABLE
+01e3:0c42      FETCHI_TAG
+01e3:0c43      IFS_DOSCALL
+01e3:0c44      KILNEW
+01e3:0c45      PACKET_TEMP
+01e3:0c46      Swap_in_DOS_Len
+01e3:0c47      swap_always_area
+01e3:0c48      swap_always_area_len
+01e3:0c49      swap_in_dos
+Module: ../../inc/nibdos.obj(../../inc/nibdos.obj)
+01e3:0014*     MSCT001S
+01e3:00dc*     MSCT001E
+01e3:0014      DataVersion
+01e3:001a*     BugTyp
+01e3:001c*     BugLev
+01e3:001e*     MYNUM
+01e3:0020*     FCBLRU
+01e3:0022*     OpenLRU
+01e3:0024*     OEM_HANDLER
+01e3:0028*     LeaveAddr
+01e3:002a*     RetryCount
+01e3:002c*     RetryLoop
+01e3:002e*     LastBuffer
+01e3:0032*     CONTPOS
+01e3:0034      Arena_Head
+01e3:0036      SYSINITVAR
+01e3:0036      DPBHEAD
+01e3:003a      SFT_addr
+01e3:003e      BCLOCK
+01e3:0042      BCON
+01e3:0046      MAXSEC
+01e3:0048      BUFFHEAD
+01e3:004c*     CDSADDR
+01e3:0050      sftFCB
+01e3:0054      KeepCount
+01e3:0056      NUMIO
+01e3:0057*     CDSCOUNT
+01e3:0058      NULDEV
+01e3:006a*     Splices
+01e3:006b      Special_Entries
+01e3:006d      IFS_DOS_CALL
+01e3:0071*     IFS_HEADER
+01e3:0075*     BUFFERS_PARM1
+01e3:0077*     BUFFERS_PARM2
+01e3:0079*     BOOTDRIVE
+01e3:007a*     DDMOVE
+01e3:007b*     EXT_MEM_SIZE
+01e3:007d      HASHINITVAR
+01e3:007d      BUF_HASH_PTR
+01e3:0081*     BUF_HASH_COUNT
+01e3:0083*     SC_CACHE_PTR
+01e3:0087*     SC_CACHE_COUNT
+01e3:0089*     BUF_EMS_SAFE_FLAG
+01e3:008a*     BUF_EMS_LAST_PAGE
+01e3:008e*     BUF_EMS_FIRST_PAGE
+01e3:0092*     BUF_EMS_NPA640
+01e3:0094*     BUF_EMS_MODE
+01e3:0095*     BUF_EMS_HANDLE
+01e3:0097*     BUF_EMS_PAGE_FRAME
+01e3:0099*     BUF_EMS_SEG_CNT
+01e3:009b*     BUF_EMS_PFRAME
+01e3:009d*     BUF_EMS_RESERV
+01e3:009f*     BUF_EMS_MAP_BUFF
+01e3:00a0      JShare
+Module: ../../inc/const2.obj(../../inc/const2.obj)
+01e3:00dc*     CONST001S
+01e3:01ff*     CONST001E
+01e3:10eb*     SFT001S
+01e3:1218*     SFT001E
+01e3:10eb      sfTabl
+01e3:00dc*     CARPOS
+01e3:00dd*     STARTPOS
+01e3:1218*     CONSOLE_WORKSPACE_START
+01e3:131b*     CONSOLE_WORKSPACE_END
+01e3:1218*     INBUF
+01e3:1298*     CONBUF
+01e3:00de*     PFLAG
+01e3:00df*     VERFLG
+01e3:00e0*     CharCo
+01e3:00e1*     chSwitch
+01e3:00e2*     AllocMethod
+01e3:00e3      fshare
+01e3:00e4*     DIFFNAM
+01e3:00e5*     MYNAME
+01e3:00f5*     CritPatch
+01e3:0100      SWAP_START
+01e3:0100*     ErrorMode
+01e3:0101*     INDOS
+01e3:0102*     WPErr
+01e3:0103*     EXTERR_LOCUS
+01e3:0104*     EXTERR
+01e3:0106*     EXTERR_ACTION
+01e3:0107*     EXTERR_CLASS
+01e3:0108*     EXTERRPT
+01e3:010c      DMAADD
+01e3:0110      CurrentPDB
+01e3:0112*     ConC_spsave
+01e3:0114*     exit_code
+01e3:0116*     CURDRV
+01e3:0117*     CNTCFLAG
+01e3:0118*     CPSWFLAG
+01e3:0119*     CPSWSAVE
+01e3:011a      Swap_Always
+01e3:011a      user_in_ax
+01e3:011c      Proc_ID
+01e3:011e      User_ID
+01e3:0120*     FirstArena
+01e3:0122*     BestArena
+01e3:0124*     LastArena
+01e3:0126      EndMem
+01e3:0128*     LASTENT
+01e3:012a*     FAILERR
+01e3:012b*     ALLOWED
+01e3:012c*     NoSetDir
+01e3:012d*     DidCTRLC
+01e3:012e*     SpaceFlag
+01e3:0130*     DAY
+01e3:0131*     MONTH
+01e3:0132*     YEAR
+01e3:0134*     DAYCNT
+01e3:0136*     WEEKDAY
+01e3:0137*     CONSWAP
+01e3:0138*     IDLEINT
+01e3:0139*     fAborting
+01e3:013a      DEVCALL
+01e3:0147      CALLUNIT
+01e3:0147*     CALLMED
+01e3:0148*     CALLXAD
+01e3:0148*     CALLRBYT
+01e3:0149*     CALLVIDM
+01e3:014c      CallBPB
+01e3:014c*     CALLSCNT
+01e3:014e*     CALLSSEC
+01e3:0150*     CALLVIDRW
+01e3:0154*     CALLNEWSC
+01e3:0158*     CALLDEVAD
+01e3:015c*     IOCall
+01e3:0169*     IORCHR
+01e3:0169*     IOMED
+01e3:016a*     IOXAD
+01e3:016e*     IOSCNT
+01e3:0170*     IOSSEC
+01e3:0172*     DSKSTCALL
+01e3:0174*     DSKSTCOM
+01e3:0175*     DSKSTST
+01e3:017f      DSKCHRET
+01e3:0184*     DSKSTCNT
+01e3:0188      CreatePDB
+01e3:0189*     UmbArenaHead
+01e3:018b*     UmbLinkMcb
+01e3:018d*     UmbArenaTail
+01e3:018f*     UmbLinked
+01e3:0190*     UmbRegionCount
+01e3:0191*     UmbRegionFilter
+01e3:0193*     UmbRegionStarts
+01e3:01b3*     UmbRegionEnds
+01e3:01d3*     UmbRegionLimits
+01e3:01f3*     UmbAllocLimit
+01e3:01f5*     AllocScanDomain
+01e3:01f6*     ArenaFreeDomain
+01e3:01f7*     Lock_Buffer
+Module: ../../inc/msdata.obj(../../inc/msdata.obj)
+01e3:0204*     MSDAT001S
+01e3:08fb*     MSDAT001E
+01e3:0204*     TIMEBUF
+01e3:020a      DEVIOBUF
+01e3:020c      OpenBuf
+01e3:028c*     RenBuf
+01e3:030c*     SEARCHBUF
+01e3:0341*     DummyCDS
+01e3:0399*     DevFCB
+01e3:0399*     NAME1
+01e3:03a5*     NAME2
+01e3:03b2*     DESTSTART
+01e3:03b9*     ATTRIB
+01e3:03ba*     EXTFCB
+01e3:03bb*     SATTRIB
+01e3:03bc*     open_access
+01e3:03bd*     FoundDel
+01e3:03be*     Found_dev
+01e3:03bf*     fSplice
+01e3:03c0*     fSharing
+01e3:03c1*     SECCLUSPOS
+01e3:03c2*     TRANS
+01e3:03c3*     READOP
+01e3:03c4*     THISDRV
+01e3:03c5*     CLUSFAC
+01e3:03c6*     CLUSSPLIT
+01e3:03c7*     INSMODE
+01e3:03c8*     cMeta
+01e3:03c9*     VOLID
+01e3:03ca*     exit_type
+01e3:03cc*     CREATING
+01e3:03cd*     DELALL
+01e3:03ce*     EXITHOLD
+01e3:03d2*     user_SP
+01e3:03d4*     user_SS
+01e3:03d6*     CONTSTK
+01e3:03d8*     THISDPB
+01e3:03dc*     CLUSSAVE
+01e3:03de*     CLUSSEC
+01e3:03e2*     PREREAD
+01e3:03e4*     FATBYT
+01e3:03e6*     FATBYTE
+01e3:03e8*     DEVPT
+01e3:03ec      ThisSFT
+01e3:03f0*     THISCDS
+01e3:03f4*     THISFCB
+01e3:03f8*     SFN
+01e3:03fa      JFN
+01e3:03fc      pJFN
+01e3:0400      WFP_START
+01e3:0402*     REN_WFP
+01e3:0404*     CURR_DIR_END
+01e3:0406*     NEXTADD
+01e3:0408*     LASTPOS
+01e3:040a*     CLUSNUM
+01e3:040c*     DIRSEC
+01e3:0410*     DIRSTART
+01e3:0412*     SECPOS
+01e3:0416*     VALSEC
+01e3:041a*     BYTSECPOS
+01e3:041c      BytPos
+01e3:0420*     BYTCNT1
+01e3:0422*     BYTCNT2
+01e3:0424*     SECCNT
+01e3:0426*     ENTFREE
+01e3:0428*     ENTLAST
+01e3:042a*     NXTCLUSNUM
+01e3:042c*     GROWCNT
+01e3:0430*     CURBUF
+01e3:0434*     CONSft
+01e3:0438*     SaveBX
+01e3:043a*     SaveDS
+01e3:043c*     restore_tmp
+01e3:043e*     NSS
+01e3:0440*     NSP
+01e3:0442*     EXTOPEN_FLAG
+01e3:0444*     EXTOPEN_ON
+01e3:0445*     EXTOPEN_IO_MODE
+01e3:0447*     SAVE_DI
+01e3:0449*     SAVE_ES
+01e3:044b*     SAVE_DX
+01e3:044d*     SAVE_CX
+01e3:044f*     SAVE_BX
+01e3:0451*     SAVE_SI
+01e3:0453*     SAVE_DS
+01e3:0455*     HIGH_SECTOR
+01e3:0457*     HIGH_SECTOR_TEMP
+01e3:0459*     DISK_FULL
+01e3:045a*     TEMP_VAR
+01e3:045c*     TEMP_VAR2
+01e3:045e*     DrvErr
+01e3:045f*     DOS34_FLAG
+01e3:0461*     NO_FILTER_PATH
+01e3:0465*     NO_FILTER_DPATH
+01e3:0469*     Callback_SS
+01e3:046b*     Callback_SP
+01e3:046d*     Callback_flag
+01e3:046e*     RENAMEDMA
+01e3:05ee*     AuxStack
+01e3:076e*     DskStack
+01e3:08ee*     IOStack
+01e3:08ee*     IBMPATCH
+01e3:08ee*     PRINTER_FLAG
+01e3:08ef*     VOLCHNG_FLAG
+01e3:08f0*     VIRTUAL_OPEN
+01e3:08f1*     FSeek_drive
+01e3:08f2*     FSeek_firclus
+01e3:08f4*     FSeek_logclus
+01e3:08f6*     FSeek_logsave
+01e3:08f8*     ACT_PAGE
+01e3:08fa*     SWAP_END
+01e3:0204*     MSINI001S
+01e3:0318*     MSINI001E
+01e3:0396*     XXX
+01e3:0c70*     SYSBUF
+01e3:10eb*     MEMSTRT
+01e3:0cd0      DOSINIT
+01e3:0fd5*     MSINI002S
+01e3:10eb*     MSINI002E
+Module: ../../inc/msdosme.obj(../../inc/msdosme.obj)
+01e3:0200*     UserNum
+01e3:0203*     OEMNum
+01e3:0200*     DMES001S
+01e3:0204*     DMES001E
+01e3:08fb*     DMES002S
+01e3:08fb      COUNTRY_CDPG
+01e3:0989*     UCASE_TAB
+01e3:0a0b*     FILE_UCASE_TAB
+01e3:0a8d*     FILE_CHAR_TAB
+01e3:0bbf*     DBCS_TAB
+01e3:0bd1*     DIVMES
+01e3:0bd1*     DIVM001S
+01e3:0be6*     DIVM001E
+01e3:0be4*     DivMesLen
+01e3:0be6*     NLS_YES
+01e3:0be8*     NLS_yes2
+01e3:0be7*     NLS_NO
+01e3:0be9*     NLS_no2
+01e3:0c4a*     MAP_CASE
+01e3:0bea*     CANCHAR
+01e3:0beb*     ESCCHAR
+01e3:0c5c*     OEMFunctionKey
+
+
+                        +-----------------------+
+                        |   Linker Statistics   |
+                        +-----------------------+
+
+Stack size:  0196 (406.)
+Memory size:  32e6 (13030.)
+Entry point address: 0000:0ce3
+Link time: 00:00.76

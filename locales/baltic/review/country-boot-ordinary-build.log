@@ -1,0 +1,24 @@
+cd /Users/ddanila/fun/msdos/src/BIOS && /Users/ddanila/fun/msdos/bin/jwasm-masm "-Mx -t -I. -ID:\\TOOLS\\INC -I..\\INC" "SYSINIT2.ASM,SYSINIT2.OBJ;"
+../INC/dosmac.INC(422) : Warning A4149: Too many arguments in macro call: AsmVar: ,$temp
+ ../INC/dosmac.INC(422): Included by
+  ../INC/smdossym.inc(10): Included by
+   SYSINIT2.ASM(30): Main line code
+...SYSINIT2
+... for DOS Version 6.22 ...
+DOSSYM in Pass 2
+BPB.INC...
+... CLONE version build switch on ...
+DEVSYM.INC...
+IOCTL.INC...
+cd /Users/ddanila/fun/msdos/src/BIOS && /Users/ddanila/fun/msdos/bin/wlink "@MSBIO.LNK"
+Warning! W1014: stack segment not found
+Warning! W1023: no starting address found, using 0000:0000
+cd /Users/ddanila/fun/msdos/src/BIOS && /Users/ddanila/fun/msdos/bin/exe2bin "MSBIO.EXE MSBIO.BIN" <LOCSCR
+cat /Users/ddanila/fun/msdos/src/BIOS/MSLOAD.COM /Users/ddanila/fun/msdos/src/BIOS/MSBIO.BIN > /Users/ddanila/fun/msdos/src/BIOS/IO.SYS
+cd /Users/ddanila/fun/msdos/src/CMD/NLSFUNC && /Users/ddanila/fun/msdos/bin/jwasm-masm "-Mx -t -I. -ID:\\TOOLS\\INC -I..\\..\\INC" "NLSFUNC.ASM,NLSFUNC.OBJ;"
+DEVSYM.INC...
+... for DOS Version 6.22 ...
+... Including message Class 1
+... Including message Class 2
+... Including message Class A
+cd /Users/ddanila/fun/msdos/src/CMD/NLSFUNC && /Users/ddanila/fun/msdos/bin/wlink "NLSFUNC+NLSPARM;"

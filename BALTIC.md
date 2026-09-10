@@ -197,6 +197,11 @@ filename-list bounds and DBCS termination before country-table writes.
 [Installed resource qualification](locales/baltic/installed-resource-qualification.json)
 covers runtime country/font failures and recovery through installed paths in
 all language profiles, followed by physical input and restored-file checks.
+[Country boot qualification](locales/baltic/country-boot-qualification.json)
+covers malformed-country boot fallback and recovery, plus legacy filename-case
+signature compatibility. Its rebuilt private core has matched memory, country,
+installation and scoped 286 regressions; remaining workflow and release gates
+must use the recorded core hashes.
 Deeper malformed-resource cases, legacy lifecycle failures, installed text and
 file workflows, and final source-matched release/reproducibility gates remain
 open. Existing Russian evidence does not establish Baltic support.

@@ -575,6 +575,16 @@ and finishes with physical national input and restored payload hashes. It
 covers runtime failures at the shipped font height; boot fallback, real-BIOS
 installed failures and installed text/file workflows remain separate gates.
 
+The [country boot qualification](../locales/baltic/country-boot-qualification.json)
+records `test-baltic-country-boot-qemu` and `test-nlsfunc-filecase-qemu`, both
+included in `make test`. Malformed-country boots must preserve the default
+country/API table snapshot and recover to each Baltic profile. Legacy
+filename-uppercase queries must accept both shipped signatures. Retained
+controls expose partial boot initialization, rejection of valid legacy data,
+and a deliberately non-default snapshot. The rebuilt private core has matched
+memory, installation and country regressions with explicit backend scopes;
+full workflow and release qualification remain separate gates.
+
 ## External DOS API suite
 
 `make test-dosemu2-qemu` runs selected upstream DOSEMU2 FAT tests against the

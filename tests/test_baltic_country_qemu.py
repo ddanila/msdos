@@ -45,7 +45,7 @@ def compile_probes(work):
                 "-o", str(work / (profile.upper() + ".COM")))
 
 
-def run_case(work, base, profile, name, number, page, actions, corruption=None):
+def run_case(work, base, profile, name, number, page, actions, corruption=None, nlsfunc=None):
     folder = work / profile / name
     folder.mkdir(parents=True)
     image = folder / "boot.img"
@@ -68,7 +68,7 @@ def run_case(work, base, profile, name, number, page, actions, corruption=None):
                            ("DEV/DISPLAY/DISPLAY.SYS", "DISPLAY.SYS"),
                            ("CMD/MODE/MODE.COM", "MODE.COM"),
                            ("CMD/NLSFUNC/NLSFUNC.EXE", "NLSFUNC.EXE")):
-        copy(ROOT / "src" / source, target)
+        copy(nlsfunc if target == "NLSFUNC.EXE" and nlsfunc else ROOT / "src" / source, target)
     config = f"COUNTRY={number},{page},COUNTRY.SYS\r\n" + CONFIG[profile]
     config += "DEVICE=DISPLAY.SYS CON=(EGA,437,(3,3))\r\n"
     batch = ["@ECHO OFF", "CTTY AUX", profile.upper() + ".COM", "IF ERRORLEVEL 1 GOTO FAIL"]

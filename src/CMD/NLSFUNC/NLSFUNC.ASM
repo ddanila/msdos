@@ -181,6 +181,9 @@ OBJECT_RULES label byte
 		dw	0,DATA_BUFF_LENG-10
 		db	8 dup (0)
 
+; Older country records use a distinct filename-uppercase signature.
+FILE_UCASE_SIGNATURE db 0ffh,'FUCASE '
+
 NLS_BUFFER	db	BUFFSIZE dup (?)  ;NLS BUFFER to transfer data
 
 
@@ -876,17 +879,24 @@ VD_READ:
 		ja	VD_BAD
 		cmp	byte ptr ds:[di],0
 		je	VD_OK
+		mov	al,byte ptr ds:[di]
 		push	ds
 		pop	es
 		mov	si,offset NLS_BUFFER+CTL_BUFF
 		add	di,5
+		cmp	al,4
+		jne	VD_SIGNATURE
+		cmp	byte ptr ds:[si+1],'F'
+		jne	VD_SIGNATURE
+		mov	di,offset FILE_UCASE_SIGNATURE
+VD_SIGNATURE:
 		mov	cx,8
 		cld
 		repe	cmpsb
 		jne	VD_BAD
-		cmp	byte ptr ds:[di-13],5
+		cmp	al,5
 		je	VD_FILE_CHARS
-		cmp	byte ptr ds:[di-13],7
+		cmp	al,7
 		jne	VD_OK
 		mov	cx,word ptr ds:[NLS_BUFFER+CTL_BUFF+8]
 		test	cl,1

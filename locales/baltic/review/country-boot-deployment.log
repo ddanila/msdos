@@ -1,0 +1,117 @@
+mkdir -p /Users/ddanila/fun/msdos/out
+mkdir -p /Users/ddanila/fun/msdos/out
+# The complete developer image needs room for test probes and the growing
+# DOS 6.22 tool set.  The minimal-floppy target remains a 1.44 MB image.
+dd if=/dev/zero of=/Users/ddanila/fun/msdos/out/baltic-country-boot2.img bs=512 count=5760 status=none
+dd if=/Users/ddanila/fun/msdos/src/BOOT/MSBOOT.BIN of=/Users/ddanila/fun/msdos/out/baltic-country-boot2.img bs=1 skip=31744 count=512 conv=notrunc status=none
+/Users/ddanila/fun/msdos/bin/patch-bpb /Users/ddanila/fun/msdos/out/baltic-country-boot2.img
+mformat -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img -k ::
+# IO.SYS must be the first root-directory entry because the boot sector assumes it.
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/out/baltic-country-boot-core2/files/IO.SYS ::IO.SYS
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/out/baltic-country-boot-core2/files/MSDOS.SYS ::MSDOS.SYS
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/out/baltic-country-boot-core2/files/COMMAND.COM ::COMMAND.COM
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/BIOS/SYSMENU.OVL ::SYSMENU.OVL
+# mtools 4.0.49 broke mattrib's -i handling, so expose the image through MTOOLSRC.
+echo 'drive a: file="/Users/ddanila/fun/msdos/out/baltic-country-boot2.img"' > /Users/ddanila/fun/msdos/out/.mtoolsrc
+MTOOLSRC=/Users/ddanila/fun/msdos/out/.mtoolsrc mattrib +h +s +r a:/IO.SYS
+MTOOLSRC=/Users/ddanila/fun/msdos/out/.mtoolsrc mattrib +h +s +r a:/MSDOS.SYS
+MTOOLSRC=/Users/ddanila/fun/msdos/out/.mtoolsrc mattrib +h +s +r a:/SYSMENU.OVL
+rm -f /Users/ddanila/fun/msdos/out/.mtoolsrc
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/CMD/SYS/SYS.COM ::SYS.COM
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/CMD/FORMAT/FORMAT.COM ::FORMAT.COM
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/CMD/EXPAND/EXPAND.EXE ::EXPAND.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/CMD/SETUP/SETUP.EXE ::SETUP.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/CMD/CHKDSK/CHKDSK.COM ::CHKDSK.COM
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/CMD/DEBUG/DEBUG.COM ::DEBUG.COM
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/CMD/MEM/MEM.EXE ::MEM.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/CMD/FDISK/FDISK.EXE ::FDISK.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/CMD/MORE/MORE.COM ::MORE.COM
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/CMD/SORT/SORT.EXE ::SORT.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/CMD/LABEL/LABEL.COM ::LABEL.COM
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/CMD/FIND/FIND.EXE ::FIND.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/CMD/TREE/TREE.COM ::TREE.COM
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/CMD/COMP/COMP.COM ::COMP.COM
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/CMD/ATTRIB/ATTRIB.EXE ::ATTRIB.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/CMD/EDLIN/EDLIN.COM ::EDLIN.COM
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/CMD/FC/FC.EXE ::FC.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/CMD/NLSFUNC/NLSFUNC.EXE ::NLSFUNC.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/CMD/ASSIGN/ASSIGN.COM ::ASSIGN.COM
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/CMD/XCOPY/XCOPY.EXE ::XCOPY.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/CMD/DISKCOMP/DISKCOMP.COM ::DISKCOMP.COM
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/CMD/DISKCOPY/DISKCOPY.COM ::DISKCOPY.COM
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/CMD/SETVER/SETVER.COM ::SETVER.COM
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/CMD/SETVER/SETVER.EXE ::SETVER.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/CMD/DOSKEY/DOSKEY.COM ::DOSKEY.COM
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/CMD/HELP/HELP.COM ::HELP.COM
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/CMD/HELP/FASTHELP.COM ::FASTHELP.COM
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/CMD/HELP/HELP.HLP ::HELP.HLP
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/CMD/MIRROR/MIRROR.COM ::MIRROR.COM
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/CMD/UNDELETE/UNDELETE.COM ::UNDELETE.COM
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/CMD/UNFORMAT/UNFORMAT.COM ::UNFORMAT.COM
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/CMD/CHOICE/CHOICE.COM ::CHOICE.COM
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/CMD/LOADFIX/LOADFIX.COM ::LOADFIX.COM
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/CMD/DELTREE/DELTREE.EXE ::DELTREE.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/CMD/DEFRAG/DEFRAG.EXE ::DEFRAG.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/CMD/MOVE/MOVE.EXE ::MOVE.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/CMD/MSD/MSD.EXE ::MSD.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/CMD/SCANDISK/SCANDISK.EXE ::SCANDISK.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/CMD/SCANDISK/SCANDISK.INI ::SCANDISK.INI
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/CMD/MEMMAKER/MEMMAKER.EXE ::MEMMAKER.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/CMD/SIZER/SIZER.EXE ::SIZER.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/CMD/POWER/POWER.EXE ::POWER.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/CMD/MSCDEX/MSCDEX.EXE ::MSCDEX.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/CMD/INTERLNK/INTERLNK.EXE ::INTERLNK.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/CMD/INTERSVR/INTERSVR.EXE ::INTERSVR.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/CMD/APPEND/APPEND.EXE ::APPEND.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/CMD/RECOVER/RECOVER.COM ::RECOVER.COM
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/CMD/FASTOPEN/FASTOPEN.EXE ::FASTOPEN.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/CMD/PRINT/PRINT.COM ::PRINT.COM
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/CMD/FILESYS/FILESYS.EXE ::FILESYS.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/CMD/REPLACE/REPLACE.EXE ::REPLACE.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/CMD/JOIN/JOIN.EXE ::JOIN.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/CMD/SUBST/SUBST.EXE ::SUBST.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/CMD/BACKUP/BACKUP.COM ::BACKUP.COM
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/CMD/RESTORE/RESTORE.COM ::RESTORE.COM
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/CMD/GRAFTABL/GRAFTABL.COM ::GRAFTABL.COM
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/CMD/KEYB/KEYB.COM ::KEYB.COM
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/DEV/KEYBOARD/KEYBOARD.SYS ::KEYBOARD.SYS
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/CMD/SHARE/SHARE.EXE ::SHARE.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/CMD/EXE2BIN/EXE2BIN.EXE ::EXE2BIN.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/CMD/GRAPHICS/GRAPHICS.COM ::GRAPHICS.COM
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/CMD/GRAPHICS/GRAPHICS.PRO ::GRAPHICS.PRO
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/CMD/IFSFUNC/IFSFUNC.EXE ::IFSFUNC.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/CMD/MODE/MODE.COM ::MODE.COM
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/DEV/ANSI/ANSI.SYS ::ANSI.SYS
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/DEV/RAMDRIVE/RAMDRIVE.SYS ::RAMDRIVE.SYS
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/DEV/VDISK/VDISK.SYS ::VDISK.SYS
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/DEV/DISPLAY/DISPLAY.SYS ::DISPLAY.SYS
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/DEV/COUNTRY/COUNTRY.SYS ::COUNTRY.SYS
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/DEV/PRINTER/PRINTER.SYS ::PRINTER.SYS
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/DEV/PRINTER/4201/4201.CPI ::4201.CPI
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/DEV/PRINTER/4208/4208.CPI ::4208.CPI
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/DEV/PRINTER/5202/5202.CPI ::5202.CPI
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/DEV/SMARTDRV/SMARTDRV.EXE ::SMARTDRV.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/DEV/SMARTDRV/FLUSH13.EXE ::FLUSH13.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/DEV/DRIVER/DRIVER.SYS ::DRIVER.SYS
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/DEV/XMA2EMS/XMA2EMS.SYS ::XMA2EMS.SYS
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/DEV/XMAEM/XMAEM.SYS ::XMAEM.SYS
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/SELECT/SELECT.COM ::SELECT.COM
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/SELECT/SELECT.EXE ::SELECT.EXE
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/SELECT/SELECT.DAT ::SELECT.DAT
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/SELECT/SELECT.HLP ::SELECT.HLP
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/DEV/DISPLAY/EGA/EGA775.CPI ::EGA775.CPI
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/locales/baltic/BALTIC.TXT ::BALTIC.TXT
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/locales/baltic/BAKEYS.TXT ::BAKEYS.TXT
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/locales/baltic/upstream/keydos/Copying.txt ::BAKBDGPL.TXT
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/locales/ru/upstream/UNICODE-LICENSE.txt ::BAMAPLIC.TXT
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/locales/baltic/upstream/cldr/LICENSE ::BACLDLIC.TXT
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/DEV/DISPLAY/EGA/EGA866.CPI ::EGA866.CPI
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/DEV/KEYBOARD/KEYBRD2.SYS ::KEYBRD2.SYS
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/locales/ru/RUSSIAN.TXT ::RUSSIAN.TXT
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/locales/ru/upstream/512_8/LICENSE ::RUFONT1.TXT
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/locales/ru/upstream/cozette/LICENSE ::RUFONT2.TXT
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/DEV/DISPLAY/EGA/EGA.CPI ::EGA.CPI
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/DEV/DISPLAY/LCD/LCD.CPI ::LCD.CPI
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/src/DEV/EGA/EGA.SYS ::EGA.SYS
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/out/baltic-country-boot-core2/files/HIMEM.SYS ::HIMEM.SYS
+mcopy -i /Users/ddanila/fun/msdos/out/baltic-country-boot2.img /Users/ddanila/fun/msdos/out/baltic-country-boot-core2/files/EMM386.EXE ::EMM386.EXE

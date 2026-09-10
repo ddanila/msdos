@@ -580,6 +580,14 @@ test: test-baltic-country-resources-qemu
 test-baltic-country-resources-qemu: deploy
 	python3 tests/test_baltic_country_resources_qemu.py
 
+.PHONY: test-baltic-country-boot-qemu test-nlsfunc-filecase-qemu
+test: test-baltic-country-boot-qemu test-nlsfunc-filecase-qemu
+test-baltic-country-boot-qemu: deploy
+	python3 tests/test_baltic_country_boot_qemu.py
+
+test-nlsfunc-filecase-qemu: deploy
+	python3 tests/test_nlsfunc_filecase_qemu.py
+
 .PHONY: test-baltic-installed-resources-qemu
 test: test-baltic-installed-resources-qemu
 test-baltic-installed-resources-qemu: deploy
