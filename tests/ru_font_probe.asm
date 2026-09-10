@@ -118,6 +118,13 @@ org 100h
     int 21h
     jc fail
 
+%ifdef HIDE_CURSOR
+    ; Installed keyboard/status commands can leave a blinking cursor in the
+    ; glyph grid. Keep the capture independent of its position and blink phase.
+    mov ah, 1
+    mov cx, 2000h
+    int 10h
+%endif
     mov ax, 0b800h
     mov es, ax
     xor di, di

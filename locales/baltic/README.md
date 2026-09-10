@@ -248,3 +248,40 @@ Invoke the country gate with `--emulator`, `--roms` and `--qt-platform` as above
 It accepts `--jobs 2` and repeated `--case` selectors. Missing or structurally
 malformed resources, installed paths, complete text/filename workflows and final
 release qualification remain open.
+
+## Optional distribution and installed profiles
+
+[BALTIC.TXT](BALTIC.TXT) supplies the per-language CONFIG.SYS/AUTOEXEC.BAT
+recipes. Distribution media and developer deployment include the shared CP775
+font, keyboard attribution and upstream license notices. The supplemental
+keyboard library and country records retain their existing distribution paths.
+
+[Installation qualification](installation-qualification.json) records fresh
+SETUP, upgrade over stale Baltic resources and boots using recipes read from
+the installed document. The gate checks all installed payloads against their
+selected sources, preserves English defaults and user startup files during
+upgrade, and exercises each language in HIGH/UMB and LOW configurations.
+Physical keyboard input, resident layout identity, country APIs, DOS/DISPLAY
+page agreement, VGA font bytes and rendered grid pixels are checked together.
+The font capture contains generated language samples; it does not establish
+interactive COMMAND/EDLIN workflows. The shared Russian installation regression
+and deterministic distribution checks are retained with the same record.
+
+Run `make test-baltic-install-qemu` after selecting the production core through
+the normal build. For an already built, explicitly selected core:
+
+```sh
+MEMORY_CORE_DIR=out/memory-production/files python3 tests/test_baltic_install_qemu.py
+```
+
+The screen oracle accepts an explicit backend ninth-column range. QEMU captures
+use B0-DF; the existing real-BIOS oracle retains its C0-DF default. The record
+includes the renderer reference, default probe binary parity and retained
+real-BIOS grid regression. The installed probe hides the cursor for stable
+captures and checks resident identity even when KEYB omits Latvian's default
+ID zero from its status text.
+
+These results qualify normal installed profiles on the recorded selected core.
+They supersede the earlier installed-path gaps above. Installed resource-failure
+cases, legacy lifecycle failures, complete text/filename workflows and final
+source-matched release and reproducibility checks remain open.

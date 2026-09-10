@@ -1,0 +1,74 @@
+{
+  "status": "passed",
+  "scope": "EXPECTED_LANGUAGE undefined preserves prior keyboard probe bytes.",
+  "checks": [
+    {
+      "flags": [
+        "-DCAPACITY_PROOF",
+        "-DSTART_INDEX=7"
+      ],
+      "sha256": "50ebe09f8c9a649fb57ec4855475b4b7c2ea3f684901e0f2b00cb96ab9d612bc"
+    },
+    {
+      "flags": [
+        "-DGROUPED_INPUT",
+        "-DCAPACITY_PROOF",
+        "-DSTART_INDEX=7"
+      ],
+      "sha256": "f8a4774a9157307e00af43d61ea151eb658068159b8a7b23b47c957c62c65b04"
+    },
+    {
+      "flags": [
+        "-DENHANCED_INPUT",
+        "-DCAPACITY_PROOF",
+        "-DSTART_INDEX=7"
+      ],
+      "sha256": "6fec49e2b4ce161af046fc1a93dc7d0ab3aa449cca602f5ffba6254bdcfefc02"
+    },
+    {
+      "flags": [
+        "-DENHANCED_INPUT",
+        "-DGROUPED_INPUT",
+        "-DCAPACITY_PROOF",
+        "-DSTART_INDEX=7"
+      ],
+      "sha256": "55b55c8ff003882f361cf2fbdebff17599c5b414ec0feef650fb55424ff21141"
+    },
+    {
+      "flags": [
+        "-DDOS_INPUT",
+        "-DCAPACITY_PROOF",
+        "-DSTART_INDEX=7"
+      ],
+      "sha256": "30fe9d0292e37a191e1fc21a21246a9cb10db8b094be4912fcdc095f4c831e5a"
+    },
+    {
+      "flags": [
+        "-DDOS_INPUT",
+        "-DGROUPED_INPUT",
+        "-DCAPACITY_PROOF",
+        "-DSTART_INDEX=7"
+      ],
+      "sha256": "0e701205c6ebe2f6540b32a2a72ea9d82935bc91c5d262a5839965f45ba0d430"
+    },
+    {
+      "flags": [
+        "-DDOS_INPUT",
+        "-DENHANCED_INPUT",
+        "-DCAPACITY_PROOF",
+        "-DSTART_INDEX=7"
+      ],
+      "sha256": "4aba1e561f922f8edbcd2f289a07de88df76ff6b6c2343c62be759ef8696f539"
+    },
+    {
+      "flags": [
+        "-DDOS_INPUT",
+        "-DENHANCED_INPUT",
+        "-DGROUPED_INPUT",
+        "-DCAPACITY_PROOF",
+        "-DSTART_INDEX=7"
+      ],
+      "sha256": "52a0ec5c4a7503f63b5b64a5e2cbcd9b1fe7ee7675d0a22d2af6e5a019bfe876"
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+Russian installation artifacts: /Users/ddanila/fun/msdos/out/ru-install-onlyk9i9
+PASS: fresh
+PASS: upgrade
+PASS: installed-recipe-high
+PASS: installed-recipe-low

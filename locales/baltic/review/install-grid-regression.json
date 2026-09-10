@@ -1,0 +1,58 @@
+{
+  "status": "passed",
+  "scope": "Default C0-DF oracle unchanged for retained real-BIOS captures.",
+  "checks": [
+    {
+      "name": "775-14",
+      "pixels": 32256
+    },
+    {
+      "name": "775-8",
+      "pixels": 18432
+    },
+    {
+      "name": "775-16",
+      "pixels": 36864
+    },
+    {
+      "name": "775-16-corrupt",
+      "pixels": 36864
+    },
+    {
+      "name": "866-14",
+      "pixels": 32256
+    },
+    {
+      "name": "866-8",
+      "pixels": 18432
+    },
+    {
+      "name": "866-16",
+      "pixels": 36864
+    },
+    {
+      "name": "437-16",
+      "pixels": 36864
+    },
+    {
+      "name": "850-16",
+      "pixels": 36864
+    },
+    {
+      "name": "860-16",
+      "pixels": 36864
+    },
+    {
+      "name": "863-16",
+      "pixels": 36864
+    },
+    {
+      "name": "865-16",
+      "pixels": 36864
+    },
+    {
+      "name": "866-16-corrupt",
+      "pixels": 36864
+    }
+  ]
+}

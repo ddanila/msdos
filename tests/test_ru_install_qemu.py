@@ -35,7 +35,8 @@ def read(image, target):
     return command('mtype', '-i', str(image), '::'+target).stdout
 
 
-def run_guest(work, hdd, disk1=None, disk2=None, keyboard=False):
+def run_guest(work, hdd, disk1=None, disk2=None, keyboard=False,
+              cases_override=None, expected_markers=None, capture_font=False):
     work.mkdir()
     log = work/'serial.log'
     args = [os.environ.get('QEMU', 'qemu-system-i386'), '-display', 'none', '-m', '8',
@@ -47,7 +48,8 @@ def run_guest(work, hdd, disk1=None, disk2=None, keyboard=False):
     output = bytearray()
     answered = set()
     key_index = 0
-    cases = steps() if keyboard else []
+    cases = cases_override if cases_override is not None else steps() if keyboard else []
+    font_captured = False
     with tempfile.TemporaryDirectory(prefix='rui-') as sockets, log.open('wb') as stream:
         proc = subprocess.Popen(args+['-qmp', f'unix:{sockets}/q,server=on,wait=off'],
                                 stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
@@ -64,6 +66,10 @@ def run_guest(work, hdd, disk1=None, disk2=None, keyboard=False):
                     output += chunk
                     stream.write(chunk)
                     stream.flush()
+                if capture_font and not font_captured and b'RU_FONT_READY' in output:
+                    qmp.human_cmd(f'screendump "{work / "font.ppm"}"')
+                    qmp.send_key('ret')
+                    font_captured = True
                 for prompt, response in [(b'Continue (Y/N)?', b'Y\r'),
                                          (b'Configure HIMEM', b'Y\r'),
                                          (b'Load SMARTDrive', b'N\r'),
@@ -112,12 +118,14 @@ def run_guest(work, hdd, disk1=None, disk2=None, keyboard=False):
         if b'Setup completed successfully' not in output or b'Insert MS-DOS' not in output:
             raise AssertionError(f'incomplete installer: {log}')
     else:
-        for marker in (b'RU_KEY_PASS', b'RU_COUNTRY_PASS', b'RU_CODEPAGE_PASS',
+        for marker in expected_markers or (b'RU_KEY_PASS', b'RU_COUNTRY_PASS', b'RU_CODEPAGE_PASS',
                        b'Current keyboard code: RU', b'Current keyboard ID: 441'):
             if marker not in output:
                 raise AssertionError(f'missing {marker!r}: {log}')
         if key_index != len(cases) or b'FAIL' in output:
             raise AssertionError(f'input failure: {log}')
+    if capture_font:
+        assert font_captured and output.count(b'RU_FONT_PASS') == 1, log
     print(f'PASS: {work.name}', flush=True)
     return {'name':work.name, 'emulator_exit':proc.returncode, 'physical_reads':key_index,
             'log':str(log), 'log_sha256':hashlib.sha256(output).hexdigest()}
@@ -142,13 +150,7 @@ def verify_files(partition):
     return hashes
 
 
-def main():
-    if not os.environ.get('MEMORY_CORE_DIR'):
-        raise SystemExit('Run make test-ru-install-qemu to select the production memory core.')
-    work = Path(tempfile.mkdtemp(prefix='ru-install-', dir=ROOT/'out'))
-    print(f'Russian installation artifacts: {work}', flush=True)
-    media = work/'media'
-    command('python3', str(ROOT/'tools/build_distribution.py'), '--output', str(media))
+def prepare_install_disk(work):
     hdd = work/'hdd.img'
     with hdd.open('wb') as output:
         output.truncate(64512*512)
@@ -160,6 +162,17 @@ def main():
         output.write(mbr)
     partition = f'{hdd}@@{OFFSET}'
     command('mformat', '-i', partition, '-t','64','-h','16','-n','63','-H','63','-c','4','::')
+    return hdd, partition
+
+
+def main():
+    if not os.environ.get('MEMORY_CORE_DIR'):
+        raise SystemExit('Run make test-ru-install-qemu to select the production memory core.')
+    work = Path(tempfile.mkdtemp(prefix='ru-install-', dir=ROOT/'out'))
+    print(f'Russian installation artifacts: {work}', flush=True)
+    media = work/'media'
+    command('python3', str(ROOT/'tools/build_distribution.py'), '--output', str(media))
+    hdd, partition = prepare_install_disk(work)
     probes = work/'probes'
     probes.mkdir()
     compile_probes(probes)

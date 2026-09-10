@@ -166,7 +166,10 @@ and NLS transitions pass the QEMU HIGH/LOW matrix. KEYBRD2.SYS includes all
 three Baltic layouts, with focused BIOS/DOS physical-input and corruption
 checks on HIGH/LOW profiles. Selection, alias/ID, failed-load preservation
 and composition tests also pass, including pending accents across mode/reload
-changes. Additional keyboard edge cases and malformed-resource tests, real-BIOS
-and runtime/install/release
-qualification remain open.
-Existing Russian evidence does not establish Baltic support.
+changes. Real-BIOS country, display and legacy keyboard matrices have separate
+retained qualification records. The optional resources, notices and startup
+recipes are packaged; fresh/upgrade installation and installed HIGH/LOW language
+profiles are covered by the [installation qualification](locales/baltic/installation-qualification.json).
+Missing/malformed-resource cases, legacy lifecycle failures, complete typed
+text/filename workflows and final source-matched release/reproducibility gates
+remain open. Existing Russian evidence does not establish Baltic support.

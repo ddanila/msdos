@@ -487,6 +487,18 @@ The record retains the complete QEMU HIGH/LOW rerun, identical guest probes,
 plan parity and Russian real-BIOS regressions. Missing or structurally malformed
 resources and installed/complete language workflows remain separate open gates.
 
+The [Baltic installation qualification](../locales/baltic/installation-qualification.json)
+records `test-baltic-install-qemu`, included in `make test`. Fresh installation
+and upgrade verify all payload bytes, English defaults, preserved startup and
+an unrelated file. Each installed language recipe boots in HIGH/UMB and LOW;
+physical BIOS input, resident language/page/ID, country APIs, active code page,
+font-plane bytes and rendered pixels must pass with guest-controlled exit.
+The record retains deterministic distribution and developer-media checks,
+Russian installation regression and unchanged default probe/grid behavior.
+These selected-core results cover normal installed paths. Resource failures,
+complete application/file workflows and the final source-matched release remain
+open acceptance requirements.
+
 ## External DOS API suite
 
 `make test-dosemu2-qemu` runs selected upstream DOSEMU2 FAT tests against the

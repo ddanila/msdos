@@ -1,0 +1,78 @@
+{
+  "status": "passed",
+  "scope": "HIDE_CURSOR undefined preserves prior QEMU/BOX86 font probe bytes.",
+  "checks": [
+    {
+      "page": 775,
+      "height": 8,
+      "box86": false,
+      "sha256": "341c95608df77684e87a70f42f74c33b56db1bb9e8f3e1774b4f1992db726be8"
+    },
+    {
+      "page": 775,
+      "height": 8,
+      "box86": true,
+      "sha256": "0cbe0515f9852a153596f4b4573570d351d782e3882358200924a6420199952a"
+    },
+    {
+      "page": 775,
+      "height": 14,
+      "box86": false,
+      "sha256": "45e032c8ba73e51dfca647c8a3fa5f207e728096058b95ed26802c0bb1028f1a"
+    },
+    {
+      "page": 775,
+      "height": 14,
+      "box86": true,
+      "sha256": "6d56b0e8cab1e56a03163c70d8d35de846ac12b5f9b3bf853154e031bbb4ff5c"
+    },
+    {
+      "page": 775,
+      "height": 16,
+      "box86": false,
+      "sha256": "f8fc86f800a4593b0e8c790b6b1e1215a5c1d9a54fdd7c38d822a554be1151a1"
+    },
+    {
+      "page": 775,
+      "height": 16,
+      "box86": true,
+      "sha256": "3b65015f401441fb652876bb5fd291c23bb0c79cb3d514e3384c8a4443aff332"
+    },
+    {
+      "page": 866,
+      "height": 8,
+      "box86": false,
+      "sha256": "668ddf26b2e97d93f6905568a96fe16dba4c0f8f046ee5e5476ff37a961fcb76"
+    },
+    {
+      "page": 866,
+      "height": 8,
+      "box86": true,
+      "sha256": "3e42b0e458e71f098cae1514477597443090b2fa0dd90dc7bc500b8ea4efe691"
+    },
+    {
+      "page": 866,
+      "height": 14,
+      "box86": false,
+      "sha256": "64dbb5b62226477ef6cdd599060e889729c4fdfbe42fcc22f8b61b70fd6ddefe"
+    },
+    {
+      "page": 866,
+      "height": 14,
+      "box86": true,
+      "sha256": "fa8fb6b90fd9e5fe7a26f692128442a3e62aacf78a0b4216c2adf16846db364e"
+    },
+    {
+      "page": 866,
+      "height": 16,
+      "box86": false,
+      "sha256": "f3f1c3edeca154129600a6ceb1b8dc6c6075ec4135bb1ba3503de232bc92d252"
+    },
+    {
+      "page": 866,
+      "height": 16,
+      "box86": true,
+      "sha256": "311ec1ab241612e1e3329eb6f7769dbb6e24296f7111ac94853c74d197ab2c58"
+    }
+  ]
+}

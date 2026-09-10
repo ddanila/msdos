@@ -21,7 +21,7 @@ sys.path.insert(0,str(ROOT/'tools'))
 from memory_release import selected_core
 
 
-def verify_grid(screen,plane,height):
+def verify_grid(screen,plane,height,line_graphics_start=0xc0):
     """Check glyph pixels and VGA's ninth-column line-graphics replication."""
     assert screen.width%80==0 and screen.width//80 in (8,9),screen.size
     cell=screen.width//80
@@ -30,7 +30,7 @@ def verify_grid(screen,plane,height):
         for row in range(height):
             mask=plane[byte*32+row]
             for bit in range(cell):
-                expected=bool(mask & (128>>bit)) if bit<8 else (0xc0<=byte<=0xdf and bool(mask&1))
+                expected=bool(mask & (128>>bit)) if bit<8 else (line_graphics_start<=byte<=0xdf and bool(mask&1))
                 ink=screen.getpixel((x+bit,y+row))!=(0,0,0)
                 assert ink==expected,('rendered glyph',byte,row,bit)
     return 256*height*cell

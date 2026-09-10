@@ -2,6 +2,25 @@ bits 16
 cpu 8086
 org 100h
     cld
+%ifdef EXPECTED_LANGUAGE
+    ; Resident identity is authoritative even when KEYB omits default ID zero
+    ; from its human-readable status. Offsets follow CMD/KEYB/KEYBSHAR.INC.
+    mov ax,0ad80h
+    int 2fh
+    cmp ax,0ffffh
+    jne fail
+    cmp word [es:di+22],EXPECTED_LANGUAGE
+    jne fail
+    cmp word [es:di+24],EXPECTED_PAGE
+    jne fail
+    cmp word [es:di+26],EXPECTED_ID
+    jne fail
+    mov dx,profile_passed
+    mov ah,9
+    int 21h
+    push cs
+    pop es
+%endif
 %ifdef CAPACITY_PROOF
     mov ax,0ad80h
     int 2fh
@@ -212,3 +231,7 @@ failed db 'RU_KEY_FAIL actual=', '$'
 newline db 13,10,'$'
 expected: incbin 'expected.bin'
 expected_end:
+
+%ifdef EXPECTED_LANGUAGE
+profile_passed db 'KEYB_PROFILE_PASS',13,10,'$'
+%endif

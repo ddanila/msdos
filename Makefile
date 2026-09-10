@@ -200,6 +200,7 @@ ARTIFACTS := \
     SELECT/SELECT.DAT \
     DEV/DISPLAY/EGA/EGA.CPI \
     DEV/DISPLAY/EGA/EGA866.CPI \
+    DEV/DISPLAY/EGA/EGA775.CPI \
     CMD/DEBUG/DEBUG.COM \
     CMD/MEM/MEM.EXE \
     CMD/FDISK/FDISK.EXE \
@@ -573,6 +574,11 @@ test-baltic-display-qemu: deploy $(SRC)/DEV/DISPLAY/EGA/EGA775.CPI
 test: test-baltic-country-qemu
 test-baltic-country-qemu: deploy $(SRC)/DEV/DISPLAY/EGA/EGA775.CPI
 	python3 tests/test_baltic_country_qemu.py
+
+.PHONY: test-baltic-install-qemu
+test: test-baltic-install-qemu
+test-baltic-install-qemu: deploy test-baltic-cpi
+	python3 tests/test_baltic_install_qemu.py
 
 test-keyboard-records: $(KEYBOARD_SYS)
 	python3 tests/test_keyboard_records.py
@@ -1133,6 +1139,12 @@ SELECT_EXE   := $(SRC)/SELECT/SELECT.EXE
 SELECT_DAT   := $(SRC)/SELECT/SELECT.DAT
 SELECT_HLP   := $(SRC)/SELECT/SELECT.HLP
 EGA866_CPI   := $(SRC)/DEV/DISPLAY/EGA/EGA866.CPI
+EGA775_CPI   := $(SRC)/DEV/DISPLAY/EGA/EGA775.CPI
+BALTIC_README := $(CURDIR)/locales/baltic/BALTIC.TXT
+BALTIC_NOTICE := $(CURDIR)/locales/baltic/BAKEYS.TXT
+BALTIC_GPL   := $(CURDIR)/locales/baltic/upstream/keydos/Copying.txt
+BALTIC_MAP_LICENSE := $(CURDIR)/locales/ru/upstream/UNICODE-LICENSE.txt
+BALTIC_CLDR_LICENSE := $(CURDIR)/locales/baltic/upstream/cldr/LICENSE
 KEYBRD2_SYS  := $(SRC)/DEV/KEYBOARD/KEYBRD2.SYS
 RU_README    := $(CURDIR)/locales/ru/RUSSIAN.TXT
 RU_FONT1     := $(CURDIR)/locales/ru/upstream/512_8/LICENSE
@@ -1175,6 +1187,7 @@ $(FLOPPY): $(OUT)/memory-profile $(BOOT_BIN) $(IO_SYS) $(MSDOS_SYS) $(SYSMENU_OV
            $(VDISK_SYS) $(DISPLAY_SYS) $(COUNTRY_SYS) $(PRINTER_SYS) $(PRINTER_CPI) $(PRINTER_4208_CPI) $(PRINTER_5202_CPI) \
            $(SMARTDRV_SYS) $(SMARTDRV_EXE) $(FLUSH13_EXE) $(DRIVER_SYS) $(XMA2EMS_SYS) $(XMAEM_SYS) \
            $(SELECT_COM) $(SELECT_EXE) $(SELECT_DAT) $(SELECT_HLP) \
+           $(EGA775_CPI) $(BALTIC_README) $(BALTIC_NOTICE) $(BALTIC_GPL) $(BALTIC_MAP_LICENSE) $(BALTIC_CLDR_LICENSE) \
            $(EGA866_CPI) $(KEYBRD2_SYS) $(RU_README) $(RU_FONT1) $(RU_FONT2) \
            $(EGA_CPI) $(LCD_CPI) $(EGA_SYS) $(HIMEM_SYS) $(EMM386_EXE)
 	mkdir -p $(OUT)
@@ -1277,6 +1290,12 @@ $(FLOPPY): $(OUT)/memory-profile $(BOOT_BIN) $(IO_SYS) $(MSDOS_SYS) $(SYSMENU_OV
 	mcopy -i $@ $(SELECT_EXE) ::SELECT.EXE
 	mcopy -i $@ $(SELECT_DAT) ::SELECT.DAT
 	mcopy -i $@ $(SELECT_HLP) ::SELECT.HLP
+	mcopy -i $@ $(EGA775_CPI) ::EGA775.CPI
+	mcopy -i $@ $(BALTIC_README) ::BALTIC.TXT
+	mcopy -i $@ $(BALTIC_NOTICE) ::BAKEYS.TXT
+	mcopy -i $@ $(BALTIC_GPL) ::BAKBDGPL.TXT
+	mcopy -i $@ $(BALTIC_MAP_LICENSE) ::BAMAPLIC.TXT
+	mcopy -i $@ $(BALTIC_CLDR_LICENSE) ::BACLDLIC.TXT
 	mcopy -i $@ $(EGA866_CPI) ::EGA866.CPI
 	mcopy -i $@ $(KEYBRD2_SYS) ::KEYBRD2.SYS
 	mcopy -i $@ $(RU_README) ::RUSSIAN.TXT

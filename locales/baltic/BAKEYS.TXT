@@ -1,0 +1,23 @@
+Baltic source notices
+=====================
+
+The selected keyboard inputs are Et.key, Lv.key and Lt221.key from
+FreeDOS official keyboard layouts v3.1 for KEYB v2.0.
+Copyright (C) 2002-2011 Henrique Peron (hperon@terra.com.br).
+Those inputs are distributed under GNU GPL version 2 or later.
+BAKBDGPL.TXT contains the original license text.
+
+This project captures their CP775 physical-layout facts and builds
+Microsoft-format KEYBRD2.SYS tables. The selected variants, pinned inputs,
+generator, local changes and qualification records are available at:
+https://github.com/ddanila/msdos/tree/master/locales/baltic
+https://github.com/ddanila/msdos/blob/master/tools/build_baltic_keyboard.py
+https://github.com/ddanila/msdos/tree/master/src/DEV/KEYBOARD
+
+BAMAPLIC.TXT contains the Unicode license accompanying the pinned CP775
+mapping. BACLDLIC.TXT contains the Unicode CLDR license accompanying the
+national ordering inputs. The country records are an explicit pre-euro
+DOS extension informed by these inputs; they are not a retail DOS pack.
+
+The font source notices are RUFONT1.TXT (512_8, Unlicense) and RUFONT2.TXT
+(Cozette, MIT). They are shared by the Russian and Baltic font packs.

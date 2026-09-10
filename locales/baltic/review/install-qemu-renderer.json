@@ -1,0 +1,10 @@
+{
+  "source_url": "https://raw.githubusercontent.com/qemu/qemu/257bf4f160c50ca8c4ebd603f519f5c786013fb7/hw/display/vga.c",
+  "source_commit": "257bf4f160c50ca8c4ebd603f519f5c786013fb7",
+  "source_sha256": "3e665fa3672b850212bb13ef782a68c71a5ed2049831cc1ef6e726ad6b17d368",
+  "excerpt_first_line": 1349,
+  "excerpt": "                    dup9 = 0;\n                    if (ch >= 0xb0 && ch <= 0xdf &&\n                        (s->ar[VGA_ATC_MODE] & 0x04)) {\n                        dup9 = 1;\n                    }\n                    vga_draw_glyph9(d1, linesize,\n                                    font_ptr, cheight, fgcol, bgcol, dup9);",
+  "installed_version": "QEMU emulator version 11.1.1",
+  "installed_binary_sha256": "d257f22f63fe113e7373e1aaddc90390ae768784bee448c3508bbf5751602831",
+  "scope": "Upstream source supports the B0-DF ninth-column expectation observed in the installed QEMU capture. This is not a claim that the binary was built from this exact source revision."
+}

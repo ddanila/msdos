@@ -1,0 +1,104 @@
+Optional Baltic support (CP775)
+===============================
+
+This pack provides Estonian, Latvian and Lithuanian fonts, keyboard input
+and country services. The default installation and messages stay English.
+Use an EGA/VGA-compatible display. The examples use C:\DOS; substitute your
+installation directory if it differs. Text files use CP775 bytes.
+
+Choose one language profile below. Back up CONFIG.SYS and AUTOEXEC.BAT.
+Put the COUNTRY line first in CONFIG.SYS, before memory-manager DEVICE
+lines. Keep your other device settings. Put DISPLAY after memory managers.
+
+[CONFIG-ET]
+COUNTRY=372,775,C:\DOS\COUNTRY.SYS
+DEVICE=C:\DOS\DISPLAY.SYS CON=(EGA,437,(1,3))
+[END]
+
+[CONFIG-LV]
+COUNTRY=371,775,C:\DOS\COUNTRY.SYS
+DEVICE=C:\DOS\DISPLAY.SYS CON=(EGA,437,(1,3))
+[END]
+
+[CONFIG-LT]
+COUNTRY=370,775,C:\DOS\COUNTRY.SYS
+DEVICE=C:\DOS\DISPLAY.SYS CON=(EGA,437,(1,3))
+[END]
+
+For a 386 or later HIGH/UMB configuration, the memory lines between COUNTRY
+and DISPLAY are:
+
+[MEMORY-HIGH]
+DEVICE=C:\DOS\HIMEM.SYS
+DEVICE=C:\DOS\EMM386.EXE NOEMS
+DOS=HIGH,UMB
+[END]
+
+For the LOW configuration, including legacy machines, use:
+
+[MEMORY-LOW]
+DOS=LOW
+[END]
+
+Add the matching AUTOEXEC.BAT commands in the order shown, then reboot.
+
+[AUTOEXEC-ET]
+C:\DOS\NLSFUNC.EXE
+C:\DOS\MODE.COM CON CP PREPARE=((775) C:\DOS\EGA775.CPI)
+C:\DOS\MODE.COM CON CP SELECT=775
+C:\DOS\KEYB.COM ET,775,C:\DOS\KEYBRD2.SYS /ID:454
+[END]
+
+[AUTOEXEC-LV]
+C:\DOS\NLSFUNC.EXE
+C:\DOS\MODE.COM CON CP PREPARE=((775) C:\DOS\EGA775.CPI)
+C:\DOS\MODE.COM CON CP SELECT=775
+C:\DOS\KEYB.COM LV,775,C:\DOS\KEYBRD2.SYS /ID:0
+[END]
+
+[AUTOEXEC-LT]
+C:\DOS\NLSFUNC.EXE
+C:\DOS\MODE.COM CON CP PREPARE=((775) C:\DOS\EGA775.CPI)
+C:\DOS\MODE.COM CON CP SELECT=775
+C:\DOS\KEYB.COM LT,775,C:\DOS\KEYBRD2.SYS /ID:221
+[END]
+
+The layouts are Estonian QWERTY (ET, also EE), Latvian standard QWERTY (LV),
+and Lithuanian LST 1582 (LT). LV uses project-assigned ID 0 for its default
+layout. The Baltic keyboard entries support CP775. MODE CON CP and KEYB
+report the selected display page and keyboard. For LV, the report omits
+the default ID zero line. Update both COUNTRY and
+KEYB lines and reboot when changing the complete language profile.
+
+The keyboard starts in national mode. Ctrl+Alt+F1 selects US input;
+Ctrl+Alt+F2 selects national input. Right Alt or left Ctrl+Alt accesses the
+third level. Shift selects its shifted plane where the layout defines one.
+Caps Lock changes letter case; Shift reverses that case while Caps is on.
+AT-84 and XT-83 keyboards use Ctrl+Alt because they lack right Alt. The
+extra ISO key and separate right Ctrl are unavailable on those keyboards.
+
+Estonian and Latvian layouts have dead accents: press an accent, then its
+letter. Accent followed by Space inserts the literal accent. Lithuanian
+LST 1582 has no dead accents. Selecting US/national mode or successfully
+loading a Baltic layout clears a pending accent. A rejected load preserves
+it. Start KEYB from KEYBRD2.SYS when Baltic switching is required; an older
+KEYBOARD.SYS resident allocation can be too small for the Baltic tables.
+
+Use matching KEYB.COM and KEYBRD2.SYS files from this distribution. To return
+to the prior startup environment, restore the backups and reboot.
+
+National short filenames use at most 8 characters plus a 3-character
+extension, with the usual DOS filename and wildcard rules. Decode CP775
+files as CP775 on other computers. Country formatting follows the selected
+pre-euro DOS extension, with KR, Ls and Lt currencies. These profiles do
+not claim retail Microsoft Baltic keyboard or country-pack parity.
+
+Fonts and source notices
+------------------------
+EGA775.CPI uses 512_8 sans and Cozette glyphs with local DOS symbol and
+border adaptations. RUFONT1.TXT contains the 512_8 Unlicense; RUFONT2.TXT
+contains the Cozette copyright and MIT license. BAKEYS.TXT identifies the
+keyboard and country inputs. Keep their accompanying license notices.
+
+Source, pinned references and build instructions:
+https://github.com/ddanila/msdos/tree/master/locales/baltic
