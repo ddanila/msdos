@@ -363,5 +363,29 @@ national search strings, including inverted selection; the old executable is
 a retained failure control. Existing native command tests and Russian text
 workflows regress separately.
 
-National filename/directory operations, reboot persistence, installed-path
-workflows and final source-matched release qualification remain open.
+National filename/directory operations and fresh-boot reads have separate
+filesystem qualification below. Installed-path workflows and final
+source-matched release qualification remain open.
+
+## National filenames and directories
+
+[Filesystem qualification](filesystem-qualification.json) records CP775 short
+names in COMMAND, MOVE and XCOPY on QEMU HIGH/LOW and real-BIOS 286 LOW.
+The guest creates files with every required national letter, uses alternate
+case for lookup, and exercises wildcard selection, name/extension sorting,
+reverse name sorting, rename, recursive copying and empty directories.
+Expected ordering comes from the frozen per-country collation tables.
+
+The Estonian sample deliberately starts file and directory names with capital
+O with tilde (CP775 byte E5). Raw FAT entries must use the live-name escape byte
+05;
+a deleted-entry marker cannot satisfy the directory oracle. Raw nested entries,
+file contents and parent-cluster links are checked before reboot. A fresh boot
+must read the saved data, preserve directory ordering and clean up both copied
+trees successfully. The sample commands run from CP775 batch files; physical
+keyboard input is covered separately by the text and keyboard gates.
+
+Run `make test-baltic-files-qemu` for QEMU. The wrapper accepts `--emulator`,
+`--roms` and `--qt-platform` for the real-BIOS LOW backend. This qualification
+uses private floppy images and the recorded selected core. Installed hard-disk
+paths and final source-matched release qualification remain separate work.

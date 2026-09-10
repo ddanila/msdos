@@ -525,7 +525,16 @@ checks redirection, FIND filtering, exact file bytes and rendered glyph pixels.
 The FIND regression covers high-byte line endings and detects the previous
 cross-line match with the old executable. Backend and memory-profile scope,
 Russian regressions and native command results are recorded explicitly.
-Filename/directory and installed/reboot workflows remain separate requirements.
+Filename/directory and fresh-boot checks have separate qualification below;
+installed workflows remain open.
+
+The [Baltic filesystem qualification](../locales/baltic/filesystem-qualification.json)
+records `test-baltic-files-qemu`, included in `make test`, and the real-BIOS
+286 LOW matrix. It checks national short names, alternate case, wildcard and
+country-specific DIR ordering, MOVE/XCOPY trees, raw FAT names and parent links,
+then fresh-boot reads and deletion. Estonian names beginning with CP775 E5
+exercise FAT's 05 escape. Russian filesystem regressions cover shared runner
+changes; installed paths and source-matched release remain separate gates.
 
 ## External DOS API suite
 

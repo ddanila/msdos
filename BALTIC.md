@@ -179,6 +179,10 @@ physical COMMAND/EDLIN editing, saving and reopening, rendered CP775 glyphs,
 redirection and FIND pipes in each language on QEMU HIGH/LOW and real-BIOS 286.
 The workflow exposed a FIND line-boundary error, now covered by a focused
 high-byte regression and an old-binary failure control.
-Deeper malformed-resource cases, legacy lifecycle failures, national filename
-and directory workflows, installed text paths and reboot persistence, and final
-source-matched release/reproducibility gates remain open. Existing Russian evidence does not establish Baltic support.
+[Filesystem qualification](locales/baltic/filesystem-qualification.json) covers
+national short names, alternate-case lookup, wildcard and country-specific DIR
+ordering, MOVE/XCOPY trees, raw FAT entries and fresh-boot reads/cleanup on
+QEMU HIGH/LOW and real-BIOS 286 LOW.
+Deeper malformed-resource cases, legacy lifecycle failures, installed text and
+file workflows, and final source-matched release/reproducibility gates remain
+open. Existing Russian evidence does not establish Baltic support.

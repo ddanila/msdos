@@ -28,9 +28,11 @@ EMPTY='\u043f\u0443\u0441\u0442\u043e'
 PAYLOAD='\u0434\u0430\u043d\u043d\u044b\u0435 \u0401\u0451'
 
 
-def short_name(name):
-    parts=name.upper().encode('cp866').split(b'.')
-    return parts[0].ljust(8,b' ')+(parts[1] if len(parts)>1 else b'').ljust(3,b' ')
+def short_name(name,encoding='cp866'):
+    parts=name.upper().encode(encoding).split(b'.')
+    raw=parts[0].ljust(8,b' ')+(parts[1] if len(parts)>1 else b'').ljust(3,b' ')
+    # A live FAT short name beginning with byte E5 is stored with byte 05.
+    return b'\x05'+raw[1:] if raw[0]==0xe5 else raw
 
 
 class FAT:
@@ -64,7 +66,13 @@ class FAT:
     def read(self,entry):return self.chain(int.from_bytes(entry[26:28],'little'))[:int.from_bytes(entry[28:32],'little')]
 
 
-def run_case(work,base,profile,args,core):
+def run_case(work,base,profile,args,core,locale=None):
+    encoding=locale['encoding'] if locale else 'cp866'
+    fields='DIR SUB MAIN COPY RENAMED DOC STEM NAMES EXTENSIONS TREE MOVED CLONE EMPTY PAYLOAD'.split()
+    DIR,SUB,MAIN,COPY,RENAMED,DOC,STEM,NAMES,EXTENSIONS,TREE,MOVED,CLONE,EMPTY,PAYLOAD=[
+        locale[key] if locale else globals()[key] for key in fields]
+    temporary=locale['temporary'] if locale else '\u0432\u0440\u0435\u043c'
+    short=lambda name:short_name(name,encoding)
     case=work/profile;case.mkdir();image=case/'test.img'
     if args.emulator:
         subprocess.run(['bash','-c','source "$1/tests/86box_286_lib.sh"\nmake_86box_286_boot_image "$2" "$1"',
@@ -86,18 +94,18 @@ def run_case(work,base,profile,args,core):
         subprocess.run(['python3',str(ROOT/'tests/seed_86box_ibmat_nvram.py'),str(case/'nvr/ibm5170_111585.nvr'),'--extended-kib','512'],check=True)
     for source,name,defines in [('ru_profile_probe.asm','PROFILE.COM',[f'-DHIGH={int(profile=="high")}']),('86box_exit.asm' if args.emulator else 'qemu_exit.asm','QEXIT.COM',[])]:
         subprocess.run(['nasm','-f','bin',*defines,str(ROOT/'tests'/source),'-o',str(case/name)],check=True);put(name,(case/name).read_bytes())
-    put('CONFIG.SYS',('COUNTRY=007,866,COUNTRY.SYS\r\n'+CONFIG[profile]).encode())
+    put('CONFIG.SYS',(f'COUNTRY={locale["country"] if locale else 7:03d},{775 if locale else 866},COUNTRY.SYS\r\n'+CONFIG[profile]).encode())
     def batch(actions,end):
         lines=['@ECHO OFF','CTTY AUX','PROFILE.COM','IF ERRORLEVEL 1 GOTO FAIL']
         for action in actions:lines += [action,'IF ERRORLEVEL 1 GOTO FAIL']
         lines += ['ECHO '+end,'QEXIT.COM',':FAIL','ECHO RU_FILES_FAIL','QEXIT.COM']
-        return ('\r\n'.join(lines)+'\r\n').encode('cp866')
+        return ('\r\n'.join(lines)+'\r\n').encode(encoding)
     first=[f'MD {DIR}',f'CD {DIR.upper()}',f'ECHO {PAYLOAD}>{MAIN}',
            f'TYPE {MAIN.upper()} > A:\\LOOKUP.TXT',f'COPY {MAIN} {COPY} >NUL',
            f'REN {COPY.upper()} {RENAMED}',f'TYPE {RENAMED.upper()} > A:\\RENAMED.TXT',
            f'DEL {RENAMED.upper()}',f'MD {SUB}',f'COPY {MAIN.upper()} {SUB}\\{DOC} >NUL',
            f'TYPE {SUB.upper()}\\{DOC.upper()} > A:\\NESTED.TXT',
-           'MD \u0432\u0440\u0435\u043c','RD \u0412\u0420\u0415\u041c']
+           f'MD {temporary}',f'RD {temporary.upper()}']
     first += [f'ECHO {PAYLOAD}>{SUB}\\{name}' for name in EXTENSIONS]
     first += [f'ECHO {PAYLOAD}>{name}' for name in NAMES]
     first += [f'DIR /B /A:-D /O:E {SUB}\\*.* > A:\\EXTORD.TXT',
@@ -131,61 +139,61 @@ def run_case(work,base,profile,args,core):
             result=subprocess.run(command,env=env,stdin=subprocess.DEVNULL,stdout=output,
                                   stderr=subprocess.STDOUT,timeout=240 if args.emulator else 30)
         data=log.read_bytes();assert result.returncode==(0 if args.emulator else 33) and marker in data and b'RU_FILES_FAIL' not in data,(phase,log)
-        require_profile(data,profile);fat=FAT(image);root=fat.entries();payload=(PAYLOAD+'\r\n').encode('cp866')
+        require_profile(data,profile);fat=FAT(image);root=fat.entries();payload=(PAYLOAD+'\r\n').encode(encoding)
         if phase=='create':
-            entry=root[short_name(DIR)];assert entry[11]&16
+            entry=root[short(DIR)];assert entry[11]&16
             directory=fat.entries(int.from_bytes(entry[26:28],'little'))
-            expected={short_name(n) for n in [MAIN,*NAMES]}
+            expected={short(n) for n in [MAIN,*NAMES]}
             actual={n for n,e in directory.items() if not e[11]&16}
             assert actual==expected,(actual,expected)
             for n in expected:assert fat.read(directory[n])==payload,n
-            nested=fat.entries(int.from_bytes(directory[short_name(SUB)][26:28],'little'))
-            assert fat.read(nested[short_name(DOC)])==payload
-            for n in EXTENSIONS:assert fat.read(nested[short_name(n)])==payload
-            assert short_name(RENAMED) not in directory and short_name(COPY) not in directory
-            assert short_name('\u0432\u0440\u0435\u043c') not in directory
+            nested=fat.entries(int.from_bytes(directory[short(SUB)][26:28],'little'))
+            assert fat.read(nested[short(DOC)])==payload
+            for n in EXTENSIONS:assert fat.read(nested[short(n)])==payload
+            assert short(RENAMED) not in directory and short(COPY) not in directory
+            assert short(temporary) not in directory
             raw=b''.join(directory.values());(case/'directory.bin').write_bytes(raw)
             (case/'nested.bin').write_bytes(b''.join(nested.values()))
-            assert short_name(TREE) not in root
+            assert short(TREE) not in root
             for name in (MOVED,CLONE):
-                tree_entry=root[short_name(name)];assert tree_entry[11]&16
+                tree_entry=root[short(name)];assert tree_entry[11]&16
                 tree_cluster=int.from_bytes(tree_entry[26:28],'little')
                 tree=fat.entries(tree_cluster)
-                assert set(tree)=={b'.          ',b'..         ',short_name(SUB),short_name(EMPTY)},tree
+                assert set(tree)=={b'.          ',b'..         ',short(SUB),short(EMPTY)},tree
                 assert int.from_bytes(tree[b'..         '][26:28],'little')==0
                 for child in (SUB,EMPTY):
-                    entry=tree[short_name(child)];assert entry[11]&16
+                    entry=tree[short(child)];assert entry[11]&16
                     children=fat.entries(int.from_bytes(entry[26:28],'little'))
                     assert int.from_bytes(children[b'..         '][26:28],'little')==tree_cluster
                     expected_children={b'.          ',b'..         '}
                     if child==SUB:
-                        expected_children.add(short_name(DOC));assert fat.read(children[short_name(DOC)])==payload
+                        expected_children.add(short(DOC));assert fat.read(children[short(DOC)])==payload
                     assert set(children)==expected_children,children
-                    (case/(name.encode('cp866').hex()+'-'+child.encode('cp866').hex()+'.bin')).write_bytes(b''.join(children.values()))
-                (case/(name.encode('cp866').hex()+'.bin')).write_bytes(b''.join(tree.values()))
+                    (case/(name.encode(encoding).hex()+'-'+child.encode(encoding).hex()+'.bin')).write_bytes(b''.join(children.values()))
+                (case/(name.encode(encoding).hex()+'.bin')).write_bytes(b''.join(tree.values()))
             checks=['LOOKUP.TXT','RENAMED.TXT','NESTED.TXT']
         else:
-            assert all(short_name(n) not in root for n in (DIR,TREE,MOVED,CLONE));checks=['REBOOT.TXT','REBNEST.TXT','TREE1.TXT','TREE2.TXT']
+            assert all(short(n) not in root for n in (DIR,TREE,MOVED,CLONE));checks=['REBOOT.TXT','REBNEST.TXT','TREE1.TXT','TREE2.TXT']
         files={}
         for n in checks:
-            value=fat.read(root[short_name(n)]);assert value==payload,(n,value);files[n]=value.hex()
+            value=fat.read(root[short(n)]);assert value==payload,(n,value);files[n]=value.hex()
         for n in (['ORDER.TXT','ONE.TXT','WILD.TXT','REVERSE.TXT','EXTORD.TXT'] if phase=='create' else ['REORDER.TXT']):
-            value=fat.read(root[short_name(n)]);(case/n).write_bytes(value);files[n]=value.hex()
+            value=fat.read(root[short(n)]);(case/n).write_bytes(value);files[n]=value.hex()
         phases.append({'phase':phase,'emulator_exit':result.returncode,'files_hex':files,
                        'log_sha256':hashlib.sha256(data).hexdigest(),'image_sha256':hashlib.sha256(image.read_bytes()).hexdigest()})
-    ref=json.loads((ROOT/'locales/ru/dos622-reference.json').read_text())['country_records']['866']['objects']['6']
-    weights=bytes.fromhex(ref['payload']);names=[n.upper().encode('cp866') for n in [MAIN,*NAMES]]
+    weights=locale['weights'] if locale else bytes.fromhex(json.loads((ROOT/'locales/ru/dos622-reference.json').read_text())['country_records']['866']['objects']['6']['payload'])
+    names=[n.upper().encode(encoding) for n in [MAIN,*NAMES]]
     ordered=sorted(names,key=lambda name:bytes(weights[b] for b in name))
     expected_order=b''.join(n+b'\r\n' for n in ordered)
     assert (case/'ORDER.TXT').read_bytes()==expected_order,((case/'ORDER.TXT').read_bytes(),expected_order)
     assert (case/'REORDER.TXT').read_bytes()==expected_order
     assert (case/'REVERSE.TXT').read_bytes()==b''.join(n+b'\r\n' for n in reversed(ordered))
-    ext_names=[n.upper().encode('cp866') for n in [DOC,*EXTENSIONS]]
+    ext_names=[n.upper().encode(encoding) for n in [DOC,*EXTENSIONS]]
     ext_names.sort(key=lambda n:bytes(weights[b] for b in n.split(b'.')[1]))
     assert (case/'EXTORD.TXT').read_bytes()==b''.join(n+b'\r\n' for n in ext_names)
-    assert (case/'ONE.TXT').read_bytes()==b''.join(n.upper().encode('cp866')+b'\r\n' for n in NAMES[:6])
-    assert (case/'WILD.TXT').read_bytes()==b''.join((STEM+s+'.txt').upper().encode('cp866')+b'\r\n' for s in ('','1','2'))
-    print('PASS: Russian filenames '+profile,flush=True)
+    assert (case/'ONE.TXT').read_bytes()==b''.join(n.upper().encode(encoding)+b'\r\n' for n in NAMES[:len(NAMES)-4])
+    assert (case/'WILD.TXT').read_bytes()==b''.join((STEM+s+'.txt').upper().encode(encoding)+b'\r\n' for s in ('','1','2'))
+    print('PASS: '+(locale['language'] if locale else 'Russian')+' filenames '+profile,flush=True)
     return {'profile':profile,'phases':phases,'create_commands':first,'reboot_commands':second,
             'directory_sha256':hashlib.sha256((case/'directory.bin').read_bytes()).hexdigest(),
             'nested_sha256':hashlib.sha256((case/'nested.bin').read_bytes()).hexdigest(),
