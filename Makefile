@@ -545,6 +545,11 @@ test-ru-display-qemu: deploy $(SRC)/DEV/DISPLAY/EGA/EGA866.CPI
 test-ru-font-sources:
 	python3 tests/test_ru_font_sources.py
 
+.PHONY: test-baltic-font-sources
+test: test-baltic-font-sources
+test-baltic-font-sources:
+	python3 tests/test_baltic_font_sources.py
+
 test-keyboard-records: $(KEYBOARD_SYS)
 	python3 tests/test_keyboard_records.py
 

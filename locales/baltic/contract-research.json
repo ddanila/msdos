@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "status": "research-in-progress",
+  "keyboard_reference": {
+    "name": "FreeDOS official keyboard layouts 3.1",
+    "url": "https://www.ibiblio.org/pub/micro/pc-stuff/freedos/files/dos/keyb/kblayout/kpdos-3.1/kpdos31s.zip",
+    "archive_sha256": "1dcd3e132418eb6c470c77612007087e096f7fc89e27c2085a743dbb14db7b64",
+    "license": "GPL-2.0-or-later",
+    "scope": "Reference for a documented interoperability extension. FreeDOS KEY files cannot be used directly as this tree's Microsoft-format keyboard records. Resident code is not imported.",
+    "candidate_profiles": {
+      "et": {
+        "archive_member": "Source/Keydos/Et.key",
+        "sha256": "a0cc2d353cf13a63f8ebd988817916e20b4540f8f9d10bfb574c121fe07ef4aa",
+        "identification": "ET /454; EE alias in reference",
+        "code_page": 775,
+        "status": "candidate-not-frozen"
+      },
+      "lv": {
+        "archive_member": "Source/Keydos/Lv.key",
+        "sha256": "9458dfffa4e68d0981b71c97dc188cdf05b24aa694e3730e6b063a9b40f67e9a",
+        "identification": "LV default standard",
+        "code_page": 775,
+        "status": "candidate-not-frozen"
+      },
+      "lt": {
+        "archive_member": "Source/Keydos/Lt221.key",
+        "sha256": "f744e0c7a9b24550e6bc9fe3b58a25e9551af03ff66211cd60545b2caadb9aea",
+        "identification": "LT /221; LST 1582 standard",
+        "code_page": 775,
+        "status": "candidate-not-frozen"
+      }
+    }
+  },
+  "country_reference": {
+    "name": "FreeDOS COUNTRY.SYS source",
+    "revision": "e5826bbe2fbbee848bf635b02b58440de15ca398",
+    "url": "https://raw.githubusercontent.com/FDOS/country/e5826bbe2fbbee848bf635b02b58440de15ca398/country.asm",
+    "sha256": "365c1bf7708ec8e954505cf59698289da5813ab5c437f8ff8874fbd9eab24670",
+    "license": "GPL-2.0-or-later",
+    "observed_country_numbers": {
+      "et": 372,
+      "lv": 371,
+      "lt": 370
+    },
+    "limitations": [
+      "Current Baltic records use EUR, not DOS-era national currencies.",
+      "The Baltic collation section is explicitly marked REVIEW NEEDED for exact diacritic ordering.",
+      "Country numbers are useful evidence; formatting and collations are not yet accepted implementation oracles."
+    ]
+  },
+  "remaining": [
+    "Choose and freeze national keyboard variants, modifiers, dead-key and legacy hardware behavior with independent input expectations.",
+    "Resolve historical country records or explicitly specified extensions using independently supported formatting and collation rules.",
+    "Complete the font edits, driver data, installed recipes and runtime/release qualification from BALTIC.md."
+  ]
+}

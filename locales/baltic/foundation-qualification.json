@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "status": "encoding-and-candidate-font-audit-passed",
+  "scope": "Pinned CP775 encoding, complete candidate glyph inventory and required letter coverage for Estonian, Latvian and Lithuanian. This is not a CPI, keyboard, country or runtime qualification.",
+  "command": "make test-baltic-font-sources test-ru-font-sources test-ru-cpi",
+  "exit_code": 0,
+  "log": {
+    "path": "review/foundation-tests.log",
+    "sha256": "e7af464b5d598f24eb40bcf25f66d525b8b4ced6d5ef3cf5738447966e872daa"
+  },
+  "review": [
+    {
+      "path": "review/contact-8x14.png",
+      "sha256": "3514a21998bbf574f32270e50cbc8513e8aabd5d68f513e5d0504fd0c1b1844e"
+    },
+    {
+      "path": "review/contact-8x16.png",
+      "sha256": "c9eb23ca614f3cb2b40b565e316f03d2df242feb8e098f46bdbcc059b4474576"
+    },
+    {
+      "path": "review/contact-8x8.png",
+      "sha256": "d4045331ed765585f44a865589df4fed93f6983a7038acaf9fbf06d50fce6032"
+    },
+    {
+      "path": "review/font-audit.json",
+      "sha256": "ae91131bf2ca649e18e3534cbc5e11315518040eedfd3bebc67821b9ed055f56"
+    }
+  ],
+  "russian_regression": {
+    "candidate_review_unchanged": true,
+    "ega866_cpi_sha256": "efa06cb267a370fab3db71fb85f73711b750ec04498b40b6cc6a4a2be2e3d7ad"
+  },
+  "remaining": [
+    "Freeze keyboard and country contracts.",
+    "Complete all subsequent implementation and release requirements in BALTIC.md."
+  ]
+}

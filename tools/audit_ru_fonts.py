@@ -105,24 +105,26 @@ def contact_png(glyphs, height):
 
 def audit(directory=LOCALE):
     manifest = json.loads((directory / "manifest.json").read_text())
+    page = manifest["code_page"]
     for source in manifest["sources"]:
         data = (directory / source["path"]).read_bytes()
         if hashlib.sha256(data).hexdigest() != source["sha256"]:
             raise ValueError(f"source hash mismatch: {source['path']}")
     published = {}
-    for line in (directory / "upstream/CP866.TXT").read_text().splitlines():
+    for line in (directory / f"upstream/CP{page}.TXT").read_text().splitlines():
         if line.startswith("0x"):
             byte, code = line.split()[:2]
             published[int(byte, 16)] = int(code, 16)
     if sorted(published) != list(range(256)) or manifest["unicode_mapping"] != [
             published[i] for i in range(256)]:
-        raise ValueError("manifest differs from published CP866 mapping")
+        raise ValueError(f"manifest differs from published CP{page} mapping")
     display = manifest["display_mapping"]
     if len(display) != 256 or display[32:127] != manifest["unicode_mapping"][32:127] or (
             display[128:] != manifest["unicode_mapping"][128:]):
         raise ValueError("display mapping changed a printable slot")
-    short = read_short_font(directory / "upstream/512_8")
-    tall = read_bdf(directory / "upstream/cozette/cozette.bdf")
+    inputs = manifest.get("font_inputs", {})
+    short = read_short_font(directory / inputs.get("short", "upstream/512_8"))
+    tall = read_bdf(directory / inputs.get("tall", "upstream/cozette/cozette.bdf"))
     report = {"schema_version": 1, "status": "prototype-not-qualified", "fonts": {}}
     outputs = {}
     for height in (8, 14, 16):
@@ -154,10 +156,12 @@ def audit(directory=LOCALE):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--locale", type=Path, default=LOCALE,
+                        help="locale directory with manifest and pinned inputs")
     parser.add_argument("--check", action="store_true", help="reject stale review artifacts")
     args = parser.parse_args()
-    outputs = audit()
-    destination = LOCALE / "review"
+    outputs = audit(args.locale)
+    destination = args.locale / "review"
     if not args.check:
         destination.mkdir(parents=True, exist_ok=True)
     for name, data in outputs.items():

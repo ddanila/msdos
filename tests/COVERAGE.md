@@ -370,3 +370,10 @@ implementation-plan bullet to its retained evidence. It distinguishes focused
 component results from current-core and full-release claims. The
 [release record](../locales/ru/release-qualification.json) retains the successful
 full suite and selected artifact hashes; the audit closes the Russian scope.
+
+The [Baltic foundation qualification](../locales/baltic/foundation-qualification.json)
+records `make test-baltic-font-sources`, included in `make test`. It checks the
+pinned CP775 mapping against an independent codec, required national letters,
+candidate glyph coverage, reproducible review artifacts and corrupted source/
+mapping rejection. Shared-auditor changes also pass the existing Russian source
+and CPI gates. This does not qualify Baltic keyboard, country or runtime support.

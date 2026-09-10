@@ -157,5 +157,8 @@ DOS-era country contract.
 - [Coverage contracts](tests/COVERAGE.md), [emulator roles](EMULATION.md), and
   [release gates](ARCHITECTURE.md) define qualification requirements.
 
-This document records planned work. Existing Russian evidence does not establish
-CP775 or Baltic language support; new profiles require their own qualification.
+The [Baltic inputs and candidate audit](locales/baltic/README.md) implement the
+encoding/source foundation. [Contract research](locales/baltic/contract-research.json)
+keeps national keyboard and country decisions open. Existing Russian evidence
+does not establish CP775 or Baltic language support; new profiles require their
+own qualification.
