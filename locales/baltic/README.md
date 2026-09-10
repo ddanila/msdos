@@ -1,8 +1,9 @@
 # Baltic locale inputs
 
 [BALTIC.md](../../BALTIC.md) defines the Estonian, Latvian and Lithuanian
-implementation and acceptance scope. This directory currently contains pinned
-encoding inputs and a candidate font audit, not an installable locale pack.
+implementation and acceptance scope. This directory contains selected contracts
+and focused country/font evidence. Complete installable language profiles
+remain in progress.
 
 [manifest.json](manifest.json) pins the Microsoft CP775 mapping and references
 the existing local Cozette and 512_8 sources by path, revision and hash. Their
@@ -23,8 +24,8 @@ python3 tools/audit_ru_fonts.py --locale locales/baltic --check
 [font-audit.json](review/font-audit.json) records every glyph's source, rows and
 status. Candidate contact sheets are [8x8](review/contact-8x8.png),
 [8x14](review/contact-8x14.png) and [8x16](review/contact-8x16.png). Missing glyphs
-are marked rather than silently substituted. These unmodified candidates still
-need explicit edits and visual/runtime qualification, including border geometry.
+are marked rather than silently substituted. These unmodified candidates are
+retained separately from the selected glyphs and their qualification below.
 The Russian auditor's default invocation and retained outputs are preserved.
 
 The [contract research record](contract-research.json) identifies candidate
@@ -62,3 +63,24 @@ rebuilt COUNTRY.SYS and `make test-baltic-country-records`. The new Baltic objec
 match retained expectations and every pre-Baltic object's contents are preserved,
 including Russian. Case/collation corruption controls are included. Static
 record correctness does not establish active CONFIG/NLSFUNC/CHCP behavior.
+
+`make dev` builds EGA775.CPI using the shared font packer with explicit locale
+inputs. [Font edits](font-edits.json) reuse the selected DOS control, border,
+block and shade glyphs by Unicode identity, preserving their source licenses.
+They do not copy CP866 byte positions into Baltic letter slots. Selected review
+sheets are [8x8](review/selected-8x8.png), [8x14](review/selected-8x14.png) and
+[8x16](review/selected-8x16.png); [selected-fonts.json](review/selected-fonts.json)
+records glyph rows and hashes. The CP866 output remains byte-identical.
+
+[Display qualification](display-qualification.json) records `test-baltic-cpi`
+and the QEMU HIGH/LOW font matrix. The guest loads CP775 through DISPLAY/MODE,
+checks memory-profile markers and captures the actual VGA font plane. The host
+checks every glyph and strict completion/exit, retaining loaded bytes and screen
+captures. A deliberately wrong o-with-tilde glyph must fail the same byte oracle.
+Samples include all three languages. The Russian/existing EGA-page regression
+matrix passes with the shared runner. Both new gates are included in `make test`.
+
+Real-BIOS rendering, physical keyboard input, country APIs, installed recipes
+and full release qualification remain separate open gates. The font test's
+Estonian COUNTRY selection does not establish country-API support for every
+language, and rendered samples do not establish typed keyboard input.

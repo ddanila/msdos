@@ -593,17 +593,17 @@
     {
       "height": 8,
       "width": 8,
-      "status": "candidate-not-qualified"
+      "status": "qemu-high-low-font-plane-and-screen-qualified"
     },
     {
       "height": 14,
       "width": 8,
-      "status": "candidate-not-qualified"
+      "status": "qemu-high-low-font-plane-and-screen-qualified"
     },
     {
       "height": 16,
       "width": 8,
-      "status": "candidate-not-qualified"
+      "status": "qemu-high-low-font-plane-and-screen-qualified"
     }
   ],
   "languages": {
@@ -697,7 +697,13 @@
   "unresolved": [
     "Implement selected keyboard contracts and qualify physical BIOS/DOS input, modifiers and composition lifecycle.",
     "Qualify built country records through DOS APIs, transitions and rejection on every required profile.",
-    "Review and repair candidate font gaps and qualify actual loaded/rendered CP775 fonts.",
+    "Qualify CP775 font loading and rendering on real BIOS and in installed workflows.",
     "Implement, package and qualify all three language profiles and complete release gates in BALTIC.md."
-  ]
+  ],
+  "pack_name": "Baltic",
+  "qualification": {
+    "display": "display-qualification.json",
+    "country_records": "country-record-qualification.json",
+    "keyboard_contract": "keyboard-contract-qualification.json"
+  }
 }

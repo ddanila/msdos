@@ -205,8 +205,13 @@ gc4 db 0
 gc5 db 0
 gc6 db 0
 filename db 'FONT.BIN',0
+%if PAGE = 775
+title db 'CP775: Baltic DOS font slots 00-FF, left to right / top to bottom',0
+sample db 045h,054h,03ah,020h,054h,065h,072h,065h,02ch,020h,0e4h,075h,06eh,020h,06ah,061h,020h,094h,094h,021h,020h,04ch,056h,03ah,020h,04ch,061h,062h,072h,08ch,074h,02ch,020h,052h,08ch,067h,061h,021h,020h,04ch,054h,03ah,020h,04ch,061h,062h,061h,073h,02ch,020h,0d0h,0d8h,075h,06fh,06ch,061h,073h,021h,0
+%else
 title db 'CP866: DOS font slots 00-FF, left to right / top to bottom',0
 sample db 'Russian / Latin: ',8fh,0e0h,0a8h,0a2h,0a5h,0e2h,'! ',0f0h,0f1h,' ',0f2h,0f3h,' ',0f4h,0f5h,' ',0f6h,0f7h,0
+%endif
 border_top db 0dah,0c4h,0c4h,0c2h,0c4h,0c4h,0bfh,' ',0c9h,0cdh,0cdh,0cbh,0cdh,0cdh,0bbh,0
 border_mid db 0b3h,'ab',0b3h,0f0h,0f1h,0b3h,' ',0bah,80h,0a0h,0bah,0b0h,0b2h,0bah,0
 border_bottom db 0c0h,0c4h,0c4h,0c1h,0c4h,0c4h,0d9h,' ',0c8h,0cdh,0cdh,0cah,0cdh,0cdh,0bch,0

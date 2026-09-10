@@ -31,7 +31,8 @@ def existing_font(page, height):
     return [bytes(values[i * height:(i + 1) * height]) for i in range(256)]
 
 
-def run_case(work, base, page, height, expected, corrupt=False, profile=None):
+def run_case(work, base, page, height, expected, corrupt=False, profile=None,
+             cpi_source=None, corrupt_slot=0xf1, country=7, country_page=866):
     case = work / f"{page}-{height}{'-corrupt' if corrupt else ''}"
     case.mkdir()
     image = case / "boot.img"
@@ -45,11 +46,13 @@ def run_case(work, base, page, height, expected, corrupt=False, profile=None):
         copy(output, name)
     run("nasm", "-f", "bin", str(ROOT / "tests/qemu_exit.asm"), "-o", str(case / "QEXIT.COM"))
     copy(case / "QEXIT.COM", "QEXIT.COM")
-    source = CPI if page == 866 else CPI.with_name("EGA.CPI")
+    source = cpi_source or (CPI if page == 866 else CPI.with_name("EGA.CPI"))
     if corrupt:
         data = bytearray(source.read_bytes())
-        # CP866/16-row yo slot: wrong glyph byte, with all CPI structures intact.
-        data[59 + 6 + 0xf1 * 16] ^= 0x80
+        # The first payload is the 16-row font. Keep the structure intact.
+        if height != 16:
+            raise ValueError("wrong-slot control requires the 16-row font")
+        data[59 + 6 + corrupt_slot * 16] ^= 0x80
         source = case / "CORRUPT.CPI"
         source.write_bytes(data)
     copy(source, "TEST.CPI")
@@ -57,7 +60,8 @@ def run_case(work, base, page, height, expected, corrupt=False, profile=None):
     copy(ROOT / "src/CMD/MODE/MODE.COM", "MODE.COM")
     config = b"DEVICE=DISPLAY.SYS CON=(EGA,437,(1,3))\r\n"
     if profile:
-        config = ('COUNTRY=007,866,COUNTRY.SYS\r\n'+CONFIG[profile]).encode()+config
+        config = (f'COUNTRY={country:03},{country_page},COUNTRY.SYS\r\n'+CONFIG[profile]).encode()+config
+        copy(ROOT/'src/DEV/COUNTRY/COUNTRY.SYS','COUNTRY.SYS')
         run('nasm','-f','bin',f'-DHIGH={int(profile == "high")}',
             str(ROOT/'tests/ru_profile_probe.asm'),'-o',str(case/'PROFILE.COM'))
         copy(case/'PROFILE.COM','PROFILE.COM')
@@ -115,8 +119,8 @@ def run_case(work, base, page, height, expected, corrupt=False, profile=None):
         raise AssertionError("incomplete VGA font-plane read")
     mismatches = [byte for byte in range(256) if actual[byte * 32:byte * 32 + height] != expected[byte]]
     if corrupt:
-        if mismatches != [0xf1]:
-            raise AssertionError(f"wrong-slot control did not isolate yo: {mismatches}")
+        if mismatches != [corrupt_slot]:
+            raise AssertionError(f"wrong-slot control did not isolate {corrupt_slot:02x}: {mismatches}")
     elif mismatches:
         raise AssertionError(f"VGA font bytes differ at {page}/{height}: {mismatches}; artifacts: {case}")
     result = {"profile": profile, "page": page, "height": height, "emulator_exit": status,

@@ -396,3 +396,12 @@ records `make test-baltic-country-records`. It rebuilds COUNTRY.SYS, checks ever
 Baltic object against retained expectations, verifies all prior object contents
 and detects incorrect case/collation bytes. Both targets are included in
 `make test`. Country guest API and transition/rejection coverage remains open.
+
+The [Baltic display qualification](../locales/baltic/display-qualification.json)
+records `make test-baltic-cpi` and the shared QEMU display runner on HIGH/LOW.
+Static checks cover the CPI structure, selected national glyph rows and supported
+border edges. The guest prepares/selects CP775, captures actual VGA font bytes
+and renders samples; completion, profile markers and process exit are required.
+A wrong o-with-tilde slot is isolated through the same oracle. Existing Russian
+and EGA-page display regressions pass. Real-BIOS, keyboard, country API and
+installed-workflow qualification remain separate requirements.

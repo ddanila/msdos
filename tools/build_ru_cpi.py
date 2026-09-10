@@ -14,9 +14,9 @@ import struct
 from audit_ru_fonts import LOCALE, audit, contact_png
 
 
-def build_fonts():
-    report = json.loads(audit()["font-audit.json"])
-    edits = json.loads((LOCALE / "font-edits.json").read_text())
+def build_fonts(directory=LOCALE):
+    report = json.loads(audit(directory)["font-audit.json"])
+    edits = json.loads((directory / "font-edits.json").read_text())
     seen = set()
     for edit in edits["edits"]:
         height, byte = edit["height"], edit["byte"]
@@ -42,7 +42,7 @@ def build_fonts():
     return fonts
 
 
-def pack_cpi(fonts):
+def pack_cpi(fonts, page=866, pack_name="Russian"):
     data = bytearray()
     for height in (16, 14, 8):
         data.extend(struct.pack("<BBBBH", height, 8, 0, 0, 256))
@@ -50,10 +50,10 @@ def pack_cpi(fonts):
     # File header (23), info count (2), entry header (28), font header (6).
     result = b"\xffFONT   " + bytes(8) + struct.pack("<HBIH", 1, 1, 23, 1)
     result += struct.pack("<HIH8sH6sI", 28, 59 + len(data), 1, b"EGA     ",
-                          866, bytes(6), 53)
+                          page, bytes(6), 53)
     result += struct.pack("<HHH", 1, 3, len(data)) + data
-    result += (b"CP866 screen fonts: Cozette (MIT), 512_8 sans (Unlicense).\r\n"
-               b"See the Russian pack documentation for source notices.\r\n\x1a")
+    result += (f"CP{page} screen fonts: Cozette (MIT), 512_8 sans (Unlicense).\r\n"
+               f"See the {pack_name} pack documentation for source notices.\r\n\x1a").encode("ascii")
     return result
 
 
@@ -75,17 +75,20 @@ def review_outputs(fonts, cpi):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--locale", type=Path, default=LOCALE,
+                        help="locale directory with pinned manifest and glyph edits")
     parser.add_argument("--output", type=Path, help="write the CPI build artifact")
     parser.add_argument("--review", action="store_true", help="regenerate selected-font reviews")
     parser.add_argument("--check", action="store_true", help="check selected-font reviews")
     args = parser.parse_args()
     if not (args.output or args.review or args.check):
         parser.error("specify --output, --review or --check")
-    fonts = build_fonts()
-    cpi = pack_cpi(fonts)
+    manifest = json.loads((args.locale / "manifest.json").read_text())
+    fonts = build_fonts(args.locale)
+    cpi = pack_cpi(fonts, manifest["code_page"], manifest.get("pack_name", "Russian"))
     if args.check or args.review:
         for name, data in review_outputs(fonts, cpi).items():
-            path = LOCALE / "review" / name
+            path = args.locale / "review" / name
             if args.check:
                 if not path.exists() or path.read_bytes() != data:
                     raise SystemExit(f"stale selected-font review: {path}")

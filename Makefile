@@ -561,6 +561,14 @@ test: test-baltic-country-records
 test-baltic-country-records: $(SRC)/DEV/COUNTRY/COUNTRY.SYS
 	python3 tests/test_baltic_country_records.py
 
+.PHONY: test-baltic-cpi test-baltic-display-qemu
+test: test-baltic-cpi test-baltic-display-qemu
+test-baltic-cpi: $(SRC)/DEV/DISPLAY/EGA/EGA775.CPI
+	python3 tests/test_baltic_cpi.py
+
+test-baltic-display-qemu: deploy $(SRC)/DEV/DISPLAY/EGA/EGA775.CPI
+	python3 tests/test_baltic_display_qemu.py
+
 test-keyboard-records: $(KEYBOARD_SYS)
 	python3 tests/test_keyboard_records.py
 

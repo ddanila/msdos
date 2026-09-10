@@ -19,6 +19,7 @@ dev: \
     $(DEV_DIR)/XMAEM/XMAEM.SYS \
     $(DEV_DIR)/DISPLAY/EGA/EGA.CPI \
     $(DEV_DIR)/DISPLAY/EGA/EGA866.CPI \
+    $(DEV_DIR)/DISPLAY/EGA/EGA775.CPI \
     $(DEV_DIR)/DISPLAY/LCD/LCD.CPI \
     $(DEV_DIR)/PRINTER/5202/5202.CPI
 
@@ -210,6 +211,13 @@ RU_FONT_INPUTS := $(wildcard locales/ru/upstream/*/*) \
 
 $(EGA_DIR)/EGA866.CPI: tools/build_ru_cpi.py tools/audit_ru_fonts.py $(RU_FONT_INPUTS)
 	python3 tools/build_ru_cpi.py --output $@
+
+BALTIC_FONT_INPUTS := $(wildcard locales/ru/upstream/*/*) \
+    locales/ru/upstream/UNICODE-LICENSE.txt locales/baltic/upstream/CP775.TXT \
+    locales/baltic/manifest.json locales/baltic/font-edits.json
+
+$(EGA_DIR)/EGA775.CPI: tools/build_ru_cpi.py tools/audit_ru_fonts.py $(BALTIC_FONT_INPUTS)
+	python3 tools/build_ru_cpi.py --locale locales/baltic --output $@
 
 EGA_OBJS := \
     $(EGA_DIR)/CPI-HEAD.OBJ $(EGA_DIR)/437-CPI.OBJ $(EGA_DIR)/850-CPI.OBJ \

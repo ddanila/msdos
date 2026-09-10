@@ -28,11 +28,11 @@ EXPECTED_ROWS = {
 }
 
 
-def parse_cpi(data):
+def parse_cpi(data, expected_page=866):
     assert data[:16] == b"\xffFONT   " + bytes(8), "file signature/reserved bytes"
     assert struct.unpack_from("<HBIH", data, 16) == (1, 1, 23, 1), "file pointers"
     size, following, device, name, page, reserved, info = struct.unpack_from("<HIH8sH6sI", data, 25)
-    assert (size, device, name, page, reserved, info) == (28, 1, b"EGA     ", 866, bytes(6), 53)
+    assert (size, device, name, page, reserved, info) == (28, 1, b"EGA     ", expected_page, bytes(6), 53)
     kind, count, length = struct.unpack_from("<HHH", data, info)
     assert (kind, count, length) == (1, 3, 9746), "font header"
     assert following == info + 6 + length <= len(data), "next entry pointer"

@@ -1,0 +1,9 @@
+Baltic display artifacts: /Users/ddanila/fun/msdos/out/baltic-display-yoj8qvei
+PASS: 775 / 8x16 VGA bytes and guest completion
+PASS: 775 / 8x14 VGA bytes and guest completion
+PASS: 775 / 8x8 VGA bytes and guest completion
+PASS: 775 / 8x16 wrong-slot control detected
+PASS: 775 / 8x16 VGA bytes and guest completion
+PASS: 775 / 8x14 VGA bytes and guest completion
+PASS: 775 / 8x8 VGA bytes and guest completion
+PASS: 775 / 8x16 wrong-slot control detected
