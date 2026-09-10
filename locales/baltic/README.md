@@ -405,9 +405,9 @@ The old executable is a failure control for the guest gate. Run
 `make test-baltic-country-resources-qemu` for the per-language HIGH/LOW matrix.
 
 This is runtime header validation. The control-block checks below extend it.
-Country-directory records, object data offsets and bodies, transactional
-preservation after a later read fails, CONFIG.SYS boot fallback, real-BIOS
-resource failures and installed-path failures remain open.
+The directory scans below add record validation. Object data offsets and
+bodies, transactional preservation after a later read fails, CONFIG.SYS boot
+fallback, real-BIOS resource failures and installed-path failures remain open.
 
 
 ## Country control blocks
@@ -426,6 +426,26 @@ gate checks rejection, the complete prior active-country state and recovery
 with a valid file. The record distinguishes the new HIGH/LOW language matrix,
 the focused header regression, and existing country/legacy regressions.
 
-Country-directory entry/count validation and object data offsets, signatures,
-lengths and read-failure transactions remain open. These control-block checks
+The country-record scan below adds directory entry/count validation. Object
+data offsets, signatures, lengths and read-failure transactions remain open. These control-block checks
 do not qualify CONFIG.SYS boot fallback or real-BIOS/installed failure paths.
+
+
+## Country-record scan
+
+[Country scan qualification](country-scan-qualification.json) records validation
+of the complete declared country directory before using a matching record.
+Zero counts, undersized records, incomplete trailing records, excessive counts
+and missing record padding are rejected. The old scanner could accept a match
+even when the directory declared no entries or the matching record was short.
+
+The scanner uses a doubleword file cursor and validates record extents. It
+preserves the first country/page match while checking the remaining directory.
+Valid padded records crossing buffer and file-offset word boundaries must
+still support queries and country switches. The qualification includes
+negative controls, valid padding controls, prior resource regressions and
+country/API regressions; its backend and profile scope is explicit.
+
+Object data offsets, signatures, payload lengths and transactional behavior
+on later read failures remain open, along with boot fallback, installed paths
+and final source-matched release qualification.

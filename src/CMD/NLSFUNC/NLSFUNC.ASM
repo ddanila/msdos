@@ -131,7 +131,11 @@ SI_DOSLOCATE	dw	0
 DS_DOSLOCATE	dw	0
 SAVEDX		dw	0		;=FC  file offset
 SAVECX		dw	0		;=FC
-NOFFSET 	dw	2		;=FC
+SCAN_SIZE	dw	0
+MATCH_LOW	dw	0
+MATCH_HIGH	dw	0
+MATCH_PAGE	dw	0
+MATCH_FOUND	db	0
 CTL_BYTES	dw	0		;bytes returned by the last control read
 CSIZE		dw	0
 CCODE		dw	0
@@ -423,75 +427,19 @@ GET_INFOIDS:
 
 		mov	SAVEDX,dx		;=FC save offset
 		mov	SAVECX,cx		;=FC for more than 1 buffer
-		mov	NOFFSET,2		;=FC start from beginning
 
 		call	READ_CTLBUFF		;Read Info
 		jnc	COUNT_ENTRIES
 		jmp	END_TRANS		;=G
 
 COUNT_ENTRIES:
-
-		mov	cx,word ptr ds:[si]	;Get count of entries
-						;in info
-		inc	si			;next word
-		inc	si			;si >  Entry info packet
-
-FIND_CTY:					;Search for CTY/CP combo
-
-		mov	ax,word ptr ds:[si]	;=FC get size of entry
-		add	ax,2			;=FC include length filed
-		add	NOFFSET,ax		;=FC look ahead
-		cmp	NOFFSET,CTL_BUFF-4	;=FC < (256 - 4)
-		jb	IN_BUFF 		;=FC
-		sub	NOFFSET,ax		;=FC restore to old offset
-		push	cx			;=FC save number of cntries
-		mov	cx,SAVECX		;=FC get file offset
-		mov	dx,SAVEDX		;=FC
-		add	dx,NOFFSET		;=FC update to the entry
-		adc	cx,0			;=FC beginning
-		mov	SAVECX,cx		;=FC save them for next use
-		mov	SAVEDX,dx		;=FC
-		call	READ_CTLBUFF		;=FC read next buffer in
-		jc	READERROR		;=FC read error occurs
-		pop	cx			;=FC restore number of cntries
-		; READ_CTLBUFF starts at the current entry. Account for that
-		; entry just as the non-refill path does, so later refills do
-		; not reread entries and exhaust the directory count early.
-		mov	ax,word ptr ds:[si]
-		add	ax,2
-		mov	NOFFSET,ax
-IN_BUFF:
-
-		mov	dx,CPAGE
-		mov	ax,CCODE
-		cmp	ax,word ptr ds:[si+2]	 ;compare country id
-		jne	NEXT_CTY
-		cmp	dx, word ptr ds:[si+4]	;compare code page id
-		je	FOUND_CTY
-		cmp	dx,0		  ;=FC	  if default pick the
-		jz	FOUND_CTY2	  ;=FC	  1st country
-
-NEXT_CTY:
-		add	si, word ptr ds:[si]	;next entry
-		inc	si
-		inc	si			;take a word for size of entry itself
-		loop	FIND_CTY
-
-		mov	ALL_DONE,INVALID_DATA	;if it exits the loop	=J =L
-		jmp	FINDCTY_FAIL		;then no cp/cty match
-
-READERROR:	pop	cx			;=FC
-		jmp	END_TRANS		;=FC
-
-FOUND_CTY2:	mov	dx,word ptr ds:[si+4]	;=FC from now on,this is
-		mov	CPAGE,dx		;=FC the code page
-
-FOUND_CTY:		       ;found the matching entry
-		mov	dx, word ptr ds:[si+10] ;get the file offset of country data
-		mov	cx, word ptr ds:[si+12]
+		call	SCAN_COUNTRIES
+		jnc	READ_COUNTRY
+		jmp	END_TRANS
+READ_COUNTRY:
 		call	READ_CTLBUFF
 		jnc	NUM_ENTRY
-		jmp	END_TRANS		;=G
+		jmp	END_TRANS
 NUM_ENTRY:
 		call	VALID_OBJECTS
 		jnc	OBJECTS_VALID
@@ -788,6 +736,96 @@ GETEXT_CTY	endp
 ;*****************************END GETEXT_CTY*************************************
 subttl read into control buffer
 page
+; Validate every declared country record before using the first matching
+; country/page. Cursor arithmetic is doubleword, including long padded records.
+; Return CX:DX = selected object directory, or carry with ALL_DONE set.
+SCAN_COUNTRIES proc near
+		mov	MATCH_FOUND,0
+		mov	cx,word ptr ds:[si]
+		jcxz	SC_EMPTY
+		add	SAVEDX,2
+		adc	SAVECX,0
+		jnc	SC_NEXT
+SC_EMPTY:
+		mov	ALL_DONE,INVALID_FUNCTION
+		stc
+		ret
+SC_NEXT:
+		push	cx
+		mov	cx,SAVECX
+		mov	dx,SAVEDX
+		call	READ_CTLBUFF
+		jc	SC_READ_ERROR
+		cmp	ax,14
+		jb	SC_BAD_RECORD
+		mov	ax,word ptr ds:[si]
+		cmp	ax,12
+		jb	SC_BAD_RECORD
+		mov	SCAN_SIZE,ax
+		cmp	MATCH_FOUND,0
+		jne	SC_EXTENT
+		mov	ax,CCODE
+		cmp	ax,word ptr ds:[si+2]
+		jne	SC_EXTENT
+		mov	ax,CPAGE
+		or	ax,ax
+		jz	SC_MATCH
+		cmp	ax,word ptr ds:[si+4]
+		jne	SC_EXTENT
+SC_MATCH:
+		mov	MATCH_FOUND,1
+		mov	ax,word ptr ds:[si+4]
+		mov	MATCH_PAGE,ax
+		mov	ax,word ptr ds:[si+10]
+		mov	MATCH_LOW,ax
+		mov	ax,word ptr ds:[si+12]
+		mov	MATCH_HIGH,ax
+SC_EXTENT:
+		mov	ax,CTL_BYTES
+		sub	ax,2
+		cmp	SCAN_SIZE,ax
+		jbe	SC_ADVANCE
+		; A long record must have its final two bytes in the file.
+		mov	dx,SAVEDX
+		mov	cx,SAVECX
+		add	dx,SCAN_SIZE
+		adc	cx,0
+		jc	SC_BAD_RECORD
+		call	READ_CTLBUFF
+		jc	SC_READ_ERROR
+SC_ADVANCE:
+		mov	ax,SCAN_SIZE
+		add	SAVEDX,ax
+		adc	SAVECX,0
+		jc	SC_BAD_RECORD
+		add	SAVEDX,2
+		adc	SAVECX,0
+		jc	SC_BAD_RECORD
+		pop	cx
+		dec	cx
+		jz	SC_FINISHED
+		jmp	SC_NEXT
+SC_BAD_RECORD:
+		mov	ALL_DONE,INVALID_FUNCTION
+		stc
+SC_READ_ERROR:
+		pop	cx
+		ret
+SC_FINISHED:
+		cmp	MATCH_FOUND,0
+		jne	SC_SELECTED
+		mov	ALL_DONE,INVALID_DATA
+		stc
+		ret
+SC_SELECTED:
+		mov	ax,MATCH_PAGE
+		mov	CPAGE,ax
+		mov	cx,MATCH_HIGH
+		mov	dx,MATCH_LOW
+		clc
+		ret
+SCAN_COUNTRIES endp
+
 ; Validate the complete object directory before any DOS table is changed.
 ; Each record needs its length, id/reserved bytes and a doubleword pointer.
 VALID_OBJECTS proc near

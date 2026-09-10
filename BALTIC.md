@@ -188,6 +188,9 @@ covers NLSFUNC runtime header rejection, active-state preservation and recovery.
 [Country directory qualification](locales/baltic/country-directory-qualification.json)
 extends rejection to short control reads and malformed object lists before
 DOS table writes.
+[Country scan qualification](locales/baltic/country-scan-qualification.json)
+covers declared directory counts, record extents and valid padded records
+before the selected country data is used.
 Deeper malformed-resource cases, legacy lifecycle failures, installed text and
 file workflows, and final source-matched release/reproducibility gates remain
 open. Existing Russian evidence does not establish Baltic support.

@@ -548,8 +548,15 @@ The [country directory qualification](../locales/baltic/country-directory-qualif
 extends the same resource gate to missing count bytes and malformed object
 lists. Actual read bounds, complete record extents and length overflow are
 checked before any DOS table write. Old-executable controls detect an accepted
-query and an accepted country switch. Country-directory record validation,
-object data and later-read transactions remain open.
+query and an accepted country switch. The scan qualification below covers
+country-directory records; object data and later-read transactions remain open.
+
+The [country scan qualification](../locales/baltic/country-scan-qualification.json)
+adds complete directory-count/record validation to the resource gate. It
+checks malformed records after a candidate match, valid padded records across
+buffer/offset boundaries, rejection with prior-state preservation and recovery.
+Old executables provide accepted-query controls. Backend/profile scope and
+country, resource and legacy regressions are recorded explicitly.
 
 ## External DOS API suite
 

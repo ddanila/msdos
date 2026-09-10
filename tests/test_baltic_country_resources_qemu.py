@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Reject missing or malformed NLSFUNC country headers without changing locale."""
+"""Validate NLSFUNC country resources, rejection, state and recovery."""
 import argparse
 import hashlib
 import json
@@ -46,6 +46,34 @@ def mutations(data):
                     bad[position+10:position+14]=len(bad).to_bytes(4,'little');bad+=data[target:target+10]
             position+=size+2
         cases['objects-'+kind]=bytes(bad)
+    directory=int.from_bytes(data[19:23],'little')
+    bad=bytearray(data);bad[directory:directory+2]=bytes(2);cases['scan-zero-count']=bytes(bad)
+    bad=bytearray(data);position=directory+2
+    for _ in range(int.from_bytes(data[directory:directory+2],'little')):
+        size=int.from_bytes(data[position:position+2],'little')
+        country=int.from_bytes(data[position+2:position+4],'little');page=int.from_bytes(data[position+4:position+6],'little')
+        if country in LANGUAGES.values() and page==775:bad[position:position+2]=(11).to_bytes(2,'little')
+        position+=size+2
+    cases['scan-short-record']=bytes(bad)
+    entries=[];position=directory+2
+    for _ in range(int.from_bytes(data[directory:directory+2],'little')):
+        size=int.from_bytes(data[position:position+2],'little');entries.append(data[position:position+size+2]);position+=size+2
+    def appended(records,count=None):
+        bad=bytearray(data);bad[19:23]=len(bad).to_bytes(4,'little')
+        return bad+(len(entries) if count is None else count).to_bytes(2,'little')+records
+    packed=b''.join(entries)
+    cases['scan-truncated-record']=bytes(appended(packed[:-1]))
+    cases['scan-excess-count']=bytes(appended(packed,len(entries)+1))
+    selected=next(e for e in entries if int.from_bytes(e[2:4],'little')==372 and int.from_bytes(e[4:6],'little')==775)
+    cases['scan-truncated-padding']=bytes(appended(b'\xff\xff'+selected[2:],1))
+    for length in (14,254,255,65535):
+        expanded=[]
+        for index,entry in enumerate(entries):
+            country=int.from_bytes(entry[2:4],'little');page=int.from_bytes(entry[4:6],'little')
+            if (country in LANGUAGES.values() and page==775) or index==len(entries)-1:
+                entry=length.to_bytes(2,'little')+entry[2:]+bytes(length-(len(entry)-2))
+            expanded.append(entry)
+        cases[f'valid-scan-padding-{length}']=bytes(appended(b''.join(expanded)))
     return cases
 
 
@@ -74,10 +102,12 @@ def main():
                     for source,target in [(COUNTRY,'COUNTRY.SYS'),(COUNTRY,'BAD.SYS'),(args.nlsfunc,'NLSFUNC.EXE')]:put(target,source.read_bytes())
                     if data is not None:put('BROKEN.SYS',data)
                     subprocess.run(['nasm','-f','bin',f'-DTARGET={other}',f'-DERROR={2 if data is None else 1}',str(ROOT/'tests/baltic_country_resource_probe.asm'),'-o',str(folder/'REJECT.COM')],check=True);put('REJECT.COM',(folder/'REJECT.COM').read_bytes())
+                    valid=name.startswith('valid-')
+                    exercise=[f'Q{other}775.COM',f'S{other}775.COM',f'P{other}775.COM',f'S{number}775.COM'] if valid else ['REJECT.COM']
                     actions=[profile.upper()+'.COM',f'P{number}775.COM','NLSFUNC A:\\BAD.SYS',f'Q{other}775.COM',
                              'DEL BAD.SYS',
                              *([] if data is None else ['REN BROKEN.SYS BAD.SYS']),
-                             'REJECT.COM',f'P{number}775.COM','COPY /Y COUNTRY.SYS BAD.SYS >NUL',f'Q{other}775.COM',f'S{other}775.COM',f'P{other}775.COM']
+                             *exercise,f'P{number}775.COM','COPY /Y COUNTRY.SYS BAD.SYS >NUL',f'Q{other}775.COM',f'S{other}775.COM',f'P{other}775.COM']
                     batch=['@ECHO OFF','CTTY AUX']
                     for action in actions:batch += [action,'IF ERRORLEVEL 1 GOTO FAIL']
                     batch+=['ECHO BALTIC_RESOURCE_DONE','QEXIT.COM',':FAIL','ECHO BALTIC_RESOURCE_CASE_FAIL','QEXIT.COM']
@@ -88,8 +118,8 @@ def main():
                         result=subprocess.run(['qemu-system-i386','-display','none','-m','8','-drive',f'if=floppy,format=raw,file={image}','-boot','a','-serial','stdio','-monitor','none','-no-reboot','-device','isa-debug-exit,iobase=0xf4,iosize=0x04'],stdin=subprocess.DEVNULL,stdout=out,stderr=subprocess.STDOUT,timeout=45)
                     output=log.read_bytes();require_profile(output,profile)
                     assert result.returncode==33 and b'BALTIC_RESOURCE_DONE' in output and b'FAIL' not in output,(folder,output)
-                    assert output.count(b'BALTIC_RESOURCE_REJECTED')==1 and output.count(b'RU_COUNTRY_PASS')==4 and output.count(b'RU_QUERY_PASS')==2,output
-                    report['cases'].append({'language':language,'profile':profile,'mutation':name,'mutant_sha256':None if data is None else hashlib.sha256(data).hexdigest(),'mutant_size':None if data is None else len(data),'actions':actions,'emulator_exit':result.returncode,'log':str(log.relative_to(work)),'log_sha256':hashlib.sha256(output).hexdigest()});save();print('PASS:',language,profile,name,flush=True)
+                    assert output.count(b'BALTIC_RESOURCE_REJECTED')==(0 if valid else 1) and output.count(b'RU_COUNTRY_PASS')==(7 if valid else 4) and output.count(b'RU_QUERY_PASS')==(3 if valid else 2),output
+                    report['cases'].append({'language':language,'profile':profile,'mutation':name,'valid_control':valid,'mutant_sha256':None if data is None else hashlib.sha256(data).hexdigest(),'mutant_size':None if data is None else len(data),'actions':actions,'emulator_exit':result.returncode,'log':str(log.relative_to(work)),'log_sha256':hashlib.sha256(output).hexdigest()});save();print('PASS:',language,profile,name,flush=True)
     except Exception as error:
         report.update(status='failed',failure=str(error));save();raise
     report['status']='passed';save()
