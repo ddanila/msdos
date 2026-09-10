@@ -74,6 +74,36 @@ def mutations(data):
                 entry=length.to_bytes(2,'little')+entry[2:]+bytes(length-(len(entry)-2))
             expanded.append(entry)
         cases[f'valid-scan-padding-{length}']=bytes(appended(b''.join(expanded)))
+    object_pointers={k:[] for k in (1,2,4,5,6,7)}
+    for entry in entries:
+        country=int.from_bytes(entry[2:4],'little');page=int.from_bytes(entry[4:6],'little')
+        if country in LANGUAGES.values() and page==775:
+            objects=int.from_bytes(entry[10:14],'little');pointer=objects+2
+            for _ in range(int.from_bytes(data[objects:objects+2],'little')):
+                size=int.from_bytes(data[pointer:pointer+2],'little');kind=data[pointer+2]
+                if kind in object_pointers:object_pointers[kind].append(pointer)
+                pointer+=size+2
+    def object_variant(kind,block):
+        bad=bytearray(data)
+        for pointer in object_pointers[kind]:bad[pointer+4:pointer+8]=len(data).to_bytes(4,'little')
+        return bytes(bad+block)
+    for kind,pointers in object_pointers.items():
+        pointer=pointers[0];target=int.from_bytes(data[pointer+4:pointer+8],'little')
+        length=int.from_bytes(data[target+8:target+10],'little');block=data[target:target+10+length]
+        cases[f'data-{kind}-truncated']=object_variant(kind,block[:-1])
+        for offset in (0,7):
+            broken=bytearray(block);broken[offset]^=1
+            cases[f'data-{kind}-signature-{offset}']=object_variant(kind,broken)
+        for size in {1:(37,39),2:(127,129),4:(127,129),5:(7,47),6:(255,257),7:(1,17)}[kind]:
+            broken=block[:8]+size.to_bytes(2,'little')+(block[10:]+bytes(size))[:size]
+            cases[f'data-{kind}-length-{size}']=object_variant(kind,broken)
+    pointer=object_pointers[1][0];target=int.from_bytes(data[pointer+4:pointer+8],'little')
+    for keep in (0,9,47):cases[f'data-info-short-{keep}']=object_variant(1,data[target:target+keep])
+    pointer=object_pointers[5][0];target=int.from_bytes(data[pointer+4:pointer+8],'little')
+    broken=bytearray(data[target:target+32]);broken[17]=255
+    cases['data-filechar-count']=object_variant(5,broken)
+    pointer=object_pointers[7][0];target=int.from_bytes(data[pointer+4:pointer+8],'little')
+    cases['data-dbcs-unterminated']=object_variant(7,data[target:target+8]+b'\x04\x00\x81\x9f\xe0\xfc')
     return cases
 
 

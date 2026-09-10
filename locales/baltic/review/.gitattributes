@@ -3,5 +3,5 @@
 *.cfg -text -whitespace
 
 # Preserve startup files extracted from installed DOS images.
-install-*.BAT -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
-install-*.SYS -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+*install-*.BAT -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+*install-*.SYS -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol

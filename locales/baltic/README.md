@@ -427,7 +427,8 @@ with a valid file. The record distinguishes the new HIGH/LOW language matrix,
 the focused header regression, and existing country/legacy regressions.
 
 The country-record scan below adds directory entry/count validation. Object
-data offsets, signatures, lengths and read-failure transactions remain open. These control-block checks
+data checks are covered by the qualification below; later read-failure
+transactions remain open. These control-block checks
 do not qualify CONFIG.SYS boot fallback or real-BIOS/installed failure paths.
 
 
@@ -446,6 +447,38 @@ still support queries and country switches. The qualification includes
 negative controls, valid padding controls, prior resource regressions and
 country/API regressions; its backend and profile scope is explicit.
 
-Object data offsets, signatures, payload lengths and transactional behavior
-on later read failures remain open, along with boot fallback, installed paths
-and final source-matched release qualification.
+The object-data qualification below extends these checks. Transactional
+behavior on later media read failures remains open, along with boot fallback,
+installed paths and final source-matched release qualification.
+
+
+## Country object data
+
+[Country data qualification](country-data-qualification.json) covers NLSFUNC
+object signatures, declared payload lengths and actual read counts. The loader
+preflights every declared object before writing DOS country tables, then repeats
+the check when loading each object. A pointer at EOF previously passed an
+external query; the retained old-executable control demonstrates that failure.
+
+Known object sizes are bounded by the resident allocations in
+[DOSMES.ASM](../../src/DOS/DOSMES.ASM), with exact limits recorded in the
+qualification. The filename delimiter count must fit its payload; DBCS lengths
+must be even and nonempty lists must end with a zero word. Unknown extension
+IDs remain bounded by the external-query buffer.
+
+The resource matrix checks truncation, signatures and invalid lengths for all
+shipped object types, plus filename-list counts and DBCS termination, in
+all three languages on HIGH and LOW. Each rejected query/switch is followed by
+complete active-country checks and valid-resource recovery. The record also
+includes earlier resource cases on ET LOW, Baltic/Russian country regressions,
+legacy utilities and valid transitions on a real-BIOS 286. Fresh installation,
+upgrade and installed language profiles were rerun with the current resources,
+checking installed hashes, country state, physical input and rendered fonts.
+
+`make test-nlsfunc-dbcs-query-qemu` verifies that the existing nonempty DBCS
+records remain externally queryable from a Baltic HIGH/LOW environment, with
+unchanged active Baltic state. This is a compatibility check for those records,
+not qualification of installed DBCS environments. Preflight and repeated read
+validation do not provide rollback for a media error after an earlier table
+has already been copied. Boot and installed failures and final release gates
+remain separate work.

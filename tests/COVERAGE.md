@@ -549,7 +549,8 @@ extends the same resource gate to missing count bytes and malformed object
 lists. Actual read bounds, complete record extents and length overflow are
 checked before any DOS table write. Old-executable controls detect an accepted
 query and an accepted country switch. The scan qualification below covers
-country-directory records; object data and later-read transactions remain open.
+country-directory records; the data qualification below covers object data,
+while later media read transactions remain open.
 
 The [country scan qualification](../locales/baltic/country-scan-qualification.json)
 adds complete directory-count/record validation to the resource gate. It
@@ -557,6 +558,14 @@ checks malformed records after a candidate match, valid padded records across
 buffer/offset boundaries, rejection with prior-state preservation and recovery.
 Old executables provide accepted-query controls. Backend/profile scope and
 country, resource and legacy regressions are recorded explicitly.
+
+The [country data qualification](../locales/baltic/country-data-qualification.json)
+adds complete object reads, signatures, resident payload capacities, filename
+counts and DBCS termination to the resource gate. It retains the old executable's
+accepted EOF-data query and per-language HIGH/LOW rejection/state/recovery logs.
+`test-nlsfunc-dbcs-query-qemu`, included in `make test`, checks the existing
+nonempty DBCS query records and unchanged Baltic state in HIGH/LOW. This does
+not qualify DBCS installations or rollback after later media errors.
 
 ## External DOS API suite
 

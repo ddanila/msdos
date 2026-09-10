@@ -1,0 +1,32 @@
+=== SHARE / NLSFUNC / EXE2BIN E2E tests (QEMU) ===
+Building test image...
+Booting QEMU...
+
+--- SHARE tests ---
+  PASS: SHARE rejects numeric boundaries, unknown switches, and positional operands
+  PASS: SHARE /NC /F:4096 /L:40 (all switches installed, batch continued)
+  PASS: SHARE /NC-to-full transition precedes errorlevel 255 already-installed state
+  PASS: SHARE batch continued after compatibility-state checks
+
+--- NLSFUNC tests ---
+  PASS: NLSFUNC rejects an unknown switch and returns to the batch
+  PASS: NLSFUNC rejects a second positional operand and returns
+  PASS: NLSFUNC (first call installed silently, batch continued)
+  PASS: NLSFUNC second installation reports errorlevel 80
+  PASS: NLSFUNC missing named path preserves errorlevel 2 after installation
+
+--- EXE2BIN tests ---
+  PASS: EXE2BIN rejects a missing required input operand
+  PASS: EXE2BIN rejects a third positional operand
+  PASS: EXE2BIN TEST.EXE TEST.BIN (output file TEST.BIN created)
+  PASS: EXE2BIN TEST.EXE TEST.BIN (batch continued)
+  PASS: EXE2BIN BIN path emitted the exact payload byte
+  PASS: EXE2BIN COM path stripped the initial 100h bytes exactly
+  PASS: EXE2BIN relocation path added base segment 0010h to word 1234h
+  PASS: EXE2BIN rejected bad signature, nonzero SS, and invalid IP without outputs
+  PASS: EXE2BIN MISSING.EXE (printed 'File not found' for missing input)
+  PASS: EXE2BIN MISSING.EXE (batch continued after error)
+
+  PASS: Batch reached ===DONE===
+
+Results: 20 passed, 0 failed

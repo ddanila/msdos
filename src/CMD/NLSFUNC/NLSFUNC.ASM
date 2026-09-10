@@ -156,6 +156,31 @@ CUR_PTR        DW	0		   ;AN003;; keeps track of parameter position
 OLD_PTR        DW	0		   ;AN003;; keeps track of parameter position
 ;***CNS
 ;********************************************************************************
+; Table capacities follow the resident DOSMES.ASM allocations. Unknown
+; extension ids must still fit the external-query buffer.
+OBJECT_RULES label byte
+		db	1
+		dw	SETCTY_LENG,SETCTY_LENG
+		db	0ffh,'CTYINFO'
+		db	2
+		dw	128,128
+		db	0ffh,'UCASE  '
+		db	4
+		dw	128,128
+		db	0ffh,'UCASE  '
+		db	5
+		dw	8,46
+		db	0ffh,'FCHAR  '
+		db	6
+		dw	256,256
+		db	0ffh,'COLLATE'
+		db	7
+		dw	0,16
+		db	0ffh,'DBCS   '
+		db	0
+		dw	0,DATA_BUFF_LENG-10
+		db	8 dup (0)
+
 NLS_BUFFER	db	BUFFSIZE dup (?)  ;NLS BUFFER to transfer data
 
 
@@ -443,7 +468,7 @@ READ_COUNTRY:
 NUM_ENTRY:
 		call	VALID_OBJECTS
 		jnc	OBJECTS_VALID
-		jmp	BAD_FILE
+		jmp	END_TRANS
 OBJECTS_VALID:
 		mov	cx, word ptr ds:[si]	;get the number of entries to handle.
 		inc	si
@@ -508,23 +533,8 @@ GET_ADDR:
 
 
 SEEK_READ:
-
-		push	ax			   ;=A	save data id.
-		xor	bp,bp						;DOS 4200h function
-		CallInstall Lseek,multdos,40,<bx,cx,ds,es,di,si>,<si,di,es,ds,cx,bx>		 ;move ptr
-		pop	ax			   ;=A
+		call	VALID_DATA
 		jc	DATASEEKNREAD
-										     ;when ptr moved
-		mov	dx,offset NLS_BUFFER +CTL_BUFF							;set the buffer to the beginning of the
-										     ;data buffer area
-
-		mov	cx,DATA_BUFF_LENG					     ;set to number of bytes in the
-										     ;data buffer area
-		push	ax			   ;=A
-								       ;DOS 3fh
-		CallInstall Dosread,Multdos,41,<bx,cx,ds,es,di,si>,<si,di,es,ds,cx,bx>		 ;Read cx many bytes into the buffer
-		pop	ax			   ;=A
-		jc    DATASEEKNREAD
 
 IS_EXTENDED:
 		cmp	GET_EXT,1
@@ -579,7 +589,6 @@ CTLSEEKnREAD:
 
 
 DATASEEKnREAD:
-		mov    ALL_DONE,al		;=J
 		pop	cx
 		pop	si
 		pop	di
@@ -826,6 +835,95 @@ SC_SELECTED:
 		ret
 SCAN_COUNTRIES endp
 
+; Read and validate an object's complete data into the data buffer. Preserve
+; caller registers and the control directory; carry and ALL_DONE report errors.
+VALID_DATA proc near
+		push	ax
+		push	cx
+		push	dx
+		push	si
+		push	di
+		push	es
+		push	bp
+		mov	al,byte ptr ds:[si+2]
+		mov	di,offset OBJECT_RULES
+VD_RULE:
+		cmp	byte ptr ds:[di],al
+		je	VD_READ
+		cmp	byte ptr ds:[di],0
+		je	VD_READ
+		add	di,13
+		jmp	short VD_RULE
+VD_READ:
+		mov	dx,word ptr ds:[si+4]
+		mov	cx,word ptr ds:[si+6]
+		xor	bp,bp
+		CallInstall Lseek,multdos,40,<bx,cx,ds,es,di,si>,<si,di,es,ds,cx,bx>
+		jc	VD_IO_ERROR
+		mov	dx,offset NLS_BUFFER+CTL_BUFF
+		mov	cx,DATA_BUFF_LENG
+		CallInstall Dosread,multdos,41,<bx,cx,ds,es,di,si>,<si,di,es,ds,cx,bx>
+		jc	VD_IO_ERROR
+		cmp	ax,10
+		jb	VD_BAD
+		mov	cx,word ptr ds:[NLS_BUFFER+CTL_BUFF+8]
+		cmp	cx,word ptr ds:[di+1]
+		jb	VD_BAD
+		cmp	cx,word ptr ds:[di+3]
+		ja	VD_BAD
+		sub	ax,10
+		cmp	cx,ax
+		ja	VD_BAD
+		cmp	byte ptr ds:[di],0
+		je	VD_OK
+		push	ds
+		pop	es
+		mov	si,offset NLS_BUFFER+CTL_BUFF
+		add	di,5
+		mov	cx,8
+		cld
+		repe	cmpsb
+		jne	VD_BAD
+		cmp	byte ptr ds:[di-13],5
+		je	VD_FILE_CHARS
+		cmp	byte ptr ds:[di-13],7
+		jne	VD_OK
+		mov	cx,word ptr ds:[NLS_BUFFER+CTL_BUFF+8]
+		test	cl,1
+		jnz	VD_BAD
+		jcxz	VD_OK
+		mov	si,offset NLS_BUFFER+CTL_BUFF+10
+		add	si,cx
+		cmp	word ptr ds:[si-2],0
+		jne	VD_BAD
+		jmp	short VD_OK
+VD_FILE_CHARS:
+		xor	ax,ax
+		mov	al,byte ptr ds:[NLS_BUFFER+CTL_BUFF+17]
+		add	ax,8
+		cmp	ax,word ptr ds:[NLS_BUFFER+CTL_BUFF+8]
+		ja	VD_BAD
+VD_OK:
+		clc
+		jmp	short VD_DONE
+VD_BAD:
+		mov	ALL_DONE,INVALID_FUNCTION
+		stc
+		jmp	short VD_DONE
+VD_IO_ERROR:
+		mov	ALL_DONE,al
+		stc
+VD_DONE:
+		pop	bp
+		pop	es
+		pop	di
+		pop	si
+		pop	dx
+		pop	cx
+		pop	ax
+		ret
+VALID_DATA endp
+
 ; Validate the complete object directory before any DOS table is changed.
 ; Each record needs its length, id/reserved bytes and a doubleword pointer.
 VALID_OBJECTS proc near
@@ -847,12 +945,15 @@ VO_NEXT:
 		jc	VO_BAD
 		cmp	ax,dx
 		ja	VO_BAD
+		call	VALID_DATA
+		jc	VO_DONE
 		sub	dx,ax
 		add	si,ax
 		loop	VO_NEXT
 		clc
 		jmp	short VO_DONE
 VO_BAD:
+		mov	ALL_DONE,INVALID_FUNCTION
 		stc
 VO_DONE:
 		pop	si

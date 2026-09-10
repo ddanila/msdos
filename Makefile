@@ -580,6 +580,11 @@ test: test-baltic-country-resources-qemu
 test-baltic-country-resources-qemu: deploy
 	python3 tests/test_baltic_country_resources_qemu.py
 
+.PHONY: test-nlsfunc-dbcs-query-qemu
+test: test-nlsfunc-dbcs-query-qemu
+test-nlsfunc-dbcs-query-qemu: deploy $(SRC)/DEV/DISPLAY/EGA/EGA775.CPI
+	python3 tests/test_nlsfunc_dbcs_query_qemu.py
+
 .PHONY: test-baltic-files-qemu
 test: test-baltic-files-qemu
 test-baltic-files-qemu: deploy

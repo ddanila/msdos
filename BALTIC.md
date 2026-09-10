@@ -191,6 +191,9 @@ DOS table writes.
 [Country scan qualification](locales/baltic/country-scan-qualification.json)
 covers declared directory counts, record extents and valid padded records
 before the selected country data is used.
+[Country data qualification](locales/baltic/country-data-qualification.json)
+covers object signatures, complete payload reads, resident table capacities,
+filename-list bounds and DBCS termination before country-table writes.
 Deeper malformed-resource cases, legacy lifecycle failures, installed text and
 file workflows, and final source-matched release/reproducibility gates remain
 open. Existing Russian evidence does not establish Baltic support.
