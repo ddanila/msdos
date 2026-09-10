@@ -186,7 +186,7 @@ version_ok:
     int 21h
     cmp bx, 1606h
     jne true_version_failed
-    or dx, dx
+    and dx, 0efffh               ; allow the actual HMA residency flag
     jz true_version_ok
 true_version_failed:
     mov dx, fail_3306

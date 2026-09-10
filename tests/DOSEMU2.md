@@ -26,7 +26,8 @@ python3 tests/test_dosemu2_qemu.py --boot-image /path/to/dos-floppy.img --mode l
 
 `FLOPPY_IMAGE` also overrides the default input. HIGH/UMB requires that image
 to contain its matching HIMEM.SYS, EMM386.EXE, and English MEM.EXE at the root.
-The adapter verifies the HMA report and usable UMB linking in HIGH mode. Never overwrite
+The adapter verifies the true-version residency flag in both modes, plus
+the MEM HMA report and usable UMB linking in HIGH mode. Never overwrite
 reference media: each case receives a private boot-image copy and scratch FAT
 disks. Logs, commands, generated program sources, image hashes, and per-case
 results remain in a unique `out/dosemu2-qemu-*` directory. A failed assertion,
@@ -38,9 +39,10 @@ The adapter selects NASM-based FAT tests for FCB read/write/find/rename/delete,
 handle reads at EOF and with an alternate DTA, and seeks/readback/tell including
 large and negative offsets. Its case listing is authoritative. It uses actual
 guest FAT12 disks for both program and data drives. It does not use DOSEMU2's
-host filesystem redirector. The fixture writes a DOS-compatible OEM/version
-signature because the historical BIOS rejects mtools' default OEM identifier.
-This suite therefore does not qualify arbitrary formatter OEM strings.
+host filesystem redirector. The disks retain mtools' original OEM identifier.
+Formatter and malformed-BPB checks, actual HMA residency, and Microsoft 6.22
+comparisons are covered separately by `tests/test_compat_bpb_qemu.py`; see
+[the compatibility fix qualification](compat_bpb_qualification.json).
 
 This is an initial subset, not the complete DOSEMU2 suite. MFS/redirector,
 network, LFN, DPMI, compiler-dependent C tests, and external binary collections

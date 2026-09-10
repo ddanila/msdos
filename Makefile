@@ -1452,3 +1452,7 @@ test-baltic-keyboard-pending-qemu: deploy $(SRC)/DEV/KEYBOARD/KEYBRD2.SYS $(SRC)
 test-dosemu2-qemu: deploy
 	python3 tests/test_dosemu2_qemu.py --mode low
 	python3 tests/test_dosemu2_qemu.py --mode high
+
+.PHONY: test-compat-bpb-qemu
+test-compat-bpb-qemu: deploy
+	python3 tests/test_compat_bpb_qemu.py

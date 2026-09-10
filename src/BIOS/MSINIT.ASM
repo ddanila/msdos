@@ -1637,6 +1637,7 @@ OKnotMini:				;J.K. 4/7/86
 	mov	bx,offset DiskSector
 	mov	ax,0201h	; read, one sector
 	int	13h
+	jc	UNKNOWN		; never inspect a stale buffer after read failure
 
 ;SB34INIT009*************************************************************
 
@@ -1678,7 +1679,10 @@ SetRet_Brdg:
 	jmp	SETRET
 
 UNKNOWNJ:
-	JMP	UNKNOWN 			;Unformatted or illegal media.
+	call	Generic_FAT_BPB
+	jc	UNKNOWN
+	call	Mov_Media_IDs
+	jmp	Massage_bpb
 UNKNOWN3_0_J:					;AN012;Legally formatted media,
 	jmp	Unknown3_0			;AN012; although, content might be bad.
 
@@ -1930,6 +1934,143 @@ RET_HARD:
 	RET
 
 SETHARD ENDP
+
+; Accept structurally valid FAT12/16 BPBs regardless of formatter name.
+; DS:DI is the BDS; retain BIOS geometry and partition start for physical I/O.
+; Carry set leaves the BDS untouched, preserving the legacy unformatted path.
+Generic_FAT_BPB proc near
+        push    bp
+        mov     si,offset Bpb_In_Sector
+        cmp     word ptr cs:[DiskSector+510],0aa55h
+        jne     generic_bpb_bad
+        cmp     cs:[si.SECSIZE],512
+        jne     generic_bpb_bad
+        xor     cx,cx
+        mov     cl,cs:[si.SECALL]
+        or      cx,cx
+        jz      generic_bpb_bad
+        cmp     cl,128
+        ja      generic_bpb_bad
+        mov     ax,cx
+        dec     ax
+        test    ax,cx
+        jnz     generic_bpb_bad
+        cmp     cs:[si.RESNUM],0
+        je      generic_bpb_bad
+        mov     al,cs:[si.FATNUM]
+        dec     al
+        cmp     al,1
+        ja      generic_bpb_bad
+        mov     al,cs:[si.FATID]
+        cmp     al,0f0h
+        je      generic_bpb_media_ok
+        cmp     al,0f8h
+        jb      generic_bpb_bad
+generic_bpb_media_ok:
+        mov     bx,cs:[si.DIRNUM]
+        or      bx,bx
+        jz      generic_bpb_bad
+        test    bx,15
+        jnz     generic_bpb_bad
+        shr     bx,1
+        shr     bx,1
+        shr     bx,1
+        shr     bx,1
+        mov     bp,cs:[si.FATSIZE]
+        or      bp,bp
+        jz      generic_bpb_bad
+        cmp     cs:[si.FATNUM],2
+        jne     generic_bpb_one_fat
+        shl     bp,1
+        jc      generic_bpb_bad
+generic_bpb_one_fat:
+        add     bp,bx
+        jc      generic_bpb_bad
+        add     bp,cs:[si.RESNUM]
+        jc      generic_bpb_bad
+        call    Generic_BPB_Total
+        cmp     dx,[di.DRVLIM_H]
+        ja      generic_bpb_bad
+        jb      generic_bpb_size_ok
+        cmp     ax,[di.DRVLIM_L]
+        ja      generic_bpb_bad
+generic_bpb_size_ok:
+        sub     ax,bp
+        sbb     dx,0
+        jc      generic_bpb_bad
+        cmp     dx,cx                 ; avoid overflowing 16-bit DIV
+        jae     generic_bpb_bad
+        div     cx
+        or      ax,ax
+        jz      generic_bpb_bad
+        cmp     ax,65524
+        ja      generic_bpb_bad
+        mov     bp,ax                 ; data cluster count
+        add     ax,2                  ; include reserved FAT entries
+        cmp     bp,4096-10
+        jae     generic_bpb_fat16
+        mov     bx,ax
+        shl     ax,1
+        add     ax,bx
+        inc     ax
+        shr     ax,1                  ; FAT12 bytes, rounded up
+        add     ax,511
+        mov     cl,9
+        shr     ax,cl
+        jmp     short generic_bpb_capacity
+generic_bpb_fat16:
+        dec     ax
+        mov     al,ah
+        xor     ah,ah
+        inc     ax                    ; ceil(entries / 256) sectors
+generic_bpb_capacity:
+        cmp     ax,cs:[si.FATSIZE]
+        ja      generic_bpb_bad
+        ; All checks passed. Copy sector size through sectors/FAT, but keep
+        ; physical geometry and hidden sectors from the BIOS/partition table.
+        push    ds
+        push    es
+        push    di
+        push    si
+        push    ds
+        pop     es
+        push    cs
+        pop     ds
+        add     di,BYTEPERSEC
+        mov     cx,13
+        cld
+        rep     movsb
+        pop     si
+        pop     di
+        pop     es
+        pop     ds
+        call    Generic_BPB_Total
+        mov     [di.DRVLIM],0
+        mov     [di.DRVLIM_L],ax
+        mov     [di.DRVLIM_H],dx
+        cmp     bp,4096-10
+        jb      generic_bpb_good
+        or      cs:FBIGFAT,FBIG
+generic_bpb_good:
+        pop     bp
+        clc
+        ret
+generic_bpb_bad:
+        pop     bp
+        stc
+        ret
+Generic_FAT_BPB endp
+
+Generic_BPB_Total proc near
+        xor     dx,dx
+        mov     ax,cs:[si.SECNUM]
+        or      ax,ax
+        jnz     generic_total_done
+        mov     ax,cs:[si.SECNUM_L]
+        mov     dx,cs:[si.SECNUM_H]
+generic_total_done:
+        ret
+Generic_BPB_Total endp
 
 Cover_FDISK_Bug 	proc
 ;FDISK of PC DOS 3.3 and below, OS2 1.0 has a bug.  The maximum number of

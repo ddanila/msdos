@@ -1,21 +1,24 @@
 {
   "scope": "Initial external DOSEMU2 NASM/FAT subset using the QEMU transport, not the complete upstream suite or a full DOS release qualification.",
-  "dos_source_base_commit": "7f31571eecaa0e37fd9c1079730fd257fbcda3c6",
+  "dos_source_base_commit": "223d22b776a7250c7f0ee6df37ca2246e8b7d0f5",
+  "dos_source_sha256": {
+    "src/DOS/DISP.ASM": "99535ae82b254c5499449ecd14d2d8087a49afa22512aca16c995569dd6840d3",
+    "src/BIOS/MSINIT.ASM": "f75e3c4a672b5b195de8076fed5a879b118d106690406ce5d2f35c071e4d79b9"
+  },
   "dosemu2_fork": "https://github.com/ddanila/dosemu2",
   "dosemu2_branch": "custom",
-  "dosemu2_commit": "fd70e8106ee45a651f25baf0a655732bdcc2afc6",
+  "dosemu2_commit": "6befb95e7c661fa4649eb20407242436af94a579",
   "devel_unchanged_at": "8fe4740cfd8bd51d6abd6f6e3d3229ba860649a5",
   "build": {
     "command": "make -j4 deploy",
-    "log": "out/dosemu2-build.log",
+    "log": "out/compat-fixes-build.log",
     "passed": true
   },
   "runs": {
     "low": {
       "mode": "low",
       "boot_image": "/home/ddanila/fun/msdos/out/floppy.img",
-      "boot_sha256": "614980b601ceb66e6303e2568187e8dcba385a0f1254f178eea3060ac6cccb31",
-      "result_file": "/home/ddanila/fun/msdos/out/dosemu2-qemu-t60f8h66/results.json",
+      "boot_sha256": "69403f7dd5634017a42a706f46fb1d2689897f34a0f4dba366bcf1ae48644457",
       "cases": [
         {
           "name": "fcb_read",
@@ -133,13 +136,14 @@
           "name": "fcb_find_common_wild_three",
           "passed": true
         }
-      ]
+      ],
+      "result_file": "out/dosemu2-qemu-bdpjhn_8/results.json",
+      "adapter_sha256": "60515ddeefdf8ed2b8859107e958a5ae2f69b945a9ff782981aefad0d2e69249"
     },
     "high": {
       "mode": "high",
       "boot_image": "/home/ddanila/fun/msdos/out/floppy.img",
-      "boot_sha256": "614980b601ceb66e6303e2568187e8dcba385a0f1254f178eea3060ac6cccb31",
-      "result_file": "/home/ddanila/fun/msdos/out/dosemu2-qemu-f371lag6/results.json",
+      "boot_sha256": "69403f7dd5634017a42a706f46fb1d2689897f34a0f4dba366bcf1ae48644457",
       "cases": [
         {
           "name": "fcb_read",
@@ -257,13 +261,14 @@
           "name": "fcb_find_common_wild_three",
           "passed": true
         }
-      ]
+      ],
+      "result_file": "out/dosemu2-qemu-1ykerff9/results.json",
+      "adapter_sha256": "60515ddeefdf8ed2b8859107e958a5ae2f69b945a9ff782981aefad0d2e69249"
     },
     "microsoft": {
       "mode": "low",
       "boot_image": "/home/ddanila/fun/msdos/.reference/msdos622/msdos622disk1.IMA",
       "boot_sha256": "b88030401122d234ea6aafba3cfed7de2b7b1782700a67be5498edca6f9fec5d",
-      "result_file": "/home/ddanila/fun/msdos/out/dosemu2-qemu-3d1exhx0/results.json",
       "cases": [
         {
           "name": "fcb_read",
@@ -381,20 +386,23 @@
           "name": "fcb_find_common_wild_three",
           "passed": true
         }
-      ]
+      ],
+      "result_file": "out/dosemu2-qemu-thp6usyc/results.json",
+      "adapter_sha256": "60515ddeefdf8ed2b8859107e958a5ae2f69b945a9ff782981aefad0d2e69249"
     }
   },
-  "negative_control": {
+  "adapter_pin_note": "Runs used this exact adapter source hash before its commit; the recorded pin contains that tested source.",
+  "original_assertion_negative_control": {
     "case": "ds2_file_seek_read_SET",
     "expected_exit": 1,
     "detected": true,
     "mutation": "Change generated seek/read payload from 0123456789abcdefFEDCBA9876543210 to 012X456789abcdefFEDCBA9876543210 without changing the upstream expected result.",
     "result_file": "/home/ddanila/fun/msdos/out/dosemu2-qemu-rn6o6js4/results.json"
   },
+  "compatibility_regressions": "tests/compat_bpb_qualification.json",
   "limitations": [
-    "Only the case list is adopted; MFS, LFN, networking, DPMI and compiler-dependent tests remain outside this target.",
-    "Scratch disks carry a DOS-compatible OEM identifier. Arbitrary formatter signatures are not qualified.",
-    "HIGH/UMB is checked using the guest MEM HMA report and a reversible UMB-link operation. Our true-version HMA reporting flag is an existing TODO.",
-    "The Microsoft 6.22 control covers LOW mode; proprietary media are external and not committed."
+    "Initial NASM/FAT subset, not the entire upstream suite.",
+    "Microsoft DOSEMU2 control covers LOW; dedicated BPB/residency control also covers HIGH.",
+    "MFS, LFN, networking, DPMI and compiler-dependent tests remain outside this target."
   ]
 }

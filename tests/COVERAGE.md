@@ -533,3 +533,11 @@ Filename/directory and installed/reboot workflows remain separate requirements.
 matched guest DOS in LOW and HIGH/UMB modes. This is an independent optional
 gate, not a replacement for the maintained contract inventories. See
 [setup, licensing, and scope](DOSEMU2.md).
+
+`make test-compat-bpb-qemu` checks true-version HMA flags in LOW, HIGH/UMB,
+and no-HIMEM fallback, then verifies guest BPBs and file read/write against
+private mtools FAT12/FAT16 disks. Malformed BPBs must retain the legacy fallback
+without adopting invalid fields. Optional external Microsoft inputs characterize
+retail differences; expected DPB mismatches are recorded explicitly. See the
+[qualification record](compat_bpb_qualification.json) for cases, controls,
+matched memory regressions, and scope.

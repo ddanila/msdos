@@ -129,7 +129,10 @@ QueryDOSboot:
 	JNE	QueryBootDrive
 QueryTrueVersion:
 	MOV	BX,ES:[MSVERS]		; BL major, BH minor; never fake this value
-	XOR	DX,DX			; revision 0, no ROM/version flags
+	XOR	DX,DX			; revision 0, no ROM flag
+	CMP	BYTE PTR ES:[hma_resident],0
+	JE	SHORT ctrl_c_return
+	MOV	DH,10h			; DOS actually resides in the HMA
 	JMP	SHORT ctrl_c_return
 QueryBootDrive:
         MOV     DL,ES:[BOOTDRIVE]    ;AN000;;MS. put boot drive in DL

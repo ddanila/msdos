@@ -22,7 +22,10 @@ def check_runtime(work, candidate, *, initial_commands="", extra_commands=""):
     subprocess.run(["nasm", "-f", "bin", ROOT / "tests/command_pipe_filter.asm",
                     "-o", probe], check=True)
     install(disk, "PIPEIO.COM", probe.read_bytes())
-    install(disk, "QEXIT.COM", (ROOT / "out/command-startup-qexit.com").read_bytes())
+    exit_probe = work / "QEXIT.COM"
+    subprocess.run(["nasm", "-f", "bin", ROOT / "tests/qemu_exit.asm",
+                    "-o", exit_probe], check=True)
+    install(disk, "QEXIT.COM", exit_probe.read_bytes())
     batch = ("@ECHO OFF\r\nCTTY AUX\r\n" + initial_commands +
              "SET PACKED=ENVIRONMENT_SURVIVED\r\n"
              "SET COMSPEC=C:\\DOS\\COMMAND.COM\r\n"

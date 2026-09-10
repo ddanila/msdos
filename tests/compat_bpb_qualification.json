@@ -1,0 +1,467 @@
+{
+  "scope": "Fix the two compatibility defects recorded in TODO: true-version HMA residency and unfamiliar-OEM hard-disk BPBs. Focused qualification, not a full release or all TODO epics.",
+  "source_base_commit": "223d22b776a7250c7f0ee6df37ca2246e8b7d0f5",
+  "source_sha256": {
+    "src/DOS/DISP.ASM": "99535ae82b254c5499449ecd14d2d8087a49afa22512aca16c995569dd6840d3",
+    "src/BIOS/MSINIT.ASM": "f75e3c4a672b5b195de8076fed5a879b118d106690406ce5d2f35c071e4d79b9"
+  },
+  "core_sha256": {
+    "IO.SYS": "21c9cd0a1548eb3245ebd39f7dcb6ecb06a0c7b397012bc22fc6cd9ca50ef14e",
+    "MSDOS.SYS": "b495ab1ccc6fd3e7672b4724a7cccde519d8a65171c0c0ed6bad73cd331a42e9",
+    "COMMAND.COM": "6742b5889141a9c61d41e336445014d8055c19758febf4263f4f8ebe3c2f2c29",
+    "HIMEM.SYS": "d5ea7b0e775c2eb6eb2b7dab42eb7471a7a84bfb32cf2021215d4ed6f8a7850a",
+    "EMM386.EXE": "30618919795c46fcab2fc2d52aa2526ef406cb540548837dca147f9d7a18a684"
+  },
+  "build_log": {
+    "path": "out/compat-fixes-build.log",
+    "sha256": "40e158c912f25b02a4f8db331ce1d2e4a42ff64c8b50b1e82235b7d43ec32f2f"
+  },
+  "command": "python3 tests/test_compat_bpb_qemu.py --reference .reference/msdos622/msdos622disk1.IMA --reference-files .reference/msdos622/files",
+  "results_file": {
+    "path": "/home/ddanila/fun/msdos/out/compat-bpb-qaf73411/results.json",
+    "sha256": "3677ce99084ed71cc02b27e3d2608c1ca541ac38857ed1dd18b23c3d14e98559"
+  },
+  "results": [
+    {
+      "system": "ours",
+      "name": "hma-low",
+      "mode": "low",
+      "image_sha256": "69403f7dd5634017a42a706f46fb1d2689897f34a0f4dba366bcf1ae48644457",
+      "expected_layout": true,
+      "passed": true
+    },
+    {
+      "system": "ours",
+      "name": "hma-high",
+      "mode": "high",
+      "image_sha256": "69403f7dd5634017a42a706f46fb1d2689897f34a0f4dba366bcf1ae48644457",
+      "expected_layout": true,
+      "passed": true
+    },
+    {
+      "system": "ours",
+      "name": "hma-fallback",
+      "mode": "fallback",
+      "image_sha256": "69403f7dd5634017a42a706f46fb1d2689897f34a0f4dba366bcf1ae48644457",
+      "expected_layout": true,
+      "passed": true
+    },
+    {
+      "system": "ours",
+      "name": "mtools-fat12",
+      "mode": "low",
+      "image_sha256": "69403f7dd5634017a42a706f46fb1d2689897f34a0f4dba366bcf1ae48644457",
+      "expected_layout": true,
+      "passed": true
+    },
+    {
+      "system": "ours",
+      "name": "blank-oem",
+      "mode": "low",
+      "image_sha256": "69403f7dd5634017a42a706f46fb1d2689897f34a0f4dba366bcf1ae48644457",
+      "expected_layout": true,
+      "passed": true
+    },
+    {
+      "system": "ours",
+      "name": "arbitrary-oem",
+      "mode": "low",
+      "image_sha256": "69403f7dd5634017a42a706f46fb1d2689897f34a0f4dba366bcf1ae48644457",
+      "expected_layout": true,
+      "passed": true
+    },
+    {
+      "system": "ours",
+      "name": "dos-oem",
+      "mode": "low",
+      "image_sha256": "69403f7dd5634017a42a706f46fb1d2689897f34a0f4dba366bcf1ae48644457",
+      "expected_layout": true,
+      "passed": true
+    },
+    {
+      "system": "ours",
+      "name": "fat12-total32",
+      "mode": "low",
+      "image_sha256": "69403f7dd5634017a42a706f46fb1d2689897f34a0f4dba366bcf1ae48644457",
+      "expected_layout": true,
+      "passed": true
+    },
+    {
+      "system": "ours",
+      "name": "fat12-layout",
+      "mode": "low",
+      "image_sha256": "69403f7dd5634017a42a706f46fb1d2689897f34a0f4dba366bcf1ae48644457",
+      "expected_layout": true,
+      "passed": true
+    },
+    {
+      "system": "ours",
+      "name": "fat12-short-volume",
+      "mode": "low",
+      "image_sha256": "69403f7dd5634017a42a706f46fb1d2689897f34a0f4dba366bcf1ae48644457",
+      "expected_layout": true,
+      "passed": true
+    },
+    {
+      "system": "ours",
+      "name": "mtools-fat16",
+      "mode": "low",
+      "image_sha256": "69403f7dd5634017a42a706f46fb1d2689897f34a0f4dba366bcf1ae48644457",
+      "expected_layout": true,
+      "passed": true
+    },
+    {
+      "system": "ours",
+      "name": "fat16-total32",
+      "mode": "low",
+      "image_sha256": "69403f7dd5634017a42a706f46fb1d2689897f34a0f4dba366bcf1ae48644457",
+      "expected_layout": true,
+      "passed": true
+    },
+    {
+      "system": "ours",
+      "name": "fat16-layout",
+      "mode": "low",
+      "image_sha256": "69403f7dd5634017a42a706f46fb1d2689897f34a0f4dba366bcf1ae48644457",
+      "expected_layout": true,
+      "passed": true
+    },
+    {
+      "system": "ours",
+      "name": "mtools-high",
+      "mode": "high",
+      "image_sha256": "69403f7dd5634017a42a706f46fb1d2689897f34a0f4dba366bcf1ae48644457",
+      "expected_layout": true,
+      "passed": true
+    },
+    {
+      "system": "ours",
+      "name": "invalid-no-signature",
+      "mode": "low",
+      "image_sha256": "69403f7dd5634017a42a706f46fb1d2689897f34a0f4dba366bcf1ae48644457",
+      "expected_layout": true,
+      "passed": true
+    },
+    {
+      "system": "ours",
+      "name": "invalid-sector-size",
+      "mode": "low",
+      "image_sha256": "69403f7dd5634017a42a706f46fb1d2689897f34a0f4dba366bcf1ae48644457",
+      "expected_layout": true,
+      "passed": true
+    },
+    {
+      "system": "ours",
+      "name": "invalid-zero-cluster",
+      "mode": "low",
+      "image_sha256": "69403f7dd5634017a42a706f46fb1d2689897f34a0f4dba366bcf1ae48644457",
+      "expected_layout": true,
+      "passed": true
+    },
+    {
+      "system": "ours",
+      "name": "invalid-non-power-cluster",
+      "mode": "low",
+      "image_sha256": "69403f7dd5634017a42a706f46fb1d2689897f34a0f4dba366bcf1ae48644457",
+      "expected_layout": true,
+      "passed": true
+    },
+    {
+      "system": "ours",
+      "name": "invalid-zero-reserved",
+      "mode": "low",
+      "image_sha256": "69403f7dd5634017a42a706f46fb1d2689897f34a0f4dba366bcf1ae48644457",
+      "expected_layout": true,
+      "passed": true
+    },
+    {
+      "system": "ours",
+      "name": "invalid-zero-fats",
+      "mode": "low",
+      "image_sha256": "69403f7dd5634017a42a706f46fb1d2689897f34a0f4dba366bcf1ae48644457",
+      "expected_layout": true,
+      "passed": true
+    },
+    {
+      "system": "ours",
+      "name": "invalid-zero-root",
+      "mode": "low",
+      "image_sha256": "69403f7dd5634017a42a706f46fb1d2689897f34a0f4dba366bcf1ae48644457",
+      "expected_layout": true,
+      "passed": true
+    },
+    {
+      "system": "ours",
+      "name": "invalid-unaligned-root",
+      "mode": "low",
+      "image_sha256": "69403f7dd5634017a42a706f46fb1d2689897f34a0f4dba366bcf1ae48644457",
+      "expected_layout": true,
+      "passed": true
+    },
+    {
+      "system": "ours",
+      "name": "invalid-zero-fat-size",
+      "mode": "low",
+      "image_sha256": "69403f7dd5634017a42a706f46fb1d2689897f34a0f4dba366bcf1ae48644457",
+      "expected_layout": true,
+      "passed": true
+    },
+    {
+      "system": "ours",
+      "name": "invalid-short-fat",
+      "mode": "low",
+      "image_sha256": "69403f7dd5634017a42a706f46fb1d2689897f34a0f4dba366bcf1ae48644457",
+      "expected_layout": true,
+      "passed": true
+    },
+    {
+      "system": "ours",
+      "name": "invalid-metadata-overflow",
+      "mode": "low",
+      "image_sha256": "69403f7dd5634017a42a706f46fb1d2689897f34a0f4dba366bcf1ae48644457",
+      "expected_layout": true,
+      "passed": true
+    },
+    {
+      "system": "ours",
+      "name": "invalid-short-volume",
+      "mode": "low",
+      "image_sha256": "69403f7dd5634017a42a706f46fb1d2689897f34a0f4dba366bcf1ae48644457",
+      "expected_layout": true,
+      "passed": true
+    },
+    {
+      "system": "ours",
+      "name": "invalid-oversized-volume",
+      "mode": "low",
+      "image_sha256": "69403f7dd5634017a42a706f46fb1d2689897f34a0f4dba366bcf1ae48644457",
+      "expected_layout": true,
+      "passed": true
+    },
+    {
+      "system": "microsoft",
+      "name": "hma-low",
+      "mode": "low",
+      "image_sha256": "b88030401122d234ea6aafba3cfed7de2b7b1782700a67be5498edca6f9fec5d",
+      "expected_layout": true,
+      "passed": true
+    },
+    {
+      "system": "microsoft",
+      "name": "hma-high",
+      "mode": "high",
+      "image_sha256": "b88030401122d234ea6aafba3cfed7de2b7b1782700a67be5498edca6f9fec5d",
+      "expected_layout": true,
+      "passed": true
+    },
+    {
+      "system": "microsoft",
+      "name": "hma-fallback",
+      "mode": "fallback",
+      "image_sha256": "b88030401122d234ea6aafba3cfed7de2b7b1782700a67be5498edca6f9fec5d",
+      "expected_layout": true,
+      "passed": true
+    },
+    {
+      "system": "microsoft",
+      "name": "mtools-fat12",
+      "mode": "low",
+      "image_sha256": "b88030401122d234ea6aafba3cfed7de2b7b1782700a67be5498edca6f9fec5d",
+      "expected_layout": true,
+      "passed": true
+    },
+    {
+      "system": "microsoft",
+      "name": "blank-oem",
+      "mode": "low",
+      "image_sha256": "b88030401122d234ea6aafba3cfed7de2b7b1782700a67be5498edca6f9fec5d",
+      "expected_layout": false,
+      "passed": true
+    },
+    {
+      "system": "microsoft",
+      "name": "arbitrary-oem",
+      "mode": "low",
+      "image_sha256": "b88030401122d234ea6aafba3cfed7de2b7b1782700a67be5498edca6f9fec5d",
+      "expected_layout": false,
+      "passed": true
+    },
+    {
+      "system": "microsoft",
+      "name": "dos-oem",
+      "mode": "low",
+      "image_sha256": "b88030401122d234ea6aafba3cfed7de2b7b1782700a67be5498edca6f9fec5d",
+      "expected_layout": true,
+      "passed": true
+    },
+    {
+      "system": "microsoft",
+      "name": "fat12-total32",
+      "mode": "low",
+      "image_sha256": "b88030401122d234ea6aafba3cfed7de2b7b1782700a67be5498edca6f9fec5d",
+      "expected_layout": true,
+      "passed": true
+    },
+    {
+      "system": "microsoft",
+      "name": "fat12-layout",
+      "mode": "low",
+      "image_sha256": "b88030401122d234ea6aafba3cfed7de2b7b1782700a67be5498edca6f9fec5d",
+      "expected_layout": false,
+      "passed": true
+    },
+    {
+      "system": "microsoft",
+      "name": "fat12-short-volume",
+      "mode": "low",
+      "image_sha256": "b88030401122d234ea6aafba3cfed7de2b7b1782700a67be5498edca6f9fec5d",
+      "expected_layout": true,
+      "passed": true
+    },
+    {
+      "system": "microsoft",
+      "name": "mtools-fat16",
+      "mode": "low",
+      "image_sha256": "b88030401122d234ea6aafba3cfed7de2b7b1782700a67be5498edca6f9fec5d",
+      "expected_layout": true,
+      "passed": true
+    },
+    {
+      "system": "microsoft",
+      "name": "fat16-total32",
+      "mode": "low",
+      "image_sha256": "b88030401122d234ea6aafba3cfed7de2b7b1782700a67be5498edca6f9fec5d",
+      "expected_layout": true,
+      "passed": true
+    },
+    {
+      "system": "microsoft",
+      "name": "fat16-layout",
+      "mode": "low",
+      "image_sha256": "b88030401122d234ea6aafba3cfed7de2b7b1782700a67be5498edca6f9fec5d",
+      "expected_layout": false,
+      "passed": true
+    },
+    {
+      "system": "microsoft",
+      "name": "mtools-high",
+      "mode": "high",
+      "image_sha256": "b88030401122d234ea6aafba3cfed7de2b7b1782700a67be5498edca6f9fec5d",
+      "expected_layout": true,
+      "passed": true
+    }
+  ],
+  "contracts": [
+    "INT 21h AX=3306h returns BX=1606h and DX=1000h only when resident in HMA; LOW and HIGH without HIMEM return DX=0. ES is preserved.",
+    "Guest DPB must match sector size, cluster size, reserved sectors, FAT count/size, root entries/location, first data sector and maximum cluster. Guest reads known bytes and writes a file verified independently by host mtools.",
+    "FAT12/FAT16; 16/32-bit totals; shorter-than-partition volumes; original mtools, DOS, blank and custom OEM names; nondefault reserved sectors, FAT count and root size.",
+    "Malformed BPBs fall back without importing invalid fields: signature, sector size, cluster size, reserved/FAT/root fields, FAT capacity, metadata overflow and volume bounds."
+  ],
+  "reference_differences": {
+    "artifact": {
+      "path": "out/compat-reference-differences.log",
+      "sha256": "8e6e66900f128aee9510fd36a75b5a27826b7eb4b0cd38a3e816fb4581815013"
+    },
+    "description": "Microsoft 6.22 fails the DPB layout assertions for blank/custom OEM identifiers and the tested one-FAT, four-reserved-sector layouts. These are recorded as expected reference mismatches, not successful compatibility matches. Our valid-layout contract passes in those cases."
+  },
+  "negative_control": {
+    "artifact": {
+      "path": "out/compat-negative.log",
+      "sha256": "98907c09b4d54fc0abf63e2fc289892c50cf5037042ffcd89698904c59f8d505"
+    },
+    "directory": "out/compat-negative-f31pvm7p",
+    "input": "out/dosemu2-qemu-t60f8h66/fcb_read/boot.img",
+    "input_sha256": "340514c2dad09950f0d56ce64216ccbdd98a788e754289a56fb0978780d16245",
+    "expected_failures": [
+      "HMA true-version flag",
+      "mtools BPB layout"
+    ],
+    "detected": true
+  },
+  "dosemu2": "tests/dosemu2_qualification.json",
+  "memory_failure_matrix": {
+    "artifact": {
+      "path": "out/composed-memory-failures-fe9rl3ir/results.json",
+      "sha256": "141f5d17e891c46695597c39e700264dfac043d035c36b33636362de704335d1"
+    },
+    "cases": {
+      "control": true,
+      "bios-tables": true,
+      "bios-cds": true,
+      "bios-stacks": true,
+      "emm-table-allocation": true,
+      "emm-table-copy": true,
+      "umb-after-map": true,
+      "umb-before-publish": true,
+      "retained-child": true,
+      "dos-low": true
+    },
+    "command": "INCLUDE=$PWD/out/compat-include python3 tests/test_composed_memory_failures_qemu.py out/compat-candidate-matched",
+    "fixture_note": "Uses the established RAM M5, FILES=20, FCBS=4,0 configuration required by the matrix. Private lowercase version.inc include alias and uppercase EMM386.MAP copy accommodate Linux case-sensitive fixture paths."
+  },
+  "additional_checks": {
+    "software-reboot": {
+      "path": "out/compat-reboot.log",
+      "sha256": "ef3008311f5dfe2a2d63627cf76f7f072757951a584e9975503780bc03beebf1"
+    },
+    "bios-int19": {
+      "path": "out/compat-int19.log",
+      "sha256": "47b87960244a5e6e42fbeda8401ac964106f0fd60ddaa6cba24ea72c11c9f837"
+    },
+    "boot-profiles": {
+      "path": "out/compat-profiles.log",
+      "sha256": "38fc43a98d3754319670fb2404e2125ce8376d060a77f19efefa28db8cb21b3a"
+    },
+    "A20-off-interrupts": {
+      "path": "out/compat-stacks.log",
+      "sha256": "99525b69bfcb293a2d8c327053b52d98f0fb6b4da911d24526e386e476f90413"
+    },
+    "system-low": {
+      "path": "out/compat-system.log",
+      "sha256": "51de3bdb6aeb5ba2eb294c39e84b45dca9a692af143db878f23710b8b1043701"
+    },
+    "system-high": {
+      "path": "out/compat-high-system-final.log",
+      "sha256": "19586972eb30803158f98d8a221de7eaf133f65a28b711ed3c7b2b1341f90eea"
+    },
+    "process": {
+      "path": "out/compat-process.log",
+      "sha256": "74b0263308b8bbbc3bcce1c51b03e4bac56963eaec6ce8bcefaf0ae8507f09f8"
+    },
+    "file-memory": {
+      "path": "out/compat-file-memory.log",
+      "sha256": "14040d7fbc57d95b3832df87ece2a378b0fda60252a92bb4023785c5b1265bef"
+    },
+    "shell-exec-reload-pipes": {
+      "path": "out/compat-runtime.log",
+      "sha256": "51ff2b74702059a1808a3649d32d6141e06377527625560dba8fe62df560f4b0"
+    }
+  },
+  "limitations": [
+    "QEMU 486, virtual 512-byte-sector FAT12/FAT16 media; no new physical-storage qualification.",
+    "Generic validation accepts one or two FATs and sector-aligned fixed root directories. Legacy recognized-OEM/version handling remains intact.",
+    "No full pristine/reproducibility/release matrix claim. External VC/application qualification was not run because this host lacks the package; maintained internal EXEC/reload/pipe probes passed.",
+    "HIGH system probe requires EXPECT_UMB. Initial attempts with its default no-UMB expectation and memory fixtures with different startup settings were invalid fixture configurations, corrected for the reported passing runs."
+  ],
+  "rebase_verification": {
+    "base_commit": "dbd6aa216bf39a67b14ef7616630d5c80717b819",
+    "build_command": "make -j4 deploy",
+    "build_log": {
+      "path": "out/compat-rebased-build.log",
+      "sha256": "7500815e3d4202322e2c9f9a56dd6052d2276d982194c986b4b5216fbb1c26f3"
+    },
+    "all_qualified_core_binaries_identical": true,
+    "smoke_checks": {
+      "low": {
+        "result_file": "out/dosemu2-qemu-08l36vko/results.json",
+        "boot_sha256": "71a310770eebfd92d99b259994a898c8b191ae8983d96e405fd8d2be2d0ad1d2",
+        "passed": true
+      },
+      "high": {
+        "result_file": "out/dosemu2-qemu-5b33docj/results.json",
+        "boot_sha256": "71a310770eebfd92d99b259994a898c8b191ae8983d96e405fd8d2be2d0ad1d2",
+        "passed": true
+      }
+    }
+  }
+}

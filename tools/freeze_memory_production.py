@@ -73,8 +73,9 @@ def main():
     _,kernel = parse_map(maps/'MSDOS.MAP')
     kernel = {k.upper():v for k,v in kernel.items()}
     for name in ('SHARE','IFSFUNC'):
-        source = ROOT/f'src/CMD/{name}/{name}.MAP'
-        shutil.copyfile(source,maps/source.name)
+        directory = ROOT/f'src/CMD/{name}'
+        source = next(p for p in directory.iterdir() if p.name.upper() == f'{name}.MAP')
+        shutil.copyfile(source,maps/f'{name}.MAP')
         segments,fields = parse_map(source)
         base = segments['START'].paragraph*16+segments['START'].offset
         fields = {k.upper():v-base for k,v in fields.items()}
