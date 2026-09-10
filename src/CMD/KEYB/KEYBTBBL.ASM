@@ -301,6 +301,14 @@ HOT_KEY_SET:                              ;;;;;;;;
         JMP   SB_COMM_BEGIN            ;;
                                        ;;
 TB_STATE_CONTINUE4:                    ;;
+        ; Validate before subtracting the header or writing transient tables.
+        CMP   CX,4
+        JB    TB_BAD_RESOURCE
+        CMP   CX,MAX_LOGIC_SIZE
+        JA    TB_BAD_RESOURCE
+        MOV   AX,DI
+        ADD   AX,CX
+        JC    TB_BAD_RESOURCE
         MOV   ES:[DI],CX               ;; Store length parameter in
         ADD   DI,2                     ;;                  SHARED_DATA_AREA
         MOV   CX,FB.KT_SPECIAL_FEATURES;; Save the special features
@@ -338,6 +346,9 @@ TB_ERROR_CHECK3:                       ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
                                        ;;
 SB_COMM_BEGIN:                         ;;
+        MOV   AX,DI
+        ADD   AX,4
+        JC    TB_BAD_RESOURCE
         MOV   CX,SIZE KEYBSYS_XLAT_SECT-1 ;; Set number bytes to read header
         MOV   DX,DI                    ;; Set the SHARED_DATA_AREA address
         PUSH  ES                       ;;
@@ -350,6 +361,8 @@ SB_COMM_BEGIN:                         ;;
         JMP   TB_ERROR4                ;;
                                        ;;
 TB_STATE_CONTINUE6:                    ;;
+        CMP   AX,CX
+        JNE   TB_BAD_RESOURCE
         MOV   CX,ES:[DI].KX_SECTION_LEN;; Set length of section to read
         CMP   CX,0                     ;;
         JNE   TB_STATE_CONTINUE7       ;;
@@ -363,7 +376,10 @@ TB_STATE_CONTINUE7:                         ;;
         MOV   ES:[BP].COMMON_XLAT_PTR,DI    ;;
         ADD   DI,SD_AREA_DIFFERENCE         ;;  Adjust for relocation
                                        ;;;;;;;
-        CALL  STATE_BUILD              ;;
+        MOV   CX,MAX_COM_SIZE
+        CALL  STATE_BUILD
+        OR    CX,CX
+        JNZ   TB_BAD_RESOURCE
                                        ;; DI set at new beginning of area
                                        ;;              TABLE_AREA
                                        ;;              STATE_LOGIC
@@ -440,6 +456,7 @@ TB_CPN_CONTINUE4:                      ;;
         ADD   DI,SD_AREA_DIFFERENCE    ;;  Adjust for relocation
                                        ;;
 TB_CPN_CONTINUE5:                      ;;
+        MOV   CX,MAX_SPEC_SIZE
         CALL  STATE_BUILD              ;;  Build state
                                        ;;             TABLE_AREA
         CMP   CX,0                     ;;             COMMON_XLAT_SECTION
@@ -516,6 +533,8 @@ TB_ERROR3:                             ;;
         MOV   TB_RETURN_CODE,CX        ;;
         RET                            ;;
                                        ;;
+TB_BAD_RESOURCE:
+        MOV   CX,4
 TB_ERROR4:                             ;;
         CMP   CX,4                     ;;  Set error 4 return code
         JNE   TB_ERROR5                ;;
@@ -547,6 +566,7 @@ TABLE_BUILD          ENDP              ;;
 ;;     ES - points to our data segment
 ;;     SB_STATE_OFFSET - offset to the beginning of the info in Keyb Def SYS
 ;;     DI - offset of the beginning of the area used to build states
+;;     CX - maximum section size declared for common or specific tables
 ;;
 ;;     KEYBSYS_FILE_HANDLE - handle of the KEYBOARD.SYS file
 ;;
@@ -571,7 +591,10 @@ RESTORE_BP           DW    ?                   ;;
 ;;  Program Code
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
                                        ;;
+SB_SECTION_MAX       DW 0
+SB_REMAINING         DW 0
 STATE_BUILD          PROC NEAR         ;;
+        MOV   SB_SECTION_MAX,CX
                                        ;;
         MOV   SI,DI                    ;;  Get the tally pointer
         MOV   END_OF_AREA_PTR,DI       ;;  Save pointer
@@ -588,6 +611,9 @@ STATE_BUILD          PROC NEAR         ;;
         JMP   SB_ERROR4                ;;
                                        ;;
 SB_FIRST_HEADER:                       ;;
+        MOV   AX,DI
+        ADD   AX,4
+        JC    SB_ERROR4
         XOR   BP,BP                    ;;
         LEA   CX,[BP].KX_FIRST_STATE   ;; Set number of bytes to read header
         MOV   DX,DI                    ;;
@@ -601,6 +627,18 @@ SB_FIRST_HEADER:                       ;;
         JMP   SB_ERROR4                ;;
                                        ;;
 SB_HEAD_CONTINUE1:                     ;;
+        CMP   AX,CX
+        JNE   SB_ERROR4
+        MOV   AX,ES:[DI].KX_SECTION_LEN
+        CMP   AX,6                    ; header plus terminating state word
+        JB    SB_ERROR4
+        CMP   AX,SB_SECTION_MAX
+        JA    SB_ERROR4
+        MOV   DX,DI
+        ADD   DX,AX
+        JC    SB_ERROR4
+        SUB   AX,4
+        MOV   SB_REMAINING,AX
         MOV   DX,NEXT_SECT_PTR         ;;
         CMP   DX,-1                    ;;
         JE    SB_HEAD_CONTINUE2        ;;
@@ -616,6 +654,8 @@ SB_HEAD_CONTINUE3:                     ;;
         ADD   DI,CX                    ;; Update the DI pointer
                                        ;;
 SB_NEXT_STATE:                         ;;
+        CMP   SB_REMAINING,2
+        JB    SB_ERROR4
         XOR   BP,BP                    ;;  Set number
         LEA   CX,[BP].KX_STATE_ID      ;;     bytes to read state length
         MOV   DX,DI                    ;;  Read the header into the
@@ -628,11 +668,19 @@ SB_NEXT_STATE:                         ;;
 SB_CONTINUE1:                          ;;
         PUSH  CS                       ;; Reset the data segment
         POP   DS                       ;;
+        JC    SB_ERROR4
+        CMP   AX,CX
+        JNE   SB_ERROR4
         MOV   CX,ES:[DI].KX_STATE_LEN  ;; If the length of the state section
         MOV   STATE_LENGTH,CX          ;;
         ADD   DI,2                     ;;  is zero then done
         CMP   CX,0                     ;;
         JE    SB_DONE                  ;;
+        CMP   CX,7
+        JB    SB_ERROR4
+        CMP   CX,SB_REMAINING
+        JA    SB_ERROR4
+        SUB   SB_REMAINING,CX
         XOR   BP,BP                    ;;  Set number
         LEA   CX,[BP].KX_FIRST_XLAT-2  ;;     bytes to read state length
         MOV   DX,DI                    ;;  Read the header into the
@@ -645,6 +693,9 @@ SB_CONTINUE1:                          ;;
 SB_CONTINUE1A:                         ;;
         PUSH  CS                       ;; Reset the data segment
         POP   DS                       ;;
+        JC    SB_ERROR4
+        CMP   AX,CX
+        JNE   SB_ERROR4
         SUB   DI,2                     ;;
         MOV   AX,ES:[DI].XS_KBD_TYPE   ;;   Get the keyboard type def
         TEST  AX,HW_TYPE               ;;   Does it match our hardware?
@@ -656,6 +707,7 @@ SB_CONTINUE1A:                         ;;
         MOV   AH,42H                   ;;          LSEEK past this state
         MOV   AL,01H                   ;;
         INT   21H                      ;;
+        JC    SB_ERROR4
         JMP   SB_NEXT_STATE            ;;
                                        ;;
 SB_CONTINUE2:                          ;;     Yes, then
@@ -689,6 +741,8 @@ SB_ERROR_CHECK1:                       ;;
         JMP   SB_NEXT_STATE            ;;
                                        ;;
 SB_DONE:                               ;;
+        CMP   SB_REMAINING,2
+        JNE   SB_ERROR4
         MOV   AX,-1                    ;;
         MOV   SI,END_OF_AREA_PTR       ;;
         MOV   NEXT_SECT_PTR,SI         ;;
@@ -709,6 +763,7 @@ SB_ERROR3:                             ;;
         RET                            ;;
                                        ;;
 SB_ERROR4:                             ;;
+        MOV   BP,RESTORE_BP
         MOV   CX,4                     ;;
         RET                            ;;
                                        ;;

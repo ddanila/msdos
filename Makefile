@@ -575,6 +575,12 @@ test: test-baltic-country-qemu
 test-baltic-country-qemu: deploy $(SRC)/DEV/DISPLAY/EGA/EGA775.CPI
 	python3 tests/test_baltic_country_qemu.py
 
+.PHONY: test-baltic-keyboard-resources-qemu
+test: test-baltic-keyboard-resources-qemu
+test-baltic-keyboard-resources-qemu: deploy
+	python3 tests/test_baltic_keyboard_resources_qemu.py
+	python3 tests/test_baltic_keyboard_resources_qemu.py --dos
+
 .PHONY: test-baltic-install-qemu
 test: test-baltic-install-qemu
 test-baltic-install-qemu: deploy test-baltic-cpi

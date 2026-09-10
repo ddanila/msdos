@@ -1,0 +1,28 @@
+{
+  "KEYBOARD.SYS": {
+    "sha256": "57571a4b10040dd0645998d0ccb8caa6e02be904ded253c9c81d542750ae4d9d",
+    "entries": 26,
+    "sections": 78,
+    "states": 1022,
+    "minimum_state_size": 12,
+    "maximums": [
+      1120,
+      496,
+      640
+    ],
+    "status": "all-source-sections-fit-new-bounds"
+  },
+  "KEYBRD2.SYS": {
+    "sha256": "d003716471ffbe12803ac7beaf511a8a4e2d6a0b8ef5e3d214eee2a69584cf06",
+    "entries": 5,
+    "sections": 8,
+    "states": 81,
+    "minimum_state_size": 9,
+    "maximums": [
+      1120,
+      1143,
+      640
+    ],
+    "status": "all-source-sections-fit-new-bounds"
+  }
+}

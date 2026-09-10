@@ -170,6 +170,8 @@ changes. Real-BIOS country, display and legacy keyboard matrices have separate
 retained qualification records. The optional resources, notices and startup
 recipes are packaged; fresh/upgrade installation and installed HIGH/LOW language
 profiles are covered by the [installation qualification](locales/baltic/installation-qualification.json).
-Missing/malformed-resource cases, legacy lifecycle failures, complete typed
+[Keyboard resource qualification](locales/baltic/keyboard-resource-qualification.json)
+covers rejected outer-record pointers, short reads and section lengths.
+Deeper malformed-resource cases, legacy lifecycle failures, complete typed
 text/filename workflows and final source-matched release/reproducibility gates
 remain open. Existing Russian evidence does not establish Baltic support.

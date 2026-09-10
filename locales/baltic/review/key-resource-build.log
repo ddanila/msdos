@@ -1,0 +1,4 @@
+cd /Users/ddanila/fun/msdos/src/CMD/KEYB && /Users/ddanila/fun/msdos/bin/jwasm-masm "-Mx -t -I. -ID:\\TOOLS\\INC -I..\\..\\INC" "KEYBTBBL.ASM,KEYBTBBL.OBJ;"
+cd /Users/ddanila/fun/msdos/src/CMD/KEYB && /Users/ddanila/fun/msdos/bin/wlink "@KEYB.LNK"
+Warning! W1014: stack segment not found
+cd /Users/ddanila/fun/msdos/src/CMD/KEYB && /Users/ddanila/fun/msdos/bin/exe2bin "KEYB.EXE KEYB.COM"

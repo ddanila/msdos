@@ -285,3 +285,33 @@ These results qualify normal installed profiles on the recorded selected core.
 They supersede the earlier installed-path gaps above. Installed resource-failure
 cases, legacy lifecycle failures, complete text/filename workflows and final
 source-matched release and reproducibility checks remain open.
+
+## Keyboard resource rejection
+
+[Keyboard resource qualification](keyboard-resource-qualification.json) covers
+out-of-file directory/logic/page pointers, truncated headers and bodies, and
+invalid logic, section and state lengths. The loader now checks short reads
+before interpreting headers, bounds state traversal by its declared section,
+and propagates common-section construction errors. Failed construction keeps
+the resident tables intact; subsequent valid reloads must still work.
+
+`make test-baltic-keyboard-resources-qemu` exercises ET, EE, LV and LT in
+HIGH/LOW profiles through physical BIOS and DOS input. Each rejected load is
+followed by input and resident-capacity checks. ET/EE and LV additionally arm
+a reference dead key before rejection and require its composition afterward.
+LT has no dead accents in the selected layout. The record separates this
+focused pending-state check from the existing full accent matrix.
+
+The same executable passes the full Baltic HIGH/LOW BIOS/DOS input matrices,
+wrong-character controls and the Russian keyboard suite. All national layouts
+also pass physical input on real XT BIOS. A retained old/new comparison checks
+original-library command output and rejections across its language defaults and
+identifier-directory selections. It preserves existing unsupported forms;
+record presence alone does not establish that every command form is accepted.
+
+This gate covers the outer record boundaries and read failures listed in its
+mutation inventory. Inner logic opcodes and translation-table structure,
+allocation-header arithmetic, additional directory/ID variants, installed
+resource failures and legacy pending/rejection paths remain open. Existing
+installation results predate this loader change and require a final rerun with
+the release composition.

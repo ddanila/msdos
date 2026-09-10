@@ -1,0 +1,8 @@
+{
+  "before_sha256": "c5c8a2aae5264360eb9f41d3da3944224a97b6d99f03b3970cbfa4bb79aec553",
+  "after_sha256": "924edf011009fe4a747d045f24ae5da817b613e914cbf58b66ca22e3637ffa3e",
+  "before_size": 15184,
+  "after_size": 15360,
+  "before_from": "out/baltic-key-resources-02kzk98j/et-common-body-low/boot.img",
+  "after_from": "src/CMD/KEYB/KEYB.COM"
+}

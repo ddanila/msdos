@@ -499,6 +499,15 @@ These selected-core results cover normal installed paths. Resource failures,
 complete application/file workflows and the final source-matched release remain
 open acceptance requirements.
 
+The [Baltic keyboard resource qualification](../locales/baltic/keyboard-resource-qualification.json)
+records `test-baltic-keyboard-resources-qemu`, included in `make test` for BIOS
+and DOS input. Malformed outer records must be rejected without losing the
+resident language, physical input, pending composition or allocation bound;
+a valid reload follows each rejection. The inventory distinguishes pointer,
+short-read and length-boundary cases. Deeper inner-table validation, other
+directory/ID forms and installed/legacy failure workflows remain separate
+acceptance work.
+
 ## External DOS API suite
 
 `make test-dosemu2-qemu` runs selected upstream DOSEMU2 FAT tests against the

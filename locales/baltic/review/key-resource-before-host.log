@@ -1,0 +1,15 @@
+Baltic keyboard resource artifacts: /Users/ddanila/fun/msdos/out/baltic-key-resources-02kzk98j
+PASS: et-directory-pointer-low
+PASS: et-logic-pointer-low
+PASS: et-page-pointer-low
+PASS: et-logic-header-low
+PASS: et-logic-body-low
+PASS: et-common-header-low
+Traceback (most recent call last):
+  File "/Users/ddanila/fun/msdos/tests/test_baltic_keyboard_resources_qemu.py", line 85, in <module>
+    main()
+  File "/Users/ddanila/fun/msdos/tests/test_baltic_keyboard_resources_qemu.py", line 71, in main
+    result = run_case(work, base, language.lower()+'-'+mutation+'-'+memory,
+  File "/Users/ddanila/fun/msdos/tests/test_ru_keyboard_qemu.py", line 274, in run_case
+    raise AssertionError(f'timeout at {case}: {log}')
+AssertionError: timeout at {'name': 'Estonian lower', 'keys': [('bracket_right', True), ('bracket_right', False)], 'bios_ax': 7140}: /Users/ddanila/fun/msdos/out/baltic-key-resources-02kzk98j/et-common-body-low/serial.log
