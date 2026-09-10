@@ -403,6 +403,396 @@
       ],
       "private_artifacts": "out/baltic-legacy-keyboard-ym2dwk1y",
       "command": "MEMORY_CORE_DIR=out/memory-production/files python3 tests/test_baltic_legacy_keyboard_86box.py --emulator out/ru-86box-vnc-bs283qnk/build/src/86Box --roms \"$BOX86_ROMS\" --qt-platform offscreen --machine at84"
+    },
+    {
+      "status": "selected-cases-passed",
+      "machine": "xt83",
+      "suite": "physical",
+      "memory_profile": "DOS=LOW",
+      "bios_api": "INT 16h AH=00h",
+      "dos_api": "INT 21h AH=07h",
+      "core_sha256": {
+        "EMM386.EXE": "58266b6614594de7a9cfde9eda75e3eb241b9e2e941e67b70645a0f8a197dae6",
+        "HIMEM.SYS": "340cbfd1f0e835755adce99d80c607f8edeb48ea2b20a6a142402a25434f8d13",
+        "IO.SYS": "793169a292df40bb117eb487136a0d8e7f4334ca223e8206bf53f33141f24715",
+        "MSDOS.SYS": "1475174f50c8c349bedd7cd4a0be88bce055f2e411b7454b5f68fffbff269b62",
+        "COMMAND.COM": "6742b5889141a9c61d41e336445014d8055c19758febf4263f4f8ebe3c2f2c29"
+      },
+      "emulator_sha256": "798ac6072d5147ed4dca7540ca5303da1e4c2d190853c227dde9ea3b33583c18",
+      "resource_sha256": {
+        "src/CMD/KEYB/KEYB.COM": "c5c8a2aae5264360eb9f41d3da3944224a97b6d99f03b3970cbfa4bb79aec553",
+        "src/DEV/KEYBOARD/KEYBRD2.SYS": "d003716471ffbe12803ac7beaf511a8a4e2d6a0b8ef5e3d214eee2a69584cf06",
+        "src/DEV/COUNTRY/COUNTRY.SYS": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c",
+        "src/DEV/DISPLAY/EGA/EGA775.CPI": "ab38fe5b8acae0ba3933ac6b66596c58b32bc23385285b8cc68fec1fa8f15255",
+        "src/DEV/DISPLAY/DISPLAY.SYS": "0ebd3bfad4e87d79e05219c02ea71ce4e94f9e11b432efdf652a022488d9ac08",
+        "src/CMD/NLSFUNC/NLSFUNC.EXE": "bc2a0c9b0900bcac03a6cfe072ea56ea01bd2333b1d1bf8f810f28e668340e67",
+        "src/CMD/MODE/MODE.COM": "c385aad5697fcec3a9113f58b983b978a7f969e99b153ebd496b12dab0e3767d"
+      },
+      "reference_sha256": "09a0a925cf85cbcb0294f1bb63554729f5e3d4cd41316f3cb834b4376aee19f2",
+      "cases": [
+        {
+          "input": "bios",
+          "emulator_exit": 0,
+          "reads": 178,
+          "probe_passes": 1,
+          "type_passes": 1,
+          "actions": [
+            [
+              "P372775.COM",
+              false
+            ],
+            [
+              "NLSFUNC",
+              false
+            ],
+            [
+              "MODE CON CP PREPARE=((775) EGA775.CPI)",
+              false
+            ],
+            [
+              "MODE CON CP SELECT=775",
+              false
+            ],
+            [
+              "KEYB ET,775,KEYBRD2.SYS",
+              false
+            ],
+            [
+              "TYPECHK.COM",
+              false
+            ],
+            [
+              "CPCHK.COM",
+              false
+            ],
+            [
+              "P372775.COM",
+              false
+            ],
+            [
+              "PROBE.COM",
+              false
+            ]
+          ],
+          "startup_reconnects": 7,
+          "log": {
+            "path": "review/legacy-xt83-et-bios.log",
+            "sha256": "dda44282473c978eb9dfcd82104cc79c03e57ff5136b8a9c2328c091b85b2f59"
+          },
+          "language": "et",
+          "input_oracle": "et",
+          "config": {
+            "path": "review/legacy-xt83-et-bios.cfg",
+            "sha256": "66deeb5664ee6eb477124da608b6aeb2fdd928e4455346bbcc1c25ff5672a074"
+          },
+          "expected_bytes": {
+            "path": "review/legacy-xt83-et-bios-expected.bin",
+            "sha256": "0aec6b4c0b764a486c7b6c333a32fd03f01741d064a6b4149b0c270d72d4914c"
+          }
+        },
+        {
+          "input": "dos",
+          "emulator_exit": 0,
+          "reads": 178,
+          "probe_passes": 1,
+          "type_passes": 1,
+          "actions": [
+            [
+              "P372775.COM",
+              false
+            ],
+            [
+              "NLSFUNC",
+              false
+            ],
+            [
+              "MODE CON CP PREPARE=((775) EGA775.CPI)",
+              false
+            ],
+            [
+              "MODE CON CP SELECT=775",
+              false
+            ],
+            [
+              "KEYB ET,775,KEYBRD2.SYS",
+              false
+            ],
+            [
+              "TYPECHK.COM",
+              false
+            ],
+            [
+              "CPCHK.COM",
+              false
+            ],
+            [
+              "P372775.COM",
+              false
+            ],
+            [
+              "PROBE.COM",
+              false
+            ]
+          ],
+          "startup_reconnects": 7,
+          "log": {
+            "path": "review/legacy-xt83-et-dos.log",
+            "sha256": "d08aa4dece59e9e2fbfc0c97e6f3f210ae05e26d4b524573f2408552914c66c9"
+          },
+          "language": "et",
+          "input_oracle": "et",
+          "config": {
+            "path": "review/legacy-xt83-et-dos.cfg",
+            "sha256": "66deeb5664ee6eb477124da608b6aeb2fdd928e4455346bbcc1c25ff5672a074"
+          },
+          "expected_bytes": {
+            "path": "review/legacy-xt83-et-dos-expected.bin",
+            "sha256": "0aec6b4c0b764a486c7b6c333a32fd03f01741d064a6b4149b0c270d72d4914c"
+          }
+        },
+        {
+          "input": "bios",
+          "emulator_exit": 0,
+          "reads": 108,
+          "probe_passes": 1,
+          "type_passes": 1,
+          "actions": [
+            [
+              "P371775.COM",
+              false
+            ],
+            [
+              "NLSFUNC",
+              false
+            ],
+            [
+              "MODE CON CP PREPARE=((775) EGA775.CPI)",
+              false
+            ],
+            [
+              "MODE CON CP SELECT=775",
+              false
+            ],
+            [
+              "KEYB LV,775,KEYBRD2.SYS",
+              false
+            ],
+            [
+              "TYPECHK.COM",
+              false
+            ],
+            [
+              "CPCHK.COM",
+              false
+            ],
+            [
+              "P371775.COM",
+              false
+            ],
+            [
+              "PROBE.COM",
+              false
+            ]
+          ],
+          "startup_reconnects": 7,
+          "log": {
+            "path": "review/legacy-xt83-lv-bios.log",
+            "sha256": "78aa50a419b1bd97f0c7f62188b1b91d69c031bbca56c7436511310d8f4d940e"
+          },
+          "language": "lv",
+          "input_oracle": "lv",
+          "config": {
+            "path": "review/legacy-xt83-lv-bios.cfg",
+            "sha256": "66deeb5664ee6eb477124da608b6aeb2fdd928e4455346bbcc1c25ff5672a074"
+          },
+          "expected_bytes": {
+            "path": "review/legacy-xt83-lv-bios-expected.bin",
+            "sha256": "cd940a78b45623c2903e5a0eea518175ec8d24754333f9718d056cf62bb20429"
+          }
+        },
+        {
+          "input": "dos",
+          "emulator_exit": 0,
+          "reads": 108,
+          "probe_passes": 1,
+          "type_passes": 1,
+          "actions": [
+            [
+              "P371775.COM",
+              false
+            ],
+            [
+              "NLSFUNC",
+              false
+            ],
+            [
+              "MODE CON CP PREPARE=((775) EGA775.CPI)",
+              false
+            ],
+            [
+              "MODE CON CP SELECT=775",
+              false
+            ],
+            [
+              "KEYB LV,775,KEYBRD2.SYS",
+              false
+            ],
+            [
+              "TYPECHK.COM",
+              false
+            ],
+            [
+              "CPCHK.COM",
+              false
+            ],
+            [
+              "P371775.COM",
+              false
+            ],
+            [
+              "PROBE.COM",
+              false
+            ]
+          ],
+          "startup_reconnects": 7,
+          "log": {
+            "path": "review/legacy-xt83-lv-dos.log",
+            "sha256": "aac55883753aa92254d073acc430870533dd80bf72b354c10b79f5bd2968fe8e"
+          },
+          "language": "lv",
+          "input_oracle": "lv",
+          "config": {
+            "path": "review/legacy-xt83-lv-dos.cfg",
+            "sha256": "66deeb5664ee6eb477124da608b6aeb2fdd928e4455346bbcc1c25ff5672a074"
+          },
+          "expected_bytes": {
+            "path": "review/legacy-xt83-lv-dos-expected.bin",
+            "sha256": "cd940a78b45623c2903e5a0eea518175ec8d24754333f9718d056cf62bb20429"
+          }
+        },
+        {
+          "input": "bios",
+          "emulator_exit": 0,
+          "reads": 142,
+          "probe_passes": 1,
+          "type_passes": 1,
+          "actions": [
+            [
+              "P370775.COM",
+              false
+            ],
+            [
+              "NLSFUNC",
+              false
+            ],
+            [
+              "MODE CON CP PREPARE=((775) EGA775.CPI)",
+              false
+            ],
+            [
+              "MODE CON CP SELECT=775",
+              false
+            ],
+            [
+              "KEYB LT,775,KEYBRD2.SYS",
+              false
+            ],
+            [
+              "TYPECHK.COM",
+              false
+            ],
+            [
+              "CPCHK.COM",
+              false
+            ],
+            [
+              "P370775.COM",
+              false
+            ],
+            [
+              "PROBE.COM",
+              false
+            ]
+          ],
+          "startup_reconnects": 7,
+          "log": {
+            "path": "review/legacy-xt83-lt-bios.log",
+            "sha256": "b1fdf494fc68b0803366ef0558a4c2183b271d095fd4fa22a7f87864d369afe3"
+          },
+          "language": "lt",
+          "input_oracle": "lt",
+          "config": {
+            "path": "review/legacy-xt83-lt-bios.cfg",
+            "sha256": "66deeb5664ee6eb477124da608b6aeb2fdd928e4455346bbcc1c25ff5672a074"
+          },
+          "expected_bytes": {
+            "path": "review/legacy-xt83-lt-bios-expected.bin",
+            "sha256": "e5ea920b75832393f864a09e3c9544299288d7eff89141c9120c7a7032d09aab"
+          }
+        },
+        {
+          "input": "dos",
+          "emulator_exit": 0,
+          "reads": 142,
+          "probe_passes": 1,
+          "type_passes": 1,
+          "actions": [
+            [
+              "P370775.COM",
+              false
+            ],
+            [
+              "NLSFUNC",
+              false
+            ],
+            [
+              "MODE CON CP PREPARE=((775) EGA775.CPI)",
+              false
+            ],
+            [
+              "MODE CON CP SELECT=775",
+              false
+            ],
+            [
+              "KEYB LT,775,KEYBRD2.SYS",
+              false
+            ],
+            [
+              "TYPECHK.COM",
+              false
+            ],
+            [
+              "CPCHK.COM",
+              false
+            ],
+            [
+              "P370775.COM",
+              false
+            ],
+            [
+              "PROBE.COM",
+              false
+            ]
+          ],
+          "startup_reconnects": 7,
+          "log": {
+            "path": "review/legacy-xt83-lt-dos.log",
+            "sha256": "99202bd013cc626af66d220a5236000626f82010fcb8f38828da8f6ab279b202"
+          },
+          "language": "lt",
+          "input_oracle": "lt",
+          "config": {
+            "path": "review/legacy-xt83-lt-dos.cfg",
+            "sha256": "66deeb5664ee6eb477124da608b6aeb2fdd928e4455346bbcc1c25ff5672a074"
+          },
+          "expected_bytes": {
+            "path": "review/legacy-xt83-lt-dos-expected.bin",
+            "sha256": "e5ea920b75832393f864a09e3c9544299288d7eff89141c9120c7a7032d09aab"
+          }
+        }
+      ],
+      "private_artifacts": "out/baltic-legacy-keyboard-wa736vgq",
+      "command": "MEMORY_CORE_DIR=out/memory-production/files python3 tests/test_baltic_legacy_keyboard_86box.py --emulator out/ru-86box-vnc-bs283qnk/build/src/86Box --roms \"$BOX86_ROMS\" --qt-platform offscreen --machine xt83"
     }
   ],
   "input_oracles": {
@@ -12532,13 +12922,20 @@
     }
   },
   "remaining": [
-    "XT-83 Baltic physical input matrix.",
     "Legacy selection/reload/pending-state and resource failure cases.",
-    "Real-BIOS font capture, installed profiles, complete workflows and final release qualification."
+    "Real-BIOS country transitions, installed profiles, complete workflows and final release qualification."
   ],
   "roms": {
     "video/vga/ibm_vga.bin": {
       "sha256": "51b49761f72780a696c36f3d2e74a8168c1c99b865070f7f90b8e621a8b5ae17",
+      "size": 32768
+    },
+    "machines/ibmxt86/BIOS_5160_09MAY86_U18_59X7268_62X0890_27256_F800.BIN": {
+      "sha256": "f96a33e42173a87336a96ea97fad2df0e8b55bc7962f84be1d5a3d85b2690799",
+      "size": 32768
+    },
+    "machines/ibmxt86/BIOS_5160_09MAY86_U19_62X0819_68X4370_27256_F000.BIN": {
+      "sha256": "db7105778118441bd39bb5554335b4b90a87fefe1ef1171afc370822e271ae91",
       "size": 32768
     },
     "machines/ibmat/BIOS_5170_15NOV85_U27.BIN": {

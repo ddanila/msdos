@@ -36,7 +36,8 @@ def verify_grid(screen,plane,height):
     return 256*height*cell
 
 
-def run_case(work,args,core,page,height,expected,corrupt):
+def run_case(work,args,core,page,height,expected,corrupt,
+             cpi_source=None,corrupt_slot=0xf1,country=7,country_page=866):
     name=f'{page}-{height}'+('-corrupt' if corrupt else '')
     case=work/name;case.mkdir();image=case/'test.img'
     subprocess.run(['bash','-c','source "$1/tests/86box_286_lib.sh"\nmake_86box_286_boot_image "$2" "$1"',
@@ -51,15 +52,17 @@ def run_case(work,args,core,page,height,expected,corrupt):
         put(filename,(case/filename).read_bytes())
     subprocess.run(['nasm','-f','bin',str(ROOT/'tests/86box_exit.asm'),'-o',str(case/'BXEXIT.COM')],check=True)
     put('BXEXIT.COM',(case/'BXEXIT.COM').read_bytes())
-    cpi=bytearray((CPI if page==866 else CPI.with_name('EGA.CPI')).read_bytes())
+    cpi=bytearray((cpi_source or (CPI if page==866 else CPI.with_name('EGA.CPI'))).read_bytes())
     if corrupt:
-        cpi[59+6+0xf1*16]^=0x80
+        if height!=16:
+            raise ValueError('wrong-slot control requires the 16-row font')
+        cpi[59+6+corrupt_slot*16]^=0x80
     put('TEST.CPI',cpi)
     for source,target in [('DEV/COUNTRY/COUNTRY.SYS','COUNTRY.SYS'),
                           ('DEV/DISPLAY/DISPLAY.SYS','DISPLAY.SYS'),
                           ('CMD/MODE/MODE.COM','MODE.COM'),('CMD/NLSFUNC/NLSFUNC.EXE','NLSFUNC.EXE')]:
         put(target,(ROOT/'src'/source).read_bytes())
-    put('CONFIG.SYS',b'COUNTRY=007,866,COUNTRY.SYS\r\nDOS=LOW\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(1,3))\r\n')
+    put('CONFIG.SYS',f'COUNTRY={country:03d},{country_page},COUNTRY.SYS\r\nDOS=LOW\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(1,3))\r\n'.encode('ascii'))
     actions=['NLSFUNC',f'MODE CON CP PREPARE=(({page}) TEST.CPI)','SETH.COM',
              f'MODE CON CP SELECT={page}','PROBE.COM']
     batch=['@ECHO OFF','CTTY AUX']
@@ -89,7 +92,7 @@ def run_case(work,args,core,page,height,expected,corrupt):
     assert len(plane)==8192
     (case/'font-plane.bin').write_bytes(plane)
     mismatches=[b for b in range(256) if plane[b*32:b*32+height]!=expected[b]]
-    assert mismatches==([0xf1] if corrupt else []),(case,mismatches)
+    assert mismatches==([corrupt_slot] if corrupt else []),(case,mismatches)
     pixels=subprocess.check_output(['mtype','-i',str(image),'::SCREEN.BIN'])
     width,rows=struct.unpack('<HH',pixels[:4]);assert len(pixels)==4+width*rows*3
     screen=Image.frombytes('RGB',(width,rows),pixels[4:],'raw','BGR')

@@ -79,9 +79,9 @@ captures. A deliberately wrong o-with-tilde glyph must fail the same byte oracle
 Samples include all three languages. The Russian/existing EGA-page regression
 matrix passes with the shared runner. Both new gates are included in `make test`.
 
-Real-BIOS rendering/country transitions, installed recipes and full release
-qualification remain separate open gates. Physical input is recorded below.
-The font test's
+Real-BIOS country transitions, installed recipes and full release qualification
+remain separate open gates. Physical input and real-BIOS rendering are recorded
+below. The font test's
 Estonian COUNTRY selection does not establish country-API support for every
 language, and rendered samples do not establish typed keyboard input.
 
@@ -147,8 +147,8 @@ IDs, missing files, bad signatures and short headers. Each phase checks status
 and physical input; rejected loads must preserve the active language. These
 gates are included in `make test`.
 
-Additional modifier and fallback edges, deeply malformed libraries, XT-83 and
-legacy lifecycle checks, installation and complete language workflows remain open
+Additional modifier and fallback edges, deeply malformed libraries, legacy
+lifecycle checks, installation and complete language workflows remain open
 requirements. Pending mode/reload boundaries are qualified below.
 
 [Pending composition semantics](keyboard-pending-contract.json) define the
@@ -182,9 +182,10 @@ German allocation and requires an oversized Baltic load to fail while preserving
 the German layout, pending accent and allocation limit.
 
 [Legacy keyboard qualification](keyboard-legacy-qualification.json) records
-physical Estonian, Latvian and Lithuanian BIOS/DOS input on real IBM AT BIOS
-with an AT-84 keyboard and DOS LOW. The host filters unavailable right Alt/Ctrl
-and the extra ISO key, uses left Ctrl+Alt for third level, and moves navigation
+physical Estonian, Latvian and Lithuanian BIOS/DOS input on real IBM AT and XT
+BIOS with AT-84 and XT-83 keyboards and DOS LOW. The host filters unavailable
+right Alt/Ctrl and the extra ISO key, uses left Ctrl+Alt for third level, and
+moves navigation
 to the physical keypad. It asserts that every required national letter in both
 cases and every reference dead-key pair remains reachable. Guest byte checks
 also cover applicable Caps/Shift, punctuation, controls and modifier release.
@@ -200,11 +201,29 @@ MEMORY_CORE_DIR=out/memory-production/files python3 tests/test_baltic_legacy_key
 ```
 
 The runner accepts `--language et|lv|lt` and `--input bios|dos` for focused
-checks. Its `--machine xt83` path still requires Baltic qualification. Run
-these VNC cases sequentially because the backend uses a fixed port. The shared
+checks. Use `--machine xt83` for the qualified XT matrix. Run these VNC cases
+sequentially because the backend uses a fixed port. The shared
 harness reconnects during an initial command wait to recover an emulator
 startup pause race; it sends no keys until the guest requests input and still
 requires guest completion and successful exit.
 
-Legacy reload/pending-state failures, real-BIOS font capture, installed profiles,
-complete language workflows and final release qualification remain open.
+Legacy reload/pending-state failures, installed profiles, complete language
+workflows and final release qualification remain open.
+
+[Real-BIOS display qualification](display-286-qualification.json) records
+`tests/test_baltic_display_86box.py` on IBM AT BIOS with DOS LOW. It selects
+CP775 through DISPLAY/MODE at every supported font height, exports the actual
+VGA font plane, and captures the rendered screen through the emulator's guest
+Unit Tester interface. The host checks every glyph's loaded rows and every
+grid pixel, including VGA ninth-column replication. The retained captures show
+samples for Estonian, Latvian and Lithuanian, alongside DOS symbols and borders.
+An altered o-with-tilde glyph must be the sole mismatched slot in the negative
+control. Guest completion and successful emulator exit are mandatory.
+The same runner also passes the CP866 height matrix, existing EGA pages and
+the Russian wrong-glyph control with its default arguments.
+
+Invoke the display gate with the same `--emulator`, `--roms` and `--qt-platform`
+arguments as the keyboard gate. It uses private images and accepts `--jobs 2`;
+its software renderer does not use the keyboard backend's VNC port. The setup
+uses Estonian COUNTRY for a shared-font check. Country transitions, installed
+paths and complete typed workflows remain separate requirements.

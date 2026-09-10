@@ -451,15 +451,27 @@ store; both must fail. Further failure/page-transition cases and the remaining
 real-BIOS, installation and release gates are separate requirements.
 
 The [Baltic legacy keyboard qualification](../locales/baltic/keyboard-legacy-qualification.json)
-records `tests/test_baltic_legacy_keyboard_86box.py` on real IBM AT BIOS with
-the AT-84 keyboard and DOS LOW. Both BIOS and DOS reads cover each language's
-reachable physical planes and every reference dead-key pair. The adapter
+records `tests/test_baltic_legacy_keyboard_86box.py` on real IBM AT and XT BIOS
+with AT-84 and XT-83 keyboards and DOS LOW. Both BIOS and DOS reads cover each
+language's reachable physical planes and every reference dead-key pair. The adapter
 rejects loss of required national letters when filtering unavailable hardware
 keys. It uses Ctrl+Alt for third level and keypad navigation with legacy scan
 words. Guest probes check country tables before and after CP775 activation,
 resident keyboard type, output bytes, empty input queue and modifier release.
 Runs retain physical event oracles, expected bytes, logs, configurations and
 core/resource/backend/ROM hashes, and require successful guest-controlled exit.
-The XT-83 matrix, legacy load failures, actual glyph capture, installed language
-profiles and complete workflows remain open. The VNC backend requires sequential
+Legacy load failures, installed language profiles and complete workflows remain
+open. The VNC backend requires sequential
 runs and is invoked explicitly with `--emulator` and `--roms`.
+
+The [Baltic real-BIOS display qualification](../locales/baltic/display-286-qualification.json)
+records `tests/test_baltic_display_86box.py` on IBM AT BIOS with DOS LOW.
+The guest selects CP775 at every supported height and exports the actual VGA
+font plane and Unit Tester screen capture. The host compares all glyph rows
+and rendered grid pixels, including VGA ninth-column replication. A damaged
+o-with-tilde slot must be the only glyph mismatch in the negative control.
+All three language samples appear in the retained, visually reviewed captures.
+The gate requires guest completion and successful exit; Estonian COUNTRY setup
+does not qualify national country transitions or installed workflows.
+The record includes the shared runner's CP866 height matrix, preserved EGA
+pages and Russian corruption-control regression.

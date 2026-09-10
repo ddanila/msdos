@@ -1,0 +1,565 @@
+{
+  "schema_version": 1,
+  "status": "real-bios-font-matrix-passed",
+  "scope": "Shared CP775 screen font at all supported heights on real IBM AT BIOS with DOS LOW and Estonian COUNTRY setup. Actual loaded VGA glyph bytes and rendered grid pixels are checked, including VGA ninth-column behavior. Samples include all three Baltic languages. Does not establish national country transitions, physical input, installed paths, resource rejection or complete text/filename workflows.",
+  "booted_core_files": [
+    "IO.SYS",
+    "MSDOS.SYS",
+    "COMMAND.COM"
+  ],
+  "backend_provenance": "../ru/text-286-qualification.json",
+  "runs": [
+    {
+      "schema_version": 1,
+      "status": "selected-cases-passed",
+      "scope": "Shared CP775 font on real IBM AT BIOS, DOS LOW, with Estonian COUNTRY setup and rendered samples for all three languages. Every loaded glyph byte and grid pixel is checked. Separate gates qualify country transitions, keyboard input and installed workflows.",
+      "core_sha256": {
+        "COMMAND.COM": "6742b5889141a9c61d41e336445014d8055c19758febf4263f4f8ebe3c2f2c29",
+        "IO.SYS": "793169a292df40bb117eb487136a0d8e7f4334ca223e8206bf53f33141f24715",
+        "HIMEM.SYS": "340cbfd1f0e835755adce99d80c607f8edeb48ea2b20a6a142402a25434f8d13",
+        "MSDOS.SYS": "1475174f50c8c349bedd7cd4a0be88bce055f2e411b7454b5f68fffbff269b62",
+        "EMM386.EXE": "58266b6614594de7a9cfde9eda75e3eb241b9e2e941e67b70645a0f8a197dae6"
+      },
+      "emulator_sha256": "798ac6072d5147ed4dca7540ca5303da1e4c2d190853c227dde9ea3b33583c18",
+      "resource_sha256": {
+        "src/DEV/DISPLAY/EGA/EGA775.CPI": "ab38fe5b8acae0ba3933ac6b66596c58b32bc23385285b8cc68fec1fa8f15255",
+        "src/DEV/COUNTRY/COUNTRY.SYS": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c",
+        "src/DEV/DISPLAY/DISPLAY.SYS": "0ebd3bfad4e87d79e05219c02ea71ce4e94f9e11b432efdf652a022488d9ac08",
+        "src/CMD/MODE/MODE.COM": "c385aad5697fcec3a9113f58b983b978a7f969e99b153ebd496b12dab0e3767d",
+        "src/CMD/NLSFUNC/NLSFUNC.EXE": "bc2a0c9b0900bcac03a6cfe072ea56ea01bd2333b1d1bf8f810f28e668340e67"
+      },
+      "cases": [
+        {
+          "name": "775-14",
+          "page": 775,
+          "height": 14,
+          "negative_control": false,
+          "mismatched_slots": [],
+          "emulator_exit": 0,
+          "screen_size": [
+            720,
+            392
+          ],
+          "cpi_sha256": "ab38fe5b8acae0ba3933ac6b66596c58b32bc23385285b8cc68fec1fa8f15255",
+          "log": {
+            "path": "review/display-286-baltic-775-14.log",
+            "sha256": "235c6ebadf9f2f4e83ec8f42d6afd5ac5b5d3d4ed2f56f3df470b8cbb580d84c"
+          },
+          "font_plane": {
+            "path": "review/display-286-baltic-775-14.bin",
+            "sha256": "dbdba90804dc05e9f01a81f9deda417542baaa46943c9e87696050d533c1ac95"
+          },
+          "screen": {
+            "path": "review/display-286-baltic-775-14.png",
+            "sha256": "462d9ceb5753143ffa42b43410f70af650a27f590531b961dbf7300e3269a6c9"
+          },
+          "config": {
+            "path": "review/display-286-baltic-775-14.cfg",
+            "sha256": "bc1ff341a3eb659a0d55fd6036f680cec32fd069304c2e2562e39e4a8497c669"
+          }
+        },
+        {
+          "name": "775-8",
+          "page": 775,
+          "height": 8,
+          "negative_control": false,
+          "mismatched_slots": [],
+          "emulator_exit": 0,
+          "screen_size": [
+            720,
+            400
+          ],
+          "cpi_sha256": "ab38fe5b8acae0ba3933ac6b66596c58b32bc23385285b8cc68fec1fa8f15255",
+          "log": {
+            "path": "review/display-286-baltic-775-8.log",
+            "sha256": "99fdb3d58ed14b8313d704342ae40c833f036160e6a170ff6fbdfcdcff988e42"
+          },
+          "font_plane": {
+            "path": "review/display-286-baltic-775-8.bin",
+            "sha256": "7e610c123c7a08c8694a20e1befe7711c2c3ae89f789849da4018d8266b96b48"
+          },
+          "screen": {
+            "path": "review/display-286-baltic-775-8.png",
+            "sha256": "a9e93603b4fe76a4d69fa54b1743bfa1b12352bb96ef120c4beaa89e7eb2e04b"
+          },
+          "config": {
+            "path": "review/display-286-baltic-775-8.cfg",
+            "sha256": "bc1ff341a3eb659a0d55fd6036f680cec32fd069304c2e2562e39e4a8497c669"
+          }
+        },
+        {
+          "name": "775-16",
+          "page": 775,
+          "height": 16,
+          "negative_control": false,
+          "mismatched_slots": [],
+          "emulator_exit": 0,
+          "screen_size": [
+            720,
+            400
+          ],
+          "cpi_sha256": "ab38fe5b8acae0ba3933ac6b66596c58b32bc23385285b8cc68fec1fa8f15255",
+          "log": {
+            "path": "review/display-286-baltic-775-16.log",
+            "sha256": "623c85c6896ad0df9d458c026b539ce1f974a22a5f47dfd6c04fe25beb84b8e3"
+          },
+          "font_plane": {
+            "path": "review/display-286-baltic-775-16.bin",
+            "sha256": "e6e7e9a0adcd899c0a36d9169aa0fb8327625ae8b0c066baa88bd7a785395ff6"
+          },
+          "screen": {
+            "path": "review/display-286-baltic-775-16.png",
+            "sha256": "c87198052d3f9240bf15612625ecf446318bee6bd7c83eaec69a42503ca04140"
+          },
+          "config": {
+            "path": "review/display-286-baltic-775-16.cfg",
+            "sha256": "bc1ff341a3eb659a0d55fd6036f680cec32fd069304c2e2562e39e4a8497c669"
+          }
+        },
+        {
+          "name": "775-16-corrupt",
+          "page": 775,
+          "height": 16,
+          "negative_control": true,
+          "mismatched_slots": [
+            228
+          ],
+          "emulator_exit": 0,
+          "screen_size": [
+            720,
+            400
+          ],
+          "cpi_sha256": "5763b4330628214ee89716d8edfc074827d651326db27def256b4b23a1e7fc8a",
+          "log": {
+            "path": "review/display-286-baltic-775-16-corrupt.log",
+            "sha256": "97d6d9f28fd3b6f492ffef36d935c4e5deadb190a4765c75acbbe476a6e94ea6"
+          },
+          "font_plane": {
+            "path": "review/display-286-baltic-775-16-corrupt.bin",
+            "sha256": "ab286c96f68a1d29c6fa4e4a8fcb96fafd2c0cfb59959427bb90cdd8401872b1"
+          },
+          "screen": {
+            "path": "review/display-286-baltic-775-16-corrupt.png",
+            "sha256": "56ba74d2733cfc72f596d4c60042fdf0c3a80a6aea9c13314c6d70154d95b0c9"
+          },
+          "config": {
+            "path": "review/display-286-baltic-775-16-corrupt.cfg",
+            "sha256": "bc1ff341a3eb659a0d55fd6036f680cec32fd069304c2e2562e39e4a8497c669"
+          }
+        }
+      ],
+      "private_artifacts": "out/baltic-display-286-oy09nvae",
+      "command": "MEMORY_CORE_DIR=out/memory-production/files python3 tests/test_baltic_display_86box.py --emulator out/ru-86box-vnc-bs283qnk/build/src/86Box --roms \"$BOX86_ROMS\" --qt-platform offscreen --jobs 2"
+    },
+    {
+      "status": "selected-cases-passed",
+      "core_sha256": {
+        "EMM386.EXE": "58266b6614594de7a9cfde9eda75e3eb241b9e2e941e67b70645a0f8a197dae6",
+        "HIMEM.SYS": "340cbfd1f0e835755adce99d80c607f8edeb48ea2b20a6a142402a25434f8d13",
+        "COMMAND.COM": "6742b5889141a9c61d41e336445014d8055c19758febf4263f4f8ebe3c2f2c29",
+        "IO.SYS": "793169a292df40bb117eb487136a0d8e7f4334ca223e8206bf53f33141f24715",
+        "MSDOS.SYS": "1475174f50c8c349bedd7cd4a0be88bce055f2e411b7454b5f68fffbff269b62"
+      },
+      "emulator_sha256": "798ac6072d5147ed4dca7540ca5303da1e4c2d190853c227dde9ea3b33583c18",
+      "cases": [
+        {
+          "name": "866-14",
+          "page": 866,
+          "height": 14,
+          "negative_control": false,
+          "mismatched_slots": [],
+          "emulator_exit": 0,
+          "screen_size": [
+            720,
+            392
+          ],
+          "cpi_sha256": "efa06cb267a370fab3db71fb85f73711b750ec04498b40b6cc6a4a2be2e3d7ad",
+          "log": {
+            "path": "review/display-286-ru-866-14.log",
+            "sha256": "1c30d0bf12b0a4e567e645d0c87342c7b5f0d5c8a96cf8d1d8219323463674fd"
+          },
+          "font_plane": {
+            "path": "review/display-286-ru-866-14.bin",
+            "sha256": "d4285fd65cbb4aa83656c95f7e180d784df273dd51fcffa1c7c8fa614310bd1f"
+          },
+          "screen": {
+            "path": "review/display-286-ru-866-14.png",
+            "sha256": "05c774fb0215f18e6e4c9b3748867f23dc0566033b1e68e43a6de6732f81cfc2"
+          },
+          "config": {
+            "path": "review/display-286-ru-866-14.cfg",
+            "sha256": "bc1ff341a3eb659a0d55fd6036f680cec32fd069304c2e2562e39e4a8497c669"
+          }
+        },
+        {
+          "name": "866-8",
+          "page": 866,
+          "height": 8,
+          "negative_control": false,
+          "mismatched_slots": [],
+          "emulator_exit": 0,
+          "screen_size": [
+            720,
+            400
+          ],
+          "cpi_sha256": "efa06cb267a370fab3db71fb85f73711b750ec04498b40b6cc6a4a2be2e3d7ad",
+          "log": {
+            "path": "review/display-286-ru-866-8.log",
+            "sha256": "7aa758497beb03f906d397dd3e3ca427ad0daeee805486eef92eb61dbc1e64aa"
+          },
+          "font_plane": {
+            "path": "review/display-286-ru-866-8.bin",
+            "sha256": "d0f94f1f3d31ff8eef231dca8cf6c778c0dca1ffd33d5cfd662bc09d86a6ee57"
+          },
+          "screen": {
+            "path": "review/display-286-ru-866-8.png",
+            "sha256": "d4cd4314e3284c54156a6bae955789d920c6950581e8c09190c12d8633328161"
+          },
+          "config": {
+            "path": "review/display-286-ru-866-8.cfg",
+            "sha256": "bc1ff341a3eb659a0d55fd6036f680cec32fd069304c2e2562e39e4a8497c669"
+          }
+        },
+        {
+          "name": "866-16",
+          "page": 866,
+          "height": 16,
+          "negative_control": false,
+          "mismatched_slots": [],
+          "emulator_exit": 0,
+          "screen_size": [
+            720,
+            400
+          ],
+          "cpi_sha256": "efa06cb267a370fab3db71fb85f73711b750ec04498b40b6cc6a4a2be2e3d7ad",
+          "log": {
+            "path": "review/display-286-ru-866-16.log",
+            "sha256": "02b44491559e6759381c60c28d46bebf5dbcba330854b99cbf5573276a2a78aa"
+          },
+          "font_plane": {
+            "path": "review/display-286-ru-866-16.bin",
+            "sha256": "fa1c87db74cad6b69c5a4bf1e7bb6fc625e31e4a92956dbf741c6eefa3f640d5"
+          },
+          "screen": {
+            "path": "review/display-286-ru-866-16.png",
+            "sha256": "664f041542faab21bfb9296b206639da7639c1bd13500ec44913225ab290b8a4"
+          },
+          "config": {
+            "path": "review/display-286-ru-866-16.cfg",
+            "sha256": "bc1ff341a3eb659a0d55fd6036f680cec32fd069304c2e2562e39e4a8497c669"
+          }
+        },
+        {
+          "name": "437-16",
+          "page": 437,
+          "height": 16,
+          "negative_control": false,
+          "mismatched_slots": [],
+          "emulator_exit": 0,
+          "screen_size": [
+            720,
+            400
+          ],
+          "cpi_sha256": "e62143d403dba21dd9f3c606769b90923038e542098fdb57de36eaf9e986a4b0",
+          "log": {
+            "path": "review/display-286-ru-437-16.log",
+            "sha256": "54dc84d8e84404cd5a7acb9f5ba1f1219d03c98453beb996bb22f18aacd25b85"
+          },
+          "font_plane": {
+            "path": "review/display-286-ru-437-16.bin",
+            "sha256": "ca6a892ed0bf2d5d8038bd2ce2315bcfae30f53523f53ebfcd640c845cb6b0da"
+          },
+          "screen": {
+            "path": "review/display-286-ru-437-16.png",
+            "sha256": "18a9db0bec3a87124ae13d1068a48bdd65774e32cc1550b122fc97707c52a5fd"
+          },
+          "config": {
+            "path": "review/display-286-ru-437-16.cfg",
+            "sha256": "bc1ff341a3eb659a0d55fd6036f680cec32fd069304c2e2562e39e4a8497c669"
+          }
+        },
+        {
+          "name": "850-16",
+          "page": 850,
+          "height": 16,
+          "negative_control": false,
+          "mismatched_slots": [],
+          "emulator_exit": 0,
+          "screen_size": [
+            720,
+            400
+          ],
+          "cpi_sha256": "e62143d403dba21dd9f3c606769b90923038e542098fdb57de36eaf9e986a4b0",
+          "log": {
+            "path": "review/display-286-ru-850-16.log",
+            "sha256": "f377e1ac4f2c82e5bd4f850fbac331dc8f316261f5f57735da86bf29465b72cf"
+          },
+          "font_plane": {
+            "path": "review/display-286-ru-850-16.bin",
+            "sha256": "28a38a163e62a6e56218d4bc72d5f6eda1cbc4972cd386fb1f0cae0828c88491"
+          },
+          "screen": {
+            "path": "review/display-286-ru-850-16.png",
+            "sha256": "0db39e100f81a5c5396d085937378562f416b31cdebc48f48e0f49fb71945165"
+          },
+          "config": {
+            "path": "review/display-286-ru-850-16.cfg",
+            "sha256": "bc1ff341a3eb659a0d55fd6036f680cec32fd069304c2e2562e39e4a8497c669"
+          }
+        },
+        {
+          "name": "860-16",
+          "page": 860,
+          "height": 16,
+          "negative_control": false,
+          "mismatched_slots": [],
+          "emulator_exit": 0,
+          "screen_size": [
+            720,
+            400
+          ],
+          "cpi_sha256": "e62143d403dba21dd9f3c606769b90923038e542098fdb57de36eaf9e986a4b0",
+          "log": {
+            "path": "review/display-286-ru-860-16.log",
+            "sha256": "06fbbb45add806645215be8dd63b7f22cc88a14083d9c7f934566600bec2ab61"
+          },
+          "font_plane": {
+            "path": "review/display-286-ru-860-16.bin",
+            "sha256": "4da2c55886eaf29c76875b93c0792fa4edbabd1cd386615e4135ce3a8c142e69"
+          },
+          "screen": {
+            "path": "review/display-286-ru-860-16.png",
+            "sha256": "61f3dde00bf708db8c6ecc940f088ee6232d237f9040dcd0c47c67985b3d4fc3"
+          },
+          "config": {
+            "path": "review/display-286-ru-860-16.cfg",
+            "sha256": "bc1ff341a3eb659a0d55fd6036f680cec32fd069304c2e2562e39e4a8497c669"
+          }
+        },
+        {
+          "name": "863-16",
+          "page": 863,
+          "height": 16,
+          "negative_control": false,
+          "mismatched_slots": [],
+          "emulator_exit": 0,
+          "screen_size": [
+            720,
+            400
+          ],
+          "cpi_sha256": "e62143d403dba21dd9f3c606769b90923038e542098fdb57de36eaf9e986a4b0",
+          "log": {
+            "path": "review/display-286-ru-863-16.log",
+            "sha256": "03fadb323b8b35eacc6253e322f474b5350a46be40f7c810a7b73a4d90e501e1"
+          },
+          "font_plane": {
+            "path": "review/display-286-ru-863-16.bin",
+            "sha256": "8451bb1f06264cd012cef09d37d4046c32a60413405f4398744437acfa899d44"
+          },
+          "screen": {
+            "path": "review/display-286-ru-863-16.png",
+            "sha256": "aacf22e056d3b97524aa43b44efb527a0bc90d49eadd791b165430a569f3dbfe"
+          },
+          "config": {
+            "path": "review/display-286-ru-863-16.cfg",
+            "sha256": "bc1ff341a3eb659a0d55fd6036f680cec32fd069304c2e2562e39e4a8497c669"
+          }
+        },
+        {
+          "name": "865-16",
+          "page": 865,
+          "height": 16,
+          "negative_control": false,
+          "mismatched_slots": [],
+          "emulator_exit": 0,
+          "screen_size": [
+            720,
+            400
+          ],
+          "cpi_sha256": "e62143d403dba21dd9f3c606769b90923038e542098fdb57de36eaf9e986a4b0",
+          "log": {
+            "path": "review/display-286-ru-865-16.log",
+            "sha256": "2e6ce329d556e1c560556c46cafc987b6f99a779b90c6e6948c0bb1a9c8c7e8f"
+          },
+          "font_plane": {
+            "path": "review/display-286-ru-865-16.bin",
+            "sha256": "2ed1fc6720a0c49606f7b53377056a68cbd1df387d8027523563130c470b0925"
+          },
+          "screen": {
+            "path": "review/display-286-ru-865-16.png",
+            "sha256": "38d6e17926974395f1f0df6fa64bb94ce6deeda99c97a4e8d7d78b6aeb9a5080"
+          },
+          "config": {
+            "path": "review/display-286-ru-865-16.cfg",
+            "sha256": "bc1ff341a3eb659a0d55fd6036f680cec32fd069304c2e2562e39e4a8497c669"
+          }
+        },
+        {
+          "name": "866-16-corrupt",
+          "page": 866,
+          "height": 16,
+          "negative_control": true,
+          "mismatched_slots": [
+            241
+          ],
+          "emulator_exit": 0,
+          "screen_size": [
+            720,
+            400
+          ],
+          "cpi_sha256": "2cd38ef819cf5606f9189987effffc448f1bd9360f0aff51545eb2248f0980a1",
+          "log": {
+            "path": "review/display-286-ru-866-16-corrupt.log",
+            "sha256": "19a745eb80068cd42f1376f7c1630b0be3be90f54e65b24768b80c05d21008f3"
+          },
+          "font_plane": {
+            "path": "review/display-286-ru-866-16-corrupt.bin",
+            "sha256": "07d6637f8d8d1636459d9436b0ec3249b8e66fbe8ae7f804ba6ab00c52ae6001"
+          },
+          "screen": {
+            "path": "review/display-286-ru-866-16-corrupt.png",
+            "sha256": "b8a5b745cf7b0fe5ec80cf8d924e8a5291dc713ea6fc45c050fbc5eb65c311b9"
+          },
+          "config": {
+            "path": "review/display-286-ru-866-16-corrupt.cfg",
+            "sha256": "bc1ff341a3eb659a0d55fd6036f680cec32fd069304c2e2562e39e4a8497c669"
+          }
+        }
+      ],
+      "private_artifacts": "out/ru-display-286-1ean8v9l",
+      "command": "MEMORY_CORE_DIR=out/memory-production/files python3 tests/test_ru_display_86box.py --emulator out/ru-86box-vnc-bs283qnk/build/src/86Box --roms \"$BOX86_ROMS\" --qt-platform offscreen --jobs 2"
+    }
+  ],
+  "inputs": {
+    "tests/test_baltic_display_86box.py": {
+      "sha256": "b71f155f08d047757626a9774b7d4e19c71fcb6dc3b65b23f80b148e64df8788",
+      "size": 3083
+    },
+    "tests/test_ru_display_86box.py": {
+      "sha256": "ab06dd5429a446a8892f7283f27674cd74a512492f895d8f707403b2df5e9476",
+      "size": 8353
+    },
+    "tests/test_baltic_cpi.py": {
+      "sha256": "8fade112e10e34e0fdadf5d1218040cb5a8e5bb7f6bc9710424f692467e3f070",
+      "size": 3800
+    },
+    "tests/test_ru_cpi.py": {
+      "sha256": "cbc84a60021e763280dba915cfc0f17a839595f6a02273f271eee8f7ee0c7402",
+      "size": 4815
+    },
+    "tests/test_ru_display_qemu.py": {
+      "sha256": "e2e4373cbe14a9e5c4000b990c678f95088eb5309a5f4912e8d3c8ea3a03f01b",
+      "size": 7803
+    },
+    "tests/ru_font_probe.asm": {
+      "sha256": "9d13b6ef3efa942bc85198d83512c8cf6970e8e8a16b4737c53fb68dd1c45c2b",
+      "size": 4260
+    },
+    "tests/86box_snapshot.inc": {
+      "sha256": "5580e3ff3924d137144669c1fe472cfd7a53eb03148eb87b6124ce55eebbac13",
+      "size": 1891
+    },
+    "tests/86box_exit.asm": {
+      "sha256": "df10886fcf0a3fd37b97f9b280488c35b8265de8a306765b33fb11290dc6e82b",
+      "size": 755
+    },
+    "tests/86box_286_lib.sh": {
+      "sha256": "c35916e91ddb7c2d04a3d5e343631f4ee305b1963f3358bdcaa65c0842ce329e",
+      "size": 5111
+    },
+    "tests/86box/ibmat-286.cfg": {
+      "sha256": "b040850330e6ae7077cffe0fed626d911a56bb1fff8103d365013ee56d08821a",
+      "size": 667
+    },
+    "tests/86box/global.cfg": {
+      "sha256": "71ebf2cb3a79318d8f4d3446f2af8ae68c0febc57690ef33f87f70d59fdd5290",
+      "size": 106
+    },
+    "tests/seed_86box_ibmat_nvram.py": {
+      "sha256": "de41853b6fe7ccd79c50ae17e907793c719cbc00cc9739db15ff47711cca2ee5",
+      "size": 1891
+    },
+    "tools/memory_release.py": {
+      "sha256": "9811c0895dc38d8ef08707cbbc1db2d293bc68d098f8e67372ec0ee78484cc7a",
+      "size": 723
+    },
+    "locales/baltic/review/selected-fonts.json": {
+      "sha256": "348680ea6683a311b40248b9c58eb703d6f568f93377ceafa8c1c0ae719cd202",
+      "size": 156935
+    },
+    "locales/baltic/manifest.json": {
+      "sha256": "6185828bb8f968b709b527ae8fa14c0a728d5a95191b4883d30c834df7e9b1ae",
+      "size": 12111
+    },
+    "src/BOOT/MSBOOT.BIN": {
+      "sha256": "523534c0ded7c62a8bba0d5da753cb3c70e425fd0a59b89ddc3a6159eefff297",
+      "size": 32256
+    },
+    "src/BIOS/SYSMENU.OVL": {
+      "sha256": "8e40405ba7be2bfde3e088380551112d8d470bf052a442b5386de827cc45bbd3",
+      "size": 4336
+    },
+    "src/DEV/DISPLAY/EGA/EGA775.CPI": {
+      "sha256": "ab38fe5b8acae0ba3933ac6b66596c58b32bc23385285b8cc68fec1fa8f15255",
+      "size": 9921
+    },
+    "src/DEV/DISPLAY/EGA/EGA866.CPI": {
+      "sha256": "efa06cb267a370fab3db71fb85f73711b750ec04498b40b6cc6a4a2be2e3d7ad",
+      "size": 9922
+    },
+    "src/DEV/DISPLAY/EGA/EGA.CPI": {
+      "sha256": "e62143d403dba21dd9f3c606769b90923038e542098fdb57de36eaf9e986a4b0",
+      "size": 49068
+    },
+    "src/DEV/DISPLAY/EGA/437-8X16.ASM": {
+      "sha256": "9f4131f7df15b68e63689d8f062145ee275c47a7faf8209f29105fbf197f7787",
+      "size": 25872
+    },
+    "src/DEV/DISPLAY/EGA/850-8X16.ASM": {
+      "sha256": "2d1f1f4a015b757a73b506147215727c261af0474454d8913b2a85545c9282e7",
+      "size": 25873
+    },
+    "src/DEV/DISPLAY/EGA/860-8X16.ASM": {
+      "sha256": "775671770fa104c1e8ccc213ac3b89470751f0b304cea5b0e74eedf43de5010a",
+      "size": 25873
+    },
+    "src/DEV/DISPLAY/EGA/863-8X16.ASM": {
+      "sha256": "47665421c04b45c1a414f6f3a97698c4e7b1a8ab61c627bdd2bd2ba7813731c5",
+      "size": 25873
+    },
+    "src/DEV/DISPLAY/EGA/865-8X16.ASM": {
+      "sha256": "f9ab6ca88dd2436ffaac903b228f34b5d810d512c8f0adb4f8f4ecbd01e82ca8",
+      "size": 25873
+    }
+  },
+  "visual_review": {
+    "cases": [
+      "775-8",
+      "775-14",
+      "775-16"
+    ],
+    "finding": "Reviewed retained real-BIOS captures at native resolution: Baltic sample diacritics remain visible at each height, with no clipped glyphs or broken supported box borders. Grid glyph bytes and pixels are separately checked by the automated oracle."
+  },
+  "static_regression": {
+    "command": "make test-baltic-cpi test-ru-cpi",
+    "exit": 0,
+    "log": {
+      "path": "review/display-286-static.log",
+      "sha256": "7713d7a72176c7be9974feb0e1b342488ada19699d067e908de68e89206523b3"
+    }
+  },
+  "roms": {
+    "video/vga/ibm_vga.bin": {
+      "sha256": "51b49761f72780a696c36f3d2e74a8168c1c99b865070f7f90b8e621a8b5ae17",
+      "size": 32768
+    },
+    "machines/ibmat/BIOS_5170_15NOV85_U27.BIN": {
+      "sha256": "096ce496a06002eb68a5bc5db128a38dd7f27a4eda16ad7342c8076f1fc40683",
+      "size": 32768
+    },
+    "machines/ibmat/BIOS_5170_15NOV85_U47.BIN": {
+      "sha256": "4e4692031297e74053e37c8632dc73706de97d847d8f0e12995b4f009e5c71fe",
+      "size": 32768
+    }
+  }
+}
