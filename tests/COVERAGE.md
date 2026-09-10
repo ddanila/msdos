@@ -627,6 +627,15 @@ exit zero. The record preserves the exact input sources used by this run,
 backend/core/resource identities, keyboard events, screenshots and directory
 captures. Legacy keyboard lifecycle and final release gates remain separate.
 
+The [Baltic pristine build qualification](../locales/baltic/pristine-qualification.json)
+records independent `make -j1`, `-j4` and `-j8` builds of the declared artifacts
+and composed production core with identical pinned host tools. Core hashes
+match the Baltic runtime-qualified candidate; build logs, source identities
+and linker maps are retained. Full `FAIL_ON_SKIP=1 make test`, deployment and
+distribution checks remain separate release gates. The pristine checkout is
+used for those checks because the primary checkout's ordinary HIMEM artifact
+differs from the pristine output; the selected composed HIMEM matches.
+
 ## External DOS API suite
 
 `make test-dosemu2-qemu` runs selected upstream DOSEMU2 FAT tests against the

@@ -1,0 +1,601 @@
+Open Watcom Linker Version 2.0 beta Aug 27 2026 05:38:07 (64-bit)** EXPERIMENTAL (HLL) ** 
+Copyright (c) 2002-2026 The Open Watcom Contributors. All Rights Reserved.
+Portions Copyright (c) 1985-2002 Sybase, Inc. All Rights Reserved.
+Created on:       26/09/11 01:25:17
+Warning! W1080: file rrtrap.obj is a 32-bit object file
+Warning! W1080: file vmtrap.obj is a 32-bit object file
+Warning! W1080: file rrtraphi.obj is a 32-bit object file
+Warning! W1080: file initepg.obj is a 32-bit object file
+Warning! W1080: file vminit.obj is a 32-bit object file
+Warning! W1080: file em286ll.obj is a 32-bit object file
+Executable Image: EMM386.EXE
+creating a DOS executable
+
+
+                        +------------+
+                        |   Groups   |
+                        +------------+
+
+Group                           Address              Size
+=====                           =======              ====
+
+DGROUP                          002e:0000            0000024c
+
+
+
+                        +--------------+
+                        |   Segments   |
+                        +--------------+
+
+Segment                Class          Group          Address         Size
+=======                =====          =====          =======         ====
+
+R_CODE                 R_CODE         AUTO           0000:0000       00000211
+GDT                                   AUTO           0022:0000       000000b8
+LDT                                   AUTO           002e:0000       00000000
+_DATA                  DATA           DGROUP         002e:0000       00000190
+CONST                  DATA           DGROUP         0047:0000       000000b1
+CONST2                 DATA           DGROUP         0052:0002       00000000
+CONST                  CONST          DGROUP         0052:0002       00000000
+_BSS                   BSS            DGROUP         0052:0002       0000000a
+_TEXT                  CODE           AUTO           0052:000c       00005f31
+VDATA                  VDATA          AUTO           0645:000e       0000c000
+PAGESEG                PAGES          AUTO           1246:0000       00007000
+IDT                    PAGES          AUTO           1946:0000       000003c0
+TSS                    PAGES          AUTO           1982:0000       00002069
+LAST                   LAST           AUTO           1b89:0000       00004a91
+STACK                  STACK          AUTO           2033:0000       00000400
+
+
+                        +-----------------------+
+                        |   Absolute Segments   |
+                        +-----------------------+
+
+Segment                 Class           Address              Size
+=======                 =====           =======              ====
+
+ABS0                                    0000:0000           000001a0
+ABS0                                    0000:0000           000001a0
+ABS0                                    0000:0000           000001a0
+DIAGSEG                                 0000:0000           00000002
+ABS0                                    0000:0000           000001a0
+DIAGSEG                                 0000:0000           00000002
+DIAGSEG                                 0000:0000           00000002
+ABS0                                    0000:0000           000001a0
+ABS0                                    0000:00000000       00000000
+ABS0                                    0000:00000000       00000000
+ABS0                                    0000:00000000       00000000
+ABS0                                    0000:00000000       00000000
+ABS0                                    0000:00000000       00000000
+ROMDATA                                 0040:0000           00000074
+ROMDATA                                 0040:0000           00000074
+L286BUFF                                0080:00000000       00000066
+
+
+                        +----------------+
+                        |   Memory Map   |
+                        +----------------+
+
+* = unreferenced symbol
++ = symbol only referenced locally
+
+Address        Symbol
+=======        ======
+
+Module: memm386.obj(memm386.obj)
+0000:003d*     strategy
+0000:0048*     interrupt
+0000:0012      MEMM_Entry
+0000:0014      memmsig
+1b89:0000      LAST_start
+0000:0039*     ReqPtr
+Module: elimfunc.obj(elimfunc.obj)
+0000:0085      ELIM_Entry
+0000:0092      EDispatchSeg
+Module: emm.obj(emm.obj)
+0000:009b      EMM_rEntry
+0000:009c      EMM_rEfix
+0052:0080*     EMM_rLink
+0052:00c3      _AutoUpdate
+002e:0000      EMM_Flag
+0052:007b      AMC_return_gateway
+Module: emmmes.obj(emmmes.obj)
+1b89:0000      InitMess
+1b89:0062      InstallMess
+1b89:0157      ISizeMess
+1b89:00a6      ExtSizeMess
+1b89:00e1      SysSizeMess
+1b89:0192      PFBAMess
+1b89:019c      ActiveMess
+1b89:01af      InactiveMess
+1b89:01c4      AutoMess
+002e:0002      POE_Mess
+002e:001e      POE_Num
+0000:002e      POE_Len
+0000:003c      POE_ContinueLen
+002e:003e      EXCPE_Mess
+002e:0053      EXCPE_Num
+002e:0057      EXCPE_CS
+002e:005c      EXCPE_EIP
+002e:006a      EXCPE_ERR
+0000:0041      EXCPE_Len
+1b89:01e0      InvParm
+1b89:01ff      InvPFBA
+1b89:0223      InvMRA
+1b89:0248      Adj_Size
+1b89:02ae      InsfMem
+1b89:02df      Incorrect_DOS
+1b89:0312      Incorrect_PRT
+1b89:0389      Already_Inst
+1b89:0271      PFWarning
+1b89:0346      No_PF_Avail
+Module: emminit.obj(emminit.obj)
+1b89:0504      EMM_Init
+1b89:0493      TableStagingBound
+Module: init.obj(init.obj)
+1b89:0ac5      Init_MEMM386
+1b89:0817      pool_size
+1b89:0819      min_xms
+1b89:081b      dma_page_limit
+1b89:081d      banking_base
+1b89:07d0      requested_page_count
+1b89:07d1      requested_page_ids
+1b89:07e5      requested_page_segments
+1b89:07ba      msg_flag
+002e:0080      Active_Status
+002e:0081      Auto_Mode
+002e:0088      UMB_Active
+1b89:0822      initial_mode
+1b89:0816      dos_version
+002e:0082      TEXT_Seg
+1b89:07c8      TEXT_Phys
+1b89:07cc      STACK_Seg
+002e:0084      GDT_Seg
+1b89:07ce      IDT_Seg
+002e:0086      TSS_Seg
+1b89:082c      driver_end
+1b89:07b0*     powr10
+1b89:0b98*     CancelProvider
+1b89:0baf*     PrepareProvider
+1b89:0c80*     ActivateProvider
+1b89:14bc      Apply_User_UMA_Ranges
+1b89:1602      Exclude_UMB_Subpages
+Module: m_state.obj(m_state.obj)
+1b89:3c70      estb_mach_state
+Module: rom_srch.obj(rom_srch.obj)
+1b89:3c80      rom_srch
+Module: ppage.obj(ppage.obj)
+1b89:3d40      mappable_segs
+1b89:3d80      Map_tbl
+0000:001a      max_PF
+1b89:3db8      find_phys_pages
+1b89:3ec3      exclude_segments
+1b89:3ee5*     is_page_mappable
+Module: allocmem.obj(allocmem.obj)
+1b89:3f03      AllocMem
+1b89:4016      DeallocMem
+1b89:3ef0      xbase_addr_l
+1b89:3ef2      xbase_addr_h
+1b89:3ef3      ext_size
+1b89:3ef5      sys_size
+1b89:3eff*     xms_handle
+Module: inittab.obj(inittab.obj)
+1b89:4120      InitTab
+1b89:424b      RelocateText
+1b89:42ce      RelocateTables
+1b89:4378      CompactVData
+Module: shiphi.obj(shiphi.obj)
+1b89:449d      set_src_selector
+1b89:44b2      set_dest_selector
+1b89:446d      moveb
+1b89:44bd      memreq
+1b89:4430      gdt_mb
+Module: extpool.obj(extpool.obj)
+1b89:4518      pool_initialise
+1b89:4548      pool_initialise_abs
+1b89:4566      get_buffer
+Module: vdminit.obj(vdminit.obj)
+1b89:45a2      VDM_Init
+1b89:45a0      PageD_Seg
+002e:008a      PageT_Seg
+002e:008c      Page_Dir
+2033:0200      kstack_top
+2033:0400*     exe_stack
+1b89:45ea*     InitGdt
+1b89:4682*     InitPages
+Module: ../emm/emmlib.lib(EMMDATA.ASM)
+0000:0000*     _small_code_
+0000:0800*     EMM_PAGE_CNT
+0000:00ff*     HANDLE_CNT
+002e:0096      _total_pages
+002e:00a3      _altreg_count
+002e:009a      _mappable_pages
+002e:009c      _mappable_page_count
+002e:009d      _physical_page_count
+002e:009e      _physical_page_exceptions
+002e:00a0      _physical_page_exception_count
+002e:00a1      _page_frame_pages
+002e:00b4      _save_map
+002e:00b6      _handle_table
+002e:00b8      _Handle_Name_Table
+002e:00ba      _handle_table_size
+002e:00bb      _handle_count
+002e:00bc      _emmpt_start
+002e:00be      _free_top
+002e:00c0      _free_count
+002e:00c2      _emm_page
+002e:00c4      _emm_free
+002e:00c6      _pft386
+002e:00c8      _emm_brk
+002e:00ca*     EMM_dynamic_data_area
+002e:00ca*     EMM_data_end
+002e:0092      _regp
+002e:00ab      EMM_savES
+002e:00ad      EMM_savDI
+002e:00a9      CurRegSet
+002e:00a9*     _CurRegSet
+002e:00a8      CurRegSetn
+002e:00a5      FRS_array
+002e:00a7      FRS_free
+002e:0098      PF_Base
+002e:0098      _PF_Base
+002e:00af      _OSEnabled
+002e:00b0      _OSKey
+002e:00a2      _cntxt_pages
+002e:00a4      _cntxt_bytes
+0645:000e      vdata_begin
+Module: retreal.obj(retreal.obj)
+0052:00f1      RetRealResume
+Module: errhndlr.obj(errhndlr.obj)
+0052:010b      ErrReal
+0052:01f9      ErrResumeAXDX
+0052:0200      ErrResumeEAX
+0052:0207      ErrResumeLoadall
+0052:0251*     ErrRealEnd
+002e:00cc      GPsavERR
+002e:00ce      GPsavEIP
+002e:00d2      GPsavCS
+Module: ekbd.obj(ekbd.obj)
+0052:0251      egetc
+0052:0277      WaitKBD
+Module: rrtrap.obj(rrtrap.obj)
+0052:0282      P85Switch
+0052:028c      RRProc
+0000:00c6      JumpReal
+0052:029a      FarXmsReturnReal
+0052:029e*     FarXmsReturnRealEnd
+0000:00a6      i19_Entry
+0000:00a2      i19_Old
+Module: a20trap.obj(a20trap.obj)
+0052:029e      EnableA20
+0052:02a2      DisableA20
+1b89:4778      estb_a20_state
+1b89:47a0      get_init_a20_state
+002e:00d6      KbdComd
+002e:00d7      state_a20
+Module: oemproc.obj(oemproc.obj)
+1b89:47b0      VerifyMachine
+1b89:47d3      OEM_Init_Diag_Page
+002e:00d8      int_mask
+Module: util.obj(util.obj)
+0052:02ce      GoVirtual
+0052:02ca      FarGoVirtual
+0052:030b      VM_return
+Module: i286.obj(i286.obj)
+1b89:47f0*     SetDescInfo
+1b89:4805      SetSegDesc
+1b89:480b      SegTo24
+1b89:4815*     SegOffTo24
+1b89:4826*     Is286
+1b89:4830      Is386
+Module: i386.obj(i386.obj)
+1b89:4860*     SetGateDesc
+1b89:4872      SetPageEntry
+1b89:4880*     GetPageEntry
+1b89:4891*     PageDirOff
+1b89:48a2*     PageTableOff
+Module: tabdef.obj(tabdef.obj)
+0000:00b8      GDTLEN
+1982:0068      IOBitMap
+0000:2069      TSSLEN
+0000:03c0      IDTLEN
+0000:0005      P_TABLE_CNT
+1246:0000      Page_Area
+Module: trapdef.obj(trapdef.obj)
+0052:0317      IOTrap_Tab
+0052:0517      IOT_BadT
+0052:051e      IOT_OEM
+Module: elimtrap.obj(elimtrap.obj)
+0052:0a9a      _GetPte
+0052:0ab4      _SetPte
+0052:0adb      _GetCRSEntry
+0052:0ae6      _GetDMALinAdr
+0052:0b31      _Exchange16K
+0052:0b65      _FatalError
+0052:0a71      InitELIM
+0052:051f*     InitDMA
+002e:00da      DMARegSav
+002e:015c      _DMA_Pages
+002e:015c      DMA_Pages
+002e:015e      _DMA_PAGE_COUNT
+002e:015e      DMA_PAGE_COUNT
+0052:09d5*     DMA_DMAFixup
+0052:06b9      DMABase0
+0052:06b9      DMABase1
+0052:06b9      DMABase2
+0052:06b9      DMABase3
+0052:069a      DMABase5
+0052:069a      DMABase6
+0052:069a      DMABase7
+0052:0723      DMACnt0
+0052:0723      DMACnt1
+0052:0723      DMACnt2
+0052:0723      DMACnt3
+0052:0704      DMACnt5
+0052:0704      DMACnt6
+0052:0704      DMACnt7
+0052:0784      DMAPg0
+0052:078a      DMAPg1
+0052:0790      DMAPg2
+0052:0796      DMAPg3
+0052:079c      DMAPg5
+0052:07a2      DMAPg6
+0052:07a8      DMAPg7
+0052:07e9      DMAClrFF1
+0052:0806      DMAClrFF2
+0052:081c      DMAMode1
+0052:0852      DMAMode2
+0052:0875      DMAMaskControl
+Module: memmonf.obj(memmonf.obj)
+0052:0cd0      onf_func
+0052:1077      get_token
+Module: vmtrap.obj(vmtrap.obj)
+0052:1137*     VmTrap
+0052:130e      hw_int
+0052:136a*     emul_reflect
+0052:113a      vm_trap00
+0052:1153      vm_trap01
+0052:116c      vm_trap02
+0052:1188      vm_trap03
+0052:1191      vm_trap04
+0052:119a      vm_trap05
+0052:11b3      vm_trap06
+0052:11ce      vm_trap07
+0052:11e7      vm_trap08
+0052:11ff      vm_trap09
+0052:1208      vm_trap0a
+0052:1211      vm_trap0b
+0052:122a      vm_trap0c
+0052:1243      vm_trap0d
+0052:1264      vm_trap0e
+0052:127c      vm_trap0f
+0052:1285*     vm_trap10
+0052:128e      vm_trap50
+0052:1296      vm_trap51
+0052:129e      vm_trap52
+0052:12a6      vm_trap53
+0052:12ae      vm_trap54
+0052:12b6      vm_trap55
+0052:12be      vm_trap56
+0052:12c6      vm_trap57
+0052:12ce      vm_trap70
+0052:12d6      vm_trap71
+0052:12de      vm_trap72
+0052:12e6      vm_trap73
+0052:12ee      vm_trap74
+0052:12f6      vm_trap75
+0052:12fe      vm_trap76
+0052:1306      vm_trap77
+Module: vminst.obj(vminst.obj)
+0052:1371*     VmInst
+0052:1571      VmFault
+0052:1771*     EmProtIns
+0052:18d2*     EmMovCDTR
+0052:1bcd*     EmMOVSW
+Module: iotrap.obj(iotrap.obj)
+0052:1c28      IO_Trap
+Module: emmpent.obj(emmpent.obj)
+0052:1c67      EMM_pEntry
+Module: rrtraphi.obj(rrtraphi.obj)
+0052:1d2f      RR_Trap_Init
+0052:1cfd      RRP_Handler
+0052:1d0f*     P84_Handler
+0052:1d14*     P85_Handler
+Module: retrealhi.obj(retrealhi.obj)
+0052:1d49      RetRealHigh
+0052:1d8d      Real_Seg
+Module: a20traphi.obj(a20traphi.obj)
+0052:1d8f      A20_Handler
+0052:1de9      A20_Trap_Init
+0052:1e12      togl_A20
+0052:1e0c      get_a20_state
+Module: oemnmihi.obj(oemnmihi.obj)
+0052:1e40      DisableNMI
+Module: ../emm/emmp.obj(../emm/emmp.obj)
+0052:1e47      _UnsupportedFunction
+Module: ../emm/emmdisp.obj(../emm/emmdisp.obj)
+0052:1e8b      int67_Entry
+0052:1e4f      dispatch_vector
+Module: ../emm/emminfo.obj(../emm/emminfo.obj)
+0052:1ecf      _GetInformation
+Module: ../emm/emmnames.obj(../emm/emmnames.obj)
+0052:1f2a      _GetSetHandleName
+0052:1fb1      _GetHandleDirectory
+Module: ../emm/emmattr.obj(../emm/emmattr.obj)
+0052:20b6      _GetSetHandleAttribute
+Module: ../emm/emmcore.obj(../emm/emmcore.obj)
+0052:20fb      _GetUnallocatedPageCount
+0052:20dc      _GetPageFrameAddress
+0052:2110      _GetEMMVersion
+0052:2116      _GetEMMHandleCount
+0052:2123      _GetStatus
+Module: ../emm/emmfunct.obj(../emm/emmfunct.obj)
+0052:2128      _GetEMMHandlePages
+0052:214f      _GetAllEMMHandlePages
+Module: ../emm/emmmapp.obj(../emm/emmmapp.obj)
+0052:21d4      _GetMappablePAddrArrayFixed
+Module: ../emm/emmsave.obj(../emm/emmsave.obj)
+0052:222f      _SavePageMap
+Module: ../emm/emm40.obj(../emm/emm40.obj)
+0052:225c      _OSDisable
+Module: ../emm/emmkey.obj(../emm/emmkey.obj)
+0052:22f3      _Get_Key_Val
+Module: ../emm/emmsup.obj(../emm/emmsup.obj)
+0052:2310      _source_addr
+0052:2348      _dest_addr
+0052:2380      _copyout
+0052:2395      _copyin
+0052:28f3      SetDescInfoResident
+0052:2908      SegOffTo24Resident
+002e:0166      TableSelector
+002e:0168*     __acrtused
+0052:23ae      _CopyFreeToPages
+0052:23b2      _CopyPagesToFree
+0052:23b7      _MovePageEntries
+0052:2412      ReadPageEntry
+0052:242a      ReadPftEntry
+0052:2444      _ReadPft
+0052:2456      _SwapPft
+0052:26d0      _ReadDMAEntry
+0052:26ed      _WriteDMAEntry
+0052:270d      _ReadWindowEntry
+0052:24b2      ReadWindowIndex
+0052:24c7      ReadCurrentMapEntry
+0052:24e0      WriteCurrentMapEntry
+0052:24f9      ReadCurrentMap
+0052:250f      WriteCurrentMapFromFS
+0052:2632      SaveCurrentFrame
+0052:2528      ReadScratchMapPair
+0052:2542      WriteScratchMapPair
+0052:2586      SelectRegisterSet
+0052:25a4      AllocateRegisterSet
+0052:2606      ReleaseRegisterSet
+0052:2646      physical_to_external_id
+0052:272a      CheckHandleDX
+0052:2754      ReadHandleIndex
+0052:276d      ReadHandleCount
+0052:2787      _HandleValid
+0052:27a2      _HandleIndex
+0052:27a6      _HandleCount
+0052:27ab      _SetHandleIndex
+0052:27b0      _SetHandleCount
+0052:27f2*     _flush_tlb
+0052:27f9      _ReadHandleName
+0052:27fd      _WriteHandleName
+0052:2802      _ClearHandleName
+0052:2807      _MatchHandleName
+0052:28b3      ReadSavedMap
+0052:28d0*     WriteSavedMap
+0052:2898      ClearSavedMap
+0052:286a      PeekSavedMap
+0052:2883      _SavedMapInUse
+Module: ../emm/emmalloc.obj(../emm/emmalloc.obj)
+0052:2919      _get_pages
+0052:294a      _free_pages
+0052:29da      _AllocatePages
+0052:29ff      _AllocateRawPages
+0052:2aa3      _DeallocatePages
+Module: ../emm/emmrealloc.obj(../emm/emmrealloc.obj)
+0052:2b40      _ReallocatePages
+Module: ../emm/emmprot.obj(../emm/emmprot.obj)
+0052:2e66      _MapHandlePage
+0052:2e96      _RestorePageMap
+0052:2f12      _GetSetPageMap
+0052:2ffe      _GetSetPartial
+0052:30ee      _MapHandleArray
+0052:317e      _AlterMapAndJump
+0052:31da      _AlterMapAndCall
+0052:3388      AMC_return_high
+0052:340e      _MoveExchangeMemory
+0052:39b2      _AlternateMapRegisterSet
+Module: initepg.obj(initepg.obj)
+1b89:491d      InitEPage
+Module: vminit.obj(vminit.obj)
+0052:3ab3*     vminit
+0052:3ab3      InitBitMap
+0052:3ad0      PortTrap
+0052:3af1*     BitOFF
+Module: em286ll.obj(em286ll.obj)
+0052:3d06      EM286ll
+0052:3b03      ELbuff
+Module: em386ll.obj(em386ll.obj)
+0052:3e2f      EM386ll
+Module: moveb.obj(moveb.obj)
+0052:3f27      Move_Block
+0052:401f*     Move_Block_Core
+0052:411b      MB_Exit
+002e:016c      MB_Stat
+0000:0122      i15_Entry
+0000:011d      MB_Flag
+0000:0119      i15_Old
+0052:414a*     XmsCopyPhysical
+0052:42d2*     XmsCopyPhysicalEnd
+0052:42d2*     XmsCopyClient
+0052:45d4*     XmsCopyClientEnd
+0052:45d4*     XmsQueryOwner
+0052:5271*     XmsQueryOwnerEnd
+0052:5271*     XmsOwnerSnapshot
+0052:54f9*     XmsOwnerResults
+0052:54fd*     XmsOwnerSnapshotEnd
+0052:5510*     XmsOwnerStorageEnd
+0052:5509*     XmsOwnerCopyCalls
+0052:5235*     XmsOwnerCopyPacket
+0052:464a*     XmsAuthoritativeOwner
+0052:550d*     XmsOwnerActive
+0052:47c7*     XmsUmbOwner
+0052:4bfa*     XmsUmbActive
+0052:4bfb*     XmsUmbImports
+0052:4c7f*     XmsUmbStorageEnd
+0052:4c7f*     XmsServiceCore
+0052:4d1f*     XmsServiceCoreEnd
+0052:4d1f*     XmsPublicMove
+0052:4e01*     XmsPublicMoveEnd
+0052:4e01*     XmsCommonRequest
+0052:4f2a*     XmsCommonRequestEnd
+0000:0124*     XmsI15QueryStart
+0000:0160*     XmsI15QueryEnd
+0000:0177*     XmsI15InactiveStart
+0000:01d2*     XmsI15InactiveEnd
+0000:01fd*     XmsBoundEntry
+0000:01fc      XmsBindingReady
+1b89:4a80      set_ext
+Module: maplin.obj(maplin.obj)
+0052:5510      MapLinear
+0052:5516      UnMapLinear
+Module: errhndhi.obj(errhndhi.obj)
+0052:5524      ErrHndlr
+Module: initdeb.obj(initdeb.obj)
+1b89:4a90*     InitDeb
+Module: mapdma.obj(mapdma.obj)
+0052:558f      _SwapDMAPages
+0052:59dc+     _SwapAPage
+0052:5b1a+     _UpdateUserPTE
+0052:5b98+     _ExchangePTEs
+0052:5c0c+     _GetPteFromIndex
+0052:5c3e+     _SetPteFromIndex
+Module: oemprothi.obj(oemprothi.obj)
+0052:5c89      Map_Lin_OEM
+0052:5c9a      UMap_Lin_OEM
+0052:5cc4      Rest_Par_Vect
+0052:5ca1      Set_Par_Vect
+0052:5cd9      Parity_Handler
+0052:5c79*     NMI_Old
+0052:5c81*     NMI_New
+Module: utilhi.obj(utilhi.obj)
+0052:5e7c      GoVirtualHigh
+0052:5ece      SelToSeg
+Module: memmutil.obj(memmutil.obj)
+0052:5ee9*     ELIM_EXE
+0052:5f37      ELIM_link
+0052:5f00      Inst_chk
+0052:5efc      Inst_chk_f
+
+
+                        +-----------------------+
+                        |   Linker Statistics   |
+                        +-----------------------+
+
+Stack size:  0400 (1024.)
+Memory size:  00020730 (132912.)
+Entry point address: 0052:5ee9
+Link time: 00:00.74

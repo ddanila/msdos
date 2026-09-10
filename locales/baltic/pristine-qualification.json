@@ -1,0 +1,688 @@
+{
+  "status": "pristine-builds-reproducible",
+  "commit": "b2d523678952341bb013deb1b20ae76f5b850e45",
+  "runs": [
+    {
+      "jobs": 1,
+      "checkout": "/Users/ddanila/fun/msdos/out/baltic-repro-m5lr8g72/j1",
+      "artifacts": {
+        "MESSAGES/USA-MS.IDX": "c3c491d59ffc34c6432354becd0170ab8579e907f473c5bffa62ba6faf0f5fc5",
+        "MAPPER/MAPPER.LIB": "dddb53264d9e24df00fac4441db96d1b5109a004b6b6576a9605cdab6e28dbf4",
+        "INC/boot.inc": "484fc085e65f0c0e4d7444da3dab44a5b262fd661ab5a6faeec6dfa8b89e8d48",
+        "BIOS/IO.SYS": "a1bad90c5681944e93cbebd6f5443976c5a2232155e8f6db9037b1927542e9a1",
+        "BIOS/SYSMENU.OVL": "8e40405ba7be2bfde3e088380551112d8d470bf052a442b5386de827cc45bbd3",
+        "DOS/MSDOS.SYS": "b495ab1ccc6fd3e7672b4724a7cccde519d8a65171c0c0ed6bad73cd331a42e9",
+        "DEV/HIMEM/HIMEM.SYS": "9bbf85d769542e700f4e5ed73ba997756f51dd26ef2e7aac8cdc94ae555e8dab",
+        "DEV/EGA/EGA.SYS": "1694fe3521dc71875a80fc1d20a799c5b21e93d0259c8b97b87f632195038ba4",
+        "CMD/COMMAND/COMMAND.COM": "798ceb24eb752c8413e47400685b0574479eaf8750a4b76b7353fe2c542c2461",
+        "CMD/SYS/SYS.COM": "fdd383ac15e660445c2975348861667a02e9b73a1192edd858a1858ae01eca5d",
+        "CMD/FORMAT/FORMAT.COM": "dae92a0df9f52ca426b0c6a343b7678bbb6cf8df336d881c3afd91a9f60743f3",
+        "CMD/EXPAND/EXPAND.EXE": "26869dd67ee8f31c052458666b1f8798f62d1dc3a86f6f534b6f853e185c3660",
+        "CMD/SETUP/SETUP.EXE": "ef6a3c48d05ee2b142a75f1393d9ce5325899f117923109413444998a30f683d",
+        "CMD/CHKDSK/CHKDSK.COM": "57777bd2631584c99ec3190b7bb521ea5a16cfa2ce926cf165488701ba0be6b8",
+        "DEV/ANSI/ANSI.SYS": "41d644c3fecefd70aea83fa058c25e17dd4b92187616764ff67673f54d4d2f02",
+        "DEV/VDISK/VDISK.SYS": "98d5bd47259e49395c30093d6356335604c926a825271664c17e095c96cc9f63",
+        "DEV/COUNTRY/COUNTRY.SYS": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c",
+        "DEV/RAMDRIVE/RAMDRIVE.SYS": "bf9a8fce2818a34af811c7d39739f1510ab158d738445169740926697d737584",
+        "DEV/KEYBOARD/KEYBOARD.SYS": "57571a4b10040dd0645998d0ccb8caa6e02be904ded253c9c81d542750ae4d9d",
+        "DEV/KEYBOARD/KEYBRD2.SYS": "d003716471ffbe12803ac7beaf511a8a4e2d6a0b8ef5e3d214eee2a69584cf06",
+        "DEV/PRINTER/PRINTER.SYS": "c570e54fd04e9e7c64d2e875bd471298c3562b61d0c8073c0d01cf099ce18b35",
+        "DEV/DISPLAY/DISPLAY.SYS": "0ebd3bfad4e87d79e05219c02ea71ce4e94f9e11b432efdf652a022488d9ac08",
+        "DEV/SMARTDRV/SMARTDRV.EXE": "783927a8e989f9d2d6cd135796c06e46522053eb8b16464d780ec71ec38a0a4a",
+        "DEV/SMARTDRV/FLUSH13.EXE": "0649d1f074e62eea85e3a61a464fff58b7609cb9d0b59c960f346ade75c39397",
+        "DEV/XMA2EMS/XMA2EMS.SYS": "4ba66ac5c8a644ac17137f41ffbf37ac9be160ab48acef260373093fbc5b5457",
+        "DEV/XMAEM/XMAEM.SYS": "2d766018d7328e13afd43e327f9c7fbfe7ec81a7bf6a2ca1e3a1e6950c7fa90f",
+        "SELECT/SELECT.EXE": "337a80b535326622f64a475c9b90c15b93051a071a8b89cb113a1d33fd0754fd",
+        "SELECT/SELECT.COM": "0d63c15c8b5851eeefec91286068732071933d640eb0ebfc6f0995b0d41103f2",
+        "SELECT/SELECT.HLP": "b2e15f740c133427af7f5a295cb780b3a028bd8429c7a483fd98af97a2ba62a5",
+        "SELECT/SELECT.DAT": "866004f50fd27933ce504fc6d4c4960584912959c8d0bdc1c36637d6f9bad40d",
+        "DEV/DISPLAY/EGA/EGA.CPI": "e62143d403dba21dd9f3c606769b90923038e542098fdb57de36eaf9e986a4b0",
+        "DEV/DISPLAY/EGA/EGA866.CPI": "efa06cb267a370fab3db71fb85f73711b750ec04498b40b6cc6a4a2be2e3d7ad",
+        "DEV/DISPLAY/EGA/EGA775.CPI": "ab38fe5b8acae0ba3933ac6b66596c58b32bc23385285b8cc68fec1fa8f15255",
+        "CMD/DEBUG/DEBUG.COM": "76a99a95661f4ceef8555172728e07173c11195b2debfd9b3ad192cbf94eed57",
+        "CMD/MEM/MEM.EXE": "e122a09eea08538a9908072d45c8c22e80df1eaae6e9df39f10968d2d91f4827",
+        "CMD/FDISK/FDISK.EXE": "3398b8b4d93694f6056be16fea8532e6ee7b180a1bd53f3f30506cc049f9f34d",
+        "CMD/MORE/MORE.COM": "22f7b32de9b14a5938a738bf29016d4fdbbfd2edd4e75e1f382215b272c72038",
+        "CMD/SORT/SORT.EXE": "2b7dcc97c7b0f77010afad8a90e548451e057caac7be6077a05d488e77f2dd30",
+        "CMD/LABEL/LABEL.COM": "1d4c12c537772b65fe7ee0544912e874c7ceb54c37040edbdb089a36f1f58f97",
+        "CMD/FIND/FIND.EXE": "bce1e2a4df29876ae4720bec538cb8034d833c5eb945718e6a05d7510d1c399e",
+        "CMD/TREE/TREE.COM": "2503a4e80137ddae94dabc75f0226b63a4a01d86971b77d5b4cca0cbc3d5e4e4",
+        "CMD/COMP/COMP.COM": "bd810d7f094ed73c185b8ab106c2a46d10280148b56324f4247350dfb88225a6",
+        "CMD/ATTRIB/ATTRIB.EXE": "69d88422eddb5183ae9c186b460da752364322222add2de8990423b05c2f46ec",
+        "CMD/EDLIN/EDLIN.COM": "21dcc094437d6e7dbed8d8cf34d5b7bb6629d6fd8f9b0256710bc038a77e132a",
+        "CMD/NLSFUNC/NLSFUNC.EXE": "f8bed4307ba458fd1e14f5aae373d5693d830d77ccd77636a6313df5f7b0e297",
+        "CMD/ASSIGN/ASSIGN.COM": "8e2e82b9fdaf7f0c7e5d13e8f420d0f2c3967e3e7fec175f6f78d89592ab7ae5",
+        "CMD/XCOPY/XCOPY.EXE": "4753caa9bf4cb3d0484fe85890a83f0e05136de18fa5e439b04c46e996bf8d3e",
+        "CMD/DISKCOMP/DISKCOMP.COM": "92a443fc91b241f35fdaf291d4093fc92bca876a351d0928afdb2e200fb747f3",
+        "CMD/DISKCOPY/DISKCOPY.COM": "0198451f9fe69b0aaef658799020a57e26c4b3df44f75c2562f24533aa7ddae0",
+        "CMD/APPEND/APPEND.EXE": "037a2ac9a25d464ac6f022d8e4b273b971d789b7fafa54eae4b7570e8eb5044e",
+        "CMD/RECOVER/RECOVER.COM": "b2220b07db27d6c297d2cd7f51b4dc845266736dd83786d9948b12ef0f1434b8",
+        "CMD/FASTOPEN/FASTOPEN.EXE": "dcf4a3a0667e1253b06751c3d872e9ae5e62aff77c4fa3475ded31d221b7963a",
+        "CMD/PRINT/PRINT.COM": "6b7b6e8ca58e774724937748a6d6b3826ba9262068d60a45df8109596e5fa0e5",
+        "CMD/FILESYS/FILESYS.EXE": "2c86d73c1b89f7e804ac7a24195ca190f08b8590d6f245c38a100405ca184f6b",
+        "CMD/REPLACE/REPLACE.EXE": "1b0831b3e0e0b216a94507e7370b4c1114796622455896f5f243c7ad33f0263f",
+        "CMD/JOIN/JOIN.EXE": "db2f40d92131a949f670ee88ce81be7c13440fd3260a2376b66b84a770fe8332",
+        "CMD/SUBST/SUBST.EXE": "df8967586b6607354743acb9e048d279ea312d570cdaa5e829f38a90f1dfb4e0",
+        "CMD/BACKUP/BACKUP.COM": "d69adbaf8c9ed4ca1e8ec0b8723ede0e6994633829e7dcf297c1a962d0e16956",
+        "CMD/RESTORE/RESTORE.COM": "d1d698372a6f73b61cc096c1f444423a0a3646c67cf3bb50749dc3da0d2dc054",
+        "CMD/GRAFTABL/GRAFTABL.COM": "66de896927d0a678079ecbe71471a8fcdabb4d9527232d447435d593b510b409",
+        "CMD/KEYB/KEYB.COM": "924edf011009fe4a747d045f24ae5da817b613e914cbf58b66ca22e3637ffa3e",
+        "CMD/SHARE/SHARE.EXE": "9118a65ea1873cad8ba45dde3d0a57fdca62908be7cb3cede9bd4a6814c1f865",
+        "CMD/EXE2BIN/EXE2BIN.EXE": "62547a424de824b58eabe9068b41f9c8889d3d3a9c94f460b7312b72c990fb29",
+        "CMD/GRAPHICS/GRAPHICS.COM": "0f08ba6ebf1fa20368ccc29172bb62362b9a491255fb1f03dc4fd1d31683162f",
+        "CMD/IFSFUNC/IFSFUNC.EXE": "e1ee7b1fea006d1a3f05725aec6920b1f9b63cf6c8fe496302b2410d3bb60068",
+        "CMD/MODE/MODE.COM": "c385aad5697fcec3a9113f58b983b978a7f969e99b153ebd496b12dab0e3767d",
+        "CMD/SETVER/SETVER.COM": "fb3a98c073d6e6ae5cdd2a1e10fd83fe8998d1c344e7ae2d3827139854d0b2a6",
+        "CMD/SETVER/SETVER.EXE": "4632fe1709c55b0f22dedf3cce6c9b59655bd9ccacccd3be7e95c73c16b73b03",
+        "CMD/DOSKEY/DOSKEY.COM": "ce9b45bfc05ffafab7a4b41819d811b09b8a9e14f175aaa677873ae7c29c6bf0",
+        "CMD/HELP/HELP.COM": "a97a00c93488027f2a75c87f693ae4e617f6caf515d7f08ebef38e429d50f65e",
+        "CMD/HELP/HELP.HLP": "d555b7f06e2792d4f21db095eda73b32c2dc7585aa805e5cd1cceb053c978e30",
+        "CMD/MIRROR/MIRROR.COM": "d2c0525be0e9df3802829629cd39f839777812cf68b265105cb8b5026c4ab005",
+        "CMD/UNDELETE/UNDELETE.COM": "f3f3e21459c3be57332adf085010b0a469b6561cdc64957316b237dfc57f2243",
+        "CMD/UNFORMAT/UNFORMAT.COM": "00fb4448340bd2ad5498ae34c8f3a7d164a6c70e81cd325971c55d6b9f2d3bf3",
+        "CMD/CHOICE/CHOICE.COM": "a3c4adcfeff7839ac344c24b0fc18078ebfd3729fa24ee69309be51bd1fa2805",
+        "CMD/LOADFIX/LOADFIX.COM": "7fb5d04e845564caea5e4846e93a901421768af0d4011c8cf21656dbe85ca839",
+        "CMD/DELTREE/DELTREE.EXE": "09bb62770fb29283c363b117a5adb06d5cc0cbb680c83490d113c140f374b073",
+        "CMD/DEFRAG/DEFRAG.EXE": "b9fa0ea24e7eb935a3f0f4570c08085eff080e52b5040aca6f26f3d0b6a7795c",
+        "CMD/MOVE/MOVE.EXE": "577833937b25b62028595299669b7b937a89f60e15172a86d3185a9f0b5110ba",
+        "CMD/SCANDISK/SCANDISK.EXE": "29f58252ecf14668f5c12a31414e2c9d8bd76cccfcca9cb30aae6a85621ed0b9",
+        "CMD/SCANDISK/SCANDISK.INI": "3431f52cc3c691f690c42a07b42ce319daead335b0ec8e1c7985c17713147a5d",
+        "CMD/MEMMAKER/MEMMAKER.EXE": "de342e10f2439f1c720aa91129155d82c110842083befe1f964f27b6facc5a98",
+        "CMD/SIZER/SIZER.EXE": "5e9bb1e7cf5a3e287dcb184b7be5b724b266528b94a332bfb33e70aae2eefac4",
+        "CMD/POWER/POWER.EXE": "77a4cf45286e9da69df49c8c4021e7850a5fa3a820e9ee154d6b242283113a3c",
+        "CMD/MSCDEX/MSCDEX.EXE": "16707d9e82bc2ba46a55bacd69de78883ad7a5fc3d29c6dbee6ce437357f2bd9",
+        "CMD/INTERLNK/INTERLNK.EXE": "ec48cf8aca06358a9e2b8c768b6ff60809d29295a7d8c8445923c526e2ddb9f0",
+        "CMD/INTERSVR/INTERSVR.EXE": "edae228701cbd9ea0bf679de6edb1b24020f1159c8c57c7ee66674b5a9de91a1",
+        "MEMM/MEMM/EMM386.EXE": "0bba6763ffdaff89c7cbdfe591527374199a7a6a74b9a27e81e44a75c204f2dc"
+      },
+      "core_sha256": {
+        "IO.SYS": "34af301387a2f3d11e20590922b3611227e640c26087dbf79ff83f1364fe0b8e",
+        "MSDOS.SYS": "b495ab1ccc6fd3e7672b4724a7cccde519d8a65171c0c0ed6bad73cd331a42e9",
+        "COMMAND.COM": "6742b5889141a9c61d41e336445014d8055c19758febf4263f4f8ebe3c2f2c29",
+        "HIMEM.SYS": "d5ea7b0e775c2eb6eb2b7dab42eb7471a7a84bfb32cf2021215d4ed6f8a7850a",
+        "EMM386.EXE": "58266b6614594de7a9cfde9eda75e3eb241b9e2e941e67b70645a0f8a197dae6"
+      },
+      "source_line_endings": {
+        "src/BIOS/MSBIO.LNK": {
+          "primary_sha256": "41c6e4bf78583c8ce8c189c2a1598edc7751f540e02fd172c4303f1a74a277d2",
+          "checkout_sha256": "773d4cc7e5408ffa6ef8a8d73cb5bc9b3bb3e962813c72863a3d553823a36db3",
+          "difference": "CRLF checkout versus LF primary; canonical bytes agree"
+        },
+        "src/CMD/COMMAND/COMMAND.LNK": {
+          "primary_sha256": "c66330e791878c8056e3c18f29fa4b9b72cd1e78c4003963a5953d608d58e8b7",
+          "checkout_sha256": "39b9852815cf271a9be660c8b42893126b424cfd1a611080a3c725dc5f657074",
+          "difference": "CRLF checkout versus LF primary; canonical bytes agree"
+        },
+        "src/CMD/DISKCOPY/DISKCOPY.SKL": {
+          "primary_sha256": "b547469e3a69282a2fdf22a217c4ec1f87decafe7fd7111eb5a785bed27ac551",
+          "checkout_sha256": "23cb2c8e1f02d5bbdca3064d1642b5a7cdf213f26067c3a5786082b2f2b8251f",
+          "difference": "CRLF checkout versus LF primary; canonical bytes agree"
+        },
+        "src/CMD/FDISK/BOOTREC.ASM": {
+          "primary_sha256": "052a201e20458ea3a3e1e7822e90a6452b47c888c545997cfe8791a2c49dd394",
+          "checkout_sha256": "f9d9652cde9937ba67f8aaed66c1995d6e5cc8a98f657a35e4e29bd311d130f0",
+          "difference": "CRLF checkout versus LF primary; canonical bytes agree"
+        },
+        "src/CMD/FDISK/FDISK.H": {
+          "primary_sha256": "9bc0f196c5d48cd8f1875aaa870b6e037b2b11c30f41f10e6a6cb01eb9fd9c9c",
+          "checkout_sha256": "dc93990c62d24a1f96750e95697685c1463db074f0724947506abbb73685431b",
+          "difference": "CRLF checkout versus LF primary; canonical bytes agree"
+        },
+        "src/CMD/FDISK/INT13.C": {
+          "primary_sha256": "a8b2230037781b79e170b67de39cb4ca9319ba736cf6930868ab8def38d2b30b",
+          "checkout_sha256": "64575b051e0692379c99152432a11d364580ee5a8c682d24f0ea4adcd1fab803",
+          "difference": "CRLF checkout versus LF primary; canonical bytes agree"
+        },
+        "src/CMD/FDISK/MAINMENU.C": {
+          "primary_sha256": "b219b4a88c907513931d9ec71adf5fee8aac0a5fb9431fbde00628f4450ab34e",
+          "checkout_sha256": "25ee5e6fb408e337ca7875a6173135ea95534221bb4cdad0f99bf3ef35f28e52",
+          "difference": "CRLF checkout versus LF primary; canonical bytes agree"
+        },
+        "src/CMD/FDISK/TDISPLAY.C": {
+          "primary_sha256": "7eb142500db67569a9bd7203c054ac0c6d90aa08c85681aa82132528a6ea1827",
+          "checkout_sha256": "7d205c52c3a66caf606f96d674e9f0d518b8aba10c1f1ecb63c122af10b49f44",
+          "difference": "CRLF checkout versus LF primary; canonical bytes agree"
+        },
+        "src/CMD/FDISK/VDISPLAY.C": {
+          "primary_sha256": "7610f66f12d0dc56f79f32f884c3818f2b134084e304086e6127adb7d4d901aa",
+          "checkout_sha256": "a75016a3abb7e06636cdee7ee392315895e1ed9c04766fb3d0c9b74cb9e8f1a4",
+          "difference": "CRLF checkout versus LF primary; canonical bytes agree"
+        },
+        "src/CMD/FORMAT/FORMAT.LNK": {
+          "primary_sha256": "2bd12054ee6ddba77cd2cda53d07b9eb96a80be14eab2ff39ba56d82dbd38fd9",
+          "checkout_sha256": "e8e2a938da056c2bcdf53dc18ee8a99aae399b3bf51f21aae201384f43f1b55f",
+          "difference": "CRLF checkout versus LF primary; canonical bytes agree"
+        },
+        "src/CMD/FORMAT/MSFOR.ASM": {
+          "primary_sha256": "16fce84ec7fdd975a6186910d2a38287d3846d9136bf37742cea899e59a9a5ee",
+          "checkout_sha256": "2c72704c6161d48b81a39ec1ee382aab698713d050002abf931cdcad6d2506ed",
+          "difference": "CRLF checkout versus LF primary; canonical bytes agree"
+        },
+        "src/DEV/DRIVER/DRIVER.ASM": {
+          "primary_sha256": "c5766e73f26bb1edd7d64752984bbe325a3257e861c76c9abf095cbd1dae2933",
+          "checkout_sha256": "228f2a64655d32ffeb53c77dc22c0591907157075bba6d3b210650e0a9708feb",
+          "difference": "CRLF checkout versus LF primary; canonical bytes agree"
+        },
+        "src/DEV/KEYBOARD/KEYBOARD.LNK": {
+          "primary_sha256": "06965368ec52d3d3e7e2d6e3d3150a300d9644bb2a256625df1d066430b7a69d",
+          "checkout_sha256": "f80ebc5ab8d40ebb5d932405bc64270be0c3aabc6e1dac17292e0aa61450fa09",
+          "difference": "CRLF checkout versus LF primary; canonical bytes agree"
+        },
+        "src/DOS/MSDOS.LNK": {
+          "primary_sha256": "aff475f710ea816623e0b9b9e42210672783dccdbaab7a394fea9454d1ae5815",
+          "checkout_sha256": "62c8a106d23e82c9bff4885b126155c39d2d990131dff9a0bfb4317fd885826a",
+          "difference": "CRLF checkout versus LF primary; canonical bytes agree"
+        },
+        "src/MEMM/MEMM/EMM386.LNK": {
+          "primary_sha256": "a0b5e62b3b522355ede2375015d09861978ae89f41c684b6c014277ea18342a4",
+          "checkout_sha256": "13e07caabbe67f7fce825876a6bc370509e6db22c83ef379901dec5241103505",
+          "difference": "CRLF checkout versus LF primary; canonical bytes agree"
+        }
+      },
+      "build": {
+        "path": "review/pristine-j1-core-build.json",
+        "sha256": "909562defb00e37701b26b852a0c010a169f909e523a1f6b8173e2a2642694ff"
+      },
+      "build_log": {
+        "path": "review/pristine-j1-build.log",
+        "sha256": "2941db978877f2eefd47cc99513a391c8e78e47c6c12d23fb4b85e16d801af2e"
+      },
+      "setup_log": {
+        "path": "review/pristine-j1-setup.log",
+        "sha256": "23920d45fa199b038ce2de1da753215990c54d34b5765b9ec301c28d78bfb1f1"
+      },
+      "core_commands": {
+        "path": "review/pristine-j1-core-commands.json",
+        "sha256": "1643755e0fc93174c705f5ba673ab16455fc620c482b176d2773a62ca62503d5"
+      },
+      "core_log": {
+        "path": "review/pristine-j1-core.log",
+        "sha256": "1e329da475da6e10900b409825d255580ffbd13270a30e5e7189426d0b46664a"
+      },
+      "maps": {
+        "provider/MEMM/MEMM/emm386.map": {
+          "path": "review/pristine-j1-provider-MEMM-MEMM-emm386.MAP",
+          "sha256": "af9349d10108b728efc87eae6a7311ef5090f83923ae4b4e521307cfea63bbdd"
+        },
+        "bios/msBIO.map": {
+          "path": "review/pristine-j1-bios-msBIO.MAP",
+          "sha256": "0800f8a640258075c45322712957a510a2ffbdb85d407cbc23025fc8c96aa2c4"
+        },
+        "bios/high/bios-high.map": {
+          "path": "review/pristine-j1-bios-high-bios-high.MAP",
+          "sha256": "25ebbee2607a94a71b906bbdd9d9373bcbbb091970ec3c872c68ef0a84b46c99"
+        },
+        "command/COMMAND.MAP": {
+          "path": "review/pristine-j1-command-COMMAND.MAP",
+          "sha256": "b134166c0e0f81528c52662e14ae97788b97cee499b87dea78e02df84b7e6230"
+        }
+      }
+    },
+    {
+      "jobs": 4,
+      "checkout": "/Users/ddanila/fun/msdos/out/baltic-repro-m5lr8g72/j4",
+      "artifacts": {
+        "MESSAGES/USA-MS.IDX": "c3c491d59ffc34c6432354becd0170ab8579e907f473c5bffa62ba6faf0f5fc5",
+        "MAPPER/MAPPER.LIB": "dddb53264d9e24df00fac4441db96d1b5109a004b6b6576a9605cdab6e28dbf4",
+        "INC/boot.inc": "484fc085e65f0c0e4d7444da3dab44a5b262fd661ab5a6faeec6dfa8b89e8d48",
+        "BIOS/IO.SYS": "a1bad90c5681944e93cbebd6f5443976c5a2232155e8f6db9037b1927542e9a1",
+        "BIOS/SYSMENU.OVL": "8e40405ba7be2bfde3e088380551112d8d470bf052a442b5386de827cc45bbd3",
+        "DOS/MSDOS.SYS": "b495ab1ccc6fd3e7672b4724a7cccde519d8a65171c0c0ed6bad73cd331a42e9",
+        "DEV/HIMEM/HIMEM.SYS": "9bbf85d769542e700f4e5ed73ba997756f51dd26ef2e7aac8cdc94ae555e8dab",
+        "DEV/EGA/EGA.SYS": "1694fe3521dc71875a80fc1d20a799c5b21e93d0259c8b97b87f632195038ba4",
+        "CMD/COMMAND/COMMAND.COM": "798ceb24eb752c8413e47400685b0574479eaf8750a4b76b7353fe2c542c2461",
+        "CMD/SYS/SYS.COM": "fdd383ac15e660445c2975348861667a02e9b73a1192edd858a1858ae01eca5d",
+        "CMD/FORMAT/FORMAT.COM": "dae92a0df9f52ca426b0c6a343b7678bbb6cf8df336d881c3afd91a9f60743f3",
+        "CMD/EXPAND/EXPAND.EXE": "26869dd67ee8f31c052458666b1f8798f62d1dc3a86f6f534b6f853e185c3660",
+        "CMD/SETUP/SETUP.EXE": "ef6a3c48d05ee2b142a75f1393d9ce5325899f117923109413444998a30f683d",
+        "CMD/CHKDSK/CHKDSK.COM": "57777bd2631584c99ec3190b7bb521ea5a16cfa2ce926cf165488701ba0be6b8",
+        "DEV/ANSI/ANSI.SYS": "41d644c3fecefd70aea83fa058c25e17dd4b92187616764ff67673f54d4d2f02",
+        "DEV/VDISK/VDISK.SYS": "98d5bd47259e49395c30093d6356335604c926a825271664c17e095c96cc9f63",
+        "DEV/COUNTRY/COUNTRY.SYS": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c",
+        "DEV/RAMDRIVE/RAMDRIVE.SYS": "bf9a8fce2818a34af811c7d39739f1510ab158d738445169740926697d737584",
+        "DEV/KEYBOARD/KEYBOARD.SYS": "57571a4b10040dd0645998d0ccb8caa6e02be904ded253c9c81d542750ae4d9d",
+        "DEV/KEYBOARD/KEYBRD2.SYS": "d003716471ffbe12803ac7beaf511a8a4e2d6a0b8ef5e3d214eee2a69584cf06",
+        "DEV/PRINTER/PRINTER.SYS": "c570e54fd04e9e7c64d2e875bd471298c3562b61d0c8073c0d01cf099ce18b35",
+        "DEV/DISPLAY/DISPLAY.SYS": "0ebd3bfad4e87d79e05219c02ea71ce4e94f9e11b432efdf652a022488d9ac08",
+        "DEV/SMARTDRV/SMARTDRV.EXE": "783927a8e989f9d2d6cd135796c06e46522053eb8b16464d780ec71ec38a0a4a",
+        "DEV/SMARTDRV/FLUSH13.EXE": "0649d1f074e62eea85e3a61a464fff58b7609cb9d0b59c960f346ade75c39397",
+        "DEV/XMA2EMS/XMA2EMS.SYS": "4ba66ac5c8a644ac17137f41ffbf37ac9be160ab48acef260373093fbc5b5457",
+        "DEV/XMAEM/XMAEM.SYS": "2d766018d7328e13afd43e327f9c7fbfe7ec81a7bf6a2ca1e3a1e6950c7fa90f",
+        "SELECT/SELECT.EXE": "337a80b535326622f64a475c9b90c15b93051a071a8b89cb113a1d33fd0754fd",
+        "SELECT/SELECT.COM": "0d63c15c8b5851eeefec91286068732071933d640eb0ebfc6f0995b0d41103f2",
+        "SELECT/SELECT.HLP": "b2e15f740c133427af7f5a295cb780b3a028bd8429c7a483fd98af97a2ba62a5",
+        "SELECT/SELECT.DAT": "866004f50fd27933ce504fc6d4c4960584912959c8d0bdc1c36637d6f9bad40d",
+        "DEV/DISPLAY/EGA/EGA.CPI": "e62143d403dba21dd9f3c606769b90923038e542098fdb57de36eaf9e986a4b0",
+        "DEV/DISPLAY/EGA/EGA866.CPI": "efa06cb267a370fab3db71fb85f73711b750ec04498b40b6cc6a4a2be2e3d7ad",
+        "DEV/DISPLAY/EGA/EGA775.CPI": "ab38fe5b8acae0ba3933ac6b66596c58b32bc23385285b8cc68fec1fa8f15255",
+        "CMD/DEBUG/DEBUG.COM": "76a99a95661f4ceef8555172728e07173c11195b2debfd9b3ad192cbf94eed57",
+        "CMD/MEM/MEM.EXE": "e122a09eea08538a9908072d45c8c22e80df1eaae6e9df39f10968d2d91f4827",
+        "CMD/FDISK/FDISK.EXE": "3398b8b4d93694f6056be16fea8532e6ee7b180a1bd53f3f30506cc049f9f34d",
+        "CMD/MORE/MORE.COM": "22f7b32de9b14a5938a738bf29016d4fdbbfd2edd4e75e1f382215b272c72038",
+        "CMD/SORT/SORT.EXE": "2b7dcc97c7b0f77010afad8a90e548451e057caac7be6077a05d488e77f2dd30",
+        "CMD/LABEL/LABEL.COM": "1d4c12c537772b65fe7ee0544912e874c7ceb54c37040edbdb089a36f1f58f97",
+        "CMD/FIND/FIND.EXE": "bce1e2a4df29876ae4720bec538cb8034d833c5eb945718e6a05d7510d1c399e",
+        "CMD/TREE/TREE.COM": "2503a4e80137ddae94dabc75f0226b63a4a01d86971b77d5b4cca0cbc3d5e4e4",
+        "CMD/COMP/COMP.COM": "bd810d7f094ed73c185b8ab106c2a46d10280148b56324f4247350dfb88225a6",
+        "CMD/ATTRIB/ATTRIB.EXE": "69d88422eddb5183ae9c186b460da752364322222add2de8990423b05c2f46ec",
+        "CMD/EDLIN/EDLIN.COM": "21dcc094437d6e7dbed8d8cf34d5b7bb6629d6fd8f9b0256710bc038a77e132a",
+        "CMD/NLSFUNC/NLSFUNC.EXE": "f8bed4307ba458fd1e14f5aae373d5693d830d77ccd77636a6313df5f7b0e297",
+        "CMD/ASSIGN/ASSIGN.COM": "8e2e82b9fdaf7f0c7e5d13e8f420d0f2c3967e3e7fec175f6f78d89592ab7ae5",
+        "CMD/XCOPY/XCOPY.EXE": "4753caa9bf4cb3d0484fe85890a83f0e05136de18fa5e439b04c46e996bf8d3e",
+        "CMD/DISKCOMP/DISKCOMP.COM": "92a443fc91b241f35fdaf291d4093fc92bca876a351d0928afdb2e200fb747f3",
+        "CMD/DISKCOPY/DISKCOPY.COM": "0198451f9fe69b0aaef658799020a57e26c4b3df44f75c2562f24533aa7ddae0",
+        "CMD/APPEND/APPEND.EXE": "037a2ac9a25d464ac6f022d8e4b273b971d789b7fafa54eae4b7570e8eb5044e",
+        "CMD/RECOVER/RECOVER.COM": "b2220b07db27d6c297d2cd7f51b4dc845266736dd83786d9948b12ef0f1434b8",
+        "CMD/FASTOPEN/FASTOPEN.EXE": "dcf4a3a0667e1253b06751c3d872e9ae5e62aff77c4fa3475ded31d221b7963a",
+        "CMD/PRINT/PRINT.COM": "6b7b6e8ca58e774724937748a6d6b3826ba9262068d60a45df8109596e5fa0e5",
+        "CMD/FILESYS/FILESYS.EXE": "2c86d73c1b89f7e804ac7a24195ca190f08b8590d6f245c38a100405ca184f6b",
+        "CMD/REPLACE/REPLACE.EXE": "1b0831b3e0e0b216a94507e7370b4c1114796622455896f5f243c7ad33f0263f",
+        "CMD/JOIN/JOIN.EXE": "db2f40d92131a949f670ee88ce81be7c13440fd3260a2376b66b84a770fe8332",
+        "CMD/SUBST/SUBST.EXE": "df8967586b6607354743acb9e048d279ea312d570cdaa5e829f38a90f1dfb4e0",
+        "CMD/BACKUP/BACKUP.COM": "d69adbaf8c9ed4ca1e8ec0b8723ede0e6994633829e7dcf297c1a962d0e16956",
+        "CMD/RESTORE/RESTORE.COM": "d1d698372a6f73b61cc096c1f444423a0a3646c67cf3bb50749dc3da0d2dc054",
+        "CMD/GRAFTABL/GRAFTABL.COM": "66de896927d0a678079ecbe71471a8fcdabb4d9527232d447435d593b510b409",
+        "CMD/KEYB/KEYB.COM": "924edf011009fe4a747d045f24ae5da817b613e914cbf58b66ca22e3637ffa3e",
+        "CMD/SHARE/SHARE.EXE": "9118a65ea1873cad8ba45dde3d0a57fdca62908be7cb3cede9bd4a6814c1f865",
+        "CMD/EXE2BIN/EXE2BIN.EXE": "62547a424de824b58eabe9068b41f9c8889d3d3a9c94f460b7312b72c990fb29",
+        "CMD/GRAPHICS/GRAPHICS.COM": "0f08ba6ebf1fa20368ccc29172bb62362b9a491255fb1f03dc4fd1d31683162f",
+        "CMD/IFSFUNC/IFSFUNC.EXE": "e1ee7b1fea006d1a3f05725aec6920b1f9b63cf6c8fe496302b2410d3bb60068",
+        "CMD/MODE/MODE.COM": "c385aad5697fcec3a9113f58b983b978a7f969e99b153ebd496b12dab0e3767d",
+        "CMD/SETVER/SETVER.COM": "fb3a98c073d6e6ae5cdd2a1e10fd83fe8998d1c344e7ae2d3827139854d0b2a6",
+        "CMD/SETVER/SETVER.EXE": "4632fe1709c55b0f22dedf3cce6c9b59655bd9ccacccd3be7e95c73c16b73b03",
+        "CMD/DOSKEY/DOSKEY.COM": "ce9b45bfc05ffafab7a4b41819d811b09b8a9e14f175aaa677873ae7c29c6bf0",
+        "CMD/HELP/HELP.COM": "a97a00c93488027f2a75c87f693ae4e617f6caf515d7f08ebef38e429d50f65e",
+        "CMD/HELP/HELP.HLP": "d555b7f06e2792d4f21db095eda73b32c2dc7585aa805e5cd1cceb053c978e30",
+        "CMD/MIRROR/MIRROR.COM": "d2c0525be0e9df3802829629cd39f839777812cf68b265105cb8b5026c4ab005",
+        "CMD/UNDELETE/UNDELETE.COM": "f3f3e21459c3be57332adf085010b0a469b6561cdc64957316b237dfc57f2243",
+        "CMD/UNFORMAT/UNFORMAT.COM": "00fb4448340bd2ad5498ae34c8f3a7d164a6c70e81cd325971c55d6b9f2d3bf3",
+        "CMD/CHOICE/CHOICE.COM": "a3c4adcfeff7839ac344c24b0fc18078ebfd3729fa24ee69309be51bd1fa2805",
+        "CMD/LOADFIX/LOADFIX.COM": "7fb5d04e845564caea5e4846e93a901421768af0d4011c8cf21656dbe85ca839",
+        "CMD/DELTREE/DELTREE.EXE": "09bb62770fb29283c363b117a5adb06d5cc0cbb680c83490d113c140f374b073",
+        "CMD/DEFRAG/DEFRAG.EXE": "b9fa0ea24e7eb935a3f0f4570c08085eff080e52b5040aca6f26f3d0b6a7795c",
+        "CMD/MOVE/MOVE.EXE": "577833937b25b62028595299669b7b937a89f60e15172a86d3185a9f0b5110ba",
+        "CMD/SCANDISK/SCANDISK.EXE": "29f58252ecf14668f5c12a31414e2c9d8bd76cccfcca9cb30aae6a85621ed0b9",
+        "CMD/SCANDISK/SCANDISK.INI": "3431f52cc3c691f690c42a07b42ce319daead335b0ec8e1c7985c17713147a5d",
+        "CMD/MEMMAKER/MEMMAKER.EXE": "de342e10f2439f1c720aa91129155d82c110842083befe1f964f27b6facc5a98",
+        "CMD/SIZER/SIZER.EXE": "5e9bb1e7cf5a3e287dcb184b7be5b724b266528b94a332bfb33e70aae2eefac4",
+        "CMD/POWER/POWER.EXE": "77a4cf45286e9da69df49c8c4021e7850a5fa3a820e9ee154d6b242283113a3c",
+        "CMD/MSCDEX/MSCDEX.EXE": "16707d9e82bc2ba46a55bacd69de78883ad7a5fc3d29c6dbee6ce437357f2bd9",
+        "CMD/INTERLNK/INTERLNK.EXE": "ec48cf8aca06358a9e2b8c768b6ff60809d29295a7d8c8445923c526e2ddb9f0",
+        "CMD/INTERSVR/INTERSVR.EXE": "edae228701cbd9ea0bf679de6edb1b24020f1159c8c57c7ee66674b5a9de91a1",
+        "MEMM/MEMM/EMM386.EXE": "0bba6763ffdaff89c7cbdfe591527374199a7a6a74b9a27e81e44a75c204f2dc"
+      },
+      "core_sha256": {
+        "IO.SYS": "34af301387a2f3d11e20590922b3611227e640c26087dbf79ff83f1364fe0b8e",
+        "MSDOS.SYS": "b495ab1ccc6fd3e7672b4724a7cccde519d8a65171c0c0ed6bad73cd331a42e9",
+        "COMMAND.COM": "6742b5889141a9c61d41e336445014d8055c19758febf4263f4f8ebe3c2f2c29",
+        "HIMEM.SYS": "d5ea7b0e775c2eb6eb2b7dab42eb7471a7a84bfb32cf2021215d4ed6f8a7850a",
+        "EMM386.EXE": "58266b6614594de7a9cfde9eda75e3eb241b9e2e941e67b70645a0f8a197dae6"
+      },
+      "source_line_endings": {
+        "src/BIOS/MSBIO.LNK": {
+          "primary_sha256": "41c6e4bf78583c8ce8c189c2a1598edc7751f540e02fd172c4303f1a74a277d2",
+          "checkout_sha256": "773d4cc7e5408ffa6ef8a8d73cb5bc9b3bb3e962813c72863a3d553823a36db3",
+          "difference": "CRLF checkout versus LF primary; canonical bytes agree"
+        },
+        "src/CMD/COMMAND/COMMAND.LNK": {
+          "primary_sha256": "c66330e791878c8056e3c18f29fa4b9b72cd1e78c4003963a5953d608d58e8b7",
+          "checkout_sha256": "39b9852815cf271a9be660c8b42893126b424cfd1a611080a3c725dc5f657074",
+          "difference": "CRLF checkout versus LF primary; canonical bytes agree"
+        },
+        "src/CMD/DISKCOPY/DISKCOPY.SKL": {
+          "primary_sha256": "b547469e3a69282a2fdf22a217c4ec1f87decafe7fd7111eb5a785bed27ac551",
+          "checkout_sha256": "23cb2c8e1f02d5bbdca3064d1642b5a7cdf213f26067c3a5786082b2f2b8251f",
+          "difference": "CRLF checkout versus LF primary; canonical bytes agree"
+        },
+        "src/CMD/FDISK/BOOTREC.ASM": {
+          "primary_sha256": "052a201e20458ea3a3e1e7822e90a6452b47c888c545997cfe8791a2c49dd394",
+          "checkout_sha256": "f9d9652cde9937ba67f8aaed66c1995d6e5cc8a98f657a35e4e29bd311d130f0",
+          "difference": "CRLF checkout versus LF primary; canonical bytes agree"
+        },
+        "src/CMD/FDISK/FDISK.H": {
+          "primary_sha256": "9bc0f196c5d48cd8f1875aaa870b6e037b2b11c30f41f10e6a6cb01eb9fd9c9c",
+          "checkout_sha256": "dc93990c62d24a1f96750e95697685c1463db074f0724947506abbb73685431b",
+          "difference": "CRLF checkout versus LF primary; canonical bytes agree"
+        },
+        "src/CMD/FDISK/INT13.C": {
+          "primary_sha256": "a8b2230037781b79e170b67de39cb4ca9319ba736cf6930868ab8def38d2b30b",
+          "checkout_sha256": "64575b051e0692379c99152432a11d364580ee5a8c682d24f0ea4adcd1fab803",
+          "difference": "CRLF checkout versus LF primary; canonical bytes agree"
+        },
+        "src/CMD/FDISK/MAINMENU.C": {
+          "primary_sha256": "b219b4a88c907513931d9ec71adf5fee8aac0a5fb9431fbde00628f4450ab34e",
+          "checkout_sha256": "25ee5e6fb408e337ca7875a6173135ea95534221bb4cdad0f99bf3ef35f28e52",
+          "difference": "CRLF checkout versus LF primary; canonical bytes agree"
+        },
+        "src/CMD/FDISK/TDISPLAY.C": {
+          "primary_sha256": "7eb142500db67569a9bd7203c054ac0c6d90aa08c85681aa82132528a6ea1827",
+          "checkout_sha256": "7d205c52c3a66caf606f96d674e9f0d518b8aba10c1f1ecb63c122af10b49f44",
+          "difference": "CRLF checkout versus LF primary; canonical bytes agree"
+        },
+        "src/CMD/FDISK/VDISPLAY.C": {
+          "primary_sha256": "7610f66f12d0dc56f79f32f884c3818f2b134084e304086e6127adb7d4d901aa",
+          "checkout_sha256": "a75016a3abb7e06636cdee7ee392315895e1ed9c04766fb3d0c9b74cb9e8f1a4",
+          "difference": "CRLF checkout versus LF primary; canonical bytes agree"
+        },
+        "src/CMD/FORMAT/FORMAT.LNK": {
+          "primary_sha256": "2bd12054ee6ddba77cd2cda53d07b9eb96a80be14eab2ff39ba56d82dbd38fd9",
+          "checkout_sha256": "e8e2a938da056c2bcdf53dc18ee8a99aae399b3bf51f21aae201384f43f1b55f",
+          "difference": "CRLF checkout versus LF primary; canonical bytes agree"
+        },
+        "src/CMD/FORMAT/MSFOR.ASM": {
+          "primary_sha256": "16fce84ec7fdd975a6186910d2a38287d3846d9136bf37742cea899e59a9a5ee",
+          "checkout_sha256": "2c72704c6161d48b81a39ec1ee382aab698713d050002abf931cdcad6d2506ed",
+          "difference": "CRLF checkout versus LF primary; canonical bytes agree"
+        },
+        "src/DEV/DRIVER/DRIVER.ASM": {
+          "primary_sha256": "c5766e73f26bb1edd7d64752984bbe325a3257e861c76c9abf095cbd1dae2933",
+          "checkout_sha256": "228f2a64655d32ffeb53c77dc22c0591907157075bba6d3b210650e0a9708feb",
+          "difference": "CRLF checkout versus LF primary; canonical bytes agree"
+        },
+        "src/DEV/KEYBOARD/KEYBOARD.LNK": {
+          "primary_sha256": "06965368ec52d3d3e7e2d6e3d3150a300d9644bb2a256625df1d066430b7a69d",
+          "checkout_sha256": "f80ebc5ab8d40ebb5d932405bc64270be0c3aabc6e1dac17292e0aa61450fa09",
+          "difference": "CRLF checkout versus LF primary; canonical bytes agree"
+        },
+        "src/DOS/MSDOS.LNK": {
+          "primary_sha256": "aff475f710ea816623e0b9b9e42210672783dccdbaab7a394fea9454d1ae5815",
+          "checkout_sha256": "62c8a106d23e82c9bff4885b126155c39d2d990131dff9a0bfb4317fd885826a",
+          "difference": "CRLF checkout versus LF primary; canonical bytes agree"
+        },
+        "src/MEMM/MEMM/EMM386.LNK": {
+          "primary_sha256": "a0b5e62b3b522355ede2375015d09861978ae89f41c684b6c014277ea18342a4",
+          "checkout_sha256": "13e07caabbe67f7fce825876a6bc370509e6db22c83ef379901dec5241103505",
+          "difference": "CRLF checkout versus LF primary; canonical bytes agree"
+        }
+      },
+      "build": {
+        "path": "review/pristine-j4-core-build.json",
+        "sha256": "0e5bad555881384d8e17d7cb0a4d27a5e632133a7e8ec0da1d31b35d6b4e6f97"
+      },
+      "build_log": {
+        "path": "review/pristine-j4-build.log",
+        "sha256": "49c519c2f8bfa7547bbb5f2696d5e9a6cdbf66887ec7b23d1cf8a62e108efd4b"
+      },
+      "setup_log": {
+        "path": "review/pristine-j4-setup.log",
+        "sha256": "a1fe92510f69f20136389b58d7ae6313d80e979e26670f8446a5e16f47c7d9fd"
+      },
+      "core_commands": {
+        "path": "review/pristine-j4-core-commands.json",
+        "sha256": "ce9735fa442094829370e0110a054ed9c3c5bfded1f459790332d94c18ee48f9"
+      },
+      "core_log": {
+        "path": "review/pristine-j4-core.log",
+        "sha256": "1e329da475da6e10900b409825d255580ffbd13270a30e5e7189426d0b46664a"
+      },
+      "maps": {
+        "provider/MEMM/MEMM/emm386.map": {
+          "path": "review/pristine-j4-provider-MEMM-MEMM-emm386.MAP",
+          "sha256": "81163a0821e702da21cf04d5ebe07cf6d0fd0b0d8abff3c21831495f74e9d887"
+        },
+        "bios/msBIO.map": {
+          "path": "review/pristine-j4-bios-msBIO.MAP",
+          "sha256": "704fdae8655f780ce72c9ea8bfd0e142474bf0042d63c1276e2cdd1f0bcb01b4"
+        },
+        "bios/high/bios-high.map": {
+          "path": "review/pristine-j4-bios-high-bios-high.MAP",
+          "sha256": "29ad65579eedab3ce7149aebef59b623625b7b10943b08f9e28e0ae246c7b51f"
+        },
+        "command/COMMAND.MAP": {
+          "path": "review/pristine-j4-command-COMMAND.MAP",
+          "sha256": "5a07a79aa95de2fa32987ea858095d2b4692e8f6ae3e9b631538da391c7faa2d"
+        }
+      }
+    },
+    {
+      "jobs": 8,
+      "checkout": "/Users/ddanila/fun/msdos/out/baltic-repro-m5lr8g72/j8",
+      "artifacts": {
+        "MESSAGES/USA-MS.IDX": "c3c491d59ffc34c6432354becd0170ab8579e907f473c5bffa62ba6faf0f5fc5",
+        "MAPPER/MAPPER.LIB": "dddb53264d9e24df00fac4441db96d1b5109a004b6b6576a9605cdab6e28dbf4",
+        "INC/boot.inc": "484fc085e65f0c0e4d7444da3dab44a5b262fd661ab5a6faeec6dfa8b89e8d48",
+        "BIOS/IO.SYS": "a1bad90c5681944e93cbebd6f5443976c5a2232155e8f6db9037b1927542e9a1",
+        "BIOS/SYSMENU.OVL": "8e40405ba7be2bfde3e088380551112d8d470bf052a442b5386de827cc45bbd3",
+        "DOS/MSDOS.SYS": "b495ab1ccc6fd3e7672b4724a7cccde519d8a65171c0c0ed6bad73cd331a42e9",
+        "DEV/HIMEM/HIMEM.SYS": "9bbf85d769542e700f4e5ed73ba997756f51dd26ef2e7aac8cdc94ae555e8dab",
+        "DEV/EGA/EGA.SYS": "1694fe3521dc71875a80fc1d20a799c5b21e93d0259c8b97b87f632195038ba4",
+        "CMD/COMMAND/COMMAND.COM": "798ceb24eb752c8413e47400685b0574479eaf8750a4b76b7353fe2c542c2461",
+        "CMD/SYS/SYS.COM": "fdd383ac15e660445c2975348861667a02e9b73a1192edd858a1858ae01eca5d",
+        "CMD/FORMAT/FORMAT.COM": "dae92a0df9f52ca426b0c6a343b7678bbb6cf8df336d881c3afd91a9f60743f3",
+        "CMD/EXPAND/EXPAND.EXE": "26869dd67ee8f31c052458666b1f8798f62d1dc3a86f6f534b6f853e185c3660",
+        "CMD/SETUP/SETUP.EXE": "ef6a3c48d05ee2b142a75f1393d9ce5325899f117923109413444998a30f683d",
+        "CMD/CHKDSK/CHKDSK.COM": "57777bd2631584c99ec3190b7bb521ea5a16cfa2ce926cf165488701ba0be6b8",
+        "DEV/ANSI/ANSI.SYS": "41d644c3fecefd70aea83fa058c25e17dd4b92187616764ff67673f54d4d2f02",
+        "DEV/VDISK/VDISK.SYS": "98d5bd47259e49395c30093d6356335604c926a825271664c17e095c96cc9f63",
+        "DEV/COUNTRY/COUNTRY.SYS": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c",
+        "DEV/RAMDRIVE/RAMDRIVE.SYS": "bf9a8fce2818a34af811c7d39739f1510ab158d738445169740926697d737584",
+        "DEV/KEYBOARD/KEYBOARD.SYS": "57571a4b10040dd0645998d0ccb8caa6e02be904ded253c9c81d542750ae4d9d",
+        "DEV/KEYBOARD/KEYBRD2.SYS": "d003716471ffbe12803ac7beaf511a8a4e2d6a0b8ef5e3d214eee2a69584cf06",
+        "DEV/PRINTER/PRINTER.SYS": "c570e54fd04e9e7c64d2e875bd471298c3562b61d0c8073c0d01cf099ce18b35",
+        "DEV/DISPLAY/DISPLAY.SYS": "0ebd3bfad4e87d79e05219c02ea71ce4e94f9e11b432efdf652a022488d9ac08",
+        "DEV/SMARTDRV/SMARTDRV.EXE": "783927a8e989f9d2d6cd135796c06e46522053eb8b16464d780ec71ec38a0a4a",
+        "DEV/SMARTDRV/FLUSH13.EXE": "0649d1f074e62eea85e3a61a464fff58b7609cb9d0b59c960f346ade75c39397",
+        "DEV/XMA2EMS/XMA2EMS.SYS": "4ba66ac5c8a644ac17137f41ffbf37ac9be160ab48acef260373093fbc5b5457",
+        "DEV/XMAEM/XMAEM.SYS": "2d766018d7328e13afd43e327f9c7fbfe7ec81a7bf6a2ca1e3a1e6950c7fa90f",
+        "SELECT/SELECT.EXE": "337a80b535326622f64a475c9b90c15b93051a071a8b89cb113a1d33fd0754fd",
+        "SELECT/SELECT.COM": "0d63c15c8b5851eeefec91286068732071933d640eb0ebfc6f0995b0d41103f2",
+        "SELECT/SELECT.HLP": "b2e15f740c133427af7f5a295cb780b3a028bd8429c7a483fd98af97a2ba62a5",
+        "SELECT/SELECT.DAT": "866004f50fd27933ce504fc6d4c4960584912959c8d0bdc1c36637d6f9bad40d",
+        "DEV/DISPLAY/EGA/EGA.CPI": "e62143d403dba21dd9f3c606769b90923038e542098fdb57de36eaf9e986a4b0",
+        "DEV/DISPLAY/EGA/EGA866.CPI": "efa06cb267a370fab3db71fb85f73711b750ec04498b40b6cc6a4a2be2e3d7ad",
+        "DEV/DISPLAY/EGA/EGA775.CPI": "ab38fe5b8acae0ba3933ac6b66596c58b32bc23385285b8cc68fec1fa8f15255",
+        "CMD/DEBUG/DEBUG.COM": "76a99a95661f4ceef8555172728e07173c11195b2debfd9b3ad192cbf94eed57",
+        "CMD/MEM/MEM.EXE": "e122a09eea08538a9908072d45c8c22e80df1eaae6e9df39f10968d2d91f4827",
+        "CMD/FDISK/FDISK.EXE": "3398b8b4d93694f6056be16fea8532e6ee7b180a1bd53f3f30506cc049f9f34d",
+        "CMD/MORE/MORE.COM": "22f7b32de9b14a5938a738bf29016d4fdbbfd2edd4e75e1f382215b272c72038",
+        "CMD/SORT/SORT.EXE": "2b7dcc97c7b0f77010afad8a90e548451e057caac7be6077a05d488e77f2dd30",
+        "CMD/LABEL/LABEL.COM": "1d4c12c537772b65fe7ee0544912e874c7ceb54c37040edbdb089a36f1f58f97",
+        "CMD/FIND/FIND.EXE": "bce1e2a4df29876ae4720bec538cb8034d833c5eb945718e6a05d7510d1c399e",
+        "CMD/TREE/TREE.COM": "2503a4e80137ddae94dabc75f0226b63a4a01d86971b77d5b4cca0cbc3d5e4e4",
+        "CMD/COMP/COMP.COM": "bd810d7f094ed73c185b8ab106c2a46d10280148b56324f4247350dfb88225a6",
+        "CMD/ATTRIB/ATTRIB.EXE": "69d88422eddb5183ae9c186b460da752364322222add2de8990423b05c2f46ec",
+        "CMD/EDLIN/EDLIN.COM": "21dcc094437d6e7dbed8d8cf34d5b7bb6629d6fd8f9b0256710bc038a77e132a",
+        "CMD/NLSFUNC/NLSFUNC.EXE": "f8bed4307ba458fd1e14f5aae373d5693d830d77ccd77636a6313df5f7b0e297",
+        "CMD/ASSIGN/ASSIGN.COM": "8e2e82b9fdaf7f0c7e5d13e8f420d0f2c3967e3e7fec175f6f78d89592ab7ae5",
+        "CMD/XCOPY/XCOPY.EXE": "4753caa9bf4cb3d0484fe85890a83f0e05136de18fa5e439b04c46e996bf8d3e",
+        "CMD/DISKCOMP/DISKCOMP.COM": "92a443fc91b241f35fdaf291d4093fc92bca876a351d0928afdb2e200fb747f3",
+        "CMD/DISKCOPY/DISKCOPY.COM": "0198451f9fe69b0aaef658799020a57e26c4b3df44f75c2562f24533aa7ddae0",
+        "CMD/APPEND/APPEND.EXE": "037a2ac9a25d464ac6f022d8e4b273b971d789b7fafa54eae4b7570e8eb5044e",
+        "CMD/RECOVER/RECOVER.COM": "b2220b07db27d6c297d2cd7f51b4dc845266736dd83786d9948b12ef0f1434b8",
+        "CMD/FASTOPEN/FASTOPEN.EXE": "dcf4a3a0667e1253b06751c3d872e9ae5e62aff77c4fa3475ded31d221b7963a",
+        "CMD/PRINT/PRINT.COM": "6b7b6e8ca58e774724937748a6d6b3826ba9262068d60a45df8109596e5fa0e5",
+        "CMD/FILESYS/FILESYS.EXE": "2c86d73c1b89f7e804ac7a24195ca190f08b8590d6f245c38a100405ca184f6b",
+        "CMD/REPLACE/REPLACE.EXE": "1b0831b3e0e0b216a94507e7370b4c1114796622455896f5f243c7ad33f0263f",
+        "CMD/JOIN/JOIN.EXE": "db2f40d92131a949f670ee88ce81be7c13440fd3260a2376b66b84a770fe8332",
+        "CMD/SUBST/SUBST.EXE": "df8967586b6607354743acb9e048d279ea312d570cdaa5e829f38a90f1dfb4e0",
+        "CMD/BACKUP/BACKUP.COM": "d69adbaf8c9ed4ca1e8ec0b8723ede0e6994633829e7dcf297c1a962d0e16956",
+        "CMD/RESTORE/RESTORE.COM": "d1d698372a6f73b61cc096c1f444423a0a3646c67cf3bb50749dc3da0d2dc054",
+        "CMD/GRAFTABL/GRAFTABL.COM": "66de896927d0a678079ecbe71471a8fcdabb4d9527232d447435d593b510b409",
+        "CMD/KEYB/KEYB.COM": "924edf011009fe4a747d045f24ae5da817b613e914cbf58b66ca22e3637ffa3e",
+        "CMD/SHARE/SHARE.EXE": "9118a65ea1873cad8ba45dde3d0a57fdca62908be7cb3cede9bd4a6814c1f865",
+        "CMD/EXE2BIN/EXE2BIN.EXE": "62547a424de824b58eabe9068b41f9c8889d3d3a9c94f460b7312b72c990fb29",
+        "CMD/GRAPHICS/GRAPHICS.COM": "0f08ba6ebf1fa20368ccc29172bb62362b9a491255fb1f03dc4fd1d31683162f",
+        "CMD/IFSFUNC/IFSFUNC.EXE": "e1ee7b1fea006d1a3f05725aec6920b1f9b63cf6c8fe496302b2410d3bb60068",
+        "CMD/MODE/MODE.COM": "c385aad5697fcec3a9113f58b983b978a7f969e99b153ebd496b12dab0e3767d",
+        "CMD/SETVER/SETVER.COM": "fb3a98c073d6e6ae5cdd2a1e10fd83fe8998d1c344e7ae2d3827139854d0b2a6",
+        "CMD/SETVER/SETVER.EXE": "4632fe1709c55b0f22dedf3cce6c9b59655bd9ccacccd3be7e95c73c16b73b03",
+        "CMD/DOSKEY/DOSKEY.COM": "ce9b45bfc05ffafab7a4b41819d811b09b8a9e14f175aaa677873ae7c29c6bf0",
+        "CMD/HELP/HELP.COM": "a97a00c93488027f2a75c87f693ae4e617f6caf515d7f08ebef38e429d50f65e",
+        "CMD/HELP/HELP.HLP": "d555b7f06e2792d4f21db095eda73b32c2dc7585aa805e5cd1cceb053c978e30",
+        "CMD/MIRROR/MIRROR.COM": "d2c0525be0e9df3802829629cd39f839777812cf68b265105cb8b5026c4ab005",
+        "CMD/UNDELETE/UNDELETE.COM": "f3f3e21459c3be57332adf085010b0a469b6561cdc64957316b237dfc57f2243",
+        "CMD/UNFORMAT/UNFORMAT.COM": "00fb4448340bd2ad5498ae34c8f3a7d164a6c70e81cd325971c55d6b9f2d3bf3",
+        "CMD/CHOICE/CHOICE.COM": "a3c4adcfeff7839ac344c24b0fc18078ebfd3729fa24ee69309be51bd1fa2805",
+        "CMD/LOADFIX/LOADFIX.COM": "7fb5d04e845564caea5e4846e93a901421768af0d4011c8cf21656dbe85ca839",
+        "CMD/DELTREE/DELTREE.EXE": "09bb62770fb29283c363b117a5adb06d5cc0cbb680c83490d113c140f374b073",
+        "CMD/DEFRAG/DEFRAG.EXE": "b9fa0ea24e7eb935a3f0f4570c08085eff080e52b5040aca6f26f3d0b6a7795c",
+        "CMD/MOVE/MOVE.EXE": "577833937b25b62028595299669b7b937a89f60e15172a86d3185a9f0b5110ba",
+        "CMD/SCANDISK/SCANDISK.EXE": "29f58252ecf14668f5c12a31414e2c9d8bd76cccfcca9cb30aae6a85621ed0b9",
+        "CMD/SCANDISK/SCANDISK.INI": "3431f52cc3c691f690c42a07b42ce319daead335b0ec8e1c7985c17713147a5d",
+        "CMD/MEMMAKER/MEMMAKER.EXE": "de342e10f2439f1c720aa91129155d82c110842083befe1f964f27b6facc5a98",
+        "CMD/SIZER/SIZER.EXE": "5e9bb1e7cf5a3e287dcb184b7be5b724b266528b94a332bfb33e70aae2eefac4",
+        "CMD/POWER/POWER.EXE": "77a4cf45286e9da69df49c8c4021e7850a5fa3a820e9ee154d6b242283113a3c",
+        "CMD/MSCDEX/MSCDEX.EXE": "16707d9e82bc2ba46a55bacd69de78883ad7a5fc3d29c6dbee6ce437357f2bd9",
+        "CMD/INTERLNK/INTERLNK.EXE": "ec48cf8aca06358a9e2b8c768b6ff60809d29295a7d8c8445923c526e2ddb9f0",
+        "CMD/INTERSVR/INTERSVR.EXE": "edae228701cbd9ea0bf679de6edb1b24020f1159c8c57c7ee66674b5a9de91a1",
+        "MEMM/MEMM/EMM386.EXE": "0bba6763ffdaff89c7cbdfe591527374199a7a6a74b9a27e81e44a75c204f2dc"
+      },
+      "core_sha256": {
+        "IO.SYS": "34af301387a2f3d11e20590922b3611227e640c26087dbf79ff83f1364fe0b8e",
+        "MSDOS.SYS": "b495ab1ccc6fd3e7672b4724a7cccde519d8a65171c0c0ed6bad73cd331a42e9",
+        "COMMAND.COM": "6742b5889141a9c61d41e336445014d8055c19758febf4263f4f8ebe3c2f2c29",
+        "HIMEM.SYS": "d5ea7b0e775c2eb6eb2b7dab42eb7471a7a84bfb32cf2021215d4ed6f8a7850a",
+        "EMM386.EXE": "58266b6614594de7a9cfde9eda75e3eb241b9e2e941e67b70645a0f8a197dae6"
+      },
+      "source_line_endings": {
+        "src/BIOS/MSBIO.LNK": {
+          "primary_sha256": "41c6e4bf78583c8ce8c189c2a1598edc7751f540e02fd172c4303f1a74a277d2",
+          "checkout_sha256": "773d4cc7e5408ffa6ef8a8d73cb5bc9b3bb3e962813c72863a3d553823a36db3",
+          "difference": "CRLF checkout versus LF primary; canonical bytes agree"
+        },
+        "src/CMD/COMMAND/COMMAND.LNK": {
+          "primary_sha256": "c66330e791878c8056e3c18f29fa4b9b72cd1e78c4003963a5953d608d58e8b7",
+          "checkout_sha256": "39b9852815cf271a9be660c8b42893126b424cfd1a611080a3c725dc5f657074",
+          "difference": "CRLF checkout versus LF primary; canonical bytes agree"
+        },
+        "src/CMD/DISKCOPY/DISKCOPY.SKL": {
+          "primary_sha256": "b547469e3a69282a2fdf22a217c4ec1f87decafe7fd7111eb5a785bed27ac551",
+          "checkout_sha256": "23cb2c8e1f02d5bbdca3064d1642b5a7cdf213f26067c3a5786082b2f2b8251f",
+          "difference": "CRLF checkout versus LF primary; canonical bytes agree"
+        },
+        "src/CMD/FDISK/BOOTREC.ASM": {
+          "primary_sha256": "052a201e20458ea3a3e1e7822e90a6452b47c888c545997cfe8791a2c49dd394",
+          "checkout_sha256": "f9d9652cde9937ba67f8aaed66c1995d6e5cc8a98f657a35e4e29bd311d130f0",
+          "difference": "CRLF checkout versus LF primary; canonical bytes agree"
+        },
+        "src/CMD/FDISK/FDISK.H": {
+          "primary_sha256": "9bc0f196c5d48cd8f1875aaa870b6e037b2b11c30f41f10e6a6cb01eb9fd9c9c",
+          "checkout_sha256": "dc93990c62d24a1f96750e95697685c1463db074f0724947506abbb73685431b",
+          "difference": "CRLF checkout versus LF primary; canonical bytes agree"
+        },
+        "src/CMD/FDISK/INT13.C": {
+          "primary_sha256": "a8b2230037781b79e170b67de39cb4ca9319ba736cf6930868ab8def38d2b30b",
+          "checkout_sha256": "64575b051e0692379c99152432a11d364580ee5a8c682d24f0ea4adcd1fab803",
+          "difference": "CRLF checkout versus LF primary; canonical bytes agree"
+        },
+        "src/CMD/FDISK/MAINMENU.C": {
+          "primary_sha256": "b219b4a88c907513931d9ec71adf5fee8aac0a5fb9431fbde00628f4450ab34e",
+          "checkout_sha256": "25ee5e6fb408e337ca7875a6173135ea95534221bb4cdad0f99bf3ef35f28e52",
+          "difference": "CRLF checkout versus LF primary; canonical bytes agree"
+        },
+        "src/CMD/FDISK/TDISPLAY.C": {
+          "primary_sha256": "7eb142500db67569a9bd7203c054ac0c6d90aa08c85681aa82132528a6ea1827",
+          "checkout_sha256": "7d205c52c3a66caf606f96d674e9f0d518b8aba10c1f1ecb63c122af10b49f44",
+          "difference": "CRLF checkout versus LF primary; canonical bytes agree"
+        },
+        "src/CMD/FDISK/VDISPLAY.C": {
+          "primary_sha256": "7610f66f12d0dc56f79f32f884c3818f2b134084e304086e6127adb7d4d901aa",
+          "checkout_sha256": "a75016a3abb7e06636cdee7ee392315895e1ed9c04766fb3d0c9b74cb9e8f1a4",
+          "difference": "CRLF checkout versus LF primary; canonical bytes agree"
+        },
+        "src/CMD/FORMAT/FORMAT.LNK": {
+          "primary_sha256": "2bd12054ee6ddba77cd2cda53d07b9eb96a80be14eab2ff39ba56d82dbd38fd9",
+          "checkout_sha256": "e8e2a938da056c2bcdf53dc18ee8a99aae399b3bf51f21aae201384f43f1b55f",
+          "difference": "CRLF checkout versus LF primary; canonical bytes agree"
+        },
+        "src/CMD/FORMAT/MSFOR.ASM": {
+          "primary_sha256": "16fce84ec7fdd975a6186910d2a38287d3846d9136bf37742cea899e59a9a5ee",
+          "checkout_sha256": "2c72704c6161d48b81a39ec1ee382aab698713d050002abf931cdcad6d2506ed",
+          "difference": "CRLF checkout versus LF primary; canonical bytes agree"
+        },
+        "src/DEV/DRIVER/DRIVER.ASM": {
+          "primary_sha256": "c5766e73f26bb1edd7d64752984bbe325a3257e861c76c9abf095cbd1dae2933",
+          "checkout_sha256": "228f2a64655d32ffeb53c77dc22c0591907157075bba6d3b210650e0a9708feb",
+          "difference": "CRLF checkout versus LF primary; canonical bytes agree"
+        },
+        "src/DEV/KEYBOARD/KEYBOARD.LNK": {
+          "primary_sha256": "06965368ec52d3d3e7e2d6e3d3150a300d9644bb2a256625df1d066430b7a69d",
+          "checkout_sha256": "f80ebc5ab8d40ebb5d932405bc64270be0c3aabc6e1dac17292e0aa61450fa09",
+          "difference": "CRLF checkout versus LF primary; canonical bytes agree"
+        },
+        "src/DOS/MSDOS.LNK": {
+          "primary_sha256": "aff475f710ea816623e0b9b9e42210672783dccdbaab7a394fea9454d1ae5815",
+          "checkout_sha256": "62c8a106d23e82c9bff4885b126155c39d2d990131dff9a0bfb4317fd885826a",
+          "difference": "CRLF checkout versus LF primary; canonical bytes agree"
+        },
+        "src/MEMM/MEMM/EMM386.LNK": {
+          "primary_sha256": "a0b5e62b3b522355ede2375015d09861978ae89f41c684b6c014277ea18342a4",
+          "checkout_sha256": "13e07caabbe67f7fce825876a6bc370509e6db22c83ef379901dec5241103505",
+          "difference": "CRLF checkout versus LF primary; canonical bytes agree"
+        }
+      },
+      "build": {
+        "path": "review/pristine-j8-core-build.json",
+        "sha256": "e5c93e06f3fdb2dd0946b51e50499d47b7db497947df2ef4b8a22c88f2c677dd"
+      },
+      "build_log": {
+        "path": "review/pristine-j8-build.log",
+        "sha256": "d8a8529a3bdb7799b453d47fd58c6e1a7f5b5bc7bc754e07596dca6bb783b917"
+      },
+      "setup_log": {
+        "path": "review/pristine-j8-setup.log",
+        "sha256": "dc43d2e49f2b1a18312adbeb068a8a266b8e455eac87a6bb29428da81938d3ed"
+      },
+      "core_commands": {
+        "path": "review/pristine-j8-core-commands.json",
+        "sha256": "128695349783e24db02777543f25f87890b3d92e78b121f2cd6d239b2bc530a4"
+      },
+      "core_log": {
+        "path": "review/pristine-j8-core.log",
+        "sha256": "1e329da475da6e10900b409825d255580ffbd13270a30e5e7189426d0b46664a"
+      },
+      "maps": {
+        "provider/MEMM/MEMM/emm386.map": {
+          "path": "review/pristine-j8-provider-MEMM-MEMM-emm386.MAP",
+          "sha256": "faf66408ece1c4547593eb2c9f14c2213454380bd324a1da3d35f01ad091fb45"
+        },
+        "bios/msBIO.map": {
+          "path": "review/pristine-j8-bios-msBIO.MAP",
+          "sha256": "ec21d067890c1afeaa609294f0a546dc60267a1483489b988ae234fc6f9bbaa7"
+        },
+        "bios/high/bios-high.map": {
+          "path": "review/pristine-j8-bios-high-bios-high.MAP",
+          "sha256": "05ca05b648567010a6eece9558f712776b554101619ca57174e05caf705751d4"
+        },
+        "command/COMMAND.MAP": {
+          "path": "review/pristine-j8-command-COMMAND.MAP",
+          "sha256": "27e58f673fe7648894724d5e281ac8e4552f26f6bed52f4463a2ffc829286c00"
+        }
+      }
+    }
+  ],
+  "tool_sha256": {
+    "jwasm/macos-arm64/jwasm": "7d13e8786029cfbfa45cdff7343d0aa9a903f064faf782cfd03fe42ea0aff65b",
+    "watcom/bin/macos-arm64/wcc": "4db64790021d18a1121662ab83121e72ff8429b43dca7b5ea31dc4e4a0b1c64b",
+    "watcom/bin/macos-arm64/wlib": "e9bc2db5931c295d1a40f97ba045b8debe41bd231e0e153ca3a3b9b6c2ea0b01",
+    "watcom/bin/macos-arm64/wlink": "cd005b7805c69eac43db0c7278f39ffe0113fdecba21ab8cd3362f15e183c1d7"
+  },
+  "schema_version": 1,
+  "scope": "Detached pristine checkouts at the recorded source commit, sharing only the identical pinned native host assembler. Declared ordinary artifacts and composed production cores are byte-identical under make -j1/-j4/-j8 all. The composed core matches the Baltic runtime-qualified core. This is build reproducibility evidence; full FAIL_ON_SKIP runtime, deployment/distribution and remaining legacy keyboard acceptance are separate gates.",
+  "qualified_core_provenance": "country-boot-qualification.json",
+  "private_artifacts": "out/baltic-repro-m5lr8g72",
+  "driver": {
+    "path": "review/pristine-driver.py",
+    "sha256": "46b84fe0f06b91e0db5b0b0310e14e1b2309f384121e8ccd0b93c759c71fb68f"
+  },
+  "commands": [
+    "make -j1 all",
+    "make -j4 all",
+    "make -j8 all"
+  ],
+  "primary_generated_differences": {
+    "DEV/HIMEM/HIMEM.SYS": {
+      "primary_sha256": "45da026e22cda46e34e0f87eff387a8f2434f4d6e72cfe97e8745cf0153ebaa6",
+      "pristine_sha256": "9bbf85d769542e700f4e5ed73ba997756f51dd26ef2e7aac8cdc94ae555e8dab"
+    }
+  },
+  "primary_generated_note": "The primary checkout ordinary HIMEM differs; the selected composed HIMEM matches. Release runtime checks use the pristine checkout.",
+  "nested_runtime_tool": {
+    "path": "kvikdos/XTulator",
+    "commit": "ab5ca6aab8849787dc70c051004ec8a3d5141e72",
+    "setup": {
+      "path": "review/pristine-nested-runtime-tool-setup.log",
+      "sha256": "c1ec12ea7522969c340f6d94adf3e0537c262b408b73903c0c08f1f055cd2ae1"
+    }
+  }
+}

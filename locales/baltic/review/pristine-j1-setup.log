@@ -1,0 +1,6 @@
+Preparing worktree (detached HEAD b2d5236)
+Updating files:  96% (6129/6332)Updating files:  97% (6143/6332)Updating files:  98% (6206/6332)Updating files:  99% (6269/6332)Updating files: 100% (6332/6332)Updating files: 100% (6332/6332), done.
+HEAD is now at b2d5236 Requalify Baltic text and filenames on the current 286 core
+Cloning into '/Users/ddanila/fun/msdos/out/baltic-repro-m5lr8g72/j1/kvikdos'...
+done.
+HEAD is now at c14785b Keep NLS tables outside the BIOS data area

@@ -216,6 +216,10 @@ the rebuilt core and requires guest-triggered emulator completion.
 [Current-core 286 workflow qualification](locales/baltic/current-286-workflows-qualification.json)
 rechecks physical text editing, rendered glyphs, national filenames and
 fresh-boot reads/cleanup for all three languages with that same core.
+[Pristine build qualification](locales/baltic/pristine-qualification.json)
+records byte-identical declared artifacts and composed cores from independent
+serial/parallel builds. The composed core matches the runtime-qualified core;
+full runtime and distribution release checks remain separate.
 Deeper malformed-resource cases, legacy lifecycle failures and final
-source-matched release/reproducibility gates remain
+source-matched release gates remain
 open. Existing Russian evidence does not establish Baltic support.

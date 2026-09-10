@@ -629,3 +629,17 @@ and verifies core/resource hashes in each image. Input source snapshots preserve
 the version used by the run. Installed paths and HIGH/UMB have their separate
 qualification above; legacy keyboard reload/rejection/pending checks and final
 release/reproducibility gates remain open.
+
+## Pristine build comparison
+
+[Pristine build qualification](pristine-qualification.json) compares independent
+serial/parallel builds at the recorded source commit. All declared ordinary
+artifacts and the composed core agree byte for byte. The composed core also
+matches the candidate used by the Baltic runtime checks. Retained build logs,
+tool hashes and linker maps preserve the build evidence.
+
+The record distinguishes checkout line endings from source changes: affected
+linker/control files differ only by CRLF versus LF. It also records the primary
+checkout's different ordinary HIMEM binary; release runtime checks use the
+pristine checkout. Full runtime, deployment/distribution and remaining legacy
+keyboard acceptance must pass before the Baltic increment closes.
