@@ -79,8 +79,9 @@ captures. A deliberately wrong o-with-tilde glyph must fail the same byte oracle
 Samples include all three languages. The Russian/existing EGA-page regression
 matrix passes with the shared runner. Both new gates are included in `make test`.
 
-Real-BIOS rendering/country APIs, physical keyboard input, installed recipes
-and full release qualification remain separate open gates. The font test's
+Real-BIOS rendering/country transitions, installed recipes and full release
+qualification remain separate open gates. Physical input is recorded below.
+The font test's
 Estonian COUNTRY selection does not establish country-API support for every
 language, and rendered samples do not establish typed keyboard input.
 
@@ -146,8 +147,8 @@ IDs, missing files, bad signatures and short headers. Each phase checks status
 and physical input; rejected loads must preserve the active language. These
 gates are included in `make test`.
 
-Additional modifier and fallback edges, deeply malformed libraries, legacy
-keyboards, installation and complete language workflows remain separate open
+Additional modifier and fallback edges, deeply malformed libraries, XT-83 and
+legacy lifecycle checks, installation and complete language workflows remain open
 requirements. Pending mode/reload boundaries are qualified below.
 
 [Pending composition semantics](keyboard-pending-contract.json) define the
@@ -179,3 +180,31 @@ The resident buffer does not grow on reload. Start KEYB from KEYBRD2.SYS when
 Baltic switching is required. A dedicated test starts from the smaller original
 German allocation and requires an oversized Baltic load to fail while preserving
 the German layout, pending accent and allocation limit.
+
+[Legacy keyboard qualification](keyboard-legacy-qualification.json) records
+physical Estonian, Latvian and Lithuanian BIOS/DOS input on real IBM AT BIOS
+with an AT-84 keyboard and DOS LOW. The host filters unavailable right Alt/Ctrl
+and the extra ISO key, uses left Ctrl+Alt for third level, and moves navigation
+to the physical keypad. It asserts that every required national letter in both
+cases and every reference dead-key pair remains reachable. Guest byte checks
+also cover applicable Caps/Shift, punctuation, controls and modifier release.
+Country API probes check the national tables before and after DISPLAY/KEYB
+activation. These checks do not capture or qualify actual font glyphs.
+The existing Russian physical BIOS matrix passes through the same AT harness.
+
+Run the private-image gate with the qualified VNC-enabled, loopback-only backend:
+
+```sh
+MEMORY_CORE_DIR=out/memory-production/files python3 tests/test_baltic_legacy_keyboard_86box.py \
+  --emulator "$BOX86_BIN" --roms "$BOX86_ROMS" --qt-platform offscreen --machine at84
+```
+
+The runner accepts `--language et|lv|lt` and `--input bios|dos` for focused
+checks. Its `--machine xt83` path still requires Baltic qualification. Run
+these VNC cases sequentially because the backend uses a fixed port. The shared
+harness reconnects during an initial command wait to recover an emulator
+startup pause race; it sends no keys until the guest requests input and still
+requires guest completion and successful exit.
+
+Legacy reload/pending-state failures, real-BIOS font capture, installed profiles,
+complete language workflows and final release qualification remain open.

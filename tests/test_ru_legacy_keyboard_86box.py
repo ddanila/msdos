@@ -54,7 +54,7 @@ class VNCKeyboard:
             'kp_add':0xffab,'kp_subtract':0xffad}
     KEYS.update({name:ord(char) for name,char in [('bracket_left','['),('bracket_right',']'),
         ('semicolon',';'),('apostrophe',"'"),('grave_accent','`'),('comma',','),
-        ('dot','.'),('slash','/'),('backslash','\\')]})
+        ('dot','.'),('slash','/'),('backslash','\\'),('minus','-'),('equal','=')]})
 
     def __init__(self, proc):
         self.socket = None
@@ -149,7 +149,7 @@ def prepare_lifecycle(case, kind, put):
     return cases,actions,phase_count
 
 
-def run_case(work, args, core, kind):
+def run_case(work, args, core, kind, locale=None):
     case=work/kind
     case.mkdir()
     image=case/'test.img'
@@ -173,26 +173,31 @@ def run_case(work, args, core, kind):
     for name in ('IO.SYS','MSDOS.SYS','COMMAND.COM'):
         data=subprocess.check_output(['mtype','-i',str(image),'::'+name])
         assert data==core[name],name
-    compile_probes(case)
-    cases=legacy_steps()
+    page = locale['page'] if locale else 866
+    country = locale['country'] if locale else 7
+    country_probe = locale['country_probe'] if locale else 'P866.COM'
+    selection = locale['selection'] if locale else 'RU,866,KEYBRD2.SYS /ID:441'
+    (locale['compile_probes'] if locale else compile_probes)(case)
+    cases=locale['steps'](kind) if locale else legacy_steps()
     (case/'expected.bin').write_bytes(b''.join(struct.pack('<H',step['bios_ax']) for step in cases))
     subprocess.run(['nasm','-f','bin',*(['-DDOS_INPUT'] if kind=='dos' else []),
                     str(ROOT/'tests/ru_keyboard_probe.asm'),'-o',str(case/'PROBE.COM')],cwd=case,check=True)
     for source,target in [('86box_exit.asm','BXEXIT.COM'),('ru_legacy_keyboard_type.asm','TYPECHK.COM')]:
         subprocess.run(['nasm','-f','bin',*(['-DXT83'] if args.machine=='xt83' else []),str(ROOT/'tests'/source),'-o',str(case/target)],check=True)
-    for name in ('P866.COM','CPCHK.COM','PROBE.COM','BXEXIT.COM','TYPECHK.COM'):
+    for name in (country_probe,'CPCHK.COM','PROBE.COM','BXEXIT.COM','TYPECHK.COM'):
         copy(name,case/name)
     for source,name in [('DEV/COUNTRY/COUNTRY.SYS','COUNTRY.SYS'),('CMD/KEYB/KEYB.COM','KEYB.COM'),
                          ('DEV/KEYBOARD/KEYBRD2.SYS','KEYBRD2.SYS'),('CMD/NLSFUNC/NLSFUNC.EXE','NLSFUNC.EXE'),
-                         ('DEV/DISPLAY/DISPLAY.SYS','DISPLAY.SYS'),('DEV/DISPLAY/EGA/EGA866.CPI','EGA866.CPI'),
+                         ('DEV/DISPLAY/DISPLAY.SYS','DISPLAY.SYS'),(f'DEV/DISPLAY/EGA/EGA{page}.CPI',f'EGA{page}.CPI'),
                          ('CMD/MODE/MODE.COM','MODE.COM')]:
         copy(name,ROOT/'src'/source)
-    put('CONFIG.SYS',b'COUNTRY=007,866,COUNTRY.SYS\r\nDOS=LOW\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(1,3))\r\nNUMLOCK=ON\r\n')
-    actions=['P866.COM','NLSFUNC','MODE CON CP PREPARE=((866) EGA866.CPI)','MODE CON CP SELECT=866',
-             'KEYB RU,866,KEYBRD2.SYS /ID:441','TYPECHK.COM','CPCHK.COM','PROBE.COM']
+    put('CONFIG.SYS',f'COUNTRY={country:03d},{page},COUNTRY.SYS\r\nDOS=LOW\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(1,3))\r\nNUMLOCK=ON\r\n'.encode('ascii'))
+    actions=[country_probe,'NLSFUNC',f'MODE CON CP PREPARE=(({page}) EGA{page}.CPI)',f'MODE CON CP SELECT={page}',
+             'KEYB '+selection,'TYPECHK.COM','CPCHK.COM',country_probe,'PROBE.COM']
     actions=[(action,False) for action in actions]
     probe_passes=type_passes=1
     if args.suite=='lifecycle':
+        assert locale is None, 'Baltic lifecycle requires its own phase oracle'
         cases,extra,probe_passes=prepare_lifecycle(case,kind,put)
         actions=actions[:-1]+extra
         type_passes=9
@@ -231,6 +236,8 @@ def run_case(work, args, core, kind):
         try:
             vnc=VNCKeyboard(proc)
             assert case.name in vnc.title, vnc.title
+            reconnect_at=time.monotonic()+10
+            startup_reconnects=0
             for index,step in enumerate(cases):
                 deadline=time.monotonic()+(180 if index==0 else 20)
                 marker=f'RU_KEY_READY {index:04X}'.encode()
@@ -239,6 +246,16 @@ def run_case(work, args, core, kind):
                         raise AssertionError(f'guest stopped at {step}: {log}')
                     if time.monotonic()>deadline:
                         raise AssertionError(f'input timeout at {step}: {log}')
+                    if index==0 and time.monotonic()>=reconnect_at and b'RUN ' not in log.read_bytes():
+                        # 86Box can accept the first VNC client during hard-reset
+                        # initialization, then pause after that client's resume.
+                        # Reconnect before any input; never extend the deadline.
+                        vnc.close()
+                        time.sleep(.1)
+                        vnc=VNCKeyboard(proc)
+                        assert case.name in vnc.title, vnc.title
+                        startup_reconnects+=1
+                        reconnect_at=time.monotonic()+10
                     time.sleep(.02)
                 vnc.send(step['keys'])
             status=proc.wait(timeout=30)
@@ -250,14 +267,14 @@ def run_case(work, args, core, kind):
                 proc.wait()
     data=log.read_bytes()
     assert status==0 and b'RU_LEGACY_KEY_DONE' in data and b'FAIL' not in data,log
-    for marker,count in [(b'RU_COUNTRY_PASS',1),(b'RU_CODEPAGE_PASS',1),
+    for marker,count in [(b'RU_COUNTRY_PASS',2),(b'RU_CODEPAGE_PASS',1),
                          (f'RU_{args.machine.upper()}_TYPE_PASS'.encode(),type_passes),
                          (b'RU_KEY_PASS',probe_passes)]:
         assert data.count(marker)==count,(marker,log)
     assert data.count(b'RU_KEY_READY')==len(cases)
     print(f'PASS: {args.machine.upper()} {kind}, {len(cases)} physical reads',flush=True)
     return {'input':kind,'emulator_exit':status,'reads':len(cases),'steps':cases,'probe_passes':probe_passes,'type_passes':type_passes,
-            'actions':actions,
+            'actions':actions,'startup_reconnects':startup_reconnects,
             'log':str(log.relative_to(work)),'log_sha256':hashlib.sha256(data).hexdigest(),
             'config_sha256':hashlib.sha256(config.encode()).hexdigest()}
 

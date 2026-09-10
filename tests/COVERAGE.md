@@ -449,3 +449,17 @@ that the resident limit is valid within its MCB and constant across reloads.
 Private controls disable the reset feature or omit the capacity-preservation
 store; both must fail. Further failure/page-transition cases and the remaining
 real-BIOS, installation and release gates are separate requirements.
+
+The [Baltic legacy keyboard qualification](../locales/baltic/keyboard-legacy-qualification.json)
+records `tests/test_baltic_legacy_keyboard_86box.py` on real IBM AT BIOS with
+the AT-84 keyboard and DOS LOW. Both BIOS and DOS reads cover each language's
+reachable physical planes and every reference dead-key pair. The adapter
+rejects loss of required national letters when filtering unavailable hardware
+keys. It uses Ctrl+Alt for third level and keypad navigation with legacy scan
+words. Guest probes check country tables before and after CP775 activation,
+resident keyboard type, output bytes, empty input queue and modifier release.
+Runs retain physical event oracles, expected bytes, logs, configurations and
+core/resource/backend/ROM hashes, and require successful guest-controlled exit.
+The XT-83 matrix, legacy load failures, actual glyph capture, installed language
+profiles and complete workflows remain open. The VNC backend requires sequential
+runs and is invoked explicitly with `--emulator` and `--roms`.
