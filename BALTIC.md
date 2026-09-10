@@ -205,7 +205,7 @@ must use the recorded core hashes.
 [Current-core workflow qualification](locales/baltic/current-workflows-qualification.json)
 rechecks physical text editing, rendered CP775 text and national filename
 workflows in QEMU HIGH/LOW for each language against that rebuilt core.
-Real-BIOS workflows must also match the selected core before release.
+Real-BIOS workflows have matching-core qualification below.
 [Installed workflow qualification](locales/baltic/installed-workflows-qualification.json)
 extends physical text editing and national filename operations to installed
 HIGH/LOW profiles, preserving the installed payloads and startup recipes.
@@ -213,6 +213,9 @@ HIGH/LOW profiles, preserving the installed payloads and startup recipes.
 checks country boot fallback, runtime country rejection and font recovery on
 the IBM AT 286 for every Baltic language and supported font height. It uses
 the rebuilt core and requires guest-triggered emulator completion.
-Deeper malformed-resource cases, legacy lifecycle failures, real-BIOS workflow
-requalification and final source-matched release/reproducibility gates remain
+[Current-core 286 workflow qualification](locales/baltic/current-286-workflows-qualification.json)
+rechecks physical text editing, rendered glyphs, national filenames and
+fresh-boot reads/cleanup for all three languages with that same core.
+Deeper malformed-resource cases, legacy lifecycle failures and final
+source-matched release/reproducibility gates remain
 open. Existing Russian evidence does not establish Baltic support.

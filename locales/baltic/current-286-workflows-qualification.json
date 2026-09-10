@@ -1,0 +1,2190 @@
+{
+  "schema_version": 1,
+  "status": "current-core-286-workflows-qualified",
+  "core_sha256": {
+    "IO.SYS": "34af301387a2f3d11e20590922b3611227e640c26087dbf79ff83f1364fe0b8e",
+    "MSDOS.SYS": "b495ab1ccc6fd3e7672b4724a7cccde519d8a65171c0c0ed6bad73cd331a42e9",
+    "COMMAND.COM": "6742b5889141a9c61d41e336445014d8055c19758febf4263f4f8ebe3c2f2c29",
+    "HIMEM.SYS": "d5ea7b0e775c2eb6eb2b7dab42eb7471a7a84bfb32cf2021215d4ed6f8a7850a",
+    "EMM386.EXE": "58266b6614594de7a9cfde9eda75e3eb241b9e2e941e67b70645a0f8a197dae6"
+  },
+  "loaded_core_files": [
+    "IO.SYS",
+    "MSDOS.SYS",
+    "COMMAND.COM"
+  ],
+  "core_provenance": "country-boot-qualification.json",
+  "input_source_commit": "0168fcb",
+  "backend_provenance": "text-qualification.json",
+  "workflows": {
+    "text": {
+      "status": "passed",
+      "core_sha256": {
+        "IO.SYS": "34af301387a2f3d11e20590922b3611227e640c26087dbf79ff83f1364fe0b8e",
+        "MSDOS.SYS": "b495ab1ccc6fd3e7672b4724a7cccde519d8a65171c0c0ed6bad73cd331a42e9",
+        "COMMAND.COM": "6742b5889141a9c61d41e336445014d8055c19758febf4263f4f8ebe3c2f2c29",
+        "HIMEM.SYS": "d5ea7b0e775c2eb6eb2b7dab42eb7471a7a84bfb32cf2021215d4ed6f8a7850a",
+        "EMM386.EXE": "58266b6614594de7a9cfde9eda75e3eb241b9e2e941e67b70645a0f8a197dae6"
+      },
+      "backend": "86box-286",
+      "cases": [
+        {
+          "profile": "low",
+          "emulator_exit": 0,
+          "files_hex": {
+            "SHELL.TXT": "546572652c20e4756e206a6120949421208e99e59a20becf208494e48120d5d80d0a",
+            "EDIT.TXT": "546572652c20e4756e206a6120949421208e99e59a20becf208494e48120d5d80d0ae5756e0d0a1a",
+            "COPY.TXT": "546572652c20e4756e206a6120949421208e99e59a20becf208494e48120d5d80d0ae5756e0d0a",
+            "PIPE.TXT": "e5756e0d0a"
+          },
+          "captures": [
+            {
+              "name": "shell",
+              "expected_text": [
+                "Tere, \u00f5un ja \u00f6\u00f6! \u00c4\u00d6\u00d5\u00dc \u0160\u017d \u00e4\u00f6\u00f5\u00fc \u0161\u017e"
+              ],
+              "size": [
+                720,
+                400
+              ],
+              "screen": {
+                "path": "review/current-286-workflows-text-et-shell.png",
+                "sha256": "be86ec15fe8cf381da30659b8161ce3989d5121d013e88c2a11952d83d3f5ca4"
+              }
+            },
+            {
+              "name": "edited",
+              "expected_text": [
+                "Tere, \u00f5un ja \u00f6\u00f6! \u00c4\u00d6\u00d5\u00dc \u0160\u017d \u00e4\u00f6\u00f5\u00fc \u0161\u017e",
+                "\u00d5un"
+              ],
+              "size": [
+                720,
+                400
+              ],
+              "screen": {
+                "path": "review/current-286-workflows-text-et-edited.png",
+                "sha256": "aee392e4d5acff9d0fb95e45398bf2c37668c574a6a4449cd64579c3608a756b"
+              }
+            },
+            {
+              "name": "reopened",
+              "expected_text": [
+                "Tere, \u00f5un ja \u00f6\u00f6! \u00c4\u00d6\u00d5\u00dc \u0160\u017d \u00e4\u00f6\u00f5\u00fc \u0161\u017e",
+                "\u00d5un"
+              ],
+              "size": [
+                720,
+                400
+              ],
+              "screen": {
+                "path": "review/current-286-workflows-text-et-reopened.png",
+                "sha256": "7378d4f3ba5c9e615f327945a8a5bcd33b390dd58db63a72eca4ce0e1f2448bb"
+              }
+            }
+          ],
+          "language": "et",
+          "national_sequences": {
+            "156": [
+              [
+                "ctrl",
+                "alt",
+                "3"
+              ]
+            ],
+            "159": [
+              [
+                "shift",
+                "4"
+              ]
+            ],
+            "129": [
+              [
+                "bracket_left"
+              ]
+            ],
+            "154": [
+              [
+                "shift",
+                "bracket_left"
+              ]
+            ],
+            "228": [
+              [
+                "shift",
+                "grave_accent"
+              ],
+              [
+                "o"
+              ]
+            ],
+            "229": [
+              [
+                "shift",
+                "grave_accent"
+              ],
+              [
+                "shift",
+                "o"
+              ]
+            ],
+            "245": [
+              [
+                "ctrl",
+                "alt",
+                "bracket_right"
+              ]
+            ],
+            "213": [
+              [
+                "grave_accent"
+              ],
+              [
+                "s"
+              ]
+            ],
+            "190": [
+              [
+                "grave_accent"
+              ],
+              [
+                "shift",
+                "s"
+              ]
+            ],
+            "148": [
+              [
+                "semicolon"
+              ]
+            ],
+            "153": [
+              [
+                "shift",
+                "semicolon"
+              ]
+            ],
+            "132": [
+              [
+                "apostrophe"
+              ]
+            ],
+            "142": [
+              [
+                "shift",
+                "apostrophe"
+              ]
+            ],
+            "171": [
+              [
+                "ctrl",
+                "alt",
+                "backslash"
+              ]
+            ],
+            "216": [
+              [
+                "grave_accent"
+              ],
+              [
+                "z"
+              ]
+            ],
+            "207": [
+              [
+                "grave_accent"
+              ],
+              [
+                "shift",
+                "z"
+              ]
+            ],
+            "135": [
+              [
+                "equal"
+              ],
+              [
+                "c"
+              ]
+            ],
+            "130": [
+              [
+                "equal"
+              ],
+              [
+                "e"
+              ]
+            ],
+            "231": [
+              [
+                "equal"
+              ],
+              [
+                "n"
+              ]
+            ],
+            "162": [
+              [
+                "equal"
+              ],
+              [
+                "o"
+              ]
+            ],
+            "152": [
+              [
+                "equal"
+              ],
+              [
+                "s"
+              ]
+            ],
+            "165": [
+              [
+                "equal"
+              ],
+              [
+                "z"
+              ]
+            ],
+            "128": [
+              [
+                "equal"
+              ],
+              [
+                "shift",
+                "c"
+              ]
+            ],
+            "144": [
+              [
+                "equal"
+              ],
+              [
+                "shift",
+                "e"
+              ]
+            ],
+            "227": [
+              [
+                "equal"
+              ],
+              [
+                "shift",
+                "n"
+              ]
+            ],
+            "224": [
+              [
+                "equal"
+              ],
+              [
+                "shift",
+                "o"
+              ]
+            ],
+            "151": [
+              [
+                "equal"
+              ],
+              [
+                "shift",
+                "s"
+              ]
+            ],
+            "141": [
+              [
+                "equal"
+              ],
+              [
+                "shift",
+                "z"
+              ]
+            ],
+            "131": [
+              [
+                "shift",
+                "equal"
+              ],
+              [
+                "a"
+              ]
+            ],
+            "137": [
+              [
+                "shift",
+                "equal"
+              ],
+              [
+                "e"
+              ]
+            ],
+            "140": [
+              [
+                "shift",
+                "equal"
+              ],
+              [
+                "i"
+              ]
+            ],
+            "147": [
+              [
+                "shift",
+                "equal"
+              ],
+              [
+                "o"
+              ]
+            ],
+            "215": [
+              [
+                "shift",
+                "equal"
+              ],
+              [
+                "u"
+              ]
+            ],
+            "160": [
+              [
+                "shift",
+                "equal"
+              ],
+              [
+                "shift",
+                "a"
+              ]
+            ],
+            "237": [
+              [
+                "shift",
+                "equal"
+              ],
+              [
+                "shift",
+                "e"
+              ]
+            ],
+            "161": [
+              [
+                "shift",
+                "equal"
+              ],
+              [
+                "shift",
+                "i"
+              ]
+            ],
+            "226": [
+              [
+                "shift",
+                "equal"
+              ],
+              [
+                "shift",
+                "o"
+              ]
+            ],
+            "199": [
+              [
+                "shift",
+                "equal"
+              ],
+              [
+                "shift",
+                "u"
+              ]
+            ],
+            "208": [
+              [
+                "ctrl",
+                "alt",
+                "apostrophe"
+              ],
+              [
+                "a"
+              ]
+            ],
+            "210": [
+              [
+                "ctrl",
+                "alt",
+                "apostrophe"
+              ],
+              [
+                "e"
+              ]
+            ],
+            "212": [
+              [
+                "ctrl",
+                "alt",
+                "apostrophe"
+              ],
+              [
+                "i"
+              ]
+            ],
+            "214": [
+              [
+                "ctrl",
+                "alt",
+                "apostrophe"
+              ],
+              [
+                "u"
+              ]
+            ],
+            "133": [
+              [
+                "ctrl",
+                "alt",
+                "apostrophe"
+              ],
+              [
+                "g"
+              ]
+            ],
+            "233": [
+              [
+                "ctrl",
+                "alt",
+                "apostrophe"
+              ],
+              [
+                "k"
+              ]
+            ],
+            "235": [
+              [
+                "ctrl",
+                "alt",
+                "apostrophe"
+              ],
+              [
+                "l"
+              ]
+            ],
+            "236": [
+              [
+                "ctrl",
+                "alt",
+                "apostrophe"
+              ],
+              [
+                "n"
+              ]
+            ],
+            "139": [
+              [
+                "ctrl",
+                "alt",
+                "apostrophe"
+              ],
+              [
+                "r"
+              ]
+            ],
+            "181": [
+              [
+                "ctrl",
+                "alt",
+                "apostrophe"
+              ],
+              [
+                "shift",
+                "a"
+              ]
+            ],
+            "183": [
+              [
+                "ctrl",
+                "alt",
+                "apostrophe"
+              ],
+              [
+                "shift",
+                "e"
+              ]
+            ],
+            "189": [
+              [
+                "ctrl",
+                "alt",
+                "apostrophe"
+              ],
+              [
+                "shift",
+                "i"
+              ]
+            ],
+            "198": [
+              [
+                "ctrl",
+                "alt",
+                "apostrophe"
+              ],
+              [
+                "shift",
+                "u"
+              ]
+            ],
+            "149": [
+              [
+                "ctrl",
+                "alt",
+                "apostrophe"
+              ],
+              [
+                "shift",
+                "g"
+              ]
+            ],
+            "232": [
+              [
+                "ctrl",
+                "alt",
+                "apostrophe"
+              ],
+              [
+                "shift",
+                "k"
+              ]
+            ],
+            "234": [
+              [
+                "ctrl",
+                "alt",
+                "apostrophe"
+              ],
+              [
+                "shift",
+                "l"
+              ]
+            ],
+            "238": [
+              [
+                "ctrl",
+                "alt",
+                "apostrophe"
+              ],
+              [
+                "shift",
+                "n"
+              ]
+            ],
+            "138": [
+              [
+                "ctrl",
+                "alt",
+                "apostrophe"
+              ],
+              [
+                "shift",
+                "r"
+              ]
+            ],
+            "209": [
+              [
+                "grave_accent"
+              ],
+              [
+                "c"
+              ]
+            ],
+            "182": [
+              [
+                "grave_accent"
+              ],
+              [
+                "shift",
+                "c"
+              ]
+            ]
+          },
+          "artifacts": {
+            "startup.cfg": {
+              "path": "review/current-286-workflows-text-et-startup.cfg",
+              "sha256": "04fc259a69de497046ae6ceda8e50d189c09d1fd8ff337589e2088e0e3adb1fe"
+            },
+            "global.cfg": {
+              "path": "review/current-286-workflows-text-et-global.cfg",
+              "sha256": "f73f16006e8e914f7a23dd3a49ebd821d9c11cca6a64647342c447d1d679c664"
+            },
+            "SHELL.TXT": {
+              "path": "review/current-286-workflows-text-et-SHELL.TXT.bin",
+              "sha256": "985f5fb3ef9782f21451d19dd7f88928e32187cbb13ab7b848dbf5aa10692133"
+            },
+            "EDIT.TXT": {
+              "path": "review/current-286-workflows-text-et-EDIT.TXT.bin",
+              "sha256": "e9edb2a66a147b0abd80dddfc2e6a80351392193b080460d4ff1dcf3ae32cf2e"
+            },
+            "COPY.TXT": {
+              "path": "review/current-286-workflows-text-et-COPY.TXT.bin",
+              "sha256": "1f6eb0e98d1f627cdab05b30bb964298d14c66f5d11aded0c834a3b870e8b3de"
+            },
+            "PIPE.TXT": {
+              "path": "review/current-286-workflows-text-et-PIPE.TXT.bin",
+              "sha256": "6e1d5e430e10452f39dcacb300381bf1c5774f0f3ff8719e0e765006d6febe62"
+            }
+          },
+          "resource_sha256": {
+            "DEV/COUNTRY/COUNTRY.SYS": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c",
+            "CMD/EDLIN/EDLIN.COM": "21dcc094437d6e7dbed8d8cf34d5b7bb6629d6fd8f9b0256710bc038a77e132a",
+            "CMD/FIND/FIND.EXE": "bce1e2a4df29876ae4720bec538cb8034d833c5eb945718e6a05d7510d1c399e",
+            "CMD/KEYB/KEYB.COM": "924edf011009fe4a747d045f24ae5da817b613e914cbf58b66ca22e3637ffa3e",
+            "DEV/KEYBOARD/KEYBRD2.SYS": "d003716471ffbe12803ac7beaf511a8a4e2d6a0b8ef5e3d214eee2a69584cf06",
+            "DEV/DISPLAY/EGA/EGA775.CPI": "ab38fe5b8acae0ba3933ac6b66596c58b32bc23385285b8cc68fec1fa8f15255",
+            "DEV/DISPLAY/DISPLAY.SYS": "0ebd3bfad4e87d79e05219c02ea71ce4e94f9e11b432efdf652a022488d9ac08",
+            "CMD/NLSFUNC/NLSFUNC.EXE": "f8bed4307ba458fd1e14f5aae373d5693d830d77ccd77636a6313df5f7b0e297",
+            "CMD/MODE/MODE.COM": "c385aad5697fcec3a9113f58b983b978a7f969e99b153ebd496b12dab0e3767d"
+          },
+          "startup": {
+            "CONFIG.SYS": "COUNTRY=372,775,COUNTRY.SYS\r\nDOS=LOW\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(1,3))\r\n",
+            "AUTOEXEC.BAT": "@ECHO OFF\r\nPROFILE.COM > AUX\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nMODE CON CP PREPARE=((775) EGA775.CPI)\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nMODE CON CP SELECT=775\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nKEYB ET,775,KEYBRD2.SYS /ID:454\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO RU_TEXT_READY > AUX\r\nGOTO END\r\n:FAIL\r\nECHO RU_TEXT_FAIL > AUX\r\nQEXIT.COM\r\n:END\r\n"
+          },
+          "log": {
+            "path": "review/current-286-workflows-text-et.log",
+            "sha256": "5088ef084f409878e00660b32d1fc5243fe96aa21d6da3fe1f946940dcd2b5be"
+          },
+          "events": {
+            "path": "review/current-286-workflows-text-et-events.json",
+            "sha256": "53184f0e252f305cd13a79e7bbe0e00730c4fed569d9cb1d338bb34ca94aa41e"
+          }
+        },
+        {
+          "profile": "low",
+          "emulator_exit": 0,
+          "files_hex": {
+            "SHELL.TXT": "4c6162728c742c20528c67612120a0b6ed95a1e8eaeebec7cf2083d189858ce9ebecd5d7d8202f2045543a20e40d0a",
+            "EDIT.TXT": "4c6162728c742c20528c67612120a0b6ed95a1e8eaeebec7cf2083d189858ce9ebecd5d7d8202f2045543a20e40d0ae869727369730d0a1a",
+            "COPY.TXT": "4c6162728c742c20528c67612120a0b6ed95a1e8eaeebec7cf2083d189858ce9ebecd5d7d8202f2045543a20e40d0ae869727369730d0a",
+            "PIPE.TXT": "e869727369730d0a"
+          },
+          "captures": [
+            {
+              "name": "shell",
+              "expected_text": [
+                "Labr\u012bt, R\u012bga! \u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d \u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e / ET: \u00f5"
+              ],
+              "size": [
+                720,
+                400
+              ],
+              "screen": {
+                "path": "review/current-286-workflows-text-lv-shell.png",
+                "sha256": "d8b5f3944b2aa3fd5a5c549d3082970b3cbc16a8d74f9e6d87b6ecdaa20a108a"
+              }
+            },
+            {
+              "name": "edited",
+              "expected_text": [
+                "Labr\u012bt, R\u012bga! \u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d \u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e / ET: \u00f5",
+                "\u0136irsis"
+              ],
+              "size": [
+                720,
+                400
+              ],
+              "screen": {
+                "path": "review/current-286-workflows-text-lv-edited.png",
+                "sha256": "d5788fee1b9bb9d62a7bb7139bf4b551e004de8eb0162c7505681e971961fab9"
+              }
+            },
+            {
+              "name": "reopened",
+              "expected_text": [
+                "Labr\u012bt, R\u012bga! \u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d \u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e / ET: \u00f5",
+                "\u0136irsis"
+              ],
+              "size": [
+                720,
+                400
+              ],
+              "screen": {
+                "path": "review/current-286-workflows-text-lv-reopened.png",
+                "sha256": "d3f46ed8edc9e512839483a311751fb4bd541624bfb31552dc49b842bc670b9a"
+              }
+            }
+          ],
+          "language": "lv",
+          "national_sequences": {
+            "255": [
+              [
+                "ctrl",
+                "alt",
+                "1"
+              ]
+            ],
+            "174": [
+              [
+                "ctrl",
+                "alt",
+                "2"
+              ]
+            ],
+            "175": [
+              [
+                "ctrl",
+                "alt",
+                "3"
+              ]
+            ],
+            "245": [
+              [
+                "shift",
+                "ctrl",
+                "alt",
+                "4"
+              ]
+            ],
+            "248": [
+              [
+                "shift",
+                "ctrl",
+                "alt",
+                "5"
+              ]
+            ],
+            "241": [
+              [
+                "shift",
+                "ctrl",
+                "alt",
+                "7"
+              ]
+            ],
+            "158": [
+              [
+                "shift",
+                "ctrl",
+                "alt",
+                "8"
+              ]
+            ],
+            "137": [
+              [
+                "ctrl",
+                "alt",
+                "e"
+              ]
+            ],
+            "237": [
+              [
+                "shift",
+                "ctrl",
+                "alt",
+                "e"
+              ]
+            ],
+            "139": [
+              [
+                "ctrl",
+                "alt",
+                "r"
+              ]
+            ],
+            "138": [
+              [
+                "shift",
+                "ctrl",
+                "alt",
+                "r"
+              ]
+            ],
+            "215": [
+              [
+                "ctrl",
+                "alt",
+                "u"
+              ]
+            ],
+            "199": [
+              [
+                "shift",
+                "ctrl",
+                "alt",
+                "u"
+              ]
+            ],
+            "140": [
+              [
+                "ctrl",
+                "alt",
+                "i"
+              ]
+            ],
+            "161": [
+              [
+                "shift",
+                "ctrl",
+                "alt",
+                "i"
+              ]
+            ],
+            "228": [
+              [
+                "shift",
+                "grave_accent"
+              ],
+              [
+                "o"
+              ]
+            ],
+            "229": [
+              [
+                "shift",
+                "grave_accent"
+              ],
+              [
+                "shift",
+                "o"
+              ]
+            ],
+            "131": [
+              [
+                "ctrl",
+                "alt",
+                "a"
+              ]
+            ],
+            "160": [
+              [
+                "shift",
+                "ctrl",
+                "alt",
+                "a"
+              ]
+            ],
+            "213": [
+              [
+                "ctrl",
+                "alt",
+                "s"
+              ]
+            ],
+            "190": [
+              [
+                "shift",
+                "ctrl",
+                "alt",
+                "s"
+              ]
+            ],
+            "133": [
+              [
+                "ctrl",
+                "alt",
+                "g"
+              ]
+            ],
+            "149": [
+              [
+                "shift",
+                "ctrl",
+                "alt",
+                "g"
+              ]
+            ],
+            "233": [
+              [
+                "ctrl",
+                "alt",
+                "k"
+              ]
+            ],
+            "232": [
+              [
+                "shift",
+                "ctrl",
+                "alt",
+                "k"
+              ]
+            ],
+            "235": [
+              [
+                "ctrl",
+                "alt",
+                "l"
+              ]
+            ],
+            "234": [
+              [
+                "shift",
+                "ctrl",
+                "alt",
+                "l"
+              ]
+            ],
+            "216": [
+              [
+                "ctrl",
+                "alt",
+                "z"
+              ]
+            ],
+            "207": [
+              [
+                "shift",
+                "ctrl",
+                "alt",
+                "z"
+              ]
+            ],
+            "209": [
+              [
+                "ctrl",
+                "alt",
+                "c"
+              ]
+            ],
+            "182": [
+              [
+                "shift",
+                "ctrl",
+                "alt",
+                "c"
+              ]
+            ],
+            "236": [
+              [
+                "ctrl",
+                "alt",
+                "n"
+              ]
+            ],
+            "238": [
+              [
+                "shift",
+                "ctrl",
+                "alt",
+                "n"
+              ]
+            ],
+            "135": [
+              [
+                "ctrl",
+                "alt",
+                "apostrophe"
+              ],
+              [
+                "c"
+              ]
+            ],
+            "130": [
+              [
+                "ctrl",
+                "alt",
+                "apostrophe"
+              ],
+              [
+                "e"
+              ]
+            ],
+            "231": [
+              [
+                "ctrl",
+                "alt",
+                "apostrophe"
+              ],
+              [
+                "n"
+              ]
+            ],
+            "162": [
+              [
+                "ctrl",
+                "alt",
+                "apostrophe"
+              ],
+              [
+                "o"
+              ]
+            ],
+            "152": [
+              [
+                "ctrl",
+                "alt",
+                "apostrophe"
+              ],
+              [
+                "s"
+              ]
+            ],
+            "165": [
+              [
+                "ctrl",
+                "alt",
+                "apostrophe"
+              ],
+              [
+                "z"
+              ]
+            ],
+            "128": [
+              [
+                "ctrl",
+                "alt",
+                "apostrophe"
+              ],
+              [
+                "shift",
+                "c"
+              ]
+            ],
+            "144": [
+              [
+                "ctrl",
+                "alt",
+                "apostrophe"
+              ],
+              [
+                "shift",
+                "e"
+              ]
+            ],
+            "227": [
+              [
+                "ctrl",
+                "alt",
+                "apostrophe"
+              ],
+              [
+                "shift",
+                "n"
+              ]
+            ],
+            "224": [
+              [
+                "ctrl",
+                "alt",
+                "apostrophe"
+              ],
+              [
+                "shift",
+                "o"
+              ]
+            ],
+            "151": [
+              [
+                "ctrl",
+                "alt",
+                "apostrophe"
+              ],
+              [
+                "shift",
+                "s"
+              ]
+            ],
+            "141": [
+              [
+                "ctrl",
+                "alt",
+                "apostrophe"
+              ],
+              [
+                "shift",
+                "z"
+              ]
+            ],
+            "132": [
+              [
+                "shift",
+                "ctrl",
+                "alt",
+                "apostrophe"
+              ],
+              [
+                "a"
+              ]
+            ],
+            "148": [
+              [
+                "shift",
+                "ctrl",
+                "alt",
+                "apostrophe"
+              ],
+              [
+                "o"
+              ]
+            ],
+            "129": [
+              [
+                "shift",
+                "ctrl",
+                "alt",
+                "apostrophe"
+              ],
+              [
+                "u"
+              ]
+            ],
+            "142": [
+              [
+                "shift",
+                "ctrl",
+                "alt",
+                "apostrophe"
+              ],
+              [
+                "shift",
+                "a"
+              ]
+            ],
+            "153": [
+              [
+                "shift",
+                "ctrl",
+                "alt",
+                "apostrophe"
+              ],
+              [
+                "shift",
+                "o"
+              ]
+            ],
+            "154": [
+              [
+                "shift",
+                "ctrl",
+                "alt",
+                "apostrophe"
+              ],
+              [
+                "shift",
+                "u"
+              ]
+            ],
+            "134": [
+              [
+                "backslash"
+              ],
+              [
+                "a"
+              ]
+            ],
+            "211": [
+              [
+                "backslash"
+              ],
+              [
+                "e"
+              ]
+            ],
+            "164": [
+              [
+                "backslash"
+              ],
+              [
+                "z"
+              ]
+            ],
+            "143": [
+              [
+                "backslash"
+              ],
+              [
+                "shift",
+                "a"
+              ]
+            ],
+            "184": [
+              [
+                "backslash"
+              ],
+              [
+                "shift",
+                "e"
+              ]
+            ],
+            "163": [
+              [
+                "backslash"
+              ],
+              [
+                "shift",
+                "z"
+              ]
+            ]
+          },
+          "artifacts": {
+            "startup.cfg": {
+              "path": "review/current-286-workflows-text-lv-startup.cfg",
+              "sha256": "04fc259a69de497046ae6ceda8e50d189c09d1fd8ff337589e2088e0e3adb1fe"
+            },
+            "global.cfg": {
+              "path": "review/current-286-workflows-text-lv-global.cfg",
+              "sha256": "f73f16006e8e914f7a23dd3a49ebd821d9c11cca6a64647342c447d1d679c664"
+            },
+            "SHELL.TXT": {
+              "path": "review/current-286-workflows-text-lv-SHELL.TXT.bin",
+              "sha256": "4dd4249cd9b3c824d52cdd20330bbbb0fe242dea10be006d2fd2441a43f40a3e"
+            },
+            "EDIT.TXT": {
+              "path": "review/current-286-workflows-text-lv-EDIT.TXT.bin",
+              "sha256": "e883a9857e367c536ab73eee1f36d85d39976a69779e357aa529cdda52c12bce"
+            },
+            "COPY.TXT": {
+              "path": "review/current-286-workflows-text-lv-COPY.TXT.bin",
+              "sha256": "8f9ccad197778ac841c5d41ca1729ced47623ce0ae19bdb56184a42066687ad8"
+            },
+            "PIPE.TXT": {
+              "path": "review/current-286-workflows-text-lv-PIPE.TXT.bin",
+              "sha256": "4afdb3786c9055add1a38472ed6da82e8e4d60a807830b2b902d8e6f682bdf96"
+            }
+          },
+          "resource_sha256": {
+            "DEV/COUNTRY/COUNTRY.SYS": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c",
+            "CMD/EDLIN/EDLIN.COM": "21dcc094437d6e7dbed8d8cf34d5b7bb6629d6fd8f9b0256710bc038a77e132a",
+            "CMD/FIND/FIND.EXE": "bce1e2a4df29876ae4720bec538cb8034d833c5eb945718e6a05d7510d1c399e",
+            "CMD/KEYB/KEYB.COM": "924edf011009fe4a747d045f24ae5da817b613e914cbf58b66ca22e3637ffa3e",
+            "DEV/KEYBOARD/KEYBRD2.SYS": "d003716471ffbe12803ac7beaf511a8a4e2d6a0b8ef5e3d214eee2a69584cf06",
+            "DEV/DISPLAY/EGA/EGA775.CPI": "ab38fe5b8acae0ba3933ac6b66596c58b32bc23385285b8cc68fec1fa8f15255",
+            "DEV/DISPLAY/DISPLAY.SYS": "0ebd3bfad4e87d79e05219c02ea71ce4e94f9e11b432efdf652a022488d9ac08",
+            "CMD/NLSFUNC/NLSFUNC.EXE": "f8bed4307ba458fd1e14f5aae373d5693d830d77ccd77636a6313df5f7b0e297",
+            "CMD/MODE/MODE.COM": "c385aad5697fcec3a9113f58b983b978a7f969e99b153ebd496b12dab0e3767d"
+          },
+          "startup": {
+            "CONFIG.SYS": "COUNTRY=371,775,COUNTRY.SYS\r\nDOS=LOW\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(1,3))\r\n",
+            "AUTOEXEC.BAT": "@ECHO OFF\r\nPROFILE.COM > AUX\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nMODE CON CP PREPARE=((775) EGA775.CPI)\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nMODE CON CP SELECT=775\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nKEYB LV,775,KEYBRD2.SYS /ID:0\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO RU_TEXT_READY > AUX\r\nGOTO END\r\n:FAIL\r\nECHO RU_TEXT_FAIL > AUX\r\nQEXIT.COM\r\n:END\r\n"
+          },
+          "log": {
+            "path": "review/current-286-workflows-text-lv.log",
+            "sha256": "318bcb30f5bc58d3e360f68bf610a90583dde6e6403985a8b1d3b5a4498d7bbb"
+          },
+          "events": {
+            "path": "review/current-286-workflows-text-lv-events.json",
+            "sha256": "f40c7656bed59db7107d7156bacc9d815948b0bea0db6fda781a8a6759532392"
+          }
+        },
+        {
+          "profile": "low",
+          "emulator_exit": 0,
+          "files_hex": {
+            "SHELL.TXT": "4c616261732c20d0d8756f6c61732120b5b6b7b8bdbec6c7cf20d0d1d2d3d4d5d6d7d80d0a",
+            "EDIT.TXT": "4c616261732c20d0d8756f6c61732120b5b6b7b8bdbec6c7cf20d0d1d2d3d4d5d6d7d80d0ab5d8756f6c61730d0a1a",
+            "COPY.TXT": "4c616261732c20d0d8756f6c61732120b5b6b7b8bdbec6c7cf20d0d1d2d3d4d5d6d7d80d0ab5d8756f6c61730d0a",
+            "PIPE.TXT": "b5d8756f6c61730d0a"
+          },
+          "captures": [
+            {
+              "name": "shell",
+              "expected_text": [
+                "Labas, \u0105\u017euolas! \u0104\u010c\u0118\u0116\u012e\u0160\u0172\u016a\u017d \u0105\u010d\u0119\u0117\u012f\u0161\u0173\u016b\u017e"
+              ],
+              "size": [
+                720,
+                400
+              ],
+              "screen": {
+                "path": "review/current-286-workflows-text-lt-shell.png",
+                "sha256": "f84d9bbf8850028bf08a74ba14bcff11ce74203ee920d99d594a5516e2f17c66"
+              }
+            },
+            {
+              "name": "edited",
+              "expected_text": [
+                "Labas, \u0105\u017euolas! \u0104\u010c\u0118\u0116\u012e\u0160\u0172\u016a\u017d \u0105\u010d\u0119\u0117\u012f\u0161\u0173\u016b\u017e",
+                "\u0104\u017euolas"
+              ],
+              "size": [
+                720,
+                400
+              ],
+              "screen": {
+                "path": "review/current-286-workflows-text-lt-edited.png",
+                "sha256": "fd59f6f18872d808bf26f592ffff37a67aa07b0032095ee7d686b95e7b457241"
+              }
+            },
+            {
+              "name": "reopened",
+              "expected_text": [
+                "Labas, \u0105\u017euolas! \u0104\u010c\u0118\u0116\u012e\u0160\u0172\u016a\u017d \u0105\u010d\u0119\u0117\u012f\u0161\u0173\u016b\u017e",
+                "\u0104\u017euolas"
+              ],
+              "size": [
+                720,
+                400
+              ],
+              "screen": {
+                "path": "review/current-286-workflows-text-lt-reopened.png",
+                "sha256": "caca3c132997af179060cc5e0833fe86356e55cb46a676187dd32abbde19058a"
+              }
+            }
+          ],
+          "language": "lt",
+          "national_sequences": {
+            "245": [
+              [
+                "ctrl",
+                "alt",
+                "5"
+              ]
+            ],
+            "208": [
+              [
+                "q"
+              ]
+            ],
+            "181": [
+              [
+                "shift",
+                "q"
+              ]
+            ],
+            "216": [
+              [
+                "w"
+              ]
+            ],
+            "207": [
+              [
+                "shift",
+                "w"
+              ]
+            ],
+            "212": [
+              [
+                "bracket_left"
+              ]
+            ],
+            "189": [
+              [
+                "shift",
+                "bracket_left"
+              ]
+            ],
+            "213": [
+              [
+                "f"
+              ]
+            ],
+            "190": [
+              [
+                "shift",
+                "f"
+              ]
+            ],
+            "214": [
+              [
+                "semicolon"
+              ]
+            ],
+            "198": [
+              [
+                "shift",
+                "semicolon"
+              ]
+            ],
+            "211": [
+              [
+                "apostrophe"
+              ]
+            ],
+            "184": [
+              [
+                "shift",
+                "apostrophe"
+              ]
+            ],
+            "239": [
+              [
+                "ctrl",
+                "alt",
+                "grave_accent"
+              ]
+            ],
+            "215": [
+              [
+                "x"
+              ]
+            ],
+            "199": [
+              [
+                "shift",
+                "x"
+              ]
+            ],
+            "209": [
+              [
+                "comma"
+              ]
+            ],
+            "182": [
+              [
+                "shift",
+                "comma"
+              ]
+            ],
+            "247": [
+              [
+                "ctrl",
+                "alt",
+                "comma"
+              ]
+            ],
+            "242": [
+              [
+                "ctrl",
+                "alt",
+                "dot"
+              ]
+            ],
+            "210": [
+              [
+                "slash"
+              ]
+            ],
+            "183": [
+              [
+                "shift",
+                "slash"
+              ]
+            ]
+          },
+          "artifacts": {
+            "startup.cfg": {
+              "path": "review/current-286-workflows-text-lt-startup.cfg",
+              "sha256": "04fc259a69de497046ae6ceda8e50d189c09d1fd8ff337589e2088e0e3adb1fe"
+            },
+            "global.cfg": {
+              "path": "review/current-286-workflows-text-lt-global.cfg",
+              "sha256": "f73f16006e8e914f7a23dd3a49ebd821d9c11cca6a64647342c447d1d679c664"
+            },
+            "SHELL.TXT": {
+              "path": "review/current-286-workflows-text-lt-SHELL.TXT.bin",
+              "sha256": "97bfdb1d822c41014d059c45d796b33b282ed3942a783244421342955f22806f"
+            },
+            "EDIT.TXT": {
+              "path": "review/current-286-workflows-text-lt-EDIT.TXT.bin",
+              "sha256": "2e5c801efbe02bc5eb5194c63f8f8e2941196a6e557141ff68254b33fe244243"
+            },
+            "COPY.TXT": {
+              "path": "review/current-286-workflows-text-lt-COPY.TXT.bin",
+              "sha256": "ea59c23212b20e90538e25f89097860c8c91f670a14c130eba4c6dac68974960"
+            },
+            "PIPE.TXT": {
+              "path": "review/current-286-workflows-text-lt-PIPE.TXT.bin",
+              "sha256": "d4c62cb885fbe390be342200d9a196f9c1d970c2aece01684f686d11fe54a1af"
+            }
+          },
+          "resource_sha256": {
+            "DEV/COUNTRY/COUNTRY.SYS": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c",
+            "CMD/EDLIN/EDLIN.COM": "21dcc094437d6e7dbed8d8cf34d5b7bb6629d6fd8f9b0256710bc038a77e132a",
+            "CMD/FIND/FIND.EXE": "bce1e2a4df29876ae4720bec538cb8034d833c5eb945718e6a05d7510d1c399e",
+            "CMD/KEYB/KEYB.COM": "924edf011009fe4a747d045f24ae5da817b613e914cbf58b66ca22e3637ffa3e",
+            "DEV/KEYBOARD/KEYBRD2.SYS": "d003716471ffbe12803ac7beaf511a8a4e2d6a0b8ef5e3d214eee2a69584cf06",
+            "DEV/DISPLAY/EGA/EGA775.CPI": "ab38fe5b8acae0ba3933ac6b66596c58b32bc23385285b8cc68fec1fa8f15255",
+            "DEV/DISPLAY/DISPLAY.SYS": "0ebd3bfad4e87d79e05219c02ea71ce4e94f9e11b432efdf652a022488d9ac08",
+            "CMD/NLSFUNC/NLSFUNC.EXE": "f8bed4307ba458fd1e14f5aae373d5693d830d77ccd77636a6313df5f7b0e297",
+            "CMD/MODE/MODE.COM": "c385aad5697fcec3a9113f58b983b978a7f969e99b153ebd496b12dab0e3767d"
+          },
+          "startup": {
+            "CONFIG.SYS": "COUNTRY=370,775,COUNTRY.SYS\r\nDOS=LOW\r\nDEVICE=DISPLAY.SYS CON=(EGA,437,(1,3))\r\n",
+            "AUTOEXEC.BAT": "@ECHO OFF\r\nPROFILE.COM > AUX\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nNLSFUNC\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nMODE CON CP PREPARE=((775) EGA775.CPI)\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nMODE CON CP SELECT=775\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nKEYB LT,775,KEYBRD2.SYS /ID:221\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO RU_TEXT_READY > AUX\r\nGOTO END\r\n:FAIL\r\nECHO RU_TEXT_FAIL > AUX\r\nQEXIT.COM\r\n:END\r\n"
+          },
+          "log": {
+            "path": "review/current-286-workflows-text-lt.log",
+            "sha256": "3bc6f815f44b989bc4a456f4db85211b3b315809d5215c92022ed45ab3d2e290"
+          },
+          "events": {
+            "path": "review/current-286-workflows-text-lt-events.json",
+            "sha256": "376138ada9839d180406a7034b8efbaadfaf14c83b180ca1185c97b60f50bffe"
+          }
+        }
+      ],
+      "emulator_sha256": "798ac6072d5147ed4dca7540ca5303da1e4c2d190853c227dde9ea3b33583c18",
+      "private_artifacts": "out/baltic-text-iqr6f3ah"
+    },
+    "files": {
+      "status": "passed",
+      "core_sha256": {
+        "IO.SYS": "34af301387a2f3d11e20590922b3611227e640c26087dbf79ff83f1364fe0b8e",
+        "MSDOS.SYS": "b495ab1ccc6fd3e7672b4724a7cccde519d8a65171c0c0ed6bad73cd331a42e9",
+        "COMMAND.COM": "6742b5889141a9c61d41e336445014d8055c19758febf4263f4f8ebe3c2f2c29",
+        "HIMEM.SYS": "d5ea7b0e775c2eb6eb2b7dab42eb7471a7a84bfb32cf2021215d4ed6f8a7850a",
+        "EMM386.EXE": "58266b6614594de7a9cfde9eda75e3eb241b9e2e941e67b70645a0f8a197dae6"
+      },
+      "backend": "86box-286",
+      "cases": [
+        {
+          "profile": "low",
+          "phases": [
+            {
+              "phase": "create",
+              "emulator_exit": 0,
+              "files_hex": {
+                "LOOKUP.TXT": "8494e481d5d8208e99e59abecf0d0a",
+                "RENAMED.TXT": "8494e481d5d8208e99e59abecf0d0a",
+                "NESTED.TXT": "8494e481d5d8208e99e59abecf0d0a",
+                "ORDER.TXT": "412e5458540d0abe2e5458540d0a5a2e5458540d0acf2e5458540d0ae52e5458540d0ae546494c452e5458540d0ae5544553542e5458540d0ae554455354312e5458540d0ae55445535431322e5458540d0ae554455354322e5458540d0a8e2e5458540d0a992e5458540d0a9a2e5458540d0a",
+                "ONE.TXT": "cf2e5458540d0abe2e5458540d0a9a2e5458540d0ae52e5458540d0a992e5458540d0a8e2e5458540d0a5a2e5458540d0a412e5458540d0a",
+                "WILD.TXT": "e5544553542e5458540d0ae554455354312e5458540d0ae554455354322e5458540d0a",
+                "REVERSE.TXT": "9a2e5458540d0a992e5458540d0a8e2e5458540d0ae554455354322e5458540d0ae55445535431322e5458540d0ae554455354312e5458540d0ae5544553542e5458540d0ae546494c452e5458540d0ae52e5458540d0acf2e5458540d0a5a2e5458540d0abe2e5458540d0a412e5458540d0a",
+                "EXTORD.TXT": "4558542e410d0a4558542ebe0d0a4558542e5a0d0a4558542ecf0d0ae5444f432ee50d0a4558542ee50d0a4558542e8e0d0a4558542e990d0a4558542e9a0d0a"
+              },
+              "image_sha256": "2300e0c9dbbc0bdbd3287136651e2bf5bb9a31f7f20ae9afc64299ae62123da2",
+              "log": {
+                "path": "review/current-286-workflows-files-et-create.log",
+                "sha256": "7e5e6e909c4ee8f1336eeba970c90e8227e9ade86f4fa845b9d2022cce52ca2a"
+              }
+            },
+            {
+              "phase": "reboot",
+              "emulator_exit": 0,
+              "files_hex": {
+                "REBOOT.TXT": "8494e481d5d8208e99e59abecf0d0a",
+                "REBNEST.TXT": "8494e481d5d8208e99e59abecf0d0a",
+                "TREE1.TXT": "8494e481d5d8208e99e59abecf0d0a",
+                "TREE2.TXT": "8494e481d5d8208e99e59abecf0d0a",
+                "REORDER.TXT": "412e5458540d0abe2e5458540d0a5a2e5458540d0acf2e5458540d0ae52e5458540d0ae546494c452e5458540d0ae5544553542e5458540d0ae554455354312e5458540d0ae55445535431322e5458540d0ae554455354322e5458540d0a8e2e5458540d0a992e5458540d0a9a2e5458540d0a"
+              },
+              "image_sha256": "975c3350ad5bb7cd332445e4bc0f6d2e67eb2061bf6b977d58f1e9945c22fcb2",
+              "log": {
+                "path": "review/current-286-workflows-files-et-reboot.log",
+                "sha256": "c67a912357b52c693724945f4e2d7608f3bc06c14152e61398a8cb0d7ad61b4d"
+              }
+            }
+          ],
+          "create_commands": [
+            "MD \u00f5dir",
+            "CD \u00d5DIR",
+            "ECHO \u00e4\u00f6\u00f5\u00fc\u0161\u017e \u00c4\u00d6\u00d5\u00dc\u0160\u017d>\u00f5file.txt",
+            "TYPE \u00d5FILE.TXT > A:\\LOOKUP.TXT",
+            "COPY \u00f5file.txt \u00f5copy.dat >NUL",
+            "REN \u00d5COPY.DAT \u00f5new.dat",
+            "TYPE \u00d5NEW.DAT > A:\\RENAMED.TXT",
+            "DEL \u00d5NEW.DAT",
+            "MD \u00f5sub",
+            "COPY \u00d5FILE.TXT \u00f5sub\\\u00f5doc.\u00f5 >NUL",
+            "TYPE \u00d5SUB\\\u00d5DOC.\u00d5 > A:\\NESTED.TXT",
+            "MD \u00f5temp",
+            "RD \u00d5TEMP",
+            "ECHO \u00e4\u00f6\u00f5\u00fc\u0161\u017e \u00c4\u00d6\u00d5\u00dc\u0160\u017d>\u00f5sub\\ext.\u017e",
+            "ECHO \u00e4\u00f6\u00f5\u00fc\u0161\u017e \u00c4\u00d6\u00d5\u00dc\u0160\u017d>\u00f5sub\\ext.\u0161",
+            "ECHO \u00e4\u00f6\u00f5\u00fc\u0161\u017e \u00c4\u00d6\u00d5\u00dc\u0160\u017d>\u00f5sub\\ext.\u00fc",
+            "ECHO \u00e4\u00f6\u00f5\u00fc\u0161\u017e \u00c4\u00d6\u00d5\u00dc\u0160\u017d>\u00f5sub\\ext.\u00f5",
+            "ECHO \u00e4\u00f6\u00f5\u00fc\u0161\u017e \u00c4\u00d6\u00d5\u00dc\u0160\u017d>\u00f5sub\\ext.\u00f6",
+            "ECHO \u00e4\u00f6\u00f5\u00fc\u0161\u017e \u00c4\u00d6\u00d5\u00dc\u0160\u017d>\u00f5sub\\ext.\u00e4",
+            "ECHO \u00e4\u00f6\u00f5\u00fc\u0161\u017e \u00c4\u00d6\u00d5\u00dc\u0160\u017d>\u00f5sub\\ext.z",
+            "ECHO \u00e4\u00f6\u00f5\u00fc\u0161\u017e \u00c4\u00d6\u00d5\u00dc\u0160\u017d>\u00f5sub\\ext.a",
+            "ECHO \u00e4\u00f6\u00f5\u00fc\u0161\u017e \u00c4\u00d6\u00d5\u00dc\u0160\u017d>\u017e.txt",
+            "ECHO \u00e4\u00f6\u00f5\u00fc\u0161\u017e \u00c4\u00d6\u00d5\u00dc\u0160\u017d>\u0161.txt",
+            "ECHO \u00e4\u00f6\u00f5\u00fc\u0161\u017e \u00c4\u00d6\u00d5\u00dc\u0160\u017d>\u00fc.txt",
+            "ECHO \u00e4\u00f6\u00f5\u00fc\u0161\u017e \u00c4\u00d6\u00d5\u00dc\u0160\u017d>\u00f5.txt",
+            "ECHO \u00e4\u00f6\u00f5\u00fc\u0161\u017e \u00c4\u00d6\u00d5\u00dc\u0160\u017d>\u00f6.txt",
+            "ECHO \u00e4\u00f6\u00f5\u00fc\u0161\u017e \u00c4\u00d6\u00d5\u00dc\u0160\u017d>\u00e4.txt",
+            "ECHO \u00e4\u00f6\u00f5\u00fc\u0161\u017e \u00c4\u00d6\u00d5\u00dc\u0160\u017d>z.txt",
+            "ECHO \u00e4\u00f6\u00f5\u00fc\u0161\u017e \u00c4\u00d6\u00d5\u00dc\u0160\u017d>a.txt",
+            "ECHO \u00e4\u00f6\u00f5\u00fc\u0161\u017e \u00c4\u00d6\u00d5\u00dc\u0160\u017d>\u00f5test.txt",
+            "ECHO \u00e4\u00f6\u00f5\u00fc\u0161\u017e \u00c4\u00d6\u00d5\u00dc\u0160\u017d>\u00f5test1.txt",
+            "ECHO \u00e4\u00f6\u00f5\u00fc\u0161\u017e \u00c4\u00d6\u00d5\u00dc\u0160\u017d>\u00f5test2.txt",
+            "ECHO \u00e4\u00f6\u00f5\u00fc\u0161\u017e \u00c4\u00d6\u00d5\u00dc\u0160\u017d>\u00f5test12.txt",
+            "DIR /B /A:-D /O:E \u00f5sub\\*.* > A:\\EXTORD.TXT",
+            "DIR /B /O:-N *.TXT > A:\\REVERSE.TXT",
+            "DIR /B /O:N *.TXT > A:\\ORDER.TXT",
+            "DIR /B ?.TXT > A:\\ONE.TXT",
+            "DIR /B \u00f5test?.TXT > A:\\WILD.TXT",
+            "CD \\",
+            "MD \u00f5tree",
+            "MD \u00f5tree\\\u00f5sub",
+            "MD \u00f5tree\\\u00f5empty",
+            "ECHO \u00e4\u00f6\u00f5\u00fc\u0161\u017e \u00c4\u00d6\u00d5\u00dc\u0160\u017d>\u00f5tree\\\u00f5sub\\\u00f5doc.\u00f5",
+            "A:\\MOVE \u00d5TREE \u00f5moved",
+            "MD \u00f5clone",
+            "A:\\XCOPY \u00d5MOVED \u00d5CLONE /S /E >NUL",
+            "ECHO CREATED>STAGE.TAG"
+          ],
+          "reboot_commands": [
+            "CD \u00d5DIR",
+            "TYPE \u00d5FILE.TXT > A:\\REBOOT.TXT",
+            "TYPE \u00d5SUB\\\u00d5DOC.\u00d5 > A:\\REBNEST.TXT",
+            "DIR /B /O:N *.TXT > A:\\REORDER.TXT",
+            "DEL \u00d5SUB\\\u00d5DOC.\u00d5",
+            "DEL \u00d5SUB\\EXT.*",
+            "RD \u00d5SUB",
+            "DEL *.TXT",
+            "CD \\",
+            "RD \u00d5DIR",
+            "TYPE \u00d5MOVED\\\u00d5SUB\\\u00d5DOC.\u00d5 > A:\\TREE1.TXT",
+            "DEL \u00d5MOVED\\\u00d5SUB\\\u00d5DOC.\u00d5",
+            "RD \u00d5MOVED\\\u00d5SUB",
+            "RD \u00d5MOVED\\\u00d5EMPTY",
+            "RD \u00d5MOVED",
+            "TYPE \u00d5CLONE\\\u00d5SUB\\\u00d5DOC.\u00d5 > A:\\TREE2.TXT",
+            "DEL \u00d5CLONE\\\u00d5SUB\\\u00d5DOC.\u00d5",
+            "RD \u00d5CLONE\\\u00d5SUB",
+            "RD \u00d5CLONE\\\u00d5EMPTY",
+            "RD \u00d5CLONE"
+          ],
+          "expected_order_hex": "412e5458540d0abe2e5458540d0a5a2e5458540d0acf2e5458540d0ae52e5458540d0ae546494c452e5458540d0ae5544553542e5458540d0ae554455354312e5458540d0ae55445535431322e5458540d0ae554455354322e5458540d0a8e2e5458540d0a992e5458540d0a9a2e5458540d0a",
+          "language": "et",
+          "artifacts": {
+            "startup.cfg": {
+              "path": "review/current-286-workflows-files-et-startup.cfg",
+              "sha256": "10cbd002fee8b5a686cf358c231bafe0ca884b25acc97d1729c2a6b4a103c064"
+            },
+            "global.cfg": {
+              "path": "review/current-286-workflows-files-et-global.cfg",
+              "sha256": "f73f16006e8e914f7a23dd3a49ebd821d9c11cca6a64647342c447d1d679c664"
+            },
+            "e4636c6f6e65-e4737562.bin": {
+              "path": "review/current-286-workflows-files-et-e4636c6f6e65-e4737562.bin",
+              "sha256": "da9503b033017a2975bee8693e18e5c86292e339bab177ef4812fdcaf67f0cc8"
+            },
+            "e46d6f766564-e4656d707479.bin": {
+              "path": "review/current-286-workflows-files-et-e46d6f766564-e4656d707479.bin",
+              "sha256": "09b35d128e6fd8db21b150cfecf3a1c0b263465beb9627bb4df211ffe872cbd7"
+            },
+            "nested.bin": {
+              "path": "review/current-286-workflows-files-et-nested.bin",
+              "sha256": "1507fd4246501c1a8260f61da56e7e90495cffcee319dfe76c11b404f8b0594f"
+            },
+            "e46d6f766564-e4737562.bin": {
+              "path": "review/current-286-workflows-files-et-e46d6f766564-e4737562.bin",
+              "sha256": "95f9a3362087d1b2f1672bd84b3c47aa081cbab054033aa0009fbca8343f86a3"
+            },
+            "e4636c6f6e65.bin": {
+              "path": "review/current-286-workflows-files-et-e4636c6f6e65.bin",
+              "sha256": "a1db36ff543eec23635d53c8f922a8f9af774125ef58c7eed17726074b8969a4"
+            },
+            "e46d6f766564.bin": {
+              "path": "review/current-286-workflows-files-et-e46d6f766564.bin",
+              "sha256": "ebf614f631227b152a52b398cc02d6a1c2652e3e7d1a880f4e75b7887715712b"
+            },
+            "directory.bin": {
+              "path": "review/current-286-workflows-files-et-directory.bin",
+              "sha256": "f2da94bf5d53b1f00b993086ec12d02b059e4920b35935f3817e26af2fe8b74d"
+            },
+            "e4636c6f6e65-e4656d707479.bin": {
+              "path": "review/current-286-workflows-files-et-e4636c6f6e65-e4656d707479.bin",
+              "sha256": "50845192e3b3e9eaff38b1be5ffccd4d0ca11ccbd270aae37200a5b55025b3ca"
+            },
+            "cleanup-root.bin": {
+              "path": "review/current-286-workflows-files-et-cleanup-root.bin",
+              "sha256": "63b2462f5aba11eb501f8b035ee2c89d965760b937b59ff18808fc8391f773b2"
+            }
+          },
+          "resource_sha256": {
+            "DEV/COUNTRY/COUNTRY.SYS": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c",
+            "CMD/MOVE/MOVE.EXE": "577833937b25b62028595299669b7b937a89f60e15172a86d3185a9f0b5110ba",
+            "CMD/XCOPY/XCOPY.EXE": "4753caa9bf4cb3d0484fe85890a83f0e05136de18fa5e439b04c46e996bf8d3e"
+          },
+          "startup": {
+            "CONFIG.SYS": "COUNTRY=372,775,COUNTRY.SYS\r\nDOS=LOW\r\n",
+            "AUTOEXEC.BAT": "@ECHO OFF\r\nIF EXIST STAGE.TAG GOTO SECOND\r\n@ECHO OFF\r\nCTTY AUX\r\nPROFILE.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nMD \u00f5dir\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCD \u00d5DIR\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u00e4\u00f6\u00f5\u00fc\u0161\u017e \u00c4\u00d6\u00d5\u00dc\u0160\u017d>\u00f5file.txt\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nTYPE \u00d5FILE.TXT > A:\\LOOKUP.TXT\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY \u00f5file.txt \u00f5copy.dat >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREN \u00d5COPY.DAT \u00f5new.dat\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nTYPE \u00d5NEW.DAT > A:\\RENAMED.TXT\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL \u00d5NEW.DAT\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nMD \u00f5sub\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY \u00d5FILE.TXT \u00f5sub\\\u00f5doc.\u00f5 >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nTYPE \u00d5SUB\\\u00d5DOC.\u00d5 > A:\\NESTED.TXT\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nMD \u00f5temp\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nRD \u00d5TEMP\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u00e4\u00f6\u00f5\u00fc\u0161\u017e \u00c4\u00d6\u00d5\u00dc\u0160\u017d>\u00f5sub\\ext.\u017e\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u00e4\u00f6\u00f5\u00fc\u0161\u017e \u00c4\u00d6\u00d5\u00dc\u0160\u017d>\u00f5sub\\ext.\u0161\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u00e4\u00f6\u00f5\u00fc\u0161\u017e \u00c4\u00d6\u00d5\u00dc\u0160\u017d>\u00f5sub\\ext.\u00fc\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u00e4\u00f6\u00f5\u00fc\u0161\u017e \u00c4\u00d6\u00d5\u00dc\u0160\u017d>\u00f5sub\\ext.\u00f5\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u00e4\u00f6\u00f5\u00fc\u0161\u017e \u00c4\u00d6\u00d5\u00dc\u0160\u017d>\u00f5sub\\ext.\u00f6\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u00e4\u00f6\u00f5\u00fc\u0161\u017e \u00c4\u00d6\u00d5\u00dc\u0160\u017d>\u00f5sub\\ext.\u00e4\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u00e4\u00f6\u00f5\u00fc\u0161\u017e \u00c4\u00d6\u00d5\u00dc\u0160\u017d>\u00f5sub\\ext.z\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u00e4\u00f6\u00f5\u00fc\u0161\u017e \u00c4\u00d6\u00d5\u00dc\u0160\u017d>\u00f5sub\\ext.a\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u00e4\u00f6\u00f5\u00fc\u0161\u017e \u00c4\u00d6\u00d5\u00dc\u0160\u017d>\u017e.txt\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u00e4\u00f6\u00f5\u00fc\u0161\u017e \u00c4\u00d6\u00d5\u00dc\u0160\u017d>\u0161.txt\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u00e4\u00f6\u00f5\u00fc\u0161\u017e \u00c4\u00d6\u00d5\u00dc\u0160\u017d>\u00fc.txt\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u00e4\u00f6\u00f5\u00fc\u0161\u017e \u00c4\u00d6\u00d5\u00dc\u0160\u017d>\u00f5.txt\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u00e4\u00f6\u00f5\u00fc\u0161\u017e \u00c4\u00d6\u00d5\u00dc\u0160\u017d>\u00f6.txt\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u00e4\u00f6\u00f5\u00fc\u0161\u017e \u00c4\u00d6\u00d5\u00dc\u0160\u017d>\u00e4.txt\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u00e4\u00f6\u00f5\u00fc\u0161\u017e \u00c4\u00d6\u00d5\u00dc\u0160\u017d>z.txt\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u00e4\u00f6\u00f5\u00fc\u0161\u017e \u00c4\u00d6\u00d5\u00dc\u0160\u017d>a.txt\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u00e4\u00f6\u00f5\u00fc\u0161\u017e \u00c4\u00d6\u00d5\u00dc\u0160\u017d>\u00f5test.txt\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u00e4\u00f6\u00f5\u00fc\u0161\u017e \u00c4\u00d6\u00d5\u00dc\u0160\u017d>\u00f5test1.txt\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u00e4\u00f6\u00f5\u00fc\u0161\u017e \u00c4\u00d6\u00d5\u00dc\u0160\u017d>\u00f5test2.txt\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u00e4\u00f6\u00f5\u00fc\u0161\u017e \u00c4\u00d6\u00d5\u00dc\u0160\u017d>\u00f5test12.txt\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDIR /B /A:-D /O:E \u00f5sub\\*.* > A:\\EXTORD.TXT\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDIR /B /O:-N *.TXT > A:\\REVERSE.TXT\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDIR /B /O:N *.TXT > A:\\ORDER.TXT\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDIR /B ?.TXT > A:\\ONE.TXT\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDIR /B \u00f5test?.TXT > A:\\WILD.TXT\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCD \\\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nMD \u00f5tree\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nMD \u00f5tree\\\u00f5sub\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nMD \u00f5tree\\\u00f5empty\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u00e4\u00f6\u00f5\u00fc\u0161\u017e \u00c4\u00d6\u00d5\u00dc\u0160\u017d>\u00f5tree\\\u00f5sub\\\u00f5doc.\u00f5\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nA:\\MOVE \u00d5TREE \u00f5moved\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nMD \u00f5clone\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nA:\\XCOPY \u00d5MOVED \u00d5CLONE /S /E >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO CREATED>STAGE.TAG\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO RU_FILES_CREATED\r\nQEXIT.COM\r\n:FAIL\r\nECHO RU_FILES_FAIL\r\nQEXIT.COM\r\n:SECOND\r\nNEXT.BAT\r\n",
+            "NEXT.BAT": "@ECHO OFF\r\nCTTY AUX\r\nPROFILE.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCD \u00d5DIR\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nTYPE \u00d5FILE.TXT > A:\\REBOOT.TXT\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nTYPE \u00d5SUB\\\u00d5DOC.\u00d5 > A:\\REBNEST.TXT\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDIR /B /O:N *.TXT > A:\\REORDER.TXT\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL \u00d5SUB\\\u00d5DOC.\u00d5\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL \u00d5SUB\\EXT.*\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nRD \u00d5SUB\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL *.TXT\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCD \\\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nRD \u00d5DIR\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nTYPE \u00d5MOVED\\\u00d5SUB\\\u00d5DOC.\u00d5 > A:\\TREE1.TXT\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL \u00d5MOVED\\\u00d5SUB\\\u00d5DOC.\u00d5\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nRD \u00d5MOVED\\\u00d5SUB\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nRD \u00d5MOVED\\\u00d5EMPTY\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nRD \u00d5MOVED\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nTYPE \u00d5CLONE\\\u00d5SUB\\\u00d5DOC.\u00d5 > A:\\TREE2.TXT\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL \u00d5CLONE\\\u00d5SUB\\\u00d5DOC.\u00d5\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nRD \u00d5CLONE\\\u00d5SUB\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nRD \u00d5CLONE\\\u00d5EMPTY\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nRD \u00d5CLONE\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO RU_FILES_REBOOTED\r\nQEXIT.COM\r\n:FAIL\r\nECHO RU_FILES_FAIL\r\nQEXIT.COM\r\n"
+          },
+          "collation_hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f40888d8e919297989a9b9e9fa1a4a6a9adaeafb1b9babdbec3c4b5414243444546888d8e919297989a9b9e9fa1a4a6a9adaeafb1b9babdbec3c4b54748494a4b8fc29389c0998b8fa294b0b09cb6c08b938c8cabc1994cb3b3c1c2ac4dac4e4f899caab7b7b650515253545556a25758595a5b5c5d8a9095965e5f60619db462636465666768bcbb696a6b6c6d6e6fb88a9095969db4bcbbb870717273747576aab2aba7bfbfa5a7a0a0a3a3a894a87778797a7b7c7d7e7f8081828384858687"
+        },
+        {
+          "profile": "low",
+          "phases": [
+            {
+              "phase": "create",
+              "emulator_exit": 0,
+              "files_hex": {
+                "LOOKUP.TXT": "83d189858ce9ebecd5d7d820a0b6ed95a1e8eaeebec7cf0d0a",
+                "RENAMED.TXT": "83d189858ce9ebecd5d7d820a0b6ed95a1e8eaeebec7cf0d0a",
+                "NESTED.TXT": "83d189858ce9ebecd5d7d820a0b6ed95a1e8eaeebec7cf0d0a",
+                "ORDER.TXT": "412e5458540d0aa02e5458540d0ab62e5458540d0aed2e5458540d0a952e5458540d0aa12e5458540d0ae82e5458540d0ae846494c452e5458540d0ae8544553542e5458540d0ae854455354312e5458540d0ae85445535431322e5458540d0ae854455354322e5458540d0aea2e5458540d0aee2e5458540d0abe2e5458540d0ac72e5458540d0a5a2e5458540d0acf2e5458540d0a",
+                "ONE.TXT": "cf2e5458540d0ac72e5458540d0abe2e5458540d0aee2e5458540d0aea2e5458540d0ae82e5458540d0aa12e5458540d0a952e5458540d0aed2e5458540d0ab62e5458540d0aa02e5458540d0a5a2e5458540d0a412e5458540d0a",
+                "WILD.TXT": "e8544553542e5458540d0ae854455354312e5458540d0ae854455354322e5458540d0a",
+                "REVERSE.TXT": "cf2e5458540d0a5a2e5458540d0ac72e5458540d0abe2e5458540d0aee2e5458540d0aea2e5458540d0ae854455354322e5458540d0ae85445535431322e5458540d0ae854455354312e5458540d0ae8544553542e5458540d0ae846494c452e5458540d0ae82e5458540d0aa12e5458540d0a952e5458540d0aed2e5458540d0ab62e5458540d0aa02e5458540d0a412e5458540d0a",
+                "EXTORD.TXT": "4558542e410d0a4558542ea00d0a4558542eb60d0a4558542eed0d0a4558542e950d0a4558542ea10d0ae8444f432ee80d0a4558542ee80d0a4558542eea0d0a4558542eee0d0a4558542ebe0d0a4558542ec70d0a4558542e5a0d0a4558542ecf0d0a"
+              },
+              "image_sha256": "bcd6fc353fcbac9e7846504152537def111fd24e7137e851e92b821855c5c5e7",
+              "log": {
+                "path": "review/current-286-workflows-files-lv-create.log",
+                "sha256": "efca86757bd97c3b4a6327de205e58ba10dca4541dab072e087ca24824ea9b7b"
+              }
+            },
+            {
+              "phase": "reboot",
+              "emulator_exit": 0,
+              "files_hex": {
+                "REBOOT.TXT": "83d189858ce9ebecd5d7d820a0b6ed95a1e8eaeebec7cf0d0a",
+                "REBNEST.TXT": "83d189858ce9ebecd5d7d820a0b6ed95a1e8eaeebec7cf0d0a",
+                "TREE1.TXT": "83d189858ce9ebecd5d7d820a0b6ed95a1e8eaeebec7cf0d0a",
+                "TREE2.TXT": "83d189858ce9ebecd5d7d820a0b6ed95a1e8eaeebec7cf0d0a",
+                "REORDER.TXT": "412e5458540d0aa02e5458540d0ab62e5458540d0aed2e5458540d0a952e5458540d0aa12e5458540d0ae82e5458540d0ae846494c452e5458540d0ae8544553542e5458540d0ae854455354312e5458540d0ae85445535431322e5458540d0ae854455354322e5458540d0aea2e5458540d0aee2e5458540d0abe2e5458540d0ac72e5458540d0a5a2e5458540d0acf2e5458540d0a"
+              },
+              "image_sha256": "1ed1e2ef9b6064f362673f43e010f03118b5be292e9b3320ff26aa96512fd7be",
+              "log": {
+                "path": "review/current-286-workflows-files-lv-reboot.log",
+                "sha256": "da2137b63b0fe205680642c0f46c04f357f78ddded2b41cc1a51e2c2f38a6c4c"
+              }
+            }
+          ],
+          "create_commands": [
+            "MD \u0137dir",
+            "CD \u0136DIR",
+            "ECHO \u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e \u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d>\u0137file.txt",
+            "TYPE \u0136FILE.TXT > A:\\LOOKUP.TXT",
+            "COPY \u0137file.txt \u0137copy.dat >NUL",
+            "REN \u0136COPY.DAT \u0137new.dat",
+            "TYPE \u0136NEW.DAT > A:\\RENAMED.TXT",
+            "DEL \u0136NEW.DAT",
+            "MD \u0137sub",
+            "COPY \u0136FILE.TXT \u0137sub\\\u0137doc.\u0137 >NUL",
+            "TYPE \u0136SUB\\\u0136DOC.\u0136 > A:\\NESTED.TXT",
+            "MD \u0137temp",
+            "RD \u0136TEMP",
+            "ECHO \u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e \u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d>\u0137sub\\ext.\u017e",
+            "ECHO \u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e \u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d>\u0137sub\\ext.\u016b",
+            "ECHO \u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e \u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d>\u0137sub\\ext.\u0161",
+            "ECHO \u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e \u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d>\u0137sub\\ext.\u0146",
+            "ECHO \u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e \u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d>\u0137sub\\ext.\u013c",
+            "ECHO \u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e \u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d>\u0137sub\\ext.\u0137",
+            "ECHO \u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e \u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d>\u0137sub\\ext.\u012b",
+            "ECHO \u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e \u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d>\u0137sub\\ext.\u0123",
+            "ECHO \u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e \u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d>\u0137sub\\ext.\u0113",
+            "ECHO \u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e \u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d>\u0137sub\\ext.\u010d",
+            "ECHO \u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e \u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d>\u0137sub\\ext.\u0101",
+            "ECHO \u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e \u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d>\u0137sub\\ext.z",
+            "ECHO \u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e \u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d>\u0137sub\\ext.a",
+            "ECHO \u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e \u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d>\u017e.txt",
+            "ECHO \u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e \u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d>\u016b.txt",
+            "ECHO \u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e \u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d>\u0161.txt",
+            "ECHO \u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e \u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d>\u0146.txt",
+            "ECHO \u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e \u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d>\u013c.txt",
+            "ECHO \u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e \u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d>\u0137.txt",
+            "ECHO \u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e \u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d>\u012b.txt",
+            "ECHO \u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e \u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d>\u0123.txt",
+            "ECHO \u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e \u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d>\u0113.txt",
+            "ECHO \u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e \u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d>\u010d.txt",
+            "ECHO \u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e \u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d>\u0101.txt",
+            "ECHO \u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e \u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d>z.txt",
+            "ECHO \u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e \u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d>a.txt",
+            "ECHO \u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e \u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d>\u0137test.txt",
+            "ECHO \u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e \u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d>\u0137test1.txt",
+            "ECHO \u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e \u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d>\u0137test2.txt",
+            "ECHO \u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e \u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d>\u0137test12.txt",
+            "DIR /B /A:-D /O:E \u0137sub\\*.* > A:\\EXTORD.TXT",
+            "DIR /B /O:-N *.TXT > A:\\REVERSE.TXT",
+            "DIR /B /O:N *.TXT > A:\\ORDER.TXT",
+            "DIR /B ?.TXT > A:\\ONE.TXT",
+            "DIR /B \u0137test?.TXT > A:\\WILD.TXT",
+            "CD \\",
+            "MD \u0137tree",
+            "MD \u0137tree\\\u0137sub",
+            "MD \u0137tree\\\u0137empty",
+            "ECHO \u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e \u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d>\u0137tree\\\u0137sub\\\u0137doc.\u0137",
+            "A:\\MOVE \u0136TREE \u0137moved",
+            "MD \u0137clone",
+            "A:\\XCOPY \u0136MOVED \u0136CLONE /S /E >NUL",
+            "ECHO CREATED>STAGE.TAG"
+          ],
+          "reboot_commands": [
+            "CD \u0136DIR",
+            "TYPE \u0136FILE.TXT > A:\\REBOOT.TXT",
+            "TYPE \u0136SUB\\\u0136DOC.\u0136 > A:\\REBNEST.TXT",
+            "DIR /B /O:N *.TXT > A:\\REORDER.TXT",
+            "DEL \u0136SUB\\\u0136DOC.\u0136",
+            "DEL \u0136SUB\\EXT.*",
+            "RD \u0136SUB",
+            "DEL *.TXT",
+            "CD \\",
+            "RD \u0136DIR",
+            "TYPE \u0136MOVED\\\u0136SUB\\\u0136DOC.\u0136 > A:\\TREE1.TXT",
+            "DEL \u0136MOVED\\\u0136SUB\\\u0136DOC.\u0136",
+            "RD \u0136MOVED\\\u0136SUB",
+            "RD \u0136MOVED\\\u0136EMPTY",
+            "RD \u0136MOVED",
+            "TYPE \u0136CLONE\\\u0136SUB\\\u0136DOC.\u0136 > A:\\TREE2.TXT",
+            "DEL \u0136CLONE\\\u0136SUB\\\u0136DOC.\u0136",
+            "RD \u0136CLONE\\\u0136SUB",
+            "RD \u0136CLONE\\\u0136EMPTY",
+            "RD \u0136CLONE"
+          ],
+          "expected_order_hex": "412e5458540d0aa02e5458540d0ab62e5458540d0aed2e5458540d0a952e5458540d0aa12e5458540d0ae82e5458540d0ae846494c452e5458540d0ae8544553542e5458540d0ae854455354312e5458540d0ae85445535431322e5458540d0ae854455354322e5458540d0aea2e5458540d0aee2e5458540d0abe2e5458540d0ac72e5458540d0a5a2e5458540d0acf2e5458540d0a",
+          "language": "lv",
+          "artifacts": {
+            "startup.cfg": {
+              "path": "review/current-286-workflows-files-lv-startup.cfg",
+              "sha256": "10cbd002fee8b5a686cf358c231bafe0ca884b25acc97d1729c2a6b4a103c064"
+            },
+            "global.cfg": {
+              "path": "review/current-286-workflows-files-lv-global.cfg",
+              "sha256": "f73f16006e8e914f7a23dd3a49ebd821d9c11cca6a64647342c447d1d679c664"
+            },
+            "e9636c6f6e65-e9737562.bin": {
+              "path": "review/current-286-workflows-files-lv-e9636c6f6e65-e9737562.bin",
+              "sha256": "c125e15676e74680ee4e81791854361e062ed91c316f7103978a315607af27f4"
+            },
+            "e96d6f766564-e9656d707479.bin": {
+              "path": "review/current-286-workflows-files-lv-e96d6f766564-e9656d707479.bin",
+              "sha256": "14c64e3b9e24b698a56d377e5e2a4f52c7b7c1ce5fc50b0eb5a89faa3de00862"
+            },
+            "nested.bin": {
+              "path": "review/current-286-workflows-files-lv-nested.bin",
+              "sha256": "8d2a7900c2cf01f3a21e0edfa604d692f383f4dfc23327665fc262678d473d44"
+            },
+            "e96d6f766564-e9737562.bin": {
+              "path": "review/current-286-workflows-files-lv-e96d6f766564-e9737562.bin",
+              "sha256": "82e9bf686de06fca38e050e0587facd67855ddcb8823b639db5a481d383def41"
+            },
+            "e9636c6f6e65-e9656d707479.bin": {
+              "path": "review/current-286-workflows-files-lv-e9636c6f6e65-e9656d707479.bin",
+              "sha256": "75aff4d0d4655db88dbb255b2b37d40102edc730b686f2add8526371fcf9daf8"
+            },
+            "directory.bin": {
+              "path": "review/current-286-workflows-files-lv-directory.bin",
+              "sha256": "4d31eecb0afe8da00cdd9cf5c6cb33dfd6db645448323ec060f7b3d33b05fdc3"
+            },
+            "e9636c6f6e65.bin": {
+              "path": "review/current-286-workflows-files-lv-e9636c6f6e65.bin",
+              "sha256": "22a68ceb998d98e528dd53d4392ba9c9614870208f7171b9cde6ddea7f1cecb4"
+            },
+            "e96d6f766564.bin": {
+              "path": "review/current-286-workflows-files-lv-e96d6f766564.bin",
+              "sha256": "cf4fb2cae27cc75429226e74b4413be3d8b7c9bb06c0bbf04b066900aef93b11"
+            },
+            "cleanup-root.bin": {
+              "path": "review/current-286-workflows-files-lv-cleanup-root.bin",
+              "sha256": "a5a2d9db890c8493a953c912db9aaee2b11019d049d7610c25f79ccb3cd1b530"
+            }
+          },
+          "resource_sha256": {
+            "DEV/COUNTRY/COUNTRY.SYS": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c",
+            "CMD/MOVE/MOVE.EXE": "577833937b25b62028595299669b7b937a89f60e15172a86d3185a9f0b5110ba",
+            "CMD/XCOPY/XCOPY.EXE": "4753caa9bf4cb3d0484fe85890a83f0e05136de18fa5e439b04c46e996bf8d3e"
+          },
+          "startup": {
+            "CONFIG.SYS": "COUNTRY=371,775,COUNTRY.SYS\r\nDOS=LOW\r\n",
+            "AUTOEXEC.BAT": "@ECHO OFF\r\nIF EXIST STAGE.TAG GOTO SECOND\r\n@ECHO OFF\r\nCTTY AUX\r\nPROFILE.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nMD \u0137dir\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCD \u0136DIR\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e \u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d>\u0137file.txt\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nTYPE \u0136FILE.TXT > A:\\LOOKUP.TXT\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY \u0137file.txt \u0137copy.dat >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREN \u0136COPY.DAT \u0137new.dat\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nTYPE \u0136NEW.DAT > A:\\RENAMED.TXT\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL \u0136NEW.DAT\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nMD \u0137sub\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY \u0136FILE.TXT \u0137sub\\\u0137doc.\u0137 >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nTYPE \u0136SUB\\\u0136DOC.\u0136 > A:\\NESTED.TXT\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nMD \u0137temp\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nRD \u0136TEMP\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e \u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d>\u0137sub\\ext.\u017e\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e \u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d>\u0137sub\\ext.\u016b\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e \u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d>\u0137sub\\ext.\u0161\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e \u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d>\u0137sub\\ext.\u0146\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e \u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d>\u0137sub\\ext.\u013c\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e \u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d>\u0137sub\\ext.\u0137\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e \u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d>\u0137sub\\ext.\u012b\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e \u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d>\u0137sub\\ext.\u0123\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e \u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d>\u0137sub\\ext.\u0113\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e \u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d>\u0137sub\\ext.\u010d\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e \u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d>\u0137sub\\ext.\u0101\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e \u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d>\u0137sub\\ext.z\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e \u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d>\u0137sub\\ext.a\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e \u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d>\u017e.txt\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e \u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d>\u016b.txt\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e \u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d>\u0161.txt\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e \u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d>\u0146.txt\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e \u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d>\u013c.txt\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e \u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d>\u0137.txt\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e \u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d>\u012b.txt\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e \u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d>\u0123.txt\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e \u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d>\u0113.txt\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e \u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d>\u010d.txt\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e \u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d>\u0101.txt\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e \u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d>z.txt\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e \u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d>a.txt\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e \u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d>\u0137test.txt\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e \u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d>\u0137test1.txt\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e \u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d>\u0137test2.txt\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e \u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d>\u0137test12.txt\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDIR /B /A:-D /O:E \u0137sub\\*.* > A:\\EXTORD.TXT\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDIR /B /O:-N *.TXT > A:\\REVERSE.TXT\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDIR /B /O:N *.TXT > A:\\ORDER.TXT\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDIR /B ?.TXT > A:\\ONE.TXT\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDIR /B \u0137test?.TXT > A:\\WILD.TXT\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCD \\\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nMD \u0137tree\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nMD \u0137tree\\\u0137sub\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nMD \u0137tree\\\u0137empty\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u0101\u010d\u0113\u0123\u012b\u0137\u013c\u0146\u0161\u016b\u017e \u0100\u010c\u0112\u0122\u012a\u0136\u013b\u0145\u0160\u016a\u017d>\u0137tree\\\u0137sub\\\u0137doc.\u0137\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nA:\\MOVE \u0136TREE \u0137moved\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nMD \u0137clone\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nA:\\XCOPY \u0136MOVED \u0136CLONE /S /E >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO CREATED>STAGE.TAG\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO RU_FILES_CREATED\r\nQEXIT.COM\r\n:FAIL\r\nECHO RU_FILES_FAIL\r\nQEXIT.COM\r\n:SECOND\r\nNEXT.BAT\r\n",
+            "NEXT.BAT": "@ECHO OFF\r\nCTTY AUX\r\nPROFILE.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCD \u0136DIR\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nTYPE \u0136FILE.TXT > A:\\REBOOT.TXT\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nTYPE \u0136SUB\\\u0136DOC.\u0136 > A:\\REBNEST.TXT\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDIR /B /O:N *.TXT > A:\\REORDER.TXT\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL \u0136SUB\\\u0136DOC.\u0136\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL \u0136SUB\\EXT.*\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nRD \u0136SUB\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL *.TXT\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCD \\\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nRD \u0136DIR\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nTYPE \u0136MOVED\\\u0136SUB\\\u0136DOC.\u0136 > A:\\TREE1.TXT\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL \u0136MOVED\\\u0136SUB\\\u0136DOC.\u0136\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nRD \u0136MOVED\\\u0136SUB\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nRD \u0136MOVED\\\u0136EMPTY\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nRD \u0136MOVED\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nTYPE \u0136CLONE\\\u0136SUB\\\u0136DOC.\u0136 > A:\\TREE2.TXT\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL \u0136CLONE\\\u0136SUB\\\u0136DOC.\u0136\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nRD \u0136CLONE\\\u0136SUB\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nRD \u0136CLONE\\\u0136EMPTY\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nRD \u0136CLONE\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO RU_FILES_REBOOTED\r\nQEXIT.COM\r\n:FAIL\r\nECHO RU_FILES_FAIL\r\nQEXIT.COM\r\n"
+          },
+          "collation_hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f40888e8f929398999b9ca0a1a3a6a8abb1b2b3b5b9babebfc09dc1414243444546888e8f929398999b9ca0a1a3a6a8abb1b2b3b5b9babebfc09dc14748494a4b90bd94898b9a8c90a495b4b49ec28b8c948d8dadaf9a4cb7b7afbdb04db04e4f899eacc3c3c250515253545556a45758595a5b5c5d8a9196975e5f60619fb862636465666768bcbb696a6b6c6d6e6fc48a9196979fb8bcbbc470717273747576acb6ada9aeaea7a9a2a2a5a5aa95aa7778797a7b7c7d7e7f8081828384858687"
+        },
+        {
+          "profile": "low",
+          "phases": [
+            {
+              "phase": "create",
+              "emulator_exit": 0,
+              "files_hex": {
+                "LOOKUP.TXT": "d0d1d2d3d4d5d6d7d820b5b6b7b8bdbec6c7cf0d0a",
+                "RENAMED.TXT": "d0d1d2d3d4d5d6d7d820b5b6b7b8bdbec6c7cf0d0a",
+                "NESTED.TXT": "d0d1d2d3d4d5d6d7d820b5b6b7b8bdbec6c7cf0d0a",
+                "ORDER.TXT": "412e5458540d0ab52e5458540d0ab546494c452e5458540d0ab5544553542e5458540d0ab554455354312e5458540d0ab55445535431322e5458540d0ab554455354322e5458540d0ab62e5458540d0ab72e5458540d0ab82e5458540d0abd2e5458540d0abe2e5458540d0ac62e5458540d0ac72e5458540d0a5a2e5458540d0acf2e5458540d0a",
+                "ONE.TXT": "cf2e5458540d0ac72e5458540d0ac62e5458540d0abe2e5458540d0abd2e5458540d0ab82e5458540d0ab72e5458540d0ab62e5458540d0ab52e5458540d0a5a2e5458540d0a412e5458540d0a",
+                "WILD.TXT": "b5544553542e5458540d0ab554455354312e5458540d0ab554455354322e5458540d0a",
+                "REVERSE.TXT": "cf2e5458540d0a5a2e5458540d0ac72e5458540d0ac62e5458540d0abe2e5458540d0abd2e5458540d0ab82e5458540d0ab72e5458540d0ab62e5458540d0ab554455354322e5458540d0ab55445535431322e5458540d0ab554455354312e5458540d0ab5544553542e5458540d0ab546494c452e5458540d0ab52e5458540d0a412e5458540d0a",
+                "EXTORD.TXT": "4558542e410d0ab5444f432eb50d0a4558542eb50d0a4558542eb60d0a4558542eb70d0a4558542eb80d0a4558542ebd0d0a4558542ebe0d0a4558542ec60d0a4558542ec70d0a4558542e5a0d0a4558542ecf0d0a"
+              },
+              "image_sha256": "121a2a2ec19181cc72330d84565d349e7e1aa0139e477b83a909dc1ed4b14a95",
+              "log": {
+                "path": "review/current-286-workflows-files-lt-create.log",
+                "sha256": "863f02c7edf0a72496664a489028ed8cf195d007d611cfdf2321cec4b9a4d139"
+              }
+            },
+            {
+              "phase": "reboot",
+              "emulator_exit": 0,
+              "files_hex": {
+                "REBOOT.TXT": "d0d1d2d3d4d5d6d7d820b5b6b7b8bdbec6c7cf0d0a",
+                "REBNEST.TXT": "d0d1d2d3d4d5d6d7d820b5b6b7b8bdbec6c7cf0d0a",
+                "TREE1.TXT": "d0d1d2d3d4d5d6d7d820b5b6b7b8bdbec6c7cf0d0a",
+                "TREE2.TXT": "d0d1d2d3d4d5d6d7d820b5b6b7b8bdbec6c7cf0d0a",
+                "REORDER.TXT": "412e5458540d0ab52e5458540d0ab546494c452e5458540d0ab5544553542e5458540d0ab554455354312e5458540d0ab55445535431322e5458540d0ab554455354322e5458540d0ab62e5458540d0ab72e5458540d0ab82e5458540d0abd2e5458540d0abe2e5458540d0ac62e5458540d0ac72e5458540d0a5a2e5458540d0acf2e5458540d0a"
+              },
+              "image_sha256": "f7817381f6bfbd9e8eb897f1002f4d70286094a4a71d8e2cd31bb57136fd7eb1",
+              "log": {
+                "path": "review/current-286-workflows-files-lt-reboot.log",
+                "sha256": "711852959800f21a241b694085743f431f5ff646f1e1fe482f80c9753023ae37"
+              }
+            }
+          ],
+          "create_commands": [
+            "MD \u0105dir",
+            "CD \u0104DIR",
+            "ECHO \u0105\u010d\u0119\u0117\u012f\u0161\u0173\u016b\u017e \u0104\u010c\u0118\u0116\u012e\u0160\u0172\u016a\u017d>\u0105file.txt",
+            "TYPE \u0104FILE.TXT > A:\\LOOKUP.TXT",
+            "COPY \u0105file.txt \u0105copy.dat >NUL",
+            "REN \u0104COPY.DAT \u0105new.dat",
+            "TYPE \u0104NEW.DAT > A:\\RENAMED.TXT",
+            "DEL \u0104NEW.DAT",
+            "MD \u0105sub",
+            "COPY \u0104FILE.TXT \u0105sub\\\u0105doc.\u0105 >NUL",
+            "TYPE \u0104SUB\\\u0104DOC.\u0104 > A:\\NESTED.TXT",
+            "MD \u0105temp",
+            "RD \u0104TEMP",
+            "ECHO \u0105\u010d\u0119\u0117\u012f\u0161\u0173\u016b\u017e \u0104\u010c\u0118\u0116\u012e\u0160\u0172\u016a\u017d>\u0105sub\\ext.\u017e",
+            "ECHO \u0105\u010d\u0119\u0117\u012f\u0161\u0173\u016b\u017e \u0104\u010c\u0118\u0116\u012e\u0160\u0172\u016a\u017d>\u0105sub\\ext.\u016b",
+            "ECHO \u0105\u010d\u0119\u0117\u012f\u0161\u0173\u016b\u017e \u0104\u010c\u0118\u0116\u012e\u0160\u0172\u016a\u017d>\u0105sub\\ext.\u0173",
+            "ECHO \u0105\u010d\u0119\u0117\u012f\u0161\u0173\u016b\u017e \u0104\u010c\u0118\u0116\u012e\u0160\u0172\u016a\u017d>\u0105sub\\ext.\u0161",
+            "ECHO \u0105\u010d\u0119\u0117\u012f\u0161\u0173\u016b\u017e \u0104\u010c\u0118\u0116\u012e\u0160\u0172\u016a\u017d>\u0105sub\\ext.\u012f",
+            "ECHO \u0105\u010d\u0119\u0117\u012f\u0161\u0173\u016b\u017e \u0104\u010c\u0118\u0116\u012e\u0160\u0172\u016a\u017d>\u0105sub\\ext.\u0117",
+            "ECHO \u0105\u010d\u0119\u0117\u012f\u0161\u0173\u016b\u017e \u0104\u010c\u0118\u0116\u012e\u0160\u0172\u016a\u017d>\u0105sub\\ext.\u0119",
+            "ECHO \u0105\u010d\u0119\u0117\u012f\u0161\u0173\u016b\u017e \u0104\u010c\u0118\u0116\u012e\u0160\u0172\u016a\u017d>\u0105sub\\ext.\u010d",
+            "ECHO \u0105\u010d\u0119\u0117\u012f\u0161\u0173\u016b\u017e \u0104\u010c\u0118\u0116\u012e\u0160\u0172\u016a\u017d>\u0105sub\\ext.\u0105",
+            "ECHO \u0105\u010d\u0119\u0117\u012f\u0161\u0173\u016b\u017e \u0104\u010c\u0118\u0116\u012e\u0160\u0172\u016a\u017d>\u0105sub\\ext.z",
+            "ECHO \u0105\u010d\u0119\u0117\u012f\u0161\u0173\u016b\u017e \u0104\u010c\u0118\u0116\u012e\u0160\u0172\u016a\u017d>\u0105sub\\ext.a",
+            "ECHO \u0105\u010d\u0119\u0117\u012f\u0161\u0173\u016b\u017e \u0104\u010c\u0118\u0116\u012e\u0160\u0172\u016a\u017d>\u017e.txt",
+            "ECHO \u0105\u010d\u0119\u0117\u012f\u0161\u0173\u016b\u017e \u0104\u010c\u0118\u0116\u012e\u0160\u0172\u016a\u017d>\u016b.txt",
+            "ECHO \u0105\u010d\u0119\u0117\u012f\u0161\u0173\u016b\u017e \u0104\u010c\u0118\u0116\u012e\u0160\u0172\u016a\u017d>\u0173.txt",
+            "ECHO \u0105\u010d\u0119\u0117\u012f\u0161\u0173\u016b\u017e \u0104\u010c\u0118\u0116\u012e\u0160\u0172\u016a\u017d>\u0161.txt",
+            "ECHO \u0105\u010d\u0119\u0117\u012f\u0161\u0173\u016b\u017e \u0104\u010c\u0118\u0116\u012e\u0160\u0172\u016a\u017d>\u012f.txt",
+            "ECHO \u0105\u010d\u0119\u0117\u012f\u0161\u0173\u016b\u017e \u0104\u010c\u0118\u0116\u012e\u0160\u0172\u016a\u017d>\u0117.txt",
+            "ECHO \u0105\u010d\u0119\u0117\u012f\u0161\u0173\u016b\u017e \u0104\u010c\u0118\u0116\u012e\u0160\u0172\u016a\u017d>\u0119.txt",
+            "ECHO \u0105\u010d\u0119\u0117\u012f\u0161\u0173\u016b\u017e \u0104\u010c\u0118\u0116\u012e\u0160\u0172\u016a\u017d>\u010d.txt",
+            "ECHO \u0105\u010d\u0119\u0117\u012f\u0161\u0173\u016b\u017e \u0104\u010c\u0118\u0116\u012e\u0160\u0172\u016a\u017d>\u0105.txt",
+            "ECHO \u0105\u010d\u0119\u0117\u012f\u0161\u0173\u016b\u017e \u0104\u010c\u0118\u0116\u012e\u0160\u0172\u016a\u017d>z.txt",
+            "ECHO \u0105\u010d\u0119\u0117\u012f\u0161\u0173\u016b\u017e \u0104\u010c\u0118\u0116\u012e\u0160\u0172\u016a\u017d>a.txt",
+            "ECHO \u0105\u010d\u0119\u0117\u012f\u0161\u0173\u016b\u017e \u0104\u010c\u0118\u0116\u012e\u0160\u0172\u016a\u017d>\u0105test.txt",
+            "ECHO \u0105\u010d\u0119\u0117\u012f\u0161\u0173\u016b\u017e \u0104\u010c\u0118\u0116\u012e\u0160\u0172\u016a\u017d>\u0105test1.txt",
+            "ECHO \u0105\u010d\u0119\u0117\u012f\u0161\u0173\u016b\u017e \u0104\u010c\u0118\u0116\u012e\u0160\u0172\u016a\u017d>\u0105test2.txt",
+            "ECHO \u0105\u010d\u0119\u0117\u012f\u0161\u0173\u016b\u017e \u0104\u010c\u0118\u0116\u012e\u0160\u0172\u016a\u017d>\u0105test12.txt",
+            "DIR /B /A:-D /O:E \u0105sub\\*.* > A:\\EXTORD.TXT",
+            "DIR /B /O:-N *.TXT > A:\\REVERSE.TXT",
+            "DIR /B /O:N *.TXT > A:\\ORDER.TXT",
+            "DIR /B ?.TXT > A:\\ONE.TXT",
+            "DIR /B \u0105test?.TXT > A:\\WILD.TXT",
+            "CD \\",
+            "MD \u0105tree",
+            "MD \u0105tree\\\u0105sub",
+            "MD \u0105tree\\\u0105empty",
+            "ECHO \u0105\u010d\u0119\u0117\u012f\u0161\u0173\u016b\u017e \u0104\u010c\u0118\u0116\u012e\u0160\u0172\u016a\u017d>\u0105tree\\\u0105sub\\\u0105doc.\u0105",
+            "A:\\MOVE \u0104TREE \u0105moved",
+            "MD \u0105clone",
+            "A:\\XCOPY \u0104MOVED \u0104CLONE /S /E >NUL",
+            "ECHO CREATED>STAGE.TAG"
+          ],
+          "reboot_commands": [
+            "CD \u0104DIR",
+            "TYPE \u0104FILE.TXT > A:\\REBOOT.TXT",
+            "TYPE \u0104SUB\\\u0104DOC.\u0104 > A:\\REBNEST.TXT",
+            "DIR /B /O:N *.TXT > A:\\REORDER.TXT",
+            "DEL \u0104SUB\\\u0104DOC.\u0104",
+            "DEL \u0104SUB\\EXT.*",
+            "RD \u0104SUB",
+            "DEL *.TXT",
+            "CD \\",
+            "RD \u0104DIR",
+            "TYPE \u0104MOVED\\\u0104SUB\\\u0104DOC.\u0104 > A:\\TREE1.TXT",
+            "DEL \u0104MOVED\\\u0104SUB\\\u0104DOC.\u0104",
+            "RD \u0104MOVED\\\u0104SUB",
+            "RD \u0104MOVED\\\u0104EMPTY",
+            "RD \u0104MOVED",
+            "TYPE \u0104CLONE\\\u0104SUB\\\u0104DOC.\u0104 > A:\\TREE2.TXT",
+            "DEL \u0104CLONE\\\u0104SUB\\\u0104DOC.\u0104",
+            "RD \u0104CLONE\\\u0104SUB",
+            "RD \u0104CLONE\\\u0104EMPTY",
+            "RD \u0104CLONE"
+          ],
+          "expected_order_hex": "412e5458540d0ab52e5458540d0ab546494c452e5458540d0ab5544553542e5458540d0ab554455354312e5458540d0ab55445535431322e5458540d0ab554455354322e5458540d0ab62e5458540d0ab72e5458540d0ab82e5458540d0abd2e5458540d0abe2e5458540d0ac62e5458540d0ac72e5458540d0a5a2e5458540d0acf2e5458540d0a",
+          "language": "lt",
+          "artifacts": {
+            "startup.cfg": {
+              "path": "review/current-286-workflows-files-lt-startup.cfg",
+              "sha256": "10cbd002fee8b5a686cf358c231bafe0ca884b25acc97d1729c2a6b4a103c064"
+            },
+            "global.cfg": {
+              "path": "review/current-286-workflows-files-lt-global.cfg",
+              "sha256": "f73f16006e8e914f7a23dd3a49ebd821d9c11cca6a64647342c447d1d679c664"
+            },
+            "d0636c6f6e65-d0656d707479.bin": {
+              "path": "review/current-286-workflows-files-lt-d0636c6f6e65-d0656d707479.bin",
+              "sha256": "68918a6db697185f73c91770bb3d5808718941c0508cf3e7919e0bb99c763e12"
+            },
+            "d06d6f766564-d0737562.bin": {
+              "path": "review/current-286-workflows-files-lt-d06d6f766564-d0737562.bin",
+              "sha256": "9937dca91d1e251182e40e64f562083374cb7229db248083b9385c178673b9d3"
+            },
+            "nested.bin": {
+              "path": "review/current-286-workflows-files-lt-nested.bin",
+              "sha256": "e77a8a802ebd5a7de96b2ae33e1cd4d96113144058b77421b234d9cf4af62447"
+            },
+            "d0636c6f6e65.bin": {
+              "path": "review/current-286-workflows-files-lt-d0636c6f6e65.bin",
+              "sha256": "137edb313cc8cfe132992746ffd8ca37d90a06381b63a260da722f71d1ab85ad"
+            },
+            "d06d6f766564.bin": {
+              "path": "review/current-286-workflows-files-lt-d06d6f766564.bin",
+              "sha256": "c38ca056f18bcf1f4aa612a59349e100102b06ce74ef97c3501422c5cbb3cc8e"
+            },
+            "d06d6f766564-d0656d707479.bin": {
+              "path": "review/current-286-workflows-files-lt-d06d6f766564-d0656d707479.bin",
+              "sha256": "b5a4c05815ad497022f4529d3925a27866fe254a587e2dede9a32a933981a605"
+            },
+            "d0636c6f6e65-d0737562.bin": {
+              "path": "review/current-286-workflows-files-lt-d0636c6f6e65-d0737562.bin",
+              "sha256": "7607285451f695db567d778d7e39f4a8dd56c0c2e25dc20cdc87e2544f9d96b4"
+            },
+            "directory.bin": {
+              "path": "review/current-286-workflows-files-lt-directory.bin",
+              "sha256": "623afb202564c24a8c7a939aab28242b8ab980acf812001d2b5c650034111fab"
+            },
+            "cleanup-root.bin": {
+              "path": "review/current-286-workflows-files-lt-cleanup-root.bin",
+              "sha256": "91352a02780620cc58bd0ff202784f5a12367654b234e048311d091f0842f63d"
+            }
+          },
+          "resource_sha256": {
+            "DEV/COUNTRY/COUNTRY.SYS": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c",
+            "CMD/MOVE/MOVE.EXE": "577833937b25b62028595299669b7b937a89f60e15172a86d3185a9f0b5110ba",
+            "CMD/XCOPY/XCOPY.EXE": "4753caa9bf4cb3d0484fe85890a83f0e05136de18fa5e439b04c46e996bf8d3e"
+          },
+          "startup": {
+            "CONFIG.SYS": "COUNTRY=370,775,COUNTRY.SYS\r\nDOS=LOW\r\n",
+            "AUTOEXEC.BAT": "@ECHO OFF\r\nIF EXIST STAGE.TAG GOTO SECOND\r\n@ECHO OFF\r\nCTTY AUX\r\nPROFILE.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nMD \u0105dir\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCD \u0104DIR\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u0105\u010d\u0119\u0117\u012f\u0161\u0173\u016b\u017e \u0104\u010c\u0118\u0116\u012e\u0160\u0172\u016a\u017d>\u0105file.txt\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nTYPE \u0104FILE.TXT > A:\\LOOKUP.TXT\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY \u0105file.txt \u0105copy.dat >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nREN \u0104COPY.DAT \u0105new.dat\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nTYPE \u0104NEW.DAT > A:\\RENAMED.TXT\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL \u0104NEW.DAT\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nMD \u0105sub\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCOPY \u0104FILE.TXT \u0105sub\\\u0105doc.\u0105 >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nTYPE \u0104SUB\\\u0104DOC.\u0104 > A:\\NESTED.TXT\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nMD \u0105temp\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nRD \u0104TEMP\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u0105\u010d\u0119\u0117\u012f\u0161\u0173\u016b\u017e \u0104\u010c\u0118\u0116\u012e\u0160\u0172\u016a\u017d>\u0105sub\\ext.\u017e\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u0105\u010d\u0119\u0117\u012f\u0161\u0173\u016b\u017e \u0104\u010c\u0118\u0116\u012e\u0160\u0172\u016a\u017d>\u0105sub\\ext.\u016b\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u0105\u010d\u0119\u0117\u012f\u0161\u0173\u016b\u017e \u0104\u010c\u0118\u0116\u012e\u0160\u0172\u016a\u017d>\u0105sub\\ext.\u0173\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u0105\u010d\u0119\u0117\u012f\u0161\u0173\u016b\u017e \u0104\u010c\u0118\u0116\u012e\u0160\u0172\u016a\u017d>\u0105sub\\ext.\u0161\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u0105\u010d\u0119\u0117\u012f\u0161\u0173\u016b\u017e \u0104\u010c\u0118\u0116\u012e\u0160\u0172\u016a\u017d>\u0105sub\\ext.\u012f\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u0105\u010d\u0119\u0117\u012f\u0161\u0173\u016b\u017e \u0104\u010c\u0118\u0116\u012e\u0160\u0172\u016a\u017d>\u0105sub\\ext.\u0117\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u0105\u010d\u0119\u0117\u012f\u0161\u0173\u016b\u017e \u0104\u010c\u0118\u0116\u012e\u0160\u0172\u016a\u017d>\u0105sub\\ext.\u0119\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u0105\u010d\u0119\u0117\u012f\u0161\u0173\u016b\u017e \u0104\u010c\u0118\u0116\u012e\u0160\u0172\u016a\u017d>\u0105sub\\ext.\u010d\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u0105\u010d\u0119\u0117\u012f\u0161\u0173\u016b\u017e \u0104\u010c\u0118\u0116\u012e\u0160\u0172\u016a\u017d>\u0105sub\\ext.\u0105\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u0105\u010d\u0119\u0117\u012f\u0161\u0173\u016b\u017e \u0104\u010c\u0118\u0116\u012e\u0160\u0172\u016a\u017d>\u0105sub\\ext.z\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u0105\u010d\u0119\u0117\u012f\u0161\u0173\u016b\u017e \u0104\u010c\u0118\u0116\u012e\u0160\u0172\u016a\u017d>\u0105sub\\ext.a\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u0105\u010d\u0119\u0117\u012f\u0161\u0173\u016b\u017e \u0104\u010c\u0118\u0116\u012e\u0160\u0172\u016a\u017d>\u017e.txt\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u0105\u010d\u0119\u0117\u012f\u0161\u0173\u016b\u017e \u0104\u010c\u0118\u0116\u012e\u0160\u0172\u016a\u017d>\u016b.txt\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u0105\u010d\u0119\u0117\u012f\u0161\u0173\u016b\u017e \u0104\u010c\u0118\u0116\u012e\u0160\u0172\u016a\u017d>\u0173.txt\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u0105\u010d\u0119\u0117\u012f\u0161\u0173\u016b\u017e \u0104\u010c\u0118\u0116\u012e\u0160\u0172\u016a\u017d>\u0161.txt\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u0105\u010d\u0119\u0117\u012f\u0161\u0173\u016b\u017e \u0104\u010c\u0118\u0116\u012e\u0160\u0172\u016a\u017d>\u012f.txt\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u0105\u010d\u0119\u0117\u012f\u0161\u0173\u016b\u017e \u0104\u010c\u0118\u0116\u012e\u0160\u0172\u016a\u017d>\u0117.txt\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u0105\u010d\u0119\u0117\u012f\u0161\u0173\u016b\u017e \u0104\u010c\u0118\u0116\u012e\u0160\u0172\u016a\u017d>\u0119.txt\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u0105\u010d\u0119\u0117\u012f\u0161\u0173\u016b\u017e \u0104\u010c\u0118\u0116\u012e\u0160\u0172\u016a\u017d>\u010d.txt\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u0105\u010d\u0119\u0117\u012f\u0161\u0173\u016b\u017e \u0104\u010c\u0118\u0116\u012e\u0160\u0172\u016a\u017d>\u0105.txt\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u0105\u010d\u0119\u0117\u012f\u0161\u0173\u016b\u017e \u0104\u010c\u0118\u0116\u012e\u0160\u0172\u016a\u017d>z.txt\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u0105\u010d\u0119\u0117\u012f\u0161\u0173\u016b\u017e \u0104\u010c\u0118\u0116\u012e\u0160\u0172\u016a\u017d>a.txt\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u0105\u010d\u0119\u0117\u012f\u0161\u0173\u016b\u017e \u0104\u010c\u0118\u0116\u012e\u0160\u0172\u016a\u017d>\u0105test.txt\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u0105\u010d\u0119\u0117\u012f\u0161\u0173\u016b\u017e \u0104\u010c\u0118\u0116\u012e\u0160\u0172\u016a\u017d>\u0105test1.txt\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u0105\u010d\u0119\u0117\u012f\u0161\u0173\u016b\u017e \u0104\u010c\u0118\u0116\u012e\u0160\u0172\u016a\u017d>\u0105test2.txt\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u0105\u010d\u0119\u0117\u012f\u0161\u0173\u016b\u017e \u0104\u010c\u0118\u0116\u012e\u0160\u0172\u016a\u017d>\u0105test12.txt\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDIR /B /A:-D /O:E \u0105sub\\*.* > A:\\EXTORD.TXT\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDIR /B /O:-N *.TXT > A:\\REVERSE.TXT\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDIR /B /O:N *.TXT > A:\\ORDER.TXT\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDIR /B ?.TXT > A:\\ONE.TXT\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDIR /B \u0105test?.TXT > A:\\WILD.TXT\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCD \\\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nMD \u0105tree\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nMD \u0105tree\\\u0105sub\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nMD \u0105tree\\\u0105empty\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO \u0105\u010d\u0119\u0117\u012f\u0161\u0173\u016b\u017e \u0104\u010c\u0118\u0116\u012e\u0160\u0172\u016a\u017d>\u0105tree\\\u0105sub\\\u0105doc.\u0105\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nA:\\MOVE \u0104TREE \u0105moved\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nMD \u0105clone\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nA:\\XCOPY \u0104MOVED \u0104CLONE /S /E >NUL\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO CREATED>STAGE.TAG\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO RU_FILES_CREATED\r\nQEXIT.COM\r\n:FAIL\r\nECHO RU_FILES_FAIL\r\nQEXIT.COM\r\n:SECOND\r\nNEXT.BAT\r\n",
+            "NEXT.BAT": "@ECHO OFF\r\nCTTY AUX\r\nPROFILE.COM\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCD \u0104DIR\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nTYPE \u0104FILE.TXT > A:\\REBOOT.TXT\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nTYPE \u0104SUB\\\u0104DOC.\u0104 > A:\\REBNEST.TXT\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDIR /B /O:N *.TXT > A:\\REORDER.TXT\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL \u0104SUB\\\u0104DOC.\u0104\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL \u0104SUB\\EXT.*\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nRD \u0104SUB\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL *.TXT\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nCD \\\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nRD \u0104DIR\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nTYPE \u0104MOVED\\\u0104SUB\\\u0104DOC.\u0104 > A:\\TREE1.TXT\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL \u0104MOVED\\\u0104SUB\\\u0104DOC.\u0104\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nRD \u0104MOVED\\\u0104SUB\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nRD \u0104MOVED\\\u0104EMPTY\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nRD \u0104MOVED\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nTYPE \u0104CLONE\\\u0104SUB\\\u0104DOC.\u0104 > A:\\TREE2.TXT\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nDEL \u0104CLONE\\\u0104SUB\\\u0104DOC.\u0104\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nRD \u0104CLONE\\\u0104SUB\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nRD \u0104CLONE\\\u0104EMPTY\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nRD \u0104CLONE\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO RU_FILES_REBOOTED\r\nQEXIT.COM\r\n:FAIL\r\nECHO RU_FILES_FAIL\r\nQEXIT.COM\r\n"
+          },
+          "collation_hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f40888e8f929398999b9ca0a1a3a6a8abb1b2b3b5b9babebfc09fc1414243444546888e8f929398999b9ca0a1a3a6a8abb1b2b3b5b9babebfc09fc14748494a4b90bd94898b9a8c90a495b4b49dc28b8c948d8dadaf9a4cb7b7afbdb04db04e4f899dacc3c3c250515253545556a45758595a5b5c5d8a9196975e5f60619eb862636465666768bbbc696a6b6c6d6e6fc48a9196979eb8bbbcc470717273747576acb6ada9aeaea7a9a2a2a5a5aa95aa7778797a7b7c7d7e7f8081828384858687"
+        }
+      ],
+      "emulator_sha256": "798ac6072d5147ed4dca7540ca5303da1e4c2d190853c227dde9ea3b33583c18",
+      "private_artifacts": "out/baltic-files-fuqy486o"
+    }
+  },
+  "inputs": {
+    "tests/test_baltic_text_qemu.py": {
+      "sha256": "d67f0438b6ec63dbaa622f161edcb5ca27edcc68e3379b3a9d5bdcc45cdaa7e3",
+      "retained": {
+        "path": "review/current-286-workflows-input-test_baltic_text_qemu.py",
+        "sha256": "d67f0438b6ec63dbaa622f161edcb5ca27edcc68e3379b3a9d5bdcc45cdaa7e3"
+      }
+    },
+    "tests/test_ru_text_qemu.py": {
+      "sha256": "b62cc029c0d7f40aa9ae55600a42eb15cb5c9691d80ee5a8574fedc656ed11e4",
+      "retained": {
+        "path": "review/current-286-workflows-input-test_ru_text_qemu.py",
+        "sha256": "b62cc029c0d7f40aa9ae55600a42eb15cb5c9691d80ee5a8574fedc656ed11e4"
+      }
+    },
+    "tests/test_baltic_files_qemu.py": {
+      "sha256": "30621a8aa3b6197462da7ae105e56d2e98e8c0b766322face1882ecc7bcd4126",
+      "retained": {
+        "path": "review/current-286-workflows-input-test_baltic_files_qemu.py",
+        "sha256": "30621a8aa3b6197462da7ae105e56d2e98e8c0b766322face1882ecc7bcd4126"
+      }
+    },
+    "tests/test_ru_files_qemu.py": {
+      "sha256": "5531f9106164d427a9265edae72b2da7eb7befd295076f73e42925e9843fb6aa",
+      "retained": {
+        "path": "review/current-286-workflows-input-test_ru_files_qemu.py",
+        "sha256": "5531f9106164d427a9265edae72b2da7eb7befd295076f73e42925e9843fb6aa"
+      }
+    },
+    "tests/ru_vnc_console.py": {
+      "sha256": "732790d5b4d9f88f9136d31b24b829d29c9f64fd99440bbd747e8cb663944d16",
+      "retained": {
+        "path": "review/current-286-workflows-input-ru_vnc_console.py",
+        "sha256": "732790d5b4d9f88f9136d31b24b829d29c9f64fd99440bbd747e8cb663944d16"
+      }
+    },
+    "tests/test_ru_legacy_keyboard_86box.py": {
+      "sha256": "4fd750c6ab88916380ba4d86acc593bf0d2b54d1fae6246f17416d006a3071a4",
+      "retained": {
+        "path": "review/current-286-workflows-input-test_ru_legacy_keyboard_86box.py",
+        "sha256": "4fd750c6ab88916380ba4d86acc593bf0d2b54d1fae6246f17416d006a3071a4"
+      }
+    },
+    "tests/ru_profiles.py": {
+      "sha256": "d8f7a498c146ae4bf85139f943f94d27a26c7e55661a4cd08a5d1346bd66a536",
+      "retained": {
+        "path": "review/current-286-workflows-input-ru_profiles.py",
+        "sha256": "d8f7a498c146ae4bf85139f943f94d27a26c7e55661a4cd08a5d1346bd66a536"
+      }
+    },
+    "tests/ru_profile_probe.asm": {
+      "sha256": "ed4d4e1b6ca454860debc90e27d0eb42ce097f863a9e028eab64d3675fad4c09",
+      "retained": {
+        "path": "review/current-286-workflows-input-ru_profile_probe.asm",
+        "sha256": "ed4d4e1b6ca454860debc90e27d0eb42ce097f863a9e028eab64d3675fad4c09"
+      }
+    },
+    "tests/86box_exit.asm": {
+      "sha256": "df10886fcf0a3fd37b97f9b280488c35b8265de8a306765b33fb11290dc6e82b",
+      "retained": {
+        "path": "review/current-286-workflows-input-86box_exit.asm",
+        "sha256": "df10886fcf0a3fd37b97f9b280488c35b8265de8a306765b33fb11290dc6e82b"
+      }
+    },
+    "tests/86box_286_lib.sh": {
+      "sha256": "c35916e91ddb7c2d04a3d5e343631f4ee305b1963f3358bdcaa65c0842ce329e",
+      "retained": {
+        "path": "review/current-286-workflows-input-86box_286_lib.sh",
+        "sha256": "c35916e91ddb7c2d04a3d5e343631f4ee305b1963f3358bdcaa65c0842ce329e"
+      }
+    },
+    "tests/86box/ibmat-286.cfg": {
+      "sha256": "b040850330e6ae7077cffe0fed626d911a56bb1fff8103d365013ee56d08821a",
+      "retained": {
+        "path": "review/current-286-workflows-input-ibmat-286.cfg",
+        "sha256": "b040850330e6ae7077cffe0fed626d911a56bb1fff8103d365013ee56d08821a"
+      }
+    },
+    "tests/86box/global.cfg": {
+      "sha256": "71ebf2cb3a79318d8f4d3446f2af8ae68c0febc57690ef33f87f70d59fdd5290",
+      "retained": {
+        "path": "review/current-286-workflows-input-global.cfg",
+        "sha256": "71ebf2cb3a79318d8f4d3446f2af8ae68c0febc57690ef33f87f70d59fdd5290"
+      }
+    },
+    "tests/seed_86box_ibmat_nvram.py": {
+      "sha256": "de41853b6fe7ccd79c50ae17e907793c719cbc00cc9739db15ff47711cca2ee5",
+      "retained": {
+        "path": "review/current-286-workflows-input-seed_86box_ibmat_nvram.py",
+        "sha256": "de41853b6fe7ccd79c50ae17e907793c719cbc00cc9739db15ff47711cca2ee5"
+      }
+    },
+    "tests/test_baltic_keyboard_qemu.py": {
+      "sha256": "f06dbe139469a5caa294cea3b9f607686b9199bf69eb0be35ad65ec2f2ba5434",
+      "retained": {
+        "path": "review/current-286-workflows-input-test_baltic_keyboard_qemu.py",
+        "sha256": "f06dbe139469a5caa294cea3b9f607686b9199bf69eb0be35ad65ec2f2ba5434"
+      }
+    },
+    "tests/test_ru_cpi.py": {
+      "sha256": "cbc84a60021e763280dba915cfc0f17a839595f6a02273f271eee8f7ee0c7402",
+      "retained": {
+        "path": "review/current-286-workflows-input-test_ru_cpi.py",
+        "sha256": "cbc84a60021e763280dba915cfc0f17a839595f6a02273f271eee8f7ee0c7402"
+      }
+    },
+    "locales/baltic/manifest.json": {
+      "sha256": "6185828bb8f968b709b527ae8fa14c0a728d5a95191b4883d30c834df7e9b1ae",
+      "retained": {
+        "path": "review/current-286-workflows-input-manifest.json",
+        "sha256": "6185828bb8f968b709b527ae8fa14c0a728d5a95191b4883d30c834df7e9b1ae"
+      }
+    },
+    "locales/baltic/review/keyboard-expectations.json": {
+      "sha256": "09a0a925cf85cbcb0294f1bb63554729f5e3d4cd41316f3cb834b4376aee19f2",
+      "retained": {
+        "path": "review/current-286-workflows-input-keyboard-expectations.json",
+        "sha256": "09a0a925cf85cbcb0294f1bb63554729f5e3d4cd41316f3cb834b4376aee19f2"
+      }
+    },
+    "locales/baltic/review/country-expectations.json": {
+      "sha256": "c1c7d9807785f0c80ff6c6edf727b9e07be845ee412ce7b5c33c8a71d6714466",
+      "retained": {
+        "path": "review/current-286-workflows-input-country-expectations.json",
+        "sha256": "c1c7d9807785f0c80ff6c6edf727b9e07be845ee412ce7b5c33c8a71d6714466"
+      }
+    }
+  },
+  "scope": "Current private core on real IBM AT 286 BIOS DOS=LOW: physical COMMAND/EDLIN text editing, saved/reopened CP775 bytes, redirection/FIND and rendered text for all Baltic languages; national short-name batch operations, country DIR order, raw FAT12 entries and fresh-boot reads/cleanup. Every guest must request successful emulator exit. Installed paths, HIGH/UMB, legacy keyboard rejection/pending and full release/reproducibility are separate gates.",
+  "emulator_sha256": "798ac6072d5147ed4dca7540ca5303da1e4c2d190853c227dde9ea3b33583c18",
+  "roms": {
+    "machines/ibmat/BIOS_5170_15NOV85_U27.BIN": {
+      "sha256": "096ce496a06002eb68a5bc5db128a38dd7f27a4eda16ad7342c8076f1fc40683",
+      "size": 32768
+    },
+    "machines/ibmat/BIOS_5170_15NOV85_U47.BIN": {
+      "sha256": "4e4692031297e74053e37c8632dc73706de97d847d8f0e12995b4f009e5c71fe",
+      "size": 32768
+    },
+    "video/vga/ibm_vga.bin": {
+      "sha256": "51b49761f72780a696c36f3d2e74a8168c1c99b865070f7f90b8e621a8b5ae17",
+      "size": 32768
+    }
+  },
+  "commands": [
+    "MEMORY_CORE_DIR=out/baltic-country-boot-core2/files FLOPPY_IMAGE=out/baltic-country-boot2.img python3 tests/test_baltic_text_qemu.py --emulator out/ru-86box-vnc-bs283qnk/build/src/86Box --roms '/Users/ddanila/Library/Application Support/net.86box.86Box/roms' --qt-platform offscreen",
+    "MEMORY_CORE_DIR=out/baltic-country-boot-core2/files FLOPPY_IMAGE=out/baltic-country-boot2.img python3 tests/test_baltic_files_qemu.py --emulator out/ru-86box-vnc-bs283qnk/build/src/86Box --roms '/Users/ddanila/Library/Application Support/net.86box.86Box/roms' --qt-platform offscreen"
+  ]
+}

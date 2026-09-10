@@ -613,3 +613,19 @@ remain intact. The record retains commands, input events, text and directory
 bytes, screenshots and guest logs. This gate qualifies installed QEMU HIGH/LOW
 workflows; real-BIOS workflow and final release/reproducibility gates must be
 qualified against the selected core separately.
+
+## Current-core real-BIOS workflows
+
+[Current-core 286 workflow qualification](current-286-workflows-qualification.json)
+repeats text and filename workflows with the rebuilt private core on IBM AT
+BIOS in LOW memory. Every language passes physical COMMAND/EDLIN input,
+save/reopen, redirection, FIND and rendered-glyph checks. National filenames
+pass case lookup, wildcard and country ordering checks, directory tree
+operations, raw FAT12 inspection and reads/cleanup after a fresh boot.
+
+Each guest requests a successful emulator exit. The record retains screenshots,
+keyboard events, file and directory bytes, startup configurations and logs,
+and verifies core/resource hashes in each image. Input source snapshots preserve
+the version used by the run. Installed paths and HIGH/UMB have their separate
+qualification above; legacy keyboard reload/rejection/pending checks and final
+release/reproducibility gates remain open.

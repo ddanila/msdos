@@ -592,8 +592,8 @@ the rebuilt country-boot core. It checks the actual core and utility hashes
 in every image, physical text input, saved/reopened CP775 bytes, rendered
 glyphs, national short-name operations and fresh-boot reads/cleanup. Retained
 events, screenshots, raw directory captures and guest logs establish this
-backend scope. Installed workflows are qualified below; real-BIOS workflows
-still require matching evidence before the Baltic release gates can close.
+backend scope. Installed and real-BIOS workflows have matching-core
+qualification below; final release gates remain open.
 
 The [installed workflow qualification](../locales/baltic/installed-workflows-qualification.json)
 records `test-baltic-installed-workflows-qemu`, included in `make test`. Its
@@ -617,6 +617,15 @@ emulator exit zero. The record includes exact mutations, startup files, logs,
 font and country captures, selected core/resource hashes and backend identities.
 Physical input, rendered application text and installed paths have separate
 workflow gates; this suite does not replace the full release requirements.
+
+The [current-core 286 workflow qualification](../locales/baltic/current-286-workflows-qualification.json)
+repeats the Baltic text and filename workflows on real IBM AT BIOS with the
+rebuilt core. Physical input, saved/reopened CP775 bytes and actual rendered
+text are checked for every language. Filename operations include raw FAT12
+entries and reads/cleanup after a fresh boot. All guests must request emulator
+exit zero. The record preserves the exact input sources used by this run,
+backend/core/resource identities, keyboard events, screenshots and directory
+captures. Legacy keyboard lifecycle and final release gates remain separate.
 
 ## External DOS API suite
 

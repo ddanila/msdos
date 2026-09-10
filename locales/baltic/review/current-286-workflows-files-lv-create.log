@@ -1,0 +1,40 @@
+Drive A: /Users/ddanila/fun/msdos/out/baltic-files-fuqy486o/lv/low/test.img
+#
+# 86Box v7.0 logfile, created 2026/09/11 01:12:09
+#
+# Emulator path: /Users/ddanila/fun/msdos/out/ru-86box-vnc-bs283qnk/build/src/
+# Global configuration file: /Users/ddanila/fun/msdos/out/baltic-files-fuqy486o/lv/low/global.cfg
+# VM: low
+#
+# Configuration file: /Users/ddanila/fun/msdos/out/baltic-files-fuqy486o/lv/low/86box.cfg
+#
+
+# Userfiles path: /Users/ddanila/fun/msdos/out/baltic-files-fuqy486o/lv/low/
+# ROM path: /Users/ddanila/Library/Application Support/net.86box.86Box/roms/
+# ROM path: /Users/ddanila/fun/msdos/out/baltic-files-fuqy486o/lv/low/roms/
+# ROM path: /Users/ddanila/fun/msdos/out/ru-86box-vnc-bs283qnk/build/src/roms/
+# ROM path: /Users/ddanila/Library/Application Support/net.86Box.86Box/roms/
+# ROM path: /Users/ddanila/Library/Application Support/86Box/roms/
+# ROM path: /Library/Application Support/net.86Box.86Box/roms/
+# ROM path: /Library/Application Support/86Box/roms/
+# Asset path: /Users/ddanila/fun/msdos/out/baltic-files-fuqy486o/lv/low/assets/
+# Asset path: /Users/ddanila/fun/msdos/out/ru-86box-vnc-bs283qnk/build/src/assets/
+# Asset path: /Users/ddanila/Library/Application Support/net.86Box.86Box/assets/
+# Asset path: /Users/ddanila/Library/Application Support/86Box/assets/
+# Asset path: /Library/Application Support/net.86Box.86Box/assets/
+# Asset path: /Library/Application Support/86Box/assets/
+Qt: version 6.11.2, platform "offscreen"
+Translations loaded.
+Failed to find Qt translations!
+Qt translations loaded.
+Translations loaded.
+Failed to find Qt translations!
+Qt translations loaded.
+qt.qpa.fonts: Populating font family aliases took 39 ms. Replace uses of missing font family "Sans Serif" with one that exists to avoid this cost. 
+This plugin does not support createPlatformVulkanInstance
+QVulkanInstance: Failed to initialize Vulkan
+This plugin does not support propagateSizeHints()
+This plugin does not support propagateSizeHints()
+
+RU_LOW_PASS
+RU_FILES_CREATED
