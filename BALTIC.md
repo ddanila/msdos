@@ -194,6 +194,9 @@ before the selected country data is used.
 [Country data qualification](locales/baltic/country-data-qualification.json)
 covers object signatures, complete payload reads, resident table capacities,
 filename-list bounds and DBCS termination before country-table writes.
+[Installed resource qualification](locales/baltic/installed-resource-qualification.json)
+covers runtime country/font failures and recovery through installed paths in
+all language profiles, followed by physical input and restored-file checks.
 Deeper malformed-resource cases, legacy lifecycle failures, installed text and
 file workflows, and final source-matched release/reproducibility gates remain
 open. Existing Russian evidence does not establish Baltic support.

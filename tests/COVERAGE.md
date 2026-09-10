@@ -567,6 +567,14 @@ accepted EOF-data query and per-language HIGH/LOW rejection/state/recovery logs.
 nonempty DBCS query records and unchanged Baltic state in HIGH/LOW. This does
 not qualify DBCS installations or rollback after later media errors.
 
+The [installed resource qualification](../locales/baltic/installed-resource-qualification.json)
+records `test-baltic-installed-resources-qemu`, included in `make test`. It
+exercises country/font rejection and recovery through installed paths in each
+Baltic HIGH/LOW profile, checks actual VGA font bytes and active country state,
+and finishes with physical national input and restored payload hashes. It
+covers runtime failures at the shipped font height; boot fallback, real-BIOS
+installed failures and installed text/file workflows remain separate gates.
+
 ## External DOS API suite
 
 `make test-dosemu2-qemu` runs selected upstream DOSEMU2 FAT tests against the

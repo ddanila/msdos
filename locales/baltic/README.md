@@ -482,3 +482,28 @@ not qualification of installed DBCS environments. Preflight and repeated read
 validation do not provide rollback for a media error after an earlier table
 has already been copied. Boot and installed failures and final release gates
 remain separate work.
+
+
+## Installed resource failures
+
+[Installed resource qualification](installed-resource-qualification.json)
+checks missing and malformed country/font resources through the shipped
+`C:\DOS` startup paths. The gate uses private copies of completed installation
+images and verifies their core, resource and documentation hashes against
+current inputs before use. Its default invocation creates those installations;
+`--installed-run` may reuse a completed, matching installation run.
+
+Country queries and switches must reject invalid files with the expected DOS
+error, preserve the active national tables and recover when the file is
+restored. Font failures follow the documented DISPLAY behavior: a missing file
+preserves active selection, while an opened invalid file leaves the requested
+slot inactive until a valid prepare/select. The actual VGA font bytes remain
+intact throughout. These checks use the shipped font height and both memory
+profiles for every language.
+
+Every profile finishes with physical national keyboard input and a check of
+all restored installed payloads. The retained record links the installation
+baseline, commands, exact mutation scope, memory/core identities, logs, startup
+files and font captures. CONFIG boot fallback, real-BIOS installed failures,
+later media-error transactions, installed text/file workflows and final
+source-matched release qualification remain separate gates.
