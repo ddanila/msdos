@@ -1,0 +1,649 @@
+{
+  "schema_version": 1,
+  "status": "qemu-keyboard-input-passed-integration-pending",
+  "scope": "Direct retained key/plane effects, Caps on defined normal/shift entries, both third-level modifier forms, reachable dead-key pairs and control/navigation input. Enhanced BIOS and DOS reads in private minimal-country boots; no claim of composed HIGH/LOW, legacy BIOS or installed-workflow qualification.",
+  "machine": {
+    "emulator": "QEMU PC",
+    "memory_mib": 4,
+    "input": "QMP physical key make/break events",
+    "bios_api": "INT 16h AH=10h for Baltic; AH=00h for Russian regression",
+    "dos_api": "INT 21h AH=07h with CON stdin",
+    "startup": "COUNTRY followed by NUMLOCK=ON; no HIGH/LOW runtime profile marker"
+  },
+  "core_sha256": {
+    "IO.SYS": "793169a292df40bb117eb487136a0d8e7f4334ca223e8206bf53f33141f24715",
+    "MSDOS.SYS": "1475174f50c8c349bedd7cd4a0be88bce055f2e411b7454b5f68fffbff269b62",
+    "COMMAND.COM": "6742b5889141a9c61d41e336445014d8055c19758febf4263f4f8ebe3c2f2c29",
+    "HIMEM.SYS": "340cbfd1f0e835755adce99d80c607f8edeb48ea2b20a6a142402a25434f8d13",
+    "EMM386.EXE": "58266b6614594de7a9cfde9eda75e3eb241b9e2e941e67b70645a0f8a197dae6"
+  },
+  "artifact_sha256": {
+    "src/CMD/KEYB/KEYB.COM": "410118fcf2c7b40282619c9eb063edd25ee1fda5ca2cb7ef761d97b35ca463e4",
+    "src/DEV/KEYBOARD/KEYBRD2.SYS": "d9f1a9146251f3646900e7c25cd64ae16fad4bf58c130ee5a454d17e41bffd8c",
+    "src/DEV/KEYBOARD/KEYBOARD.SYS": "57571a4b10040dd0645998d0ccb8caa6e02be904ded253c9c81d542750ae4d9d",
+    "src/DEV/COUNTRY/COUNTRY.SYS": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c",
+    "out/floppy.img": "5884fe671fc895866bcdb5b118c17bb3cdbfd23e4057df26178ba1135b2f79aa"
+  },
+  "source_sha256": {
+    "tools/build_baltic_keyboard.py": "fbf7c57b459b0a7abe03f64542aea5983d303b18377b618085872f4389822d97",
+    "src/DEV/KEYBOARD/KDFBALT.ASM": "7d605e20a53f508abafdbf04832d2d2c9452d4a94acbf1e93306099497f0d837",
+    "src/DEV/KEYBOARD/KDFRUTAB.INC": "cfe90e3b7d3868bed1deca5e15d5167b7d4d6fda2bbd566a17282db71194860d",
+    "src/CMD/KEYB/KEYBI9.ASM": "5ad3d88a3c779039c7fc059359a7b06e98d3d370a0ae845eccb9248e0806fe01",
+    "src/CMD/KEYB/KEYBI9C.ASM": "fcc73eada30d47a505497dcd02b0b1132289d0d75d663b9567a57604759bfc4e",
+    "tests/test_baltic_keyboard_qemu.py": "3850e9372ec43a21997032d1d3209fcd9afc32a86f23961da7340b0aee25c656",
+    "tests/test_ru_keyboard_qemu.py": "24c50a91a02f0e6428996870e9caf48a4b4a50047e7e0a28db64b64dc621b3aa",
+    "tests/ru_keyboard_probe.asm": "252e01c9b9458dbc4d5771c6bab4cdf524ef11414bd6392f2fa2c71663527456",
+    "tests/test_ru_keyboard_records.py": "b730cce0fcc6025951a006d4cf6e40e1b3bb14afdc2d87f6b9f9cd466eee6747",
+    "tests/test_baltic_keyboard_records.py": "9b3b60e8b25cc4bbea04d369a0121d4dda9a2630ae853980aadf16cf2d323eb9",
+    "tests/baltic_keyboard_records.py": "2dccecc7bdd6360b2d21a1f07f596f3ecea4dd1321d327dcb91e6812cf907e96"
+  },
+  "reference": {
+    "path": "review/keyboard-expectations.json",
+    "sha256": "09a0a925cf85cbcb0294f1bb63554729f5e3d4cd41316f3cb834b4376aee19f2"
+  },
+  "static": {
+    "command": "make test-baltic-keyboard-records test-ru-keyboard-records test-keyboard-records",
+    "status": "passed",
+    "log": {
+      "path": "review/keyboard-static.log",
+      "sha256": "8a9a752a26ae2dcec8a4ff37fcfc7442b0757e91fa9d60886df690ea523860da"
+    }
+  },
+  "runs": [
+    {
+      "name": "bios",
+      "command": "MEMORY_CORE_DIR=out/memory-production/files python3 tests/test_baltic_keyboard_qemu.py --library out/baltic-keybrd2.sys",
+      "status": "passed",
+      "report": {
+        "path": "review/keyboard-bios-results.json",
+        "sha256": "18eaa9b78d17c2530cbd86876f198a248bb2dceefcd511edef9f3e7ff4e012c9"
+      },
+      "cases": [
+        {
+          "name": "et",
+          "completed_reads": 225,
+          "negative_control": false,
+          "emulator_exit": 33,
+          "serial": {
+            "path": "review/keyboard-bios-et.log",
+            "sha256": "869f1c74eb2fd4bf6d66afae199387ddde2339abb482c15d8e749e9c97755e98"
+          },
+          "startup": [
+            {
+              "path": "review/keyboard-bios-et-config.sys.cfg",
+              "sha256": "04904bcc51da8b4a50089694d0fe1674055d805e28ecca430cb7987e8fff41a8"
+            },
+            {
+              "path": "review/keyboard-bios-et-autoexec.bat.cfg",
+              "sha256": "f106e446aae470e1847057046c2419713b691358375ccdb381ef5ea24c5d476d"
+            }
+          ],
+          "retained_expected_include": {
+            "path": "review/keyboard-bios-et-expected.bin",
+            "sha256": "53ba91d9ba8de70ffbfa609987a0b966125124b00dc72bb1e1a1b2ef7eae27ea"
+          }
+        },
+        {
+          "name": "lv",
+          "completed_reads": 163,
+          "negative_control": false,
+          "emulator_exit": 33,
+          "serial": {
+            "path": "review/keyboard-bios-lv.log",
+            "sha256": "3aa98c523d21b0db13f2dcf20d3030a4a19c808702c39d7f69c639df062dba19"
+          },
+          "startup": [
+            {
+              "path": "review/keyboard-bios-lv-config.sys.cfg",
+              "sha256": "ba82eed0aca0e45488395395ddb26d61a1176e17bfb916eb57d9102837494880"
+            },
+            {
+              "path": "review/keyboard-bios-lv-autoexec.bat.cfg",
+              "sha256": "2888a80c294b97da9db0f7dfb9a99049dd78e9047b5ee1a38806f67c0847cecd"
+            }
+          ],
+          "retained_expected_include": {
+            "path": "review/keyboard-bios-lv-expected.bin",
+            "sha256": "e5b365f1602e2c9f5376424f0277f53ca2993a5452d48c1baaa390c91210501d"
+          }
+        },
+        {
+          "name": "lt",
+          "completed_reads": 176,
+          "negative_control": false,
+          "emulator_exit": 33,
+          "serial": {
+            "path": "review/keyboard-bios-lt.log",
+            "sha256": "6a60d3a1751ef1ce1885b689ce1af3669f9897529e088faaeaaab179ae2e50c9"
+          },
+          "startup": [
+            {
+              "path": "review/keyboard-bios-lt-config.sys.cfg",
+              "sha256": "8807b4b97ea05a4edbdcf8945f92d81fe944c22ae709c33f03824c06d5a73f80"
+            },
+            {
+              "path": "review/keyboard-bios-lt-autoexec.bat.cfg",
+              "sha256": "acaf77fb9d55ab9e14ff83ca01a229bdd0cabfaab0131d1008f1a09005951a99"
+            }
+          ],
+          "retained_expected_include": {
+            "path": "review/keyboard-bios-lt-expected.bin",
+            "sha256": "d44a1389e93816c21e487a58b8ab94102c9acd2c3f1b3bdb566ca3bfc4d7fab8"
+          }
+        }
+      ]
+    },
+    {
+      "name": "dos",
+      "command": "MEMORY_CORE_DIR=out/memory-production/files python3 tests/test_baltic_keyboard_qemu.py --library out/baltic-keybrd2.sys --dos",
+      "status": "passed",
+      "report": {
+        "path": "review/keyboard-dos-results.json",
+        "sha256": "6a3933a74a1d2f8a6d5993429287ba26b67630e86c8aedbf27ccc39deff59c70"
+      },
+      "cases": [
+        {
+          "name": "et",
+          "completed_reads": 225,
+          "negative_control": false,
+          "emulator_exit": 33,
+          "serial": {
+            "path": "review/keyboard-dos-et.log",
+            "sha256": "869f1c74eb2fd4bf6d66afae199387ddde2339abb482c15d8e749e9c97755e98"
+          },
+          "startup": [
+            {
+              "path": "review/keyboard-dos-et-config.sys.cfg",
+              "sha256": "04904bcc51da8b4a50089694d0fe1674055d805e28ecca430cb7987e8fff41a8"
+            },
+            {
+              "path": "review/keyboard-dos-et-autoexec.bat.cfg",
+              "sha256": "f106e446aae470e1847057046c2419713b691358375ccdb381ef5ea24c5d476d"
+            }
+          ],
+          "retained_expected_include": {
+            "path": "review/keyboard-dos-et-expected.bin",
+            "sha256": "580137579427eec85afcb9d8329539f1b0c25d054c2695600414f34533b1f66c"
+          }
+        },
+        {
+          "name": "lv",
+          "completed_reads": 163,
+          "negative_control": false,
+          "emulator_exit": 33,
+          "serial": {
+            "path": "review/keyboard-dos-lv.log",
+            "sha256": "3aa98c523d21b0db13f2dcf20d3030a4a19c808702c39d7f69c639df062dba19"
+          },
+          "startup": [
+            {
+              "path": "review/keyboard-dos-lv-config.sys.cfg",
+              "sha256": "ba82eed0aca0e45488395395ddb26d61a1176e17bfb916eb57d9102837494880"
+            },
+            {
+              "path": "review/keyboard-dos-lv-autoexec.bat.cfg",
+              "sha256": "2888a80c294b97da9db0f7dfb9a99049dd78e9047b5ee1a38806f67c0847cecd"
+            }
+          ],
+          "retained_expected_include": {
+            "path": "review/keyboard-dos-lv-expected.bin",
+            "sha256": "a4b561bca83e0b422704870394068e748caecdf71175792580ec35e389864024"
+          }
+        },
+        {
+          "name": "lt",
+          "completed_reads": 176,
+          "negative_control": false,
+          "emulator_exit": 33,
+          "serial": {
+            "path": "review/keyboard-dos-lt.log",
+            "sha256": "6a60d3a1751ef1ce1885b689ce1af3669f9897529e088faaeaaab179ae2e50c9"
+          },
+          "startup": [
+            {
+              "path": "review/keyboard-dos-lt-config.sys.cfg",
+              "sha256": "8807b4b97ea05a4edbdcf8945f92d81fe944c22ae709c33f03824c06d5a73f80"
+            },
+            {
+              "path": "review/keyboard-dos-lt-autoexec.bat.cfg",
+              "sha256": "acaf77fb9d55ab9e14ff83ca01a229bdd0cabfaab0131d1008f1a09005951a99"
+            }
+          ],
+          "retained_expected_include": {
+            "path": "review/keyboard-dos-lt-expected.bin",
+            "sha256": "fad605f1d86ecadab9e50e26987aaf1dcffb6edf809ac54dc27885ed44d4566b"
+          }
+        }
+      ]
+    },
+    {
+      "name": "controls",
+      "command": "MEMORY_CORE_DIR=out/memory-production/files python3 tests/test_baltic_keyboard_qemu.py --library out/baltic-keybrd2.sys --controls-only",
+      "status": "passed",
+      "report": {
+        "path": "review/keyboard-controls-results.json",
+        "sha256": "b69ce299e1f72cfc998d8bf2b243b22568c5cb5e59d32d840bc192e760959591"
+      },
+      "cases": [
+        {
+          "name": "wrong-tilde",
+          "completed_reads": 1,
+          "negative_control": true,
+          "emulator_exit": 33,
+          "serial": {
+            "path": "review/keyboard-controls-wrong-tilde.log",
+            "sha256": "5d0b5cd1cd9beb0e6bc5e63fe85db386d9a572fe70ba0983cf7bb9273e4ad740"
+          },
+          "startup": [
+            {
+              "path": "review/keyboard-controls-wrong-tilde-config.sys.cfg",
+              "sha256": "04904bcc51da8b4a50089694d0fe1674055d805e28ecca430cb7987e8fff41a8"
+            },
+            {
+              "path": "review/keyboard-controls-wrong-tilde-autoexec.bat.cfg",
+              "sha256": "f106e446aae470e1847057046c2419713b691358375ccdb381ef5ea24c5d476d"
+            }
+          ],
+          "retained_expected_include": {
+            "path": "review/keyboard-controls-wrong-tilde-expected.bin",
+            "sha256": "f00b57bfa050c3ef688c3ec78ccf14785b4df720707c19638d03511edd79a42a"
+          }
+        },
+        {
+          "name": "suppressed-ff",
+          "completed_reads": 1,
+          "negative_control": true,
+          "emulator_exit": 33,
+          "serial": {
+            "path": "review/keyboard-controls-suppressed-ff.log",
+            "sha256": "36cc9317c8ff1df81f7530f13acbeeb10629c29e1134946a89f439cf8d9ed64a"
+          },
+          "startup": [
+            {
+              "path": "review/keyboard-controls-suppressed-ff-config.sys.cfg",
+              "sha256": "ba82eed0aca0e45488395395ddb26d61a1176e17bfb916eb57d9102837494880"
+            },
+            {
+              "path": "review/keyboard-controls-suppressed-ff-autoexec.bat.cfg",
+              "sha256": "2888a80c294b97da9db0f7dfb9a99049dd78e9047b5ee1a38806f67c0847cecd"
+            }
+          ],
+          "retained_expected_include": {
+            "path": "review/keyboard-controls-suppressed-ff-expected.bin",
+            "sha256": "1cfcb0bd04645357156bdeaab8c62ef2c2747ba06b48c83a5bf0c40b9b079c40"
+          }
+        },
+        {
+          "name": "nonzero-e0-scan",
+          "completed_reads": 1,
+          "negative_control": true,
+          "emulator_exit": 33,
+          "serial": {
+            "path": "review/keyboard-controls-nonzero-e0-scan.log",
+            "sha256": "11f5566b4a679295591b357a82ed7f33033f2a38b28140a3b22d500f32ba6c77"
+          },
+          "startup": [
+            {
+              "path": "review/keyboard-controls-nonzero-e0-scan-config.sys.cfg",
+              "sha256": "04904bcc51da8b4a50089694d0fe1674055d805e28ecca430cb7987e8fff41a8"
+            },
+            {
+              "path": "review/keyboard-controls-nonzero-e0-scan-autoexec.bat.cfg",
+              "sha256": "f106e446aae470e1847057046c2419713b691358375ccdb381ef5ea24c5d476d"
+            }
+          ],
+          "retained_expected_include": {
+            "path": "review/keyboard-controls-nonzero-e0-scan-expected.bin",
+            "sha256": "be81fe4316df9b2c7b167f68bf1236a93ac7885211be33ebff7d638c095b2f15"
+          }
+        }
+      ]
+    },
+    {
+      "name": "ru-final",
+      "command": "python3 tests/test_ru_keyboard_qemu.py",
+      "status": "passed",
+      "report": {
+        "path": "review/keyboard-ru-final-results.json",
+        "sha256": "df3e322699d529bd6fbe63897b23bda3172b990f9bb0b771061377fdf64a3a47"
+      },
+      "cases": [
+        {
+          "name": "physical",
+          "completed_reads": 196,
+          "negative_control": false,
+          "emulator_exit": 33,
+          "serial": {
+            "path": "review/keyboard-ru-final-physical.log",
+            "sha256": "b22230d99907bcb7607eb8a9b76934879cdfea25682cc7d28adf5fdec8a517b4"
+          },
+          "startup": [
+            {
+              "path": "review/keyboard-ru-final-physical-config.sys.cfg",
+              "sha256": "ba5f6b4bec5c23e0f9483978c8142895788e2c5feee3476b929d860fcb4b8c43"
+            },
+            {
+              "path": "review/keyboard-ru-final-physical-autoexec.bat.cfg",
+              "sha256": "b3c63194edcd5bef23acf52e521ef1ef25e2977dc329a712ac2687b85612e4cd"
+            }
+          ],
+          "retained_expected_include": {
+            "path": "review/keyboard-ru-final-physical-expected.bin",
+            "sha256": "eb7f792ec195d2d3a63580942da37fc36abaebba0177d79c12cc2648113cf10f"
+          }
+        },
+        {
+          "name": "dos-input",
+          "completed_reads": 196,
+          "negative_control": false,
+          "emulator_exit": 33,
+          "serial": {
+            "path": "review/keyboard-ru-final-dos-input.log",
+            "sha256": "b22230d99907bcb7607eb8a9b76934879cdfea25682cc7d28adf5fdec8a517b4"
+          },
+          "startup": [
+            {
+              "path": "review/keyboard-ru-final-dos-input-config.sys.cfg",
+              "sha256": "ba5f6b4bec5c23e0f9483978c8142895788e2c5feee3476b929d860fcb4b8c43"
+            },
+            {
+              "path": "review/keyboard-ru-final-dos-input-autoexec.bat.cfg",
+              "sha256": "b3c63194edcd5bef23acf52e521ef1ef25e2977dc329a712ac2687b85612e4cd"
+            }
+          ],
+          "retained_expected_include": {
+            "path": "review/keyboard-ru-final-dos-input-expected.bin",
+            "sha256": "eb7f792ec195d2d3a63580942da37fc36abaebba0177d79c12cc2648113cf10f"
+          }
+        },
+        {
+          "name": "wrong-yo",
+          "completed_reads": 41,
+          "negative_control": true,
+          "emulator_exit": 33,
+          "serial": {
+            "path": "review/keyboard-ru-final-wrong-yo.log",
+            "sha256": "1ceb6e4dc697336cb82c6380334e41bd11d4b9348d4d70f050ed54ee7e554fbb"
+          },
+          "startup": [
+            {
+              "path": "review/keyboard-ru-final-wrong-yo-config.sys.cfg",
+              "sha256": "ba5f6b4bec5c23e0f9483978c8142895788e2c5feee3476b929d860fcb4b8c43"
+            },
+            {
+              "path": "review/keyboard-ru-final-wrong-yo-autoexec.bat.cfg",
+              "sha256": "b3c63194edcd5bef23acf52e521ef1ef25e2977dc329a712ac2687b85612e4cd"
+            }
+          ],
+          "retained_expected_include": {
+            "path": "review/keyboard-ru-final-wrong-yo-expected.bin",
+            "sha256": "eb7f792ec195d2d3a63580942da37fc36abaebba0177d79c12cc2648113cf10f"
+          }
+        },
+        {
+          "name": "reload-existing",
+          "completed_reads": 7,
+          "negative_control": false,
+          "emulator_exit": 33,
+          "serial": {
+            "path": "review/keyboard-ru-final-reload-existing.log",
+            "sha256": "c928d62eac0eba6b6b0f4b41511423c0d541c95b6c40c037e9fbd7b5ccaef231"
+          },
+          "startup": [
+            {
+              "path": "review/keyboard-ru-final-reload-existing-config.sys.cfg",
+              "sha256": "ba5f6b4bec5c23e0f9483978c8142895788e2c5feee3476b929d860fcb4b8c43"
+            },
+            {
+              "path": "review/keyboard-ru-final-reload-existing-autoexec.bat.cfg",
+              "sha256": "763e769dcc73700c21cd01f79461ca4f2aebc31c3b5b7f26b1bd191ed229667b"
+            }
+          ],
+          "retained_expected_include": {
+            "path": "review/keyboard-ru-final-reload-existing-expected.bin",
+            "sha256": "9469705568e1b99c271ddda7c6962edc8210e9773435e8c84b5a3aa2fff159a1"
+          }
+        },
+        {
+          "name": "documented-recipe",
+          "completed_reads": 196,
+          "negative_control": false,
+          "emulator_exit": 33,
+          "serial": {
+            "path": "review/keyboard-ru-final-documented-recipe.log",
+            "sha256": "1f7d73753ad124da1a9e466c10a7ba9c83b3568222f7a8a34d7c31eab4944ece"
+          },
+          "startup": [
+            {
+              "path": "review/keyboard-ru-final-documented-recipe-config.sys.cfg",
+              "sha256": "986d87d1fc5e888d8507f8ab1bc6c13609dbb04969e5c6856fc67131f67e3d17"
+            },
+            {
+              "path": "review/keyboard-ru-final-documented-recipe-autoexec.bat.cfg",
+              "sha256": "eb3d3253a31774c22019d0dceb0917a8cb608d7746aa86adbfd788c09b351df1"
+            }
+          ],
+          "retained_expected_include": {
+            "path": "review/keyboard-ru-final-documented-recipe-expected.bin",
+            "sha256": "eb7f792ec195d2d3a63580942da37fc36abaebba0177d79c12cc2648113cf10f"
+          }
+        },
+        {
+          "name": "modifier-edges",
+          "completed_reads": 55,
+          "negative_control": false,
+          "emulator_exit": 33,
+          "serial": {
+            "path": "review/keyboard-ru-final-modifier-edges.log",
+            "sha256": "26734b63912315cef81c140b043c9946f317ea7eafcc9816b439add6978f8dc9"
+          },
+          "startup": [
+            {
+              "path": "review/keyboard-ru-final-modifier-edges-config.sys.cfg",
+              "sha256": "ba5f6b4bec5c23e0f9483978c8142895788e2c5feee3476b929d860fcb4b8c43"
+            },
+            {
+              "path": "review/keyboard-ru-final-modifier-edges-autoexec.bat.cfg",
+              "sha256": "b3c63194edcd5bef23acf52e521ef1ef25e2977dc329a712ac2687b85612e4cd"
+            }
+          ],
+          "retained_expected_include": {
+            "path": "review/keyboard-ru-final-modifier-edges-expected.bin",
+            "sha256": "6875b2f02e8aa03bf090fabe396d9fa6f54c91225d915a0043d275f6ddc306f4"
+          }
+        },
+        {
+          "name": "modifier-edges-dos",
+          "completed_reads": 55,
+          "negative_control": false,
+          "emulator_exit": 33,
+          "serial": {
+            "path": "review/keyboard-ru-final-modifier-edges-dos.log",
+            "sha256": "26734b63912315cef81c140b043c9946f317ea7eafcc9816b439add6978f8dc9"
+          },
+          "startup": [
+            {
+              "path": "review/keyboard-ru-final-modifier-edges-dos-config.sys.cfg",
+              "sha256": "ba5f6b4bec5c23e0f9483978c8142895788e2c5feee3476b929d860fcb4b8c43"
+            },
+            {
+              "path": "review/keyboard-ru-final-modifier-edges-dos-autoexec.bat.cfg",
+              "sha256": "b3c63194edcd5bef23acf52e521ef1ef25e2977dc329a712ac2687b85612e4cd"
+            }
+          ],
+          "retained_expected_include": {
+            "path": "review/keyboard-ru-final-modifier-edges-dos-expected.bin",
+            "sha256": "6875b2f02e8aa03bf090fabe396d9fa6f54c91225d915a0043d275f6ddc306f4"
+          }
+        },
+        {
+          "name": "reject-missing",
+          "completed_reads": 3,
+          "negative_control": false,
+          "emulator_exit": 33,
+          "serial": {
+            "path": "review/keyboard-ru-final-reject-missing.log",
+            "sha256": "d00351e4652522e4f0acb579cee8592ad1b66deead8ceb0c8d422f2cf6643b01"
+          },
+          "startup": [
+            {
+              "path": "review/keyboard-ru-final-reject-missing-config.sys.cfg",
+              "sha256": "ba5f6b4bec5c23e0f9483978c8142895788e2c5feee3476b929d860fcb4b8c43"
+            },
+            {
+              "path": "review/keyboard-ru-final-reject-missing-autoexec.bat.cfg",
+              "sha256": "b294edbf166f9eac9fd6b045f181e431b45631c11018ff459e3ff10237f48c6d"
+            }
+          ],
+          "retained_expected_include": {
+            "path": "review/keyboard-ru-final-reject-missing-expected.bin",
+            "sha256": "86c11f10c038a75279e64a09cbc5cacb478a9af27d1b5cce1d1b1cc7e23a1b81"
+          }
+        },
+        {
+          "name": "reject-bad-signature",
+          "completed_reads": 3,
+          "negative_control": false,
+          "emulator_exit": 33,
+          "serial": {
+            "path": "review/keyboard-ru-final-reject-bad-signature.log",
+            "sha256": "d00351e4652522e4f0acb579cee8592ad1b66deead8ceb0c8d422f2cf6643b01"
+          },
+          "startup": [
+            {
+              "path": "review/keyboard-ru-final-reject-bad-signature-config.sys.cfg",
+              "sha256": "ba5f6b4bec5c23e0f9483978c8142895788e2c5feee3476b929d860fcb4b8c43"
+            },
+            {
+              "path": "review/keyboard-ru-final-reject-bad-signature-autoexec.bat.cfg",
+              "sha256": "c841d2b7f587e2da4c2a1ba0c6a6cf22a8abd9c651670d335a599afda7683049"
+            }
+          ],
+          "retained_expected_include": {
+            "path": "review/keyboard-ru-final-reject-bad-signature-expected.bin",
+            "sha256": "86c11f10c038a75279e64a09cbc5cacb478a9af27d1b5cce1d1b1cc7e23a1b81"
+          }
+        },
+        {
+          "name": "reject-short-header",
+          "completed_reads": 3,
+          "negative_control": false,
+          "emulator_exit": 33,
+          "serial": {
+            "path": "review/keyboard-ru-final-reject-short-header.log",
+            "sha256": "57b5649a4bd0254083b4b136f1b1d09c5f774cd873fd9c31d263e88225a969b6"
+          },
+          "startup": [
+            {
+              "path": "review/keyboard-ru-final-reject-short-header-config.sys.cfg",
+              "sha256": "ba5f6b4bec5c23e0f9483978c8142895788e2c5feee3476b929d860fcb4b8c43"
+            },
+            {
+              "path": "review/keyboard-ru-final-reject-short-header-autoexec.bat.cfg",
+              "sha256": "c841d2b7f587e2da4c2a1ba0c6a6cf22a8abd9c651670d335a599afda7683049"
+            }
+          ],
+          "retained_expected_include": {
+            "path": "review/keyboard-ru-final-reject-short-header-expected.bin",
+            "sha256": "86c11f10c038a75279e64a09cbc5cacb478a9af27d1b5cce1d1b1cc7e23a1b81"
+          }
+        },
+        {
+          "name": "reject-unsupported-page",
+          "completed_reads": 3,
+          "negative_control": false,
+          "emulator_exit": 33,
+          "serial": {
+            "path": "review/keyboard-ru-final-reject-unsupported-page.log",
+            "sha256": "57b5649a4bd0254083b4b136f1b1d09c5f774cd873fd9c31d263e88225a969b6"
+          },
+          "startup": [
+            {
+              "path": "review/keyboard-ru-final-reject-unsupported-page-config.sys.cfg",
+              "sha256": "ba5f6b4bec5c23e0f9483978c8142895788e2c5feee3476b929d860fcb4b8c43"
+            },
+            {
+              "path": "review/keyboard-ru-final-reject-unsupported-page-autoexec.bat.cfg",
+              "sha256": "a4841681a57960e08d995b38e581c14258bad07e0cd43aedc262e8178e57ba16"
+            }
+          ],
+          "retained_expected_include": {
+            "path": "review/keyboard-ru-final-reject-unsupported-page-expected.bin",
+            "sha256": "86c11f10c038a75279e64a09cbc5cacb478a9af27d1b5cce1d1b1cc7e23a1b81"
+          }
+        },
+        {
+          "name": "reject-unsupported-id",
+          "completed_reads": 3,
+          "negative_control": false,
+          "emulator_exit": 33,
+          "serial": {
+            "path": "review/keyboard-ru-final-reject-unsupported-id.log",
+            "sha256": "4069041a46fbc8d04b75482841b0676a9b9ebebb52770a310d22f216e937aa06"
+          },
+          "startup": [
+            {
+              "path": "review/keyboard-ru-final-reject-unsupported-id-config.sys.cfg",
+              "sha256": "ba5f6b4bec5c23e0f9483978c8142895788e2c5feee3476b929d860fcb4b8c43"
+            },
+            {
+              "path": "review/keyboard-ru-final-reject-unsupported-id-autoexec.bat.cfg",
+              "sha256": "a9a786f7954d45fe9a54e75c67e75425d8ec2894b7e2b1e43a07ae41eb5701cf"
+            }
+          ],
+          "retained_expected_include": {
+            "path": "review/keyboard-ru-final-reject-unsupported-id-expected.bin",
+            "sha256": "86c11f10c038a75279e64a09cbc5cacb478a9af27d1b5cce1d1b1cc7e23a1b81"
+          }
+        },
+        {
+          "name": "reject-unsupported-layout",
+          "completed_reads": 3,
+          "negative_control": false,
+          "emulator_exit": 33,
+          "serial": {
+            "path": "review/keyboard-ru-final-reject-unsupported-layout.log",
+            "sha256": "e932ac1b6ceae911a2a09afe7f52697bebb6c7492c6d62c251ef5d0f1055f6ef"
+          },
+          "startup": [
+            {
+              "path": "review/keyboard-ru-final-reject-unsupported-layout-config.sys.cfg",
+              "sha256": "ba5f6b4bec5c23e0f9483978c8142895788e2c5feee3476b929d860fcb4b8c43"
+            },
+            {
+              "path": "review/keyboard-ru-final-reject-unsupported-layout-autoexec.bat.cfg",
+              "sha256": "f0d8d4439b8e6425d5c44e7fcfea93da32ac082ddad821267825cef8a6518a74"
+            }
+          ],
+          "retained_expected_include": {
+            "path": "review/keyboard-ru-final-reject-unsupported-layout-expected.bin",
+            "sha256": "86c11f10c038a75279e64a09cbc5cacb478a9af27d1b5cce1d1b1cc7e23a1b81"
+          }
+        }
+      ]
+    }
+  ],
+  "compatibility_decisions": [
+    "The actual SET_FLAG interpreter uses a word count and searches only the common section. Generated flag states follow that resident ABI, despite the unused SET_FLAG_STR byte declaration.",
+    "CP775 character E0 (O with acute) uses a zero output scan to preserve literal character input through both BIOS and DOS CON. Explicit Lithuanian scan remaps remain intact. This follows src/BIOS/MSCON.ASM CHRIN, which classifies E0 with a nonzero scan as a special key.",
+    "LITERAL_FF=10h is an opt-in translation-table option. For an FF character and a non-FF scan, KEYB uses its existing BUFFER_FILL_ANY_CHAR entry. All other tables retain the historical character/scan FF ignore sentinels. Latvian AltGr+1 requires literal FF for nonbreaking space.",
+    "The expanded library shares the Russian body without changing any bytes. Standalone pre-Baltic library SHA256 f6c776c95ec4b8bda1d72e93233995d76155a2d558283d7ce215def8f23a159e; body SHA256 dba69ef0499cd9dccc96d13d54a933d3e57ce99ee59b6bfc347ef042dcff9255.",
+    "The full Russian keyboard suite uses the final expanded library and matching KEYB executable, including physical/DOS input, modifier edges, RU/GR/RU reloads, recipe and rejected-resource/selection cases. Baltic runtime runs select default codes; explicit IDs and EE alias have structural checks only in this stage."
+  ],
+  "remaining": [
+    "Expanded library selection/reload/rejection matrix for every Baltic code, explicit IDs and EE alias; US/national hotkeys.",
+    "Pending dead-key unmatched/repeated/control/reload lifecycle, modifier combinations beyond the direct plane walk and all BIOS fallbacks.",
+    "HIGH/LOW memory-profile qualification and supported AT-84/XT-83 real-BIOS input, including the literal-byte extension.",
+    "Installed resources/recipes, physical COMMAND/EDLIN and national filename workflows, missing/malformed resources and full BALTIC.md release gates.",
+    "Update runtime/mutation artifact coverage for the expanded library and EGA775 pack during packaging."
+  ],
+  "expected_include_scope": "The retained expected.bin is the final compiled phase for multi-program reload/rejection cases. The full ordered input oracle is retained in each run report.",
+  "contract_regression": {
+    "command": "make test-baltic-font-sources test-baltic-country-contract test-baltic-keyboard-contract",
+    "status": "passed",
+    "log": {
+      "path": "review/keyboard-contract-regression.log",
+      "sha256": "f69c24e1a3fd3f32b3a265c6d6dbb1f1b20ad45dfc7258344e80d46bc5e664c8"
+    }
+  }
+}

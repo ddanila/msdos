@@ -145,11 +145,14 @@ $(KEYBOARD_DIR)/KEYBOARD.EXE: $(KEYBOARD_OBJ_PATHS)
 $(KEYBOARD_DIR)/KEYBOARD.SYS: $(KEYBOARD_DIR)/KEYBOARD.EXE
 	cd $(KEYBOARD_DIR) && $(EXE2BIN) "KEYBOARD.EXE KEYBOARD.SYS"
 
-# Separate optional Russian library; preserve the existing KEYBOARD.SYS.
-$(KEYBOARD_DIR)/KEYBRD2.SYS: $(KEYBOARD_DIR)/KDFRU.ASM \
+# Supplemental Baltic/Russian library; preserve the existing KEYBOARD.SYS.
+$(KEYBOARD_DIR)/KDFBALT.ASM: tools/build_baltic_keyboard.py locales/baltic/review/keyboard-expectations.json
+	python3 tools/build_baltic_keyboard.py
+
+$(KEYBOARD_DIR)/KEYBRD2.SYS: $(KEYBOARD_DIR)/KDFBALT.ASM $(KEYBOARD_DIR)/KDFRUTAB.INC \
     $(KEYBOARD_DIR)/KEYBSHAR.INC $(KEYBOARD_DIR)/KEYBMAC.INC \
     $(SRC)/INC/POSTEQU.INC $(BIN)/jwasm-bin
-	cd $(KEYBOARD_DIR) && $(BIN)/jwasm-bin -I../../INC -Fo$@ KDFRU.ASM
+	cd $(KEYBOARD_DIR) && $(BIN)/jwasm-bin -I../../INC -Fo$@ KDFBALT.ASM
 
 PRINTER_DIR := $(DEV_DIR)/PRINTER
 

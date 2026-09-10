@@ -120,7 +120,7 @@ def modifier_steps():
     return cases
 
 
-def run_case(work, base, name, corrupt=False, dos=False, reload=False, reject=None, recipe=False, cases=None):
+def run_case(work, base, name, corrupt=False, dos=False, reload=False, reject=None, recipe=False, cases=None, library_source=None, keyb_selection=None, country=7, enhanced=False, expected_failure=None):
     directory=work/name
     directory.mkdir()
     cases=steps() if cases is None else cases
@@ -140,14 +140,14 @@ def run_case(work, base, name, corrupt=False, dos=False, reload=False, reject=No
                {'name':'select Russian','keys':[('alt',True),('shift_r',True),('shift_r',False),('alt',False),('q',True),('q',False)],'bios_ax':0xa9},
                {'name':'Russian after rejected load','keys':[('q',True),('q',False)],'bios_ax':0xa9}]
     (directory/'expected.bin').write_bytes(b''.join(struct.pack('<H',s['bios_ax']) for s in cases))
-    command('nasm','-f','bin',*(['-DDOS_INPUT'] if dos else []),str(ROOT/'tests/ru_keyboard_probe.asm'),'-o',str(directory/'PROBE.COM'),cwd=directory)
+    command('nasm','-f','bin',*(['-DDOS_INPUT'] if dos else []),*(['-DENHANCED_INPUT'] if enhanced else []),str(ROOT/'tests/ru_keyboard_probe.asm'),'-o',str(directory/'PROBE.COM'),cwd=directory)
     if reload or reject:
         phases = [(0,2,'PROBE.COM'),(2,4,'GPROBE.COM'),(4,7,'RPROBE.COM')] if reload else [(0,2,'PROBE.COM'),(2,3,'RPROBE.COM')]
         for start,end,program in phases:
             (directory/'expected.bin').write_bytes(b''.join(struct.pack('<H',s['bios_ax']) for s in cases[start:end]))
             command('nasm','-f','bin',f'-DSTART_INDEX={start}',str(ROOT/'tests/ru_keyboard_probe.asm'),'-o',str(directory/program),cwd=directory)
     command('nasm','-f','bin',str(ROOT/'tests/qemu_exit.asm'),'-o',str(directory/'QEXIT.COM'))
-    library=ROOT/'src/DEV/KEYBOARD/KEYBRD2.SYS'
+    library=Path(library_source) if library_source else ROOT/'src/DEV/KEYBOARD/KEYBRD2.SYS'
     if corrupt:
         data=bytearray(library.read_bytes())
         data[data.index(b'\x29\xf1')+1]=0xf0
@@ -187,7 +187,11 @@ def run_case(work, base, name, corrupt=False, dos=False, reload=False, reject=No
         }[reject]
         batch=batch.replace('ECHO RU_KEY_DONE', rejected_command+'\r\nIF NOT ERRORLEVEL 1 GOTO FAIL\r\n'
             'KEYB\r\nRPROBE\r\nIF ERRORLEVEL 1 GOTO FAIL\r\nECHO RU_KEY_DONE')
-    config='COUNTRY=007,866,COUNTRY.SYS\r\nNUMLOCK=ON\r\n'
+    if keyb_selection:
+        batch=batch.replace('KEYB RU,866,KEYBRD2.SYS /ID:441', 'KEYB '+keyb_selection)
+    config=f'COUNTRY={country:03d},{775 if keyb_selection else 866},COUNTRY.SYS\r\nNUMLOCK=ON\r\n'
+    if keyb_selection:
+        command('mcopy','-o','-i',str(image),str(ROOT/'src/DEV/COUNTRY/COUNTRY.SYS'),'::COUNTRY.SYS')
     if recipe:
         # Execute the installed document's actual lines, adapting only its
         # C:\DOS directory to this private floppy's root. Installed-disk
@@ -246,14 +250,16 @@ def run_case(work, base, name, corrupt=False, dos=False, reload=False, reject=No
                 proc.wait()
     output=log.read_bytes()
     assert result==33,(result,log)
-    if corrupt:
+    if expected_failure is not None:
+        assert expected_failure in output and b'RU_KEY_DONE' not in output, (log,output)
+    elif corrupt:
         assert b'RU_KEY_FAIL actual=00F0' in output and b'RU_KEY_DONE' not in output, (log,output)
     else:
         assert b'RU_KEY_DONE' in output and b'RU_KEY_PASS' in output and b'FAIL' not in output,(log,output)
     if recipe:
         assert b'RU_CODEPAGE_PASS' in output,(log,output)
     print(f'PASS: {name}',flush=True)
-    return {'name':name,'negative_control':corrupt,'dos_input':dos,'reload_existing':reload,'rejection':reject,'documented_recipe':recipe,'emulator_exit':result,'steps':cases,
+    return {'name':name,'enhanced_bios_input':enhanced,'negative_control':corrupt or expected_failure is not None,'dos_input':dos,'reload_existing':reload,'rejection':reject,'documented_recipe':recipe,'emulator_exit':result,'steps':cases,
             'completed_reads':output.count(b'RU_KEY_READY'),'log':str(log.relative_to(work)),
             'log_sha256':hashlib.sha256(output).hexdigest()}
 

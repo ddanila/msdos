@@ -1376,3 +1376,15 @@ test-command-shift-qemu: deploy
 .PHONY: memory-production
 memory-production: build-all
 	python3 tools/build_memory_production.py $(MEMORY_PRODUCTION_DIR)
+
+.PHONY: test-baltic-keyboard-records
+test: test-baltic-keyboard-records
+test-baltic-keyboard-records: $(BIN)/jwasm-bin $(SRC)/DEV/KEYBOARD/KDFBALT.ASM
+	python3 tests/test_baltic_keyboard_records.py
+
+.PHONY: test-baltic-keyboard-qemu
+test: test-baltic-keyboard-qemu
+test-baltic-keyboard-qemu: deploy $(SRC)/DEV/KEYBOARD/KEYBRD2.SYS $(SRC)/CMD/KEYB/KEYB.COM
+	python3 tests/test_baltic_keyboard_qemu.py
+	python3 tests/test_baltic_keyboard_qemu.py --dos
+	python3 tests/test_baltic_keyboard_qemu.py --controls-only

@@ -415,3 +415,14 @@ country switches, foreign-country queries and rejected page/country selections.
 Private wrong-case and wrong-collation controls fail at expected stages. Existing
 Russian country regressions pass; real-BIOS, resource and installation gates
 remain separate requirements.
+
+The [Baltic keyboard implementation qualification](../locales/baltic/keyboard-qualification.json)
+records `test-baltic-keyboard-records` and `test-baltic-keyboard-qemu`, included
+in `make test`. Static checks cover the expanded library and preservation of
+the original Russian body. Physical QMP events exercise direct reference planes,
+Caps, reachable dead-key pairs and control/navigation input through enhanced
+BIOS and DOS CON reads. Corruption controls detect a wrong national letter,
+suppressed FF and a scan-bearing E0 character. Russian physical/modifier/
+resource regressions and expanded-library RU/GR reloads are retained separately.
+The focused Baltic boots do not establish composed HIGH/LOW, legacy BIOS,
+installed profiles or full pending-composition lifecycle behavior.

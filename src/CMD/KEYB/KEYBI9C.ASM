@@ -44,6 +44,7 @@
 				       ;;
 	PUBLIC KEYB_INT_9	       ;;
 	PUBLIC K8		       ;; CTRL case tables
+	PUBLIC BUFFER_FILL_ANY_CHAR
 	PUBLIC BUFFER_FILL	       ;;
 	PUBLIC COUNTRY_FLAG	       ;;
 	PUBLIC BEEP_PENDING	       ;;

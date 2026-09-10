@@ -249,6 +249,8 @@ TYPE_2_TAB          EQU   40H          ;; search xlat table for matching scan
 ZERO_SCAN           EQU   20H          ;; set the scan half of the buffer
                                        ;;  entry to 0
                                        ;;
+LITERAL_FF          EQU   10H          ;; explicit FF character, not ignore
+                                       ;;
 NULL_ASCII_CODE     EQU   -1           ;;
                                        ;;
 DEFAULT_TAB_2_ENT_SZ   EQU   3         ;;

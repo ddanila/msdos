@@ -484,7 +484,17 @@ BUFFER_ENTRY_READY:                    ;;
         JZ     NO_ZERO_SCAN            ;; N..
         XOR    AH,AH                   ;; scan = 0
 NO_ZERO_SCAN:                          ;;
+        TEST   DL,LITERAL_FF           ;; only opted-in tables permit FF
+        JZ     STANDARD_BUFFER_FILL
+        CMP    AL,0FFH
+        JNE    STANDARD_BUFFER_FILL
+        CMP    AH,0FFH                 ;; retain the ignore-scan sentinel
+        JE     STANDARD_BUFFER_FILL
+        CALL   BUFFER_FILL_ANY_CHAR
+        JMP    SHORT TABLE_BUFFER_DONE
+STANDARD_BUFFER_FILL:
         CALL   BUFFER_FILL             ;; go put entry in buffer
+TABLE_BUFFER_DONE:
         STC                            ;; indicate translation found
         JMP    TP_DONE                 ;;
                                        ;;

@@ -97,3 +97,32 @@ probe stages. Russian guest regressions pass with unchanged default probe bytes.
 `make test-baltic-country-qemu` runs the matrix and is included in `make test`.
 The Python runner accepts `--profile high|low` and `--case` for focused diagnosis.
 Real-BIOS, missing/malformed resource and installed-workflow checks remain open.
+
+[Keyboard implementation qualification](keyboard-qualification.json) records
+the generated supplemental library and focused physical BIOS/DOS input gates.
+`make dev` builds KEYBRD2.SYS with ET (EE alias), LV and LT alongside the
+unchanged Russian body. `make test-baltic-keyboard-records` checks generated
+source, binary directories, common/page state boundaries, logic references and
+allocation limits. Russian records retain their independent retail-table oracle
+and a frozen hash of the original logic/common/page body.
+
+`make test-baltic-keyboard-qemu` runs the retained key/plane and composition
+expectations through physical QMP input, using private minimal-country boots
+with the selected production core. It checks enhanced BIOS reads and DOS CON
+reads separately. These are input-byte tests; they do not establish active font
+selection or composed HIGH/LOW and installed profiles. Negative controls alter
+a national translation, suppress nonbreaking space, and give a literal E0 byte
+a scan code that DOS interprets as a special key.
+
+DOS requires a zero scan code for literal E0; the generator applies that
+transport rule while preserving explicit Lithuanian scan remaps. Latvian
+nonbreaking space requires the new opt-in `LITERAL_FF` translation-table bit.
+KEYB then uses its existing buffer routine that accepts FF characters. Tables
+without this bit retain the original FF ignore behavior. The pack therefore
+requires the matching project KEYB executable. The retained sources and their
+notices remain linked from the selected keyboard contract.
+
+Baltic selection/reload/rejection, pending composition lifecycle, remaining
+modifier edges, legacy BIOS input and complete language workflows remain open.
+The Russian keyboard regression suite uses the same expanded library and
+matching KEYB executable.

@@ -1,0 +1,138 @@
+{
+  "status": "selected-cases-passed",
+  "core_sha256": {
+    "IO.SYS": "793169a292df40bb117eb487136a0d8e7f4334ca223e8206bf53f33141f24715",
+    "MSDOS.SYS": "1475174f50c8c349bedd7cd4a0be88bce055f2e411b7454b5f68fffbff269b62",
+    "COMMAND.COM": "6742b5889141a9c61d41e336445014d8055c19758febf4263f4f8ebe3c2f2c29",
+    "HIMEM.SYS": "340cbfd1f0e835755adce99d80c607f8edeb48ea2b20a6a142402a25434f8d13",
+    "EMM386.EXE": "58266b6614594de7a9cfde9eda75e3eb241b9e2e941e67b70645a0f8a197dae6"
+  },
+  "cases": [
+    {
+      "name": "wrong-tilde",
+      "enhanced_bios_input": true,
+      "negative_control": true,
+      "dos_input": false,
+      "reload_existing": false,
+      "rejection": null,
+      "documented_recipe": false,
+      "emulator_exit": 33,
+      "steps": [
+        {
+          "name": "wrong-tilde",
+          "keys": [
+            [
+              "bracket_right",
+              true
+            ],
+            [
+              "bracket_right",
+              false
+            ]
+          ],
+          "bios_ax": 7140
+        }
+      ],
+      "completed_reads": 1,
+      "log": "wrong-tilde/serial.log",
+      "log_sha256": "5d0b5cd1cd9beb0e6bc5e63fe85db386d9a572fe70ba0983cf7bb9273e4ad740"
+    },
+    {
+      "name": "suppressed-ff",
+      "enhanced_bios_input": true,
+      "negative_control": true,
+      "dos_input": false,
+      "reload_existing": false,
+      "rejection": null,
+      "documented_recipe": false,
+      "emulator_exit": 33,
+      "steps": [
+        {
+          "name": "suppressed-ff",
+          "keys": [
+            [
+              "alt_r",
+              true
+            ],
+            [
+              "1",
+              true
+            ],
+            [
+              "1",
+              false
+            ],
+            [
+              "alt_r",
+              false
+            ],
+            [
+              "a",
+              true
+            ],
+            [
+              "a",
+              false
+            ]
+          ],
+          "bios_ax": 767
+        }
+      ],
+      "completed_reads": 1,
+      "log": "suppressed-ff/serial.log",
+      "log_sha256": "36cc9317c8ff1df81f7530f13acbeeb10629c29e1134946a89f439cf8d9ed64a"
+    },
+    {
+      "name": "nonzero-e0-scan",
+      "enhanced_bios_input": true,
+      "negative_control": true,
+      "dos_input": true,
+      "reload_existing": false,
+      "rejection": null,
+      "documented_recipe": false,
+      "emulator_exit": 33,
+      "steps": [
+        {
+          "name": "nonzero-e0-scan",
+          "keys": [
+            [
+              "equal",
+              true
+            ],
+            [
+              "equal",
+              false
+            ],
+            [
+              "shift",
+              true
+            ],
+            [
+              "o",
+              true
+            ],
+            [
+              "o",
+              false
+            ],
+            [
+              "shift",
+              false
+            ]
+          ],
+          "bios_ax": 224
+        }
+      ],
+      "completed_reads": 1,
+      "log": "nonzero-e0-scan/serial.log",
+      "log_sha256": "11f5566b4a679295591b357a82ed7f33033f2a38b28140a3b22d500f32ba6c77"
+    }
+  ],
+  "resource_sha256": {
+    "/Users/ddanila/fun/msdos/out/baltic-keybrd2.sys": "d9f1a9146251f3646900e7c25cd64ae16fad4bf58c130ee5a454d17e41bffd8c",
+    "/Users/ddanila/fun/msdos/src/CMD/KEYB/KEYB.COM": "410118fcf2c7b40282619c9eb063edd25ee1fda5ca2cb7ef761d97b35ca463e4",
+    "/Users/ddanila/fun/msdos/locales/baltic/review/keyboard-expectations.json": "09a0a925cf85cbcb0294f1bb63554729f5e3d4cd41316f3cb834b4376aee19f2"
+  },
+  "bios_api": "INT 16h AH=10h",
+  "dos_api": "INT 21h AH=07h"
+}

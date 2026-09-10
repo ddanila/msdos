@@ -2,7 +2,7 @@
   "schema_version": 1,
   "locale": "baltic",
   "code_page": 775,
-  "status": "encoding-country-and-keyboard-contracts-selected-runtime-pending",
+  "status": "encoding-country-and-keyboard-implemented-integration-pending",
   "sources": [
     {
       "path": "upstream/CP775.TXT",
@@ -622,7 +622,7 @@
         "code_page": 775,
         "default_for_code": true,
         "reference": "review/keyboard-expectations.json",
-        "status": "selected-runtime-unqualified",
+        "status": "qemu-bios-dos-direct-input-qualified",
         "contract": "keyboard-contract.json"
       },
       "country": {
@@ -650,7 +650,7 @@
         "code_page": 775,
         "default_for_code": true,
         "reference": "review/keyboard-expectations.json",
-        "status": "selected-runtime-unqualified",
+        "status": "qemu-bios-dos-direct-input-qualified",
         "contract": "keyboard-contract.json"
       },
       "country": {
@@ -678,7 +678,7 @@
         "code_page": 775,
         "default_for_code": true,
         "reference": "review/keyboard-expectations.json",
-        "status": "selected-runtime-unqualified",
+        "status": "qemu-bios-dos-direct-input-qualified",
         "contract": "keyboard-contract.json"
       },
       "country": {
@@ -695,7 +695,7 @@
     }
   },
   "unresolved": [
-    "Implement selected keyboard contracts and qualify physical BIOS/DOS input, modifiers and composition lifecycle.",
+    "Qualify Baltic keyboard selection/reload/rejection, remaining modifier/composition lifecycle and composed HIGH/LOW/legacy BIOS input.",
     "Qualify Baltic country APIs on real BIOS and complete missing/malformed resource and installed-workflow cases.",
     "Qualify CP775 font loading and rendering on real BIOS and in installed workflows.",
     "Implement, package and qualify all three language profiles and complete release gates in BALTIC.md."
@@ -705,6 +705,7 @@
     "display": "display-qualification.json",
     "country_records": "country-record-qualification.json",
     "keyboard_contract": "keyboard-contract-qualification.json",
-    "country": "country-qualification.json"
+    "country": "country-qualification.json",
+    "keyboard": "keyboard-qualification.json"
   }
 }

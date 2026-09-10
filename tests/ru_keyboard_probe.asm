@@ -44,7 +44,11 @@ org 100h
 .dos_read:
     mov ax,[si]
 %else
+%ifdef ENHANCED_INPUT
+    mov ah,10h
+%else
     xor ah,ah
+%endif
     int 16h
 %endif
     cmp ax,[si]
@@ -70,7 +74,11 @@ org 100h
     pop ds
     test al,al
     jnz fail
+%ifdef ENHANCED_INPUT
+    mov ah,11h
+%else
     mov ah,01h
+%endif
     int 16h
     jnz fail
     add si,2

@@ -1,0 +1,14 @@
+python3 tests/test_baltic_keyboard_records.py
+.....
+----------------------------------------------------------------------
+Ran 5 tests in 0.068s
+
+OK
+python3 tests/test_ru_keyboard_records.py
+....
+----------------------------------------------------------------------
+Ran 4 tests in 0.004s
+
+OK
+python3 tests/test_keyboard_records.py
+DOS 5 BR/PL/CZ/SL/YU/HU keyboard records: PASS

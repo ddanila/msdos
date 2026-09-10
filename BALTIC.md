@@ -162,6 +162,8 @@ encoding/font inputs and selected national country and keyboard contracts.
 COUNTRY.SYS includes the Baltic records with static checks against retained
 expectations and preservation of prior records. EGA775.CPI passes the shared
 font build and QEMU HIGH/LOW font-plane/rendering gates. Baltic country APIs
-and NLS transitions pass the QEMU HIGH/LOW matrix. Keyboard driver data,
-real-BIOS and remaining runtime/install/release qualification remain open.
+and NLS transitions pass the QEMU HIGH/LOW matrix. KEYBRD2.SYS includes all
+three Baltic layouts, with focused BIOS/DOS physical-input and corruption
+checks. Keyboard lifecycle/profile tests, real-BIOS and remaining runtime/
+install/release qualification remain open.
 Existing Russian evidence does not establish Baltic support.
