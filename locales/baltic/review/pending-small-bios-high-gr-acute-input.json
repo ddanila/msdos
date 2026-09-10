@@ -1,0 +1,89 @@
+[
+  {
+    "name": "literal confirms trigger",
+    "keys": [
+      [
+        "equal",
+        true
+      ],
+      [
+        "equal",
+        false
+      ],
+      [
+        "spc",
+        true
+      ],
+      [
+        "spc",
+        false
+      ]
+    ],
+    "bios_words": [
+      39
+    ]
+  },
+  {
+    "name": "arm pending; physical Caps on/off barrier",
+    "keys": [
+      [
+        "equal",
+        true
+      ],
+      [
+        "equal",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ],
+      [
+        "shift",
+        true
+      ],
+      [
+        "shift",
+        false
+      ]
+    ],
+    "bios_words": [],
+    "ack_after": 4
+  },
+  {
+    "name": "oversize rejection retains pending composition",
+    "keys": [
+      [
+        "a",
+        true
+      ],
+      [
+        "a",
+        false
+      ]
+    ],
+    "bios_words": [
+      160
+    ]
+  },
+  {
+    "name": "composition consumed once",
+    "keys": [
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ]
+    ],
+    "bios_words": [
+      4209
+    ]
+  }
+]

@@ -46,6 +46,11 @@ def steps(language, profile, dos=False):
         key = chr(base)
         scan = next(scan for scan, qcode in SCANS.items() if qcode == key)
         byte = dead['pairs'][str(base)]
+        add('US selection cancels pending '+dead_id,
+            trigger+tap('ctrl','alt','f1')+tap('q')+tap('ctrl','alt','f2')+tap(key),
+            0x1071, scan*256+base)
+        add('national reselection cancels pending '+dead_id,
+            trigger+tap('ctrl','alt','f2')+tap(key), scan*256+base)
         add('modifier release preserves pending '+dead_id,
             trigger+tap('shift')+tap('ctrl')+tap(key), (0 if byte == 224 else scan)*256+byte)
         for other_id, other in triggers.items():

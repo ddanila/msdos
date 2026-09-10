@@ -42,7 +42,7 @@ def validate(data):
         sections[code] = (logic, page, end)
         if code == 'RU':
             continue  # Its translation tables have a separate retail oracle.
-        require(word(logic+2) == 0, 'Baltic features')
+        require(word(logic+2) == 0x800, 'Baltic features')
         commands, kinds, nesting = logic+4, {}, []
         while commands < common:
             opcode = take(commands, 1)[0]

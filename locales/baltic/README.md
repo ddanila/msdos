@@ -146,6 +146,36 @@ IDs, missing files, bad signatures and short headers. Each phase checks status
 and physical input; rejected loads must preserve the active language. These
 gates are included in `make test`.
 
-Pending accents across US/national changes or KEYB reloads, additional modifier
-and fallback edges, deeply malformed libraries, legacy keyboards, installation
-and complete language workflows remain separate open requirements.
+Additional modifier and fallback edges, deeply malformed libraries, legacy
+keyboards, installation and complete language workflows remain separate open
+requirements. Pending mode/reload boundaries are qualified below.
+
+[Pending composition semantics](keyboard-pending-contract.json) define the
+Baltic selection extension. Opted-in layouts cancel pending accents on US or
+national selection and successful reloads. Entering Baltic from a legacy layout
+also starts fresh. Rejected selections preserve pending composition; legacy
+German self-reload retains its existing behavior.
+
+[Pending-state qualification](keyboard-pending-qualification.json) records the
+HIGH/LOW BIOS/DOS matrices and negative controls. A physical Caps transition,
+acknowledged by the guest before the host releases it, lets the test arm an
+accent without consuming it. Subsequent physical input proves either cancellation
+or preservation. No host-written character substitutes for this input.
+
+KEYB now preserves its original resident allocation limit when copying rebuilt
+tables. The previous temporary FFFF value could erase that limit, letting a
+later smaller library redefine the capacity. The guest checks a valid limit
+within the resident MCB and unchanged limits across selection phases. Negative
+controls disable selection reset or restore the omitted capacity copy; each
+must fail its corresponding guest oracle. `test-baltic-keyboard-pending-qemu`
+is included in `make test`.
+
+Pending-state preservation on additional load-failure and page-transition paths,
+legacy BIOS, installed language profiles and complete text/filename workflows
+remain open. The matching KEYB executable is required for the selection-reset
+feature as well as literal FF input.
+
+The resident buffer does not grow on reload. Start KEYB from KEYBRD2.SYS when
+Baltic switching is required. A dedicated test starts from the smaller original
+German allocation and requires an oversized Baltic load to fail while preserving
+the German layout, pending accent and allocation limit.

@@ -43,6 +43,7 @@
         INCLUDE KEYBMAC.INC            ;;
         INCLUDE KEYBCMD.INC            ;;
         INCLUDE KEYBCPSD.INC           ;;
+        INCLUDE KEYBI9.INC
         INCLUDE KEYBI9C.INC            ;;
                                        ;;
         PUBLIC KEYB_INT_2F             ;;
@@ -179,12 +180,14 @@ INT_2F_CP_LANGUAGE:                    ;;
                                        ;;
         CMP   BL,0                     ;; Y..Check if Language is to be US437
         JNE   INT_2F_CONTINUE1         ;; IF yes THEN,
+        CALL  CLEAR_SELECTED_DEAD
         MOV   COUNTRY_FLAG,BL          ;;   Set COUNTRY_FLAG to 0
         JMP   INT_2F_DONE              ;;
                                        ;;
 INT_2F_CONTINUE1:                      ;; ELSE
         CMP   BL,-1                    ;;   Check if language is to be national
         JNE   INT_2F_LANG_ERROR_FLAG   ;;   IF yes THEN,
+        CALL  CLEAR_SELECTED_DEAD
         MOV   COUNTRY_FLAG,BL          ;;     Set COUNTRY_FLAG to -1 (0FFH)
         JMP   INT_2F_DONE              ;;
                                        ;;

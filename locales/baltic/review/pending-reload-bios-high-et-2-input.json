@@ -1,0 +1,723 @@
+[
+  {
+    "name": "literal confirms trigger",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "grave_accent",
+        true
+      ],
+      [
+        "grave_accent",
+        false
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "spc",
+        true
+      ],
+      [
+        "spc",
+        false
+      ]
+    ],
+    "bios_words": [
+      126
+    ]
+  },
+  {
+    "name": "arm pending; physical Caps on/off barrier",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "grave_accent",
+        true
+      ],
+      [
+        "grave_accent",
+        false
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ]
+    ],
+    "bios_words": [],
+    "ack_after": 6
+  },
+  {
+    "name": "fresh target input",
+    "keys": [
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ]
+    ],
+    "bios_words": [
+      4209
+    ]
+  },
+  {
+    "name": "no stale state after return",
+    "keys": [
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ]
+    ],
+    "bios_words": [
+      4209
+    ]
+  },
+  {
+    "name": "literal confirms trigger",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "grave_accent",
+        true
+      ],
+      [
+        "grave_accent",
+        false
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "spc",
+        true
+      ],
+      [
+        "spc",
+        false
+      ]
+    ],
+    "bios_words": [
+      126
+    ]
+  },
+  {
+    "name": "arm pending; physical Caps on/off barrier",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "grave_accent",
+        true
+      ],
+      [
+        "grave_accent",
+        false
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ]
+    ],
+    "bios_words": [],
+    "ack_after": 6
+  },
+  {
+    "name": "fresh target input",
+    "keys": [
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ]
+    ],
+    "bios_words": [
+      4209
+    ]
+  },
+  {
+    "name": "no stale state after return",
+    "keys": [
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ]
+    ],
+    "bios_words": [
+      4209
+    ]
+  },
+  {
+    "name": "literal confirms trigger",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "grave_accent",
+        true
+      ],
+      [
+        "grave_accent",
+        false
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "spc",
+        true
+      ],
+      [
+        "spc",
+        false
+      ]
+    ],
+    "bios_words": [
+      126
+    ]
+  },
+  {
+    "name": "arm pending; physical Caps on/off barrier",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "grave_accent",
+        true
+      ],
+      [
+        "grave_accent",
+        false
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ]
+    ],
+    "bios_words": [],
+    "ack_after": 6
+  },
+  {
+    "name": "fresh target input",
+    "keys": [
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ]
+    ],
+    "bios_words": [
+      4209
+    ]
+  },
+  {
+    "name": "no stale state after return",
+    "keys": [
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ]
+    ],
+    "bios_words": [
+      4209
+    ]
+  },
+  {
+    "name": "literal confirms trigger",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "grave_accent",
+        true
+      ],
+      [
+        "grave_accent",
+        false
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "spc",
+        true
+      ],
+      [
+        "spc",
+        false
+      ]
+    ],
+    "bios_words": [
+      126
+    ]
+  },
+  {
+    "name": "arm pending; physical Caps on/off barrier",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "grave_accent",
+        true
+      ],
+      [
+        "grave_accent",
+        false
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ]
+    ],
+    "bios_words": [],
+    "ack_after": 6
+  },
+  {
+    "name": "fresh target input",
+    "keys": [
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ]
+    ],
+    "bios_words": [
+      4304
+    ]
+  },
+  {
+    "name": "no stale state after return",
+    "keys": [
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ]
+    ],
+    "bios_words": [
+      4209
+    ]
+  },
+  {
+    "name": "literal confirms trigger",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "grave_accent",
+        true
+      ],
+      [
+        "grave_accent",
+        false
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "spc",
+        true
+      ],
+      [
+        "spc",
+        false
+      ]
+    ],
+    "bios_words": [
+      126
+    ]
+  },
+  {
+    "name": "arm pending; physical Caps on/off barrier",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "grave_accent",
+        true
+      ],
+      [
+        "grave_accent",
+        false
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ]
+    ],
+    "bios_words": [],
+    "ack_after": 6
+  },
+  {
+    "name": "fresh target input",
+    "keys": [
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ]
+    ],
+    "bios_words": [
+      4209
+    ]
+  },
+  {
+    "name": "no stale state after return",
+    "keys": [
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ]
+    ],
+    "bios_words": [
+      4209
+    ]
+  },
+  {
+    "name": "literal confirms trigger",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "grave_accent",
+        true
+      ],
+      [
+        "grave_accent",
+        false
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "spc",
+        true
+      ],
+      [
+        "spc",
+        false
+      ]
+    ],
+    "bios_words": [
+      126
+    ]
+  },
+  {
+    "name": "arm pending; physical Caps on/off barrier",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "grave_accent",
+        true
+      ],
+      [
+        "grave_accent",
+        false
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ]
+    ],
+    "bios_words": [],
+    "ack_after": 6
+  },
+  {
+    "name": "rejection retains pending composition",
+    "keys": [
+      [
+        "o",
+        true
+      ],
+      [
+        "o",
+        false
+      ]
+    ],
+    "bios_words": [
+      6372
+    ]
+  },
+  {
+    "name": "composition consumed once",
+    "keys": [
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ]
+    ],
+    "bios_words": [
+      4209
+    ]
+  },
+  {
+    "name": "literal confirms trigger",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "grave_accent",
+        true
+      ],
+      [
+        "grave_accent",
+        false
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "spc",
+        true
+      ],
+      [
+        "spc",
+        false
+      ]
+    ],
+    "bios_words": [
+      126
+    ]
+  },
+  {
+    "name": "arm pending; physical Caps on/off barrier",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "grave_accent",
+        true
+      ],
+      [
+        "grave_accent",
+        false
+      ],
+      [
+        "shift",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ]
+    ],
+    "bios_words": [],
+    "ack_after": 6
+  },
+  {
+    "name": "rejection retains pending composition",
+    "keys": [
+      [
+        "o",
+        true
+      ],
+      [
+        "o",
+        false
+      ]
+    ],
+    "bios_words": [
+      6372
+    ]
+  },
+  {
+    "name": "composition consumed once",
+    "keys": [
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ]
+    ],
+    "bios_words": [
+      4209
+    ]
+  }
+]

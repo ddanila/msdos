@@ -1,0 +1,21 @@
+[
+  {
+    "flags": [],
+    "sha256": "c5b8549f22eb89c030584ea48d60869dfd97ad622891671dae015bab0acea426",
+    "byte_identical": true
+  },
+  {
+    "flags": [
+      "-DDOS_INPUT"
+    ],
+    "sha256": "f008fd15ee0ddb799264f3156ebf781c55e357ddf5b917df8980687ce6da1984",
+    "byte_identical": true
+  },
+  {
+    "flags": [
+      "-DENHANCED_INPUT"
+    ],
+    "sha256": "e47c057435c32b1e3ca57a68cd5253397d35eb1ef4aa782903c4a98f32512e85",
+    "byte_identical": true
+  }
+]

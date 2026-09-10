@@ -484,9 +484,11 @@ TB_DONE_CONTINUE1:                     ;;
         JMP   CONTINUE_2_END           ;;
                                        ;;
 DONT_REPLACE:                          ;;
+        MOV   AX,ES:[BP].RESIDENT_END   ;; preserve the original allocation
         PUSH  CS                       ;;
         POP   ES                       ;;
         MOV   BP,OFFSET SD_SOURCE_PTR  ;;
+        MOV   ES:[BP].RESIDENT_END,AX  ;; never copy the temporary FFFF limit
                                        ;;
 CONTINUE_2_END:                        ;;
         SUB   CX,OFFSET SD_DEST_PTR    ;;  Calculate # of bytes to copy

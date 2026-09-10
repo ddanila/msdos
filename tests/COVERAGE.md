@@ -437,3 +437,15 @@ layout. The EE explicit-ID case guards the shared ET/EE directory group.
 are included in `make test`. Pending composition across mode/reload boundaries,
 additional modifier/fallback edges, deep library validation and legacy BIOS
 remain open; these gates do not establish installed or complete text workflows.
+
+The [Baltic pending-state qualification](../locales/baltic/keyboard-pending-qualification.json)
+records `test-baltic-keyboard-pending-qemu` and the extended mode lifecycle
+matrix. Physical acknowledged Caps transitions arm accents without consuming
+them. HIGH/LOW BIOS and DOS reads prove fresh state after Baltic mode/reload
+selection and preserved state after missing-file/invalid-ID or insufficient-
+capacity rejection. German
+self-reload preserves its legacy pending state. Each selection probe also checks
+that the resident limit is valid within its MCB and constant across reloads.
+Private controls disable the reset feature or omit the capacity-preservation
+store; both must fail. Further failure/page-transition cases and the remaining
+real-BIOS, installation and release gates are separate requirements.

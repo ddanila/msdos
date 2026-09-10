@@ -1,0 +1,146 @@
+[
+  {
+    "status_code": "GR",
+    "status_page": 437,
+    "command": "KEYB GR,437,KEYBOARD.SYS",
+    "reject": false,
+    "first_step": 0,
+    "step_count": 2
+  },
+  {
+    "status_code": "ET",
+    "status_page": 775,
+    "command": "KEYB ET,775,KEYBRD2.SYS",
+    "reject": false,
+    "first_step": 2,
+    "step_count": 1
+  },
+  {
+    "status_code": "ET",
+    "status_page": 775,
+    "command": "KEYB ET,775,KEYBRD2.SYS",
+    "reject": false,
+    "first_step": 3,
+    "step_count": 1
+  },
+  {
+    "status_code": "GR",
+    "status_page": 437,
+    "command": "KEYB GR,437,KEYBOARD.SYS",
+    "reject": false,
+    "first_step": 4,
+    "step_count": 2
+  },
+  {
+    "status_code": "EE",
+    "status_page": 775,
+    "command": "KEYB EE,775,KEYBRD2.SYS",
+    "reject": false,
+    "first_step": 6,
+    "step_count": 1
+  },
+  {
+    "status_code": "ET",
+    "status_page": 775,
+    "command": "KEYB ET,775,KEYBRD2.SYS",
+    "reject": false,
+    "first_step": 7,
+    "step_count": 1
+  },
+  {
+    "status_code": "GR",
+    "status_page": 437,
+    "command": "KEYB GR,437,KEYBOARD.SYS",
+    "reject": false,
+    "first_step": 8,
+    "step_count": 2
+  },
+  {
+    "status_code": "LV",
+    "status_page": 775,
+    "command": "KEYB LV,775,KEYBRD2.SYS",
+    "reject": false,
+    "first_step": 10,
+    "step_count": 1
+  },
+  {
+    "status_code": "ET",
+    "status_page": 775,
+    "command": "KEYB ET,775,KEYBRD2.SYS",
+    "reject": false,
+    "first_step": 11,
+    "step_count": 1
+  },
+  {
+    "status_code": "GR",
+    "status_page": 437,
+    "command": "KEYB GR,437,KEYBOARD.SYS",
+    "reject": false,
+    "first_step": 12,
+    "step_count": 2
+  },
+  {
+    "status_code": "LT",
+    "status_page": 775,
+    "command": "KEYB LT,775,KEYBRD2.SYS",
+    "reject": false,
+    "first_step": 14,
+    "step_count": 1
+  },
+  {
+    "status_code": "ET",
+    "status_page": 775,
+    "command": "KEYB ET,775,KEYBRD2.SYS",
+    "reject": false,
+    "first_step": 15,
+    "step_count": 1
+  },
+  {
+    "status_code": "GR",
+    "status_page": 437,
+    "command": "KEYB GR,437,KEYBOARD.SYS",
+    "reject": false,
+    "first_step": 16,
+    "step_count": 2
+  },
+  {
+    "status_code": "GR",
+    "status_page": 437,
+    "command": "KEYB GR,437,KEYBOARD.SYS",
+    "reject": false,
+    "first_step": 18,
+    "step_count": 2
+  },
+  {
+    "status_code": "GR",
+    "status_page": 437,
+    "command": "KEYB GR,437,KEYBOARD.SYS",
+    "reject": false,
+    "first_step": 20,
+    "step_count": 2
+  },
+  {
+    "status_code": "GR",
+    "status_page": 437,
+    "command": "KEYB GR,775,MISSING.SYS",
+    "reject": true,
+    "first_step": 22,
+    "step_count": 2
+  },
+  {
+    "status_code": "GR",
+    "status_page": 437,
+    "command": "KEYB GR,437,KEYBOARD.SYS",
+    "reject": false,
+    "first_step": 24,
+    "step_count": 2
+  },
+  {
+    "status_code": "GR",
+    "status_page": 437,
+    "command": "KEYB GR,775,KEYBRD2.SYS /ID:999",
+    "reject": true,
+    "first_step": 26,
+    "step_count": 2
+  }
+]

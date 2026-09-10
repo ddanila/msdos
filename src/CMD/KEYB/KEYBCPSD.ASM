@@ -105,6 +105,21 @@ NO_FREEDOM:
 		 pop	 ax
 						  ;AN004;	 new part of memory
 	MOV	BYTE PTR ES:SD.TABLE_OK,1	  ;; Activate processing flag
+        ; The newly copied layout may opt in even when the old one did not.
+        TEST    ES:SD.SPECIAL_FEATURES,CLEAR_DEAD_SELECT
+        JZ      NO_NEW_DEAD_RESET
+        PUSH    AX
+        PUSH    BX
+        MOV     AX,0AD82H
+        MOV     BL,-1
+        TEST    ES:SD.SPECIAL_FEATURES,INITIAL_US_MODE
+        JZ      RESET_NEW_DEAD
+        XOR     BL,BL
+RESET_NEW_DEAD:
+        INT     2FH
+        POP     BX
+        POP     AX
+NO_NEW_DEAD_RESET:
 	INT	21H				  ;; Exit
 					       ;;
 					       ;;

@@ -1,0 +1,723 @@
+[
+  {
+    "name": "literal confirms trigger",
+    "keys": [
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "apostrophe",
+        true
+      ],
+      [
+        "apostrophe",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ],
+      [
+        "spc",
+        true
+      ],
+      [
+        "spc",
+        false
+      ]
+    ],
+    "bios_words": [
+      239
+    ]
+  },
+  {
+    "name": "arm pending; physical Caps on/off barrier",
+    "keys": [
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "apostrophe",
+        true
+      ],
+      [
+        "apostrophe",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ]
+    ],
+    "bios_words": [],
+    "ack_after": 6
+  },
+  {
+    "name": "fresh target input",
+    "keys": [
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ]
+    ],
+    "bios_words": [
+      4209
+    ]
+  },
+  {
+    "name": "no stale state after return",
+    "keys": [
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ]
+    ],
+    "bios_words": [
+      4209
+    ]
+  },
+  {
+    "name": "literal confirms trigger",
+    "keys": [
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "apostrophe",
+        true
+      ],
+      [
+        "apostrophe",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ],
+      [
+        "spc",
+        true
+      ],
+      [
+        "spc",
+        false
+      ]
+    ],
+    "bios_words": [
+      239
+    ]
+  },
+  {
+    "name": "arm pending; physical Caps on/off barrier",
+    "keys": [
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "apostrophe",
+        true
+      ],
+      [
+        "apostrophe",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ]
+    ],
+    "bios_words": [],
+    "ack_after": 6
+  },
+  {
+    "name": "fresh target input",
+    "keys": [
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ]
+    ],
+    "bios_words": [
+      4209
+    ]
+  },
+  {
+    "name": "no stale state after return",
+    "keys": [
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ]
+    ],
+    "bios_words": [
+      4209
+    ]
+  },
+  {
+    "name": "literal confirms trigger",
+    "keys": [
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "apostrophe",
+        true
+      ],
+      [
+        "apostrophe",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ],
+      [
+        "spc",
+        true
+      ],
+      [
+        "spc",
+        false
+      ]
+    ],
+    "bios_words": [
+      239
+    ]
+  },
+  {
+    "name": "arm pending; physical Caps on/off barrier",
+    "keys": [
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "apostrophe",
+        true
+      ],
+      [
+        "apostrophe",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ]
+    ],
+    "bios_words": [],
+    "ack_after": 6
+  },
+  {
+    "name": "fresh target input",
+    "keys": [
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ]
+    ],
+    "bios_words": [
+      4209
+    ]
+  },
+  {
+    "name": "no stale state after return",
+    "keys": [
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ]
+    ],
+    "bios_words": [
+      4209
+    ]
+  },
+  {
+    "name": "literal confirms trigger",
+    "keys": [
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "apostrophe",
+        true
+      ],
+      [
+        "apostrophe",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ],
+      [
+        "spc",
+        true
+      ],
+      [
+        "spc",
+        false
+      ]
+    ],
+    "bios_words": [
+      239
+    ]
+  },
+  {
+    "name": "arm pending; physical Caps on/off barrier",
+    "keys": [
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "apostrophe",
+        true
+      ],
+      [
+        "apostrophe",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ]
+    ],
+    "bios_words": [],
+    "ack_after": 6
+  },
+  {
+    "name": "fresh target input",
+    "keys": [
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ]
+    ],
+    "bios_words": [
+      4304
+    ]
+  },
+  {
+    "name": "no stale state after return",
+    "keys": [
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ]
+    ],
+    "bios_words": [
+      4209
+    ]
+  },
+  {
+    "name": "literal confirms trigger",
+    "keys": [
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "apostrophe",
+        true
+      ],
+      [
+        "apostrophe",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ],
+      [
+        "spc",
+        true
+      ],
+      [
+        "spc",
+        false
+      ]
+    ],
+    "bios_words": [
+      239
+    ]
+  },
+  {
+    "name": "arm pending; physical Caps on/off barrier",
+    "keys": [
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "apostrophe",
+        true
+      ],
+      [
+        "apostrophe",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ]
+    ],
+    "bios_words": [],
+    "ack_after": 6
+  },
+  {
+    "name": "fresh target input",
+    "keys": [
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ]
+    ],
+    "bios_words": [
+      4209
+    ]
+  },
+  {
+    "name": "no stale state after return",
+    "keys": [
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ]
+    ],
+    "bios_words": [
+      4209
+    ]
+  },
+  {
+    "name": "literal confirms trigger",
+    "keys": [
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "apostrophe",
+        true
+      ],
+      [
+        "apostrophe",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ],
+      [
+        "spc",
+        true
+      ],
+      [
+        "spc",
+        false
+      ]
+    ],
+    "bios_words": [
+      239
+    ]
+  },
+  {
+    "name": "arm pending; physical Caps on/off barrier",
+    "keys": [
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "apostrophe",
+        true
+      ],
+      [
+        "apostrophe",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ]
+    ],
+    "bios_words": [],
+    "ack_after": 6
+  },
+  {
+    "name": "rejection retains pending composition",
+    "keys": [
+      [
+        "c",
+        true
+      ],
+      [
+        "c",
+        false
+      ]
+    ],
+    "bios_words": [
+      11911
+    ]
+  },
+  {
+    "name": "composition consumed once",
+    "keys": [
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ]
+    ],
+    "bios_words": [
+      4209
+    ]
+  },
+  {
+    "name": "literal confirms trigger",
+    "keys": [
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "apostrophe",
+        true
+      ],
+      [
+        "apostrophe",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ],
+      [
+        "spc",
+        true
+      ],
+      [
+        "spc",
+        false
+      ]
+    ],
+    "bios_words": [
+      239
+    ]
+  },
+  {
+    "name": "arm pending; physical Caps on/off barrier",
+    "keys": [
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "apostrophe",
+        true
+      ],
+      [
+        "apostrophe",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ],
+      [
+        "caps_lock",
+        true
+      ],
+      [
+        "caps_lock",
+        false
+      ]
+    ],
+    "bios_words": [],
+    "ack_after": 6
+  },
+  {
+    "name": "rejection retains pending composition",
+    "keys": [
+      [
+        "c",
+        true
+      ],
+      [
+        "c",
+        false
+      ]
+    ],
+    "bios_words": [
+      11911
+    ]
+  },
+  {
+    "name": "composition consumed once",
+    "keys": [
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ]
+    ],
+    "bios_words": [
+      4209
+    ]
+  }
+]

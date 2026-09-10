@@ -105,7 +105,7 @@ def generate():
             lines.append("IFF CAPS_STATE"); callback(2); lines.append("ELSEF"); callback(0); lines.append("ENDIFF")
             lines.extend(["ENDIFF"] * 4)
 
-        lines += [f"{tag}_LOGIC:", f"DW {tag}_LOGIC_END-$", "DW 0", "OPTION EXIT_IF_FOUND"]
+        lines += [f"{tag}_LOGIC:", f"DW {tag}_LOGIC_END-$", "DW CLEAR_DEAD_SELECT", "OPTION EXIT_IF_FOUND"]
         for flag, modes, error in compositions:
             lines += [f"IFF {flag}", "RESET_NLS"]
             dispatch(lambda mode: lines.append(f"XLATT {modes[mode]}") if modes[mode] else None)

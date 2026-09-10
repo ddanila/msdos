@@ -1,0 +1,322 @@
+[
+  {
+    "command": null,
+    "reject": false,
+    "status_code": "ET",
+    "status_page": 775,
+    "first_step": 0,
+    "step_count": 2
+  },
+  {
+    "command": "KEYB ET,775,KEYBRD2.SYS",
+    "reject": false,
+    "status_code": "ET",
+    "status_page": 775,
+    "first_step": 2,
+    "step_count": 2
+  },
+  {
+    "command": "KEYB ET,775,KEYBRD2.SYS /ID:454",
+    "reject": false,
+    "status_code": "ET",
+    "status_page": 775,
+    "first_step": 4,
+    "step_count": 2
+  },
+  {
+    "command": "KEYB ET,866,KEYBRD2.SYS",
+    "reject": true,
+    "status_code": "ET",
+    "status_page": 775,
+    "first_step": 6,
+    "step_count": 2
+  },
+  {
+    "command": "KEYB ET,775,KEYBRD2.SYS /ID:999",
+    "reject": true,
+    "status_code": "ET",
+    "status_page": 775,
+    "first_step": 8,
+    "step_count": 2
+  },
+  {
+    "command": "KEYB ET,775,KEYBRD2.SYS /ID:221",
+    "reject": true,
+    "status_code": "ET",
+    "status_page": 775,
+    "first_step": 10,
+    "step_count": 2
+  },
+  {
+    "command": "KEYB ET,775,MISSING.SYS",
+    "reject": true,
+    "status_code": "ET",
+    "status_page": 775,
+    "first_step": 12,
+    "step_count": 2
+  },
+  {
+    "command": "KEYB ET,775,BAD.SYS",
+    "reject": true,
+    "status_code": "ET",
+    "status_page": 775,
+    "first_step": 14,
+    "step_count": 2
+  },
+  {
+    "command": "KEYB ET,775,SHORT.SYS",
+    "reject": true,
+    "status_code": "ET",
+    "status_page": 775,
+    "first_step": 16,
+    "step_count": 2
+  },
+  {
+    "command": "KEYB EE,775,KEYBRD2.SYS",
+    "reject": false,
+    "status_code": "EE",
+    "status_page": 775,
+    "first_step": 18,
+    "step_count": 2
+  },
+  {
+    "command": "KEYB EE,775,KEYBRD2.SYS /ID:454",
+    "reject": false,
+    "status_code": "EE",
+    "status_page": 775,
+    "first_step": 20,
+    "step_count": 2
+  },
+  {
+    "command": "KEYB EE,866,KEYBRD2.SYS",
+    "reject": true,
+    "status_code": "EE",
+    "status_page": 775,
+    "first_step": 22,
+    "step_count": 2
+  },
+  {
+    "command": "KEYB EE,775,KEYBRD2.SYS /ID:999",
+    "reject": true,
+    "status_code": "EE",
+    "status_page": 775,
+    "first_step": 24,
+    "step_count": 2
+  },
+  {
+    "command": "KEYB EE,775,KEYBRD2.SYS /ID:221",
+    "reject": true,
+    "status_code": "EE",
+    "status_page": 775,
+    "first_step": 26,
+    "step_count": 2
+  },
+  {
+    "command": "KEYB EE,775,MISSING.SYS",
+    "reject": true,
+    "status_code": "EE",
+    "status_page": 775,
+    "first_step": 28,
+    "step_count": 2
+  },
+  {
+    "command": "KEYB EE,775,BAD.SYS",
+    "reject": true,
+    "status_code": "EE",
+    "status_page": 775,
+    "first_step": 30,
+    "step_count": 2
+  },
+  {
+    "command": "KEYB EE,775,SHORT.SYS",
+    "reject": true,
+    "status_code": "EE",
+    "status_page": 775,
+    "first_step": 32,
+    "step_count": 2
+  },
+  {
+    "command": "KEYB LV,775,KEYBRD2.SYS",
+    "reject": false,
+    "status_code": "LV",
+    "status_page": 775,
+    "first_step": 34,
+    "step_count": 2
+  },
+  {
+    "command": "KEYB LV,775,KEYBRD2.SYS /ID:0",
+    "reject": false,
+    "status_code": "LV",
+    "status_page": 775,
+    "first_step": 36,
+    "step_count": 2
+  },
+  {
+    "command": "KEYB LV,866,KEYBRD2.SYS",
+    "reject": true,
+    "status_code": "LV",
+    "status_page": 775,
+    "first_step": 38,
+    "step_count": 2
+  },
+  {
+    "command": "KEYB LV,775,KEYBRD2.SYS /ID:999",
+    "reject": true,
+    "status_code": "LV",
+    "status_page": 775,
+    "first_step": 40,
+    "step_count": 2
+  },
+  {
+    "command": "KEYB LV,775,KEYBRD2.SYS /ID:454",
+    "reject": true,
+    "status_code": "LV",
+    "status_page": 775,
+    "first_step": 42,
+    "step_count": 2
+  },
+  {
+    "command": "KEYB LV,775,MISSING.SYS",
+    "reject": true,
+    "status_code": "LV",
+    "status_page": 775,
+    "first_step": 44,
+    "step_count": 2
+  },
+  {
+    "command": "KEYB LV,775,BAD.SYS",
+    "reject": true,
+    "status_code": "LV",
+    "status_page": 775,
+    "first_step": 46,
+    "step_count": 2
+  },
+  {
+    "command": "KEYB LV,775,SHORT.SYS",
+    "reject": true,
+    "status_code": "LV",
+    "status_page": 775,
+    "first_step": 48,
+    "step_count": 2
+  },
+  {
+    "command": "KEYB LT,775,KEYBRD2.SYS",
+    "reject": false,
+    "status_code": "LT",
+    "status_page": 775,
+    "first_step": 50,
+    "step_count": 2
+  },
+  {
+    "command": "KEYB LT,775,KEYBRD2.SYS /ID:221",
+    "reject": false,
+    "status_code": "LT",
+    "status_page": 775,
+    "first_step": 52,
+    "step_count": 2
+  },
+  {
+    "command": "KEYB LT,866,KEYBRD2.SYS",
+    "reject": true,
+    "status_code": "LT",
+    "status_page": 775,
+    "first_step": 54,
+    "step_count": 2
+  },
+  {
+    "command": "KEYB LT,775,KEYBRD2.SYS /ID:999",
+    "reject": true,
+    "status_code": "LT",
+    "status_page": 775,
+    "first_step": 56,
+    "step_count": 2
+  },
+  {
+    "command": "KEYB LT,775,KEYBRD2.SYS /ID:454",
+    "reject": true,
+    "status_code": "LT",
+    "status_page": 775,
+    "first_step": 58,
+    "step_count": 2
+  },
+  {
+    "command": "KEYB LT,775,MISSING.SYS",
+    "reject": true,
+    "status_code": "LT",
+    "status_page": 775,
+    "first_step": 60,
+    "step_count": 2
+  },
+  {
+    "command": "KEYB LT,775,BAD.SYS",
+    "reject": true,
+    "status_code": "LT",
+    "status_page": 775,
+    "first_step": 62,
+    "step_count": 2
+  },
+  {
+    "command": "KEYB LT,775,SHORT.SYS",
+    "reject": true,
+    "status_code": "LT",
+    "status_page": 775,
+    "first_step": 64,
+    "step_count": 2
+  },
+  {
+    "command": "KEYB ZZ,775,KEYBRD2.SYS",
+    "reject": true,
+    "status_code": "LT",
+    "status_page": 775,
+    "first_step": 66,
+    "step_count": 2
+  },
+  {
+    "command": "KEYB RU,866,KEYBRD2.SYS /ID:441",
+    "reject": false,
+    "status_code": "RU",
+    "status_page": 866,
+    "first_step": 68,
+    "step_count": 2
+  },
+  {
+    "command": "KEYB ET,775,KEYBRD2.SYS /ID:454",
+    "reject": false,
+    "status_code": "ET",
+    "status_page": 775,
+    "first_step": 70,
+    "step_count": 2
+  },
+  {
+    "command": "KEYB GR,437,KEYBOARD.SYS",
+    "reject": false,
+    "status_code": "GR",
+    "status_page": 437,
+    "first_step": 72,
+    "step_count": 2
+  },
+  {
+    "command": "KEYB LV,775,KEYBRD2.SYS",
+    "reject": false,
+    "status_code": "LV",
+    "status_page": 775,
+    "first_step": 74,
+    "step_count": 2
+  },
+  {
+    "command": "KEYB LT,775,KEYBRD2.SYS /ID:221",
+    "reject": false,
+    "status_code": "LT",
+    "status_page": 775,
+    "first_step": 76,
+    "step_count": 2
+  },
+  {
+    "command": "KEYB EE,775,KEYBRD2.SYS",
+    "reject": false,
+    "status_code": "EE",
+    "status_page": 775,
+    "first_step": 78,
+    "step_count": 2
+  }
+]

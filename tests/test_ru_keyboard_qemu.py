@@ -121,6 +121,12 @@ def modifier_steps():
     return cases
 
 
+def encode_expected(cases, grouped=False):
+    return b''.join(bytes([len(case['bios_words'])])+
+                    b''.join(struct.pack('<H', word) for word in case['bios_words'])
+                    if grouped else struct.pack('<H', case['bios_ax']) for case in cases)
+
+
 def run_case(work, base, name, corrupt=False, dos=False, reload=False, reject=None, recipe=False, cases=None, library_source=None, keyb_selection=None, country=7, enhanced=False, expected_failure=None, grouped=False, memory_profile=None, layout_phases=None, extra_files=None):
     directory=work/name
     directory.mkdir()
@@ -142,9 +148,7 @@ def run_case(work, base, name, corrupt=False, dos=False, reload=False, reject=No
         cases=[{'name':'initial Latin','keys':[('q',True),('q',False)],'bios_ax':0x1071},
                {'name':'select Russian','keys':[('alt',True),('shift_r',True),('shift_r',False),('alt',False),('q',True),('q',False)],'bios_ax':0xa9},
                {'name':'Russian after rejected load','keys':[('q',True),('q',False)],'bios_ax':0xa9}]
-    (directory/'expected.bin').write_bytes(b''.join(
-        bytes([len(s['bios_words'])])+b''.join(struct.pack('<H', word) for word in s['bios_words'])
-        if grouped else struct.pack('<H', s['bios_ax']) for s in cases))
+    (directory/'expected.bin').write_bytes(encode_expected(cases, grouped))
     command('nasm','-f','bin',*(['-DDOS_INPUT'] if dos else []),*(['-DENHANCED_INPUT'] if enhanced else []),*(['-DGROUPED_INPUT'] if grouped else []),str(ROOT/'tests/ru_keyboard_probe.asm'),'-o',str(directory/'PROBE.COM'),cwd=directory)
     if reload or reject:
         phases = [(0,2,'PROBE.COM'),(2,4,'GPROBE.COM'),(4,7,'RPROBE.COM')] if reload else [(0,2,'PROBE.COM'),(2,3,'RPROBE.COM')]
@@ -225,9 +229,11 @@ def run_case(work, base, name, corrupt=False, dos=False, reload=False, reject=No
         for index, phase in enumerate(layout_phases):
             program=f'P{index:02d}.COM'
             selected=phase['cases']
-            (directory/'expected.bin').write_bytes(b''.join(struct.pack('<H', item['bios_ax']) for item in selected))
-            command('nasm','-f','bin',f'-DSTART_INDEX={start}',
+            (directory/'expected.bin').write_bytes(encode_expected(selected, grouped))
+            command('nasm','-f','bin',f'-DSTART_INDEX={start}','-DCAPACITY_PROOF',
                     *(['-DENHANCED_INPUT'] if enhanced else []),
+                    *(['-DGROUPED_INPUT'] if grouped else []),
+                    *(['-DDOS_INPUT'] if dos else []),
                     str(ROOT/'tests/ru_keyboard_probe.asm'),'-o',str(directory/program),cwd=directory)
             command('mcopy','-o','-i',str(image),str(directory/program),'::'+program)
             actions.append(f'ECHO BALTIC_PHASE_{index:02d}')
@@ -270,12 +276,19 @@ def run_case(work, base, name, corrupt=False, dos=False, reload=False, reject=No
                 if proc.poll() is not None:
                     break
                 # Separate events preserve physical modifier order and key releases.
-                for key,down in case['keys']:
+                for event_index,(key,down) in enumerate(case['keys'],1):
                     qmp._send({'execute':'input-send-event','arguments':{'events':[{'type':'key','data':{'down':down,'key':{'type':'qcode','data':key}}}]}})
                     result=qmp._recv_response()
                     if 'error' in result:
                         raise AssertionError(result)
                     time.sleep(.005)
+                    if event_index == case.get('ack_after'):
+                        marker=f'RU_KEY_ARMED {index:04X}\r\n'.encode()
+                        deadline=time.monotonic()+15
+                        while marker not in log.read_bytes():
+                            if proc.poll() is not None or time.monotonic()>deadline:
+                                raise AssertionError(f'pending-key barrier failed: {log}')
+                            time.sleep(.005)
             result=proc.wait(timeout=15)
         finally:
             if qmp:
@@ -292,13 +305,16 @@ def run_case(work, base, name, corrupt=False, dos=False, reload=False, reject=No
     else:
         assert b'RU_KEY_DONE' in output and b'RU_KEY_PASS' in output and b'FAIL' not in output,(log,output)
         assert output.count(b'RU_KEY_READY') == len(cases), (log, 'incomplete input sequence')
-    if layout_phases:
+    if layout_phases and expected_failure is None and not corrupt:
         for index, phase in enumerate(layout_phases):
             chunk=output.split(f'BALTIC_PHASE_{index:02d}\r\n'.encode(),1)[1]
             chunk=chunk.split(f'BALTIC_PHASE_{index+1:02d}\r\n'.encode(),1)[0]
             marker=f"Current keyboard code: {phase['status_code']}  code page: {phase['status_page']}".encode()
             assert marker in chunk, (log, index, marker, chunk)
         assert output.count(b'RU_KEY_PASS') == len(layout_phases), (log, 'missing phase completion')
+        capacities=[line.split()[-1] for line in output.splitlines() if line.startswith(b'KEYB_CAPACITY ')]
+        assert len(capacities)==len(layout_phases) and len(set(capacities))==1, (log, capacities)
+
     if memory_profile:
         require_profile(output, memory_profile)
         if not corrupt and expected_failure is None:

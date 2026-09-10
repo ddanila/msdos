@@ -39,6 +39,7 @@
         INCLUDE KEYBCPSD.INC           ;;
         INCLUDE KEYBCMD.INC            ;;
                                        ;;
+        PUBLIC CLEAR_SELECTED_DEAD
         PUBLIC KEYB_STATE_PROCESSOR    ;;
                                        ;;
 CODE    SEGMENT PUBLIC 'CODE'          ;;
@@ -120,6 +121,16 @@ CMD_JUMP_TABLE  LABEL  WORD            ;;
                                        ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
                                        ;;
+CLEAR_SELECTED_DEAD PROC NEAR
+        TEST   CS:SD.SPECIAL_FEATURES,CLEAR_DEAD_SELECT
+        JZ     KEEP_SELECTED_DEAD
+        MOV    CS:NLS_FLAG_1,0
+        MOV    CS:NLS_FLAG_2,0
+        MOV    WORD PTR CS:SAVED_NLS_FLAGS,0
+KEEP_SELECTED_DEAD:
+        RET
+CLEAR_SELECTED_DEAD ENDP
+
 KEYB_STATE_PROCESSOR   PROC   NEAR     ;;
                                        ;;
         TEST   CS:SD.TABLE_OK,1        ;;

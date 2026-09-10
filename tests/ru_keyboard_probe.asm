@@ -2,6 +2,38 @@ bits 16
 cpu 8086
 org 100h
     cld
+%ifdef CAPACITY_PROOF
+    mov ax,0ad80h
+    int 2fh
+    cmp ax,0ffffh
+    jne fail
+    mov ax,[es:di+32] ; KEYB shared-data RESIDENT_END
+    cmp ax,0ffffh
+    je fail
+    push ax
+    push es
+    mov bx,es
+    dec bx
+    mov es,bx
+    mov bx,[es:3] ; MCB allocation in paragraphs
+    pop es
+    pop ax
+    push ax
+    add ax,15
+    jc fail
+    mov cl,4
+    shr ax,cl
+    cmp ax,bx
+    ja fail
+    mov dx,capacity
+    mov ah,9
+    int 21h
+    pop ax
+    call hex
+    mov dx,newline
+    mov ah,9
+    int 21h
+%endif
 %ifdef DOS_INPUT
     ; Replace only this process's stdin with CON; stdout remains serial AUX.
     mov ax,3d00h
@@ -34,6 +66,30 @@ org 100h
     xor dx,dx
     mov dl,[si]
     inc si
+    test dx,dx
+    jnz .group_nonempty
+    ; A zero-output arm step ends with physical Caps on, then Caps off.
+    ; This acknowledges the entire key sequence without consuming the accent.
+    push es
+    mov ax,40h
+    mov es,ax
+.caps_on:
+    test byte [es:17h],40h
+    jz .caps_on
+    mov dx,armed
+    mov ah,9
+    int 21h
+    mov ax,bp
+    call hex
+    mov dx,newline
+    mov ah,9
+    int 21h
+.caps_off:
+    test byte [es:17h],40h
+    jnz .caps_off
+    pop es
+    jmp .group_done
+.group_nonempty:
     push dx
 .group_read:
 %endif
@@ -143,7 +199,13 @@ hex:
     pop cx
     pop bx
     ret
+%ifdef CAPACITY_PROOF
+capacity db 'KEYB_CAPACITY ', '$'
+%endif
 console db 'CON',0
+%ifdef GROUPED_INPUT
+armed db 'RU_KEY_ARMED ', '$'
+%endif
 ready db 'RU_KEY_READY ', '$'
 passed db 'RU_KEY_PASS',13,10,'$'
 failed db 'RU_KEY_FAIL actual=', '$'

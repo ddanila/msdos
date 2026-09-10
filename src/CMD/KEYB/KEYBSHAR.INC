@@ -26,6 +26,7 @@
 ;;   each code page
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
                                        ;; SPECIAL_FEATURES equates:
+CLEAR_DEAD_SELECT  EQU    0800H       ;; selected layout opts into fresh composition
 ALT_SHIFT_SELECT   EQU    1000H       ;; Alt+left/right Shift selects US/national
 INITIAL_US_MODE    EQU    2000H       ;; begin a newly loaded layout in US mode
 TYPEWRITER_CAPS_LK  EQU    8000H       ;; typewriter style caps lock

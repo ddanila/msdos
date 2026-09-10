@@ -1,0 +1,22 @@
+
+RU_HIGH_UMB_PASS
+Current keyboard code: GR  code page: 437
+Active code page not available from CON device
+BALTIC_PHASE_00
+Current keyboard code: GR  code page: 437
+Active code page not available from CON device
+KEYB_CAPACITY 1B7B
+RU_KEY_READY 0000
+RU_KEY_READY 0001
+RU_KEY_ARMED 0001
+RU_KEY_PASS
+BALTIC_PHASE_01
+Unable to create KEYB table in resident memory
+Current keyboard code: GR  code page: 437
+Active code page not available from CON device
+KEYB_CAPACITY 1B7B
+RU_KEY_READY 0002
+RU_KEY_READY 0003
+RU_KEY_PASS
+RU_HIGH_UMB_PASS
+RU_KEY_DONE

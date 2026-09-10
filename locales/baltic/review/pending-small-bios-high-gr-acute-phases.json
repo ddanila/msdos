@@ -1,0 +1,18 @@
+[
+  {
+    "status_code": "GR",
+    "status_page": 437,
+    "command": null,
+    "reject": false,
+    "first_step": 0,
+    "step_count": 2
+  },
+  {
+    "status_code": "GR",
+    "status_page": 437,
+    "command": "KEYB ET,775,KEYBRD2.SYS",
+    "reject": true,
+    "first_step": 2,
+    "step_count": 2
+  }
+]

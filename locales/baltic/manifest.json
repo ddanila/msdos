@@ -622,7 +622,7 @@
         "code_page": 775,
         "default_for_code": true,
         "reference": "review/keyboard-expectations.json",
-        "status": "qemu-high-low-input-selection-and-basic-lifecycle-qualified",
+        "status": "qemu-high-low-input-selection-and-pending-boundaries-qualified",
         "contract": "keyboard-contract.json"
       },
       "country": {
@@ -650,7 +650,7 @@
         "code_page": 775,
         "default_for_code": true,
         "reference": "review/keyboard-expectations.json",
-        "status": "qemu-high-low-input-selection-and-basic-lifecycle-qualified",
+        "status": "qemu-high-low-input-selection-and-pending-boundaries-qualified",
         "contract": "keyboard-contract.json"
       },
       "country": {
@@ -678,7 +678,7 @@
         "code_page": 775,
         "default_for_code": true,
         "reference": "review/keyboard-expectations.json",
-        "status": "qemu-high-low-input-selection-and-basic-lifecycle-qualified",
+        "status": "qemu-high-low-input-selection-and-pending-boundaries-qualified",
         "contract": "keyboard-contract.json"
       },
       "country": {
@@ -695,7 +695,7 @@
     }
   },
   "unresolved": [
-    "Qualify pending keyboard composition across mode/reload boundaries, additional modifier/fallback edges, deeply malformed libraries and legacy BIOS input.",
+    "Qualify additional keyboard modifier/fallback edges, pending state on further failure/page-transition paths, deeply malformed libraries and legacy BIOS input.",
     "Qualify Baltic country APIs on real BIOS and complete missing/malformed resource and installed-workflow cases.",
     "Qualify CP775 font loading and rendering on real BIOS and in installed workflows.",
     "Implement, package and qualify all three language profiles and complete release gates in BALTIC.md."
@@ -707,6 +707,7 @@
     "keyboard_contract": "keyboard-contract-qualification.json",
     "country": "country-qualification.json",
     "keyboard": "keyboard-qualification.json",
-    "keyboard_profiles": "keyboard-profile-qualification.json"
+    "keyboard_profiles": "keyboard-profile-qualification.json",
+    "keyboard_pending": "keyboard-pending-qualification.json"
   }
 }

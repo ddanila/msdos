@@ -1397,3 +1397,13 @@ test-baltic-keyboard-lifecycle-qemu: deploy $(SRC)/DEV/KEYBOARD/KEYBRD2.SYS $(SR
 
 test-baltic-keyboard-selection-qemu: deploy $(SRC)/DEV/KEYBOARD/KEYBRD2.SYS $(SRC)/CMD/KEYB/KEYB.COM
 	python3 tests/test_baltic_keyboard_selection_qemu.py
+
+.PHONY: test-baltic-keyboard-pending-qemu
+test: test-baltic-keyboard-pending-qemu
+test-baltic-keyboard-pending-qemu: deploy $(SRC)/DEV/KEYBOARD/KEYBRD2.SYS $(SRC)/CMD/KEYB/KEYB.COM
+	python3 tests/test_baltic_keyboard_pending_qemu.py
+	python3 tests/test_baltic_keyboard_pending_qemu.py --dos
+	python3 tests/test_baltic_keyboard_pending_qemu.py --no-reset-control
+	python3 tests/test_baltic_keyboard_pending_qemu.py --capacity-control
+	python3 tests/test_baltic_keyboard_pending_qemu.py --small-allocation
+	python3 tests/test_baltic_keyboard_pending_qemu.py --small-allocation --dos

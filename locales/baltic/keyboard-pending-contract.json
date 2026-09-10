@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "scope": "Project Baltic keyboard selection and pending-composition extension; existing unopted layouts retain their behavior.",
+  "feature": {
+    "name": "CLEAR_DEAD_SELECT",
+    "mask": 2048,
+    "profiles": [
+      "ET",
+      "EE",
+      "LV",
+      "LT"
+    ]
+  },
+  "mode_selection": "Selecting US or national mode, including reselection of the current mode, cancels a pending accent for an opted-in layout.",
+  "successful_reload": "A successful reload cancels pending composition when the old or new layout opts in. The newly selected layout is activated again after the shared data is copied, so entering Baltic from a legacy layout also starts fresh.",
+  "failed_reload": "A rejected selection does not activate a new layout and must preserve the old layout and its pending composition. Missing files, absent IDs and insufficient resident capacity are qualified here; additional failure paths remain to be checked.",
+  "legacy": "German CP437 acute composition is retained across German self-reload and rejected selections, because that layout does not opt in.",
+  "allocation": "The initial resident allocation limit is preserved in every successful table rebuild. It must not be replaced by the temporary FFFF initializer or narrowed when a smaller library is loaded.",
+  "public_interface": "Uses the existing INT 2Fh AX=AD82h activation request; adds no interrupt function number.",
+  "qualification": "keyboard-pending-qualification.json",
+  "initial_allocation": "Start KEYB from KEYBRD2.SYS when Baltic switching is required. Loading the original, smaller KEYBOARD.SYS first does not provide capacity to grow into the Baltic tables; that load is rejected."
+}

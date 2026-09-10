@@ -1,0 +1,1586 @@
+[
+  {
+    "name": "Estonian lower",
+    "keys": [
+      [
+        "bracket_right",
+        true
+      ],
+      [
+        "bracket_right",
+        false
+      ]
+    ],
+    "bios_ax": 7140
+  },
+  {
+    "name": "Estonian upper",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "bracket_right",
+        true
+      ],
+      [
+        "bracket_right",
+        false
+      ],
+      [
+        "shift",
+        false
+      ]
+    ],
+    "bios_ax": 7141
+  },
+  {
+    "name": "Estonian lower",
+    "keys": [
+      [
+        "bracket_right",
+        true
+      ],
+      [
+        "bracket_right",
+        false
+      ]
+    ],
+    "bios_ax": 7140
+  },
+  {
+    "name": "Estonian upper",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "bracket_right",
+        true
+      ],
+      [
+        "bracket_right",
+        false
+      ],
+      [
+        "shift",
+        false
+      ]
+    ],
+    "bios_ax": 7141
+  },
+  {
+    "name": "Estonian lower",
+    "keys": [
+      [
+        "bracket_right",
+        true
+      ],
+      [
+        "bracket_right",
+        false
+      ]
+    ],
+    "bios_ax": 7140
+  },
+  {
+    "name": "Estonian upper",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "bracket_right",
+        true
+      ],
+      [
+        "bracket_right",
+        false
+      ],
+      [
+        "shift",
+        false
+      ]
+    ],
+    "bios_ax": 7141
+  },
+  {
+    "name": "Estonian lower",
+    "keys": [
+      [
+        "bracket_right",
+        true
+      ],
+      [
+        "bracket_right",
+        false
+      ]
+    ],
+    "bios_ax": 7140
+  },
+  {
+    "name": "Estonian upper",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "bracket_right",
+        true
+      ],
+      [
+        "bracket_right",
+        false
+      ],
+      [
+        "shift",
+        false
+      ]
+    ],
+    "bios_ax": 7141
+  },
+  {
+    "name": "Estonian lower",
+    "keys": [
+      [
+        "bracket_right",
+        true
+      ],
+      [
+        "bracket_right",
+        false
+      ]
+    ],
+    "bios_ax": 7140
+  },
+  {
+    "name": "Estonian upper",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "bracket_right",
+        true
+      ],
+      [
+        "bracket_right",
+        false
+      ],
+      [
+        "shift",
+        false
+      ]
+    ],
+    "bios_ax": 7141
+  },
+  {
+    "name": "Estonian lower",
+    "keys": [
+      [
+        "bracket_right",
+        true
+      ],
+      [
+        "bracket_right",
+        false
+      ]
+    ],
+    "bios_ax": 7140
+  },
+  {
+    "name": "Estonian upper",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "bracket_right",
+        true
+      ],
+      [
+        "bracket_right",
+        false
+      ],
+      [
+        "shift",
+        false
+      ]
+    ],
+    "bios_ax": 7141
+  },
+  {
+    "name": "Estonian lower",
+    "keys": [
+      [
+        "bracket_right",
+        true
+      ],
+      [
+        "bracket_right",
+        false
+      ]
+    ],
+    "bios_ax": 7140
+  },
+  {
+    "name": "Estonian upper",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "bracket_right",
+        true
+      ],
+      [
+        "bracket_right",
+        false
+      ],
+      [
+        "shift",
+        false
+      ]
+    ],
+    "bios_ax": 7141
+  },
+  {
+    "name": "Estonian lower",
+    "keys": [
+      [
+        "bracket_right",
+        true
+      ],
+      [
+        "bracket_right",
+        false
+      ]
+    ],
+    "bios_ax": 7140
+  },
+  {
+    "name": "Estonian upper",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "bracket_right",
+        true
+      ],
+      [
+        "bracket_right",
+        false
+      ],
+      [
+        "shift",
+        false
+      ]
+    ],
+    "bios_ax": 7141
+  },
+  {
+    "name": "Estonian lower",
+    "keys": [
+      [
+        "bracket_right",
+        true
+      ],
+      [
+        "bracket_right",
+        false
+      ]
+    ],
+    "bios_ax": 7140
+  },
+  {
+    "name": "Estonian upper",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "bracket_right",
+        true
+      ],
+      [
+        "bracket_right",
+        false
+      ],
+      [
+        "shift",
+        false
+      ]
+    ],
+    "bios_ax": 7141
+  },
+  {
+    "name": "Estonian lower",
+    "keys": [
+      [
+        "bracket_right",
+        true
+      ],
+      [
+        "bracket_right",
+        false
+      ]
+    ],
+    "bios_ax": 7140
+  },
+  {
+    "name": "Estonian upper",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "bracket_right",
+        true
+      ],
+      [
+        "bracket_right",
+        false
+      ],
+      [
+        "shift",
+        false
+      ]
+    ],
+    "bios_ax": 7141
+  },
+  {
+    "name": "Estonian lower",
+    "keys": [
+      [
+        "bracket_right",
+        true
+      ],
+      [
+        "bracket_right",
+        false
+      ]
+    ],
+    "bios_ax": 7140
+  },
+  {
+    "name": "Estonian upper",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "bracket_right",
+        true
+      ],
+      [
+        "bracket_right",
+        false
+      ],
+      [
+        "shift",
+        false
+      ]
+    ],
+    "bios_ax": 7141
+  },
+  {
+    "name": "Estonian lower",
+    "keys": [
+      [
+        "bracket_right",
+        true
+      ],
+      [
+        "bracket_right",
+        false
+      ]
+    ],
+    "bios_ax": 7140
+  },
+  {
+    "name": "Estonian upper",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "bracket_right",
+        true
+      ],
+      [
+        "bracket_right",
+        false
+      ],
+      [
+        "shift",
+        false
+      ]
+    ],
+    "bios_ax": 7141
+  },
+  {
+    "name": "Estonian lower",
+    "keys": [
+      [
+        "bracket_right",
+        true
+      ],
+      [
+        "bracket_right",
+        false
+      ]
+    ],
+    "bios_ax": 7140
+  },
+  {
+    "name": "Estonian upper",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "bracket_right",
+        true
+      ],
+      [
+        "bracket_right",
+        false
+      ],
+      [
+        "shift",
+        false
+      ]
+    ],
+    "bios_ax": 7141
+  },
+  {
+    "name": "Estonian lower",
+    "keys": [
+      [
+        "bracket_right",
+        true
+      ],
+      [
+        "bracket_right",
+        false
+      ]
+    ],
+    "bios_ax": 7140
+  },
+  {
+    "name": "Estonian upper",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "bracket_right",
+        true
+      ],
+      [
+        "bracket_right",
+        false
+      ],
+      [
+        "shift",
+        false
+      ]
+    ],
+    "bios_ax": 7141
+  },
+  {
+    "name": "Estonian lower",
+    "keys": [
+      [
+        "bracket_right",
+        true
+      ],
+      [
+        "bracket_right",
+        false
+      ]
+    ],
+    "bios_ax": 7140
+  },
+  {
+    "name": "Estonian upper",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "bracket_right",
+        true
+      ],
+      [
+        "bracket_right",
+        false
+      ],
+      [
+        "shift",
+        false
+      ]
+    ],
+    "bios_ax": 7141
+  },
+  {
+    "name": "Estonian lower",
+    "keys": [
+      [
+        "bracket_right",
+        true
+      ],
+      [
+        "bracket_right",
+        false
+      ]
+    ],
+    "bios_ax": 7140
+  },
+  {
+    "name": "Estonian upper",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "bracket_right",
+        true
+      ],
+      [
+        "bracket_right",
+        false
+      ],
+      [
+        "shift",
+        false
+      ]
+    ],
+    "bios_ax": 7141
+  },
+  {
+    "name": "Estonian lower",
+    "keys": [
+      [
+        "bracket_right",
+        true
+      ],
+      [
+        "bracket_right",
+        false
+      ]
+    ],
+    "bios_ax": 7140
+  },
+  {
+    "name": "Estonian upper",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "bracket_right",
+        true
+      ],
+      [
+        "bracket_right",
+        false
+      ],
+      [
+        "shift",
+        false
+      ]
+    ],
+    "bios_ax": 7141
+  },
+  {
+    "name": "Latvian lower",
+    "keys": [
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "g",
+        true
+      ],
+      [
+        "g",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ]
+    ],
+    "bios_ax": 8837
+  },
+  {
+    "name": "Latvian upper",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "g",
+        true
+      ],
+      [
+        "g",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ],
+      [
+        "shift",
+        false
+      ]
+    ],
+    "bios_ax": 8853
+  },
+  {
+    "name": "Latvian lower",
+    "keys": [
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "g",
+        true
+      ],
+      [
+        "g",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ]
+    ],
+    "bios_ax": 8837
+  },
+  {
+    "name": "Latvian upper",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "g",
+        true
+      ],
+      [
+        "g",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ],
+      [
+        "shift",
+        false
+      ]
+    ],
+    "bios_ax": 8853
+  },
+  {
+    "name": "Latvian lower",
+    "keys": [
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "g",
+        true
+      ],
+      [
+        "g",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ]
+    ],
+    "bios_ax": 8837
+  },
+  {
+    "name": "Latvian upper",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "g",
+        true
+      ],
+      [
+        "g",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ],
+      [
+        "shift",
+        false
+      ]
+    ],
+    "bios_ax": 8853
+  },
+  {
+    "name": "Latvian lower",
+    "keys": [
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "g",
+        true
+      ],
+      [
+        "g",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ]
+    ],
+    "bios_ax": 8837
+  },
+  {
+    "name": "Latvian upper",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "g",
+        true
+      ],
+      [
+        "g",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ],
+      [
+        "shift",
+        false
+      ]
+    ],
+    "bios_ax": 8853
+  },
+  {
+    "name": "Latvian lower",
+    "keys": [
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "g",
+        true
+      ],
+      [
+        "g",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ]
+    ],
+    "bios_ax": 8837
+  },
+  {
+    "name": "Latvian upper",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "g",
+        true
+      ],
+      [
+        "g",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ],
+      [
+        "shift",
+        false
+      ]
+    ],
+    "bios_ax": 8853
+  },
+  {
+    "name": "Latvian lower",
+    "keys": [
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "g",
+        true
+      ],
+      [
+        "g",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ]
+    ],
+    "bios_ax": 8837
+  },
+  {
+    "name": "Latvian upper",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "g",
+        true
+      ],
+      [
+        "g",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ],
+      [
+        "shift",
+        false
+      ]
+    ],
+    "bios_ax": 8853
+  },
+  {
+    "name": "Latvian lower",
+    "keys": [
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "g",
+        true
+      ],
+      [
+        "g",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ]
+    ],
+    "bios_ax": 8837
+  },
+  {
+    "name": "Latvian upper",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "g",
+        true
+      ],
+      [
+        "g",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ],
+      [
+        "shift",
+        false
+      ]
+    ],
+    "bios_ax": 8853
+  },
+  {
+    "name": "Latvian lower",
+    "keys": [
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "g",
+        true
+      ],
+      [
+        "g",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ]
+    ],
+    "bios_ax": 8837
+  },
+  {
+    "name": "Latvian upper",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "g",
+        true
+      ],
+      [
+        "g",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ],
+      [
+        "shift",
+        false
+      ]
+    ],
+    "bios_ax": 8853
+  },
+  {
+    "name": "Lithuanian lower",
+    "keys": [
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ]
+    ],
+    "bios_ax": 4304
+  },
+  {
+    "name": "Lithuanian upper",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ],
+      [
+        "shift",
+        false
+      ]
+    ],
+    "bios_ax": 4277
+  },
+  {
+    "name": "Lithuanian lower",
+    "keys": [
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ]
+    ],
+    "bios_ax": 4304
+  },
+  {
+    "name": "Lithuanian upper",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ],
+      [
+        "shift",
+        false
+      ]
+    ],
+    "bios_ax": 4277
+  },
+  {
+    "name": "Lithuanian lower",
+    "keys": [
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ]
+    ],
+    "bios_ax": 4304
+  },
+  {
+    "name": "Lithuanian upper",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ],
+      [
+        "shift",
+        false
+      ]
+    ],
+    "bios_ax": 4277
+  },
+  {
+    "name": "Lithuanian lower",
+    "keys": [
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ]
+    ],
+    "bios_ax": 4304
+  },
+  {
+    "name": "Lithuanian upper",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ],
+      [
+        "shift",
+        false
+      ]
+    ],
+    "bios_ax": 4277
+  },
+  {
+    "name": "Lithuanian lower",
+    "keys": [
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ]
+    ],
+    "bios_ax": 4304
+  },
+  {
+    "name": "Lithuanian upper",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ],
+      [
+        "shift",
+        false
+      ]
+    ],
+    "bios_ax": 4277
+  },
+  {
+    "name": "Lithuanian lower",
+    "keys": [
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ]
+    ],
+    "bios_ax": 4304
+  },
+  {
+    "name": "Lithuanian upper",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ],
+      [
+        "shift",
+        false
+      ]
+    ],
+    "bios_ax": 4277
+  },
+  {
+    "name": "Lithuanian lower",
+    "keys": [
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ]
+    ],
+    "bios_ax": 4304
+  },
+  {
+    "name": "Lithuanian upper",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ],
+      [
+        "shift",
+        false
+      ]
+    ],
+    "bios_ax": 4277
+  },
+  {
+    "name": "Lithuanian lower",
+    "keys": [
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ]
+    ],
+    "bios_ax": 4304
+  },
+  {
+    "name": "Lithuanian upper",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ],
+      [
+        "shift",
+        false
+      ]
+    ],
+    "bios_ax": 4277
+  },
+  {
+    "name": "Lithuanian lower",
+    "keys": [
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ]
+    ],
+    "bios_ax": 4304
+  },
+  {
+    "name": "Lithuanian upper",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ],
+      [
+        "shift",
+        false
+      ]
+    ],
+    "bios_ax": 4277
+  },
+  {
+    "name": "Russian initial Latin",
+    "keys": [
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ]
+    ],
+    "bios_ax": 4209
+  },
+  {
+    "name": "Russian selected",
+    "keys": [
+      [
+        "alt",
+        true
+      ],
+      [
+        "shift_r",
+        true
+      ],
+      [
+        "shift_r",
+        false
+      ],
+      [
+        "alt",
+        false
+      ],
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ]
+    ],
+    "bios_ax": 169
+  },
+  {
+    "name": "Estonian lower",
+    "keys": [
+      [
+        "bracket_right",
+        true
+      ],
+      [
+        "bracket_right",
+        false
+      ]
+    ],
+    "bios_ax": 7140
+  },
+  {
+    "name": "Estonian upper",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "bracket_right",
+        true
+      ],
+      [
+        "bracket_right",
+        false
+      ],
+      [
+        "shift",
+        false
+      ]
+    ],
+    "bios_ax": 7141
+  },
+  {
+    "name": "German y",
+    "keys": [
+      [
+        "y",
+        true
+      ],
+      [
+        "y",
+        false
+      ]
+    ],
+    "bios_ax": 5498
+  },
+  {
+    "name": "German z",
+    "keys": [
+      [
+        "z",
+        true
+      ],
+      [
+        "z",
+        false
+      ]
+    ],
+    "bios_ax": 11385
+  },
+  {
+    "name": "Latvian lower",
+    "keys": [
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "g",
+        true
+      ],
+      [
+        "g",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ]
+    ],
+    "bios_ax": 8837
+  },
+  {
+    "name": "Latvian upper",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "alt_r",
+        true
+      ],
+      [
+        "g",
+        true
+      ],
+      [
+        "g",
+        false
+      ],
+      [
+        "alt_r",
+        false
+      ],
+      [
+        "shift",
+        false
+      ]
+    ],
+    "bios_ax": 8853
+  },
+  {
+    "name": "Lithuanian lower",
+    "keys": [
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ]
+    ],
+    "bios_ax": 4304
+  },
+  {
+    "name": "Lithuanian upper",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ],
+      [
+        "shift",
+        false
+      ]
+    ],
+    "bios_ax": 4277
+  },
+  {
+    "name": "Estonian lower",
+    "keys": [
+      [
+        "bracket_right",
+        true
+      ],
+      [
+        "bracket_right",
+        false
+      ]
+    ],
+    "bios_ax": 7140
+  },
+  {
+    "name": "Estonian upper",
+    "keys": [
+      [
+        "shift",
+        true
+      ],
+      [
+        "bracket_right",
+        true
+      ],
+      [
+        "bracket_right",
+        false
+      ],
+      [
+        "shift",
+        false
+      ]
+    ],
+    "bios_ax": 7141
+  }
+]

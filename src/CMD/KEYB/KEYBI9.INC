@@ -15,6 +15,7 @@
 ;;       External declarations and equates for procedures in file
 ;;       KEYBI9.ASM
 ;;
+        EXTRN    CLEAR_SELECTED_DEAD:NEAR
         EXTRN    KEYB_STATE_PROCESSOR:NEAR
                                        ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

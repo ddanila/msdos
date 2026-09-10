@@ -1,0 +1,16 @@
+[
+  {
+    "name": "wrong-tilde",
+    "keys": [
+      [
+        "bracket_right",
+        true
+      ],
+      [
+        "bracket_right",
+        false
+      ]
+    ],
+    "bios_ax": 7140
+  }
+]

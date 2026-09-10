@@ -1,0 +1,60 @@
+[
+  {
+    "name": "initial Latin",
+    "keys": [
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ]
+    ],
+    "bios_ax": 4209
+  },
+  {
+    "name": "select Russian",
+    "keys": [
+      [
+        "alt",
+        true
+      ],
+      [
+        "shift_r",
+        true
+      ],
+      [
+        "shift_r",
+        false
+      ],
+      [
+        "alt",
+        false
+      ],
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ]
+    ],
+    "bios_ax": 169
+  },
+  {
+    "name": "Russian after rejected load",
+    "keys": [
+      [
+        "q",
+        true
+      ],
+      [
+        "q",
+        false
+      ]
+    ],
+    "bios_ax": 169
+  }
+]
