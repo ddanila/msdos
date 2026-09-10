@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "status": "residency-census-reconciled",
+  "scope": "Audit-only dispatcher size expectation repair; no production source or artifact change. The full release suite stopped at this stale assertion and must be rerun.",
+  "full_suite_failure": {
+    "command": "env -u MEMORY_CORE_DIR -u FLOPPY_IMAGE FAIL_ON_SKIP=1 make -j1 test",
+    "cwd": "out/baltic-repro-m5lr8g72/j1",
+    "source_commit": "b2d5236",
+    "exit_code": 2,
+    "private_log": "out/baltic-pristine-full-test2.log",
+    "sha256": "0a642668309cf970d21bba764be290a24ed728ee81ce37de46f08cf2befcdc1f",
+    "excerpt": {
+      "path": "review/residency-before.log",
+      "sha256": "4fb72d6ed64af7767b73dfa8c09977e824e8b5ca6169af38aa9cae0b80caf75d"
+    }
+  },
+  "audit": {
+    "production_change_commit": "6d61c2da22c209dea4e6b2c448a755fa25440f31",
+    "reason": "INT 21h AX=3306h reports actual HMA residency. ES-relative CMP (6 bytes), short JE (2 bytes) and MOV DH (2 bytes) add 10 bytes to the dispatcher.",
+    "start": 6091,
+    "end": 6909,
+    "expected_size": 818,
+    "added_instructions_offset": 6183,
+    "added_instructions_hex": "26803e2d17007409b610",
+    "prior_expected_size": 808
+  },
+  "validation": {
+    "command": "make -C out/baltic-repro-m5lr8g72/j1 -j1 test-dos-bios-residency",
+    "exit_code": 0,
+    "log": {
+      "path": "review/residency-fixed.log",
+      "sha256": "7b0f0f831ac0ce719f1f6990460946e262aae41afabbc142eb49f8b6606eded8"
+    }
+  },
+  "inputs": {
+    "src/DOS/MSDOS.MAP": {
+      "sha256": "68f0d4df9cdad327779f8c34b304eb14f25063aa199e1acd2c8b52011871c0e4",
+      "retained": {
+        "path": "review/residency-MSDOS.MAP",
+        "sha256": "68f0d4df9cdad327779f8c34b304eb14f25063aa199e1acd2c8b52011871c0e4"
+      }
+    },
+    "src/BIOS/msBIO.map": {
+      "sha256": "7be4477098445848b3565f1d77f3c7ec5460922502a576fe08c13caf31795357",
+      "retained": {
+        "path": "review/residency-MSBIO.MAP",
+        "sha256": "7be4477098445848b3565f1d77f3c7ec5460922502a576fe08c13caf31795357"
+      }
+    },
+    "src/DOS/DISP.ASM": {
+      "sha256": "99535ae82b254c5499449ecd14d2d8087a49afa22512aca16c995569dd6840d3",
+      "retained": {
+        "path": "review/residency-DISP.ASM.bin",
+        "sha256": "99535ae82b254c5499449ecd14d2d8087a49afa22512aca16c995569dd6840d3"
+      }
+    },
+    "tests/report_dos_bios_residency.py": {
+      "sha256": "749ee3c1c434f0fb1191e024c0962707c62ac1e9f159ebc06e7781886d883e94",
+      "retained": {
+        "path": "review/residency-report_dos_bios_residency.py",
+        "sha256": "749ee3c1c434f0fb1191e024c0962707c62ac1e9f159ebc06e7781886d883e94"
+      }
+    }
+  },
+  "remaining": [
+    "Full source-matched release suite",
+    "Complete legacy AT/XT lifecycle matrices and final acceptance audit"
+  ],
+  "artifacts_sha256": {
+    "src/DOS/MSDOS.SYS": "b495ab1ccc6fd3e7672b4724a7cccde519d8a65171c0c0ed6bad73cd331a42e9",
+    "src/BIOS/IO.SYS": "a1bad90c5681944e93cbebd6f5443976c5a2232155e8f6db9037b1927542e9a1"
+  }
+}

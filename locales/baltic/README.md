@@ -677,3 +677,11 @@ physical events, core/resource hashes and startup files. During retention, the
 current plans and compiled probes reproduce the actions and bytes in that
 completed image. This is focused evidence; the full AT/XT BIOS/DOS matrices
 remain open until their complete results are retained.
+
+
+The [residency census audit](residency-qualification.json) records a release
+preflight failure and its repair: the dispatcher expectation predated the
+existing true-version HMA flag fix. Inspection of the linked instructions
+accounts for the size change, and the complete DOS/BIOS residency target passes
+with the corrected expectation. Production bytes are unchanged. The full
+release suite still requires a successful rerun.

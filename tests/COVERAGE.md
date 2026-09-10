@@ -663,3 +663,11 @@ set on XT media. The default gate covers both input interfaces and every family;
 AT and XT runs must be sequential because they use the VNC keyboard port.
 Full lifecycle qualification remains pending; the linked record claims only
 the completed focused case and verifies its probes against the retained image.
+
+
+The [Baltic release residency audit](../locales/baltic/residency-qualification.json)
+retains the stale dispatcher-size failure from the pristine full suite, the
+linked instruction audit and the passing `test-dos-bios-residency` rerun.
+The assertion includes the existing true-version HMA flag instructions and
+continues to require the exact audited size and valid relocation boundaries.
+This focused repair does not qualify the full release suite.

@@ -1,0 +1,115 @@
+### Relocated system-call dispatcher
+
+| Range | Bytes | Lifetime |
+| ---: | ---: | --- |
+| `17CBh..1AFDh` | 818 | copied to HMA; retained only for DOS=LOW |
+
+## BIOS
+
+Linked `CODE` capacity: 15,997 bytes. 
+Discardable `SYSINITSEG`: 20,767 bytes.
+
+| Selectable boundary | Offset | Rounded bytes |
+| --- | ---: | ---: |
+| ENDFLOPPY | `1F07h` | 7,952 |
+| ENDONEHARD | `1F6Eh` | 8,048 |
+| ENDTWOHARD | `1FD2h` | 8,160 |
+| END96TPI | `22B6h` | 8,896 |
+| ENDATROM | `2CF0h` | 11,504 |
+| ENDK09 | `2F53h` | 12,128 |
+
+### Fixed comparison selection
+
+QEMU `pc` selects one hard disk, no 96-TPI extension, no legacy AT-ROM fix, a CMOS clock, and no K09 extension.
+
+| Retained piece | Input boundary | Copied bytes | Output boundary |
+| --- | ---: | ---: | ---: |
+| One-hard-disk base (`ENDONEHARD`) | — | 8,046 | `1F70h` |
+| `Daycnt_to_day` | `1F70h` | 121 | `1FE9h` |
+| `Bin_to_bcd` | `1FE9h` | 5 | `1FF0h` |
+| **Selected resident BIOS** | — | — | **8,176 bytes** |
+
+### Selected resident BIOS ownership
+
+| Source range | Bytes | Owner |
+| ---: | ---: | --- |
+| `0000h..0003h` | 3 | Loader entry |
+| `0003h..062Ah` | 1,575 | Core BIOS data and device headers |
+| `062Ah..0731h` | 263 | Low IOCTL state and format descriptors |
+| `0731h..082Ah` | 249 | Strategy and request dispatch |
+| `082Ah..0902h` | 216 | Console services |
+| `0902h..0998h` | 150 | Auxiliary-device services |
+| `0998h..0A60h` | 200 | Printer services |
+| `0A60h..0B6Eh` | 270 | Clock services and state |
+| `0B6Eh..0B9Bh` | 45 | Disk media state and constants |
+| `0B9Bh..0E8Ah` | 751 | Media-change and BPB services |
+| `0E8Ah..1167h` | 733 | Sector and low-level disk I/O |
+| `1167h..15ACh` | 1,093 | Disk transfer and error paths |
+| `15ACh..1C84h` | 1,752 | Generic disk IOCTL and INT 2F services |
+| `1C84h..1D9Ch` | 280 | BIOS model and saved-vector state |
+| `1D9Ch..1F01h` | 357 | Reboot, block-driver multiplex and disk lifecycle services |
+| `1F01h..1F07h` | 6 | Clock swap state |
+| `1F07h..1F6Eh` | 103 | First hard-disk descriptor |
+| relocated `Daycnt_to_day` | 121 | CMOS day conversion |
+| relocated `Bin_to_bcd` | 5 | CMOS BCD conversion |
+| loader paragraph alignment | 4 | static and relocated-piece padding |
+| **Total** | **8,176** | selected resident BIOS |
+
+### Core BIOS data placement partition
+
+| Owner | Range | Bytes | Placement contract |
+| --- | --- | ---: | --- |
+| Device dispatch tables and alignment | `0003h..00B0h` | 173 | bind with complete dispatch; fixed-prefix hole if moved alone |
+| Saved INT 13 vectors and request scratch | `00B0h..00C3h` | 19 | retain low interface initially |
+| Padding to fixed VDISK offset | `00C3h..0100h` | 61 | packing capacity, not released bytes |
+| VDISK compatibility reservation | `0100h..016Ch` | 108 | fixed low address |
+| AUX device index and binding | `016Ch..016Eh` | 2 | retain with GETDX contract |
+| Device headers and embedded control state | `016Eh..0248h` | 218 | public real-mode pointers |
+| INT 2F chain and BDS-list roots | `0248h..0250h` | 8 | public/interrupt-facing anchors |
+| Disk/format request state | `0250h..026Fh` | 31 | rebind with complete disk service |
+| Disk error translation tables | `026Fh..0281h` | 18 | private service data; rebind readers |
+| Sector alignment | `0281h..0284h` | 3 | packing only |
+| Firmware sector/bounce buffer | `0284h..0484h` | 512 | retain DMA-safe storage; not boot-only scratch |
+| Four linked floppy BDS records | `0484h..0614h` | 400 | preserve public links and BPB pointers |
+| Media template and character/clock state | `0614h..062Ah` | 22 | mixed constants and mutable service bindings |
+| **Total** | | **1,575** | nested in the core BIOS row above |
+
+The VDISK anchor remains at 0100h. Moving earlier tables alone leaves
+a hole; savings require repacking retained owners and lowering the final
+resident break. Firmware/DMA storage is not interchangeable with HMA or
+extended-backed UMB merely because CPU far pointers can address it.
+
+### Character-service placement partition
+
+| Owner | Range | Bytes | Initial placement decision |
+| --- | --- | ---: | --- |
+| Console body | `082Ah..08FBh` | 209 | service candidate |
+| Break interrupt and IRET | `08FBh..0902h` | 7 | retain low initially |
+| Serial body | `0902h..0998h` | 150 | service candidate |
+| Printer body | `0998h..0A60h` | 200 | service candidate |
+| Clock state and near bindings | `0A60h..0A73h` | 19 | retain low initially |
+| Clock body | `0A73h..0B6Eh` | 251 | service candidate |
+| First disk state byte | `0B6Eh..0B6Fh` | 1 | outside character owner |
+
+Service-body inventory: 810 bytes before gateways.
+Shared low dispatch/exit code, CMOS helpers, ROM/A20 return gates and
+device state are separate. These bodies are not position-independent;
+their existing near calls and CS-relative state need explicit bindings.
+
+### Bulk-placement design budget (not achieved savings)
+
+| Candidate | Current bytes | Unproved prerequisite |
+| --- | ---: | --- |
+| BIOS_SERVICE_START..BIOS_SERVICE_END | 3,578 | split CS-relative low data, near control flow, and ROM-return gates |
+| Entire DOS low prefix | 4,480 | subtract mandatory public anchors, stacks, and entry gates |
+| Initial DOS-owned HMA tail | 16,892 | subtract COMMAND and every other reservation before choosing destinations |
+
+The candidate sizes are inventories, not guaranteed gains or a sum to
+subtract from VC's gap. The HMA tail is capacity, not conventional
+memory; copied low allocations must be released and coalesced. Dynamic
+SYSINIT allocations require the runtime census, not this linker map.
+
+## Census errors
+
+- DOS dispatcher boundaries or audited 808-byte size changed
+make: *** [test-dos-bios-residency] Error 1

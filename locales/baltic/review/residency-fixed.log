@@ -1,0 +1,289 @@
+make: Entering directory '/Users/ddanila/fun/msdos/out/baltic-repro-m5lr8g72/j1'
+python3 tests/test_dos_copy_size.py
+....
+----------------------------------------------------------------------
+Ran 4 tests in 0.000s
+
+OK
+python3 tests/test_dos_prefix_references.py
+......
+----------------------------------------------------------------------
+Ran 6 tests in 0.000s
+
+OK
+python3 tests/test_system_owners.py
+................
+----------------------------------------------------------------------
+Ran 16 tests in 0.001s
+
+OK
+python3 tests/test_hma_layout_budget.py
+...........................
+----------------------------------------------------------------------
+Ran 27 tests in 0.001s
+
+OK
+python3 tests/test_bios_character_partition.py
+....
+----------------------------------------------------------------------
+Ran 4 tests in 0.000s
+
+OK
+python3 tests/test_bios_core_partition.py
+..........
+----------------------------------------------------------------------
+Ran 10 tests in 0.000s
+
+OK
+python3 tests/test_bios_dispatch.py
+....
+----------------------------------------------------------------------
+Ran 4 tests in 0.146s
+
+OK
+python3 tests/test_dos_swap_contract.py
+.....
+----------------------------------------------------------------------
+Ran 5 tests in 0.000s
+
+OK
+python3 tests/report_dos_bios_residency.py --check \
+	src/DOS/MSDOS.MAP src/BIOS/msBIO.map
+# DOS and BIOS residency census
+
+## DOS high
+
+| Range | Linked bytes | Paragraph allocation | Lifetime |
+| --- | ---: | ---: | --- |
+| Low entry/gateway prefix | 4,467 | 4,480 | retained low |
+| HMA image after offset 0010h | 40,624 | — | copied to `FFFF:0010` |
+| LAST | 1,147 | — | discarded initialization |
+
+### Low-prefix composition
+
+| Segment | Bytes below boundary | Role |
+| --- | ---: | --- |
+| START | 3 | loader entry |
+| CONSTANTS | 512 | resident constants |
+| DATA | 1,783 | resident mutable data |
+| TABLE | 2,011 | resident dispatch/data tables |
+| CODE | 157 | low entry, driver, and interrupt gateway code |
+| Inter-segment alignment | 1 | linker padding |
+| **Total** | **4,467** | `DOS_LOW_GATE_END` |
+
+### Retained CONSTANTS ownership
+
+| Range | Bytes | Owner |
+| ---: | ---: | --- |
+| `0004h..0014h` | 16 | Reserved DOSGROUP/HMA origin |
+| `0014h..0036h` | 34 | Nucleus identity, retry, and arena state |
+| `0036h..007Dh` | 71 | SYSINIT pointers and resident device state |
+| `007Dh..00A0h` | 35 | Buffer and EMS initialization state |
+| `00A0h..00DCh` | 60 | SHARE compatibility dispatch |
+| `00DCh..00DCh` | 0 | Initial SFT low image (retired when zero) |
+| `00DCh..00DEh` | 2 | Console cursor positions |
+| `00DEh..00F5h` | 23 | Global flags and network name |
+| `00F5h..0100h` | 11 | Critical-section patch table |
+| `0100h..013Ah` | 58 | Process, error, allocation, and calendar state |
+| `013Ah..015Ch` | 34 | Device request packet |
+| `015Ch..0188h` | 44 | Disk I/O and status packet |
+| `0188h..01FFh` | 119 | UMB allocator and lock state |
+| `01FFh..0200h` | 1 | Contribution alignment |
+| `0200h..0204h` | 4 | DOS message identity fields |
+| **Total** | **512** | `CONSTANTS` |
+
+### Fixed HMA ownership
+
+Selected `15` buffers with 512-byte sectors.
+
+| Range | Offset | Bytes | Owner/lifetime |
+| --- | ---: | ---: | --- |
+| DOS high image | `0010h..9EC0h` | 40,624 | DOS; entire high-mode lifetime |
+| Hash plus buffer slots | `9EC0h..BDF4h` | 7,988 | DOS cache; entire high-mode lifetime |
+| Available DOS-owned high storage | `BDF4h..FFF0h` | 16,892 | unassigned, but not available through XMS |
+| HMA safety tail | `FFF0h..10000h` | 16 | deliberately unused |
+
+The table above excludes BIOS boot reservations and COMMAND. It is not the post-shell destination budget.
+
+### Retained DATA ownership
+
+| Range | Bytes | Owner |
+| ---: | ---: | --- |
+| `0204h..046Eh` | 618 | Core file/disk workspace |
+| `046Eh..05EEh` | 384 | Auxiliary stack storage / rename workspace alias |
+| `05EEh..076Eh` | 384 | Disk stack storage |
+| `076Eh..08EEh` | 384 | I/O stack storage |
+| `08EEh..08FAh` | 12 | Resident I/O and fast-seek state |
+| `08FAh..08FBh` | 1 | Required swap-rounding byte |
+| **Total** | **1,783** | `DATA` |
+
+### Public swappable-data address contract
+
+INT 21h/5D06h exposes `0100h..08FAh`: 2,042 bytes, including 26 always-swapped bytes. The 5D0Bh table separately describes 2,016 in-DOS bytes.
+The nested `046Eh..08EEh` range is 1,152 bytes of internal stack storage; RENAMEDMA aliases its first stack. Do not add these sizes to DATA, count rename storage twice, or confuse these stacks with CONFIG.SYS STACKS. Moving this owner needs public-pointer and SS/data-context qualification; the census proves no low-memory saving.
+
+### Retained TABLE ownership
+
+| Range | Bytes | Owner |
+| ---: | ---: | --- |
+| `08FBh..0911h` | 22 | Version and calendar constants |
+| `0911h..0914h` | 3 | Interim-console state and optional banner |
+| `0914h..091Ch` | 8 | SYSINIT communication table |
+| `091Ch..0955h` | 57 | FASTOPEN and directory exchange state |
+| `0955h..0980h` | 43 | INT 2F and configuration temporaries |
+| `0980h..09B6h` | 54 | Extended-error and cache metadata |
+| `09B6h..0ACFh` | 281 | Swap and fake-version state |
+| `0ACFh..0D4Fh` | 640 | Authoritative low SETVER table |
+| `0D4Fh..0D4Fh` | 0 | SETVER contribution alignment |
+| `0D4Fh..0D7Eh` | 47 | Absolute-disk map and HMA driver trampoline |
+| `0D7Eh..1099h` | 795 | Country, case-folding, and DOS messages |
+| `1099h..10A1h` | 8 | Create-mode lookup table |
+| `10A1h..10B3h` | 18 | Device-character lookup table |
+| `10B3h..10BBh` | 8 | EXEC launch pointers |
+| `10BBh..10D6h` | 27 | Server-call dispatch table |
+| **Total** | **2,011** | `TABLE` |
+
+### Relocated tables
+
+| Range | Bytes | Owner |
+| ---: | ---: | --- |
+| `98A2h..99CFh` | 301 | Initial five-slot system file table |
+| `99CFh..9AD2h` | 259 | Private console editing/input workspace |
+| `9AD2h..9B85h` | 179 | INT 21 allowed-error map |
+| `9B85h..9C05h` | 128 | INT 21 extended-error metadata |
+| `9C05h..9C55h` | 80 | INT 24 critical-error metadata |
+| `9C55h..9C65h` | 16 | Device-error translation map |
+| `9C65h..9D41h` | 220 | INT 21 dispatch table and limits |
+| `9D41h..9DB4h` | 115 | Internal install-service dispatch |
+| `9DB4h..9EB4h` | 256 | FCB character-class table |
+| **Total** | **1,554** | copied to HMA; retained for DOS=LOW |
+
+### Retained CODE ownership
+
+| Range | Bytes | Owner |
+| ---: | ---: | --- |
+| `10D6h..111Ch` | 70 | HMA driver request entry |
+| `111Ch..1168h` | 76 | Low DPB pointer workspace |
+| `1168h..1173h` | 11 | HMA driver/XMS and null-device tail |
+| **Total** | **157** | retained `CODE` |
+
+### Relocated DOS gateways
+
+| Range | Bytes | Owner |
+| ---: | ---: | --- |
+| `1173h..12F6h` | 387 | Absolute-disk gateway |
+| `12F6h..13C2h` | 204 | System/FCB return and error gateway |
+| `13C2h..1404h` | 66 | INT 2F gateway |
+| **Total** | **657** | copied to HMA; retained for DOS=LOW |
+
+### Relocated system-call dispatcher
+
+| Range | Bytes | Lifetime |
+| ---: | ---: | --- |
+| `17CBh..1AFDh` | 818 | copied to HMA; retained only for DOS=LOW |
+
+## BIOS
+
+Linked `CODE` capacity: 15,997 bytes. 
+Discardable `SYSINITSEG`: 20,767 bytes.
+
+| Selectable boundary | Offset | Rounded bytes |
+| --- | ---: | ---: |
+| ENDFLOPPY | `1F07h` | 7,952 |
+| ENDONEHARD | `1F6Eh` | 8,048 |
+| ENDTWOHARD | `1FD2h` | 8,160 |
+| END96TPI | `22B6h` | 8,896 |
+| ENDATROM | `2CF0h` | 11,504 |
+| ENDK09 | `2F53h` | 12,128 |
+
+### Fixed comparison selection
+
+QEMU `pc` selects one hard disk, no 96-TPI extension, no legacy AT-ROM fix, a CMOS clock, and no K09 extension.
+
+| Retained piece | Input boundary | Copied bytes | Output boundary |
+| --- | ---: | ---: | ---: |
+| One-hard-disk base (`ENDONEHARD`) | — | 8,046 | `1F70h` |
+| `Daycnt_to_day` | `1F70h` | 121 | `1FE9h` |
+| `Bin_to_bcd` | `1FE9h` | 5 | `1FF0h` |
+| **Selected resident BIOS** | — | — | **8,176 bytes** |
+
+### Selected resident BIOS ownership
+
+| Source range | Bytes | Owner |
+| ---: | ---: | --- |
+| `0000h..0003h` | 3 | Loader entry |
+| `0003h..062Ah` | 1,575 | Core BIOS data and device headers |
+| `062Ah..0731h` | 263 | Low IOCTL state and format descriptors |
+| `0731h..082Ah` | 249 | Strategy and request dispatch |
+| `082Ah..0902h` | 216 | Console services |
+| `0902h..0998h` | 150 | Auxiliary-device services |
+| `0998h..0A60h` | 200 | Printer services |
+| `0A60h..0B6Eh` | 270 | Clock services and state |
+| `0B6Eh..0B9Bh` | 45 | Disk media state and constants |
+| `0B9Bh..0E8Ah` | 751 | Media-change and BPB services |
+| `0E8Ah..1167h` | 733 | Sector and low-level disk I/O |
+| `1167h..15ACh` | 1,093 | Disk transfer and error paths |
+| `15ACh..1C84h` | 1,752 | Generic disk IOCTL and INT 2F services |
+| `1C84h..1D9Ch` | 280 | BIOS model and saved-vector state |
+| `1D9Ch..1F01h` | 357 | Reboot, block-driver multiplex and disk lifecycle services |
+| `1F01h..1F07h` | 6 | Clock swap state |
+| `1F07h..1F6Eh` | 103 | First hard-disk descriptor |
+| relocated `Daycnt_to_day` | 121 | CMOS day conversion |
+| relocated `Bin_to_bcd` | 5 | CMOS BCD conversion |
+| loader paragraph alignment | 4 | static and relocated-piece padding |
+| **Total** | **8,176** | selected resident BIOS |
+
+### Core BIOS data placement partition
+
+| Owner | Range | Bytes | Placement contract |
+| --- | --- | ---: | --- |
+| Device dispatch tables and alignment | `0003h..00B0h` | 173 | bind with complete dispatch; fixed-prefix hole if moved alone |
+| Saved INT 13 vectors and request scratch | `00B0h..00C3h` | 19 | retain low interface initially |
+| Padding to fixed VDISK offset | `00C3h..0100h` | 61 | packing capacity, not released bytes |
+| VDISK compatibility reservation | `0100h..016Ch` | 108 | fixed low address |
+| AUX device index and binding | `016Ch..016Eh` | 2 | retain with GETDX contract |
+| Device headers and embedded control state | `016Eh..0248h` | 218 | public real-mode pointers |
+| INT 2F chain and BDS-list roots | `0248h..0250h` | 8 | public/interrupt-facing anchors |
+| Disk/format request state | `0250h..026Fh` | 31 | rebind with complete disk service |
+| Disk error translation tables | `026Fh..0281h` | 18 | private service data; rebind readers |
+| Sector alignment | `0281h..0284h` | 3 | packing only |
+| Firmware sector/bounce buffer | `0284h..0484h` | 512 | retain DMA-safe storage; not boot-only scratch |
+| Four linked floppy BDS records | `0484h..0614h` | 400 | preserve public links and BPB pointers |
+| Media template and character/clock state | `0614h..062Ah` | 22 | mixed constants and mutable service bindings |
+| **Total** | | **1,575** | nested in the core BIOS row above |
+
+The VDISK anchor remains at 0100h. Moving earlier tables alone leaves
+a hole; savings require repacking retained owners and lowering the final
+resident break. Firmware/DMA storage is not interchangeable with HMA or
+extended-backed UMB merely because CPU far pointers can address it.
+
+### Character-service placement partition
+
+| Owner | Range | Bytes | Initial placement decision |
+| --- | --- | ---: | --- |
+| Console body | `082Ah..08FBh` | 209 | service candidate |
+| Break interrupt and IRET | `08FBh..0902h` | 7 | retain low initially |
+| Serial body | `0902h..0998h` | 150 | service candidate |
+| Printer body | `0998h..0A60h` | 200 | service candidate |
+| Clock state and near bindings | `0A60h..0A73h` | 19 | retain low initially |
+| Clock body | `0A73h..0B6Eh` | 251 | service candidate |
+| First disk state byte | `0B6Eh..0B6Fh` | 1 | outside character owner |
+
+Service-body inventory: 810 bytes before gateways.
+Shared low dispatch/exit code, CMOS helpers, ROM/A20 return gates and
+device state are separate. These bodies are not position-independent;
+their existing near calls and CS-relative state need explicit bindings.
+
+### Bulk-placement design budget (not achieved savings)
+
+| Candidate | Current bytes | Unproved prerequisite |
+| --- | ---: | --- |
+| BIOS_SERVICE_START..BIOS_SERVICE_END | 3,578 | split CS-relative low data, near control flow, and ROM-return gates |
+| Entire DOS low prefix | 4,480 | subtract mandatory public anchors, stacks, and entry gates |
+| Initial DOS-owned HMA tail | 16,892 | subtract COMMAND and every other reservation before choosing destinations |
+
+The candidate sizes are inventories, not guaranteed gains or a sum to
+subtract from VC's gap. The HMA tail is capacity, not conventional
+memory; copied low allocations must be released and coalesced. Dynamic
+SYSINIT allocations require the runtime census, not this linker map.
+make: Leaving directory '/Users/ddanila/fun/msdos/out/baltic-repro-m5lr8g72/j1'
