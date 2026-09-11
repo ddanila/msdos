@@ -33,6 +33,13 @@ selection-preserving Copy/Paste and cancellation, and bar restoration after
 cancelling Open through both menu and F3. Mouse and monochrome qualification,
 remaining command dialogs and undo are still [open](../dwed/docs/MENUS.md).
 
+The [dialog scenarios](dwed_dialog_scenarios.py) run Save/Discard/Cancel through
+Close and Exit, cancelled Save As, unnamed-document saving, Save All cancellation,
+overwrite acceptance/refusal and disk-full handling. Startup/resume cases also
+protect an existing NONAME.TXT. Assertions cover dirty-state retention, actual
+destination/backup bytes and completion without a second Exit request. The
+full suite uses the same build for these and the earlier editor regressions.
+
 The optional Russian increment has source, reference and CPI gates:
 `make test-ru-font-sources test-ru-contract test-ru-cpi`. The
 [locale manifest and font audits](../locales/ru/README.md) pin inputs and

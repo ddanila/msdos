@@ -29,6 +29,15 @@ launcher = (args.launcher or args.build / "DWED.COM").resolve()
 for required in (overlay, launcher, ROOT / "out/floppy.img"):
     if not required.is_file():
         parser.error(f"missing input: {required}")
+from dwed_dialog_scenarios import (
+    CASES as DIALOG_CASES,
+)
+from dwed_dialog_scenarios import (
+    exercise as exercise_dialog,
+)
+from dwed_dialog_scenarios import (
+    prepare as prepare_dialog,
+)
 from screen_expect import QMPConnection, read_screen_text, send_keys
 from test_compat_bpb_qemu import disk, put, run
 
@@ -94,6 +103,7 @@ cases += [
     (kind + "-low", "low", b"DWED_MARKER\r\nsecond line\r\n", True)
     for kind in ("menu-open", "shortcut-open")
 ]
+cases += DIALOG_CASES
 if args.case:
     unknown = set(args.case) - {case[0] for case in cases}
     if unknown:
@@ -105,6 +115,7 @@ if (
 ):
     parser.error("keyboard cases require an editor built with --tests")
 for name, mode, original, edit in cases:
+    startup = name.startswith("dialog-startup-")
     keyboard = name.startswith("keyboard-")
     rejected = name.startswith("reject-")
     failure = name.startswith(("disk-full", "read-only"))
@@ -141,7 +152,8 @@ for name, mode, original, edit in cases:
     previous_backup = b"PREVIOUS_BACKUP\r\n"
     put(spec, backup_name, previous_backup)
     put(spec, "$ED0000.TMP", b"OTHER_EDITOR_SAVE\r\n")
-    if name.startswith("disk-full"):
+    prepare_dialog(spec, name)
+    if name.startswith("disk-full") or name == "dialog-exit-full-low":
         listing = run(["mdir", "-i", spec, "::"]).stdout.decode()
         free = int(re.search(r"([\d ]+) bytes free", listing).group(1).replace(" ", ""))
         put(spec, "FILLER.BIN", bytes(free - 1024))
@@ -171,8 +183,7 @@ for name, mode, original, edit in cases:
             + probe_command
             + "C:\r\n"
             + invocation
-            + " C:\\"
-            + filename
+            + ("" if startup else " C:\\" + filename)
             + "\r\nCD >C:\\CWD.TXT\r\nA:\\QEXIT.COM\r\n"
         ).encode(),
     )
@@ -222,6 +233,7 @@ for name, mode, original, edit in cases:
             screen = read_screen_text(q, str(d / "vram.bin"))
             if (
                 (rejected and "file was not opened" in screen)
+                or (startup and "Untitled" in screen)
                 or (not original and "SAMPLE.TXT" in screen)
                 or "DWED_MARKER" in screen
             ):
@@ -237,159 +249,174 @@ for name, mode, original, edit in cases:
             assert "SAMPLE.TXT" not in screen, screen
         else:
             assert (
-                not original and "SAMPLE.TXT" in screen
-            ) or "DWED_MARKER" in screen, screen
+                (not original and "SAMPLE.TXT" in screen)
+                or (startup and "Untitled" in screen)
+                or "DWED_MARKER" in screen
+            ), screen
         q.human_cmd(f'screendump "{d}/opened.ppm"')
         if name.startswith("menu-"):
             assert all(
                 label in screen.splitlines()[0]
                 for label in ("File", "Edit", "Search", "Options", "Help")
             ), screen
-        if edit:
-            send_keys(q, "home+z")
-            time.sleep(0.25)
-        if name.startswith("split-whitespace"):
-            send_keys(q, "end+ret")
-            time.sleep(0.25)
-        if name.startswith("remove-final"):
-            send_keys(q, "down+home+backspace")
-            time.sleep(0.25)
-        if rejected:
-            send_keys(q, "home+z")
-            time.sleep(0.25)
-        if name.startswith(("menu-open", "shortcut-open")):
-            if name.startswith("menu-open"):
-                send_keys(q, "hmp:sendkey alt-f")
+        if name.startswith("dialog-"):
+            row.update(exercise_dialog(q, process, d, spec, original, name))
+        else:
+            if edit:
+                send_keys(q, "home+z")
                 time.sleep(0.25)
-                send_keys(q, "o")
-            else:
-                send_keys(q, "f3")
-            time.sleep(0.25)
-            dialog = read_screen_text(q, str(d / "vram.bin"))
-            assert "Load file" in dialog, dialog
-            send_keys(q, "esc")
-            time.sleep(0.25)
-            restored = read_screen_text(q, str(d / "vram.bin"))
-            assert all(
-                label in restored.splitlines()[0]
-                for label in ("File", "Edit", "Search", "Options", "Help")
-            ), restored
-        if name.startswith(("menu-copy", "menu-cancel")):
-            send_keys(q, "home")
-            for _ in range(2):
-                send_keys(q, "hmp:sendkey shift-right 200")
-                time.sleep(0.3)
-            send_keys(q, "hmp:sendkey alt-e")
-            time.sleep(0.25)
-            (d / "menu.txt").write_text(read_screen_text(q, str(d / "vram.bin")))
-            if name.startswith("menu-copy"):
-                send_keys(q, "c")
+            if name.startswith("split-whitespace"):
+                send_keys(q, "end+ret")
                 time.sleep(0.25)
-                send_keys(q, "end")
+            if name.startswith("remove-final"):
+                send_keys(q, "down+home+backspace")
+                time.sleep(0.25)
+            if rejected:
+                send_keys(q, "home+z")
+                time.sleep(0.25)
+            if name.startswith(("menu-open", "shortcut-open")):
+                if name.startswith("menu-open"):
+                    send_keys(q, "hmp:sendkey alt-f")
+                    time.sleep(0.25)
+                    send_keys(q, "o")
+                else:
+                    send_keys(q, "f3")
+                time.sleep(0.25)
+                dialog = read_screen_text(q, str(d / "vram.bin"))
+                assert "Load file" in dialog, dialog
+                send_keys(q, "esc")
+                time.sleep(0.25)
+                restored = read_screen_text(q, str(d / "vram.bin"))
+                assert all(
+                    label in restored.splitlines()[0]
+                    for label in ("File", "Edit", "Search", "Options", "Help")
+                ), restored
+            if name.startswith(("menu-copy", "menu-cancel")):
+                send_keys(q, "home")
+                for _ in range(2):
+                    send_keys(q, "hmp:sendkey shift-right 200")
+                    time.sleep(0.3)
                 send_keys(q, "hmp:sendkey alt-e")
                 time.sleep(0.25)
-                send_keys(q, "p")
+                (d / "menu.txt").write_text(read_screen_text(q, str(d / "vram.bin")))
+                if name.startswith("menu-copy"):
+                    send_keys(q, "c")
+                    time.sleep(0.25)
+                    send_keys(q, "end")
+                    send_keys(q, "hmp:sendkey alt-e")
+                    time.sleep(0.25)
+                    send_keys(q, "p")
+                else:
+                    send_keys(q, "esc+backspace")
+                time.sleep(0.25)
+            if name.startswith(("menu-save", "menu-alt")):
+                send_keys(
+                    q, "f10" if name.startswith("menu-save") else "hmp:sendkey alt-f"
+                )
+                time.sleep(0.25)
+                menu_screen = read_screen_text(q, str(d / "vram.bin"))
+                (d / "menu.txt").write_text(menu_screen)
+                assert "Save as..." in menu_screen and "Windows..." in menu_screen, (
+                    menu_screen
+                )
+                q.human_cmd(f'screendump "{d}/menu.ppm"')
+                send_keys(q, "down+down+ret" if name.startswith("menu-save") else "s")
+            elif keyboard:
+                send_keys(q, "hmp:sendkey ctrl-end")
+                time.sleep(0.25)
+                send_keys(q, "backspace")
+                send_keys(q, "hmp:sendkey ctrl-s")
             else:
-                send_keys(q, "esc+backspace")
-            time.sleep(0.25)
-        if name.startswith(("menu-save", "menu-alt")):
-            send_keys(q, "f10" if name.startswith("menu-save") else "hmp:sendkey alt-f")
-            time.sleep(0.25)
-            menu_screen = read_screen_text(q, str(d / "vram.bin"))
-            (d / "menu.txt").write_text(menu_screen)
-            assert "Save as..." in menu_screen and "Windows..." in menu_screen, (
-                menu_screen
+                send_keys(q, "f2")
+            time.sleep(0.5)
+            if rejected:
+                prompt = read_screen_text(q, str(d / "vram.bin"))
+                assert "Save file to" in prompt, prompt
+                send_keys(q, "r+e+j+e+c+t+e+d+dot+t+x+t+ret")
+                time.sleep(0.5)
+            saved_screen = read_screen_text(q, str(d / "vram.bin"))
+            (d / "saved.txt").write_text(saved_screen)
+            if external:
+                send_keys(q, "f5")
+                deadline = time.monotonic() + 15
+                while time.monotonic() < deadline:
+                    screen = read_screen_text(q, str(d / "vram.bin"))
+                    if "Press any key to return to the editor." in screen:
+                        break
+                    time.sleep(0.2)
+                (d / "command.txt").write_text(screen)
+                assert "EXTERNAL_COMMAND_DONE" in screen, screen
+                if name.startswith("recursive"):
+                    assert "recursive editor launch refused" in screen, screen
+                send_keys(q, "ret")
+                deadline = time.monotonic() + 15
+                while time.monotonic() < deadline:
+                    screen = read_screen_text(q, str(d / "vram.bin"))
+                    if "zDWED_MARKER" in screen:
+                        break
+                    time.sleep(0.2)
+                (d / "resumed.txt").write_text(screen)
+                assert "zDWED_MARKER" in screen, screen
+            if failure:
+                assert "Error" in saved_screen, saved_screen
+                send_keys(q, "ret")
+                time.sleep(0.25)
+            send_keys(q, "esc")
+            if failure:
+                time.sleep(0.25)
+                dirty_screen = read_screen_text(q, str(d / "vram.bin"))
+                (d / "dirty.txt").write_text(dirty_screen)
+                assert "Save changes to" in dirty_screen, dirty_screen
+                assert "zDWED_MARKER" in dirty_screen, dirty_screen
+                send_keys(q, "n")
+            process.wait(timeout=15)
+            assert process.returncode == 33, process.returncode
+            actual = run(["mtype", "-i", spec, "::" + filename]).stdout
+            backup = run(["mtype", "-i", spec, "::" + backup_name]).stdout
+            if keyboard:
+                assert (
+                    run(["mtype", "-i", floppy, "::KEY.OK"]).stdout.strip()
+                    == b"KEYBOARD PASS 13"
+                )
+            if external:
+                assert (
+                    run(["mtype", "-i", spec, "::COMMAND.TXT"]).stdout.strip()
+                    == b"EXTERNAL_COMMAND_OK"
+                )
+                assert (
+                    run(["mtype", "-i", spec, "::CWD.TXT"]).stdout.strip()
+                    == b"C:\\DWED"
+                )
+            expected = original if failure else b"z" + original if edit else original
+            if keyboard:
+                expected = b"z" + original[:-2]
+            if name.startswith("menu-copy"):
+                expected = b"z" + original.replace(b"DWED_MARKER", b"DWED_MARKERzD")
+            if name.startswith("menu-cancel"):
+                expected = original[1:]
+            if name.startswith("split-whitespace"):
+                expected = original + b"\r\n"
+            if name.startswith("remove-final"):
+                expected = original[:-2]
+            row.update(
+                completed=True,
+                actual_hex=actual.hex(),
+                backup_matches_expected=backup
+                == (
+                    previous_backup
+                    if failure or rejected or name.startswith("new-file")
+                    else original
+                ),
+                exact_match=actual == expected,
             )
-            q.human_cmd(f'screendump "{d}/menu.ppm"')
-            send_keys(q, "down+down+ret" if name.startswith("menu-save") else "s")
-        elif keyboard:
-            send_keys(q, "hmp:sendkey ctrl-end")
-            time.sleep(0.25)
-            send_keys(q, "backspace")
-            send_keys(q, "hmp:sendkey ctrl-s")
-        else:
-            send_keys(q, "f2")
-        time.sleep(0.5)
-        saved_screen = read_screen_text(q, str(d / "vram.bin"))
-        (d / "saved.txt").write_text(saved_screen)
-        if external:
-            send_keys(q, "f5")
-            deadline = time.monotonic() + 15
-            while time.monotonic() < deadline:
-                screen = read_screen_text(q, str(d / "vram.bin"))
-                if "Press any key to return to the editor." in screen:
-                    break
-                time.sleep(0.2)
-            (d / "command.txt").write_text(screen)
-            assert "EXTERNAL_COMMAND_DONE" in screen, screen
-            if name.startswith("recursive"):
-                assert "recursive editor launch refused" in screen, screen
-            send_keys(q, "ret")
-            deadline = time.monotonic() + 15
-            while time.monotonic() < deadline:
-                screen = read_screen_text(q, str(d / "vram.bin"))
-                if "zDWED_MARKER" in screen:
-                    break
-                time.sleep(0.2)
-            (d / "resumed.txt").write_text(screen)
-            assert "zDWED_MARKER" in screen, screen
-        if failure:
-            assert "Error" in saved_screen, saved_screen
-            send_keys(q, "ret")
-            time.sleep(0.25)
-        send_keys(q, "esc")
-        if failure:
-            time.sleep(0.25)
-            dirty_screen = read_screen_text(q, str(d / "vram.bin"))
-            (d / "dirty.txt").write_text(dirty_screen)
-            assert "Do you want save" in dirty_screen, dirty_screen
-            assert "zDWED_MARKER" in dirty_screen, dirty_screen
-            send_keys(q, "n")
-        process.wait(timeout=15)
-        assert process.returncode == 33, process.returncode
-        actual = run(["mtype", "-i", spec, "::" + filename]).stdout
-        backup = run(["mtype", "-i", spec, "::" + backup_name]).stdout
-        if keyboard:
             assert (
-                run(["mtype", "-i", floppy, "::KEY.OK"]).stdout.strip()
-                == b"KEYBOARD PASS 13"
+                run(["mtype", "-i", spec, "::$ED0000.TMP"]).stdout
+                == b"OTHER_EDITOR_SAVE\r\n"
             )
-        if external:
-            assert (
-                run(["mtype", "-i", spec, "::COMMAND.TXT"]).stdout.strip()
-                == b"EXTERNAL_COMMAND_OK"
-            )
-            assert run(["mtype", "-i", spec, "::CWD.TXT"]).stdout.strip() == b"C:\\DWED"
-        expected = original if failure else b"z" + original if edit else original
-        if keyboard:
-            expected = b"z" + original[:-2]
-        if name.startswith("menu-copy"):
-            expected = b"z" + original.replace(b"DWED_MARKER", b"DWED_MARKERzD")
-        if name.startswith("menu-cancel"):
-            expected = original[1:]
-        if name.startswith("split-whitespace"):
-            expected = original + b"\r\n"
-        if name.startswith("remove-final"):
-            expected = original[:-2]
-        row.update(
-            completed=True,
-            actual_hex=actual.hex(),
-            backup_matches_expected=backup
-            == (
-                previous_backup
-                if failure or rejected or name.startswith("new-file")
-                else original
-            ),
-            exact_match=actual == expected,
-        )
-        assert (
-            run(["mtype", "-i", spec, "::$ED0000.TMP"]).stdout
-            == b"OTHER_EDITOR_SAVE\r\n"
-        )
-        listing = run(["mdir", "-b", "-i", spec, "::"]).stdout
-        assert b"$ED0001.TMP" not in listing.upper(), listing
-        (d / "original.bin").write_bytes(original)
-        (d / "saved.bin").write_bytes(actual)
+            listing = run(["mdir", "-b", "-i", spec, "::"]).stdout
+            assert b"$ED0001.TMP" not in listing.upper(), listing
+            (d / "original.bin").write_bytes(original)
+            (d / "saved.bin").write_bytes(actual)
     except Exception as error:  # noqa: BLE001 -- record diagnostics, then fail the suite below
         row.update(completed=False, error=str(error))
     finally:
