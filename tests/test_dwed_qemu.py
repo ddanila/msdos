@@ -94,6 +94,10 @@ cases += [
     ("memory-probe-" + mode, mode, b"DWED_MARKER\r\nsecond line\r\n", True)
     for mode in ("low", "high")
 ]
+cases += [
+    ("indent-enter-" + mode, mode, b"DWED_MARKER\r\n \tA  B", False)
+    for mode in ("low", "high")
+]
 cases.append(("backup-file-low", "low", b"DWED_MARKER\r\nbackup document\r\n", True))
 cases += [
     (kind + "-" + mode, mode, b"DWED_MARKER\r\nsecond line\r\n", True)
@@ -510,6 +514,9 @@ for name, mode, original, edit in cases:
             if edit:
                 send_keys(q, "home+z")
                 time.sleep(0.25)
+            if name.startswith("indent-enter-"):
+                send_keys(q, "down+home+right+right+right+ret+x")
+                time.sleep(0.25)
             if name.startswith("split-whitespace"):
                 send_keys(q, "end+ret")
                 time.sleep(0.25)
@@ -695,6 +702,8 @@ for name, mode, original, edit in cases:
                 expected = original[1:]
             if name.startswith("split-whitespace"):
                 expected = original + b"\r\n"
+            if name.startswith("indent-enter-"):
+                expected = b"DWED_MARKER\r\n \tA\r\n \tx  B"
             if name.startswith("remove-final"):
                 expected = original[:-2]
             row.update(

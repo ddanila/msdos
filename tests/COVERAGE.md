@@ -888,3 +888,11 @@ See [the memory contract](../dwed/docs/LOAD-MEMORY.md) and
 [generated evidence](../dwed/docs/load-memory-milestone.json). This covers
 document-induced exhaustion in the DOS store, not every UI allocation or
 minimum-memory machine startup.
+
+DWED Enter/autoindent cases verify exact saved bytes when mixed tabs/spaces
+precede a split whose suffix also begins with whitespace. TABTEST checks every
+cursor boundary of representative and full-length lines, with undo/redo byte,
+cursor and saved-state assertions. The prior editor fails the saved-byte
+negative control. See [the Enter contract](../dwed/docs/AUTOINDENT.md) and
+[generated evidence](../dwed/docs/autoindent-milestone.json). Table-row insertion
+is outside these checks.
