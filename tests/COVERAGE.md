@@ -1086,3 +1086,10 @@ occupied file, creation and allocation refusal, and repeated deletion errors.
 It checks actual handle-number reuse, heap release, database ownership through
 cleanup, and correct erase status. See [the temporary-file contract](../dwed/docs/TEMPORARY-FILES.md)
 and [qualification evidence](../dwed/docs/temporary-file-milestone.json).
+
+The DWED database-open probe verifies non-destructive DBB/DBM initialization,
+header and block bounds, preserved DOS errors, short reads, missing files, and
+allocation refusal. Read or validation failures combined with close refusal
+retain cleanup ownership without writing an invalid header. See
+[the initialization contract](../dwed/docs/DATABASE-INITIALIZATION.md) and
+[qualification evidence](../dwed/docs/database-open-milestone.json).
