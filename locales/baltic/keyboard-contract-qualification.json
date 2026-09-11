@@ -10,8 +10,9 @@
       "sha256": "305cfbeaab3b345fb1c363676182ac241331a66e37b5d93b9c464e191c29fa72"
     },
     {
-      "path": "keyboard-contract.json",
-      "sha256": "41f32d6dc323a325bbe17cdd5b46f89026d2884381eb3cb59e2a157b24515b08"
+      "path": "review/pre-acceptance-41f32d6dc323-keyboard-contract.json",
+      "sha256": "41f32d6dc323a325bbe17cdd5b46f89026d2884381eb3cb59e2a157b24515b08",
+      "original_path": "keyboard-contract.json"
     },
     {
       "path": "review/keyboard-expectations.json",

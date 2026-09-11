@@ -1,0 +1,43 @@
+python3 tests/test_baltic_font_sources.py
+.....
+----------------------------------------------------------------------
+Ran 5 tests in 1.061s
+
+OK
+python3 tests/test_baltic_country_contract.py
+.....
+----------------------------------------------------------------------
+Ran 5 tests in 0.004s
+
+OK
+python3 tests/test_baltic_keyboard_contract.py
+......
+----------------------------------------------------------------------
+Ran 6 tests in 0.004s
+
+OK
+python3 tests/test_baltic_country_records.py
+...
+----------------------------------------------------------------------
+Ran 3 tests in 0.004s
+
+OK
+python3 tests/test_baltic_keyboard_records.py
+......
+----------------------------------------------------------------------
+Ran 6 tests in 0.059s
+
+OK
+python3 tools/build_ru_cpi.py --locale locales/baltic --output /Users/ddanila/fun/msdos/src/DEV/DISPLAY/EGA/EGA775.CPI
+python3 tests/test_baltic_cpi.py
+....
+----------------------------------------------------------------------
+Ran 4 tests in 0.282s
+
+OK
+python3 tests/test_ru_cpi.py
+....
+----------------------------------------------------------------------
+Ran 4 tests in 0.274s
+
+OK

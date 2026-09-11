@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "status": "metadata-output-parity-passed",
+  "source_revision": "76d20355acf6b3d3a92d4333bd8c960de29c428a",
+  "scope": "Current status descriptions reconciled after full release and AT/XT qualification. Historical qualification claims retain their original input bytes in snapshots. Final acceptance is assessed separately.",
+  "changes": [
+    {
+      "path": "manifest.json",
+      "before": {
+        "path": "review/pre-acceptance-6185828bb8f9-manifest.json",
+        "sha256": "6185828bb8f968b709b527ae8fa14c0a728d5a95191b4883d30c834df7e9b1ae"
+      },
+      "after_sha256": "6593a22f260bff9e81cef63d88ef77e23dfb172d01ab34924c2ae0d848772816"
+    },
+    {
+      "path": "country-contract.json",
+      "before": {
+        "path": "review/pre-acceptance-908adad0b45d-country-contract.json",
+        "sha256": "908adad0b45d98e13f53a010155d85684eca494f762881a6c1a8e2b9acc6009d"
+      },
+      "after_sha256": "41b69991d0833b48a50b902a8b03d8a145e84c4f485798611cf25ceef40d5453"
+    },
+    {
+      "path": "keyboard-contract.json",
+      "before": {
+        "path": "review/pre-acceptance-41f32d6dc323-keyboard-contract.json",
+        "sha256": "41f32d6dc323a325bbe17cdd5b46f89026d2884381eb3cb59e2a157b24515b08"
+      },
+      "after_sha256": "f5dc6110bb3974e1590fb71d595cc9a9df388a64b9b5dc048c86fe2677bbc03c"
+    },
+    {
+      "path": "review/country-expectations.json",
+      "before": {
+        "path": "review/pre-acceptance-c1c7d9807785-country-expectations.json",
+        "sha256": "c1c7d9807785f0c80ff6c6edf727b9e07be845ee412ce7b5c33c8a71d6714466"
+      },
+      "after_sha256": "95086f29377a7335c4118ea1c6993412cdd9089894d437172672d6a3e5350f75"
+    }
+  ],
+  "output_checks": {
+    "all_country_fields_and_tables_identical": true,
+    "country_expectation_only_changed_field": "contract_sha256",
+    "keyboard_expectations_identical": true,
+    "all_font_bitmaps_identical": true
+  },
+  "historical_reference_redirects": [
+    {
+      "qualification": "country-record-qualification.json",
+      "original_paths": [
+        "review/country-expectations.json"
+      ]
+    },
+    {
+      "qualification": "keyboard-contract-qualification.json",
+      "original_paths": [
+        "keyboard-contract.json"
+      ]
+    },
+    {
+      "qualification": "country-contract-qualification.json",
+      "original_paths": [
+        "country-contract.json",
+        "review/country-expectations.json"
+      ]
+    }
+  ],
+  "validation": {
+    "command": [
+      "make",
+      "-j1",
+      "test-baltic-font-sources",
+      "test-baltic-country-contract",
+      "test-baltic-keyboard-contract",
+      "test-baltic-country-records",
+      "test-baltic-keyboard-records",
+      "test-baltic-cpi",
+      "test-ru-cpi"
+    ],
+    "exit_code": 0,
+    "log": {
+      "path": "review/final-metadata-tests.log",
+      "sha256": "50065ae24c6adde51c8754269c1831500a819824c43820a4c4c58d13fead017c"
+    }
+  },
+  "rebuilt_resource_hashes": {
+    "DEV/COUNTRY/COUNTRY.SYS": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c",
+    "DEV/KEYBOARD/KEYBRD2.SYS": "d003716471ffbe12803ac7beaf511a8a4e2d6a0b8ef5e3d214eee2a69584cf06",
+    "DEV/DISPLAY/EGA/EGA775.CPI": "ab38fe5b8acae0ba3933ac6b66596c58b32bc23385285b8cc68fec1fa8f15255"
+  }
+}

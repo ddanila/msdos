@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "status": "runtime-qualified",
+  "status": "selected-runtime-unqualified",
   "profiles": {
     "et": {
       "code": "ET",
@@ -12,7 +12,7 @@
       "code_page": 775,
       "default_for_code": true,
       "reference": "review/keyboard-expectations.json",
-      "status": "runtime-qualified"
+      "status": "selected-runtime-unqualified"
     },
     "lv": {
       "code": "LV",
@@ -22,7 +22,7 @@
       "code_page": 775,
       "default_for_code": true,
       "reference": "review/keyboard-expectations.json",
-      "status": "runtime-qualified"
+      "status": "selected-runtime-unqualified"
     },
     "lt": {
       "code": "LT",
@@ -32,7 +32,7 @@
       "code_page": 775,
       "default_for_code": true,
       "reference": "review/keyboard-expectations.json",
-      "status": "runtime-qualified"
+      "status": "selected-runtime-unqualified"
     }
   },
   "compatibility": "Selected FreeDOS 3.1 physical-layout facts, implemented as an explicit extension in the existing Microsoft-format KEYB library. No claim that these are retail DOS 6.22 Baltic layouts.",
@@ -62,5 +62,9 @@
     "controls": "Qualify pending-state cleanup, cancellation/reload, repeated dead keys and ordinary control/navigation input in the guest.",
     "scan_scope": "Explicit reference scan remaps are frozen. Composition/fallback scan behavior must be compared with the existing KEYB interpreter before finalizing physical BIOS expectations."
   },
-  "remaining": []
+  "remaining": [
+    "Implement Baltic data/logic in KEYBRD2.SYS while preserving RU.",
+    "Qualify full modifier precedence and pending-composition control behavior against actual guest output.",
+    "Run both BIOS/DOS byte tests and supported legacy-hardware matrices with all BALTIC.md integration/release gates."
+  ]
 }

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "status": "runtime-qualified",
+  "status": "country-contract-selected-runtime-unqualified",
   "compatibility": "Explicit Baltic DOS extension with pre-euro formatting. Not a claim of byte identity to retail DOS 6.22 country records.",
   "sources": [
     {
@@ -61,7 +61,7 @@
       "thousands_separator": " ",
       "decimal_separator": ",",
       "list_separator": ";",
-      "status": "runtime-qualified",
+      "status": "selected-contract-runtime-unqualified",
       "collation_groups": "A\u00c0\u00c1\u00c2\u00c3\u0100\u0104\u00c5\u00c6BC\u00c7\u0106\u010cD\u00d0E\u00c8\u00ca\u00cb\u00c9\u0112\u0118\u0116F\u0191G\u0122HI\u00cc\u00cd\u00ce\u00cf\u012a\u012eJK\u0136L\u0141\u013bM\u00b5N\u00d1\u0143\u0145O\u00d2\u00d4\u00d3\u014c\u00d8PQR\u0156S\u00df\u015a\u0160Z\u0179\u017b\u017dT\u00deU\u00d9\u00da\u00db\u016a\u0172VW\u00d5\u00c4\u00d6\u00dcXY\u00dd\u0178\u00aa\u00ba\u207f\u0391\u0393\u03a0\u03a3\u03a4\u03a6\u0398\u03a9\u0394\u0395"
     },
     "lv": {
@@ -82,7 +82,7 @@
       "thousands_separator": " ",
       "decimal_separator": ",",
       "list_separator": ";",
-      "status": "runtime-qualified",
+      "status": "selected-contract-runtime-unqualified",
       "collation_groups": "A\u00c0\u00c1\u00c2\u00c3\u0100\u0104\u00c4\u00c5\u00c6BC\u00c7\u0106\u010cD\u00d0E\u00c8\u00ca\u00cb\u00c9\u0112\u0118\u0116F\u0191G\u0122HI\u00cc\u00cd\u00ce\u00cfY\u00dd\u0178\u012a\u012eJK\u0136L\u0141\u013bM\u00b5N\u00d1\u0143\u0145O\u00d2\u00d4\u00d3\u014c\u00d5\u00d6\u00d8PQR\u0156S\u00df\u015a\u0160T\u00deU\u00d9\u00da\u00db\u016a\u0172\u00dcVWXZ\u0179\u017b\u017d\u00aa\u00ba\u207f\u0391\u0393\u03a0\u03a3\u03a4\u03a6\u0398\u03a9\u0394\u0395"
     },
     "lt": {
@@ -103,7 +103,7 @@
       "thousands_separator": ".",
       "decimal_separator": ",",
       "list_separator": ";",
-      "status": "runtime-qualified",
+      "status": "selected-contract-runtime-unqualified",
       "collation_groups": "A\u00c0\u00c1\u00c2\u00c3\u0100\u0104\u00c4\u00c5\u00c6BC\u00c7\u0106\u010cD\u00d0E\u00c8\u00ca\u00cb\u00c9\u0112\u0118\u0116F\u0191G\u0122HI\u00cc\u00cd\u00ce\u00cf\u012a\u012eY\u00dd\u0178JK\u0136L\u0141\u013bM\u00b5N\u00d1\u0143\u0145O\u00d2\u00d4\u00d3\u014c\u00d5\u00d6\u00d8PQR\u0156S\u00df\u015a\u0160T\u00deU\u00d9\u00da\u00db\u0172\u016a\u00dcVWXZ\u0179\u017b\u017d\u00aa\u00ba\u207f\u0391\u0393\u03a0\u03a3\u03a4\u03a6\u0398\u03a9\u0394\u0395"
     }
   },
@@ -186,7 +186,10 @@
     "ordering": "For collation only, identify a letter by its single-character Unicode uppercase, even when that uppercase is absent from the page; sharp s and micro sign identify themselves. Non-letter bytes sort first in unsigned byte order. Representable letter groups then follow the explicit collation_groups sequence with one increasing weight per group. A group omitted by a page consumes no weight. Case partners share their group weight. This does not change the separately specified DOS uppercase conversion.",
     "foreign_letters": "Additional Latin letters in legacy pages are explicitly placed near their base. Ordinals, superscript n and the CP437 Greek letters have explicit trailing groups. Sharp s and micro sign each have their own group; no multi-character conversion is performed."
   },
-  "remaining": [],
+  "remaining": [
+    "Freeze independent keyboard expectations and supported hardware behavior.",
+    "Implement and runtime-qualify the country records and all BALTIC.md release requirements."
+  ],
   "case_policy": "ASCII a-z map to A-Z. For an extended byte, use its Unicode uppercase only when it is exactly one character and encodable in the same page; otherwise retain the byte. Use the same table for filename uppercase.",
   "filename_policy": {
     "basis": "Existing single-byte DOS filename and wildcard contracts; reuse the existing us_flist record.",

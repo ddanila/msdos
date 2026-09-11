@@ -725,3 +725,9 @@ covering both BIOS and DOS input with successful emulator exits. Retention
 rebuilds probes and checks phase actions and resource bytes against each actual
 guest image. Composite results retain the earlier media-creation failures and
 the successful component runs; they do not claim a single uninterrupted run.
+
+The [Baltic metadata qualification](../locales/baltic/metadata-qualification.json)
+checks that reconciled status descriptions leave country tables, keyboard
+expectations and every font bitmap unchanged. Static contract, resource and
+CP866 checks pass; rebuilt Baltic resources match the runtime-qualified bytes.
+Historical qualification inputs are preserved in explicit snapshots.

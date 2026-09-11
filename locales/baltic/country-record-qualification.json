@@ -22,8 +22,9 @@
   ],
   "scope": "Every new country object matches retained expectations. All previous object signatures/payloads, including Russian, are unchanged. Directory offsets and full file hash change when records are added. This does not qualify CONFIG loading or guest NLS APIs.",
   "expectations": {
-    "path": "review/country-expectations.json",
-    "sha256": "c1c7d9807785f0c80ff6c6edf727b9e07be845ee412ce7b5c33c8a71d6714466"
+    "path": "review/pre-acceptance-c1c7d9807785-country-expectations.json",
+    "sha256": "c1c7d9807785f0c80ff6c6edf727b9e07be845ee412ce7b5c33c8a71d6714466",
+    "original_path": "review/country-expectations.json"
   },
   "prior_records": {
     "path": "prior-country-records.json",

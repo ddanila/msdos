@@ -2,8 +2,15 @@
 
 [BALTIC.md](../../BALTIC.md) defines the Estonian, Latvian and Lithuanian
 implementation and acceptance scope. This directory contains selected contracts
-and focused country/font evidence. Complete installable language profiles
-remain in progress.
+and qualification evidence for installable profiles in all three languages.
+The [release record](release-qualification.json),
+[complete AT/XT lifecycle record](legacy-lifecycle-qualification.json), and
+[metadata parity record](metadata-qualification.json) cover the completed
+runtime and release gates. Final acceptance reconciliation is in progress.
+
+The milestone descriptions below preserve the scope and limitations at the time
+of each qualification. Their references to open work describe those historical
+milestones; later records establish the completed runtime and release coverage.
 
 [manifest.json](manifest.json) pins the Microsoft CP775 mapping and references
 the existing local Cozette and 512_8 sources by path, revision and hash. Their

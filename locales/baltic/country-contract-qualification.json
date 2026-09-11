@@ -6,12 +6,14 @@
   "exit_code": 0,
   "evidence": [
     {
-      "path": "country-contract.json",
-      "sha256": "908adad0b45d98e13f53a010155d85684eca494f762881a6c1a8e2b9acc6009d"
+      "path": "review/pre-acceptance-908adad0b45d-country-contract.json",
+      "sha256": "908adad0b45d98e13f53a010155d85684eca494f762881a6c1a8e2b9acc6009d",
+      "original_path": "country-contract.json"
     },
     {
-      "path": "review/country-expectations.json",
-      "sha256": "c1c7d9807785f0c80ff6c6edf727b9e07be845ee412ce7b5c33c8a71d6714466"
+      "path": "review/pre-acceptance-c1c7d9807785-country-expectations.json",
+      "sha256": "c1c7d9807785f0c80ff6c6edf727b9e07be845ee412ce7b5c33c8a71d6714466",
+      "original_path": "review/country-expectations.json"
     },
     {
       "path": "review/country-contract-tests.log",

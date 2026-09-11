@@ -2,7 +2,7 @@
   "schema_version": 1,
   "locale": "baltic",
   "code_page": 775,
-  "status": "runtime-qualified",
+  "status": "encoding-country-and-keyboard-implemented-integration-pending",
   "sources": [
     {
       "path": "upstream/CP775.TXT",
@@ -694,7 +694,12 @@
       }
     }
   },
-  "unresolved": [],
+  "unresolved": [
+    "Qualify additional keyboard modifier/fallback edges, pending state on further failure/page-transition paths, deeply malformed libraries and legacy BIOS input.",
+    "Qualify Baltic country APIs on real BIOS and complete missing/malformed resource and installed-workflow cases.",
+    "Qualify CP775 font loading and rendering on real BIOS and in installed workflows.",
+    "Implement, package and qualify all three language profiles and complete release gates in BALTIC.md."
+  ],
   "pack_name": "Baltic",
   "qualification": {
     "display": "display-qualification.json",
