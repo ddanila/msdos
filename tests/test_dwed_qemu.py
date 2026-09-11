@@ -239,6 +239,10 @@ cases += [
     ("tab-probe-" + mode, mode, b"DWED_MARKER\r\n", True) for mode in ("low", "high")
 ]
 cases += [
+    ("session-probe-" + mode, mode, b"DWED_MARKER\r\n", True)
+    for mode in ("low", "high")
+]
+cases += [
     ("save-fault-" + mode, mode, b"DWED_MARKER\r\n", True) for mode in ("low", "high")
 ]
 cases += [
@@ -321,6 +325,11 @@ if (
 ):
     parser.error("XMS probes require an editor built with --tests")
 if (
+    any(case[0].startswith("session-probe-") for case in cases)
+    and not (args.build / "SESSPROB.exe").exists()
+):
+    parser.error("session probes require an editor built with --tests")
+if (
     any(case[0].startswith("tab-probe-") for case in cases)
     and not (args.build.resolve() / "TABTEST.exe").is_file()
 ):
@@ -354,6 +363,7 @@ for name, mode, original, edit in cases:
     real_transfer = name.startswith("real-transfer-")
     xfer_probe = name.startswith("xfer-probe-")
     xms_probe = name.startswith("xms-probe-")
+    session_probe = name.startswith("session-probe-")
     tab_probe = name.startswith("tab-probe-")
     save_probe = name.startswith("save-fault-")
     rejected = name.startswith("reject-")
@@ -470,6 +480,11 @@ for name, mode, original, edit in cases:
             floppy, "CLIPTEST.EXE", (args.build.resolve() / "CLIPTEST.exe").read_bytes()
         )
         probe_command = "A:\\CLIPTEST.EXE\r\n"
+    if session_probe:
+        put(
+            floppy, "SESSPROB.EXE", (args.build.resolve() / "SESSPROB.exe").read_bytes()
+        )
+        probe_command = "A:\\SESSPROB.EXE >C:\\SESSRUN.LOG\r\n"
     if tab_probe:
         put(floppy, "TABTEST.EXE", (args.build.resolve() / "TABTEST.exe").read_bytes())
         probe_command = "A:\\TABTEST.EXE\r\n"
@@ -644,8 +659,31 @@ for name, mode, original, edit in cases:
         screen = ""
         memory_notices = 0
         table_refusals = 0
+        session_refusals = 0
+        session_cleanup = 0
         while time.monotonic() < end and process.poll() is None:
             screen = read_screen_text(q, str(d / "vram.bin"))
+            if session_probe and "Session cleanup" in screen:
+                session_cleanup += 1
+                assert session_cleanup <= 2, screen
+                (d / f"session-cleanup-{session_cleanup}.txt").write_text(screen)
+                if session_cleanup == 1:
+                    assert "Keep files and leave" not in screen, screen
+                    send_keys(q, "k")
+                    time.sleep(0.3)
+                    assert "Session cleanup" in read_screen_text(q, str(d / "vram.bin"))
+                    send_keys(q, "esc")
+                else:
+                    send_keys(q, "r")
+                time.sleep(0.5)
+                continue
+            if session_probe and ("#5:" in screen or "#101:" in screen):
+                session_refusals += 1
+                assert session_refusals <= 6, screen
+                (d / f"session-refusal-{session_refusals}.txt").write_text(screen)
+                send_keys(q, "ret")
+                time.sleep(0.5)
+                continue
             if tab_probe and "#1004:" in screen:
                 table_refusals += 1
                 assert table_refusals <= 2, screen
@@ -987,6 +1025,20 @@ for name, mode, original, edit in cases:
                     run(["mtype", "-i", floppy, "::XMS.OK"]).stdout.strip() == expected
                 )
                 row["xms_probe"] = probe_log.decode("ascii").strip()
+            if session_probe:
+                diagnostic = run(["mtype", "-i", spec, "::SESSRUN.LOG"]).stdout
+                (d / "session-runtime.log").write_bytes(diagnostic)
+                assert not diagnostic.strip(), diagnostic
+                probe_log = run(["mtype", "-i", floppy, "::SESS.LOG"]).stdout
+                (d / "session.log").write_bytes(probe_log)
+                assert b"PASS " in probe_log and b"FAIL" not in probe_log, probe_log
+                assert (
+                    run(["mtype", "-i", floppy, "::SESS.OK"]).stdout.strip()
+                    == b"SESSION PASS"
+                )
+                assert session_refusals == 6, session_refusals
+                assert session_cleanup == 2, session_cleanup
+                row["session_probe"] = probe_log.decode("ascii").strip()
             if tab_probe:
                 assert table_refusals == 2, table_refusals
                 row["table_refusals"] = table_refusals

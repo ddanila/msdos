@@ -1058,3 +1058,10 @@ retry, complete saved bytes, and writes beyond cache capacity. The old cache
 and buffered-file implementations provide negative controls. See
 [cache evidence](../dwed/docs/cache-safety-milestone.json); higher-level callers
 remain subject to the [remaining review](../dwed/docs/EXTENDED-TRANSFERS.md).
+
+The DWED session probe invokes the external-command handler under checkpoint
+write, short-write, commit, close, rename, and recovery-record failures. It
+checks retained documents and checkpoint bytes, persistent cleanup ownership,
+and independent document-save ownership. The host exercises the cleanup dialog
+and successful launcher resume separately. See the [session contract](../dwed/docs/SESSION-SAFETY.md)
+and [qualification evidence](../dwed/docs/session-safety-milestone.json).
