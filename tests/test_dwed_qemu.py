@@ -239,6 +239,10 @@ cases += [
     ("tab-probe-" + mode, mode, b"DWED_MARKER\r\n", True) for mode in ("low", "high")
 ]
 cases += [
+    ("database-probe-" + mode, mode, b"DWED_MARKER\r\n", True)
+    for mode in ("low", "high")
+]
+cases += [
     ("metadata-probe-" + mode, mode, b"DWED_MARKER\r\n", True)
     for mode in ("low", "high")
 ]
@@ -329,6 +333,11 @@ if (
 ):
     parser.error("XMS probes require an editor built with --tests")
 if (
+    any(case[0].startswith("database-probe-") for case in cases)
+    and not (args.build / "DBPROBE.exe").exists()
+):
+    parser.error("database probes require an editor built with --tests")
+if (
     any(case[0].startswith("metadata-probe-") for case in cases)
     and not (args.build / "INITPROB.exe").exists()
 ):
@@ -372,6 +381,7 @@ for name, mode, original, edit in cases:
     real_transfer = name.startswith("real-transfer-")
     xfer_probe = name.startswith("xfer-probe-")
     xms_probe = name.startswith("xms-probe-")
+    database_probe = name.startswith("database-probe-")
     metadata_probe = name.startswith("metadata-probe-")
     session_probe = name.startswith("session-probe-")
     tab_probe = name.startswith("tab-probe-")
@@ -490,6 +500,9 @@ for name, mode, original, edit in cases:
             floppy, "CLIPTEST.EXE", (args.build.resolve() / "CLIPTEST.exe").read_bytes()
         )
         probe_command = "A:\\CLIPTEST.EXE\r\n"
+    if database_probe:
+        put(floppy, "DBPROBE.EXE", (args.build.resolve() / "DBPROBE.exe").read_bytes())
+        probe_command = "A:\\DBPROBE.EXE >C:\\DBRUN.LOG\r\n"
     if metadata_probe:
         put(
             floppy, "INITPROB.EXE", (args.build.resolve() / "INITPROB.exe").read_bytes()
@@ -1040,6 +1053,18 @@ for name, mode, original, edit in cases:
                     run(["mtype", "-i", floppy, "::XMS.OK"]).stdout.strip() == expected
                 )
                 row["xms_probe"] = probe_log.decode("ascii").strip()
+            if database_probe:
+                diagnostic = run(["mtype", "-i", spec, "::DBRUN.LOG"]).stdout
+                (d / "database-runtime.log").write_bytes(diagnostic)
+                assert not diagnostic.strip(), diagnostic
+                probe_log = run(["mtype", "-i", floppy, "::DB.LOG"]).stdout
+                (d / "database.log").write_bytes(probe_log)
+                assert b"PASS " in probe_log and b"FAIL" not in probe_log, probe_log
+                assert (
+                    run(["mtype", "-i", floppy, "::DB.OK"]).stdout.strip()
+                    == b"DATABASE CLOSE PASS"
+                )
+                row["database_probe"] = probe_log.decode("ascii").strip()
             if metadata_probe:
                 diagnostic = run(["mtype", "-i", spec, "::INITRUN.LOG"]).stdout
                 (d / "metadata-runtime.log").write_bytes(diagnostic)

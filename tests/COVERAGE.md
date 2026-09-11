@@ -1073,3 +1073,10 @@ read ownership, and exercises allocation failure and line boundaries. Later
 document failures retain earlier restored documents and the checkpoint. See
 [the reader contract](../dwed/docs/METADATA-READERS.md) and
 [qualification evidence](../dwed/docs/metadata-reader-milestone.json).
+
+The DWED database probe checks DBB/DBM header and buffered-file ownership after
+repeated close-time DOS failures and scratch-memory exhaustion. It verifies
+record bytes after continued use, retry, and reopening, plus temporary-file
+retention and discard. See [the alternative-store scope](../dwed/docs/ALTERNATIVE-STORES.md)
+and [close evidence](../dwed/docs/database-close-milestone.json). These checks
+do not establish transactional editing with an alternative store.
