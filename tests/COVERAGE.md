@@ -1043,3 +1043,10 @@ checks failed allocations return no handle. Unrelated multiplex services are
 chained and the original vector is restored before the normal editor runs.
 See [allocation-size evidence](../dwed/docs/xms-allocation-milestone.json).
 This checks the wrapper's request construction, not real SXMS driver behavior.
+
+The DWED transfer probes verify source-preserving EMS copy, ordinary/SXMS move
+descriptors and transfer error statuses using isolated driver shims. Real-driver
+probes verify patterned round trips and freed-handle refusal with HIMEM and
+EMS-enabled EMM386. See [the transfer contract](../dwed/docs/EXTENDED-TRANSFERS.md)
+and [generated evidence](../dwed/docs/transfer-status-milestone.json). Cache
+consumers still require end-to-end failure qualification.
