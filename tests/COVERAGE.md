@@ -14,6 +14,14 @@ directory. Commit/close/rename fault injection, read-only media,
 recovery, file-format preservation, menus and full EDIT distribution remain
 [implementation gates](../dwed/docs/EDIT-PLAN.md).
 
+The DWED text cases assert exact bytes for CRLF/LF/CR, final-newline state,
+tabs, high-bit characters, empty/new documents and the physical-line boundary.
+They also check whitespace-preserving splits and final-newline removal.
+Long-line, mixed-newline and control-byte rejection cases verify that editing
+and saving afterwards leave the rejected source and its backup unchanged.
+These are conventional-memory tests; alternate stores, full tab-stop display
+and clipboard behavior remain [open](../dwed/docs/TEXT-FORMAT.md).
+
 The optional Russian increment has source, reference and CPI gates:
 `make test-ru-font-sources test-ru-contract test-ru-cpi`. The
 [locale manifest and font audits](../locales/ru/README.md) pin inputs and

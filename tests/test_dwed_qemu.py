@@ -57,12 +57,35 @@ cases += [
     for mode in ("low", "high")
 ]
 cases.append(("outside-directory-low", "low", b"DWED_MARKER\r\nsecond line\r\n", True))
+cases += [
+    ("text-lf-low", "low", b"DWED_MARKER\nsecond line\n", True),
+    ("text-cr-low", "low", b"DWED_MARKER\rsecond line\r", True),
+    ("text-no-final-low", "low", b"DWED_MARKER\r\nsecond line", True),
+    ("text-tabs-low", "low", b"DWED_MARKER\tend\r\n\tsecond\tline \t\r\n", True),
+    (
+        "text-codepage-low",
+        "low",
+        b"DWED_MARKER\r\n" + bytes(range(128, 256)) + b"\r\n",
+        True,
+    ),
+    ("text-max-line-low", "low", b"DWED_MARKER" + b"x" * 244 + b"\r\n", False),
+    ("text-empty-low", "low", b"", False),
+    ("reject-long-low", "low", b"DWED_MARKER" + b"x" * 245 + b"\r\n", False),
+    ("reject-mixed-low", "low", b"DWED_MARKER\r\nsecond line\n", False),
+    ("reject-control-low", "low", b"DWED_MARKER\x00hidden\r\n", False),
+]
+cases += [
+    ("new-file-low", "low", b"", True),
+    ("split-whitespace-low", "low", b"DWED_MARKER \t \r\n", False),
+    ("remove-final-low", "low", b"DWED_MARKER\r\n", False),
+]
 if args.case:
     unknown = set(args.case) - {case[0] for case in cases}
     if unknown:
         parser.error(f"unknown cases: {sorted(unknown)}")
     cases = [case for case in cases if case[0] in args.case]
 for name, mode, original, edit in cases:
+    rejected = name.startswith("reject-")
     failure = name.startswith(("disk-full", "read-only"))
     filename = "SAMPLE.BAK" if name.startswith("backup-file") else "SAMPLE.TXT"
     backup_name = "SAMPLE.BK!" if name.startswith("backup-file") else "SAMPLE.BAK"
@@ -79,7 +102,8 @@ for name, mode, original, edit in cases:
         (repo / "BIN/DWED.CFG", "DWED.CFG"),
     ):
         run(["mcopy", "-o", "-i", spec, file, "::DWED/" + dos_name])
-    put(spec, filename, original)
+    if not name.startswith("new-file"):
+        put(spec, filename, original)
     external = name.startswith(("external", "recursive"))
     if external:
         cfg = (
@@ -168,13 +192,36 @@ for name, mode, original, edit in cases:
         screen = ""
         while time.monotonic() < end and process.poll() is None:
             screen = read_screen_text(q, str(d / "vram.bin"))
-            if "DWED_MARKER" in screen:
+            if (
+                (rejected and "file was not opened" in screen)
+                or (not original and "Press F1 for help" in screen)
+                or "DWED_MARKER" in screen
+            ):
                 break
             time.sleep(0.2)
         (d / "opened.txt").write_text(screen)
-        assert "DWED_MARKER" in screen, screen
+        if rejected:
+            assert "file was not opened" in screen, screen
+            assert "DWED_MARKER" not in screen, screen
+            send_keys(q, "ret")
+            time.sleep(0.25)
+            screen = read_screen_text(q, str(d / "vram.bin"))
+            assert "SAMPLE.TXT" not in screen, screen
+        else:
+            assert (
+                not original and "Press F1 for help" in screen
+            ) or "DWED_MARKER" in screen, screen
         q.human_cmd(f'screendump "{d}/opened.ppm"')
         if edit:
+            send_keys(q, "home+z")
+            time.sleep(0.25)
+        if name.startswith("split-whitespace"):
+            send_keys(q, "end+ret")
+            time.sleep(0.25)
+        if name.startswith("remove-final"):
+            send_keys(q, "down+home+backspace")
+            time.sleep(0.25)
+        if rejected:
             send_keys(q, "home+z")
             time.sleep(0.25)
         send_keys(q, "f2")
@@ -224,13 +271,21 @@ for name, mode, original, edit in cases:
                 == b"EXTERNAL_COMMAND_OK"
             )
             assert run(["mtype", "-i", spec, "::CWD.TXT"]).stdout.strip() == b"C:\\DWED"
+        expected = original if failure else b"z" + original if edit else original
+        if name.startswith("split-whitespace"):
+            expected = original + b"\r\n"
+        if name.startswith("remove-final"):
+            expected = original[:-2]
         row.update(
             completed=True,
             actual_hex=actual.hex(),
             backup_matches_expected=backup
-            == (previous_backup if failure else original),
-            exact_match=actual
-            == (original if failure else b"z" + original if edit else original),
+            == (
+                previous_backup
+                if failure or rejected or name.startswith("new-file")
+                else original
+            ),
+            exact_match=actual == expected,
         )
         assert (
             run(["mtype", "-i", spec, "::$ED0000.TMP"]).stdout
@@ -257,4 +312,7 @@ print("Finished", flush=True)
 assert all(
     r.get("completed") and r.get("exact_match") and r.get("backup_matches_expected")
     for r in rows
-), rows
+), [
+    {key: value for key, value in row.items() if not key.endswith("_hex")}
+    for row in rows
+]
