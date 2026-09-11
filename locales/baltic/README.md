@@ -6,7 +6,9 @@ and qualification evidence for installable profiles in all three languages.
 The [release record](release-qualification.json),
 [complete AT/XT lifecycle record](legacy-lifecycle-qualification.json), and
 [metadata parity record](metadata-qualification.json) cover the completed
-runtime and release gates. Final acceptance reconciliation is in progress.
+runtime and release gates. The [final acceptance audit](acceptance-audit.json)
+checks every plan requirement and each language separately. Use the shipped
+[BALTIC.TXT](BALTIC.TXT) for the supported startup recipes.
 
 The milestone descriptions below preserve the scope and limitations at the time
 of each qualification. Their references to open work describe those historical

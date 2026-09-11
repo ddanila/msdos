@@ -1,0 +1,1275 @@
+{
+  "schema_version": 1,
+  "status": "accepted",
+  "plan_sha256": "32e0afb77d8184af4810e69024e8600ed30b31c255e3acd574ac7ddd441a4ab6",
+  "requirements": [
+    {
+      "id": "1.1",
+      "section": 1,
+      "requirement": "Pin the published Microsoft CP775 mapping, its provenance, hash and license locally. Distinguish text control codes from DOS screen symbols. Audit all encoded slots, including punctuation and pseudographics, rather than copying CP437 or CP866 slot positions.",
+      "evidence": [
+        {
+          "path": "manifest.json",
+          "sha256": "6593a22f260bff9e81cef63d88ef77e23dfb172d01ab34924c2ae0d848772816"
+        },
+        {
+          "path": "upstream/CP775.TXT",
+          "sha256": "3853eeb4f9bd2d760ba616dd857646efa653549d1532e7bce509f7fda65e470b"
+        },
+        {
+          "path": "../ru/upstream/UNICODE-LICENSE.txt",
+          "sha256": "e7a93b009565cfce55919a381437ac4db883e9da2126fa28b91d12732bc53d96"
+        },
+        {
+          "path": "foundation-qualification.json",
+          "sha256": "f1bbcbea71e9253fbba0d98c1ba0d6e0abe02f96592fc718f4a2b5a5dcbbca3f"
+        }
+      ],
+      "assessment": "passed",
+      "review_basis": "Verified every locally pinned encoding/font/license source hash. Font-source test compares all 256 Unicode slots with the independent CP775 codec and distinguishes graphical control slots; printable display slots retain CP775 positions."
+    },
+    {
+      "id": "1.2",
+      "section": 1,
+      "requirement": "Record required letters, uppercase/lowercase pairs and representative words independently for each language. Include Estonian tilde, diaeresis and caron letters; Latvian macron, cedilla and caron letters; and Lithuanian ogonek, dotted, macron and caron letters. Cover the full encoding even when a character is outside these language samples.",
+      "evidence": [
+        {
+          "path": "manifest.json",
+          "sha256": "6593a22f260bff9e81cef63d88ef77e23dfb172d01ab34924c2ae0d848772816"
+        },
+        {
+          "path": "review/font-audit.json",
+          "sha256": "ae91131bf2ca649e18e3534cbc5e11315518040eedfd3bebc67821b9ed055f56"
+        },
+        {
+          "path": "review/country-expectations.json",
+          "sha256": "95086f29377a7335c4118ea1c6993412cdd9089894d437172672d6a3e5350f75"
+        },
+        {
+          "path": "foundation-qualification.json",
+          "sha256": "f1bbcbea71e9253fbba0d98c1ba0d6e0abe02f96592fc718f4a2b5a5dcbbca3f"
+        }
+      ],
+      "assessment": "passed",
+      "review_basis": "Fixed byte expectations cover required lowercase and uppercase letters separately for et/lv/lt; source audit inventories every encoded glyph at each height. Per-language sample strings encode strictly, and workflow typing maps cover the required letters."
+    },
+    {
+      "id": "1.3",
+      "section": 1,
+      "requirement": "Select a reference-backed national keyboard layout for each language. Resolve KEYB codes/IDs, supported keyboard hardware, third-level modifiers, dead keys/composition where applicable, national/US switching and ordinary punctuation. Record omitted variants explicitly. Do not transplant RU toggle behavior without verifying the selected layout's contract.",
+      "evidence": [
+        {
+          "path": "keyboard-contract.json",
+          "sha256": "f5dc6110bb3974e1590fb71d595cc9a9df388a64b9b5dc048c86fe2677bbc03c"
+        },
+        {
+          "path": "review/keyboard-expectations.json",
+          "sha256": "09a0a925cf85cbcb0294f1bb63554729f5e3d4cd41316f3cb834b4376aee19f2"
+        },
+        {
+          "path": "keyboard-contract-qualification.json",
+          "sha256": "9b642564b0b874c1cb4e4b062aefe079c83060745633254104c6daccbc0f2287"
+        },
+        {
+          "path": "BALTIC.TXT",
+          "sha256": "836c85513ec12e562717cff09aad1a1284bdd09e70eac8e263aebd38e5881715"
+        }
+      ],
+      "assessment": "passed",
+      "review_basis": "Selected ET454/EE, LV0 and LT221 contracts identify the source layouts, mode keys, modifier precedence, composition and hardware exclusions. The independent capture tests fix physical scan/plane facts and all required letters. Unsupported variants/pages are explicitly excluded; runtime qualification is assessed separately in section 4."
+    },
+    {
+      "id": "1.4",
+      "section": 1,
+      "requirement": "Resolve DOS country identifiers, default/supported pages, date/time, currency/number formats, filename rules, uppercase and collation tables separately for Estonia, Latvia and Lithuania. Shared encoding does not imply shared national ordering. Where retail DOS evidence is unavailable, label the chosen extension and its reference instead of claiming retail parity or inventing table bytes.",
+      "evidence": [
+        {
+          "path": "country-contract.json",
+          "sha256": "41b69991d0833b48a50b902a8b03d8a145e84c4f485798611cf25ceef40d5453"
+        },
+        {
+          "path": "review/country-expectations.json",
+          "sha256": "95086f29377a7335c4118ea1c6993412cdd9089894d437172672d6a3e5350f75"
+        },
+        {
+          "path": "country-contract-qualification.json",
+          "sha256": "734b605519490f24ffec7b0f3e9592db28716a7a65dd2038511827dac3dc800b"
+        },
+        {
+          "path": "BAKEYS.TXT",
+          "sha256": "142ec6f6a021f20de090af1560a639291d13628d0cfdab53b92bd15f9d001b0c"
+        }
+      ],
+      "assessment": "passed",
+      "review_basis": "Country contracts separately specify 372/371/370, pages 775/437/850, pre-euro formats and explicit single-byte national ordering. Pinned CLDR inputs provide ordering provenance; the contract explicitly distinguishes this extension from retail DOS bytes. Independent fixed examples check national orders and field bytes."
+    },
+    {
+      "id": "1.5",
+      "section": 1,
+      "requirement": "Exit: manifests and independent expectations resolve these decisions before translation tables or country records are implemented. Record compatibility differences and unresolved evidence explicitly.",
+      "evidence": [
+        {
+          "path": "country-contract-qualification.json",
+          "sha256": "734b605519490f24ffec7b0f3e9592db28716a7a65dd2038511827dac3dc800b"
+        },
+        {
+          "path": "keyboard-contract-qualification.json",
+          "sha256": "9b642564b0b874c1cb4e4b062aefe079c83060745633254104c6daccbc0f2287"
+        },
+        {
+          "path": "keyboard-contract.json",
+          "sha256": "f5dc6110bb3974e1590fb71d595cc9a9df388a64b9b5dc048c86fe2677bbc03c"
+        },
+        {
+          "path": "country-contract.json",
+          "sha256": "41b69991d0833b48a50b902a8b03d8a145e84c4f485798611cf25ceef40d5453"
+        },
+        {
+          "path": "metadata-qualification.json",
+          "sha256": "5266f24b4778fd58583988ec42e26411024a5bba788fb3df7249fc867b45d2bd"
+        }
+      ],
+      "assessment": "passed",
+      "review_basis": "Git history places the selected country contract in 51d8bccc, captured keyboard contract and country records in 0b040874, and national keyboard implementation in dff46fc9. Compatibility limits are explicit. Current status metadata is reconciled; historical inputs are preserved and generated data remains identical."
+    },
+    {
+      "id": "2.1",
+      "section": 2,
+      "requirement": "Audit the already vendored Cozette and 512_8 sources for the required glyphs at every supported EGA/VGA height. Preserve MIT and public-domain attribution separately. Record any original glyph edits with provenance. Review diacritics at the short height rather than cropping taller glyphs.",
+      "evidence": [
+        {
+          "path": "manifest.json",
+          "sha256": "6593a22f260bff9e81cef63d88ef77e23dfb172d01ab34924c2ae0d848772816"
+        },
+        {
+          "path": "font-edits.json",
+          "sha256": "d27789b34909c9654cba86f23d408e5b765ebf776c1718167e31f4cf2c12943d"
+        },
+        {
+          "path": "review/font-audit.json",
+          "sha256": "ae91131bf2ca649e18e3534cbc5e11315518040eedfd3bebc67821b9ed055f56"
+        },
+        {
+          "path": "foundation-qualification.json",
+          "sha256": "f1bbcbea71e9253fbba0d98c1ba0d6e0abe02f96592fc718f4a2b5a5dcbbca3f"
+        }
+      ],
+      "assessment": "passed",
+      "review_basis": "Pinned Cozette and 512_8 source/licensing hashes match. Candidate audits cover every slot at all heights; explicit edits supply short-height inverse controls and extend geometric glyphs by Unicode identity. Retained 8/14/16 HIGH screenshots were visually reinspected during acceptance review."
+    },
+    {
+      "id": "2.2",
+      "section": 2,
+      "requirement": "Build EGA775.CPI through the existing device rules and CPI format. Keep normal builds offline and reproducible; add structural, mapping and independent representative-glyph checks and per-height contact sheets.",
+      "evidence": [
+        {
+          "path": "display-qualification.json",
+          "sha256": "1b6a333b83a81d00fe58eafc16176fa95e740efc13a88a35fd6f18d2d38260b3"
+        },
+        {
+          "path": "pristine-qualification.json",
+          "sha256": "c3d3a84fc2315079afc565bdb61cd0843df6a26c1e31103a0cb70bcc0dbaaa4e"
+        },
+        {
+          "path": "../../mk/dev.mk",
+          "sha256": "2c20ec95c267753708daebd7c9541c3f1a2664ebfc1486c34fc6f7c5c0da7f5d"
+        },
+        {
+          "path": "../../tests/test_baltic_cpi.py",
+          "sha256": "8fade112e10e34e0fdadf5d1218040cb5a8e5bb7f6bc9710424f692467e3f070"
+        }
+      ],
+      "assessment": "passed",
+      "review_basis": "CPI tests independently fix tilde/cedilla/ogonek bitmaps in both cases at all heights, parse the CPI structure, check borders/shading, reproduce selected review output and reject wrong pages/truncation. Full offline pristine serial/parallel builds match the qualified CPI bytes."
+    },
+    {
+      "id": "2.3",
+      "section": 2,
+      "requirement": "Load CP775 with DISPLAY/MODE in private guest images. Verify active page, actual VGA font-plane bytes and rendered text in all three languages. Review diacritics, spacing, supported borders, shading and DOS graphical control slots. Do not demand CP437 box characters absent from CP775.",
+      "evidence": [
+        {
+          "path": "current-display-qualification.json",
+          "sha256": "7f96675c710d849e52d49e23b96d2dcb70203c9a776d0df87467d27578cfb3cc"
+        },
+        {
+          "path": "display-qualification.json",
+          "sha256": "1b6a333b83a81d00fe58eafc16176fa95e740efc13a88a35fd6f18d2d38260b3"
+        },
+        {
+          "path": "display-286-qualification.json",
+          "sha256": "272dc4403fe2cd2c7b653d1730846915ecb15876fd6894cfac6d414d89c7ceed"
+        },
+        {
+          "path": "current-286-workflows-qualification.json",
+          "sha256": "6a840ee79327e1089f9171c0cefffb9ab520afcd0cd269e5dd532dbf0959b54f"
+        },
+        {
+          "path": "installed-workflows-qualification.json",
+          "sha256": "644c9c05d25ff79fa8e73a0ce3f6f351ef22bf33eccb5d035557bc445f7edabd"
+        }
+      ],
+      "assessment": "passed",
+      "review_basis": "Current-release display cases use the final core and reproduce every retained font-plane and screenshot hash exactly for HIGH/LOW at all heights. Actual guest completion and exit are checked; all three language samples and the full slot grid are rendered. Visual review finds visible diacritics and connected supported borders."
+    },
+    {
+      "id": "2.4",
+      "section": 2,
+      "requirement": "Exit: each height is readable and byte-correct; a wrong diacritic glyph is detected by the guest/font oracle, and existing CP866/EGA pages pass.",
+      "evidence": [
+        {
+          "path": "current-display-qualification.json",
+          "sha256": "7f96675c710d849e52d49e23b96d2dcb70203c9a776d0df87467d27578cfb3cc"
+        },
+        {
+          "path": "display-qualification.json",
+          "sha256": "1b6a333b83a81d00fe58eafc16176fa95e740efc13a88a35fd6f18d2d38260b3"
+        },
+        {
+          "path": "display-286-qualification.json",
+          "sha256": "272dc4403fe2cd2c7b653d1730846915ecb15876fd6894cfac6d414d89c7ceed"
+        },
+        {
+          "path": "resources-286-qualification.json",
+          "sha256": "cf935fb4e3c5ae6135dc2598d06e0749069a51fae89cd282c27535ccbfa2dbb8"
+        }
+      ],
+      "assessment": "passed",
+      "review_basis": "Current-core wrong-glyph controls detect precisely slot E4 under HIGH/LOW. Static glyph and broken-border controls also reject their mutants. Existing EGA/CP866 display regressions and real-BIOS font cases retain separate evidence, with current shared release gates passed."
+    },
+    {
+      "id": "3.1",
+      "section": 3,
+      "requirement": "Extend the country builder using the frozen language contracts. Share tables only where their independently established bytes agree. Derive character and filename uppercase explicitly; Unicode mappings alone are not a DOS collation oracle.",
+      "evidence": [
+        {
+          "path": "country-contract.json",
+          "sha256": "41b69991d0833b48a50b902a8b03d8a145e84c4f485798611cf25ceef40d5453"
+        },
+        {
+          "path": "review/country-expectations.json",
+          "sha256": "95086f29377a7335c4118ea1c6993412cdd9089894d437172672d6a3e5350f75"
+        },
+        {
+          "path": "country-record-qualification.json",
+          "sha256": "4f8052001625f8053b40f1b6abbbe1c8c90fad2b4bcec994ea50b7c3767bb5d9"
+        },
+        {
+          "path": "../../src/DEV/COUNTRY/MKCNTRY.ASM",
+          "sha256": "020e25be0d96ca44b45b9d99d518b6c1114ab4e4f4cec2c222f67ac08665b376"
+        },
+        {
+          "path": "metadata-qualification.json",
+          "sha256": "5266f24b4778fd58583988ec42e26411024a5bba788fb3df7249fc867b45d2bd"
+        }
+      ],
+      "assessment": "passed",
+      "review_basis": "MKCNTRY includes BALTCOUN with explicit per-page uppercase and per-country collation bytes. Structural tests compare every new object with the independent country expectations, separately check filename uppercase, and prove every pre-Baltic record signature/payload hash is preserved."
+    },
+    {
+      "id": "3.2",
+      "section": 3,
+      "requirement": "Test structural records and guest CONFIG loading, country and extended country APIs, uppercase, active-page queries and NLSFUNC/CHCP transitions for each national profile. Check COUNTRY ordering against the shipped HIGH/LOW startup recipe, including multi-page DISPLAY preparation.",
+      "evidence": [
+        {
+          "path": "release-qualification.json",
+          "sha256": "1656461934128f1d57ba88c83c3fb04baf8fb2995fce7d615efca5af24b7a1b6"
+        },
+        {
+          "path": "country-qualification.json",
+          "sha256": "1fca64b1a4a4a054725b4504df51a7b7a3343159b26d6888be92438fbf3562ce"
+        },
+        {
+          "path": "country-boot-qualification.json",
+          "sha256": "293368fcde359ea81f9d4af19e51344104c11fdf44652c79f2aa1e87665986ab"
+        },
+        {
+          "path": "installed-workflows-qualification.json",
+          "sha256": "644c9c05d25ff79fa8e73a0ce3f6f351ef22bf33eccb5d035557bc445f7edabd"
+        },
+        {
+          "path": "resources-286-qualification.json",
+          "sha256": "cf935fb4e3c5ae6135dc2598d06e0749069a51fae89cd282c27535ccbfa2dbb8"
+        }
+      ],
+      "assessment": "passed",
+      "review_basis": "Reviewed shared guest probes for INT21 country, extended country, filename/character case, file-list, DBCS, collation and active page. Current full-release results contain all 30 HIGH/LOW cases with current-core hashes, matching current action plans, successful emulator exits and verified guest logs. Installed recipes and real-BIOS resource/workflow records provide their separate scopes."
+    },
+    {
+      "id": "3.3",
+      "section": 3,
+      "requirement": "Exercise supported country/page combinations and rejection of unsupported combinations. Require the prior usable state after rejection. Test switching national records while retaining CP775, so stale country or collation state cannot hide behind an unchanged page number.",
+      "evidence": [
+        {
+          "path": "release-qualification.json",
+          "sha256": "1656461934128f1d57ba88c83c3fb04baf8fb2995fce7d615efca5af24b7a1b6"
+        },
+        {
+          "path": "country-qualification.json",
+          "sha256": "1fca64b1a4a4a054725b4504df51a7b7a3343159b26d6888be92438fbf3562ce"
+        },
+        {
+          "path": "country-boot-qualification.json",
+          "sha256": "293368fcde359ea81f9d4af19e51344104c11fdf44652c79f2aa1e87665986ab"
+        },
+        {
+          "path": "resources-286-qualification.json",
+          "sha256": "cf935fb4e3c5ae6135dc2598d06e0749069a51fae89cd282c27535ccbfa2dbb8"
+        }
+      ],
+      "assessment": "passed",
+      "review_basis": "Transition plans set ET/LV/LT and return to ET while retaining CP775, query foreign countries without selecting them, traverse all supported pages, then reject page855 and unknown country9999. Full current-country and active-page probes follow rejection to check preservation. CONFIG coverage includes explicit 775/437/850 and default page for each country."
+    },
+    {
+      "id": "3.4",
+      "section": 3,
+      "requirement": "Exit: independent per-country expectations pass, deliberate case and collation corruption is detected, and existing country records regress cleanly, including Russian.",
+      "evidence": [
+        {
+          "path": "release-qualification.json",
+          "sha256": "1656461934128f1d57ba88c83c3fb04baf8fb2995fce7d615efca5af24b7a1b6"
+        },
+        {
+          "path": "country-record-qualification.json",
+          "sha256": "4f8052001625f8053b40f1b6abbbe1c8c90fad2b4bcec994ea50b7c3767bb5d9"
+        },
+        {
+          "path": "country-qualification.json",
+          "sha256": "1fca64b1a4a4a054725b4504df51a7b7a3343159b26d6888be92438fbf3562ce"
+        },
+        {
+          "path": "country-boot-qualification.json",
+          "sha256": "293368fcde359ea81f9d4af19e51344104c11fdf44652c79f2aa1e87665986ab"
+        }
+      ],
+      "assessment": "passed",
+      "review_basis": "Current release logs prove all country cases and both deliberate case/collation corruption controls. The wrong-case and wrong-collation logs fail at their expected distinct probe stages and do not reach successful completion. Static record tests compare all pre-Baltic contents; Russian runtime regressions remain in the complete release suite."
+    },
+    {
+      "id": "4.1",
+      "section": 4,
+      "requirement": "Add separate translation data using the existing keyboard macros and supplemental library build. Validate directory records, offsets, loader limits and exact supported page/layout combinations as the library grows.",
+      "evidence": [
+        {
+          "path": "keyboard-qualification.json",
+          "sha256": "6314e331cd3bdd6966c76ce7ae5e159b87b2dac220fa301a24b4c629f10c6bd3"
+        },
+        {
+          "path": "keyboard-profile-qualification.json",
+          "sha256": "d0c76bb9374f047a0fcfa40786aee2a1e9e7b96cdd30e815f54bf1491fd8098e"
+        },
+        {
+          "path": "keyboard-resource-qualification.json",
+          "sha256": "eed3f2aafbb732a066915fe912e4b16e9402fd3044d64d6aac3b52cf3a25a952"
+        },
+        {
+          "path": "../../src/DEV/KEYBOARD/KDFBALT.ASM",
+          "sha256": "b7e442331f205e373a2dc244bb2ba6dd267735cd130b65f004910819423d3a48"
+        }
+      ],
+      "assessment": "passed",
+      "review_basis": "Structural tests assemble the library, validate directory/section/allocation bounds and alias/page counts, reject malformed inputs, reproduce the generated source and compare the retained RU section byte-for-byte with the standalone Russian build."
+    },
+    {
+      "id": "4.2",
+      "section": 4,
+      "requirement": "Physically inject keys and compare BIOS/DOS input bytes to independent per-layout oracles. Cover every national letter in both cases, Shift/Caps, third-level modifiers, applicable dead-key sequences, literal accents, punctuation, control/navigation keys and released modifier state.",
+      "evidence": [
+        {
+          "path": "release-qualification.json",
+          "sha256": "1656461934128f1d57ba88c83c3fb04baf8fb2995fce7d615efca5af24b7a1b6"
+        },
+        {
+          "path": "keyboard-qualification.json",
+          "sha256": "6314e331cd3bdd6966c76ce7ae5e159b87b2dac220fa301a24b4c629f10c6bd3"
+        },
+        {
+          "path": "keyboard-profile-qualification.json",
+          "sha256": "d0c76bb9374f047a0fcfa40786aee2a1e9e7b96cdd30e815f54bf1491fd8098e"
+        },
+        {
+          "path": "keyboard-pending-qualification.json",
+          "sha256": "fcece51a834bd62934ccddb6b97a539af930401ff7b798892a01241d1168ffcd"
+        },
+        {
+          "path": "keyboard-legacy-qualification.json",
+          "sha256": "be8e9c0fb3276ad92526d0c3769b379aa2a69e6bb916143ab27fed7d602fab84"
+        },
+        {
+          "path": "current-286-workflows-qualification.json",
+          "sha256": "6a840ee79327e1089f9171c0cefffb9ab520afcd0cd269e5dd532dbf0959b54f"
+        }
+      ],
+      "assessment": "passed",
+      "review_basis": "Physical plans walk independent reference planes, both third-level modifier alternatives, Shift/Caps, all defined dead-key pairs and literal accents, plus control/navigation input. Rechecked 82 current-release physical/lifecycle/selection/pending/resource cases against final core hashes, complete read counts, guest exits and exact log hashes. BIOS and DOS normal-input families each cover all three languages on HIGH/LOW."
+    },
+    {
+      "id": "4.3",
+      "section": 4,
+      "requirement": "Verify status, US/national switching, switching among the Baltic layouts, RU reloads and existing-layout regressions. Exercise supported legacy keyboards on real BIOS; document hardware-specific exclusions explicitly.",
+      "evidence": [
+        {
+          "path": "legacy-lifecycle-at84-qualification.json",
+          "sha256": "3792c8abd724d14b830a72d8bf87b6f1fc51e2ad76d2d550c15db1e076a2ec1c"
+        },
+        {
+          "path": "release-qualification.json",
+          "sha256": "1656461934128f1d57ba88c83c3fb04baf8fb2995fce7d615efca5af24b7a1b6"
+        },
+        {
+          "path": "keyboard-profile-qualification.json",
+          "sha256": "d0c76bb9374f047a0fcfa40786aee2a1e9e7b96cdd30e815f54bf1491fd8098e"
+        },
+        {
+          "path": "keyboard-pending-qualification.json",
+          "sha256": "fcece51a834bd62934ccddb6b97a539af930401ff7b798892a01241d1168ffcd"
+        },
+        {
+          "path": "keyboard-legacy-qualification.json",
+          "sha256": "be8e9c0fb3276ad92526d0c3769b379aa2a69e6bb916143ab27fed7d602fab84"
+        },
+        {
+          "path": "legacy-selection-qualification.json",
+          "sha256": "3d92ccf531ee087c979114d599448c2dccce835618a54eca1bb51d0b632d30b9"
+        },
+        {
+          "path": "BALTIC.TXT",
+          "sha256": "836c85513ec12e562717cff09aad1a1284bdd09e70eac8e263aebd38e5881715"
+        },
+        {
+          "path": "legacy-lifecycle-qualification.json",
+          "sha256": "c99e104616665f61462113a17e06fbb95b05946e8cbb09727e339d6b9f43e866"
+        }
+      ],
+      "assessment": "passed",
+      "review_basis": "Selection plans exercise ET/EE/LV/LT default and explicit IDs, national/US modes, wrong-page/ID/file rejection, RU and German reloads. Current QEMU results pass; original physical legacy-language matrices and focused selection evidence remain valid in their recorded scopes. Complete AT84 and XT83 lifecycle matrices pass with source-scoped component provenance, actual guest exits and reproduced probes/resources."
+    },
+    {
+      "id": "4.4",
+      "section": 4,
+      "requirement": "Exit: each language can be typed without serial text injection or host file substitution. Missing/truncated/malformed libraries, unsupported selections and a wrong national-letter translation are detected; failed loads preserve the resident usable layout.",
+      "evidence": [
+        {
+          "path": "legacy-lifecycle-at84-qualification.json",
+          "sha256": "3792c8abd724d14b830a72d8bf87b6f1fc51e2ad76d2d550c15db1e076a2ec1c"
+        },
+        {
+          "path": "release-qualification.json",
+          "sha256": "1656461934128f1d57ba88c83c3fb04baf8fb2995fce7d615efca5af24b7a1b6"
+        },
+        {
+          "path": "keyboard-qualification.json",
+          "sha256": "6314e331cd3bdd6966c76ce7ae5e159b87b2dac220fa301a24b4c629f10c6bd3"
+        },
+        {
+          "path": "keyboard-resource-qualification.json",
+          "sha256": "eed3f2aafbb732a066915fe912e4b16e9402fd3044d64d6aac3b52cf3a25a952"
+        },
+        {
+          "path": "legacy-lifecycle-focused-qualification.json",
+          "sha256": "2afb5461aa56059deaba8cdb7d03ee13938083c27e6576fb6daa96db07729f8a"
+        },
+        {
+          "path": "legacy-selection-qualification.json",
+          "sha256": "3d92ccf531ee087c979114d599448c2dccce835618a54eca1bb51d0b632d30b9"
+        },
+        {
+          "path": "legacy-lifecycle-qualification.json",
+          "sha256": "c99e104616665f61462113a17e06fbb95b05946e8cbb09727e339d6b9f43e866"
+        }
+      ],
+      "assessment": "passed",
+      "review_basis": "Physical byte probes establish typing without host text substitution. Static and runtime tests reject missing, truncated and malformed libraries and unsupported selections; mutation controls cover wrong tilde, literal FF and E0 behavior. Resource/pending cases check usable resident input and pending state after rejection. Complete AT84 and XT83 lifecycle matrices retain all BIOS/DOS mode, selection, resource and pending-accent cases."
+    },
+    {
+      "id": "5.1",
+      "section": 5,
+      "requirement": "Add resources and notices to device builds, artifact/deployment/clean lists and distribution inventory. Verify media capacity and deterministic packaging. Update runtime and mutation coverage manifests together with the new artifacts, retaining coverage of the expanded KEYBRD2 library.",
+      "evidence": [
+        {
+          "path": "release-qualification.json",
+          "sha256": "1656461934128f1d57ba88c83c3fb04baf8fb2995fce7d615efca5af24b7a1b6"
+        },
+        {
+          "path": "installation-qualification.json",
+          "sha256": "469d1a229ec8aed8aebb1616da9e39c5e4c64c7e857b075e75dfbe3f6825d29b"
+        },
+        {
+          "path": "pristine-qualification.json",
+          "sha256": "c3d3a84fc2315079afc565bdb61cd0843df6a26c1e31103a0cb70bcc0dbaaa4e"
+        },
+        {
+          "path": "../../distribution/files.json",
+          "sha256": "fa52af309eba83a92a0adea7b921da43f2e2e94952dc81a90eaab250130a5552"
+        },
+        {
+          "path": "../../Makefile",
+          "sha256": "d399e88d4b0757e63b4e3ca97b262fff1a5d8613849b4b7255b4895928d2d949"
+        },
+        {
+          "path": "../../mk/dev.mk",
+          "sha256": "2c20ec95c267753708daebd7c9541c3f1a2664ebfc1486c34fc6f7c5c0da7f5d"
+        },
+        {
+          "path": "../../tests/runtime_coverage.json",
+          "sha256": "f6c33e9ea2de665fa8c4a290ad3488efe812476fe4cef99db4259d6cade6ee6b"
+        },
+        {
+          "path": "../../tests/oracle_mutation_coverage.json",
+          "sha256": "8dd811ae4cbf9aa9ad3e2521dfb71d9b81ef1b0a21ce09a834b3886af8f74655"
+        }
+      ],
+      "assessment": "passed",
+      "review_basis": "Device targets and the declared artifact/deployment lists include EGA775 and the expanded KEYBRD2. Distribution inventory includes Baltic instructions, keyboard/country notices, mapping/CLDR licenses and both font licenses. Runtime and mutation manifests preserve RU and add Baltic oracles. Pristine artifacts and final installation disks are reproducible, with capacity exercised by actual installation."
+    },
+    {
+      "id": "5.2",
+      "section": 5,
+      "requirement": "Ship `BALTIC.TXT` with tested CONFIG.SYS/AUTOEXEC.BAT recipes for each language and exact identifiers, paths, startup order and switching steps. Preserve the Russian recipe and English default boot.",
+      "evidence": [
+        {
+          "path": "BALTIC.TXT",
+          "sha256": "836c85513ec12e562717cff09aad1a1284bdd09e70eac8e263aebd38e5881715"
+        },
+        {
+          "path": "../ru/RUSSIAN.TXT",
+          "sha256": "ff21c6217a1298d543ac96f384c8128e584e367e7643a71ef437c934e5bac4f5"
+        },
+        {
+          "path": "installation-qualification.json",
+          "sha256": "469d1a229ec8aed8aebb1616da9e39c5e4c64c7e857b075e75dfbe3f6825d29b"
+        },
+        {
+          "path": "installed-workflows-qualification.json",
+          "sha256": "644c9c05d25ff79fa8e73a0ce3f6f351ef22bf33eccb5d035557bc445f7edabd"
+        }
+      ],
+      "assessment": "passed",
+      "review_basis": "Inspected shipped BALTIC.TXT: separate ET/LV/LT sections give exact country, KEYB code/ID, absolute installed paths, COUNTRY-before-memory ordering, DISPLAY preparation/selection, and national/US keys. The installation test extracts these sections from the installed file and executes them. English default startup and Russian recipes remain covered by installation regressions."
+    },
+    {
+      "id": "5.3",
+      "section": 5,
+      "requirement": "Test fresh installation and upgrade copying, then boot installed HIGH/UMB and LOW configurations for each language. Verify selected resource hashes, country/page/layout, actual font bytes and physical input from installed paths. Include resource failure cases in private media.",
+      "evidence": [
+        {
+          "path": "release-qualification.json",
+          "sha256": "1656461934128f1d57ba88c83c3fb04baf8fb2995fce7d615efca5af24b7a1b6"
+        },
+        {
+          "path": "installation-qualification.json",
+          "sha256": "469d1a229ec8aed8aebb1616da9e39c5e4c64c7e857b075e75dfbe3f6825d29b"
+        },
+        {
+          "path": "installed-resource-qualification.json",
+          "sha256": "ba508153bf7fbacde3bd2c0df56ff1c225c17d0c7a464f7036401af6abfc816c"
+        },
+        {
+          "path": "installed-workflows-qualification.json",
+          "sha256": "644c9c05d25ff79fa8e73a0ce3f6f351ef22bf33eccb5d035557bc445f7edabd"
+        },
+        {
+          "path": "country-boot-qualification.json",
+          "sha256": "293368fcde359ea81f9d4af19e51344104c11fdf44652c79f2aa1e87665986ab"
+        }
+      ],
+      "assessment": "passed",
+      "review_basis": "Rechecked current full-release installation results: fresh/upgrade plus all six language/memory profiles pass with matching final core, payload hashes, physical key-read counts, font-plane and screenshot hashes, and successful guest logs. The stale-payload upgrade preserves startup files and an unrelated sentinel. Installed resource and workflow qualification supplies failure/recovery and text/files cases."
+    },
+    {
+      "id": "5.4",
+      "section": 5,
+      "requirement": "Exit: users can enable any of the three languages entirely from the shipped distribution, without replacement drivers or downloaded fonts.",
+      "evidence": [
+        {
+          "path": "release-qualification.json",
+          "sha256": "1656461934128f1d57ba88c83c3fb04baf8fb2995fce7d615efca5af24b7a1b6"
+        },
+        {
+          "path": "installation-qualification.json",
+          "sha256": "469d1a229ec8aed8aebb1616da9e39c5e4c64c7e857b075e75dfbe3f6825d29b"
+        },
+        {
+          "path": "installed-workflows-qualification.json",
+          "sha256": "644c9c05d25ff79fa8e73a0ce3f6f351ef22bf33eccb5d035557bc445f7edabd"
+        },
+        {
+          "path": "../../distribution/files.json",
+          "sha256": "fa52af309eba83a92a0adea7b921da43f2e2e94952dc81a90eaab250130a5552"
+        },
+        {
+          "path": "BALTIC.TXT",
+          "sha256": "836c85513ec12e562717cff09aad1a1284bdd09e70eac8e263aebd38e5881715"
+        }
+      ],
+      "assessment": "passed",
+      "review_basis": "Installation builds its media from the distribution inventory, verifies every installed compressed payload, then boots the installed language recipes and invokes installed NLSFUNC/MODE/KEYB/resources. No external fonts or replacement drivers enter the user recipe. Test-only probes observe guest behavior; installed payload preservation is separately checked."
+    },
+    {
+      "id": "6.1",
+      "section": 6,
+      "requirement": "For each language, physically type, edit, save and reopen text in COMMAND and EDLIN. Check exact CP775 file bytes and actual rendered glyphs; include mixed ASCII, pipes, redirection and characters requiring composition.",
+      "evidence": [
+        {
+          "path": "current-workflows-qualification.json",
+          "sha256": "ab65070bb1c19e5af3a13b7137f97ee644a748d9fcb31d71f5d27765d1b437dd"
+        },
+        {
+          "path": "current-286-workflows-qualification.json",
+          "sha256": "6a840ee79327e1089f9171c0cefffb9ab520afcd0cd269e5dd532dbf0959b54f"
+        },
+        {
+          "path": "installed-workflows-qualification.json",
+          "sha256": "644c9c05d25ff79fa8e73a0ce3f6f351ef22bf33eccb5d035557bc445f7edabd"
+        },
+        {
+          "path": "text-qualification.json",
+          "sha256": "5c1beb2134ac6cb1a2b33e787e99018214e58a663be13533a66cb2e7afc7b4f8"
+        }
+      ],
+      "assessment": "passed",
+      "review_basis": "Inspected physical workflow: type shell text with backspace correction, save and TYPE it, insert/edit two EDLIN lines, save/reopen/list, redirect TYPE, and pipe through FIND with a national-character search. Exact SHELL/EDIT/COPY/PIPE bytes and rendered glyphs are asserted. All required letter cases occur in samples; ET/LV prefer actual composition."
+    },
+    {
+      "id": "6.2",
+      "section": 6,
+      "requirement": "Exercise national 8.3 file and directory names, alternate-case lookup, wildcards, DIR name/extension and reverse ordering, COPY, rename, MOVE, recursive XCOPY and deletion. Verify raw directory names and file contents after reboot. Use each country's independent ordering expectations.",
+      "evidence": [
+        {
+          "path": "current-workflows-qualification.json",
+          "sha256": "ab65070bb1c19e5af3a13b7137f97ee644a748d9fcb31d71f5d27765d1b437dd"
+        },
+        {
+          "path": "current-286-workflows-qualification.json",
+          "sha256": "6a840ee79327e1089f9171c0cefffb9ab520afcd0cd269e5dd532dbf0959b54f"
+        },
+        {
+          "path": "installed-workflows-qualification.json",
+          "sha256": "644c9c05d25ff79fa8e73a0ce3f6f351ef22bf33eccb5d035557bc445f7edabd"
+        },
+        {
+          "path": "filesystem-qualification.json",
+          "sha256": "e656fe3dc57674aafd37904c3eda504f3f19028aff99fde3d47cea11a64f2ac5"
+        }
+      ],
+      "assessment": "passed",
+      "review_basis": "Inspected filename workflow: national directory/file names, uppercase lookup, COPY/REN/DEL/MD/RD, wildcard matching, name/reverse/extension ordering, MOVE and recursive XCOPY with empty directories. Raw FAT directory entries, payloads, reboot reads and cleanup are checked. ET exercises E5/05 first-byte escaping; each language supplies independent country weights."
+    },
+    {
+      "id": "6.3",
+      "section": 6,
+      "requirement": "Run on the composed HIGH/UMB profile, LOW/fallback and real-BIOS 286. Keep images private; require guest completion and successful emulator exit. Include missing/malformed font and country resources, unsupported selections and corruption controls for glyphs, keys, case and collation.",
+      "evidence": [
+        {
+          "path": "current-workflows-qualification.json",
+          "sha256": "ab65070bb1c19e5af3a13b7137f97ee644a748d9fcb31d71f5d27765d1b437dd"
+        },
+        {
+          "path": "current-286-workflows-qualification.json",
+          "sha256": "6a840ee79327e1089f9171c0cefffb9ab520afcd0cd269e5dd532dbf0959b54f"
+        },
+        {
+          "path": "installed-workflows-qualification.json",
+          "sha256": "644c9c05d25ff79fa8e73a0ce3f6f351ef22bf33eccb5d035557bc445f7edabd"
+        },
+        {
+          "path": "resources-286-qualification.json",
+          "sha256": "cf935fb4e3c5ae6135dc2598d06e0749069a51fae89cd282c27535ccbfa2dbb8"
+        },
+        {
+          "path": "country-boot-qualification.json",
+          "sha256": "293368fcde359ea81f9d4af19e51344104c11fdf44652c79f2aa1e87665986ab"
+        },
+        {
+          "path": "keyboard-resource-qualification.json",
+          "sha256": "eed3f2aafbb732a066915fe912e4b16e9402fd3044d64d6aac3b52cf3a25a952"
+        }
+      ],
+      "assessment": "passed",
+      "review_basis": "Matched-core retained text/files cases cover every language under QEMU HIGH/LOW and real-BIOS 286 LOW, plus installed HIGH/LOW workflows. Guest-triggered completion/exit is checked for text and both filesystem boots. Current resources-286 and country-boot records cover font/country failure and recovery; key/case/collation/glyph controls retain their distinct scopes."
+    },
+    {
+      "id": "6.4",
+      "section": 6,
+      "requirement": "Run existing Russian and legacy locale regressions, installation gates, full release tests and pristine serial/parallel reproducibility checks. Compare selected core and resource hashes before reusing prior evidence; requalify changed memory compositions with matching maps and artifacts.",
+      "evidence": [
+        {
+          "path": "pristine-qualification.json",
+          "sha256": "c3d3a84fc2315079afc565bdb61cd0843df6a26c1e31103a0cb70bcc0dbaaa4e"
+        },
+        {
+          "path": "country-boot-qualification.json",
+          "sha256": "293368fcde359ea81f9d4af19e51344104c11fdf44652c79f2aa1e87665986ab"
+        },
+        {
+          "path": "residency-qualification.json",
+          "sha256": "fa00294f80f4775948e8ddf9e84a526cbdbc4a1291f633d8265df0bc2f1f46b9"
+        },
+        {
+          "path": "extra-release-qualification.json",
+          "sha256": "f736ab9f412a3856ad995f5898dea323991640bf073c3bf02b4d213ec6569739"
+        },
+        {
+          "path": "release-qualification.json",
+          "sha256": "1656461934128f1d57ba88c83c3fb04baf8fb2995fce7d615efca5af24b7a1b6"
+        },
+        {
+          "path": "legacy-lifecycle-qualification.json",
+          "sha256": "c99e104616665f61462113a17e06fbb95b05946e8cbb09727e339d6b9f43e866"
+        },
+        {
+          "path": "metadata-qualification.json",
+          "sha256": "5266f24b4778fd58583988ec42e26411024a5bba788fb3df7249fc867b45d2bd"
+        }
+      ],
+      "assessment": "passed",
+      "review_basis": "Full default FAIL_ON_SKIP release and explicit final media commands passed with unchanged selected core hashes. Pristine serial/parallel artifact checks and ordinary-baseline hardware/memory gates passed. Current display captures exactly reproduce older reviewed images, while changed-core text/files/country/resource workflows have matching qualification. Dedicated AT/XT lifecycle qualification is complete."
+    },
+    {
+      "id": "6.5",
+      "section": 6,
+      "requirement": "Retain commands, hashes, machine/profile identities, logs, font captures and results in qualification JSON linked from tests/COVERAGE.md. Audit acceptance separately for every language. Close this TODO only when all three profiles and the shared release gates pass; leave other locale packs as independent work.",
+      "evidence": [
+        {
+          "path": "../../tests/COVERAGE.md",
+          "sha256": "bf30ec41dc27c0eea54b4a74da39cf73295a2312638fe93ce609ae4e8b3ee42e"
+        },
+        {
+          "path": "../../TODO.md",
+          "sha256": "5872e7e5622a84d1b4892910fc23da82ce1b9bb737aa0b55ea3e6fd1a5abd1f0"
+        },
+        {
+          "path": "legacy-lifecycle-qualification.json",
+          "sha256": "c99e104616665f61462113a17e06fbb95b05946e8cbb09727e339d6b9f43e866"
+        },
+        {
+          "path": "metadata-qualification.json",
+          "sha256": "5266f24b4778fd58583988ec42e26411024a5bba788fb3df7249fc867b45d2bd"
+        }
+      ],
+      "assessment": "passed",
+      "review_basis": "Commands, input/resource/core hashes, machine/profile identities, logs, maps and captures are retained through linked qualification records. Every plan requirement and per-language workflow set is reviewed. Complete AT/XT matrices, metadata parity, final retained-reference hashes and historical source controls pass. Only the Baltic TODO is closed; other epics remain open."
+    }
+  ],
+  "language_workflow_checks": {
+    "et": {
+      "country": 372,
+      "code_page": 775,
+      "keyboard": "ET",
+      "keyboard_id": 454,
+      "required_letter_text_coverage": "Both cases present; physical typing map resolves every character and exercises composition where applicable.",
+      "workflows": [
+        {
+          "family": "text",
+          "profile": "high",
+          "qualification": "current-workflows-qualification.json",
+          "guest_completion": "passed"
+        },
+        {
+          "family": "text",
+          "profile": "low",
+          "qualification": "current-workflows-qualification.json",
+          "guest_completion": "passed"
+        },
+        {
+          "family": "files",
+          "profile": "high",
+          "qualification": "current-workflows-qualification.json",
+          "guest_completion": "passed"
+        },
+        {
+          "family": "files",
+          "profile": "low",
+          "qualification": "current-workflows-qualification.json",
+          "guest_completion": "passed"
+        },
+        {
+          "family": "text",
+          "profile": "low",
+          "qualification": "current-286-workflows-qualification.json",
+          "guest_completion": "passed"
+        },
+        {
+          "family": "files",
+          "profile": "low",
+          "qualification": "current-286-workflows-qualification.json",
+          "guest_completion": "passed"
+        },
+        {
+          "family": "text",
+          "profile": "high",
+          "qualification": "installed-workflows-qualification.json",
+          "guest_completion": "passed",
+          "installed_payloads_preserved": true
+        },
+        {
+          "family": "files",
+          "profile": "high",
+          "qualification": "installed-workflows-qualification.json",
+          "guest_completion": "passed",
+          "installed_payloads_preserved": true
+        },
+        {
+          "family": "text",
+          "profile": "low",
+          "qualification": "installed-workflows-qualification.json",
+          "guest_completion": "passed",
+          "installed_payloads_preserved": true
+        },
+        {
+          "family": "files",
+          "profile": "low",
+          "qualification": "installed-workflows-qualification.json",
+          "guest_completion": "passed",
+          "installed_payloads_preserved": true
+        }
+      ],
+      "assessment": "passed",
+      "country_and_keyboard_contracts": [
+        {
+          "path": "country-contract.json",
+          "sha256": "41b69991d0833b48a50b902a8b03d8a145e84c4f485798611cf25ceef40d5453"
+        },
+        {
+          "path": "keyboard-contract.json",
+          "sha256": "f5dc6110bb3974e1590fb71d595cc9a9df388a64b9b5dc048c86fe2677bbc03c"
+        }
+      ],
+      "runtime_evidence": [
+        {
+          "path": "release-qualification.json",
+          "sha256": "1656461934128f1d57ba88c83c3fb04baf8fb2995fce7d615efca5af24b7a1b6"
+        },
+        {
+          "path": "legacy-lifecycle-qualification.json",
+          "sha256": "c99e104616665f61462113a17e06fbb95b05946e8cbb09727e339d6b9f43e866"
+        },
+        {
+          "path": "current-display-qualification.json",
+          "sha256": "7f96675c710d849e52d49e23b96d2dcb70203c9a776d0df87467d27578cfb3cc"
+        },
+        {
+          "path": "installed-resource-qualification.json",
+          "sha256": "ba508153bf7fbacde3bd2c0df56ff1c225c17d0c7a464f7036401af6abfc816c"
+        }
+      ]
+    },
+    "lv": {
+      "country": 371,
+      "code_page": 775,
+      "keyboard": "LV",
+      "keyboard_id": 0,
+      "required_letter_text_coverage": "Both cases present; physical typing map resolves every character and exercises composition where applicable.",
+      "workflows": [
+        {
+          "family": "text",
+          "profile": "high",
+          "qualification": "current-workflows-qualification.json",
+          "guest_completion": "passed"
+        },
+        {
+          "family": "text",
+          "profile": "low",
+          "qualification": "current-workflows-qualification.json",
+          "guest_completion": "passed"
+        },
+        {
+          "family": "files",
+          "profile": "high",
+          "qualification": "current-workflows-qualification.json",
+          "guest_completion": "passed"
+        },
+        {
+          "family": "files",
+          "profile": "low",
+          "qualification": "current-workflows-qualification.json",
+          "guest_completion": "passed"
+        },
+        {
+          "family": "text",
+          "profile": "low",
+          "qualification": "current-286-workflows-qualification.json",
+          "guest_completion": "passed"
+        },
+        {
+          "family": "files",
+          "profile": "low",
+          "qualification": "current-286-workflows-qualification.json",
+          "guest_completion": "passed"
+        },
+        {
+          "family": "text",
+          "profile": "high",
+          "qualification": "installed-workflows-qualification.json",
+          "guest_completion": "passed",
+          "installed_payloads_preserved": true
+        },
+        {
+          "family": "files",
+          "profile": "high",
+          "qualification": "installed-workflows-qualification.json",
+          "guest_completion": "passed",
+          "installed_payloads_preserved": true
+        },
+        {
+          "family": "text",
+          "profile": "low",
+          "qualification": "installed-workflows-qualification.json",
+          "guest_completion": "passed",
+          "installed_payloads_preserved": true
+        },
+        {
+          "family": "files",
+          "profile": "low",
+          "qualification": "installed-workflows-qualification.json",
+          "guest_completion": "passed",
+          "installed_payloads_preserved": true
+        }
+      ],
+      "assessment": "passed",
+      "country_and_keyboard_contracts": [
+        {
+          "path": "country-contract.json",
+          "sha256": "41b69991d0833b48a50b902a8b03d8a145e84c4f485798611cf25ceef40d5453"
+        },
+        {
+          "path": "keyboard-contract.json",
+          "sha256": "f5dc6110bb3974e1590fb71d595cc9a9df388a64b9b5dc048c86fe2677bbc03c"
+        }
+      ],
+      "runtime_evidence": [
+        {
+          "path": "release-qualification.json",
+          "sha256": "1656461934128f1d57ba88c83c3fb04baf8fb2995fce7d615efca5af24b7a1b6"
+        },
+        {
+          "path": "legacy-lifecycle-qualification.json",
+          "sha256": "c99e104616665f61462113a17e06fbb95b05946e8cbb09727e339d6b9f43e866"
+        },
+        {
+          "path": "current-display-qualification.json",
+          "sha256": "7f96675c710d849e52d49e23b96d2dcb70203c9a776d0df87467d27578cfb3cc"
+        },
+        {
+          "path": "installed-resource-qualification.json",
+          "sha256": "ba508153bf7fbacde3bd2c0df56ff1c225c17d0c7a464f7036401af6abfc816c"
+        }
+      ]
+    },
+    "lt": {
+      "country": 370,
+      "code_page": 775,
+      "keyboard": "LT",
+      "keyboard_id": 221,
+      "required_letter_text_coverage": "Both cases present; physical typing map resolves every character and exercises composition where applicable.",
+      "workflows": [
+        {
+          "family": "text",
+          "profile": "high",
+          "qualification": "current-workflows-qualification.json",
+          "guest_completion": "passed"
+        },
+        {
+          "family": "text",
+          "profile": "low",
+          "qualification": "current-workflows-qualification.json",
+          "guest_completion": "passed"
+        },
+        {
+          "family": "files",
+          "profile": "high",
+          "qualification": "current-workflows-qualification.json",
+          "guest_completion": "passed"
+        },
+        {
+          "family": "files",
+          "profile": "low",
+          "qualification": "current-workflows-qualification.json",
+          "guest_completion": "passed"
+        },
+        {
+          "family": "text",
+          "profile": "low",
+          "qualification": "current-286-workflows-qualification.json",
+          "guest_completion": "passed"
+        },
+        {
+          "family": "files",
+          "profile": "low",
+          "qualification": "current-286-workflows-qualification.json",
+          "guest_completion": "passed"
+        },
+        {
+          "family": "text",
+          "profile": "high",
+          "qualification": "installed-workflows-qualification.json",
+          "guest_completion": "passed",
+          "installed_payloads_preserved": true
+        },
+        {
+          "family": "files",
+          "profile": "high",
+          "qualification": "installed-workflows-qualification.json",
+          "guest_completion": "passed",
+          "installed_payloads_preserved": true
+        },
+        {
+          "family": "text",
+          "profile": "low",
+          "qualification": "installed-workflows-qualification.json",
+          "guest_completion": "passed",
+          "installed_payloads_preserved": true
+        },
+        {
+          "family": "files",
+          "profile": "low",
+          "qualification": "installed-workflows-qualification.json",
+          "guest_completion": "passed",
+          "installed_payloads_preserved": true
+        }
+      ],
+      "assessment": "passed",
+      "country_and_keyboard_contracts": [
+        {
+          "path": "country-contract.json",
+          "sha256": "41b69991d0833b48a50b902a8b03d8a145e84c4f485798611cf25ceef40d5453"
+        },
+        {
+          "path": "keyboard-contract.json",
+          "sha256": "f5dc6110bb3974e1590fb71d595cc9a9df388a64b9b5dc048c86fe2677bbc03c"
+        }
+      ],
+      "runtime_evidence": [
+        {
+          "path": "release-qualification.json",
+          "sha256": "1656461934128f1d57ba88c83c3fb04baf8fb2995fce7d615efca5af24b7a1b6"
+        },
+        {
+          "path": "legacy-lifecycle-qualification.json",
+          "sha256": "c99e104616665f61462113a17e06fbb95b05946e8cbb09727e339d6b9f43e866"
+        },
+        {
+          "path": "current-display-qualification.json",
+          "sha256": "7f96675c710d849e52d49e23b96d2dcb70203c9a776d0df87467d27578cfb3cc"
+        },
+        {
+          "path": "installed-resource-qualification.json",
+          "sha256": "ba508153bf7fbacde3bd2c0df56ff1c225c17d0c7a464f7036401af6abfc816c"
+        }
+      ]
+    }
+  },
+  "core_sha256": {
+    "IO.SYS": "34af301387a2f3d11e20590922b3611227e640c26087dbf79ff83f1364fe0b8e",
+    "MSDOS.SYS": "b495ab1ccc6fd3e7672b4724a7cccde519d8a65171c0c0ed6bad73cd331a42e9",
+    "COMMAND.COM": "6742b5889141a9c61d41e336445014d8055c19758febf4263f4f8ebe3c2f2c29",
+    "HIMEM.SYS": "d5ea7b0e775c2eb6eb2b7dab42eb7471a7a84bfb32cf2021215d4ed6f8a7850a",
+    "EMM386.EXE": "58266b6614594de7a9cfde9eda75e3eb241b9e2e941e67b70645a0f8a197dae6"
+  },
+  "retained_reference_audit": {
+    "status": "passed",
+    "scope": "All review/ path and sha256 pairs recursively in current top-level Baltic qualification records",
+    "qualification_files": 38,
+    "checked_references": 4524,
+    "issues": []
+  },
+  "historical_source_reference_audit": {
+    "status": "passed",
+    "scope": "Historical source references resolve against their explicit recorded Git commits, not the current worktree. These are deliberate old-binary failure controls.",
+    "references": [
+      {
+        "record": "country-directory-qualification.json",
+        "field": ".old_source",
+        "commit": "38117d6",
+        "path": "src/CMD/NLSFUNC/NLSFUNC.ASM",
+        "sha256": "59ca61f086c0cae8051515d917dcaf07e47cee925255580ecb4ae98fc1a5624e"
+      },
+      {
+        "record": "country-data-qualification.json",
+        "field": ".old_source",
+        "commit": "5268000",
+        "path": "src/CMD/NLSFUNC/NLSFUNC.ASM",
+        "sha256": "257d6a0c063d22cb48761908435dccba92502899ff6ff8a990b6f8f5555ab41e"
+      },
+      {
+        "record": "country-scan-qualification.json",
+        "field": ".old_source",
+        "commit": "a7e556f",
+        "path": "src/CMD/NLSFUNC/NLSFUNC.ASM",
+        "sha256": "1b077bd624ce1ef14a5dbf24cc7d95e2701dab3fe88fc91208719ace6da77447"
+      },
+      {
+        "record": "text-qualification.json",
+        "field": ".old_find_source",
+        "commit": "626bbad",
+        "path": "src/CMD/FIND/FIND.ASM",
+        "sha256": "fc3802bf9ebe8813cc097271e11af008e1e74e4a40598534d5e8e42652a01439"
+      },
+      {
+        "record": "country-boot-qualification.json",
+        "field": ".controls.partial_initialization.source",
+        "commit": "37e7a01",
+        "path": "src/BIOS/SYSINIT2.ASM",
+        "sha256": "22c5859f3d4fc407eb95cdf48fc19ba3baac3a1e47da88e30cb673747d8f40ed"
+      },
+      {
+        "record": "country-boot-qualification.json",
+        "field": ".controls.legacy_filecase.source",
+        "commit": "37e7a01",
+        "path": "src/CMD/NLSFUNC/NLSFUNC.ASM",
+        "sha256": "dcbe987582c47831196f8b75eccbe1d30531a63599813f2b5ff0cfa8f1ecf27a"
+      }
+    ]
+  },
+  "contract_sequence": [
+    "51d8bccc selected national country contracts",
+    "0b040874 captured keyboard contracts and built country records",
+    "dff46fc9 implemented national keyboard data"
+  ],
+  "pending_global": [],
+  "source_revision": "7684aeb88cf144376baeb308f58aa233beb191dc",
+  "source_scope": "Release production source unchanged since 1c3047e3. Subsequent legacy helper changes have complete AT/XT qualification; metadata changes have generated-output parity and static checks. Final commit adds acceptance documentation only.",
+  "legacy_matrix_checks": [
+    {
+      "machine": "at84",
+      "cases": 36,
+      "status": "passed",
+      "emulator_exit": 0,
+      "qualification": "legacy-lifecycle-qualification.json"
+    },
+    {
+      "machine": "xt83",
+      "cases": 36,
+      "status": "passed",
+      "emulator_exit": 0,
+      "qualification": "legacy-lifecycle-qualification.json"
+    }
+  ],
+  "scope_and_invariants": [
+    {
+      "requirement": "Optional complete Estonian, Latvian and Lithuanian environments; English messages, Help and defaults retained.",
+      "assessment": "passed",
+      "evidence": [
+        {
+          "path": "release-qualification.json",
+          "sha256": "1656461934128f1d57ba88c83c3fb04baf8fb2995fce7d615efca5af24b7a1b6"
+        },
+        {
+          "path": "installation-qualification.json",
+          "sha256": "469d1a229ec8aed8aebb1616da9e39c5e4c64c7e857b075e75dfbe3f6825d29b"
+        },
+        {
+          "path": "BALTIC.TXT",
+          "sha256": "836c85513ec12e562717cff09aad1a1284bdd09e70eac8e263aebd38e5881715"
+        }
+      ]
+    },
+    {
+      "requirement": "Shared CP775 font; supplemental national keyboards; preserve RU, KEYBOARD.SYS, existing EGA and CP866 pages and prior country records.",
+      "assessment": "passed",
+      "evidence": [
+        {
+          "path": "keyboard-qualification.json",
+          "sha256": "6314e331cd3bdd6966c76ce7ae5e159b87b2dac220fa301a24b4c629f10c6bd3"
+        },
+        {
+          "path": "country-record-qualification.json",
+          "sha256": "4f8052001625f8053b40f1b6abbbe1c8c90fad2b4bcec994ea50b7c3767bb5d9"
+        },
+        {
+          "path": "extra-release-qualification.json",
+          "sha256": "f736ab9f412a3856ad995f5898dea323991640bf073c3bf02b4d213ec6569739"
+        },
+        {
+          "path": "metadata-qualification.json",
+          "sha256": "5266f24b4778fd58583988ec42e26411024a5bba788fb3df7249fc867b45d2bd"
+        }
+      ]
+    },
+    {
+      "requirement": "Reuse existing drivers and kernel, with focused missing-contract evidence for any changes.",
+      "assessment": "passed",
+      "evidence": [
+        {
+          "path": "country-boot-qualification.json",
+          "sha256": "293368fcde359ea81f9d4af19e51344104c11fdf44652c79f2aa1e87665986ab"
+        },
+        {
+          "path": "country-directory-qualification.json",
+          "sha256": "fa574f2788fbaff05d7ab7f0e7a78cdae75aa70487e60bdbe51ca3a4a018a197"
+        },
+        {
+          "path": "country-data-qualification.json",
+          "sha256": "580696df6d663ca0906db3487292f3747aeab0603bc3094754eb0732abd6b6b7"
+        },
+        {
+          "path": "country-scan-qualification.json",
+          "sha256": "0e80a79fbeb90eb5ab4801bcd72fe9092a215ede85009298bc55cc534583af0e"
+        },
+        {
+          "path": "text-qualification.json",
+          "sha256": "5c1beb2134ac6cb1a2b33e787e99018214e58a663be13533a66cb2e7afc7b4f8"
+        },
+        {
+          "path": "keyboard-pending-qualification.json",
+          "sha256": "fcece51a834bd62934ccddb6b97a539af930401ff7b798892a01241d1168ffcd"
+        },
+        {
+          "path": "residency-qualification.json",
+          "sha256": "fa00294f80f4775948e8ddf9e84a526cbdbc4a1291f633d8265df0bc2f1f46b9"
+        }
+      ]
+    },
+    {
+      "requirement": "Reference-backed identifiers and DOS-era national contracts; explicit extension limits, hardware exclusions and license provenance.",
+      "assessment": "passed",
+      "evidence": [
+        {
+          "path": "manifest.json",
+          "sha256": "6593a22f260bff9e81cef63d88ef77e23dfb172d01ab34924c2ae0d848772816"
+        },
+        {
+          "path": "country-contract.json",
+          "sha256": "41b69991d0833b48a50b902a8b03d8a145e84c4f485798611cf25ceef40d5453"
+        },
+        {
+          "path": "keyboard-contract.json",
+          "sha256": "f5dc6110bb3974e1590fb71d595cc9a9df388a64b9b5dc048c86fe2677bbc03c"
+        },
+        {
+          "path": "BAKEYS.TXT",
+          "sha256": "142ec6f6a021f20de090af1560a639291d13628d0cfdab53b92bd15f9d001b0c"
+        },
+        {
+          "path": "BALTIC.TXT",
+          "sha256": "836c85513ec12e562717cff09aad1a1284bdd09e70eac8e263aebd38e5881715"
+        },
+        {
+          "path": "legacy-lifecycle-qualification.json",
+          "sha256": "c99e104616665f61462113a17e06fbb95b05946e8cbb09727e339d6b9f43e866"
+        }
+      ]
+    },
+    {
+      "requirement": "Offline reproducibility and full release, deployment, distribution and applicable hardware gates.",
+      "assessment": "passed",
+      "evidence": [
+        {
+          "path": "pristine-qualification.json",
+          "sha256": "c3d3a84fc2315079afc565bdb61cd0843df6a26c1e31103a0cb70bcc0dbaaa4e"
+        },
+        {
+          "path": "release-qualification.json",
+          "sha256": "1656461934128f1d57ba88c83c3fb04baf8fb2995fce7d615efca5af24b7a1b6"
+        },
+        {
+          "path": "extra-release-qualification.json",
+          "sha256": "f736ab9f412a3856ad995f5898dea323991640bf073c3bf02b4d213ec6569739"
+        },
+        {
+          "path": "legacy-lifecycle-qualification.json",
+          "sha256": "c99e104616665f61462113a17e06fbb95b05946e8cbb09727e339d6b9f43e866"
+        }
+      ]
+    }
+  ]
+}

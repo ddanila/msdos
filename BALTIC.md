@@ -1,4 +1,9 @@
-# Baltic / CP775 implementation plan
+# Baltic / CP775 implementation and acceptance
+
+The optional Estonian, Latvian and Lithuanian pack is qualified.
+[Final acceptance audit](locales/baltic/acceptance-audit.json) maps every
+requirement below to retained evidence and checks each language separately.
+Use the shipped [BALTIC.TXT](locales/baltic/BALTIC.TXT) to enable a profile.
 
 ## Scope and decisions
 
@@ -235,7 +240,7 @@ build hashes.
 records the complete pristine `FAIL_ON_SKIP=1 make -k -j1 test` run and the
 subsequent deployment/distribution checks. The core and deployed resources
 match the runtime-qualified bytes, and installation disk hashes are unchanged.
-The final requirement-by-requirement acceptance audit remains open.
+The final acceptance audit below records the completed requirement review.
 Existing Russian evidence does not establish Baltic support.
 
 [Current-core display qualification](locales/baltic/current-display-qualification.json)
@@ -258,8 +263,13 @@ resource-recovery runs now pass with reproduced guest probes and all mutant
 payloads checked against the actual corrected images.
 
 [Complete AT/XT lifecycle qualification](locales/baltic/legacy-lifecycle-qualification.json)
-retains all 36 cases on each machine through BIOS and DOS input. Every case
+retains the full matrix on each machine through BIOS and DOS input. Every case
 completed with emulator exit zero; probes, actions and resources were checked
 against the actual guest images. Component provenance preserves the earlier
-media-creation failures and their successful continuation. Final acceptance
-and metadata reconciliation remain open.
+media-creation failures and their successful continuation.
+
+[Metadata qualification](locales/baltic/metadata-qualification.json) confirms
+that reconciled current statuses preserve generated tables and resource bytes.
+[Final acceptance](locales/baltic/acceptance-audit.json) completes the shared
+release and per-language review. Earlier milestone records retain the evidence
+and limitations of their original source revisions.

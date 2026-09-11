@@ -720,7 +720,7 @@ on the corrected images, with every mutant and compiled probe checked against
 the actual media.
 
 The [complete Baltic AT/XT lifecycle qualification](../locales/baltic/legacy-lifecycle-qualification.json)
-retains all 36 mode, selection, resource and pending-accent cases per machine,
+retains the full mode, selection, resource and pending-accent matrix per machine,
 covering both BIOS and DOS input with successful emulator exits. Retention
 rebuilds probes and checks phase actions and resource bytes against each actual
 guest image. Composite results retain the earlier media-creation failures and
@@ -731,3 +731,9 @@ checks that reconciled status descriptions leave country tables, keyboard
 expectations and every font bitmap unchanged. Static contract, resource and
 CP866 checks pass; rebuilt Baltic resources match the runtime-qualified bytes.
 Historical qualification inputs are preserved in explicit snapshots.
+
+The [final Baltic acceptance audit](../locales/baltic/acceptance-audit.json)
+maps every BALTIC.md requirement to retained evidence, checks each language
+under the required memory and installed profiles, and verifies shared release
+and legacy BIOS gates. Historical source controls and metadata-only changes
+are explicitly scoped; unrelated locale and product epics remain open.
