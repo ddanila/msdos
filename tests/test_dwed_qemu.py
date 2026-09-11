@@ -85,6 +85,7 @@ from dwed_mono_scenarios import CASES as MONO_CASES
 from dwed_mono_scenarios import exercise as exercise_mono
 from dwed_mouse_scenarios import CASES as MOUSE_CASES
 from dwed_mouse_scenarios import exercise as exercise_mouse
+from dwed_mouse_scenarios import prepare as prepare_mouse
 from dwed_mouse_scenarios import validate_driver
 from dwed_recovery_scenarios import CASES as RECOVERY_CASES
 from dwed_recovery_scenarios import FAULTS as RECOVERY_FAULTS
@@ -288,6 +289,7 @@ for name, mode, original, edit in cases:
     mouse = name.startswith("mouse-edit-")
     monochrome = name.startswith(("mono-edit-", "help-mono-")) or name in (
         "mouse-edit-mono-low",
+        "mouse-edit-dialog-mono-low",
         "save-error-pending-close-mono-low",
     )
     screen_expect.VRAM_PHYS = 0xB0000 if monochrome else 0xB8000
@@ -355,6 +357,7 @@ for name, mode, original, edit in cases:
     put(spec, backup_name, previous_backup)
     put(spec, "$ED0000.TMP", b"OTHER_EDITOR_SAVE\r\n")
     prepare_recovery(spec, name)
+    prepare_mouse(spec, name)
     prepare_dialog(spec, name)
     prepare_clipboard(spec, name)
     prepare_tabs(spec, name, (repo / "BIN/DWED.CFG").read_bytes())

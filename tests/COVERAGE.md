@@ -833,7 +833,12 @@ selection, popup cancellation and transactional Cut/Paste undo/redo. A passive
 [INT 33h observer](dwed_mouse_telemetry.asm) records actual driver responses.
 Prepare the fixture with `python3 tests/prepare_dwed_mouse.py` and pass
 `DWED_MOUSE_DRIVER=out/dwed-mouse-fixtures/ctmouse-extracted/ctmouse.exe` to the
-DWED gate to include those cases. See the [qualification scope](../dwed/docs/DISPLAY-MOUSE.md)
+DWED gate to include those cases. The real-driver cases also operate save and
+replacement confirmation buttons, verify ignored clicks and cancelled drags,
+retain text selection after Cancel, and inspect keyboard-focus attributes in
+colour and monochrome modes. See the
+[dialog evidence](../dwed/docs/dialog-input-milestone.json) and
+[qualification scope](../dwed/docs/DISPLAY-MOUSE.md)
 and [generated report](../dwed/docs/display-mouse-milestone.json).
 
 The DWED SAVETEST probe injects write, commit, close, rename and cleanup
