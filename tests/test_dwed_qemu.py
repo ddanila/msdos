@@ -90,6 +90,10 @@ cases += [
     for kind in ("disk-full", "read-only")
     for mode in ("low", "high")
 ]
+cases += [
+    ("memory-probe-" + mode, mode, b"DWED_MARKER\r\nsecond line\r\n", True)
+    for mode in ("low", "high")
+]
 cases.append(("backup-file-low", "low", b"DWED_MARKER\r\nbackup document\r\n", True))
 cases += [
     (kind + "-" + mode, mode, b"DWED_MARKER\r\nsecond line\r\n", True)
@@ -113,6 +117,15 @@ cases += [
     ("reject-long-low", "low", b"DWED_MARKER" + b"x" * 245 + b"\r\n", False),
     ("reject-mixed-low", "low", b"DWED_MARKER\r\nsecond line\n", False),
     ("reject-control-low", "low", b"DWED_MARKER\x00hidden\r\n", False),
+]
+cases += [
+    (
+        "reject-memory-" + mode,
+        mode,
+        b"DWED_MARKER\r\n" + b"0123456789abcdef\r\n" * 40000,
+        False,
+    )
+    for mode in ("low", "high")
 ]
 cases += [
     ("new-file-low", "low", b"", True),
@@ -273,6 +286,10 @@ for name, mode, original, edit in cases:
         config = b"DEVICE=A:\\HIMEM.SYS\r\nDEVICE=A:\\EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\nFILES=40\r\nBUFFERS=15\r\n"
     put(floppy, "CONFIG.SYS", config)
     probe_command = ""
+    if name.startswith("memory-probe-"):
+        put(spec, "HUGE.TXT", b"0123456789abcdef\r\n" * 40000)
+        put(floppy, "MEMTEST.EXE", (args.build / "MEMTEST.exe").read_bytes())
+        probe_command = "A:\\MEMTEST.EXE\r\n"
     if keyboard:
         probe = args.build.resolve() / "KEYTEST.exe"
         put(floppy, "KEYTEST.EXE", probe.read_bytes())
@@ -429,7 +446,12 @@ for name, mode, original, edit in cases:
             screen = read_screen_text(q, str(d / "vram.bin"))
             if (
                 (name.startswith("recover-") and "Interrupted save" in screen)
-                or (rejected and "file was not opened" in screen)
+                or (
+                    rejected
+                    and (
+                        "file was not opened" in screen or "Not enough memory" in screen
+                    )
+                )
                 or (startup and "Untitled" in screen)
                 or (not original and "SAMPLE.TXT" in screen)
                 or "DWED_MARKER" in screen
@@ -440,7 +462,11 @@ for name, mode, original, edit in cases:
         if name.startswith("recover-"):
             assert "Interrupted save" in screen, screen
         elif rejected:
-            assert "file was not opened" in screen, screen
+            assert (
+                "Not enough memory"
+                if name.startswith("reject-memory-")
+                else "file was not opened"
+            ) in screen, screen
             assert "DWED_MARKER" not in screen, screen
             send_keys(q, "ret")
             time.sleep(0.25)
@@ -592,6 +618,15 @@ for name, mode, original, edit in cases:
             assert process.returncode == 33, process.returncode
             actual = run(["mtype", "-i", spec, "::" + filename]).stdout
             backup = run(["mtype", "-i", spec, "::" + backup_name]).stdout
+            if name.startswith("memory-probe-"):
+                probe_log = run(["mtype", "-i", floppy, "::MEM.LOG"]).stdout
+                (d / "memory.log").write_bytes(probe_log)
+                assert b"PASS " in probe_log and b"FAIL" not in probe_log, probe_log
+                assert (
+                    run(["mtype", "-i", floppy, "::MEM.OK"]).stdout.strip()
+                    == b"MEMORY PASS"
+                )
+                row["memory_probe"] = probe_log.decode("ascii").strip()
             if keyboard:
                 assert (
                     run(["mtype", "-i", floppy, "::KEY.OK"]).stdout.strip()

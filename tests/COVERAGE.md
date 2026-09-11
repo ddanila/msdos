@@ -878,3 +878,13 @@ The previous editor fails the startup-recovery negative control. See the
 [generated qualification](../dwed/docs/save-discovery-milestone.json). Retained
 generation cleanup, read-only media, low memory and torn-sector interruption
 remain unqualified.
+
+The DWED memory probe repeatedly refuses oversized ordinary loads and recovery
+while preserving a dirty document and verifying heap reclamation. It also
+fills memory with real documents, checks failed New/Open ownership, releases
+documents and retries. Startup exhaustion cases check that the error can be
+dismissed and editing/saving continues without replacing the rejected source.
+See [the memory contract](../dwed/docs/LOAD-MEMORY.md) and
+[generated evidence](../dwed/docs/load-memory-milestone.json). This covers
+document-induced exhaustion in the DOS store, not every UI allocation or
+minimum-memory machine startup.
