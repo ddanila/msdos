@@ -54,6 +54,8 @@ from dwed_dialog_scenarios import (
 from dwed_dialog_scenarios import (
     prepare as prepare_dialog,
 )
+from dwed_help_scenarios import CASES as HELP_CASES
+from dwed_help_scenarios import exercise as exercise_help
 from dwed_mono_scenarios import CASES as MONO_CASES
 from dwed_mono_scenarios import exercise as exercise_mono
 from dwed_mouse_scenarios import CASES as MOUSE_CASES
@@ -123,6 +125,7 @@ cases += [
     ("indent-enter-" + mode, mode, b"DWED_MARKER\r\n \tA  B", False)
     for mode in ("low", "high")
 ]
+cases += HELP_CASES
 cases.append(("backup-file-low", "low", b"DWED_MARKER\r\nbackup document\r\n", True))
 cases += [
     (kind + "-" + mode, mode, b"DWED_MARKER\r\nsecond line\r\n", True)
@@ -246,7 +249,7 @@ if (
     parser.error("restart probes require an editor built with --tests")
 for name, mode, original, edit in cases:
     mouse = name.startswith("mouse-edit-")
-    monochrome = name.startswith("mono-edit-") or name in (
+    monochrome = name.startswith(("mono-edit-", "help-mono-")) or name in (
         "mouse-edit-mono-low",
         "save-error-pending-close-mono-low",
     )
@@ -539,7 +542,9 @@ for name, mode, original, edit in cases:
                 label in screen.splitlines()[0]
                 for label in ("File", "Edit", "Search", "Options", "Help")
             ), screen
-        if name.startswith("recover-"):
+        if name.startswith("help-"):
+            row.update(exercise_help(q, process, d, spec, original, name))
+        elif name.startswith("recover-"):
             row.update(exercise_recovery(q, process, d, spec, original, name))
         elif name.startswith("save-cut-"):
             row.update(

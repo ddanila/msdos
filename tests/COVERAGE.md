@@ -923,3 +923,10 @@ See [critical-error handling](../dwed/docs/CRITICAL-ERRORS.md) and
 [generated evidence](../dwed/docs/critical-errors-milestone.json), including the
 same protected-media cases on Microsoft DOS. Physical media failures remain
 outside this emulated boundary.
+
+[DWED help scenarios](dwed_help_scenarios.py) open current About and Recovery
+content, page forward and backward through the embedded license, and return to
+a dirty document before saving. They run in LOW, HIGH/UMB and monochrome mode.
+See [embedded help behavior](../dwed/docs/HELP.md) and
+[generated evidence](../dwed/docs/help-milestone.json). This does not establish
+help allocation safety on exhausted or fragmented heaps.
