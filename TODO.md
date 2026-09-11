@@ -2,7 +2,11 @@
 
 1. Implement retail-compatible DriveSpace, including compressed-volume support
    throughout the system. An explicit extended format may follow.
-2. Treat QBASIC/EDIT, AccessDOS, the Microsoft Network Client, and remaining
+2. Complete the DWED-based EDIT replacement following
+   [its implementation gates](dwed/docs/EDIT-PLAN.md). The source-build
+   instructions are in [BUILD.md](dwed/docs/BUILD.md); launcher replacement,
+   safe saving, lossless file handling, undo and classic menus remain open.
+3. Treat QBASIC, AccessDOS, the Microsoft Network Client, and remaining
    DOS 6 locale packs as independent epics.
 
 [DOS622_GAPS.md](DOS622_GAPS.md) defines product scope and non-goals;

@@ -1,5 +1,13 @@
 # Behavioral coverage
 
+The experimental DWED overlay has an optional `make test-dwed-qemu` smoke gate.
+Build it first using [the pinned toolchain](../dwed/docs/BUILD.md), then pass
+`DWED_BUILD=path/to/output` if using a nondefault output directory. The test
+copies the deployed DOS floppy privately and checks exact saved/backup bytes
+in LOW and HIGH/UMB. It currently uses DWED's historical launcher; it does not
+qualify disk-full handling, file-format preservation, menus or a complete EDIT
+distribution. These remain [implementation gates](../dwed/docs/EDIT-PLAN.md).
+
 The optional Russian increment has source, reference and CPI gates:
 `make test-ru-font-sources test-ru-contract test-ru-cpi`. The
 [locale manifest and font audits](../locales/ru/README.md) pin inputs and

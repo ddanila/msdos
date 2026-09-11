@@ -8,3 +8,8 @@
 	url = https://github.com/ddanila/dosemu2.git
 	branch = custom
 	ignore = untracked
+[submodule "dwed"]
+	path = dwed
+	url = https://github.com/ddanila/dwed.git
+	branch = custom
+	ignore = untracked

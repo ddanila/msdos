@@ -64,7 +64,8 @@ Maintained system work belongs in `ddanila/msdos:master`, directly under `src/`.
 The archived `ddanila/MS-DOS:main` is source provenance, not a build dependency.
 Custom tool changes belong in `ddanila/JWasm:custom`,
 `ddanila/open-watcom-v2:custom`, `ddanila/kvikdos:custom`, and
-`ddanila/dosemu2:custom`. DOSEMU2 `devel` is reserved for upstream sync.
+`ddanila/dosemu2:custom`, and `ddanila/dwed:custom`.
+DWED `main` and DOSEMU2 `devel` are reserved for upstream sync.
 Open Watcom and kvikdos `master` branches are reserved for upstream sync.
 Do not send project changes upstream without maintainer approval.
 

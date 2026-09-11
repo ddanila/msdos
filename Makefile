@@ -1489,3 +1489,9 @@ test-dosemu2-qemu: deploy
 .PHONY: test-compat-bpb-qemu
 test-compat-bpb-qemu: deploy
 	python3 tests/test_compat_bpb_qemu.py
+
+# Optional adoption gate; build the overlay separately with dwed/tools/build.py.
+DWED_BUILD ?= dwed/out/build
+.PHONY: test-dwed-qemu
+test-dwed-qemu:
+	python3 tests/test_dwed_qemu.py --build "$(DWED_BUILD)"
