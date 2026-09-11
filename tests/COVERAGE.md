@@ -20,7 +20,7 @@ They also check whitespace-preserving splits and final-newline removal.
 Long-line, mixed-newline and control-byte rejection cases verify that editing
 and saving afterwards leave the rejected source and its backup unchanged.
 These are conventional-memory tests; alternate stores, full tab-stop display
-and clipboard behavior remain [open](../dwed/docs/TEXT-FORMAT.md).
+remain [open](../dwed/docs/TEXT-FORMAT.md); clipboard coverage is described below.
 
 The keyboard cases additionally run the source-built `KEYTEST` probe in LOW
 and HIGH. It checks encoded BIOS modifiers, plain-key controls and an actual
@@ -800,3 +800,13 @@ storage probe also aborts a live mutation inside a far callback and checks
 allocation-free rollback and redo retention. See the generated
 [live undo report](../dwed/docs/undo-live-milestone.json) and
 [remaining qualification](../dwed/docs/UNDO.md).
+
+The [clipboard scenarios](dwed_clipboard_scenarios.py) check exact pasted
+bytes and undo/redo, rejected imports retaining the previous clipboard,
+whole-selection capacity checks, destination line limits, valid newline
+replacement between long lines, and disk-full exports retaining both old
+files. The source-built CLIPTEST probe adds bounded parser and simulated host
+transfer checks, guarded read-only/empty imports, backup bytes and actual
+replacement replay in LOW/HIGH. See the [clipboard contract](../dwed/docs/CLIPBOARD.md)
+and [generated report](../dwed/docs/clipboard-milestone.json). Host simulation
+does not establish interoperability with Windows or DOSBox.

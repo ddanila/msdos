@@ -29,6 +29,9 @@ launcher = (args.launcher or args.build / "DWED.COM").resolve()
 for required in (overlay, launcher, ROOT / "out/floppy.img"):
     if not required.is_file():
         parser.error(f"missing input: {required}")
+from dwed_clipboard_scenarios import CASES as CLIPBOARD_CASES
+from dwed_clipboard_scenarios import exercise as exercise_clipboard
+from dwed_clipboard_scenarios import prepare as prepare_clipboard
 from dwed_dialog_scenarios import (
     CASES as DIALOG_CASES,
 )
@@ -111,8 +114,13 @@ cases += [
 cases += [
     ("undo-storage-" + mode, mode, b"DWED_MARKER\r\n", True) for mode in ("low", "high")
 ]
+cases += [
+    ("clipboard-probe-" + mode, mode, b"DWED_MARKER\r\n", True)
+    for mode in ("low", "high")
+]
 cases += DIALOG_CASES
 cases += UNDO_CASES
+cases += CLIPBOARD_CASES
 if args.case:
     unknown = set(args.case) - {case[0] for case in cases}
     if unknown:
@@ -133,11 +141,17 @@ if (
     and not (args.build.resolve() / "STORTEST.exe").is_file()
 ):
     parser.error("undo storage cases require an editor built with --tests")
+if (
+    any(case[0].startswith("clipboard-probe-") for case in cases)
+    and not (args.build.resolve() / "CLIPTEST.exe").is_file()
+):
+    parser.error("clipboard probes require an editor built with --tests")
 for name, mode, original, edit in cases:
     startup = name.startswith("dialog-startup-")
     keyboard = name.startswith("keyboard-")
     undo_journal = name.startswith("undo-journal-")
     undo_storage = name.startswith("undo-storage-")
+    clipboard_probe = name.startswith("clipboard-probe-")
     rejected = name.startswith("reject-")
     failure = name.startswith(("disk-full", "read-only"))
     filename = "SAMPLE.BAK" if name.startswith("backup-file") else "SAMPLE.TXT"
@@ -174,7 +188,11 @@ for name, mode, original, edit in cases:
     put(spec, backup_name, previous_backup)
     put(spec, "$ED0000.TMP", b"OTHER_EDITOR_SAVE\r\n")
     prepare_dialog(spec, name)
-    if name.startswith("disk-full") or name == "dialog-exit-full-low":
+    prepare_clipboard(spec, name)
+    if name.startswith("disk-full") or name in (
+        "dialog-exit-full-low",
+        "clip-edit-export-full-low",
+    ):
         listing = run(["mdir", "-i", spec, "::"]).stdout.decode()
         free = int(re.search(r"([\d ]+) bytes free", listing).group(1).replace(" ", ""))
         put(spec, "FILLER.BIN", bytes(free - 1024))
@@ -203,6 +221,11 @@ for name, mode, original, edit in cases:
             floppy, "STORTEST.EXE", (args.build.resolve() / "STORTEST.exe").read_bytes()
         )
         probe_command = "A:\\STORTEST.EXE\r\n"
+    if clipboard_probe:
+        put(
+            floppy, "CLIPTEST.EXE", (args.build.resolve() / "CLIPTEST.exe").read_bytes()
+        )
+        probe_command = "A:\\CLIPTEST.EXE\r\n"
     invocation = "CD \\DWED\r\nDWED.COM"
     if name.startswith("outside-directory"):
         invocation = "CD \\\r\nC:\\DWED\\DWED.COM"
@@ -290,7 +313,9 @@ for name, mode, original, edit in cases:
                 label in screen.splitlines()[0]
                 for label in ("File", "Edit", "Search", "Options", "Help")
             ), screen
-        if name.startswith("undo-edit-"):
+        if name.startswith("clip-edit-"):
+            row.update(exercise_clipboard(q, process, d, spec, original, name))
+        elif name.startswith("undo-edit-"):
             row.update(exercise_undo(q, process, d, spec, original, name))
         elif name.startswith("dialog-"):
             row.update(exercise_dialog(q, process, d, spec, original, name))
@@ -429,6 +454,15 @@ for name, mode, original, edit in cases:
                     == b"ATOMIC STORAGE PASS"
                 )
                 row["storage_probe"] = probe_log.decode("ascii").strip()
+            if clipboard_probe:
+                probe_log = run(["mtype", "-i", floppy, "::CLIP.LOG"]).stdout
+                (d / "clip.log").write_bytes(probe_log)
+                assert b"PASS " in probe_log and b"FAIL" not in probe_log, probe_log
+                assert (
+                    run(["mtype", "-i", floppy, "::CLIP.OK"]).stdout.strip()
+                    == b"CLIPBOARD PASS"
+                )
+                row["clipboard_probe"] = probe_log.decode("ascii").strip()
             if external:
                 assert (
                     run(["mtype", "-i", spec, "::COMMAND.TXT"]).stdout.strip()
