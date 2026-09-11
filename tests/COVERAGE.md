@@ -702,3 +702,12 @@ The [current-core Baltic display comparison](../locales/baltic/current-display-q
 retains the full release suite display results and records exact font-plane and
 screen-hash agreement with the previously reviewed HIGH/LOW captures at every
 height, including the wrong-glyph controls.
+
+The [complete Baltic AT lifecycle qualification](../locales/baltic/legacy-lifecycle-at84-qualification.json)
+checks BIOS/DOS mode switching, aliases/IDs, reloads, malformed-library
+preservation and pending accents. German pending tests use physical Caps Lock
+to clear the legacy BIOS flag; Shift clears it only on enhanced keyboards.
+Retained component runs distinguish the initial barrier failure from corrected
+German runs and unchanged successful cases. Every completed probe, phase action
+and resource is checked against its actual guest image. Full XT completion
+remains a separate gate.

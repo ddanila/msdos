@@ -1,0 +1,148 @@
+Drive A: /Users/ddanila/fun/msdos/out/baltic-legacy-lifecycle-k57oko2n/modes-lv/bios/test.img
+#
+# 86Box v7.0 logfile, created 2026/09/11 02:00:35
+#
+# Emulator path: /Users/ddanila/fun/msdos/out/ru-86box-vnc-bs283qnk/build/src/
+# Global configuration file: /Users/ddanila/fun/msdos/out/baltic-legacy-lifecycle-k57oko2n/modes-lv/bios/global.cfg
+# VM: bios
+#
+# Configuration file: /Users/ddanila/fun/msdos/out/baltic-legacy-lifecycle-k57oko2n/modes-lv/bios/86box.cfg
+#
+
+# Userfiles path: /Users/ddanila/fun/msdos/out/baltic-legacy-lifecycle-k57oko2n/modes-lv/bios/
+# ROM path: /Users/ddanila/Library/Application Support/net.86box.86Box/roms/
+# ROM path: /Users/ddanila/fun/msdos/out/baltic-legacy-lifecycle-k57oko2n/modes-lv/bios/roms/
+# ROM path: /Users/ddanila/fun/msdos/out/ru-86box-vnc-bs283qnk/build/src/roms/
+# ROM path: /Users/ddanila/Library/Application Support/net.86Box.86Box/roms/
+# ROM path: /Users/ddanila/Library/Application Support/86Box/roms/
+# ROM path: /Library/Application Support/net.86Box.86Box/roms/
+# ROM path: /Library/Application Support/86Box/roms/
+# Asset path: /Users/ddanila/fun/msdos/out/baltic-legacy-lifecycle-k57oko2n/modes-lv/bios/assets/
+# Asset path: /Users/ddanila/fun/msdos/out/ru-86box-vnc-bs283qnk/build/src/assets/
+# Asset path: /Users/ddanila/Library/Application Support/net.86Box.86Box/assets/
+# Asset path: /Users/ddanila/Library/Application Support/86Box/assets/
+# Asset path: /Library/Application Support/net.86Box.86Box/assets/
+# Asset path: /Library/Application Support/86Box/assets/
+Qt: version 6.11.2, platform "offscreen"
+Translations loaded.
+Failed to find Qt translations!
+Qt translations loaded.
+Translations loaded.
+Failed to find Qt translations!
+Qt translations loaded.
+qt.qpa.fonts: Populating font family aliases took 44 ms. Replace uses of missing font family "Sans Serif" with one that exists to avoid this cost. 
+This plugin does not support createPlatformVulkanInstance
+QVulkanInstance: Failed to initialize Vulkan
+11/09/2026 02:00:36 Listening for VNC connections on TCP port 5900
+11/09/2026 02:00:36 Listening for VNC connections on TCP6 port 5900
+This plugin does not support propagateSizeHints()
+This plugin does not support propagateSizeHints()
+
+RU_COUNTRY_PASS
+
+MODE prepare code page function completed
+
+MODE select code page function completed
+One or more CON code pages invalid for given keyboard code
+RU_AT84_TYPE_PASS
+RU_CODEPAGE_PASS
+RU_COUNTRY_PASS
+BALTIC_PHASE_00
+RU_AT84_TYPE_PASS
+Current keyboard code: LV  code page: 775
+Current CON code page: 775
+KEYB_CAPACITY 2279
+RU_KEY_READY 0000
+RU_KEY_READY 0001
+RU_KEY_READY 0002
+RU_KEY_READY 0003
+RU_KEY_READY 0004
+RU_KEY_READY 0005
+RU_KEY_READY 0006
+RU_KEY_READY 0007
+RU_KEY_READY 0008
+RU_KEY_READY 0009
+RU_KEY_READY 000A
+RU_KEY_READY 000B
+RU_KEY_READY 000C
+RU_KEY_READY 000D
+RU_KEY_READY 000E
+RU_KEY_READY 000F
+RU_KEY_READY 0010
+RU_KEY_READY 0011
+RU_KEY_READY 0012
+RU_KEY_READY 0013
+RU_KEY_READY 0014
+RU_KEY_READY 0015
+RU_KEY_READY 0016
+RU_KEY_READY 0017
+RU_KEY_READY 0018
+RU_KEY_READY 0019
+RU_KEY_READY 001A
+RU_KEY_READY 001B
+RU_KEY_READY 001C
+RU_KEY_READY 001D
+RU_KEY_READY 001E
+RU_KEY_READY 001F
+RU_KEY_READY 0020
+RU_KEY_READY 0021
+RU_KEY_READY 0022
+RU_KEY_READY 0023
+RU_KEY_READY 0024
+RU_KEY_READY 0025
+RU_KEY_READY 0026
+RU_KEY_READY 0027
+RU_KEY_READY 0028
+RU_KEY_READY 0029
+RU_KEY_READY 002A
+RU_KEY_READY 002B
+RU_KEY_READY 002C
+RU_KEY_READY 002D
+RU_KEY_READY 002E
+RU_KEY_READY 002F
+RU_KEY_READY 0030
+RU_KEY_READY 0031
+RU_KEY_READY 0032
+RU_KEY_READY 0033
+RU_KEY_READY 0034
+RU_KEY_READY 0035
+RU_KEY_READY 0036
+RU_KEY_READY 0037
+RU_KEY_READY 0038
+RU_KEY_READY 0039
+RU_KEY_READY 003A
+RU_KEY_READY 003B
+RU_KEY_READY 003C
+RU_KEY_READY 003D
+RU_KEY_READY 003E
+RU_KEY_READY 003F
+RU_KEY_READY 0040
+RU_KEY_READY 0041
+RU_KEY_READY 0042
+RU_KEY_READY 0043
+RU_KEY_READY 0044
+RU_KEY_READY 0045
+RU_KEY_READY 0046
+RU_KEY_READY 0047
+RU_KEY_READY 0048
+RU_KEY_READY 0049
+RU_KEY_READY 004A
+RU_KEY_READY 004B
+RU_KEY_READY 004C
+RU_KEY_READY 004D
+RU_KEY_READY 004E
+RU_KEY_READY 004F
+RU_KEY_READY 0050
+RU_KEY_READY 0051
+RU_KEY_READY 0052
+RU_KEY_READY 0053
+RU_KEY_READY 0054
+RU_KEY_READY 0055
+RU_KEY_READY 0056
+RU_KEY_READY 0057
+RU_KEY_READY 0058
+RU_KEY_READY 0059
+RU_KEY_READY 005A
+RU_KEY_READY 005B
+RU_KEY_PASS
+RU_LEGACY_KEY_DONE

@@ -243,3 +243,10 @@ Existing Russian evidence does not establish Baltic support.
 compares the full release suite font planes and screen hashes with the retained
 visual captures at every height and both memory profiles, including deliberate
 wrong-glyph controls. The captures reproduce exactly with the release core.
+
+[Complete AT lifecycle qualification](locales/baltic/legacy-lifecycle-at84-qualification.json)
+covers BIOS/DOS mode, selection, resource-rejection and pending-accent plans.
+The German control exposed an enhanced-keyboard assumption in the test barrier:
+legacy Caps Lock requires a physical toggle to clear it. The record retains
+the original failure, corrected German runs and unchanged earlier cases, with
+reproduced guest probes and images. The complete XT matrix remains open.

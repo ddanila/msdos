@@ -1,0 +1,25 @@
+{
+  "status": "passed",
+  "scope": "Only German pending-accent Caps-off events change; every phase of all other legacy plans is identical. Probe bytes and guest batch preparation code are unchanged.",
+  "before_commit": "5e30ef09581bf3e04852233093a56b1ec1b7f4d9",
+  "after_source_sha256": "6d833e68c36fd18650f83202e8cd09db01275d9e9cb1f802933a4adc5e7cf890",
+  "unchanged_plans": [
+    "modes-et",
+    "modes-lv",
+    "modes-lt",
+    "selection",
+    "resources-et",
+    "resources-ee",
+    "resources-lv",
+    "resources-lt",
+    "pending-et-4",
+    "pending-et-1",
+    "pending-et-3",
+    "pending-et-5",
+    "pending-et-2",
+    "pending-lv-3",
+    "pending-lv-4",
+    "pending-lv-2",
+    "pending-lv-1"
+  ]
+}
