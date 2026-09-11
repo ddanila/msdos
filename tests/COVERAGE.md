@@ -905,3 +905,12 @@ verifies the core files before making a boot-only private copy. See the
 [qualified case report](../dwed/docs/microsoft-dos-milestone.json). Commercial
 binaries remain local; this is functional qualification rather than a timing
 or memory-usage comparison.
+
+The [DWED legacy CPU runner](test_dwed_legacy_dosbox.py) boots DOS in explicit
+DOSBox-X CPU models. A [guest probe](dwed_cpu_probe.asm) checks CPU semantics;
+editor probes exercise text, undo, save failure and memory refusal, followed by
+a [BIOS-keyboard sequence](dwed_legacy_keys.asm) through the actual launcher.
+Saved bytes, backup and completion markers are checked after the emulator exits.
+See the [qualification boundary](../dwed/docs/LEGACY-CPU.md) and
+[generated report](../dwed/docs/legacy-cpu-milestone.json). This does not replace
+86Box acceptance with real IBM BIOS ROMs.
