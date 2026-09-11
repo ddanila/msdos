@@ -112,7 +112,7 @@ cases += [
         b"DWED_MARKER\r\n" + (b"0123456789" * 8 + b"\r\n") * 100,
         True,
     )
-    for kind in ("disk-full", "read-only")
+    for kind in ("disk-full", "read-only", "media-readonly", "media-readonly-saveas")
     for mode in ("low", "high")
 ]
 cases += [
@@ -259,7 +259,7 @@ for name, mode, original, edit in cases:
     tab_probe = name.startswith("tab-probe-")
     save_probe = name.startswith("save-fault-")
     rejected = name.startswith("reject-")
-    failure = name.startswith(("disk-full", "read-only"))
+    failure = name.startswith(("disk-full", "read-only", "media-readonly"))
     filename = "SAMPLE.BAK" if name.startswith("backup-file") else "SAMPLE.TXT"
     backup_name = "SAMPLE.BK!" if name.startswith("backup-file") else "SAMPLE.BAK"
     d = WORK / name
@@ -419,6 +419,23 @@ for name, mode, original, edit in cases:
     invocation = "CD \\DWED\r\nDWED.COM"
     if name.startswith("outside-directory"):
         invocation = "CD \\\r\nC:\\DWED\\DWED.COM"
+    control_spec = spec
+    protected_media = None
+    save_elsewhere = name.startswith("media-readonly-saveas")
+    if name.startswith("media-readonly"):
+        protected_media = d / "protected.img"
+        run(["mformat", "-C", "-f", "1440", "-i", protected_media, "::"])
+        put(protected_media, filename, original)
+        put(protected_media, backup_name, previous_backup)
+        put(protected_media, "$ED0000.TMP", b"OTHER_EDITOR_SAVE\r\n")
+        (d / "vec.asm").write_text(
+            "bits 16\norg 100h\nmov ax,3524h\nint 21h\nmov [vec],bx\nmov [vec+2],es\nmov dx,vec\nmov cx,4\nmov bx,1\nmov ah,40h\nint 21h\nmov ax,4c00h\nint 21h\nvec: dd 0\n"
+        )
+        run(["nasm", "-f", "bin", d / "vec.asm", "-o", d / "VEC.COM"])
+        put(floppy, "VEC.COM", (d / "VEC.COM").read_bytes())
+        probe_command += "A:\\VEC.COM >A:\\VECBEF.BIN\r\n"
+        protected_before = hashlib.sha256(protected_media.read_bytes()).hexdigest()
+        spec = str(protected_media)
     put(
         floppy,
         "AUTOEXEC.BAT",
@@ -427,8 +444,9 @@ for name, mode, original, edit in cases:
             + probe_command
             + "C:\r\n"
             + invocation
-            + ("" if startup else " C:\\" + filename)
+            + ("" if startup else (" B:\\" if protected_media else " C:\\") + filename)
             + (" C:\\.\\SAMPLE.TXT" if name.startswith("recover-alias-") else "")
+            + ("\r\nA:\\VEC.COM >A:\\VECAFT.BIN" if protected_media else "")
             + "\r\nCD >C:\\CWD.TXT\r\nA:\\QEXIT.COM\r\n"
         ).encode(),
     )
@@ -466,6 +484,11 @@ for name, mode, original, edit in cases:
         "isa-debug-exit,iobase=0xf4,iosize=0x04",
     ]
     (d / "command.json").write_text(json.dumps(argv, indent=2))
+    if protected_media:
+        argv += [
+            "-drive",
+            f"if=floppy,index=1,format=raw,readonly=on,file={protected_media}",
+        ]
     process = subprocess.Popen(
         argv, stdout=subprocess.DEVNULL, stderr=(d / "qemu.log").open("wb")
     )
@@ -641,8 +664,23 @@ for name, mode, original, edit in cases:
                 assert "Error" in saved_screen, saved_screen
                 send_keys(q, "ret")
                 time.sleep(0.25)
+            if save_elsewhere:
+                send_keys(q, "hmp:sendkey shift-f2")
+                time.sleep(0.25)
+                screen = read_screen_text(q, str(d / "vram.bin"))
+                assert "Save file to" in screen, screen
+                send_keys(q, "home+delete+c+ret")
+                time.sleep(0.25)
+                screen = read_screen_text(q, str(d / "vram.bin"))
+                assert "Replace file" in screen, screen
+                send_keys(q, "y")
+                time.sleep(0.5)
+                screen = read_screen_text(q, str(d / "vram.bin"))
+                assert (
+                    "zDWED_MARKER" in screen and "*" not in screen.splitlines()[-1]
+                ), screen
             send_keys(q, "esc")
-            if failure:
+            if failure and not save_elsewhere:
                 time.sleep(0.25)
                 dirty_screen = read_screen_text(q, str(d / "vram.bin"))
                 (d / "dirty.txt").write_text(dirty_screen)
@@ -754,8 +792,26 @@ for name, mode, original, edit in cases:
             (d / "original.bin").write_bytes(original)
             (d / "saved.bin").write_bytes(actual)
         row["dos_version"] = (
-            run(["mtype", "-i", spec, "::DOSVER.TXT"]).stdout.decode("ascii").strip()
+            run(["mtype", "-i", control_spec, "::DOSVER.TXT"])
+            .stdout.decode("ascii")
+            .strip()
         )
+        if protected_media:
+            before_vector = run(["mtype", "-i", floppy, "::VECBEF.BIN"]).stdout
+            after_vector = run(["mtype", "-i", floppy, "::VECAFT.BIN"]).stdout
+            assert len(before_vector) == 4 and after_vector == before_vector
+            row["critical_vector_restored"] = True
+            if save_elsewhere:
+                assert (
+                    run(["mtype", "-i", control_spec, "::SAMPLE.TXT"]).stdout
+                    == b"z" + original
+                )
+                row["saved_to_writable_drive"] = True
+            assert (
+                hashlib.sha256(protected_media.read_bytes()).hexdigest()
+                == protected_before
+            )
+            row["write_protected_image_unchanged"] = True
     except Exception as error:  # noqa: BLE001 -- record diagnostics, then fail the suite below
         row.update(completed=False, error=str(error))
     finally:

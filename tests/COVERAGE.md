@@ -914,3 +914,12 @@ Saved bytes, backup and completion markers are checked after the emulator exits.
 See the [qualification boundary](../dwed/docs/LEGACY-CPU.md) and
 [generated report](../dwed/docs/legacy-cpu-milestone.json). This does not replace
 86Box acceptance with real IBM BIOS ROMs.
+
+DWED protected-media cases attach an actual write-protected QEMU floppy with
+ordinary file attributes. They verify the editor error, unsaved-buffer retention,
+Save As to writable storage, unchanged protected image, and INT 24h vector
+restoration after exit. The previous build reaches DOS's Abort/Retry/Fail prompt.
+See [critical-error handling](../dwed/docs/CRITICAL-ERRORS.md) and
+[generated evidence](../dwed/docs/critical-errors-milestone.json), including the
+same protected-media cases on Microsoft DOS. Physical media failures remain
+outside this emulated boundary.
