@@ -879,6 +879,12 @@ The previous editor fails the startup-recovery negative control. See the
 generation cleanup, read-only media, low memory and torn-sector interruption
 remain unqualified.
 
+Recovery cleanup scenarios check installed-payload verification, confirmation,
+cancellation, retained-backup refusal, post-confirmation read failure and
+retryable journal deletion failure. See the
+[cleanup contract](../dwed/docs/RECOVERY-CLEANUP.md) and
+[qualification record](../dwed/docs/recovery-cleanup-milestone.json).
+
 The DWED memory probe repeatedly refuses oversized ordinary loads and recovery
 while preserving a dirty document and verifying heap reclamation. It also
 fills memory with real documents, checks failed New/Open ownership, releases

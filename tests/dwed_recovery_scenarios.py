@@ -10,6 +10,16 @@ from test_compat_bpb_qemu import put, run
 
 ORIGINAL = b"DWED_MARKER\r\nsecond line\r\n"
 KINDS = (
+    "cleanup",
+    "cleanup-large",
+    "cleanup-cancel",
+    "cleanup-missing-temp",
+    "cleanup-changed-dest",
+    "cleanup-changed-temp",
+    "cleanup-retained-backup",
+    "cleanup-readonly-record",
+    "cleanup-readonly-temp",
+    "cleanup-read-failure",
     "bad-crc",
     "short-record",
     "extra-record",
@@ -28,7 +38,13 @@ CASES = [
     for kind in KINDS
     for mode in ("low", "high")
 ]
-FAULTS = {"record-read": 1, "payload-read": 2, "early-eof": 3, "record-close": 4}
+FAULTS = {
+    "cleanup-read-failure": 1,
+    "record-read": 1,
+    "payload-read": 2,
+    "early-eof": 3,
+    "record-close": 4,
+}
 
 
 def kind_of(name):
@@ -36,6 +52,8 @@ def kind_of(name):
 
 
 def payload_for(kind):
+    if kind == "cleanup-large":
+        return b"z" + ORIGINAL + b"long payload line\r\n" * 200
     if kind == "format":
         return b"zDWED_MARKER\t\x80\xff\nlast"
     return b"z" + ORIGINAL
@@ -67,6 +85,19 @@ def prepare(spec, name):
         raw += b"x"
     put(spec, "$ER0000.REC", raw)
     put(spec, "$ED0001.TMP", b"x" + payload[1:] if kind == "bad-payload" else payload)
+    if kind.startswith("cleanup"):
+        if kind != "cleanup-changed-dest":
+            put(spec, "SAMPLE.TXT", payload)
+        if kind == "cleanup-changed-temp":
+            put(spec, "$ED0001.TMP", b"changed temporary\r\n")
+        if kind == "cleanup-retained-backup":
+            put(spec, "$EB0000.TMP", b"UNVERIFIED OLDER BACKUP\r\n")
+        if kind == "cleanup-missing-temp":
+            run(["mdel", "-i", spec, "::$ED0001.TMP"])
+        if kind == "cleanup-readonly-record":
+            run(["mattrib", "-i", spec, "+r", "::$ER0000.REC"])
+        if kind == "cleanup-readonly-temp":
+            run(["mattrib", "-i", spec, "+r", "::$ED0001.TMP"])
     if kind == "readonly":
         for path in ("::$ER0000.REC", "::$ED0001.TMP"):
             run(["mattrib", "-i", spec, "+r", path])
@@ -74,6 +105,8 @@ def prepare(spec, name):
 
 def exercise(q, process, directory, spec, original, name):
     kind = kind_of(name)
+    if kind.startswith("cleanup"):
+        return exercise_cleanup(q, process, directory, spec, original, kind)
     record = run(["mtype", "-i", spec, "::$ER0000.REC"]).stdout
     payload = run(["mtype", "-i", spec, "::$ED0001.TMP"]).stdout
 
@@ -164,4 +197,92 @@ def exercise(q, process, directory, spec, original, name):
         "backup_matches_expected": True,
         "recovery_flow": kind,
         "recovered": recovered,
+    }
+
+
+def exercise_cleanup(q, process, directory, spec, original, kind):
+    def read(name):
+        return run(["mtype", "-i", spec, "::" + name]).stdout
+
+    def keys(value):
+        send_keys(q, value)
+        time.sleep(0.25)
+
+    def expect(needle, label):
+        deadline = time.monotonic() + 15
+        while time.monotonic() < deadline:
+            screen = read_screen_text(q, str(directory / "vram.bin"))
+            (directory / (label + ".txt")).write_text(screen)
+            if needle in screen:
+                return screen
+            time.sleep(0.2)
+        raise AssertionError(screen)
+
+    record = read("$ER0000.REC")
+    destination = read("SAMPLE.TXT")
+    backup = read("SAMPLE.BAK")
+    expect("Interrupted save", "discovery")
+    if kind == "cleanup-read-failure":
+        expect("Error #5", "initial-read-failure")
+        keys("caps_lock+r")
+        expect("R Recover", "read-retried")
+    keys("c")
+    blocked = kind in (
+        "cleanup-changed-dest",
+        "cleanup-changed-temp",
+        "cleanup-retained-backup",
+    )
+    if blocked:
+        expect(
+            "Error #1015" if kind == "cleanup-retained-backup" else "Error #1014",
+            "cleanup-blocked",
+        )
+        keys("s")
+    else:
+        text = expect("D Remove duplicates", "cleanup-confirm")
+        assert "$ER0000.REC" in text and "$ED0001.TMP" in text, text
+        if kind == "cleanup-cancel":
+            keys("esc")
+            expect("C Check cleanup", "cleanup-cancelled")
+            keys("s")
+        else:
+            keys("caps_lock+d" if kind == "cleanup-read-failure" else "d")
+            if kind in (
+                "cleanup-readonly-record",
+                "cleanup-readonly-temp",
+                "cleanup-read-failure",
+            ):
+                expect("Cleanup unavailable. Error #5", "cleanup-delete-failed")
+                keys("caps_lock+c" if kind == "cleanup-read-failure" else "c")
+                expect("D Remove duplicates", "cleanup-retry")
+                keys("esc+s")
+    expect("DWED_MARKER", "editor-return")
+    keys("esc")
+    process.wait(timeout=15)
+    assert process.returncode == 33
+    assert read("SAMPLE.TXT") == destination
+    assert read("SAMPLE.BAK") == backup
+    assert read("$ED0000.TMP") == b"OTHER_EDITOR_SAVE\r\n"
+    listing = run(["mdir", "-b", "-i", spec, "::"]).stdout.upper()
+    removed = kind in ("cleanup", "cleanup-large", "cleanup-missing-temp")
+    if removed:
+        assert b"$ER0000.REC" not in listing and b"$ED0001.TMP" not in listing, listing
+    else:
+        assert read("$ER0000.REC") == record
+        if kind == "cleanup-readonly-record":
+            assert b"$ED0001.TMP" not in listing, listing
+        else:
+            assert read("$ED0001.TMP") == (
+                b"changed temporary\r\n"
+                if kind == "cleanup-changed-temp"
+                else payload_for(kind)
+            )
+    if kind == "cleanup-retained-backup":
+        assert read("$EB0000.TMP") == b"UNVERIFIED OLDER BACKUP\r\n"
+    return {
+        "completed": True,
+        "exact_match": True,
+        "backup_matches_expected": True,
+        "recovery_flow": kind,
+        "resolved": removed,
     }
