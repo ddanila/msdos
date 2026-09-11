@@ -244,6 +244,10 @@ cases += [
     for mode in ("low", "high")
 ]
 cases += [
+    ("store-save-" + mode, mode, b"DWED_MARKER\r\n", True)
+    for mode in ("low", "high")
+]
+cases += [
     ("record-read-" + mode, mode, b"DWED_MARKER\r\n", True)
     for mode in ("low", "high")
 ]
@@ -351,6 +355,11 @@ if (
 ):
     parser.error("temporary probes require an editor built with --tests")
 if (
+    any(case[0].startswith("store-save-") for case in cases)
+    and not (args.build / "STRSAVE.exe").exists()
+):
+    parser.error("store save probes require an editor built with --tests")
+if (
     any(case[0].startswith("record-read-") for case in cases)
     and not (args.build / "DBREAD.exe").exists()
 ):
@@ -410,6 +419,7 @@ for name, mode, original, edit in cases:
     xfer_probe = name.startswith("xfer-probe-")
     xms_probe = name.startswith("xms-probe-")
     temporary_probe = name.startswith("temporary-probe-")
+    store_save = name.startswith("store-save-")
     record_read = name.startswith("record-read-")
     database_open = name.startswith("database-open-")
     database_probe = name.startswith("database-probe-")
@@ -537,6 +547,9 @@ for name, mode, original, edit in cases:
         )
         profile = " /DELETE" if "-delete-" in name else ""
         probe_command = "A:\\TMPPROBE.EXE" + profile + " >C:\\TMPRUN.LOG\r\n"
+    if store_save:
+        put(floppy, "STRSAVE.EXE", (args.build.resolve() / "STRSAVE.exe").read_bytes())
+        probe_command = "A:\\STRSAVE.EXE >C:\\STSRUN.LOG\r\n"
     if record_read:
         put(floppy, "DBREAD.EXE", (args.build.resolve() / "DBREAD.exe").read_bytes())
         probe_command = "A:\\DBREAD.EXE >C:\\DBRRUN.LOG\r\n"
@@ -726,7 +739,7 @@ for name, mode, original, edit in cases:
     row = {"case": name, "mode": mode, "original_hex": original.hex()}
     try:
         q = QMPConnection(str(socket))
-        end = time.monotonic() + (120 if record_read else 30)
+        end = time.monotonic() + (120 if record_read or store_save else 30)
         screen = ""
         memory_notices = 0
         table_refusals = 0
@@ -1108,6 +1121,18 @@ for name, mode, original, edit in cases:
                     == b"TEMPORARY OWNER PASS"
                 )
                 row["temporary_probe"] = probe_log.decode("ascii").strip()
+            if store_save:
+                diagnostic = run(["mtype", "-i", spec, "::STSRUN.LOG"]).stdout
+                (d / "store-save-runtime.log").write_bytes(diagnostic)
+                assert not diagnostic.strip(), diagnostic
+                probe_log = run(["mtype", "-i", floppy, "::STRSAVE.LOG"]).stdout
+                (d / "store-save.log").write_bytes(probe_log)
+                assert b"PASS " in probe_log and b"FAIL" not in probe_log, probe_log
+                assert (
+                    run(["mtype", "-i", floppy, "::STRSAVE.OK"]).stdout.strip()
+                    == b"STORE SAVE PASS"
+                )
+                row["store_save"] = probe_log.decode("ascii").strip()
             if record_read:
                 diagnostic = run(["mtype", "-i", spec, "::DBRRUN.LOG"]).stdout
                 (d / "record-read-runtime.log").write_bytes(diagnostic)

@@ -1099,3 +1099,10 @@ file read and seek failures, positive short reads, premature EOF, and allocation
 refusal. It checks malformed chained records and cycles, including full-chain
 validation for prefix reads and size queries. See the [API contract](../dwed/docs/DATABASE-READS.md)
 and [qualification evidence](../dwed/docs/record-read-milestone.json).
+
+The DWED store-save probe verifies that backing metadata and payload failures
+abort serialization while retaining the destination, backup, and refused
+cleanup owner. It covers corrupt lengths and links, cycles, short reads, empty
+lines, and exact retry output with the optional cache deliberately unavailable.
+See [checked string-store saves](../dwed/docs/STORE-SAVES.md) and the
+[qualification evidence](../dwed/docs/store-save-milestone.json).
