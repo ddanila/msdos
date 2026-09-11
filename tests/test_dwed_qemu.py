@@ -52,6 +52,8 @@ from dwed_mono_scenarios import exercise as exercise_mono
 from dwed_mouse_scenarios import CASES as MOUSE_CASES
 from dwed_mouse_scenarios import exercise as exercise_mouse
 from dwed_mouse_scenarios import validate_driver
+from dwed_save_fault_scenarios import CASES as SAVE_ERROR_CASES
+from dwed_save_fault_scenarios import exercise as exercise_save_error
 from dwed_tab_scenarios import CASES as TAB_CASES
 from dwed_tab_scenarios import exercise as exercise_tabs
 from dwed_tab_scenarios import prepare as prepare_tabs
@@ -135,11 +137,15 @@ cases += [
 cases += [
     ("tab-probe-" + mode, mode, b"DWED_MARKER\r\n", True) for mode in ("low", "high")
 ]
+cases += [
+    ("save-fault-" + mode, mode, b"DWED_MARKER\r\n", True) for mode in ("low", "high")
+]
 cases += DIALOG_CASES
 cases += UNDO_CASES
 cases += CLIPBOARD_CASES
 cases += TAB_CASES
 cases += MONO_CASES
+cases += SAVE_ERROR_CASES
 if args.mouse_driver:
     validate_driver(args.mouse_driver)
     cases += MOUSE_CASES
@@ -173,6 +179,11 @@ if (
     and not (args.build.resolve() / "TABTEST.exe").is_file()
 ):
     parser.error("tab probes require an editor built with --tests")
+if (
+    any(case[0].startswith("save-fault-") for case in cases)
+    and not (args.build / "SAVETEST.exe").is_file()
+):
+    parser.error("save fault probes require an editor built with --tests")
 for name, mode, original, edit in cases:
     mouse = name.startswith("mouse-edit-")
     monochrome = name.startswith("mono-edit-") or name == "mouse-edit-mono-low"
@@ -183,6 +194,7 @@ for name, mode, original, edit in cases:
     undo_storage = name.startswith("undo-storage-")
     clipboard_probe = name.startswith("clipboard-probe-")
     tab_probe = name.startswith("tab-probe-")
+    save_probe = name.startswith("save-fault-")
     rejected = name.startswith("reject-")
     failure = name.startswith(("disk-full", "read-only"))
     filename = "SAMPLE.BAK" if name.startswith("backup-file") else "SAMPLE.TXT"
@@ -261,6 +273,9 @@ for name, mode, original, edit in cases:
     if tab_probe:
         put(floppy, "TABTEST.EXE", (args.build.resolve() / "TABTEST.exe").read_bytes())
         probe_command = "A:\\TABTEST.EXE\r\n"
+    if save_probe:
+        put(floppy, "SAVETEST.EXE", (args.build / "SAVETEST.exe").read_bytes())
+        probe_command = "A:\\SAVETEST.EXE\r\n"
     if monochrome:
         mode_source = "bits 16\norg 100h\nmov ax,7\nint 10h\n"
         if "rows" in name:
@@ -284,6 +299,21 @@ for name, mode, original, edit in cases:
         )
         put(floppy, "MTRACE.COM", (d / "MTRACE.COM").read_bytes())
         probe_command += "A:\\CTMOUSE.EXE\r\nA:\\MTRACE.COM\r\n"
+    if name.startswith("save-error-"):
+        fault = 1 if "-close-" in name else 2
+        run(
+            [
+                "nasm",
+                "-f",
+                "bin",
+                f"-DFAULT={fault}",
+                ROOT / "tests/dwed_save_fault.asm",
+                "-o",
+                d / "SFAULT.COM",
+            ]
+        )
+        put(floppy, "SFAULT.COM", (d / "SFAULT.COM").read_bytes())
+        probe_command += "A:\\SFAULT.COM\r\n"
     invocation = "CD \\DWED\r\nDWED.COM"
     if name.startswith("outside-directory"):
         invocation = "CD \\\r\nC:\\DWED\\DWED.COM"
@@ -371,7 +401,9 @@ for name, mode, original, edit in cases:
                 label in screen.splitlines()[0]
                 for label in ("File", "Edit", "Search", "Options", "Help")
             ), screen
-        if mouse:
+        if name.startswith("save-error-"):
+            row.update(exercise_save_error(q, process, d, spec, original, name))
+        elif mouse:
             row.update(exercise_mouse(q, process, d, spec, original, name))
         elif monochrome:
             row.update(exercise_mono(q, process, d, spec, original, name))
@@ -518,6 +550,15 @@ for name, mode, original, edit in cases:
                     == b"ATOMIC STORAGE PASS"
                 )
                 row["storage_probe"] = probe_log.decode("ascii").strip()
+            if save_probe:
+                probe_log = run(["mtype", "-i", floppy, "::SAVE.LOG"]).stdout
+                (d / "save.log").write_bytes(probe_log)
+                assert b"PASS " in probe_log and b"FAIL" not in probe_log, probe_log
+                assert (
+                    run(["mtype", "-i", floppy, "::SAVE.OK"]).stdout.strip()
+                    == b"SAVE FAULTS PASS"
+                )
+                row["save_probe"] = probe_log.decode("ascii").strip()
             if tab_probe:
                 probe_log = run(["mtype", "-i", floppy, "::TAB.LOG"]).stdout
                 (d / "tab.log").write_bytes(probe_log)

@@ -10,8 +10,9 @@ A backup-document case checks the alternative backup name, and temporary-file
 collision checks protect another editor's save. The source-built launcher is
 also checked for external-command execution, drive/directory restoration,
 session resume, recursive-launch refusal and locating the overlay from another
-directory. Commit/close/rename fault injection, read-only media,
-recovery, file-format preservation, menus and full EDIT distribution remain
+directory. Shared-writer fault injection and editor error flows are described
+below. Read-only media, interrupted recovery, remaining file/menu qualification
+and full EDIT distribution remain
 [implementation gates](../dwed/docs/EDIT-PLAN.md).
 
 The DWED text cases assert exact bytes for CRLF/LF/CR, final-newline state,
@@ -834,3 +835,13 @@ Prepare the fixture with `python3 tests/prepare_dwed_mouse.py` and pass
 `DWED_MOUSE_DRIVER=out/dwed-mouse-fixtures/ctmouse-extracted/ctmouse.exe` to the
 DWED gate to include those cases. See the [qualification scope](../dwed/docs/DISPLAY-MOUSE.md)
 and [generated report](../dwed/docs/display-mouse-milestone.json).
+
+The DWED SAVETEST probe injects write, commit, close, rename and cleanup
+failures into the real DOS save path. It checks both rollback generations,
+retained payloads, temporary-handle ownership and collision protection. The
+[editor fault scenarios](dwed_save_fault_scenarios.py) use a resident
+[DOS injector](dwed_save_fault.asm) to verify dirty-buffer retention and
+Cancel/Retry/Discard after actual Save failures. The preceding editor build
+loses its previous backup in the rename negative control. See the
+[save contract and remaining recovery gates](../dwed/docs/SAVE-TRANSACTION.md)
+and [generated evidence](../dwed/docs/save-fault-milestone.json).
