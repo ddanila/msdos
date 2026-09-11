@@ -248,6 +248,10 @@ cases += [
     for mode in ("low", "high")
 ]
 cases += [
+    ("record-append-" + mode, mode, b"DWED_MARKER\r\n", True)
+    for mode in ("low", "high")
+]
+cases += [
     ("record-read-" + mode, mode, b"DWED_MARKER\r\n", True)
     for mode in ("low", "high")
 ]
@@ -360,6 +364,11 @@ if (
 ):
     parser.error("store save probes require an editor built with --tests")
 if (
+    any(case[0].startswith("record-append-") for case in cases)
+    and not (args.build / "DBAPPEND.exe").exists()
+):
+    parser.error("record append probes require an editor built with --tests")
+if (
     any(case[0].startswith("record-read-") for case in cases)
     and not (args.build / "DBREAD.exe").exists()
 ):
@@ -420,6 +429,7 @@ for name, mode, original, edit in cases:
     xms_probe = name.startswith("xms-probe-")
     temporary_probe = name.startswith("temporary-probe-")
     store_save = name.startswith("store-save-")
+    record_append = name.startswith("record-append-")
     record_read = name.startswith("record-read-")
     database_open = name.startswith("database-open-")
     database_probe = name.startswith("database-probe-")
@@ -550,6 +560,9 @@ for name, mode, original, edit in cases:
     if store_save:
         put(floppy, "STRSAVE.EXE", (args.build.resolve() / "STRSAVE.exe").read_bytes())
         probe_command = "A:\\STRSAVE.EXE >C:\\STSRUN.LOG\r\n"
+    if record_append:
+        put(floppy, "DBAPPEND.EXE", (args.build.resolve() / "DBAPPEND.exe").read_bytes())
+        probe_command = "A:\\DBAPPEND.EXE >C:\\APPRUN.LOG\r\n"
     if record_read:
         put(floppy, "DBREAD.EXE", (args.build.resolve() / "DBREAD.exe").read_bytes())
         probe_command = "A:\\DBREAD.EXE >C:\\DBRRUN.LOG\r\n"
@@ -739,7 +752,7 @@ for name, mode, original, edit in cases:
     row = {"case": name, "mode": mode, "original_hex": original.hex()}
     try:
         q = QMPConnection(str(socket))
-        end = time.monotonic() + (120 if record_read or store_save else 30)
+        end = time.monotonic() + (120 if record_read or record_append or store_save else 30)
         screen = ""
         memory_notices = 0
         table_refusals = 0
@@ -1133,6 +1146,18 @@ for name, mode, original, edit in cases:
                     == b"STORE SAVE PASS"
                 )
                 row["store_save"] = probe_log.decode("ascii").strip()
+            if record_append:
+                diagnostic = run(["mtype", "-i", spec, "::APPRUN.LOG"]).stdout
+                (d / "record-append-runtime.log").write_bytes(diagnostic)
+                assert not diagnostic.strip(), diagnostic
+                probe_log = run(["mtype", "-i", floppy, "::DBAPPEND.LOG"]).stdout
+                (d / "record-append.log").write_bytes(probe_log)
+                assert b"PASS " in probe_log and b"FAIL" not in probe_log, probe_log
+                assert (
+                    run(["mtype", "-i", floppy, "::DBAPPEND.OK"]).stdout.strip()
+                    == b"RECORD APPEND PASS"
+                )
+                row["record_append"] = probe_log.decode("ascii").strip()
             if record_read:
                 diagnostic = run(["mtype", "-i", spec, "::DBRRUN.LOG"]).stdout
                 (d / "record-read-runtime.log").write_bytes(diagnostic)

@@ -1106,3 +1106,9 @@ cleanup owner. It covers corrupt lengths and links, cycles, short reads, empty
 lines, and exact retry output with the optional cache deliberately unavailable.
 See [checked string-store saves](../dwed/docs/STORE-SAVES.md) and the
 [qualification evidence](../dwed/docs/store-save-milestone.json).
+
+The DWED record-append probe verifies that new backing records remain
+unpublished after write, seek, read, and allocation failures. It checks old
+payloads, root and free-list metadata, repeated failures, retry, reopening, and
+the maximum WORD-sized chained input. See the [append API contract](../dwed/docs/DATABASE-APPENDS.md)
+and [qualification evidence](../dwed/docs/record-append-milestone.json).
