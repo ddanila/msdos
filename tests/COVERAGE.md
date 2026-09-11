@@ -4,9 +4,13 @@ The experimental DWED overlay has an optional `make test-dwed-qemu` smoke gate.
 Build it first using [the pinned toolchain](../dwed/docs/BUILD.md), then pass
 `DWED_BUILD=path/to/output` if using a nondefault output directory. The test
 copies the deployed DOS floppy privately and checks exact saved/backup bytes
-in LOW and HIGH/UMB. It currently uses DWED's historical launcher; it does not
-qualify disk-full handling, file-format preservation, menus or a complete EDIT
-distribution. These remain [implementation gates](../dwed/docs/EDIT-PLAN.md).
+in LOW and HIGH/UMB, including disk-full and read-only-file failures. Failure
+checks require an error dialog, retained edits and the dirty-buffer exit prompt.
+A backup-document case checks the alternative backup name, and temporary-file
+collision checks protect another editor's save. It currently uses DWED's
+historical launcher. Commit/close/rename fault injection, read-only media,
+recovery, file-format preservation, menus and full EDIT distribution remain
+[implementation gates](../dwed/docs/EDIT-PLAN.md).
 
 The optional Russian increment has source, reference and CPI gates:
 `make test-ru-font-sources test-ru-contract test-ru-cpi`. The

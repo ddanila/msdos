@@ -7,6 +7,7 @@ its source-built replacement is ready. Requires a built parent out/floppy.img.
 
 import argparse
 import json
+import re
 import shutil
 import subprocess
 import sys
@@ -19,6 +20,9 @@ sys.path.insert(0, str(ROOT / "tests"))
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("--build", type=Path, default=ROOT / "dwed/out/build")
 parser.add_argument("--launcher", type=Path, default=ROOT / "dwed/BIN/DWED.EXE")
+parser.add_argument(
+    "--case", action="append", help="run only the named case (repeatable)"
+)
 args = parser.parse_args()
 overlay = args.build.resolve() / "DWEDOVL.exe"
 launcher = args.launcher.resolve()
@@ -36,7 +40,26 @@ cases = [
     ("edit-" + mode, mode, b"DWED_MARKER\r\nsecond line\r\n", True)
     for mode in ("low", "high")
 ]
+cases += [
+    (
+        kind + "-" + mode,
+        mode,
+        b"DWED_MARKER\r\n" + (b"0123456789" * 8 + b"\r\n") * 100,
+        True,
+    )
+    for kind in ("disk-full", "read-only")
+    for mode in ("low", "high")
+]
+cases.append(("backup-file-low", "low", b"DWED_MARKER\r\nbackup document\r\n", True))
+if args.case:
+    unknown = set(args.case) - {case[0] for case in cases}
+    if unknown:
+        parser.error(f"unknown cases: {sorted(unknown)}")
+    cases = [case for case in cases if case[0] in args.case]
 for name, mode, original, edit in cases:
+    failure = name.startswith(("disk-full", "read-only"))
+    filename = "SAMPLE.BAK" if name.startswith("backup-file") else "SAMPLE.TXT"
+    backup_name = "SAMPLE.BK!" if name.startswith("backup-file") else "SAMPLE.BAK"
     d = WORK / name
     d.mkdir()
     floppy = d / "boot.img"
@@ -50,7 +73,16 @@ for name, mode, original, edit in cases:
         (repo / "BIN/DWED.CFG", "DWED.CFG"),
     ):
         run(["mcopy", "-o", "-i", spec, file, "::DWED/" + dos_name])
-    put(spec, "SAMPLE.TXT", original)
+    put(spec, filename, original)
+    previous_backup = b"PREVIOUS_BACKUP\r\n"
+    put(spec, backup_name, previous_backup)
+    put(spec, "$ED0000.TMP", b"OTHER_EDITOR_SAVE\r\n")
+    if name.startswith("disk-full"):
+        listing = run(["mdir", "-i", spec, "::"]).stdout.decode()
+        free = int(re.search(r"([\d ]+) bytes free", listing).group(1).replace(" ", ""))
+        put(spec, "FILLER.BIN", bytes(free - 1024))
+    if name.startswith("read-only"):
+        run(["mattrib", "-i", spec, "+r", "::SAMPLE.TXT"])
     asm = d / "exit.asm"
     asm.write_text("bits 16\norg 100h\nmov dx,0f4h\nmov ax,10h\nout dx,ax\nhlt\n")
     run(["nasm", "-f", "bin", asm, "-o", d / "EXIT.COM"])
@@ -62,7 +94,11 @@ for name, mode, original, edit in cases:
     put(
         floppy,
         "AUTOEXEC.BAT",
-        b"@ECHO OFF\r\nC:\r\nCD \\DWED\r\nDWED.EXE C:\\SAMPLE.TXT\r\nA:\\QEXIT.COM\r\n",
+        (
+            "@ECHO OFF\r\nC:\r\nCD \\DWED\r\nDWED.EXE C:\\"
+            + filename
+            + "\r\nA:\\QEXIT.COM\r\n"
+        ).encode(),
     )
     socket = d / "qmp"
     argv = [
@@ -119,18 +155,38 @@ for name, mode, original, edit in cases:
             time.sleep(0.25)
         send_keys(q, "f2")
         time.sleep(0.5)
-        (d / "saved.txt").write_text(read_screen_text(q, str(d / "vram.bin")))
+        saved_screen = read_screen_text(q, str(d / "vram.bin"))
+        (d / "saved.txt").write_text(saved_screen)
+        if failure:
+            assert "Error" in saved_screen, saved_screen
+            send_keys(q, "ret")
+            time.sleep(0.25)
         send_keys(q, "esc")
+        if failure:
+            time.sleep(0.25)
+            dirty_screen = read_screen_text(q, str(d / "vram.bin"))
+            (d / "dirty.txt").write_text(dirty_screen)
+            assert "Do you want save" in dirty_screen, dirty_screen
+            assert "zDWED_MARKER" in dirty_screen, dirty_screen
+            send_keys(q, "n")
         process.wait(timeout=15)
         assert process.returncode == 33, process.returncode
-        actual = run(["mtype", "-i", spec, "::SAMPLE.TXT"]).stdout
-        backup = run(["mtype", "-i", spec, "::SAMPLE.BAK"]).stdout
+        actual = run(["mtype", "-i", spec, "::" + filename]).stdout
+        backup = run(["mtype", "-i", spec, "::" + backup_name]).stdout
         row.update(
             completed=True,
             actual_hex=actual.hex(),
-            backup_matches_original=backup == original,
-            exact_match=actual == (b"z" + original if edit else original),
+            backup_matches_expected=backup
+            == (previous_backup if failure else original),
+            exact_match=actual
+            == (original if failure else b"z" + original if edit else original),
         )
+        assert (
+            run(["mtype", "-i", spec, "::$ED0000.TMP"]).stdout
+            == b"OTHER_EDITOR_SAVE\r\n"
+        )
+        listing = run(["mdir", "-b", "-i", spec, "::"]).stdout
+        assert b"$ED0001.TMP" not in listing.upper(), listing
         (d / "original.bin").write_bytes(original)
         (d / "saved.bin").write_bytes(actual)
     except Exception as error:  # noqa: BLE001 -- record diagnostics, then fail the suite below
@@ -141,10 +197,13 @@ for name, mode, original, edit in cases:
             process.wait(timeout=5)
     rows.append(row)
     (WORK / "results.json").write_text(json.dumps(rows, indent=2) + "\n")
-    print(row, flush=True)
+    print(
+        {key: value for key, value in row.items() if not key.endswith("_hex")},
+        flush=True,
+    )
 print("Finished", flush=True)
 
 assert all(
-    r.get("completed") and r.get("exact_match") and r.get("backup_matches_original")
+    r.get("completed") and r.get("exact_match") and r.get("backup_matches_expected")
     for r in rows
 ), rows
