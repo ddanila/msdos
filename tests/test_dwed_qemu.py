@@ -145,7 +145,8 @@ cases += [
     for mode in ("low", "high")
 ]
 cases += [
-    ("memory-probe-" + mode, mode, b"DWED_MARKER\r\nsecond line\r\n", True)
+    (kind + "-" + mode, mode, b"DWED_MARKER\r\nsecond line\r\n", True)
+    for kind in ("memory-probe", "screen-memory", "dos-screen")
     for mode in ("low", "high")
 ]
 cases += [
@@ -364,10 +365,14 @@ for name, mode, original, edit in cases:
         config = b"DEVICE=A:\\HIMEM.SYS\r\nDEVICE=A:\\EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\nFILES=40\r\nBUFFERS=15\r\n"
     put(floppy, "CONFIG.SYS", config)
     probe_command = ""
-    if name.startswith("memory-probe-"):
+    if name.startswith(("memory-probe-", "screen-memory-")):
         put(spec, "HUGE.TXT", b"0123456789abcdef\r\n" * 40000)
         put(floppy, "MEMTEST.EXE", (args.build / "MEMTEST.exe").read_bytes())
-        probe_command = "A:\\MEMTEST.EXE\r\n"
+        probe_command = (
+            "A:\\MEMTEST.EXE"
+            + (" /SCREEN" if name.startswith("screen-memory-") else "")
+            + "\r\n"
+        )
     if keyboard:
         probe = args.build.resolve() / "KEYTEST.exe"
         put(floppy, "KEYTEST.EXE", probe.read_bytes())
@@ -543,8 +548,17 @@ for name, mode, original, edit in cases:
         q = QMPConnection(str(socket))
         end = time.monotonic() + 30
         screen = ""
+        memory_notices = 0
         while time.monotonic() < end and process.poll() is None:
             screen = read_screen_text(q, str(d / "vram.bin"))
+            if (
+                name.startswith("screen-memory-")
+                and "Not enough memory for this window" in screen
+            ):
+                memory_notices += 1
+                send_keys(q, "esc")
+                time.sleep(0.2)
+                continue
             if (
                 (name.startswith("recover-") and "Interrupted save" in screen)
                 or (
@@ -579,6 +593,9 @@ for name, mode, original, edit in cases:
                 or (startup and "Untitled" in screen)
                 or "DWED_MARKER" in screen
             ), screen
+        if name.startswith("screen-memory-"):
+            assert memory_notices == 1, (memory_notices, screen)
+            row["screen_memory_notice"] = True
         q.human_cmd(f'screendump "{d}/opened.ppm"')
         if name.startswith("menu-"):
             assert all(
@@ -615,6 +632,18 @@ for name, mode, original, edit in cases:
             if edit:
                 send_keys(q, "home+z")
                 time.sleep(0.25)
+            if name.startswith("dos-screen-"):
+                for _ in range(3):
+                    send_keys(q, "hmp:sendkey alt-f5")
+                    time.sleep(0.25)
+                    console = read_screen_text(q, str(d / "vram.bin"))
+                    assert "zDWED_MARKER" not in console, console
+                    send_keys(q, "ret")
+                    time.sleep(0.25)
+                    restored = read_screen_text(q, str(d / "vram.bin"))
+                    assert "zDWED_MARKER" in restored, restored
+                    assert "*" in restored.splitlines()[-1], restored
+                row["console_roundtrips"] = 3
             if name.startswith("indent-enter-"):
                 send_keys(q, "down+home+right+right+right+ret+x")
                 time.sleep(0.25)
@@ -741,7 +770,7 @@ for name, mode, original, edit in cases:
             assert process.returncode == 33, process.returncode
             actual = run(["mtype", "-i", spec, "::" + filename]).stdout
             backup = run(["mtype", "-i", spec, "::" + backup_name]).stdout
-            if name.startswith("memory-probe-"):
+            if name.startswith(("memory-probe-", "screen-memory-")):
                 probe_log = run(["mtype", "-i", floppy, "::MEM.LOG"]).stdout
                 (d / "memory.log").write_bytes(probe_log)
                 assert b"PASS " in probe_log and b"FAIL" not in probe_log, probe_log

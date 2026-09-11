@@ -889,6 +889,12 @@ See [the memory contract](../dwed/docs/LOAD-MEMORY.md) and
 document-induced exhaustion in the DOS store, not every UI allocation or
 minimum-memory machine startup.
 
+Screen-memory scenarios fragment the heap and verify nonallocating menu-error
+reporting, unchanged dirty text and snapshot ownership, and successful retry.
+DOS-screen scenarios repeatedly return from the console to an unsaved document
+and verify exact saved bytes. See the [screen memory contract](../dwed/docs/SCREEN-MEMORY.md)
+and [qualification record](../dwed/docs/screen-memory-milestone.json).
+
 DWED Enter/autoindent cases verify exact saved bytes when mixed tabs/spaces
 precede a split whose suffix also begins with whitespace. TABTEST checks every
 cursor boundary of representative and full-length lines, with undo/redo byte,
