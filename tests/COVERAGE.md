@@ -905,6 +905,14 @@ target through a dot-directory alias must also refuse cleanup. The memory probe
 checks allocation refusal and release for the per-document recovery association.
 See [later-save evidence](../dwed/docs/saved-recovery-milestone.json).
 
+The [search/replacement scenarios](dwed_search_scenarios.py) exercise distinct
+menu and shortcut actions, found selections, case-sensitive and ASCII-insensitive
+matching, literal spaces, deletion, Skip/Stop/All, and Find Next after replacement.
+Exact saved bytes and undo/redo checkpoints cover growth, no-ops, line-length
+refusal after an accepted match, and undo-capacity rollback. See the
+[search contract](../dwed/docs/SEARCH-REPLACE.md) and
+[generated evidence](../dwed/docs/search-replace-milestone.json).
+
 The DWED memory probe repeatedly refuses oversized ordinary loads and recovery
 while preserving a dirty document and verifying heap reclamation. It also
 fills memory with real documents, checks failed New/Open ownership, releases
