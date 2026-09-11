@@ -19,8 +19,9 @@ tabs, high-bit characters, empty/new documents and the physical-line boundary.
 They also check whitespace-preserving splits and final-newline removal.
 Long-line, mixed-newline and control-byte rejection cases verify that editing
 and saving afterwards leave the rejected source and its backup unchanged.
-These are conventional-memory tests; alternate stores, full tab-stop display
-remain [open](../dwed/docs/TEXT-FORMAT.md); clipboard coverage is described below.
+These are conventional-memory tests; alternate stores remain
+[open](../dwed/docs/TEXT-FORMAT.md). Clipboard and tab-display coverage are
+described below.
 
 The keyboard cases additionally run the source-built `KEYTEST` probe in LOW
 and HIGH. It checks encoded BIOS modifiers, plain-key controls and an actual
@@ -31,7 +32,7 @@ event dispatcher.
 The menu cases check the top menu bar, Save through F10 navigation and Alt-F,
 selection-preserving Copy/Paste and cancellation, and bar restoration after
 cancelling Open through both menu and F3. Mouse and monochrome qualification,
-remaining command dialogs and undo are still [open](../dwed/docs/MENUS.md).
+broader command and undo qualification remain [open](../dwed/docs/MENUS.md).
 
 The [dialog scenarios](dwed_dialog_scenarios.py) run Save/Discard/Cancel through
 Close and Exit, cancelled Save As, unnamed-document saving, Save All cancellation,
@@ -810,3 +811,13 @@ transfer checks, guarded read-only/empty imports, backup bytes and actual
 replacement replay in LOW/HIGH. See the [clipboard contract](../dwed/docs/CLIPBOARD.md)
 and [generated report](../dwed/docs/clipboard-milestone.json). Host simulation
 does not establish interoperability with Windows or DOSBox.
+
+The [tab scenarios](dwed_tab_scenarios.py) inspect VGA bytes, selection
+attributes and BIOS cursor positions for configured tab stops, scrolling and
+vertical movement across short lines. Editing cases verify saved bytes and
+undo/redo for literal Tab insertion, overwrite, mixed-prefix unindent and
+rejected full-line insertion or block indentation.
+TABTEST compares geometry with an expanded array model and exercises real editor
+commands and direct mouse events in LOW/HIGH. See the [text-cell contract](../dwed/docs/TEXT-CELLS.md)
+and [generated report](../dwed/docs/text-cells-milestone.json); real mouse drivers
+and alternate display modes remain unqualified.

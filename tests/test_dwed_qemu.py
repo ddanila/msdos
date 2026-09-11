@@ -41,6 +41,9 @@ from dwed_dialog_scenarios import (
 from dwed_dialog_scenarios import (
     prepare as prepare_dialog,
 )
+from dwed_tab_scenarios import CASES as TAB_CASES
+from dwed_tab_scenarios import exercise as exercise_tabs
+from dwed_tab_scenarios import prepare as prepare_tabs
 from dwed_undo_scenarios import CASES as UNDO_CASES
 from dwed_undo_scenarios import exercise as exercise_undo
 from screen_expect import QMPConnection, read_screen_text, send_keys
@@ -118,9 +121,13 @@ cases += [
     ("clipboard-probe-" + mode, mode, b"DWED_MARKER\r\n", True)
     for mode in ("low", "high")
 ]
+cases += [
+    ("tab-probe-" + mode, mode, b"DWED_MARKER\r\n", True) for mode in ("low", "high")
+]
 cases += DIALOG_CASES
 cases += UNDO_CASES
 cases += CLIPBOARD_CASES
+cases += TAB_CASES
 if args.case:
     unknown = set(args.case) - {case[0] for case in cases}
     if unknown:
@@ -146,12 +153,18 @@ if (
     and not (args.build.resolve() / "CLIPTEST.exe").is_file()
 ):
     parser.error("clipboard probes require an editor built with --tests")
+if (
+    any(case[0].startswith("tab-probe-") for case in cases)
+    and not (args.build.resolve() / "TABTEST.exe").is_file()
+):
+    parser.error("tab probes require an editor built with --tests")
 for name, mode, original, edit in cases:
     startup = name.startswith("dialog-startup-")
     keyboard = name.startswith("keyboard-")
     undo_journal = name.startswith("undo-journal-")
     undo_storage = name.startswith("undo-storage-")
     clipboard_probe = name.startswith("clipboard-probe-")
+    tab_probe = name.startswith("tab-probe-")
     rejected = name.startswith("reject-")
     failure = name.startswith(("disk-full", "read-only"))
     filename = "SAMPLE.BAK" if name.startswith("backup-file") else "SAMPLE.TXT"
@@ -189,6 +202,7 @@ for name, mode, original, edit in cases:
     put(spec, "$ED0000.TMP", b"OTHER_EDITOR_SAVE\r\n")
     prepare_dialog(spec, name)
     prepare_clipboard(spec, name)
+    prepare_tabs(spec, name, (repo / "BIN/DWED.CFG").read_bytes())
     if name.startswith("disk-full") or name in (
         "dialog-exit-full-low",
         "clip-edit-export-full-low",
@@ -226,6 +240,9 @@ for name, mode, original, edit in cases:
             floppy, "CLIPTEST.EXE", (args.build.resolve() / "CLIPTEST.exe").read_bytes()
         )
         probe_command = "A:\\CLIPTEST.EXE\r\n"
+    if tab_probe:
+        put(floppy, "TABTEST.EXE", (args.build.resolve() / "TABTEST.exe").read_bytes())
+        probe_command = "A:\\TABTEST.EXE\r\n"
     invocation = "CD \\DWED\r\nDWED.COM"
     if name.startswith("outside-directory"):
         invocation = "CD \\\r\nC:\\DWED\\DWED.COM"
@@ -313,7 +330,9 @@ for name, mode, original, edit in cases:
                 label in screen.splitlines()[0]
                 for label in ("File", "Edit", "Search", "Options", "Help")
             ), screen
-        if name.startswith("clip-edit-"):
+        if name.startswith("tab-edit-"):
+            row.update(exercise_tabs(q, process, d, spec, original, name))
+        elif name.startswith("clip-edit-"):
             row.update(exercise_clipboard(q, process, d, spec, original, name))
         elif name.startswith("undo-edit-"):
             row.update(exercise_undo(q, process, d, spec, original, name))
@@ -454,6 +473,15 @@ for name, mode, original, edit in cases:
                     == b"ATOMIC STORAGE PASS"
                 )
                 row["storage_probe"] = probe_log.decode("ascii").strip()
+            if tab_probe:
+                probe_log = run(["mtype", "-i", floppy, "::TAB.LOG"]).stdout
+                (d / "tab.log").write_bytes(probe_log)
+                assert b"PASS " in probe_log and b"FAIL" not in probe_log, probe_log
+                assert (
+                    run(["mtype", "-i", floppy, "::TAB.OK"]).stdout.strip()
+                    == b"TAB DISPLAY PASS"
+                )
+                row["tab_probe"] = probe_log.decode("ascii").strip()
             if clipboard_probe:
                 probe_log = run(["mtype", "-i", floppy, "::CLIP.LOG"]).stdout
                 (d / "clip.log").write_bytes(probe_log)
