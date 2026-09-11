@@ -1,0 +1,119 @@
+{
+  "scope": "HIMEM A20 preservation on BIOS block moves exposed by DWED configuration XMS caching",
+  "specification": "https://ps-2.kev009.com/basil.holloway/ALL%20PDF/Microsoft_XMS_3%5B1%5D.0_Specification.pdf",
+  "source_sha256": {
+    "src/DEV/HIMEM/HIMEM.ASM": "67008f9d1a559ad6737a49e2c238f391a65a5d83e7f3ec56fe15a8f9aaeba8e7",
+    "tests/himem_a20_drop_driver.asm": "098664b5120f6a1f67dfcb55fbe05d33cdcf814cf99c6fcd306dc98c461adfa2",
+    "tests/himem_move_a20_probe.asm": "c1b01e90cb86a5db08a534e7770851d62a67af934a1c645840185ffd49fa324d",
+    "tests/test_himem_move_a20_qemu.py": "aca1ae3d2396bdf64e0950519b4b4b0607ea9f83086c581729512378549f889a"
+  },
+  "components_sha256": {
+    "IO.SYS": "21c9cd0a1548eb3245ebd39f7dcb6ecb06a0c7b397012bc22fc6cd9ca50ef14e",
+    "MSDOS.SYS": "b495ab1ccc6fd3e7672b4724a7cccde519d8a65171c0c0ed6bad73cd331a42e9",
+    "COMMAND.COM": "6742b5889141a9c61d41e336445014d8055c19758febf4263f4f8ebe3c2f2c29",
+    "HIMEM.SYS": "2e36f626893aab47452eae6e5e97b1bf35b932b0f66502b4b2f47e0c10b1d264",
+    "EMM386.EXE": "30618919795c46fcab2fc2d52aa2526ef406cb540548837dca147f9d7a18a684"
+  },
+  "reproducible": true,
+  "changed_components": [
+    "HIMEM.SYS"
+  ],
+  "synthetic_bios": {
+    "himem_sha256": "2e36f626893aab47452eae6e5e97b1bf35b932b0f66502b4b2f47e0c10b1d264",
+    "boot_image_sha256": "71a310770eebfd92d99b259994a898c8b191ae8983d96e405fd8d2be2d0ad1d2",
+    "cases": [
+      {
+        "mode": "LOW",
+        "passed": true,
+        "exit_status": 1,
+        "log_sha256": "700d3353afe03ae1d7c9c4b2a33129b30a7956dd8148a538445a4b7abf479b35"
+      }
+    ]
+  },
+  "previous_driver_negative_control": {
+    "himem_sha256": "d5ea7b0e775c2eb6eb2b7dab42eb7471a7a84bfb32cf2021215d4ed6f8a7850a",
+    "boot_image_sha256": "71a310770eebfd92d99b259994a898c8b191ae8983d96e405fd8d2be2d0ad1d2",
+    "cases": [
+      {
+        "mode": "LOW",
+        "passed": false,
+        "exit_status": 3,
+        "log_sha256": "cd22835c3ef30b28c7f7294f1f898b1b9d899f87d91f8219f4d7c8202f67ecf4"
+      }
+    ]
+  },
+  "existing_xms_regressions": [
+    {
+      "probe": "himem_move_boundary_probe",
+      "mode": "LOW",
+      "exit_status": 33,
+      "passed": true
+    },
+    {
+      "probe": "himem_move_boundary_probe",
+      "mode": "HIGH",
+      "exit_status": 33,
+      "passed": true
+    },
+    {
+      "probe": "himem_xms3_probe",
+      "mode": "LOW",
+      "exit_status": 33,
+      "passed": true
+    }
+  ],
+  "ibmat_high_editor": [
+    {
+      "mode": "high",
+      "passed": true,
+      "tab_probe": "PASS 10725 assertions",
+      "launcher_edit_save": true,
+      "hma_residency_checked": true,
+      "config_sha256": "1110b3f1dba05d7254036246e273a1aa3818ac06f44c416a645d22a6a8da5fef",
+      "initial_nvram_sha256": "58b203a2adc3d9e4a72a39b3c4fc0e65d6c90f51ab0b166c4ace1dc5ef9b0bf4",
+      "initial_image_sha256": "1cf7b01e2c341f115166637083d8e3829c2b2274cc41d65eb1e36a79aaa1cb1f",
+      "final_image_sha256": "667ffcb446555d48256c15d18e306b947340d811d3302a66e1c78b55f7d43d04"
+    }
+  ],
+  "editor_report_sha256": "755349d8ff6e25acb53b5b8730f309deca2a74b8b0dffa2e7a7c7d0f3fc3b841",
+  "limits": {
+    "synthetic_bios_modes": [
+      "LOW"
+    ],
+    "real_ibmat_modes": [
+      "HIGH"
+    ],
+    "physical_hardware": false,
+    "hardware_gate_restore_failure_injected": false,
+    "release_gates_complete": false
+  },
+  "high_umb_editor_regressions": {
+    "cases": [
+      {
+        "case": "edit-high",
+        "mode": "high",
+        "original_hex": "445745445f4d41524b45520d0a7365636f6e64206c696e650d0a",
+        "completed": true,
+        "actual_hex": "7a445745445f4d41524b45520d0a7365636f6e64206c696e650d0a",
+        "backup_matches_expected": true,
+        "exact_match": true,
+        "dos_version": "MS-DOS Version 6.22"
+      },
+      {
+        "case": "external-high",
+        "mode": "high",
+        "original_hex": "445745445f4d41524b45520d0a7365636f6e64206c696e650d0a",
+        "completed": true,
+        "actual_hex": "7a445745445f4d41524b45520d0a7365636f6e64206c696e650d0a",
+        "backup_matches_expected": true,
+        "exact_match": true,
+        "dos_version": "MS-DOS Version 6.22"
+      }
+    ],
+    "environment_sha256": "771532abc441f3520b70edb79e83c510904821d2bc3c43e6f9725b446dfa7e23",
+    "boot_file_sha256": {
+      "HIMEM.SYS": "2e36f626893aab47452eae6e5e97b1bf35b932b0f66502b4b2f47e0c10b1d264",
+      "EMM386.EXE": "30618919795c46fcab2fc2d52aa2526ef406cb540548837dca147f9d7a18a684"
+    }
+  }
+}

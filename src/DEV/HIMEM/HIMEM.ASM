@@ -317,6 +317,8 @@ private_unregister_done:
         iret
 
 int15_handler proc far
+        cmp     ah, 087h
+        je      short int15_move
         cmp     ah, 088h
         jne     short int15_chain
         mov     ax, cs:[int15_kb]
@@ -324,7 +326,64 @@ int15_handler proc far
         retf    2
 int15_chain:
         jmp     dword ptr cs:[old_int15]
+; The IBM AT BIOS block-move service can return with A20 disabled.
+; Preserve the physical entry state for both public INT 15h callers and
+; HIMEM's own XMS moves, without changing XMS enable nesting counters.
+int15_move:
+        push    bp
+        mov     bp, sp
+        push    ax
+        call    query_a20_hardware
+        push    ax
+        mov     ax, ss:[bp-2]
+        pushf
+        call    dword ptr cs:[old_int15]
+        pushf                           ; retain the BIOS carry result
+        cli                             ; restore A20 before enabling IRQs
+        push    ax
+        mov     ax, ss:[bp-4]
+        call    restore_move_a20
+        pop     ax
+        jc      short int15_move_a20_failed
+        test    word ptr ss:[bp-6], 1
+        jnz     short int15_move_carry
+        and     word ptr ss:[bp+6], 0fffeh
+        jmp     short int15_move_return
+int15_move_a20_failed:
+        mov     ah, 086h
+int15_move_carry:
+        or      word ptr ss:[bp+6], 1
+int15_move_return:
+        ; Return BIOS CF with the caller's original interrupt-enable state.
+        mov     sp, bp
+        pop     bp
+        iret
 int15_handler endp
+
+; AL is the saved physical state. Keep every BIOS result register intact;
+; set_a20_hardware may use a BIOS call or the 8042 polling loop.
+restore_move_a20 proc near
+        push    ax
+        push    bx
+        push    cx
+        push    dx
+        push    si
+        push    di
+        push    bp
+        push    ds
+        push    es
+        call    set_a20_hardware
+        pop     es
+        pop     ds
+        pop     bp
+        pop     di
+        pop     si
+        pop     dx
+        pop     cx
+        pop     bx
+        pop     ax
+        ret
+restore_move_a20 endp
 
 xms_control proc far
 ifdef HIMEM_SHIFT_ENTRY_TEST

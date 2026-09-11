@@ -948,6 +948,10 @@ saved and backup bytes after a flushed guest completion signal. The generated
 and artifact provenance; unrecorded modes and physical hardware remain open.
 
 The [HIGH-mode investigation](../dwed/docs/ibmat-high-investigation.json)
-records an unresolved packaged-editor startup failure after the text probe
-passes. The runner records the last guest stage and failure status; a partial
-probe result does not establish a passing editor run.
+records the earlier packaged-editor startup failure, traced to HIMEM losing A20
+across a BIOS block move. The [A20 regression](HIMEM-A20-MOVE.md) checks both
+physical gate states and BIOS carry/interrupt-flag results with a synthetic BIOS
+under DOS LOW. The [qualified HIGH run](../dwed/docs/ibmat-high-a20-milestone.json)
+uses IBM AT BIOS and the unchanged editor package with the repaired HIMEM.
+The runner records the last guest stage and failure status; a partial probe
+result does not establish a passing editor run.
