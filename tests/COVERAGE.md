@@ -864,5 +864,17 @@ record and its payload in a fresh DOS instance. SAVETEST also injects record
 creation, short-write, commit, close and cleanup errors; editor scenarios retain
 ownership across a persistent record-close failure. See the
 [record format and limits](../dwed/docs/SAVE-JOURNAL.md) and
-[generated evidence](../dwed/docs/save-journal-milestone.json). Editor startup
-recovery and torn-sector interruption are not established by these probes.
+[generated evidence](../dwed/docs/save-journal-milestone.json). A further editor
+boot now offers verified contents as an unsaved document and checks edit/undo
+and explicit-save behavior.
+
+The [startup recovery scenarios](dwed_recovery_scenarios.py) cover damaged or
+mis-sized records, bad paths, normalized directory aliases, corrupt payloads,
+read-only file attributes and text-byte preservation. The
+[read injector](dwed_read_fault.asm) exercises read errors, a premature EOF after
+a partial read, and persistent close failure with guarded exit/save and retry.
+The previous editor fails the startup-recovery negative control. See the
+[startup recovery contract](../dwed/docs/STARTUP-RECOVERY.md) and
+[generated qualification](../dwed/docs/save-discovery-milestone.json). Retained
+generation cleanup, read-only media, low memory and torn-sector interruption
+remain unqualified.

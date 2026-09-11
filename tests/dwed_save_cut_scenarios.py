@@ -3,9 +3,10 @@
 import hashlib
 import struct
 import subprocess
+import time
 import zlib
 
-from screen_expect import send_keys
+from screen_expect import QMPConnection, read_screen_text, send_keys
 from test_compat_bpb_qemu import put, run
 
 ORIGINAL = b"DWED_MARKER\r\nsecond line\r\n"
@@ -89,12 +90,83 @@ def exercise(q, process, directory, spec, original, name, argv, floppy):
         == b"RESTART RECORD PASS"
     )
     assert run(["mtype", "-i", spec, "::$ER0000.REC"]).stdout == raw
+    put(
+        floppy,
+        "AUTOEXEC.BAT",
+        b"@ECHO OFF\r\nC:\r\nCD \\DWED\r\nDWED.COM C:\\SAMPLE.TXT\r\nA:\\QEXIT.COM\r\n",
+    )
+    restart[restart.index("-qmp") + 1] = (
+        f"unix:{directory / 'editor-restart.qmp'},server=on,wait=off"
+    )
+    restart[restart.index("-serial") + 1] = (
+        f"file:{directory / 'editor-restart-serial.log'}"
+    )
+    with (directory / "editor-restart-qemu.log").open("wb") as log:
+        editor = subprocess.Popen(restart, stdout=subprocess.DEVNULL, stderr=log)
+        try:
+            recovery = QMPConnection(str(directory / "editor-restart.qmp"))
+
+            def keys(value):
+                send_keys(recovery, value)
+                time.sleep(0.25)
+
+            def expect(needle, label):
+                deadline = time.monotonic() + 20
+                while time.monotonic() < deadline:
+                    text = read_screen_text(
+                        recovery, str(directory / "recovery-vram.bin")
+                    )
+                    (directory / (label + ".txt")).write_text(text)
+                    if needle in text:
+                        return text
+                    time.sleep(0.2)
+                raise AssertionError(text)
+
+            expect("Interrupted save", "startup-discovery")
+            keys("r")
+            text = expect("Recovered SAMPLE.TXT", "recovered-document")
+            assert "zDWED_MARKER" in text and "*" in text.splitlines()[-1], text
+            keys("x")
+            expect("xzDWED_MARKER", "edited-recovery")
+            keys("hmp:sendkey ctrl-z")
+            text = expect("zDWED_MARKER", "undone-recovery")
+            assert "xzDWED_MARKER" not in text and "*" in text.splitlines()[-1], text
+            if stage == 2:
+                keys("f2")
+                text = expect("zDWED_MARKER", "saved-recovery")
+                assert "*" not in text.splitlines()[-1], text
+                expected["SAMPLE.TXT"] = b"z" + original
+                keys("esc")
+            else:
+                keys("esc")
+                expect("Unsaved changes", "discard-recovery")
+                keys("n")
+            editor.wait(timeout=15)
+            assert editor.returncode == 33, editor.returncode
+        finally:
+            if editor.poll() is None:
+                editor.terminate()
+                editor.wait(timeout=5)
+    for path, body in expected.items():
+        actual = subprocess.run(
+            ["mtype", "-i", spec, "::" + path], capture_output=True, check=False
+        )
+        if body is None:
+            assert actual.returncode != 0 and b"not found" in actual.stderr.lower(), (
+                path
+            )
+        else:
+            assert actual.returncode == 0 and actual.stdout == body, path
+    assert run(["mtype", "-i", spec, "::$ER0000.REC"]).stdout == raw
     return {
         "completed": True,
         "exact_match": True,
         "backup_matches_expected": True,
         "cut_stage": stage,
         "rebooted": True,
+        "editor_recovered": True,
+        "recovery_saved": stage == 2,
+        "undo_retains_unsaved_state": True,
         "record_sha256": hashlib.sha256(raw).hexdigest(),
         "record_bytes": len(raw),
         "payload_crc32": checksum,

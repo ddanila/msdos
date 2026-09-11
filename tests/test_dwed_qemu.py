@@ -52,6 +52,11 @@ from dwed_mono_scenarios import exercise as exercise_mono
 from dwed_mouse_scenarios import CASES as MOUSE_CASES
 from dwed_mouse_scenarios import exercise as exercise_mouse
 from dwed_mouse_scenarios import validate_driver
+from dwed_recovery_scenarios import CASES as RECOVERY_CASES
+from dwed_recovery_scenarios import FAULTS as RECOVERY_FAULTS
+from dwed_recovery_scenarios import exercise as exercise_recovery
+from dwed_recovery_scenarios import kind_of as recovery_kind
+from dwed_recovery_scenarios import prepare as prepare_recovery
 from dwed_save_cut_scenarios import CASES as SAVE_CUT_CASES
 from dwed_save_cut_scenarios import exercise as exercise_save_cut
 from dwed_save_fault_scenarios import CASES as SAVE_ERROR_CASES
@@ -153,6 +158,7 @@ cases += MONO_CASES
 cases += SAVE_ERROR_CASES
 cases += SAVE_LIFECYCLE_CASES
 cases += SAVE_CUT_CASES
+cases += RECOVERY_CASES
 if args.mouse_driver:
     validate_driver(args.mouse_driver)
     cases += MOUSE_CASES
@@ -245,6 +251,7 @@ for name, mode, original, edit in cases:
     previous_backup = b"PREVIOUS_BACKUP\r\n"
     put(spec, backup_name, previous_backup)
     put(spec, "$ED0000.TMP", b"OTHER_EDITOR_SAVE\r\n")
+    prepare_recovery(spec, name)
     prepare_dialog(spec, name)
     prepare_clipboard(spec, name)
     prepare_tabs(spec, name, (repo / "BIN/DWED.CFG").read_bytes())
@@ -345,6 +352,21 @@ for name, mode, original, edit in cases:
         put(floppy, "SCUT.COM", (d / "SCUT.COM").read_bytes())
         put(floppy, "RECVTEST.EXE", (args.build / "RECVTEST.exe").read_bytes())
         probe_command += "A:\\SCUT.COM\r\n"
+    if name.startswith("recover-") and recovery_kind(name) in RECOVERY_FAULTS:
+        fault = RECOVERY_FAULTS[recovery_kind(name)]
+        run(
+            [
+                "nasm",
+                "-f",
+                "bin",
+                f"-DFAULT={fault}",
+                ROOT / "tests/dwed_read_fault.asm",
+                "-o",
+                d / "RFAULT.COM",
+            ]
+        )
+        put(floppy, "RFAULT.COM", (d / "RFAULT.COM").read_bytes())
+        probe_command += "A:\\RFAULT.COM\r\n"
     invocation = "CD \\DWED\r\nDWED.COM"
     if name.startswith("outside-directory"):
         invocation = "CD \\\r\nC:\\DWED\\DWED.COM"
@@ -357,6 +379,7 @@ for name, mode, original, edit in cases:
             + "C:\r\n"
             + invocation
             + ("" if startup else " C:\\" + filename)
+            + (" C:\\.\\SAMPLE.TXT" if name.startswith("recover-alias-") else "")
             + "\r\nCD >C:\\CWD.TXT\r\nA:\\QEXIT.COM\r\n"
         ).encode(),
     )
@@ -405,7 +428,8 @@ for name, mode, original, edit in cases:
         while time.monotonic() < end and process.poll() is None:
             screen = read_screen_text(q, str(d / "vram.bin"))
             if (
-                (rejected and "file was not opened" in screen)
+                (name.startswith("recover-") and "Interrupted save" in screen)
+                or (rejected and "file was not opened" in screen)
                 or (startup and "Untitled" in screen)
                 or (not original and "SAMPLE.TXT" in screen)
                 or "DWED_MARKER" in screen
@@ -413,7 +437,9 @@ for name, mode, original, edit in cases:
                 break
             time.sleep(0.2)
         (d / "opened.txt").write_text(screen)
-        if rejected:
+        if name.startswith("recover-"):
+            assert "Interrupted save" in screen, screen
+        elif rejected:
             assert "file was not opened" in screen, screen
             assert "DWED_MARKER" not in screen, screen
             send_keys(q, "ret")
@@ -432,7 +458,9 @@ for name, mode, original, edit in cases:
                 label in screen.splitlines()[0]
                 for label in ("File", "Edit", "Search", "Options", "Help")
             ), screen
-        if name.startswith("save-cut-"):
+        if name.startswith("recover-"):
+            row.update(exercise_recovery(q, process, d, spec, original, name))
+        elif name.startswith("save-cut-"):
             row.update(
                 exercise_save_cut(q, process, d, spec, original, name, argv, floppy)
             )
