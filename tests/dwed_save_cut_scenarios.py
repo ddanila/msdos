@@ -28,7 +28,9 @@ def decode_record(raw):
     return paths, count, checksum
 
 
-def exercise(q, process, directory, spec, original, name, argv, floppy):
+def exercise(
+    q, process, directory, spec, original, name, argv, floppy, command="DWED.COM"
+):
     stage = int(name.split("-")[2])
     send_keys(q, "home+z+f2")
     process.wait(timeout=20)
@@ -93,7 +95,7 @@ def exercise(q, process, directory, spec, original, name, argv, floppy):
     put(
         floppy,
         "AUTOEXEC.BAT",
-        b"@ECHO OFF\r\nC:\r\nCD \\DWED\r\nDWED.COM C:\\SAMPLE.TXT\r\nA:\\QEXIT.COM\r\n",
+        f"@ECHO OFF\r\nC:\r\nCD \\DWED\r\n{command} C:\\SAMPLE.TXT\r\nA:\\QEXIT.COM\r\n".encode(),
     )
     restart[restart.index("-qmp") + 1] = (
         f"unix:{directory / 'editor-restart.qmp'},server=on,wait=off"

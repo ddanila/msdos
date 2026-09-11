@@ -26,6 +26,7 @@ parser.add_argument(
     type=Path,
     help="directory containing matching HIMEM.SYS and EMM386.EXE",
 )
+parser.add_argument("--package", type=Path, help="run the verified staged EDIT package")
 parser.add_argument("--launcher", type=Path, help="override the source-built launcher")
 parser.add_argument(
     "--case", action="append", help="run only the named case (repeatable)"
@@ -36,8 +37,32 @@ parser.add_argument(
     help="enable real CuteMouse cases with the pinned fixture",
 )
 args = parser.parse_args()
-overlay = args.build.resolve() / "DWEDOVL.exe"
-launcher = (args.launcher or args.build / "DWED.COM").resolve()
+package_manifest = None
+launcher_name = "DWED.COM"
+if args.package:
+    if args.launcher:
+        parser.error("--package and --launcher are mutually exclusive")
+    package_manifest = json.loads((args.package / "package.json").read_text())
+    for name, expected in package_manifest["files"].items():
+        if not all(
+            re.fullmatch(r"[A-Z0-9_-]{1,8}(?:\.[A-Z0-9]{1,3})?", part)
+            for part in name.split("/")
+        ):
+            parser.error("invalid DOS package path: " + name)
+        data = (args.package / "files" / name).read_bytes()
+        if (
+            len(data) != expected["bytes"]
+            or hashlib.sha256(data).hexdigest() != expected["sha256"]
+        ):
+            parser.error("package file does not match manifest: " + name)
+    launcher_name = "EDIT.COM"
+    overlay = args.package / "files/DWEDOVL.EXE"
+    launcher = args.package / "files/EDIT.COM"
+    configuration = args.package / "files/DWED.CFG"
+else:
+    overlay = args.build.resolve() / "DWEDOVL.exe"
+    launcher = (args.launcher or args.build / "DWED.COM").resolve()
+    configuration = args.build / "DWED.CFG"
 for required in (overlay, launcher, args.boot_image):
     if not required.is_file():
         parser.error(f"missing input: {required}")
@@ -86,6 +111,8 @@ print(WORK, flush=True)
 (WORK / "environment.json").write_text(
     json.dumps(
         {
+            "package": package_manifest,
+            "launcher_name": launcher_name,
             "boot_image_sha256": hashlib.sha256(
                 args.boot_image.read_bytes()
             ).hexdigest(),
@@ -275,25 +302,41 @@ for name, mode, original, edit in cases:
     hdd, _, _ = disk(d, {})
     spec = f"{hdd}@@32256"
     run(["mmd", "-i", spec, "::DWED"])
-    for file, dos_name in (
-        (launcher, "DWED.COM"),
-        (overlay, "DWEDOVL.EXE"),
-        (repo / "BIN/DWED.CFG", "DWED.CFG"),
-    ):
-        run(["mcopy", "-o", "-i", spec, file, "::DWED/" + dos_name])
+    if package_manifest:
+        directories = set()
+        for relative in package_manifest["files"]:
+            parent = Path(relative).parent
+            if str(parent) != ".":
+                directories.add(parent)
+                directories.update(p for p in parent.parents if str(p) != ".")
+        for parent in sorted(directories, key=lambda p: (len(p.parts), str(p))):
+            run(["mmd", "-i", spec, "::DWED/" + str(parent)])
+        for relative in package_manifest["files"]:
+            put(
+                spec,
+                "DWED/" + relative,
+                (args.package / "files" / relative).read_bytes(),
+            )
+    else:
+        for file, dos_name in (
+            (launcher, launcher_name),
+            (overlay, "DWEDOVL.EXE"),
+            (configuration, "DWED.CFG"),
+        ):
+            run(["mcopy", "-o", "-i", spec, file, "::DWED/" + dos_name])
     if not name.startswith("new-file"):
         put(spec, filename, original)
     external = name.startswith(("external", "recursive"))
     if external:
-        cfg = (
-            (repo / "BIN/DWED.CFG")
-            .read_bytes()
-            .replace(b"usr.def.f5=dir", b"usr.def.f5=C:\\RUNTEST.BAT")
+        cfg = configuration.read_bytes().replace(
+            b"usr.def.f5=dir", b"usr.def.f5=C:\\RUNTEST.BAT"
         )
         put(spec, "DWED/DWED.CFG", cfg)
         batch = b"@ECHO OFF\r\n"
         if name.startswith("recursive"):
-            batch += b"C:\\DWED\\DWED.COM\r\nIF NOT ERRORLEVEL 1 GOTO FAIL\r\n"
+            batch += (
+                "C:\\DWED\\" + launcher_name + "\r\nIF NOT ERRORLEVEL 1 GOTO FAIL\r\n"
+            ).encode()
         batch += b"ECHO EXTERNAL_COMMAND_OK>C:\\COMMAND.TXT\r\nCD \\\r\nA:\r\nECHO EXTERNAL_COMMAND_DONE\r\n:FAIL\r\n"
         put(spec, "RUNTEST.BAT", batch)
     previous_backup = b"PREVIOUS_BACKUP\r\n"
@@ -419,9 +462,9 @@ for name, mode, original, edit in cases:
         )
         put(floppy, "RFAULT.COM", (d / "RFAULT.COM").read_bytes())
         probe_command += "A:\\RFAULT.COM\r\n"
-    invocation = "CD \\DWED\r\nDWED.COM"
+    invocation = "CD \\DWED\r\n" + launcher_name
     if name.startswith("outside-directory"):
-        invocation = "CD \\\r\nC:\\DWED\\DWED.COM"
+        invocation = "CD \\\r\nC:\\DWED\\" + launcher_name
     control_spec = spec
     protected_media = None
     save_elsewhere = name.startswith("media-readonly-saveas")
@@ -548,7 +591,9 @@ for name, mode, original, edit in cases:
             row.update(exercise_recovery(q, process, d, spec, original, name))
         elif name.startswith("save-cut-"):
             row.update(
-                exercise_save_cut(q, process, d, spec, original, name, argv, floppy)
+                exercise_save_cut(
+                    q, process, d, spec, original, name, argv, floppy, launcher_name
+                )
             )
         elif name in SAVE_LIFECYCLE_FAULTS:
             row.update(exercise_save_lifecycle(q, process, d, spec, original, name))

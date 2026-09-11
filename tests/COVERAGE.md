@@ -930,3 +930,11 @@ a dirty document before saving. They run in LOW, HIGH/UMB and monochrome mode.
 See [embedded help behavior](../dwed/docs/HELP.md) and
 [generated evidence](../dwed/docs/help-milestone.json). This does not establish
 help allocation safety on exhausted or fragmented heaps.
+
+The [EDIT package check](test_dwed_package.py) verifies archive reproducibility,
+DOS filenames, preserved license text, input fingerprints and refusal to replace
+existing output. `--package` installs the complete staged tree in QEMU and uses
+EDIT.COM, including outside-directory startup, external commands and restarted
+recovery. See [packaging](../dwed/docs/PACKAGE.md) and
+[generated evidence](../dwed/docs/package-milestone.json). The package remains a
+development artifact until the release gates are complete.

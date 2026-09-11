@@ -1496,3 +1496,12 @@ DWED_MOUSE_DRIVER ?=
 .PHONY: test-dwed-qemu
 test-dwed-qemu:
 	python3 tests/test_dwed_qemu.py --build "$(DWED_BUILD)" $(if $(DWED_MOUSE_DRIVER),--mouse-driver "$(DWED_MOUSE_DRIVER)")
+
+# Staged development package; promotion into distribution remains a release gate.
+DWED_PACKAGE ?= out/dwed-package
+.PHONY: package-dwed test-dwed-package
+package-dwed:
+	python3 dwed/tools/package.py --build "$(DWED_BUILD)" --output "$(DWED_PACKAGE)"
+
+test-dwed-package:
+	python3 tests/test_dwed_package.py --build "$(DWED_BUILD)"
