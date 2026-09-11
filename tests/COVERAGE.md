@@ -1080,3 +1080,9 @@ record bytes after continued use, retry, and reopening, plus temporary-file
 retention and discard. See [the alternative-store scope](../dwed/docs/ALTERNATIVE-STORES.md)
 and [close evidence](../dwed/docs/database-close-milestone.json). These checks
 do not establish transactional editing with an alternative store.
+
+The DWED temporary-file probe forces name collisions without modifying the
+occupied file, creation and allocation refusal, and repeated deletion errors.
+It checks actual handle-number reuse, heap release, database ownership through
+cleanup, and correct erase status. See [the temporary-file contract](../dwed/docs/TEMPORARY-FILES.md)
+and [qualification evidence](../dwed/docs/temporary-file-milestone.json).

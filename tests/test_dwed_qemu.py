@@ -239,6 +239,11 @@ cases += [
     ("tab-probe-" + mode, mode, b"DWED_MARKER\r\n", True) for mode in ("low", "high")
 ]
 cases += [
+    ("temporary-probe-" + profile + "-" + mode, mode, b"DWED_MARKER\r\n", True)
+    for profile in ("full", "delete")
+    for mode in ("low", "high")
+]
+cases += [
     ("database-probe-" + mode, mode, b"DWED_MARKER\r\n", True)
     for mode in ("low", "high")
 ]
@@ -333,6 +338,11 @@ if (
 ):
     parser.error("XMS probes require an editor built with --tests")
 if (
+    any(case[0].startswith("temporary-probe-") for case in cases)
+    and not (args.build / "TMPPROBE.exe").exists()
+):
+    parser.error("temporary probes require an editor built with --tests")
+if (
     any(case[0].startswith("database-probe-") for case in cases)
     and not (args.build / "DBPROBE.exe").exists()
 ):
@@ -381,6 +391,7 @@ for name, mode, original, edit in cases:
     real_transfer = name.startswith("real-transfer-")
     xfer_probe = name.startswith("xfer-probe-")
     xms_probe = name.startswith("xms-probe-")
+    temporary_probe = name.startswith("temporary-probe-")
     database_probe = name.startswith("database-probe-")
     metadata_probe = name.startswith("metadata-probe-")
     session_probe = name.startswith("session-probe-")
@@ -500,6 +511,12 @@ for name, mode, original, edit in cases:
             floppy, "CLIPTEST.EXE", (args.build.resolve() / "CLIPTEST.exe").read_bytes()
         )
         probe_command = "A:\\CLIPTEST.EXE\r\n"
+    if temporary_probe:
+        put(
+            floppy, "TMPPROBE.EXE", (args.build.resolve() / "TMPPROBE.exe").read_bytes()
+        )
+        profile = " /DELETE" if "-delete-" in name else ""
+        probe_command = "A:\\TMPPROBE.EXE" + profile + " >C:\\TMPRUN.LOG\r\n"
     if database_probe:
         put(floppy, "DBPROBE.EXE", (args.build.resolve() / "DBPROBE.exe").read_bytes())
         probe_command = "A:\\DBPROBE.EXE >C:\\DBRUN.LOG\r\n"
@@ -1053,6 +1070,18 @@ for name, mode, original, edit in cases:
                     run(["mtype", "-i", floppy, "::XMS.OK"]).stdout.strip() == expected
                 )
                 row["xms_probe"] = probe_log.decode("ascii").strip()
+            if temporary_probe:
+                diagnostic = run(["mtype", "-i", spec, "::TMPRUN.LOG"]).stdout
+                (d / "temporary-runtime.log").write_bytes(diagnostic)
+                assert not diagnostic.strip(), diagnostic
+                probe_log = run(["mtype", "-i", floppy, "::TEMP.LOG"]).stdout
+                (d / "temporary.log").write_bytes(probe_log)
+                assert b"PASS " in probe_log and b"FAIL" not in probe_log, probe_log
+                assert (
+                    run(["mtype", "-i", floppy, "::TEMP.OK"]).stdout.strip()
+                    == b"TEMPORARY OWNER PASS"
+                )
+                row["temporary_probe"] = probe_log.decode("ascii").strip()
             if database_probe:
                 diagnostic = run(["mtype", "-i", spec, "::DBRUN.LOG"]).stdout
                 (d / "database-runtime.log").write_bytes(diagnostic)
