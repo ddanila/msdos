@@ -7,8 +7,10 @@ copies the deployed DOS floppy privately and checks exact saved/backup bytes
 in LOW and HIGH/UMB, including disk-full and read-only-file failures. Failure
 checks require an error dialog, retained edits and the dirty-buffer exit prompt.
 A backup-document case checks the alternative backup name, and temporary-file
-collision checks protect another editor's save. It currently uses DWED's
-historical launcher. Commit/close/rename fault injection, read-only media,
+collision checks protect another editor's save. The source-built launcher is
+also checked for external-command execution, drive/directory restoration,
+session resume, recursive-launch refusal and locating the overlay from another
+directory. Commit/close/rename fault injection, read-only media,
 recovery, file-format preservation, menus and full EDIT distribution remain
 [implementation gates](../dwed/docs/EDIT-PLAN.md).
 

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Smoke-test the source-built DWED overlay on private DOS LOW/HIGH images.
+"""Test the source-built DWED launcher and editor on private LOW/HIGH images.
 
-Temporary adoption gate: uses the explicitly selected historical launcher until
-its source-built replacement is ready. Requires a built parent out/floppy.img.
+Requires a built parent out/floppy.img. An explicit launcher override supports
+historical-binary negative controls; normal runs use only source-built programs.
 """
 
 import argparse
@@ -19,13 +19,13 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tests"))
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("--build", type=Path, default=ROOT / "dwed/out/build")
-parser.add_argument("--launcher", type=Path, default=ROOT / "dwed/BIN/DWED.EXE")
+parser.add_argument("--launcher", type=Path, help="override the source-built launcher")
 parser.add_argument(
     "--case", action="append", help="run only the named case (repeatable)"
 )
 args = parser.parse_args()
 overlay = args.build.resolve() / "DWEDOVL.exe"
-launcher = args.launcher.resolve()
+launcher = (args.launcher or args.build / "DWED.COM").resolve()
 for required in (overlay, launcher, ROOT / "out/floppy.img"):
     if not required.is_file():
         parser.error(f"missing input: {required}")
@@ -51,6 +51,12 @@ cases += [
     for mode in ("low", "high")
 ]
 cases.append(("backup-file-low", "low", b"DWED_MARKER\r\nbackup document\r\n", True))
+cases += [
+    (kind + "-" + mode, mode, b"DWED_MARKER\r\nsecond line\r\n", True)
+    for kind in ("external", "recursive")
+    for mode in ("low", "high")
+]
+cases.append(("outside-directory-low", "low", b"DWED_MARKER\r\nsecond line\r\n", True))
 if args.case:
     unknown = set(args.case) - {case[0] for case in cases}
     if unknown:
@@ -68,12 +74,25 @@ for name, mode, original, edit in cases:
     spec = f"{hdd}@@32256"
     run(["mmd", "-i", spec, "::DWED"])
     for file, dos_name in (
-        (launcher, "DWED.EXE"),
+        (launcher, "DWED.COM"),
         (overlay, "DWEDOVL.EXE"),
         (repo / "BIN/DWED.CFG", "DWED.CFG"),
     ):
         run(["mcopy", "-o", "-i", spec, file, "::DWED/" + dos_name])
     put(spec, filename, original)
+    external = name.startswith(("external", "recursive"))
+    if external:
+        cfg = (
+            (repo / "BIN/DWED.CFG")
+            .read_bytes()
+            .replace(b"usr.def.f5=dir", b"usr.def.f5=C:\\RUNTEST.BAT")
+        )
+        put(spec, "DWED/DWED.CFG", cfg)
+        batch = b"@ECHO OFF\r\n"
+        if name.startswith("recursive"):
+            batch += b"C:\\DWED\\DWED.COM\r\nIF NOT ERRORLEVEL 1 GOTO FAIL\r\n"
+        batch += b"ECHO EXTERNAL_COMMAND_OK>C:\\COMMAND.TXT\r\nCD \\\r\nA:\r\nECHO EXTERNAL_COMMAND_DONE\r\n:FAIL\r\n"
+        put(spec, "RUNTEST.BAT", batch)
     previous_backup = b"PREVIOUS_BACKUP\r\n"
     put(spec, backup_name, previous_backup)
     put(spec, "$ED0000.TMP", b"OTHER_EDITOR_SAVE\r\n")
@@ -91,13 +110,18 @@ for name, mode, original, edit in cases:
     if mode == "high":
         config = b"DEVICE=A:\\HIMEM.SYS\r\nDEVICE=A:\\EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\nFILES=40\r\nBUFFERS=15\r\n"
     put(floppy, "CONFIG.SYS", config)
+    invocation = "CD \\DWED\r\nDWED.COM"
+    if name.startswith("outside-directory"):
+        invocation = "CD \\\r\nC:\\DWED\\DWED.COM"
     put(
         floppy,
         "AUTOEXEC.BAT",
         (
-            "@ECHO OFF\r\nC:\r\nCD \\DWED\r\nDWED.EXE C:\\"
+            "@ECHO OFF\r\nC:\r\n"
+            + invocation
+            + " C:\\"
             + filename
-            + "\r\nA:\\QEXIT.COM\r\n"
+            + "\r\nCD >C:\\CWD.TXT\r\nA:\\QEXIT.COM\r\n"
         ).encode(),
     )
     socket = d / "qmp"
@@ -157,6 +181,27 @@ for name, mode, original, edit in cases:
         time.sleep(0.5)
         saved_screen = read_screen_text(q, str(d / "vram.bin"))
         (d / "saved.txt").write_text(saved_screen)
+        if external:
+            send_keys(q, "f5")
+            deadline = time.monotonic() + 15
+            while time.monotonic() < deadline:
+                screen = read_screen_text(q, str(d / "vram.bin"))
+                if "Press any key to return to the editor." in screen:
+                    break
+                time.sleep(0.2)
+            (d / "command.txt").write_text(screen)
+            assert "EXTERNAL_COMMAND_DONE" in screen, screen
+            if name.startswith("recursive"):
+                assert "recursive editor launch refused" in screen, screen
+            send_keys(q, "ret")
+            deadline = time.monotonic() + 15
+            while time.monotonic() < deadline:
+                screen = read_screen_text(q, str(d / "vram.bin"))
+                if "zDWED_MARKER" in screen:
+                    break
+                time.sleep(0.2)
+            (d / "resumed.txt").write_text(screen)
+            assert "zDWED_MARKER" in screen, screen
         if failure:
             assert "Error" in saved_screen, saved_screen
             send_keys(q, "ret")
@@ -173,6 +218,12 @@ for name, mode, original, edit in cases:
         assert process.returncode == 33, process.returncode
         actual = run(["mtype", "-i", spec, "::" + filename]).stdout
         backup = run(["mtype", "-i", spec, "::" + backup_name]).stdout
+        if external:
+            assert (
+                run(["mtype", "-i", spec, "::COMMAND.TXT"]).stdout.strip()
+                == b"EXTERNAL_COMMAND_OK"
+            )
+            assert run(["mtype", "-i", spec, "::CWD.TXT"]).stdout.strip() == b"C:\\DWED"
         row.update(
             completed=True,
             actual_hex=actual.hex(),
