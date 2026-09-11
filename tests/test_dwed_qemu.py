@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 """Test the source-built DWED launcher and editor on private LOW/HIGH images.
 
-Requires a built parent out/floppy.img. An explicit launcher override supports
+Defaults to the built parent out/floppy.img; --boot-image accepts external media. An explicit launcher override supports
 historical-binary negative controls; normal runs use only source-built programs.
 """
 
 import argparse
+import hashlib
 import json
 import re
 import shutil
@@ -19,6 +20,12 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tests"))
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("--build", type=Path, default=ROOT / "dwed/out/build")
+parser.add_argument("--boot-image", type=Path, default=ROOT / "out/floppy.img")
+parser.add_argument(
+    "--boot-files",
+    type=Path,
+    help="directory containing matching HIMEM.SYS and EMM386.EXE",
+)
 parser.add_argument("--launcher", type=Path, help="override the source-built launcher")
 parser.add_argument(
     "--case", action="append", help="run only the named case (repeatable)"
@@ -31,7 +38,7 @@ parser.add_argument(
 args = parser.parse_args()
 overlay = args.build.resolve() / "DWEDOVL.exe"
 launcher = (args.launcher or args.build / "DWED.COM").resolve()
-for required in (overlay, launcher, ROOT / "out/floppy.img"):
+for required in (overlay, launcher, args.boot_image):
     if not required.is_file():
         parser.error(f"missing input: {required}")
 import screen_expect
@@ -74,6 +81,24 @@ from test_compat_bpb_qemu import disk, put, run
 
 WORK = Path(tempfile.mkdtemp(prefix="dwed-qemu-", dir=ROOT / "out"))
 print(WORK, flush=True)
+(WORK / "environment.json").write_text(
+    json.dumps(
+        {
+            "boot_image_sha256": hashlib.sha256(
+                args.boot_image.read_bytes()
+            ).hexdigest(),
+            "boot_file_sha256": {
+                name: hashlib.sha256((args.boot_files / name).read_bytes()).hexdigest()
+                for name in ("HIMEM.SYS", "EMM386.EXE")
+            }
+            if args.boot_files
+            else {},
+            "build": json.loads((args.build / "build.json").read_text()),
+        },
+        indent=2,
+    )
+    + "\n"
+)
 repo = ROOT / "dwed"
 rows = []
 cases = [
@@ -240,7 +265,10 @@ for name, mode, original, edit in cases:
     d = WORK / name
     d.mkdir()
     floppy = d / "boot.img"
-    shutil.copyfile(ROOT / "out/floppy.img", floppy)
+    shutil.copyfile(args.boot_image, floppy)
+    if args.boot_files:
+        for boot_file in ("HIMEM.SYS", "EMM386.EXE"):
+            put(floppy, boot_file, (args.boot_files / boot_file).read_bytes())
     hdd, _, _ = disk(d, {})
     spec = f"{hdd}@@32256"
     run(["mmd", "-i", spec, "::DWED"])
@@ -395,7 +423,7 @@ for name, mode, original, edit in cases:
         floppy,
         "AUTOEXEC.BAT",
         (
-            "@ECHO OFF\r\n"
+            "@ECHO OFF\r\nVER >C:\\DOSVER.TXT\r\n"
             + probe_command
             + "C:\r\n"
             + invocation
@@ -725,6 +753,9 @@ for name, mode, original, edit in cases:
             assert b"$ED0001.TMP" not in listing.upper(), listing
             (d / "original.bin").write_bytes(original)
             (d / "saved.bin").write_bytes(actual)
+        row["dos_version"] = (
+            run(["mtype", "-i", spec, "::DOSVER.TXT"]).stdout.decode("ascii").strip()
+        )
     except Exception as error:  # noqa: BLE001 -- record diagnostics, then fail the suite below
         row.update(completed=False, error=str(error))
     finally:

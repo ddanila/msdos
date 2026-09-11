@@ -896,3 +896,12 @@ cursor and saved-state assertions. The prior editor fails the saved-byte
 negative control. See [the Enter contract](../dwed/docs/AUTOINDENT.md) and
 [generated evidence](../dwed/docs/autoindent-milestone.json). Table-row insertion
 is outside these checks.
+
+The DWED harness can run the same editor and probes with an explicit external
+boot floppy and matching memory-manager files. It records input hashes and
+guest VER output. [Reference-media preparation](prepare_dwed_reference.py)
+verifies the core files before making a boot-only private copy. See the
+[Microsoft DOS procedure](../dwed/docs/MICROSOFT-DOS.md) and
+[qualified case report](../dwed/docs/microsoft-dos-milestone.json). Commercial
+binaries remain local; this is functional qualification rather than a timing
+or memory-usage comparison.
