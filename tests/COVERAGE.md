@@ -781,14 +781,22 @@ are explicitly scoped; unrelated locale and product epics remain open.
 The DWED undo-journal probes replay grouped line deltas against an independent
 text model in LOW and HIGH/UMB. They cover branching, eviction, saved-state
 checkpoints, independent documents, byte payloads, cursor state, and forced
-capacity/heap-reserve failures with rollback and heap accounting. These are
-journal tests; editor command integration and atomic storage replay remain
-release gates documented in [UNDO.md](../dwed/docs/UNDO.md).
+capacity/heap-reserve failures with rollback and heap accounting. These isolate
+the journal contract; the storage and editor layers have separate tests below.
 
 The DWED storage-replay probes apply undo journal groups to the real
 conventional-memory backend in LOW and HIGH/UMB and compare every line with a
 separate text model. They verify allocation/preimage/ordinal failure rollback
 (in both replay directions), node identity, links, numbering, empty chains and
 heap recovery. The generated [storage report](../dwed/docs/undo-storage-milestone.json)
-includes a negative control with rollback disabled. Live edit capture and
-swap/XMS replay remain separate qualification work.
+includes a negative control with rollback disabled. Swap/XMS replay remains
+separate qualification work.
+
+The live DWED undo scenarios exercise keyboard/menu undo and redo, grouped
+splits/joins and selection edits, paste, indentation, line movement, branching,
+save checkpoints and independent document windows. A large cut that exceeds
+the history capacity must leave the file and existing backup unchanged. The
+storage probe also aborts a live mutation inside a far callback and checks
+allocation-free rollback and redo retention. See the generated
+[live undo report](../dwed/docs/undo-live-milestone.json) and
+[remaining qualification](../dwed/docs/UNDO.md).

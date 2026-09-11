@@ -38,6 +38,8 @@ from dwed_dialog_scenarios import (
 from dwed_dialog_scenarios import (
     prepare as prepare_dialog,
 )
+from dwed_undo_scenarios import CASES as UNDO_CASES
+from dwed_undo_scenarios import exercise as exercise_undo
 from screen_expect import QMPConnection, read_screen_text, send_keys
 from test_compat_bpb_qemu import disk, put, run
 
@@ -110,6 +112,7 @@ cases += [
     ("undo-storage-" + mode, mode, b"DWED_MARKER\r\n", True) for mode in ("low", "high")
 ]
 cases += DIALOG_CASES
+cases += UNDO_CASES
 if args.case:
     unknown = set(args.case) - {case[0] for case in cases}
     if unknown:
@@ -287,7 +290,9 @@ for name, mode, original, edit in cases:
                 label in screen.splitlines()[0]
                 for label in ("File", "Edit", "Search", "Options", "Help")
             ), screen
-        if name.startswith("dialog-"):
+        if name.startswith("undo-edit-"):
+            row.update(exercise_undo(q, process, d, spec, original, name))
+        elif name.startswith("dialog-"):
             row.update(exercise_dialog(q, process, d, spec, original, name))
         else:
             if edit:
