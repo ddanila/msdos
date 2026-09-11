@@ -255,6 +255,10 @@ cases += [
     ("real-transfer-" + profile + "-high", "high", b"DWED_MARKER\r\n", True)
     for profile in ("xms", "ems")
 ]
+cases += [
+    ("cache-probe-" + profile + "-high", "high", b"DWED_MARKER\r\n", True)
+    for profile in ("full", "writeback")
+]
 cases += TABLE_ROW_CASES
 cases += TABLE_CASES
 cases += ADDON_CASES
@@ -296,6 +300,11 @@ if (
     and not (args.build.resolve() / "CLIPTEST.exe").is_file()
 ):
     parser.error("clipboard probes require an editor built with --tests")
+if (
+    any(case[0].startswith("cache-probe-") for case in cases)
+    and not (args.build.resolve() / "CACHETEST.exe").is_file()
+):
+    parser.error("cache probes require an editor built with --tests")
 if (
     any(case[0].startswith("real-transfer-") for case in cases)
     and not (args.build.resolve() / "MEMXFER.exe").is_file()
@@ -341,6 +350,7 @@ for name, mode, original, edit in cases:
     undo_journal = name.startswith("undo-journal-")
     undo_storage = name.startswith("undo-storage-")
     clipboard_probe = name.startswith("clipboard-probe-")
+    cache_probe = name.startswith("cache-probe-")
     real_transfer = name.startswith("real-transfer-")
     xfer_probe = name.startswith("xfer-probe-")
     xms_probe = name.startswith("xms-probe-")
@@ -466,6 +476,10 @@ for name, mode, original, edit in cases:
     if save_probe:
         put(floppy, "SAVETEST.EXE", (args.build / "SAVETEST.exe").read_bytes())
         probe_command = "A:\\SAVETEST.EXE\r\n"
+    if cache_probe:
+        put(floppy, "CACHTEST.EXE", (args.build / "CACHETEST.exe").read_bytes())
+        profile = " /WRITEBACK" if "-writeback-" in name else ""
+        probe_command = "A:\\CACHTEST.EXE" + profile + " >C:\\CACHERUN.LOG\r\n"
     if real_transfer:
         put(floppy, "MEMXFER.EXE", (args.build / "MEMXFER.exe").read_bytes())
         profile = " /EMS" if "-ems-" in name else ""
@@ -925,6 +939,18 @@ for name, mode, original, edit in cases:
                     == b"SAVE FAULTS PASS"
                 )
                 row["save_probe"] = probe_log.decode("ascii").strip()
+            if cache_probe:
+                diagnostic = run(["mtype", "-i", spec, "::CACHERUN.LOG"]).stdout
+                (d / "cache-runtime.log").write_bytes(diagnostic)
+                assert not diagnostic.strip(), diagnostic
+                probe_log = run(["mtype", "-i", floppy, "::CACHE.LOG"]).stdout
+                (d / "cache.log").write_bytes(probe_log)
+                assert b"PASS " in probe_log and b"FAIL" not in probe_log, probe_log
+                assert (
+                    run(["mtype", "-i", floppy, "::CACHE.OK"]).stdout.strip()
+                    == b"CACHE SAFETY PASS"
+                )
+                row["cache_probe"] = probe_log.decode("ascii").strip()
             if real_transfer:
                 diagnostic = run(["mtype", "-i", spec, "::MXFERRUN.LOG"]).stdout
                 (d / "memxfer-runtime.log").write_bytes(diagnostic)

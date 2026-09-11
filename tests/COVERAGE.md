@@ -1050,3 +1050,11 @@ probes verify patterned round trips and freed-handle refusal with HIMEM and
 EMS-enabled EMM386. See [the transfer contract](../dwed/docs/EXTENDED-TRANSFERS.md)
 and [generated evidence](../dwed/docs/transfer-status-milestone.json). Cache
 consumers still require end-to-end failure qualification.
+
+The DWED cache probe runs with the real XMS driver and injects partial transfers,
+short DOS writes, failed seek/close, combined cache/disk failure and scratch
+allocation exhaustion. It verifies retained dirty owners and cursor state,
+retry, complete saved bytes, and writes beyond cache capacity. The old cache
+and buffered-file implementations provide negative controls. See
+[cache evidence](../dwed/docs/cache-safety-milestone.json); higher-level callers
+remain subject to the [remaining review](../dwed/docs/EXTENDED-TRANSFERS.md).

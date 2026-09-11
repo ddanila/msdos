@@ -5,7 +5,7 @@
 2. Complete the DWED-based EDIT replacement following
    [its implementation gates](dwed/docs/EDIT-PLAN.md). The source-build
    instructions are in [BUILD.md](dwed/docs/BUILD.md). Remaining work includes
-   [cache transfer failure handling](dwed/docs/EXTENDED-TRANSFERS.md),
+   [buffered-I/O caller error handling](dwed/docs/EXTENDED-TRANSFERS.md),
    alternative-store qualification, full-command memory
    limits, remaining runtime qualification, and distribution promotion as EDIT.
 3. Treat QBASIC, AccessDOS, the Microsoft Network Client, and remaining
