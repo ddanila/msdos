@@ -79,12 +79,20 @@ cases += [
     ("split-whitespace-low", "low", b"DWED_MARKER \t \r\n", False),
     ("remove-final-low", "low", b"DWED_MARKER\r\n", False),
 ]
+cases += [
+    ("keyboard-" + mode, mode, b"DWED_MARKER\r\n", True) for mode in ("low", "high")
+]
 if args.case:
     unknown = set(args.case) - {case[0] for case in cases}
     if unknown:
         parser.error(f"unknown cases: {sorted(unknown)}")
     cases = [case for case in cases if case[0] in args.case]
+if any(case[0].startswith("keyboard-") for case in cases) and not (
+    args.build.resolve() / "KEYTEST.exe"
+).is_file():
+    parser.error("keyboard cases require an editor built with --tests")
 for name, mode, original, edit in cases:
+    keyboard = name.startswith("keyboard-")
     rejected = name.startswith("reject-")
     failure = name.startswith(("disk-full", "read-only"))
     filename = "SAMPLE.BAK" if name.startswith("backup-file") else "SAMPLE.TXT"
@@ -134,6 +142,11 @@ for name, mode, original, edit in cases:
     if mode == "high":
         config = b"DEVICE=A:\\HIMEM.SYS\r\nDEVICE=A:\\EMM386.EXE NOEMS\r\nDOS=HIGH,UMB\r\nFILES=40\r\nBUFFERS=15\r\n"
     put(floppy, "CONFIG.SYS", config)
+    probe_command = ""
+    if keyboard:
+        probe = args.build.resolve() / "KEYTEST.exe"
+        put(floppy, "KEYTEST.EXE", probe.read_bytes())
+        probe_command = "A:\\KEYTEST.EXE\r\n"
     invocation = "CD \\DWED\r\nDWED.COM"
     if name.startswith("outside-directory"):
         invocation = "CD \\\r\nC:\\DWED\\DWED.COM"
@@ -141,7 +154,9 @@ for name, mode, original, edit in cases:
         floppy,
         "AUTOEXEC.BAT",
         (
-            "@ECHO OFF\r\nC:\r\n"
+            "@ECHO OFF\r\n"
+            + probe_command
+            + "C:\r\n"
             + invocation
             + " C:\\"
             + filename
@@ -224,7 +239,13 @@ for name, mode, original, edit in cases:
         if rejected:
             send_keys(q, "home+z")
             time.sleep(0.25)
-        send_keys(q, "f2")
+        if keyboard:
+            send_keys(q, "hmp:sendkey ctrl-end")
+            time.sleep(0.25)
+            send_keys(q, "backspace")
+            send_keys(q, "hmp:sendkey ctrl-s")
+        else:
+            send_keys(q, "f2")
         time.sleep(0.5)
         saved_screen = read_screen_text(q, str(d / "vram.bin"))
         (d / "saved.txt").write_text(saved_screen)
@@ -265,6 +286,11 @@ for name, mode, original, edit in cases:
         assert process.returncode == 33, process.returncode
         actual = run(["mtype", "-i", spec, "::" + filename]).stdout
         backup = run(["mtype", "-i", spec, "::" + backup_name]).stdout
+        if keyboard:
+            assert (
+                run(["mtype", "-i", floppy, "::KEY.OK"]).stdout.strip()
+                == b"KEYBOARD PASS 13"
+            )
         if external:
             assert (
                 run(["mtype", "-i", spec, "::COMMAND.TXT"]).stdout.strip()
@@ -272,6 +298,8 @@ for name, mode, original, edit in cases:
             )
             assert run(["mtype", "-i", spec, "::CWD.TXT"]).stdout.strip() == b"C:\\DWED"
         expected = original if failure else b"z" + original if edit else original
+        if keyboard:
+            expected = b"z" + original[:-2]
         if name.startswith("split-whitespace"):
             expected = original + b"\r\n"
         if name.startswith("remove-final"):

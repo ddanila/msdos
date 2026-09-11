@@ -1,7 +1,7 @@
 # Behavioral coverage
 
 The experimental DWED overlay has an optional `make test-dwed-qemu` smoke gate.
-Build it first using [the pinned toolchain](../dwed/docs/BUILD.md), then pass
+Build it first using [the pinned toolchain](../dwed/docs/BUILD.md) with `--tests`, then pass
 `DWED_BUILD=path/to/output` if using a nondefault output directory. The test
 copies the deployed DOS floppy privately and checks exact saved/backup bytes
 in LOW and HIGH/UMB, including disk-full and read-only-file failures. Failure
@@ -21,6 +21,12 @@ Long-line, mixed-newline and control-byte rejection cases verify that editing
 and saving afterwards leave the rejected source and its backup unchanged.
 These are conventional-memory tests; alternate stores, full tab-stop display
 and clipboard behavior remain [open](../dwed/docs/TEXT-FORMAT.md).
+
+The keyboard cases additionally run the source-built `KEYTEST` probe in LOW
+and HIGH. It checks encoded BIOS modifiers, plain-key controls and an actual
+queued Ctrl-End after modifier release. Editor interaction then checks
+Ctrl-End navigation, Backspace at EOF and Ctrl-S saving through the normal
+event dispatcher.
 
 The optional Russian increment has source, reference and CPI gates:
 `make test-ru-font-sources test-ru-contract test-ru-cpi`. The
