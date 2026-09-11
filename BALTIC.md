@@ -254,5 +254,7 @@ reproduced guest probes and images. The complete XT matrix remains open.
 [XT test-media qualification](locales/baltic/legacy-media-qualification.json)
 records capacity and payload parity for the larger malformed-library fixtures.
 Compact private XT images use single-sector clusters and omit unused menu and
-initial-probe files, preserving all mutants and commands. Runtime qualification
-of the remaining XT cases is still required.
+initial-probe files, preserving all mutants and commands. Lithuanian BIOS/DOS
+resource-recovery runs now pass with reproduced guest probes and all mutant
+payloads checked against the actual corrected images. The full XT pending-accent
+matrix and final acceptance remain open.
