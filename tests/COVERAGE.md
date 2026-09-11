@@ -31,7 +31,7 @@ event dispatcher.
 
 The menu cases check the top menu bar, Save through F10 navigation and Alt-F,
 selection-preserving Copy/Paste and cancellation, and bar restoration after
-cancelling Open through both menu and F3. Mouse and monochrome qualification,
+cancelling Open through both menu and F3. Additional mouse/display combinations,
 broader command and undo qualification remain [open](../dwed/docs/MENUS.md).
 
 The [dialog scenarios](dwed_dialog_scenarios.py) run Save/Discard/Cancel through
@@ -819,5 +819,18 @@ undo/redo for literal Tab insertion, overwrite, mixed-prefix unindent and
 rejected full-line insertion or block indentation.
 TABTEST compares geometry with an expanded array model and exercises real editor
 commands and direct mouse events in LOW/HIGH. See the [text-cell contract](../dwed/docs/TEXT-CELLS.md)
-and [generated report](../dwed/docs/text-cells-milestone.json); real mouse drivers
-and alternate display modes remain unqualified.
+and [generated report](../dwed/docs/text-cells-milestone.json). The real-driver
+and monochrome evidence is described below; additional driver/display
+combinations remain outside those matrices.
+
+The [monochrome scenarios](dwed_mono_scenarios.py) check BIOS mode 7 through
+monochrome VRAM, including readable attributes, disabled-command markers,
+selection, menus, About and saved bytes. A missing BIOS row-count case checks
+the legacy-height fallback. The [real mouse scenarios](dwed_mouse_scenarios.py)
+use the pinned CuteMouse fixture and QEMU PS/2 motion for menu clicks, tab
+selection, popup cancellation and transactional Cut/Paste undo/redo. A passive
+[INT 33h observer](dwed_mouse_telemetry.asm) records actual driver responses.
+Prepare the fixture with `python3 tests/prepare_dwed_mouse.py` and pass
+`DWED_MOUSE_DRIVER=out/dwed-mouse-fixtures/ctmouse-extracted/ctmouse.exe` to the
+DWED gate to include those cases. See the [qualification scope](../dwed/docs/DISPLAY-MOUSE.md)
+and [generated report](../dwed/docs/display-mouse-milestone.json).

@@ -1492,6 +1492,7 @@ test-compat-bpb-qemu: deploy
 
 # Optional adoption gate; build the overlay separately with dwed/tools/build.py.
 DWED_BUILD ?= dwed/out/build
+DWED_MOUSE_DRIVER ?=
 .PHONY: test-dwed-qemu
 test-dwed-qemu:
-	python3 tests/test_dwed_qemu.py --build "$(DWED_BUILD)"
+	python3 tests/test_dwed_qemu.py --build "$(DWED_BUILD)" $(if $(DWED_MOUSE_DRIVER),--mouse-driver "$(DWED_MOUSE_DRIVER)")

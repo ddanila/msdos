@@ -23,12 +23,18 @@ parser.add_argument("--launcher", type=Path, help="override the source-built lau
 parser.add_argument(
     "--case", action="append", help="run only the named case (repeatable)"
 )
+parser.add_argument(
+    "--mouse-driver",
+    type=Path,
+    help="enable real CuteMouse cases with the pinned fixture",
+)
 args = parser.parse_args()
 overlay = args.build.resolve() / "DWEDOVL.exe"
 launcher = (args.launcher or args.build / "DWED.COM").resolve()
 for required in (overlay, launcher, ROOT / "out/floppy.img"):
     if not required.is_file():
         parser.error(f"missing input: {required}")
+import screen_expect
 from dwed_clipboard_scenarios import CASES as CLIPBOARD_CASES
 from dwed_clipboard_scenarios import exercise as exercise_clipboard
 from dwed_clipboard_scenarios import prepare as prepare_clipboard
@@ -41,6 +47,11 @@ from dwed_dialog_scenarios import (
 from dwed_dialog_scenarios import (
     prepare as prepare_dialog,
 )
+from dwed_mono_scenarios import CASES as MONO_CASES
+from dwed_mono_scenarios import exercise as exercise_mono
+from dwed_mouse_scenarios import CASES as MOUSE_CASES
+from dwed_mouse_scenarios import exercise as exercise_mouse
+from dwed_mouse_scenarios import validate_driver
 from dwed_tab_scenarios import CASES as TAB_CASES
 from dwed_tab_scenarios import exercise as exercise_tabs
 from dwed_tab_scenarios import prepare as prepare_tabs
@@ -128,6 +139,10 @@ cases += DIALOG_CASES
 cases += UNDO_CASES
 cases += CLIPBOARD_CASES
 cases += TAB_CASES
+cases += MONO_CASES
+if args.mouse_driver:
+    validate_driver(args.mouse_driver)
+    cases += MOUSE_CASES
 if args.case:
     unknown = set(args.case) - {case[0] for case in cases}
     if unknown:
@@ -159,6 +174,9 @@ if (
 ):
     parser.error("tab probes require an editor built with --tests")
 for name, mode, original, edit in cases:
+    mouse = name.startswith("mouse-edit-")
+    monochrome = name.startswith("mono-edit-") or name == "mouse-edit-mono-low"
+    screen_expect.VRAM_PHYS = 0xB0000 if monochrome else 0xB8000
     startup = name.startswith("dialog-startup-")
     keyboard = name.startswith("keyboard-")
     undo_journal = name.startswith("undo-journal-")
@@ -243,6 +261,29 @@ for name, mode, original, edit in cases:
     if tab_probe:
         put(floppy, "TABTEST.EXE", (args.build.resolve() / "TABTEST.exe").read_bytes())
         probe_command = "A:\\TABTEST.EXE\r\n"
+    if monochrome:
+        mode_source = "bits 16\norg 100h\nmov ax,7\nint 10h\n"
+        if "rows" in name:
+            mode_source += "mov ax,40h\nmov ds,ax\nmov byte [84h],0\n"
+        mode_source += "int 20h\n"
+        (d / "mono.asm").write_text(mode_source)
+        run(["nasm", "-f", "bin", d / "mono.asm", "-o", d / "MONO.COM"])
+        put(floppy, "MONO.COM", (d / "MONO.COM").read_bytes())
+        probe_command += "A:\\MONO.COM\r\n"
+    if mouse:
+        put(floppy, "CTMOUSE.EXE", args.mouse_driver.read_bytes())
+        run(
+            [
+                "nasm",
+                "-f",
+                "bin",
+                ROOT / "tests/dwed_mouse_telemetry.asm",
+                "-o",
+                d / "MTRACE.COM",
+            ]
+        )
+        put(floppy, "MTRACE.COM", (d / "MTRACE.COM").read_bytes())
+        probe_command += "A:\\CTMOUSE.EXE\r\nA:\\MTRACE.COM\r\n"
     invocation = "CD \\DWED\r\nDWED.COM"
     if name.startswith("outside-directory"):
         invocation = "CD \\\r\nC:\\DWED\\DWED.COM"
@@ -330,7 +371,11 @@ for name, mode, original, edit in cases:
                 label in screen.splitlines()[0]
                 for label in ("File", "Edit", "Search", "Options", "Help")
             ), screen
-        if name.startswith("tab-edit-"):
+        if mouse:
+            row.update(exercise_mouse(q, process, d, spec, original, name))
+        elif monochrome:
+            row.update(exercise_mono(q, process, d, spec, original, name))
+        elif name.startswith("tab-edit-"):
             row.update(exercise_tabs(q, process, d, spec, original, name))
         elif name.startswith("clip-edit-"):
             row.update(exercise_clipboard(q, process, d, spec, original, name))
