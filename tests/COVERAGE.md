@@ -921,6 +921,14 @@ monochrome cases inspect focus attributes. See the
 [addon contract](../dwed/docs/ADDONS.md) and
 [generated evidence](../dwed/docs/addon-safety-milestone.json).
 
+The [table scenarios](dwed_table_scenarios.py) check field and row navigation,
+adjacent borders, physical-line boundaries, and stopping at the last row.
+Typing at each destination verifies the caret through exact saved bytes;
+undo/redo and the original backup are also checked. See the
+[table contract](../dwed/docs/TABLES.md) and
+[generated evidence](../dwed/docs/table-navigation-milestone.json).
+Row insertion and selection qualification remain separate open work.
+
 The DWED memory probe repeatedly refuses oversized ordinary loads and recovery
 while preserving a dirty document and verifying heap reclamation. It also
 fills memory with real documents, checks failed New/Open ownership, releases

@@ -106,6 +106,8 @@ from dwed_search_scenarios import exercise as exercise_search
 from dwed_tab_scenarios import CASES as TAB_CASES
 from dwed_tab_scenarios import exercise as exercise_tabs
 from dwed_tab_scenarios import prepare as prepare_tabs
+from dwed_table_scenarios import CASES as TABLE_CASES
+from dwed_table_scenarios import exercise as exercise_table
 from dwed_undo_scenarios import CASES as UNDO_CASES
 from dwed_undo_scenarios import exercise as exercise_undo
 from screen_expect import QMPConnection, read_screen_text, send_keys
@@ -237,6 +239,7 @@ cases += [
 cases += [
     ("save-fault-" + mode, mode, b"DWED_MARKER\r\n", True) for mode in ("low", "high")
 ]
+cases += TABLE_CASES
 cases += ADDON_CASES
 cases += SEARCH_CASES
 cases += DIALOG_CASES
@@ -633,7 +636,9 @@ for name, mode, original, edit in cases:
                 label in screen.splitlines()[0]
                 for label in ("File", "Edit", "Search", "Options", "Help")
             ), screen
-        if name.startswith("addon-"):
+        if name.startswith("table-"):
+            row.update(exercise_table(q, process, d, spec, original, name))
+        elif name.startswith("addon-"):
             row.update(exercise_addon(q, process, d, spec, original, name))
         elif name.startswith("search-"):
             row.update(exercise_search(q, process, d, spec, original, name))
