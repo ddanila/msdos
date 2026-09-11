@@ -1035,3 +1035,11 @@ a control-flow proof. The [current memory report](../dwed/docs/current-memory-mi
 records startup refusal, safe first-edit refusal, and successful editing/saving
 under the contiguous DOS memory cap. The harness observes the edit result before
 sending Save, preserving an existing backup when the edit is refused.
+
+The DWED XMS allocation probe installs a test-only driver entry point before
+the EXMS unit initializes. It compares requested sizes with page counts under
+varied incoming CL values, checks ordinary and SXMS function selection, and
+checks failed allocations return no handle. Unrelated multiplex services are
+chained and the original vector is restored before the normal editor runs.
+See [allocation-size evidence](../dwed/docs/xms-allocation-milestone.json).
+This checks the wrapper's request construction, not real SXMS driver behavior.

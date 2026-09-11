@@ -241,6 +241,11 @@ cases += [
 cases += [
     ("save-fault-" + mode, mode, b"DWED_MARKER\r\n", True) for mode in ("low", "high")
 ]
+cases += [
+    ("xms-probe-" + profile + "-" + mode, mode, b"DWED_MARKER\r\n", True)
+    for profile in ("classic", "sxms")
+    for mode in ("low", "high")
+]
 cases += TABLE_ROW_CASES
 cases += TABLE_CASES
 cases += ADDON_CASES
@@ -283,6 +288,11 @@ if (
 ):
     parser.error("clipboard probes require an editor built with --tests")
 if (
+    any(case[0].startswith("xms-probe-") for case in cases)
+    and not (args.build.resolve() / "XMSTEST.exe").is_file()
+):
+    parser.error("XMS probes require an editor built with --tests")
+if (
     any(case[0].startswith("tab-probe-") for case in cases)
     and not (args.build.resolve() / "TABTEST.exe").is_file()
 ):
@@ -312,6 +322,7 @@ for name, mode, original, edit in cases:
     undo_journal = name.startswith("undo-journal-")
     undo_storage = name.startswith("undo-storage-")
     clipboard_probe = name.startswith("clipboard-probe-")
+    xms_probe = name.startswith("xms-probe-")
     tab_probe = name.startswith("tab-probe-")
     save_probe = name.startswith("save-fault-")
     rejected = name.startswith("reject-")
@@ -432,6 +443,10 @@ for name, mode, original, edit in cases:
     if save_probe:
         put(floppy, "SAVETEST.EXE", (args.build / "SAVETEST.exe").read_bytes())
         probe_command = "A:\\SAVETEST.EXE\r\n"
+    if xms_probe:
+        put(floppy, "XMSTEST.EXE", (args.build / "XMSTEST.exe").read_bytes())
+        profile = " /CLASSIC" if "-classic-" in name else ""
+        probe_command = "A:\\XMSTEST.EXE" + profile + " >C:\\XMSRUN.LOG\r\n"
     if monochrome:
         mode_source = "bits 16\norg 100h\nmov ax,7\nint 10h\n"
         if "rows" in name:
@@ -879,6 +894,18 @@ for name, mode, original, edit in cases:
                     == b"SAVE FAULTS PASS"
                 )
                 row["save_probe"] = probe_log.decode("ascii").strip()
+            if xms_probe:
+                diagnostic = run(["mtype", "-i", spec, "::XMSRUN.LOG"]).stdout
+                (d / "xms-runtime.log").write_bytes(diagnostic)
+                assert not diagnostic.strip(), diagnostic
+                probe_log = run(["mtype", "-i", floppy, "::XMS.LOG"]).stdout
+                (d / "xms.log").write_bytes(probe_log)
+                assert b"PASS " in probe_log and b"FAIL" not in probe_log, probe_log
+                expected = b"CLASSIC XMS PASS" if "-classic-" in name else b"SXMS PASS"
+                assert (
+                    run(["mtype", "-i", floppy, "::XMS.OK"]).stdout.strip() == expected
+                )
+                row["xms_probe"] = probe_log.decode("ascii").strip()
             if tab_probe:
                 assert table_refusals == 2, table_refusals
                 row["table_refusals"] = table_refusals

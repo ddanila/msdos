@@ -5,7 +5,7 @@
 2. Complete the DWED-based EDIT replacement following
    [its implementation gates](dwed/docs/EDIT-PLAN.md). The source-build
    instructions are in [BUILD.md](dwed/docs/BUILD.md). Remaining work includes
-   the optional SXMS allocation fix identified in the
+   extended-memory transfer and alternative-store qualification from the
    [allocation review](dwed/docs/ALLOCATION-REVIEW.md), full-command memory
    limits, remaining runtime qualification, and distribution promotion as EDIT.
 3. Treat QBASIC, AccessDOS, the Microsoft Network Client, and remaining
