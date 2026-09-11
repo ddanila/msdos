@@ -690,3 +690,10 @@ artifacts still match the pristine build record. Logs, linker maps and backend
 identities are retained; historical 286 marker/persisted-result checks are
 scoped separately from composed-core guest-exit workflows. Full default release
 and final deployment/distribution remain independent gates.
+
+The [Baltic default release qualification](../locales/baltic/release-qualification.json)
+retains the complete pristine `FAIL_ON_SKIP=1 make -k -j1 test` log and the
+subsequent `make -j1 deploy distribution` log, with matching composed-core,
+deployed-resource and installation-disk hashes. Its source revision and later
+manual legacy-helper changes are recorded separately; this run does not replace
+the dedicated AT/XT lifecycle matrices or final acceptance audit.

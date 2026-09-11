@@ -230,6 +230,11 @@ including Baltic/Russian/German reloads and rejected selections.
 [Additional release qualification](locales/baltic/extra-release-qualification.json)
 records passing pristine ordinary-baseline 286 acceptance, baseline memory/kernel
 regressions and Baltic/CP866 static checks. Its artifacts retain the pristine
-build hashes. The full legacy matrices, default release suite and final
-deployment/distribution checks remain open.
+build hashes.
+[Default release qualification](locales/baltic/release-qualification.json)
+records the complete pristine `FAIL_ON_SKIP=1 make -k -j1 test` run and the
+subsequent deployment/distribution checks. The core and deployed resources
+match the runtime-qualified bytes, and installation disk hashes are unchanged.
+The full legacy matrices and final requirement-by-requirement acceptance audit
+remain open.
 Existing Russian evidence does not establish Baltic support.

@@ -1,0 +1,12 @@
+python3 tools/build_memory_production.py /Users/ddanila/fun/msdos/out/baltic-repro-m5lr8g72/j1/out/memory-production
+Production build is current: /Users/ddanila/fun/msdos/out/baltic-repro-m5lr8g72/j1/out/memory-production
+# A single jobserver-aware submake prevents parallel image and build paths
+# from racing on their shared generated message and include files.
+make /Users/ddanila/fun/msdos/out/baltic-repro-m5lr8g72/j1/out/floppy.img
+make[1]: Entering directory '/Users/ddanila/fun/msdos/out/baltic-repro-m5lr8g72/j1'
+mkdir -p /Users/ddanila/fun/msdos/out/baltic-repro-m5lr8g72/j1/out
+python3 tools/build_memory_production.py /Users/ddanila/fun/msdos/out/baltic-repro-m5lr8g72/j1/out/memory-production
+Production build is current: /Users/ddanila/fun/msdos/out/baltic-repro-m5lr8g72/j1/out/memory-production
+make[1]: Leaving directory '/Users/ddanila/fun/msdos/out/baltic-repro-m5lr8g72/j1'
+python3 tools/build_distribution.py
+Built 2 deterministic installation disks with 97 files

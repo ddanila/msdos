@@ -1,0 +1,296 @@
+{
+  "schema_version": 1,
+  "status": "full-runtime-and-media-release-passed",
+  "scope": "Complete default FAIL_ON_SKIP=1 make test in the pristine production checkout, followed by explicit deployment/distribution. Every selected core hash agrees before/after the suite, after deployment and in the disk image. Final installation disks match those present after the runtime suite. Component and manual legacy-hardware qualification retain their own source/backend scopes.",
+  "full_suite": {
+    "command": [
+      "make",
+      "-k",
+      "-j1",
+      "test"
+    ],
+    "cwd": "/Users/ddanila/fun/msdos/out/baltic-repro-m5lr8g72/j1",
+    "environment": {
+      "FAIL_ON_SKIP": "1",
+      "MEMORY_CORE_DIR": null,
+      "FLOPPY_IMAGE": null
+    },
+    "source_commit": "1c3047e332be958f2b7511a0d7435c726e373d86",
+    "started": 1789080441.809602,
+    "status": "passed",
+    "core_before_sha256": {
+      "COMMAND.COM": "6742b5889141a9c61d41e336445014d8055c19758febf4263f4f8ebe3c2f2c29",
+      "MSDOS.SYS": "b495ab1ccc6fd3e7672b4724a7cccde519d8a65171c0c0ed6bad73cd331a42e9",
+      "IO.SYS": "34af301387a2f3d11e20590922b3611227e640c26087dbf79ff83f1364fe0b8e",
+      "HIMEM.SYS": "d5ea7b0e775c2eb6eb2b7dab42eb7471a7a84bfb32cf2021215d4ed6f8a7850a",
+      "EMM386.EXE": "58266b6614594de7a9cfde9eda75e3eb241b9e2e941e67b70645a0f8a197dae6"
+    },
+    "exit_code": 0,
+    "finished": 1789085918.256404,
+    "log": {
+      "path": "review/release-full-test.log",
+      "sha256": "ee5548edf4d18680565e87986bb47dc4f6fbdacc267e89bbb3feb115adaa654c"
+    },
+    "core_after_sha256": {
+      "COMMAND.COM": "6742b5889141a9c61d41e336445014d8055c19758febf4263f4f8ebe3c2f2c29",
+      "MSDOS.SYS": "b495ab1ccc6fd3e7672b4724a7cccde519d8a65171c0c0ed6bad73cd331a42e9",
+      "IO.SYS": "34af301387a2f3d11e20590922b3611227e640c26087dbf79ff83f1364fe0b8e",
+      "HIMEM.SYS": "d5ea7b0e775c2eb6eb2b7dab42eb7471a7a84bfb32cf2021215d4ed6f8a7850a",
+      "EMM386.EXE": "58266b6614594de7a9cfde9eda75e3eb241b9e2e941e67b70645a0f8a197dae6"
+    },
+    "private_log": "out/baltic-pristine-full-test3.log"
+  },
+  "final_media": {
+    "status": "passed",
+    "release_pid": 30127,
+    "release_status_file": "out/baltic-pristine-full-test3-status.json",
+    "source_commit": "1c3047e332be958f2b7511a0d7435c726e373d86",
+    "current_commit": "ebe8e8c2cc428ad2f7fb9848f84d2db7315d6341",
+    "cwd": "/Users/ddanila/fun/msdos/out/baltic-repro-m5lr8g72/j1",
+    "command": [
+      "make",
+      "-j1",
+      "deploy",
+      "distribution"
+    ],
+    "started": 1789085918.842171,
+    "log": {
+      "path": "review/release-media.log",
+      "sha256": "bf943d8c3ddf3e06600e4332f14fd3424dd336bb9969872e8d519d95bc175432"
+    },
+    "distribution_before_sha256": {
+      "disk1.img": "1c9220863f6cc3937cf18b08a0faf4b4f7eb39d3d7327f4159ec16585403a596",
+      "disk2.img": "badba722594dd816116c4876c4b6a7301bc825bb7c983ecf5698b9530474c537"
+    },
+    "exit_code": 0,
+    "core_sha256": {
+      "IO.SYS": "34af301387a2f3d11e20590922b3611227e640c26087dbf79ff83f1364fe0b8e",
+      "MSDOS.SYS": "b495ab1ccc6fd3e7672b4724a7cccde519d8a65171c0c0ed6bad73cd331a42e9",
+      "COMMAND.COM": "6742b5889141a9c61d41e336445014d8055c19758febf4263f4f8ebe3c2f2c29",
+      "HIMEM.SYS": "d5ea7b0e775c2eb6eb2b7dab42eb7471a7a84bfb32cf2021215d4ed6f8a7850a",
+      "EMM386.EXE": "58266b6614594de7a9cfde9eda75e3eb241b9e2e941e67b70645a0f8a197dae6"
+    },
+    "distribution_after_sha256": {
+      "disk1.img": "1c9220863f6cc3937cf18b08a0faf4b4f7eb39d3d7327f4159ec16585403a596",
+      "disk2.img": "badba722594dd816116c4876c4b6a7301bc825bb7c983ecf5698b9530474c537"
+    },
+    "finished": 1789085937.7166028,
+    "deployed_image_sha256": "a1ce7453dad510790e9bec72c4c99d9d6b72d139917715a7773bcd911f21df28",
+    "private_log": "out/baltic-final-media.log"
+  },
+  "core_sha256": {
+    "IO.SYS": "34af301387a2f3d11e20590922b3611227e640c26087dbf79ff83f1364fe0b8e",
+    "MSDOS.SYS": "b495ab1ccc6fd3e7672b4724a7cccde519d8a65171c0c0ed6bad73cd331a42e9",
+    "COMMAND.COM": "6742b5889141a9c61d41e336445014d8055c19758febf4263f4f8ebe3c2f2c29",
+    "HIMEM.SYS": "d5ea7b0e775c2eb6eb2b7dab42eb7471a7a84bfb32cf2021215d4ed6f8a7850a",
+    "EMM386.EXE": "58266b6614594de7a9cfde9eda75e3eb241b9e2e941e67b70645a0f8a197dae6"
+  },
+  "resource_sha256": {
+    "DEV/COUNTRY/COUNTRY.SYS": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c",
+    "DEV/KEYBOARD/KEYBRD2.SYS": "d003716471ffbe12803ac7beaf511a8a4e2d6a0b8ef5e3d214eee2a69584cf06",
+    "DEV/KEYBOARD/KEYBOARD.SYS": "57571a4b10040dd0645998d0ccb8caa6e02be904ded253c9c81d542750ae4d9d",
+    "DEV/DISPLAY/EGA/EGA775.CPI": "ab38fe5b8acae0ba3933ac6b66596c58b32bc23385285b8cc68fec1fa8f15255",
+    "DEV/DISPLAY/EGA/EGA866.CPI": "efa06cb267a370fab3db71fb85f73711b750ec04498b40b6cc6a4a2be2e3d7ad",
+    "DEV/DISPLAY/EGA/EGA.CPI": "e62143d403dba21dd9f3c606769b90923038e542098fdb57de36eaf9e986a4b0",
+    "DEV/DISPLAY/DISPLAY.SYS": "0ebd3bfad4e87d79e05219c02ea71ce4e94f9e11b432efdf652a022488d9ac08",
+    "CMD/KEYB/KEYB.COM": "924edf011009fe4a747d045f24ae5da817b613e914cbf58b66ca22e3637ffa3e",
+    "CMD/NLSFUNC/NLSFUNC.EXE": "f8bed4307ba458fd1e14f5aae373d5693d830d77ccd77636a6313df5f7b0e297",
+    "CMD/MODE/MODE.COM": "c385aad5697fcec3a9113f58b983b978a7f969e99b153ebd496b12dab0e3767d",
+    "CMD/EDLIN/EDLIN.COM": "21dcc094437d6e7dbed8d8cf34d5b7bb6629d6fd8f9b0256710bc038a77e132a",
+    "CMD/FIND/FIND.EXE": "bce1e2a4df29876ae4720bec538cb8034d833c5eb945718e6a05d7510d1c399e",
+    "CMD/MOVE/MOVE.EXE": "577833937b25b62028595299669b7b937a89f60e15172a86d3185a9f0b5110ba",
+    "CMD/XCOPY/XCOPY.EXE": "4753caa9bf4cb3d0484fe85890a83f0e05136de18fa5e439b04c46e996bf8d3e",
+    "locales/baltic/BALTIC.TXT": "836c85513ec12e562717cff09aad1a1284bdd09e70eac8e263aebd38e5881715",
+    "locales/baltic/BAKEYS.TXT": "142ec6f6a021f20de090af1560a639291d13628d0cfdab53b92bd15f9d001b0c"
+  },
+  "current_commit": "ebe8e8c2cc428ad2f7fb9848f84d2db7315d6341",
+  "production_input_changes_since_suite": [],
+  "nonproduction_changes_since_suite": [
+    "BALTIC.md",
+    "locales/baltic/README.md",
+    "locales/baltic/extra-release-qualification.json",
+    "locales/baltic/legacy-selection-qualification.json",
+    "locales/baltic/review/extra-release-286.log",
+    "locales/baltic/review/extra-release-COMMAND.MAP",
+    "locales/baltic/review/extra-release-MSBIO.MAP",
+    "locales/baltic/review/extra-release-MSDOS.MAP",
+    "locales/baltic/review/extra-release-memory.log",
+    "locales/baltic/review/extra-release-static.log",
+    "locales/baltic/review/legacy-selection-at84-selection-bios-86box.cfg",
+    "locales/baltic/review/legacy-selection-at84-selection-bios-autoexec.bat.cfg",
+    "locales/baltic/review/legacy-selection-at84-selection-bios-config.sys.cfg",
+    "locales/baltic/review/legacy-selection-at84-selection-bios-global.cfg",
+    "locales/baltic/review/legacy-selection-at84-selection-bios-startup.cfg",
+    "locales/baltic/review/legacy-selection-at84-selection-bios.log",
+    "locales/baltic/review/legacy-selection-before-unprepared.log",
+    "locales/baltic/review/legacy-selection-default-parity-checker.py",
+    "locales/baltic/review/legacy-selection-default-parity.log",
+    "locales/baltic/review/legacy-selection-input-86box_286_lib.sh",
+    "locales/baltic/review/legacy-selection-input-86box_exit.asm",
+    "locales/baltic/review/legacy-selection-input-baltic_keyboard_records.py",
+    "locales/baltic/review/legacy-selection-input-country-expectations.json",
+    "locales/baltic/review/legacy-selection-input-country_records.py",
+    "locales/baltic/review/legacy-selection-input-global.cfg",
+    "locales/baltic/review/legacy-selection-input-ibmat-286.cfg",
+    "locales/baltic/review/legacy-selection-input-keyboard-expectations.json",
+    "locales/baltic/review/legacy-selection-input-manifest.json",
+    "locales/baltic/review/legacy-selection-input-ru_keyboard_probe.asm",
+    "locales/baltic/review/legacy-selection-input-ru_legacy_keyboard_type.asm",
+    "locales/baltic/review/legacy-selection-input-ru_profile_probe.asm",
+    "locales/baltic/review/legacy-selection-input-ru_profiles.py",
+    "locales/baltic/review/legacy-selection-input-screen_expect.py",
+    "locales/baltic/review/legacy-selection-input-seed_86box_ibmat_nvram.py",
+    "locales/baltic/review/legacy-selection-input-test_baltic_country_qemu.py",
+    "locales/baltic/review/legacy-selection-input-test_baltic_keyboard_lifecycle_qemu.py",
+    "locales/baltic/review/legacy-selection-input-test_baltic_keyboard_pending_qemu.py",
+    "locales/baltic/review/legacy-selection-input-test_baltic_keyboard_qemu.py",
+    "locales/baltic/review/legacy-selection-input-test_baltic_keyboard_resources_qemu.py",
+    "locales/baltic/review/legacy-selection-input-test_baltic_keyboard_selection_qemu.py",
+    "locales/baltic/review/legacy-selection-input-test_baltic_legacy_lifecycle_86box.py",
+    "locales/baltic/review/legacy-selection-input-test_ru_country_qemu.py",
+    "locales/baltic/review/legacy-selection-input-test_ru_keyboard_qemu.py",
+    "locales/baltic/review/legacy-selection-input-test_ru_legacy_keyboard_86box.py",
+    "locales/baltic/review/legacy-selection-xt-capacity.log",
+    "tests/COVERAGE.md",
+    "tests/test_baltic_legacy_lifecycle_86box.py",
+    "tests/test_ru_legacy_keyboard_86box.py"
+  ],
+  "manual_helper_change_provenance": "legacy-selection-qualification.json",
+  "prior_failed_suite_provenance": "residency-qualification.json",
+  "pristine_build_provenance": "pristine-qualification.json",
+  "baseline_and_static_provenance": "extra-release-qualification.json",
+  "core_build": {
+    "path": "review/release-core-build.json",
+    "sha256": "a66b8a2882aa0d6b2204933ccd9d74974e9b9a4bbb3ac577061e5889a9201e75"
+  },
+  "core_build_log": {
+    "path": "review/release-core-build.log",
+    "sha256": "1e329da475da6e10900b409825d255580ffbd13270a30e5e7189426d0b46664a"
+  },
+  "core_commands": {
+    "path": "review/release-core-commands.json",
+    "sha256": "7165304916f5dd3e04dafc9e4f6ba097cbd5413c2d171a96c7d340109e26260d"
+  },
+  "distribution_manifest": {
+    "path": "review/release-distribution-manifest.json",
+    "sha256": "748ce2ff34b24223f4e8bfc77af4b30985903c905c5821dc24b66dd5bc9de9e0"
+  },
+  "maps": {
+    "command/COMMAND.MAP": {
+      "path": "review/release-core-command-COMMAND.MAP",
+      "sha256": "d74b2a3890d44658040a263838b425c4d202305aa0bfbd194770b3bc009cda56"
+    },
+    "bios/msBIO.map": {
+      "path": "review/release-core-bios-msBIO.MAP",
+      "sha256": "dcffcb59770b4d6620f8ccbb72a53b452c12d5554c14b2491bc00d928fb20780"
+    },
+    "bios/high/bios-high.map": {
+      "path": "review/release-core-bios-high-bios-high.MAP",
+      "sha256": "429a663e9f97695fcbe2931a2655953419a3f3ed2e0d5470ab4c08ee20d4e011"
+    },
+    "provider/MEMM/MEMM/emm386.map": {
+      "path": "review/release-core-provider-MEMM-MEMM-emm386.MAP",
+      "sha256": "9178ba383dc5ae22df881243214524e33f420a95f69dc59d3106c35e63fc9cee"
+    }
+  },
+  "inputs": {
+    "Makefile": {
+      "sha256": "d399e88d4b0757e63b4e3ca97b262fff1a5d8613849b4b7255b4895928d2d949",
+      "retained": {
+        "path": "review/release-input-Makefile",
+        "sha256": "d399e88d4b0757e63b4e3ca97b262fff1a5d8613849b4b7255b4895928d2d949"
+      }
+    },
+    "distribution/files.json": {
+      "sha256": "fa52af309eba83a92a0adea7b921da43f2e2e94952dc81a90eaab250130a5552",
+      "retained": {
+        "path": "review/release-input-distribution-files.json",
+        "sha256": "fa52af309eba83a92a0adea7b921da43f2e2e94952dc81a90eaab250130a5552"
+      }
+    },
+    "tools/build_distribution.py": {
+      "sha256": "f37163b9ff7da45b6a05322a1e547196139c19ed2f7598a9489cac4bee585555",
+      "retained": {
+        "path": "review/release-input-tools-build_distribution.py",
+        "sha256": "f37163b9ff7da45b6a05322a1e547196139c19ed2f7598a9489cac4bee585555"
+      }
+    },
+    "tools/build_memory_production.py": {
+      "sha256": "9aaaabeee183d1effe109b76378ea51ac143c4a3e3c7f4f5acb4adf407ad2448",
+      "retained": {
+        "path": "review/release-input-tools-build_memory_production.py",
+        "sha256": "9aaaabeee183d1effe109b76378ea51ac143c4a3e3c7f4f5acb4adf407ad2448"
+      }
+    },
+    "locales/baltic/manifest.json": {
+      "sha256": "6185828bb8f968b709b527ae8fa14c0a728d5a95191b4883d30c834df7e9b1ae",
+      "retained": {
+        "path": "review/release-input-locales-baltic-manifest.json",
+        "sha256": "6185828bb8f968b709b527ae8fa14c0a728d5a95191b4883d30c834df7e9b1ae"
+      }
+    },
+    "locales/baltic/font-edits.json": {
+      "sha256": "d27789b34909c9654cba86f23d408e5b765ebf776c1718167e31f4cf2c12943d",
+      "retained": {
+        "path": "review/release-input-locales-baltic-font-edits.json",
+        "sha256": "d27789b34909c9654cba86f23d408e5b765ebf776c1718167e31f4cf2c12943d"
+      }
+    },
+    "locales/baltic/country-contract.json": {
+      "sha256": "908adad0b45d98e13f53a010155d85684eca494f762881a6c1a8e2b9acc6009d",
+      "retained": {
+        "path": "review/release-input-locales-baltic-country-contract.json",
+        "sha256": "908adad0b45d98e13f53a010155d85684eca494f762881a6c1a8e2b9acc6009d"
+      }
+    },
+    "locales/baltic/keyboard-contract.json": {
+      "sha256": "41f32d6dc323a325bbe17cdd5b46f89026d2884381eb3cb59e2a157b24515b08",
+      "retained": {
+        "path": "review/release-input-locales-baltic-keyboard-contract.json",
+        "sha256": "41f32d6dc323a325bbe17cdd5b46f89026d2884381eb3cb59e2a157b24515b08"
+      }
+    },
+    "locales/baltic/review/country-expectations.json": {
+      "sha256": "c1c7d9807785f0c80ff6c6edf727b9e07be845ee412ce7b5c33c8a71d6714466",
+      "retained": {
+        "path": "review/release-input-locales-baltic-review-country-expectations.json",
+        "sha256": "c1c7d9807785f0c80ff6c6edf727b9e07be845ee412ce7b5c33c8a71d6714466"
+      }
+    },
+    "locales/baltic/review/keyboard-expectations.json": {
+      "sha256": "09a0a925cf85cbcb0294f1bb63554729f5e3d4cd41316f3cb834b4376aee19f2",
+      "retained": {
+        "path": "review/release-input-locales-baltic-review-keyboard-expectations.json",
+        "sha256": "09a0a925cf85cbcb0294f1bb63554729f5e3d4cd41316f3cb834b4376aee19f2"
+      }
+    }
+  },
+  "tools": {
+    "qemu-system-i386": {
+      "path": "/opt/homebrew/bin/qemu-system-i386",
+      "sha256": "d257f22f63fe113e7373e1aaddc90390ae768784bee448c3508bbf5751602831",
+      "version": "QEMU emulator version 11.1.1\nCopyright (c) 2003-2026 Fabrice Bellard and the QEMU Project developers"
+    },
+    "nasm": {
+      "path": "/opt/homebrew/bin/nasm",
+      "sha256": "4a35962ae78b3051bf568da70e3de7ecb8e99cb7925741eefb08d7f17cd1822b",
+      "version": "NASM version 3.02 compiled on Jun 29 2026"
+    },
+    "mcopy": {
+      "path": "/opt/homebrew/bin/mcopy",
+      "sha256": "e8310ca53ac5f471b7cd8b0b4dacd2ef11a57e399e35d034d1b6899e49dd48a6"
+    },
+    "mtype": {
+      "path": "/opt/homebrew/bin/mtype",
+      "sha256": "e8310ca53ac5f471b7cd8b0b4dacd2ef11a57e399e35d034d1b6899e49dd48a6"
+    },
+    "mformat": {
+      "path": "/opt/homebrew/bin/mformat",
+      "sha256": "e8310ca53ac5f471b7cd8b0b4dacd2ef11a57e399e35d034d1b6899e49dd48a6"
+    }
+  },
+  "remaining": [
+    "Complete and retain corrected AT84/XT83 BIOS/DOS lifecycle matrices.",
+    "Complete per-language, requirement-by-requirement acceptance audit and current status documentation."
+  ]
+}

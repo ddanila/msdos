@@ -1,0 +1,311 @@
+Open Watcom Linker Version 2.0 beta Aug 27 2026 05:38:07 (64-bit)** EXPERIMENTAL (HLL) ** 
+Copyright (c) 2002-2026 The Open Watcom Contributors. All Rights Reserved.
+Portions Copyright (c) 1985-2002 Sybase, Inc. All Rights Reserved.
+Created on:       26/09/11 01:47:23
+Executable Image: /Users/ddanila/fun/msdos/out/baltic-repro-m5lr8g72/j1/out/memory-production-0p9cqnrk/bios/high/bios-high.bin
+creating a RAW Binary Image executable
+
+
+                        +------------+
+                        |   Groups   |
+                        +------------+
+
+Group                           Address              Size
+=====                           =======              ====
+
+
+
+
+                        +--------------+
+                        |   Segments   |
+                        +--------------+
+
+Segment                Class          Group          Address         Size
+=======                =====          =====          =======         ====
+
+BIOSHIGH               BIOSHIGH       AUTO           00000000        00001f91
+CODE                   CODE           AUTO           00001fa0        00000000
+
+
+                        +----------------+
+                        |   Memory Map   |
+                        +----------------+
+
+* = unreferenced symbol
++ = symbol only referenced locally
+
+Address        Symbol
+=======        ======
+
+Module: /var/folders/s1/jvvnpwf50tjbhq2t_dzzxssm0000gn/T/msdos-high-link-_z88yu_d/body.obj(/var/folders/s1/jvvnpwf50tjbhq2t_dzzxssm0000gn/T/msdos-high-link-_z88yu_d/body.obj)
+00000000*      BIOS_SERVICE_START
+00001371*      BIOS_SERVICE_END
+00000000*      READ_SECTOR
+000000bb*      DSK$REM
+000000cf*      SETDRIVE
+000000f5*      DSK$WRITV
+00000105*      DSK$WRIT
+00000122*      DSK$READ
+00000127*      CHECKSINGLE
+000001ba*      DISKRD
+00000286*      DISKIO_PATCH
+00000293*      BIOS_DISKIO_PATCH_END
+00000325*      IOSETUP
+00000441*      DISK
+000005c2*      DSKERR
+000005d1*      BIOS_DSKERR_PATCH_END
+0000061d*      HARDERR
+00000620*      HARDERR2
+000006a7*      MAPERROR
+000006d2*      SET_TIM
+0000070a*      BLOCK13
+0000071b*      CHANGED_PATCH
+00000733*      BIOS_CHANGED_PATCH_END
+0000085d*      OK11
+00000882*      ECC_ERR_HANDLE
+00000a52*      IOREADJUMPTABLE
+00000a63*      IOWRITEJUMPTABLE
+00000a74*      GENERIC$IOCTL
+00000ac1*      GETDEVICEPARAMETERS
+00000afd*      SETDEVICEPARAMETERS
+00000bbc*      SET_MEDIA_FOR_FORMAT
+00000c93*      FORMATTRACK
+00000d75*      VERIFYTRACK
+00000df8*      READTRACK
+00000e08*      WRITETRACK
+00000e18*      READWRITETRACK
+00000e46*      TRACKIO
+00000f19*      SECTORSIZETOSECTORINDEX
+00000f2c*      SETDASD
+00000fc2*      RESETDISK
+00000fd9*      TO_ROM
+0000106c*      IOCTL$GETOWN
+00001093*      IOCTL$SETOWN
+000010e1*      RESTOREOLDDPT
+0000126e*      CHECK_WRAP
+000012cb*      INT_2F_13
+0000131a*      MOVE
+0000131f*      DoubleWordMov
+00001322*      BIOS_DWORD_PATCH_END
+00001349*      BIOS_HMA_ENTER_NEAR
+00001371*      MEDIA$CHK
+000013b5*      MEDIA_PATCH
+000013cd*      BIOS_MEDIA_PATCH_END
+000013ff*      INIT_PATCH
+00001409*      BIOS_INIT_PATCH_END
+00001423*      CHECK_TIME_OF_ACCESS
+0000147e*      GET$BPB
+000014bc*      SET_PATCH
+000014c6*      BIOS_SET_PATCH_END
+000014c9*      SETPTRSAV
+000014e6*      Clear_IDs
+00001529*      GETBP
+0000154f*      GETBP1_PATCH
+00001552*      BIOS_GETBP1_PATCH_END
+000015a8*      HAS1
+00001721*      Mov_Media_IDs
+00001795*      HIDENSITY
+000017b9*      BIOS_MEDIA_SERVICE_END
+000017b9*      BIOS_IOCTL_STATE_START
+00001842*      BIOS_IOCTL_STATE_END
+000017bb*      SECTORSPERTRACK
+000017bd*      TRACKTABLE
+0000183b*      MEDIATYPE
+0000183c*      MEDIA_SET_FOR_FORMAT
+0000183d*      Had_Format_Error
+0000183e*      TEMPDPT
+000017b9*      Prev_DX
+Module: /var/folders/s1/jvvnpwf50tjbhq2t_dzzxssm0000gn/T/msdos-high-link-_z88yu_d/dispatch.obj(/var/folders/s1/jvvnpwf50tjbhq2t_dzzxssm0000gn/T/msdos-high-link-_z88yu_d/dispatch.obj)
+00001842*      BIOS_DISPATCH_START
+000018bc*      BIOS_DISPATCH_END
+Module: /var/folders/s1/jvvnpwf50tjbhq2t_dzzxssm0000gn/T/msdos-high-link-_z88yu_d/MSCON.obj(/var/folders/s1/jvvnpwf50tjbhq2t_dzzxssm0000gn/T/msdos-high-link-_z88yu_d/MSCON.obj)
+000018bc*      CON$READ
+00001907*      CON$RDND
+00001967       RDEXIT
+00001974*      CON$FLSH
+0000197a       FLUSH
+00001992*      CON$WRIT
+Module: /var/folders/s1/jvvnpwf50tjbhq2t_dzzxssm0000gn/T/msdos-high-link-_z88yu_d/MSAUX.obj(/var/folders/s1/jvvnpwf50tjbhq2t_dzzxssm0000gn/T/msdos-high-link-_z88yu_d/MSAUX.obj)
+000019a2*      AUX$READ
+000019cd*      AUX$RDND
+000019f0*      AUX$WRST
+00001a0e*      AUX$FLSH
+00001a17*      AUX$WRIT
+Module: /var/folders/s1/jvvnpwf50tjbhq2t_dzzxssm0000gn/T/msdos-high-link-_z88yu_d/MSLPT.obj(/var/folders/s1/jvvnpwf50tjbhq2t_dzzxssm0000gn/T/msdos-high-link-_z88yu_d/MSLPT.obj)
+00001a3b*      PRN$WRIT
+00001a5d*      PRN$STAT
+00001a89*      PRN$TILBUSY
+00001aef*      PRN$GENIOCTL
+Module: /var/folders/s1/jvvnpwf50tjbhq2t_dzzxssm0000gn/T/msdos-high-link-_z88yu_d/MSCLOCK.obj(/var/folders/s1/jvvnpwf50tjbhq2t_dzzxssm0000gn/T/msdos-high-link-_z88yu_d/MSCLOCK.obj)
+00001b26*      TIM$WRIT
+00001b85*      time_to_ticks
+00001bca*      TIM$READ
+Module: /var/folders/s1/jvvnpwf50tjbhq2t_dzzxssm0000gn/T/msdos-high-link-_z88yu_d/HIGHCHAR.obj(/var/folders/s1/jvvnpwf50tjbhq2t_dzzxssm0000gn/T/msdos-high-link-_z88yu_d/HIGHCHAR.obj)
+00001c28       BIOS_CHAR_EXIT
+00001c2d       BIOS_CHAR_BUSY
+00001c32       BIOS_CHAR_CMDERR
+00001c37       BIOS_CHAR_ERRCNT
+00001c3c       BIOS_CHAR_ERREXIT
+00001c41       BIOS_CHAR_GETDX
+00001c4c       BIOS_CHAR_BINTOBCD
+00001c4f       BIOS_CHAR_DAYCNTTODAY
+00001c52*      Daycnt_to_day
+00001cc8*      EndDaycntToDay
+00001cc8*      Bin_to_bcd
+00001ccd*      EndCMOSClockset
+Module: /var/folders/s1/jvvnpwf50tjbhq2t_dzzxssm0000gn/T/msdos-high-link-_z88yu_d/mux.obj(/var/folders/s1/jvvnpwf50tjbhq2t_dzzxssm0000gn/T/msdos-high-link-_z88yu_d/mux.obj)
+00001ccd*      BIOS_MUX_BODY
+00001d4e*      BIOS_MUX_BODY_END
+00001d04*      INSTALL_BDS
+00001d46*      BIOS_MUX_INSTALL_LINK
+Module: /var/folders/s1/jvvnpwf50tjbhq2t_dzzxssm0000gn/T/msdos-high-link-_z88yu_d/swap.obj(/var/folders/s1/jvvnpwf50tjbhq2t_dzzxssm0000gn/T/msdos-high-link-_z88yu_d/swap.obj)
+00001d4e*      BIOS_SWAP_BODY_START
+00001dc9*      BIOS_SWAP_BODY_END
+00001d4e       SWPDSK
+00001d74*      WRMSG
+Module: /var/folders/s1/jvvnpwf50tjbhq2t_dzzxssm0000gn/T/msdos-high-link-_z88yu_d/bindings.obj(/var/folders/s1/jvvnpwf50tjbhq2t_dzzxssm0000gn/T/msdos-high-link-_z88yu_d/bindings.obj)
+00000176       ACCESSCOUNT
+000003af       ALTAH
+000000ea       AUXBUF
+0000016c       AUXNUM
+000005f5       BinToBCD
+000001d1       Boot_Serial_H
+000001cf       Boot_Serial_L
+000001de       Boot_System_ID
+000001d3       Boot_Volume_Label
+000001b3       BPB_IN_SECTOR
+0000043a       BUS$EXIT
+00000948       CHECKIO
+000008b7       CHECKLATCHIO
+0000043e       CMDERR
+00000060       COM1DEV
+0000018b       CURHD
+0000018a       CURSEC
+0000018c       CURTRK
+000003bc       DAYCNT
+000005f7       DaycntToDay
+000001a8       DISKSECTOR
+00000186       DPT
+00000418       DSK$IN
+000028c1       DSKTBL
+00000643       EC35_Flag
+00000185       EOT
+00000440       ERR$CNT
+00000448       ERR$EXIT
+00000195       ERRIN
+0000019e       ERROUT
+00000455       EXIT
+000001ce       Ext_Boot_Sig
+0000061d       Fat_12_ID
+00000626       Fat_16_ID
+00000058       FHAVE96
+0000005a       FHAVEK09
+00000178       FLAGBITS
+00000190       FORMT_EOT
+0000005c       FSETOWNER
+00000194       GAP_PATCH
+00000a35       HASCHANGE
+000005e8       HaveCMOSClock
+00000191       HDNUM
+00000786       INT2F_DISK
+000003b0       KEYRD_Func
+000003b1       KEYSTS_Func
+00000084       LPT2DEV
+0000019d       LSTERR
+0000017a       MEDBYT
+000001bd       MEDIABYTE
+0000083c       MEDIACHECK
+000009aa       MEDIA_SET_VID
+000006a4       Model_Byte
+000005e9       month_tab
+00000181       MOTORSTARTUP
+00000648       MultiTrk_Format_Flag
+00000641       MulTrk_Flag
+0000005b       NEW_ROM
+0000016e       NEXT2F_13
+000000f0       NUMBER_OF_SEC
+00000009       NUMERR
+000000de       OLD13
+000000e2       ORIG13
+000000ee       PREVOPER
+000003b2       PRINTDEV
+000000e6       PTRSAV
+00000a30       ResetChanged
+0000017c       RFLAG
+0000063f       Saved_Word
+00000184       Save_head_sttl
+0000017e       SECCNT
+000006a5       Secondary_Model_Byte
+000001b5       SECPERCLUSINSECTOR
+0000005d       Secrete_Code
+00000182       SETTLECURRENT
+00000183       SETTLESLOW
+000009fb       SET_CHANGED_DL
+0000061c       Set_ID_Flag
+00000a53       SET_VOLUME_ID
+00000059       SINGLE
+000003a8       SM92
+00000646       Soft_ECC_Cnt
+0000018e       SPSAV
+00000172       START_BDS
+0000063d       Start_Sec_H
+00000057       STEP_DRV
+000003be       STRATEGY
+0000063b       Temp_H
+0000003a       TIMDEV
+00000177       TIM_DRV
+00000192       TRKNUM
+0000062f       Vol_No_Name
+00000644       VRetry_Cnt
+000003b4       WAIT_COUNT
+0000017c       WRTVERIFY
+00001dc9       BIOS_CHAR_GETDX_OFFSET
+00001dcb       BIOS_CHAR_INT14
+00001dcf       BIOS_CHAR_INT15
+00001dd3       BIOS_CHAR_INT16
+00001dd7       BIOS_CHAR_INT17
+00001ddb       BIOS_CHAR_INT1A
+00001ddf       BIOS_CHAR_INT29
+00001de3       BIOS_CHAR_LOW_SEGMENT
+00001de5       BIOS_DISPATCH_ERROR_ENTRY
+00001de9       BIOS_DISPATCH_LOW_SEGMENT
+00001deb       BIOS_DISPATCH_TABLE_DELTA
+00001ded       BIOS_DISPATCH_TABLE_SEGMENT
+00001def       BIOS_LOW_BUSY_ENTRY
+00001df3       BIOS_LOW_CHECKIO_RESULT
+00001df5       BIOS_LOW_CHECKLATCH_RESULT
+00001df7       BIOS_LOW_CMDERR_ENTRY
+00001dfb       BIOS_LOW_DSKIN_ENTRY
+00001dff       BIOS_LOW_ERRCNT_ENTRY
+00001e03       BIOS_LOW_ERREXIT_ENTRY
+00001e07       BIOS_LOW_EXIT_ENTRY
+00001e0b       BIOS_LOW_HASCHANGE
+00001e0d       BIOS_LOW_MEDIA_CHECK
+00001e0f       BIOS_LOW_MEDIA_SET_VID
+00001e11       BIOS_LOW_RESET_CHANGED
+00001e13       BIOS_LOW_SET_CHANGED
+00001e15       BIOS_LOW_SET_VOLUME_ID
+00001e17       BIOS_SERVICE_CHAIN_VECTOR_GATE
+00001e1b       BIOS_SERVICE_INT13_GATE
+00001e1f       BIOS_SERVICE_INT1A_GATE
+00001e23       BIOS_SERVICE_LOW_SEGMENT
+00001e25       BIOS_SERVICE_NEAR_CALL_GATE
+00001e29       BIOS_SERVICE_NEXT2F_OFFSET
+00001e2b       BIOS_SERVICE_ORIG13_OFFSET
+00001e2d       BIOS_SERVICE_SAVED_VECTOR_GATE
+00001e31       BIOS_SERVICE_VECTOR_GATE
+00001e35       BIOS_SWAP_OUTCHR_OFFSET
+00001e37*      BIOS_DISPATCH_TABLES
+00001f91*      BIOS_PAYLOAD_END
+Warning! W1014: stack segment not found
+Warning! W1023: no starting address found, using 00000000
+
+
+                        +-----------------------+
+                        |   Linker Statistics   |
+                        +-----------------------+
+
+Stack size:  1000 (4096.)
+Memory size:  1fa0 (8096.)
+Entry point address: 00000000
+Link time: 00:00.89

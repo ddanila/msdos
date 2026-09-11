@@ -1,0 +1,21 @@
+{
+  "disks": [
+    {
+      "file": "disk1.img",
+      "sha256": "1c9220863f6cc3937cf18b08a0faf4b4f7eb39d3d7327f4159ec16585403a596"
+    },
+    {
+      "file": "disk2.img",
+      "sha256": "badba722594dd816116c4876c4b6a7301bc825bb7c983ecf5698b9530474c537"
+    }
+  ],
+  "files": 97,
+  "memory_core_sha256": {
+    "COMMAND.COM": "6742b5889141a9c61d41e336445014d8055c19758febf4263f4f8ebe3c2f2c29",
+    "EMM386.EXE": "58266b6614594de7a9cfde9eda75e3eb241b9e2e941e67b70645a0f8a197dae6",
+    "HIMEM.SYS": "d5ea7b0e775c2eb6eb2b7dab42eb7471a7a84bfb32cf2021215d4ed6f8a7850a",
+    "IO.SYS": "34af301387a2f3d11e20590922b3611227e640c26087dbf79ff83f1364fe0b8e",
+    "MSDOS.SYS": "b495ab1ccc6fd3e7672b4724a7cccde519d8a65171c0c0ed6bad73cd331a42e9"
+  },
+  "schema": 1
+}

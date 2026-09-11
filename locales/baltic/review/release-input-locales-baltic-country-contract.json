@@ -1,0 +1,200 @@
+{
+  "schema_version": 1,
+  "status": "country-contract-selected-runtime-unqualified",
+  "compatibility": "Explicit Baltic DOS extension with pre-euro formatting. Not a claim of byte identity to retail DOS 6.22 country records.",
+  "sources": [
+    {
+      "path": "upstream/cldr/et.xml",
+      "url": "https://raw.githubusercontent.com/unicode-org/cldr/2ef784e3a4168bc2a43cd1b5b9839b6636f5899c/common/collation/et.xml",
+      "revision": "2ef784e3a4168bc2a43cd1b5b9839b6636f5899c",
+      "sha256": "f4e503c4b70495e209a5c13ff88fac36c7fc3fe26bcdcc4b727ee3299f45c3cf",
+      "license": "Unicode-3.0",
+      "scope": "National letter ordering reference; not a DOS byte-weight table."
+    },
+    {
+      "path": "upstream/cldr/lv.xml",
+      "url": "https://raw.githubusercontent.com/unicode-org/cldr/2ef784e3a4168bc2a43cd1b5b9839b6636f5899c/common/collation/lv.xml",
+      "revision": "2ef784e3a4168bc2a43cd1b5b9839b6636f5899c",
+      "sha256": "79f0c7fd29f1453fb3a100870575037cd28fb968d69ac50eb72eb44c0304a934",
+      "license": "Unicode-3.0",
+      "scope": "National letter ordering reference; not a DOS byte-weight table."
+    },
+    {
+      "path": "upstream/cldr/lt.xml",
+      "url": "https://raw.githubusercontent.com/unicode-org/cldr/2ef784e3a4168bc2a43cd1b5b9839b6636f5899c/common/collation/lt.xml",
+      "revision": "2ef784e3a4168bc2a43cd1b5b9839b6636f5899c",
+      "sha256": "bd5404fc32e3c63138b447ef391fa12c0192655c75484bfbdd796cd75981bf0a",
+      "license": "Unicode-3.0",
+      "scope": "National letter ordering reference; not a DOS byte-weight table."
+    },
+    {
+      "path": "upstream/cldr/LICENSE",
+      "url": "https://raw.githubusercontent.com/unicode-org/cldr/2ef784e3a4168bc2a43cd1b5b9839b6636f5899c/LICENSE",
+      "revision": "2ef784e3a4168bc2a43cd1b5b9839b6636f5899c",
+      "sha256": "b4c0ae8ef04f7059f96ce5bbe0467f9fe6f6d81bbe13517701dfeb961fb4d0b6",
+      "license": "Unicode-3.0"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/dosbox-staging/dosbox-staging/d9135010ea56c2faa0bb8062aaf30a8541bf22f3/src/dos/dos_locale_data.cpp",
+      "revision": "d9135010ea56c2faa0bb8062aaf30a8541bf22f3",
+      "sha256": "04a846ebd946a6254b45f4b2b7ff52c387bcb75e94184ff2937916e97e5a16ac",
+      "license": "GPL-2.0-or-later",
+      "scope": "Historical locale parameter facts only. Source code is not imported. Source labels Estonia as Windows ME-derived with a currency correction, Latvia/Lithuania as OS/2 Warp 4.52-derived; this is not DOS 6.22 identity evidence."
+    }
+  ],
+  "profiles": {
+    "et": {
+      "country_id": 372,
+      "default_code_page": 775,
+      "supported_code_pages": [
+        775,
+        437,
+        850
+      ],
+      "date_order": "DMY",
+      "date_separator": ".",
+      "time_24_hour": true,
+      "time_separator": ":",
+      "currency_symbol": "KR",
+      "currency_format": 0,
+      "currency_digits": 2,
+      "thousands_separator": " ",
+      "decimal_separator": ",",
+      "list_separator": ";",
+      "status": "selected-contract-runtime-unqualified",
+      "collation_groups": "A\u00c0\u00c1\u00c2\u00c3\u0100\u0104\u00c5\u00c6BC\u00c7\u0106\u010cD\u00d0E\u00c8\u00ca\u00cb\u00c9\u0112\u0118\u0116F\u0191G\u0122HI\u00cc\u00cd\u00ce\u00cf\u012a\u012eJK\u0136L\u0141\u013bM\u00b5N\u00d1\u0143\u0145O\u00d2\u00d4\u00d3\u014c\u00d8PQR\u0156S\u00df\u015a\u0160Z\u0179\u017b\u017dT\u00deU\u00d9\u00da\u00db\u016a\u0172VW\u00d5\u00c4\u00d6\u00dcXY\u00dd\u0178\u00aa\u00ba\u207f\u0391\u0393\u03a0\u03a3\u03a4\u03a6\u0398\u03a9\u0394\u0395"
+    },
+    "lv": {
+      "country_id": 371,
+      "default_code_page": 775,
+      "supported_code_pages": [
+        775,
+        437,
+        850
+      ],
+      "date_order": "YMD",
+      "date_separator": ".",
+      "time_24_hour": true,
+      "time_separator": ":",
+      "currency_symbol": "Ls",
+      "currency_format": 3,
+      "currency_digits": 2,
+      "thousands_separator": " ",
+      "decimal_separator": ",",
+      "list_separator": ";",
+      "status": "selected-contract-runtime-unqualified",
+      "collation_groups": "A\u00c0\u00c1\u00c2\u00c3\u0100\u0104\u00c4\u00c5\u00c6BC\u00c7\u0106\u010cD\u00d0E\u00c8\u00ca\u00cb\u00c9\u0112\u0118\u0116F\u0191G\u0122HI\u00cc\u00cd\u00ce\u00cfY\u00dd\u0178\u012a\u012eJK\u0136L\u0141\u013bM\u00b5N\u00d1\u0143\u0145O\u00d2\u00d4\u00d3\u014c\u00d5\u00d6\u00d8PQR\u0156S\u00df\u015a\u0160T\u00deU\u00d9\u00da\u00db\u016a\u0172\u00dcVWXZ\u0179\u017b\u017d\u00aa\u00ba\u207f\u0391\u0393\u03a0\u03a3\u03a4\u03a6\u0398\u03a9\u0394\u0395"
+    },
+    "lt": {
+      "country_id": 370,
+      "default_code_page": 775,
+      "supported_code_pages": [
+        775,
+        437,
+        850
+      ],
+      "date_order": "YMD",
+      "date_separator": ".",
+      "time_24_hour": true,
+      "time_separator": ":",
+      "currency_symbol": "Lt",
+      "currency_format": 3,
+      "currency_digits": 2,
+      "thousands_separator": ".",
+      "decimal_separator": ",",
+      "list_separator": ";",
+      "status": "selected-contract-runtime-unqualified",
+      "collation_groups": "A\u00c0\u00c1\u00c2\u00c3\u0100\u0104\u00c4\u00c5\u00c6BC\u00c7\u0106\u010cD\u00d0E\u00c8\u00ca\u00cb\u00c9\u0112\u0118\u0116F\u0191G\u0122HI\u00cc\u00cd\u00ce\u00cf\u012a\u012eY\u00dd\u0178JK\u0136L\u0141\u013bM\u00b5N\u00d1\u0143\u0145O\u00d2\u00d4\u00d3\u014c\u00d5\u00d6\u00d8PQR\u0156S\u00df\u015a\u0160T\u00deU\u00d9\u00da\u00db\u0172\u016a\u00dcVWXZ\u0179\u017b\u017d\u00aa\u00ba\u207f\u0391\u0393\u03a0\u03a3\u03a4\u03a6\u0398\u03a9\u0394\u0395"
+    }
+  },
+  "collation_policy": {
+    "status": "explicit-single-byte-order-selected",
+    "reference": "CLDR 47 standard national tailoring, restricted to characters representable in the selected DOS page.",
+    "dos_limit": "One weight per input byte cannot implement Unicode multi-level whole-string collation, expansions or normalization. Define and test a deterministic case-insensitive single-byte ordering explicitly.",
+    "required_orders": {
+      "et": [
+        "S",
+        "\u0160",
+        "Z",
+        "\u017d",
+        "T",
+        "U",
+        "V",
+        "W",
+        "\u00d5",
+        "\u00c4",
+        "\u00d6",
+        "\u00dc",
+        "X",
+        "Y"
+      ],
+      "lv": [
+        "A",
+        "\u0100",
+        "C",
+        "\u010c",
+        "E",
+        "\u0112",
+        "G",
+        "\u0122",
+        "I",
+        "Y",
+        "\u012a",
+        "K",
+        "\u0136",
+        "L",
+        "\u013b",
+        "N",
+        "\u0145",
+        "O",
+        "\u014c",
+        "R",
+        "\u0156",
+        "S",
+        "\u0160",
+        "U",
+        "\u016a",
+        "Z",
+        "\u017d"
+      ],
+      "lt": [
+        "A",
+        "\u0104",
+        "C",
+        "\u010c",
+        "E",
+        "\u0118",
+        "\u0116",
+        "I",
+        "\u012e",
+        "Y",
+        "J",
+        "S",
+        "\u0160",
+        "U",
+        "\u0172",
+        "\u016a",
+        "Z",
+        "\u017d"
+      ]
+    },
+    "limits": [
+      "This defines a DOS single-byte adaptation, not full Unicode multi-level whole-string collation. In particular Lithuanian secondary distinctions become per-character group distinctions.",
+      "No contractions, expansions, Unicode normalization, or language-sensitive multi-character uppercase conversion.",
+      "Legacy 437/850 modes preserve their own byte encoding and therefore cannot represent all national letters. CP775 is the complete Baltic text profile."
+    ],
+    "ordering": "For collation only, identify a letter by its single-character Unicode uppercase, even when that uppercase is absent from the page; sharp s and micro sign identify themselves. Non-letter bytes sort first in unsigned byte order. Representable letter groups then follow the explicit collation_groups sequence with one increasing weight per group. A group omitted by a page consumes no weight. Case partners share their group weight. This does not change the separately specified DOS uppercase conversion.",
+    "foreign_letters": "Additional Latin letters in legacy pages are explicitly placed near their base. Ordinals, superscript n and the CP437 Greek letters have explicit trailing groups. Sharp s and micro sign each have their own group; no multi-character conversion is performed."
+  },
+  "remaining": [
+    "Freeze independent keyboard expectations and supported hardware behavior.",
+    "Implement and runtime-qualify the country records and all BALTIC.md release requirements."
+  ],
+  "case_policy": "ASCII a-z map to A-Z. For an extended byte, use its Unicode uppercase only when it is exactly one character and encodable in the same page; otherwise retain the byte. Use the same table for filename uppercase.",
+  "filename_policy": {
+    "basis": "Existing single-byte DOS filename and wildcard contracts; reuse the existing us_flist record.",
+    "short_names": "8.3 byte fields; all national CP775 letters remain legal.",
+    "wildcards": "Question mark matches one padded field position; star fills the remainder of that field.",
+    "dbcs": "No lead bytes."
+  }
+}
