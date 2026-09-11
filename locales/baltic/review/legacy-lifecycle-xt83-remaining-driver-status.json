@@ -1,0 +1,66 @@
+{
+  "status": "passed",
+  "previous_pid": 9054,
+  "previous_results": "/Users/ddanila/fun/msdos/out/baltic-legacy-lifecycle-kh0dpeyz/results.json",
+  "input_sha256": {
+    "tests/test_baltic_legacy_lifecycle_86box.py": "6d833e68c36fd18650f83202e8cd09db01275d9e9cb1f802933a4adc5e7cf890",
+    "tests/test_ru_legacy_keyboard_86box.py": "7eb2e4239898a1f9eb8e55bb7ffa913f7f38950d0d9f01c65b432a7edc3b804a",
+    "tests/ru_keyboard_probe.asm": "20a53c0219c7ad770fe23a662d52aa4223d7ecb18f762eea94423b8efc76c156"
+  },
+  "runs": [
+    {
+      "name": "resources-lt",
+      "command": [
+        "/Library/Developer/CommandLineTools/usr/bin/python3",
+        "tests/test_baltic_legacy_lifecycle_86box.py",
+        "--emulator",
+        "out/ru-86box-vnc-bs283qnk/build/src/86Box",
+        "--roms",
+        "/Users/ddanila/Library/Application Support/net.86box.86Box/roms",
+        "--qt-platform",
+        "offscreen",
+        "--machine",
+        "xt83",
+        "--family",
+        "resources",
+        "--language",
+        "LT",
+        "--input",
+        "bios",
+        "--input",
+        "dos"
+      ],
+      "status": "passed",
+      "started": 1789091879.56378,
+      "log": "/Users/ddanila/fun/msdos/out/baltic-xt-remaining5-resources-lt.log",
+      "pid": 10522,
+      "exit_code": 0,
+      "finished": 1789092721.381647,
+      "log_sha256": "3f4bd8582c63f46da3a3c4a1d2de62688d5a659c3e757e0f2627e92073181d11"
+    },
+    {
+      "name": "pending",
+      "command": [
+        "/Library/Developer/CommandLineTools/usr/bin/python3",
+        "tests/test_baltic_legacy_lifecycle_86box.py",
+        "--emulator",
+        "out/ru-86box-vnc-bs283qnk/build/src/86Box",
+        "--roms",
+        "/Users/ddanila/Library/Application Support/net.86box.86Box/roms",
+        "--qt-platform",
+        "offscreen",
+        "--machine",
+        "xt83",
+        "--family",
+        "pending"
+      ],
+      "status": "passed",
+      "started": 1789092721.382445,
+      "log": "/Users/ddanila/fun/msdos/out/baltic-xt-remaining5-pending.log",
+      "pid": 11173,
+      "exit_code": 0,
+      "finished": 1789097071.025713,
+      "log_sha256": "7aa9f1f7f25eade14a4a52a7d64236ed40b7ab26d33cd52a4357391ed3adf2b7"
+    }
+  ]
+}

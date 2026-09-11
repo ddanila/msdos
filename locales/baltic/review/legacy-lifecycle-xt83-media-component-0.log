@@ -1,0 +1,26 @@
+Baltic legacy lifecycle artifacts: /Users/ddanila/fun/msdos/out/baltic-legacy-lifecycle-mcpeq9v2
+PASS: XT83 bios, 119 physical reads
+PASS: XT83 dos, 119 physical reads
+PASS: XT83 bios, 92 physical reads
+PASS: XT83 dos, 92 physical reads
+PASS: XT83 bios, 4 physical reads
+PASS: XT83 dos, 4 physical reads
+PASS: XT83 bios, 80 physical reads
+PASS: XT83 dos, 80 physical reads
+PASS: XT83 bios, 116 physical reads
+PASS: XT83 dos, 116 physical reads
+PASS: XT83 bios, 116 physical reads
+PASS: XT83 dos, 116 physical reads
+Disk full
+Traceback (most recent call last):
+  File "/Users/ddanila/fun/msdos/tests/test_baltic_legacy_lifecycle_86box.py", line 170, in <module>
+    main()
+  File "/Users/ddanila/fun/msdos/tests/test_baltic_legacy_lifecycle_86box.py", line 149, in main
+    result = run_case(folder, args, core, kind, locale=locale)
+  File "/Users/ddanila/fun/msdos/tests/test_ru_legacy_keyboard_86box.py", line 218, in run_case
+    put('AUTOEXEC.BAT',('\r\n'.join(batch)+'\r\n').encode())
+  File "/Users/ddanila/fun/msdos/tests/test_ru_legacy_keyboard_86box.py", line 170, in put
+    subprocess.run(['mcopy','-o','-i',str(image),'-','::'+name],input=data,check=True)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/subprocess.py", line 528, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['mcopy', '-o', '-i', '/Users/ddanila/fun/msdos/out/baltic-legacy-lifecycle-mcpeq9v2/resources-lv/bios/test.img', '-', '::AUTOEXEC.BAT']' returned non-zero exit status 1.

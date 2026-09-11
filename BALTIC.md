@@ -235,8 +235,7 @@ build hashes.
 records the complete pristine `FAIL_ON_SKIP=1 make -k -j1 test` run and the
 subsequent deployment/distribution checks. The core and deployed resources
 match the runtime-qualified bytes, and installation disk hashes are unchanged.
-The full legacy matrices and final requirement-by-requirement acceptance audit
-remain open.
+The final requirement-by-requirement acceptance audit remains open.
 Existing Russian evidence does not establish Baltic support.
 
 [Current-core display qualification](locales/baltic/current-display-qualification.json)
@@ -249,12 +248,18 @@ covers BIOS/DOS mode, selection, resource-rejection and pending-accent plans.
 The German control exposed an enhanced-keyboard assumption in the test barrier:
 legacy Caps Lock requires a physical toggle to clear it. The record retains
 the original failure, corrected German runs and unchanged earlier cases, with
-reproduced guest probes and images. The complete XT matrix remains open.
+reproduced guest probes and images.
 
 [XT test-media qualification](locales/baltic/legacy-media-qualification.json)
 records capacity and payload parity for the larger malformed-library fixtures.
 Compact private XT images use single-sector clusters and omit unused menu and
 initial-probe files, preserving all mutants and commands. Lithuanian BIOS/DOS
 resource-recovery runs now pass with reproduced guest probes and all mutant
-payloads checked against the actual corrected images. The full XT pending-accent
-matrix and final acceptance remain open.
+payloads checked against the actual corrected images.
+
+[Complete AT/XT lifecycle qualification](locales/baltic/legacy-lifecycle-qualification.json)
+retains all 36 cases on each machine through BIOS and DOS input. Every case
+completed with emulator exit zero; probes, actions and resources were checked
+against the actual guest images. Component provenance preserves the earlier
+media-creation failures and their successful continuation. Final acceptance
+and metadata reconciliation remain open.

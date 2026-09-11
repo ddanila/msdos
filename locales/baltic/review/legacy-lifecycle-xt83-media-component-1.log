@@ -1,0 +1,16 @@
+Baltic legacy lifecycle artifacts: /Users/ddanila/fun/msdos/out/baltic-legacy-lifecycle-kh0dpeyz
+PASS: XT83 bios, 116 physical reads
+PASS: XT83 dos, 116 physical reads
+Disk full
+Traceback (most recent call last):
+  File "/Users/ddanila/fun/msdos/tests/test_baltic_legacy_lifecycle_86box.py", line 170, in <module>
+    main()
+  File "/Users/ddanila/fun/msdos/tests/test_baltic_legacy_lifecycle_86box.py", line 149, in main
+    result = run_case(folder, args, core, kind, locale=locale)
+  File "/Users/ddanila/fun/msdos/tests/test_ru_legacy_keyboard_86box.py", line 223, in run_case
+    batch += [action,
+  File "/Users/ddanila/fun/msdos/tests/test_ru_legacy_keyboard_86box.py", line 170, in put
+    subprocess.run(['mcopy','-i',str(image),'-','::'+name],input=data,check=True)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/subprocess.py", line 528, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['mcopy', '-o', '-i', '/Users/ddanila/fun/msdos/out/baltic-legacy-lifecycle-kh0dpeyz/resources-lt/bios/test.img', '-', '::AUTOEXEC.BAT']' returned non-zero exit status 1.

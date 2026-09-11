@@ -1,0 +1,219 @@
+Drive A: /Users/ddanila/fun/msdos/out/baltic-legacy-lifecycle-awb79o7h/pending-et-1/dos/test.img
+#
+# 86Box v7.0 logfile, created 2026/09/11 05:22:58
+#
+# Emulator path: /Users/ddanila/fun/msdos/out/ru-86box-vnc-bs283qnk/build/src/
+# Global configuration file: /Users/ddanila/fun/msdos/out/baltic-legacy-lifecycle-awb79o7h/pending-et-1/dos/global.cfg
+# VM: dos
+#
+# Configuration file: /Users/ddanila/fun/msdos/out/baltic-legacy-lifecycle-awb79o7h/pending-et-1/dos/86box.cfg
+#
+
+# Userfiles path: /Users/ddanila/fun/msdos/out/baltic-legacy-lifecycle-awb79o7h/pending-et-1/dos/
+# ROM path: /Users/ddanila/Library/Application Support/net.86box.86Box/roms/
+# ROM path: /Users/ddanila/fun/msdos/out/baltic-legacy-lifecycle-awb79o7h/pending-et-1/dos/roms/
+# ROM path: /Users/ddanila/fun/msdos/out/ru-86box-vnc-bs283qnk/build/src/roms/
+# ROM path: /Users/ddanila/Library/Application Support/net.86Box.86Box/roms/
+# ROM path: /Users/ddanila/Library/Application Support/86Box/roms/
+# ROM path: /Library/Application Support/net.86Box.86Box/roms/
+# ROM path: /Library/Application Support/86Box/roms/
+# Asset path: /Users/ddanila/fun/msdos/out/baltic-legacy-lifecycle-awb79o7h/pending-et-1/dos/assets/
+# Asset path: /Users/ddanila/fun/msdos/out/ru-86box-vnc-bs283qnk/build/src/assets/
+# Asset path: /Users/ddanila/Library/Application Support/net.86Box.86Box/assets/
+# Asset path: /Users/ddanila/Library/Application Support/86Box/assets/
+# Asset path: /Library/Application Support/net.86Box.86Box/assets/
+# Asset path: /Library/Application Support/86Box/assets/
+Qt: version 6.11.2, platform "offscreen"
+Translations loaded.
+Failed to find Qt translations!
+Qt translations loaded.
+Translations loaded.
+Failed to find Qt translations!
+Qt translations loaded.
+qt.qpa.fonts: Populating font family aliases took 40 ms. Replace uses of missing font family "Sans Serif" with one that exists to avoid this cost. 
+This plugin does not support createPlatformVulkanInstance
+QVulkanInstance: Failed to initialize Vulkan
+11/09/2026 05:22:58 Listening for VNC connections on TCP port 5900
+11/09/2026 05:22:58 Listening for VNC connections on TCP6 port 5900
+This plugin does not support propagateSizeHints()
+This plugin does not support propagateSizeHints()
+11/09/2026 05:22:58   0 other clients
+
+RU_COUNTRY_PASS
+
+MODE prepare code page function completed
+
+MODE select code page function completed
+One or more CON code pages invalid for given keyboard code
+RU_XT83_TYPE_PASS
+RU_CODEPAGE_PASS
+RU_COUNTRY_PASS
+BALTIC_PHASE_00
+One or more CON code pages invalid for given keyboard code
+RU_XT83_TYPE_PASS
+Current keyboard code: ET  code page: 775
+Current CON code page: 775
+KEYB_CAPACITY 2279
+RU_KEY_READY 0000
+RU_KEY_READY 0001
+RU_KEY_ARMED 0001
+RU_KEY_PASS
+BALTIC_PHASE_01
+One or more CON code pages invalid for given keyboard code
+RU_XT83_TYPE_PASS
+Current keyboard code: ET  code page: 775
+Current CON code page: 775
+KEYB_CAPACITY 2279
+RU_KEY_READY 0002
+RU_KEY_PASS
+BALTIC_PHASE_02
+One or more CON code pages invalid for given keyboard code
+RU_XT83_TYPE_PASS
+Current keyboard code: ET  code page: 775
+Current CON code page: 775
+KEYB_CAPACITY 2279
+RU_KEY_READY 0003
+RU_KEY_PASS
+BALTIC_PHASE_03
+One or more CON code pages invalid for given keyboard code
+RU_XT83_TYPE_PASS
+Current keyboard code: ET  code page: 775
+Current CON code page: 775
+KEYB_CAPACITY 2279
+RU_KEY_READY 0004
+RU_KEY_READY 0005
+RU_KEY_ARMED 0005
+RU_KEY_PASS
+BALTIC_PHASE_04
+One or more CON code pages invalid for given keyboard code
+RU_XT83_TYPE_PASS
+Current keyboard code: EE  code page: 775
+Current CON code page: 775
+KEYB_CAPACITY 2279
+RU_KEY_READY 0006
+RU_KEY_PASS
+BALTIC_PHASE_05
+One or more CON code pages invalid for given keyboard code
+RU_XT83_TYPE_PASS
+Current keyboard code: ET  code page: 775
+Current CON code page: 775
+KEYB_CAPACITY 2279
+RU_KEY_READY 0007
+RU_KEY_PASS
+BALTIC_PHASE_06
+One or more CON code pages invalid for given keyboard code
+RU_XT83_TYPE_PASS
+Current keyboard code: ET  code page: 775
+Current CON code page: 775
+KEYB_CAPACITY 2279
+RU_KEY_READY 0008
+RU_KEY_READY 0009
+RU_KEY_ARMED 0009
+RU_KEY_PASS
+BALTIC_PHASE_07
+One or more CON code pages invalid for given keyboard code
+RU_XT83_TYPE_PASS
+Current keyboard code: LV  code page: 775
+Current CON code page: 775
+KEYB_CAPACITY 2279
+RU_KEY_READY 000A
+RU_KEY_PASS
+BALTIC_PHASE_08
+One or more CON code pages invalid for given keyboard code
+RU_XT83_TYPE_PASS
+Current keyboard code: ET  code page: 775
+Current CON code page: 775
+KEYB_CAPACITY 2279
+RU_KEY_READY 000B
+RU_KEY_PASS
+BALTIC_PHASE_09
+One or more CON code pages invalid for given keyboard code
+RU_XT83_TYPE_PASS
+Current keyboard code: ET  code page: 775
+Current CON code page: 775
+KEYB_CAPACITY 2279
+RU_KEY_READY 000C
+RU_KEY_READY 000D
+RU_KEY_ARMED 000D
+RU_KEY_PASS
+BALTIC_PHASE_10
+One or more CON code pages invalid for given keyboard code
+RU_XT83_TYPE_PASS
+Current keyboard code: LT  code page: 775
+Current CON code page: 775
+KEYB_CAPACITY 2279
+RU_KEY_READY 000E
+RU_KEY_PASS
+BALTIC_PHASE_11
+One or more CON code pages invalid for given keyboard code
+RU_XT83_TYPE_PASS
+Current keyboard code: ET  code page: 775
+Current CON code page: 775
+KEYB_CAPACITY 2279
+RU_KEY_READY 000F
+RU_KEY_PASS
+BALTIC_PHASE_12
+One or more CON code pages invalid for given keyboard code
+RU_XT83_TYPE_PASS
+Current keyboard code: ET  code page: 775
+Current CON code page: 775
+KEYB_CAPACITY 2279
+RU_KEY_READY 0010
+RU_KEY_READY 0011
+RU_KEY_ARMED 0011
+RU_KEY_PASS
+BALTIC_PHASE_13
+One or more CON code pages invalid for given keyboard code
+RU_XT83_TYPE_PASS
+Current keyboard code: ET  code page: 775
+Current CON code page: 775
+KEYB_CAPACITY 2279
+RU_KEY_READY 0012
+RU_KEY_PASS
+BALTIC_PHASE_14
+One or more CON code pages invalid for given keyboard code
+RU_XT83_TYPE_PASS
+Current keyboard code: ET  code page: 775
+Current CON code page: 775
+KEYB_CAPACITY 2279
+RU_KEY_READY 0013
+RU_KEY_PASS
+BALTIC_PHASE_15
+One or more CON code pages invalid for given keyboard code
+RU_XT83_TYPE_PASS
+Current keyboard code: ET  code page: 775
+Current CON code page: 775
+KEYB_CAPACITY 2279
+RU_KEY_READY 0014
+RU_KEY_READY 0015
+RU_KEY_ARMED 0015
+RU_KEY_PASS
+BALTIC_PHASE_16
+Bad or missing Keyboard Definition File
+RU_XT83_TYPE_PASS
+Current keyboard code: ET  code page: 775
+Current CON code page: 775
+KEYB_CAPACITY 2279
+RU_KEY_READY 0016
+RU_KEY_READY 0017
+RU_KEY_PASS
+BALTIC_PHASE_17
+One or more CON code pages invalid for given keyboard code
+RU_XT83_TYPE_PASS
+Current keyboard code: ET  code page: 775
+Current CON code page: 775
+KEYB_CAPACITY 2279
+RU_KEY_READY 0018
+RU_KEY_READY 0019
+RU_KEY_ARMED 0019
+RU_KEY_PASS
+BALTIC_PHASE_18
+Invalid keyboard ID specified
+RU_XT83_TYPE_PASS
+Current keyboard code: ET  code page: 775
+Current CON code page: 775
+KEYB_CAPACITY 2279
+RU_KEY_READY 001A
+RU_KEY_READY 001B
+RU_KEY_PASS
+RU_LEGACY_KEY_DONE

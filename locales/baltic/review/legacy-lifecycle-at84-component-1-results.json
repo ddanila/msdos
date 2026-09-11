@@ -1,0 +1,3582 @@
+{
+  "status": "passed",
+  "machine": "at84",
+  "memory_profile": "DOS=LOW",
+  "core_sha256": {
+    "EMM386.EXE": "58266b6614594de7a9cfde9eda75e3eb241b9e2e941e67b70645a0f8a197dae6",
+    "COMMAND.COM": "6742b5889141a9c61d41e336445014d8055c19758febf4263f4f8ebe3c2f2c29",
+    "IO.SYS": "34af301387a2f3d11e20590922b3611227e640c26087dbf79ff83f1364fe0b8e",
+    "HIMEM.SYS": "d5ea7b0e775c2eb6eb2b7dab42eb7471a7a84bfb32cf2021215d4ed6f8a7850a",
+    "MSDOS.SYS": "b495ab1ccc6fd3e7672b4724a7cccde519d8a65171c0c0ed6bad73cd331a42e9"
+  },
+  "emulator_sha256": "798ac6072d5147ed4dca7540ca5303da1e4c2d190853c227dde9ea3b33583c18",
+  "resource_sha256": {
+    "CMD/KEYB/KEYB.COM": "924edf011009fe4a747d045f24ae5da817b613e914cbf58b66ca22e3637ffa3e",
+    "DEV/KEYBOARD/KEYBRD2.SYS": "d003716471ffbe12803ac7beaf511a8a4e2d6a0b8ef5e3d214eee2a69584cf06",
+    "DEV/KEYBOARD/KEYBOARD.SYS": "57571a4b10040dd0645998d0ccb8caa6e02be904ded253c9c81d542750ae4d9d",
+    "DEV/COUNTRY/COUNTRY.SYS": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c",
+    "DEV/DISPLAY/DISPLAY.SYS": "0ebd3bfad4e87d79e05219c02ea71ce4e94f9e11b432efdf652a022488d9ac08",
+    "DEV/DISPLAY/EGA/EGA775.CPI": "ab38fe5b8acae0ba3933ac6b66596c58b32bc23385285b8cc68fec1fa8f15255",
+    "DEV/DISPLAY/EGA/EGA866.CPI": "efa06cb267a370fab3db71fb85f73711b750ec04498b40b6cc6a4a2be2e3d7ad",
+    "CMD/MODE/MODE.COM": "c385aad5697fcec3a9113f58b983b978a7f969e99b153ebd496b12dab0e3767d",
+    "CMD/NLSFUNC/NLSFUNC.EXE": "f8bed4307ba458fd1e14f5aae373d5693d830d77ccd77636a6313df5f7b0e297"
+  },
+  "cases": [
+    {
+      "input": "bios",
+      "emulator_exit": 0,
+      "reads": 28,
+      "steps": [
+        {
+          "name": "literal confirms trigger",
+          "keys": [
+            [
+              "equal",
+              true
+            ],
+            [
+              "equal",
+              false
+            ],
+            [
+              "spc",
+              true
+            ],
+            [
+              "spc",
+              false
+            ]
+          ],
+          "bios_words": [
+            39
+          ]
+        },
+        {
+          "name": "arm pending; physical Caps on/off barrier",
+          "keys": [
+            [
+              "equal",
+              true
+            ],
+            [
+              "equal",
+              false
+            ],
+            [
+              "caps_lock",
+              true
+            ],
+            [
+              "caps_lock",
+              false
+            ],
+            [
+              "caps_lock",
+              true
+            ],
+            [
+              "caps_lock",
+              false
+            ]
+          ],
+          "bios_words": [],
+          "ack_after": 4
+        },
+        {
+          "name": "fresh target input",
+          "keys": [
+            [
+              "q",
+              true
+            ],
+            [
+              "q",
+              false
+            ]
+          ],
+          "bios_words": [
+            4209
+          ]
+        },
+        {
+          "name": "no stale state after return",
+          "keys": [
+            [
+              "q",
+              true
+            ],
+            [
+              "q",
+              false
+            ]
+          ],
+          "bios_words": [
+            4209
+          ]
+        },
+        {
+          "name": "literal confirms trigger",
+          "keys": [
+            [
+              "equal",
+              true
+            ],
+            [
+              "equal",
+              false
+            ],
+            [
+              "spc",
+              true
+            ],
+            [
+              "spc",
+              false
+            ]
+          ],
+          "bios_words": [
+            39
+          ]
+        },
+        {
+          "name": "arm pending; physical Caps on/off barrier",
+          "keys": [
+            [
+              "equal",
+              true
+            ],
+            [
+              "equal",
+              false
+            ],
+            [
+              "caps_lock",
+              true
+            ],
+            [
+              "caps_lock",
+              false
+            ],
+            [
+              "caps_lock",
+              true
+            ],
+            [
+              "caps_lock",
+              false
+            ]
+          ],
+          "bios_words": [],
+          "ack_after": 4
+        },
+        {
+          "name": "fresh target input",
+          "keys": [
+            [
+              "q",
+              true
+            ],
+            [
+              "q",
+              false
+            ]
+          ],
+          "bios_words": [
+            4209
+          ]
+        },
+        {
+          "name": "no stale state after return",
+          "keys": [
+            [
+              "q",
+              true
+            ],
+            [
+              "q",
+              false
+            ]
+          ],
+          "bios_words": [
+            4209
+          ]
+        },
+        {
+          "name": "literal confirms trigger",
+          "keys": [
+            [
+              "equal",
+              true
+            ],
+            [
+              "equal",
+              false
+            ],
+            [
+              "spc",
+              true
+            ],
+            [
+              "spc",
+              false
+            ]
+          ],
+          "bios_words": [
+            39
+          ]
+        },
+        {
+          "name": "arm pending; physical Caps on/off barrier",
+          "keys": [
+            [
+              "equal",
+              true
+            ],
+            [
+              "equal",
+              false
+            ],
+            [
+              "caps_lock",
+              true
+            ],
+            [
+              "caps_lock",
+              false
+            ],
+            [
+              "caps_lock",
+              true
+            ],
+            [
+              "caps_lock",
+              false
+            ]
+          ],
+          "bios_words": [],
+          "ack_after": 4
+        },
+        {
+          "name": "fresh target input",
+          "keys": [
+            [
+              "q",
+              true
+            ],
+            [
+              "q",
+              false
+            ]
+          ],
+          "bios_words": [
+            4209
+          ]
+        },
+        {
+          "name": "no stale state after return",
+          "keys": [
+            [
+              "q",
+              true
+            ],
+            [
+              "q",
+              false
+            ]
+          ],
+          "bios_words": [
+            4209
+          ]
+        },
+        {
+          "name": "literal confirms trigger",
+          "keys": [
+            [
+              "equal",
+              true
+            ],
+            [
+              "equal",
+              false
+            ],
+            [
+              "spc",
+              true
+            ],
+            [
+              "spc",
+              false
+            ]
+          ],
+          "bios_words": [
+            39
+          ]
+        },
+        {
+          "name": "arm pending; physical Caps on/off barrier",
+          "keys": [
+            [
+              "equal",
+              true
+            ],
+            [
+              "equal",
+              false
+            ],
+            [
+              "caps_lock",
+              true
+            ],
+            [
+              "caps_lock",
+              false
+            ],
+            [
+              "caps_lock",
+              true
+            ],
+            [
+              "caps_lock",
+              false
+            ]
+          ],
+          "bios_words": [],
+          "ack_after": 4
+        },
+        {
+          "name": "fresh target input",
+          "keys": [
+            [
+              "q",
+              true
+            ],
+            [
+              "q",
+              false
+            ]
+          ],
+          "bios_words": [
+            4304
+          ]
+        },
+        {
+          "name": "no stale state after return",
+          "keys": [
+            [
+              "q",
+              true
+            ],
+            [
+              "q",
+              false
+            ]
+          ],
+          "bios_words": [
+            4209
+          ]
+        },
+        {
+          "name": "literal confirms trigger",
+          "keys": [
+            [
+              "equal",
+              true
+            ],
+            [
+              "equal",
+              false
+            ],
+            [
+              "spc",
+              true
+            ],
+            [
+              "spc",
+              false
+            ]
+          ],
+          "bios_words": [
+            39
+          ]
+        },
+        {
+          "name": "arm pending; physical Caps on/off barrier",
+          "keys": [
+            [
+              "equal",
+              true
+            ],
+            [
+              "equal",
+              false
+            ],
+            [
+              "caps_lock",
+              true
+            ],
+            [
+              "caps_lock",
+              false
+            ],
+            [
+              "caps_lock",
+              true
+            ],
+            [
+              "caps_lock",
+              false
+            ]
+          ],
+          "bios_words": [],
+          "ack_after": 4
+        },
+        {
+          "name": "legacy self-reload retains pending",
+          "keys": [
+            [
+              "a",
+              true
+            ],
+            [
+              "a",
+              false
+            ]
+          ],
+          "bios_words": [
+            160
+          ]
+        },
+        {
+          "name": "legacy composition consumed once",
+          "keys": [
+            [
+              "q",
+              true
+            ],
+            [
+              "q",
+              false
+            ]
+          ],
+          "bios_words": [
+            4209
+          ]
+        },
+        {
+          "name": "literal confirms trigger",
+          "keys": [
+            [
+              "equal",
+              true
+            ],
+            [
+              "equal",
+              false
+            ],
+            [
+              "spc",
+              true
+            ],
+            [
+              "spc",
+              false
+            ]
+          ],
+          "bios_words": [
+            39
+          ]
+        },
+        {
+          "name": "arm pending; physical Caps on/off barrier",
+          "keys": [
+            [
+              "equal",
+              true
+            ],
+            [
+              "equal",
+              false
+            ],
+            [
+              "caps_lock",
+              true
+            ],
+            [
+              "caps_lock",
+              false
+            ],
+            [
+              "caps_lock",
+              true
+            ],
+            [
+              "caps_lock",
+              false
+            ]
+          ],
+          "bios_words": [],
+          "ack_after": 4
+        },
+        {
+          "name": "rejection retains pending composition",
+          "keys": [
+            [
+              "a",
+              true
+            ],
+            [
+              "a",
+              false
+            ]
+          ],
+          "bios_words": [
+            160
+          ]
+        },
+        {
+          "name": "composition consumed once",
+          "keys": [
+            [
+              "q",
+              true
+            ],
+            [
+              "q",
+              false
+            ]
+          ],
+          "bios_words": [
+            4209
+          ]
+        },
+        {
+          "name": "literal confirms trigger",
+          "keys": [
+            [
+              "equal",
+              true
+            ],
+            [
+              "equal",
+              false
+            ],
+            [
+              "spc",
+              true
+            ],
+            [
+              "spc",
+              false
+            ]
+          ],
+          "bios_words": [
+            39
+          ]
+        },
+        {
+          "name": "arm pending; physical Caps on/off barrier",
+          "keys": [
+            [
+              "equal",
+              true
+            ],
+            [
+              "equal",
+              false
+            ],
+            [
+              "caps_lock",
+              true
+            ],
+            [
+              "caps_lock",
+              false
+            ],
+            [
+              "caps_lock",
+              true
+            ],
+            [
+              "caps_lock",
+              false
+            ]
+          ],
+          "bios_words": [],
+          "ack_after": 4
+        },
+        {
+          "name": "rejection retains pending composition",
+          "keys": [
+            [
+              "a",
+              true
+            ],
+            [
+              "a",
+              false
+            ]
+          ],
+          "bios_words": [
+            160
+          ]
+        },
+        {
+          "name": "composition consumed once",
+          "keys": [
+            [
+              "q",
+              true
+            ],
+            [
+              "q",
+              false
+            ]
+          ],
+          "bios_words": [
+            4209
+          ]
+        }
+      ],
+      "probe_passes": 18,
+      "type_passes": 19,
+      "actions": [
+        [
+          "P372775.COM",
+          false
+        ],
+        [
+          "NLSFUNC",
+          false
+        ],
+        [
+          "MODE CON CP PREPARE=((775) EGA775.CPI)",
+          false
+        ],
+        [
+          "MODE CON CP SELECT=775",
+          false
+        ],
+        [
+          "KEYB ET,775,KEYBRD2.SYS",
+          false
+        ],
+        [
+          "TYPECHK.COM",
+          false
+        ],
+        [
+          "CPCHK.COM",
+          false
+        ],
+        [
+          "P372775.COM",
+          false
+        ],
+        [
+          "ECHO BALTIC_PHASE_00",
+          false
+        ],
+        [
+          "KEYB GR,437,KEYBOARD.SYS",
+          false
+        ],
+        [
+          "TYPECHK.COM",
+          false
+        ],
+        [
+          "KEYB",
+          false
+        ],
+        [
+          "L00.COM 0000",
+          false
+        ],
+        [
+          "ECHO BALTIC_PHASE_01",
+          false
+        ],
+        [
+          "KEYB ET,775,KEYBRD2.SYS",
+          false
+        ],
+        [
+          "TYPECHK.COM",
+          false
+        ],
+        [
+          "KEYB",
+          false
+        ],
+        [
+          "L01.COM 0002",
+          false
+        ],
+        [
+          "ECHO BALTIC_PHASE_02",
+          false
+        ],
+        [
+          "KEYB ET,775,KEYBRD2.SYS",
+          false
+        ],
+        [
+          "TYPECHK.COM",
+          false
+        ],
+        [
+          "KEYB",
+          false
+        ],
+        [
+          "L01.COM 0003",
+          false
+        ],
+        [
+          "ECHO BALTIC_PHASE_03",
+          false
+        ],
+        [
+          "KEYB GR,437,KEYBOARD.SYS",
+          false
+        ],
+        [
+          "TYPECHK.COM",
+          false
+        ],
+        [
+          "KEYB",
+          false
+        ],
+        [
+          "L00.COM 0004",
+          false
+        ],
+        [
+          "ECHO BALTIC_PHASE_04",
+          false
+        ],
+        [
+          "KEYB EE,775,KEYBRD2.SYS",
+          false
+        ],
+        [
+          "TYPECHK.COM",
+          false
+        ],
+        [
+          "KEYB",
+          false
+        ],
+        [
+          "L01.COM 0006",
+          false
+        ],
+        [
+          "ECHO BALTIC_PHASE_05",
+          false
+        ],
+        [
+          "KEYB ET,775,KEYBRD2.SYS",
+          false
+        ],
+        [
+          "TYPECHK.COM",
+          false
+        ],
+        [
+          "KEYB",
+          false
+        ],
+        [
+          "L01.COM 0007",
+          false
+        ],
+        [
+          "ECHO BALTIC_PHASE_06",
+          false
+        ],
+        [
+          "KEYB GR,437,KEYBOARD.SYS",
+          false
+        ],
+        [
+          "TYPECHK.COM",
+          false
+        ],
+        [
+          "KEYB",
+          false
+        ],
+        [
+          "L00.COM 0008",
+          false
+        ],
+        [
+          "ECHO BALTIC_PHASE_07",
+          false
+        ],
+        [
+          "KEYB LV,775,KEYBRD2.SYS",
+          false
+        ],
+        [
+          "TYPECHK.COM",
+          false
+        ],
+        [
+          "KEYB",
+          false
+        ],
+        [
+          "L01.COM 000A",
+          false
+        ],
+        [
+          "ECHO BALTIC_PHASE_08",
+          false
+        ],
+        [
+          "KEYB ET,775,KEYBRD2.SYS",
+          false
+        ],
+        [
+          "TYPECHK.COM",
+          false
+        ],
+        [
+          "KEYB",
+          false
+        ],
+        [
+          "L01.COM 000B",
+          false
+        ],
+        [
+          "ECHO BALTIC_PHASE_09",
+          false
+        ],
+        [
+          "KEYB GR,437,KEYBOARD.SYS",
+          false
+        ],
+        [
+          "TYPECHK.COM",
+          false
+        ],
+        [
+          "KEYB",
+          false
+        ],
+        [
+          "L00.COM 000C",
+          false
+        ],
+        [
+          "ECHO BALTIC_PHASE_10",
+          false
+        ],
+        [
+          "KEYB LT,775,KEYBRD2.SYS",
+          false
+        ],
+        [
+          "TYPECHK.COM",
+          false
+        ],
+        [
+          "KEYB",
+          false
+        ],
+        [
+          "L02.COM 000E",
+          false
+        ],
+        [
+          "ECHO BALTIC_PHASE_11",
+          false
+        ],
+        [
+          "KEYB ET,775,KEYBRD2.SYS",
+          false
+        ],
+        [
+          "TYPECHK.COM",
+          false
+        ],
+        [
+          "KEYB",
+          false
+        ],
+        [
+          "L01.COM 000F",
+          false
+        ],
+        [
+          "ECHO BALTIC_PHASE_12",
+          false
+        ],
+        [
+          "KEYB GR,437,KEYBOARD.SYS",
+          false
+        ],
+        [
+          "TYPECHK.COM",
+          false
+        ],
+        [
+          "KEYB",
+          false
+        ],
+        [
+          "L00.COM 0010",
+          false
+        ],
+        [
+          "ECHO BALTIC_PHASE_13",
+          false
+        ],
+        [
+          "KEYB GR,437,KEYBOARD.SYS",
+          false
+        ],
+        [
+          "TYPECHK.COM",
+          false
+        ],
+        [
+          "KEYB",
+          false
+        ],
+        [
+          "L03.COM 0012",
+          false
+        ],
+        [
+          "ECHO BALTIC_PHASE_14",
+          false
+        ],
+        [
+          "KEYB GR,437,KEYBOARD.SYS",
+          false
+        ],
+        [
+          "TYPECHK.COM",
+          false
+        ],
+        [
+          "KEYB",
+          false
+        ],
+        [
+          "L00.COM 0014",
+          false
+        ],
+        [
+          "ECHO BALTIC_PHASE_15",
+          false
+        ],
+        [
+          "KEYB GR,775,MISSING.SYS",
+          true
+        ],
+        [
+          "TYPECHK.COM",
+          false
+        ],
+        [
+          "KEYB",
+          false
+        ],
+        [
+          "L03.COM 0016",
+          false
+        ],
+        [
+          "ECHO BALTIC_PHASE_16",
+          false
+        ],
+        [
+          "KEYB GR,437,KEYBOARD.SYS",
+          false
+        ],
+        [
+          "TYPECHK.COM",
+          false
+        ],
+        [
+          "KEYB",
+          false
+        ],
+        [
+          "L00.COM 0018",
+          false
+        ],
+        [
+          "ECHO BALTIC_PHASE_17",
+          false
+        ],
+        [
+          "KEYB GR,775,KEYBRD2.SYS /ID:999",
+          true
+        ],
+        [
+          "TYPECHK.COM",
+          false
+        ],
+        [
+          "KEYB",
+          false
+        ],
+        [
+          "L03.COM 001A",
+          false
+        ]
+      ],
+      "startup_reconnects": 7,
+      "log": "pending-gr-acute/bios/serial.log",
+      "log_sha256": "b7bfe733543f90dc88520af6654229e84c0d2fcdc76488baeb4ebb88b126809e",
+      "config_sha256": "04fc259a69de497046ae6ceda8e50d189c09d1fd8ff337589e2088e0e3adb1fe",
+      "name": "pending-gr-acute",
+      "plan": [
+        {
+          "status_code": "GR",
+          "status_page": 437,
+          "command": "KEYB GR,437,KEYBOARD.SYS",
+          "reject": false,
+          "cases": [
+            {
+              "name": "literal confirms trigger",
+              "keys": [
+                [
+                  "equal",
+                  true
+                ],
+                [
+                  "equal",
+                  false
+                ],
+                [
+                  "spc",
+                  true
+                ],
+                [
+                  "spc",
+                  false
+                ]
+              ],
+              "bios_words": [
+                39
+              ]
+            },
+            {
+              "name": "arm pending; physical Caps on/off barrier",
+              "keys": [
+                [
+                  "equal",
+                  true
+                ],
+                [
+                  "equal",
+                  false
+                ],
+                [
+                  "caps_lock",
+                  true
+                ],
+                [
+                  "caps_lock",
+                  false
+                ],
+                [
+                  "shift",
+                  true
+                ],
+                [
+                  "shift",
+                  false
+                ]
+              ],
+              "bios_words": [],
+              "ack_after": 4
+            }
+          ]
+        },
+        {
+          "status_code": "ET",
+          "status_page": 775,
+          "command": "KEYB ET,775,KEYBRD2.SYS",
+          "reject": false,
+          "cases": [
+            {
+              "name": "fresh target input",
+              "keys": [
+                [
+                  "q",
+                  true
+                ],
+                [
+                  "q",
+                  false
+                ]
+              ],
+              "bios_words": [
+                4209
+              ]
+            }
+          ]
+        },
+        {
+          "status_code": "ET",
+          "status_page": 775,
+          "command": "KEYB ET,775,KEYBRD2.SYS",
+          "reject": false,
+          "cases": [
+            {
+              "name": "no stale state after return",
+              "keys": [
+                [
+                  "q",
+                  true
+                ],
+                [
+                  "q",
+                  false
+                ]
+              ],
+              "bios_words": [
+                4209
+              ]
+            }
+          ]
+        },
+        {
+          "status_code": "GR",
+          "status_page": 437,
+          "command": "KEYB GR,437,KEYBOARD.SYS",
+          "reject": false,
+          "cases": [
+            {
+              "name": "literal confirms trigger",
+              "keys": [
+                [
+                  "equal",
+                  true
+                ],
+                [
+                  "equal",
+                  false
+                ],
+                [
+                  "spc",
+                  true
+                ],
+                [
+                  "spc",
+                  false
+                ]
+              ],
+              "bios_words": [
+                39
+              ]
+            },
+            {
+              "name": "arm pending; physical Caps on/off barrier",
+              "keys": [
+                [
+                  "equal",
+                  true
+                ],
+                [
+                  "equal",
+                  false
+                ],
+                [
+                  "caps_lock",
+                  true
+                ],
+                [
+                  "caps_lock",
+                  false
+                ],
+                [
+                  "shift",
+                  true
+                ],
+                [
+                  "shift",
+                  false
+                ]
+              ],
+              "bios_words": [],
+              "ack_after": 4
+            }
+          ]
+        },
+        {
+          "status_code": "EE",
+          "status_page": 775,
+          "command": "KEYB EE,775,KEYBRD2.SYS",
+          "reject": false,
+          "cases": [
+            {
+              "name": "fresh target input",
+              "keys": [
+                [
+                  "q",
+                  true
+                ],
+                [
+                  "q",
+                  false
+                ]
+              ],
+              "bios_words": [
+                4209
+              ]
+            }
+          ]
+        },
+        {
+          "status_code": "ET",
+          "status_page": 775,
+          "command": "KEYB ET,775,KEYBRD2.SYS",
+          "reject": false,
+          "cases": [
+            {
+              "name": "no stale state after return",
+              "keys": [
+                [
+                  "q",
+                  true
+                ],
+                [
+                  "q",
+                  false
+                ]
+              ],
+              "bios_words": [
+                4209
+              ]
+            }
+          ]
+        },
+        {
+          "status_code": "GR",
+          "status_page": 437,
+          "command": "KEYB GR,437,KEYBOARD.SYS",
+          "reject": false,
+          "cases": [
+            {
+              "name": "literal confirms trigger",
+              "keys": [
+                [
+                  "equal",
+                  true
+                ],
+                [
+                  "equal",
+                  false
+                ],
+                [
+                  "spc",
+                  true
+                ],
+                [
+                  "spc",
+                  false
+                ]
+              ],
+              "bios_words": [
+                39
+              ]
+            },
+            {
+              "name": "arm pending; physical Caps on/off barrier",
+              "keys": [
+                [
+                  "equal",
+                  true
+                ],
+                [
+                  "equal",
+                  false
+                ],
+                [
+                  "caps_lock",
+                  true
+                ],
+                [
+                  "caps_lock",
+                  false
+                ],
+                [
+                  "shift",
+                  true
+                ],
+                [
+                  "shift",
+                  false
+                ]
+              ],
+              "bios_words": [],
+              "ack_after": 4
+            }
+          ]
+        },
+        {
+          "status_code": "LV",
+          "status_page": 775,
+          "command": "KEYB LV,775,KEYBRD2.SYS",
+          "reject": false,
+          "cases": [
+            {
+              "name": "fresh target input",
+              "keys": [
+                [
+                  "q",
+                  true
+                ],
+                [
+                  "q",
+                  false
+                ]
+              ],
+              "bios_words": [
+                4209
+              ]
+            }
+          ]
+        },
+        {
+          "status_code": "ET",
+          "status_page": 775,
+          "command": "KEYB ET,775,KEYBRD2.SYS",
+          "reject": false,
+          "cases": [
+            {
+              "name": "no stale state after return",
+              "keys": [
+                [
+                  "q",
+                  true
+                ],
+                [
+                  "q",
+                  false
+                ]
+              ],
+              "bios_words": [
+                4209
+              ]
+            }
+          ]
+        },
+        {
+          "status_code": "GR",
+          "status_page": 437,
+          "command": "KEYB GR,437,KEYBOARD.SYS",
+          "reject": false,
+          "cases": [
+            {
+              "name": "literal confirms trigger",
+              "keys": [
+                [
+                  "equal",
+                  true
+                ],
+                [
+                  "equal",
+                  false
+                ],
+                [
+                  "spc",
+                  true
+                ],
+                [
+                  "spc",
+                  false
+                ]
+              ],
+              "bios_words": [
+                39
+              ]
+            },
+            {
+              "name": "arm pending; physical Caps on/off barrier",
+              "keys": [
+                [
+                  "equal",
+                  true
+                ],
+                [
+                  "equal",
+                  false
+                ],
+                [
+                  "caps_lock",
+                  true
+                ],
+                [
+                  "caps_lock",
+                  false
+                ],
+                [
+                  "shift",
+                  true
+                ],
+                [
+                  "shift",
+                  false
+                ]
+              ],
+              "bios_words": [],
+              "ack_after": 4
+            }
+          ]
+        },
+        {
+          "status_code": "LT",
+          "status_page": 775,
+          "command": "KEYB LT,775,KEYBRD2.SYS",
+          "reject": false,
+          "cases": [
+            {
+              "name": "fresh target input",
+              "keys": [
+                [
+                  "q",
+                  true
+                ],
+                [
+                  "q",
+                  false
+                ]
+              ],
+              "bios_words": [
+                4304
+              ]
+            }
+          ]
+        },
+        {
+          "status_code": "ET",
+          "status_page": 775,
+          "command": "KEYB ET,775,KEYBRD2.SYS",
+          "reject": false,
+          "cases": [
+            {
+              "name": "no stale state after return",
+              "keys": [
+                [
+                  "q",
+                  true
+                ],
+                [
+                  "q",
+                  false
+                ]
+              ],
+              "bios_words": [
+                4209
+              ]
+            }
+          ]
+        },
+        {
+          "status_code": "GR",
+          "status_page": 437,
+          "command": "KEYB GR,437,KEYBOARD.SYS",
+          "reject": false,
+          "cases": [
+            {
+              "name": "literal confirms trigger",
+              "keys": [
+                [
+                  "equal",
+                  true
+                ],
+                [
+                  "equal",
+                  false
+                ],
+                [
+                  "spc",
+                  true
+                ],
+                [
+                  "spc",
+                  false
+                ]
+              ],
+              "bios_words": [
+                39
+              ]
+            },
+            {
+              "name": "arm pending; physical Caps on/off barrier",
+              "keys": [
+                [
+                  "equal",
+                  true
+                ],
+                [
+                  "equal",
+                  false
+                ],
+                [
+                  "caps_lock",
+                  true
+                ],
+                [
+                  "caps_lock",
+                  false
+                ],
+                [
+                  "shift",
+                  true
+                ],
+                [
+                  "shift",
+                  false
+                ]
+              ],
+              "bios_words": [],
+              "ack_after": 4
+            }
+          ]
+        },
+        {
+          "status_code": "GR",
+          "status_page": 437,
+          "command": "KEYB GR,437,KEYBOARD.SYS",
+          "reject": false,
+          "cases": [
+            {
+              "name": "legacy self-reload retains pending",
+              "keys": [
+                [
+                  "a",
+                  true
+                ],
+                [
+                  "a",
+                  false
+                ]
+              ],
+              "bios_words": [
+                160
+              ]
+            },
+            {
+              "name": "legacy composition consumed once",
+              "keys": [
+                [
+                  "q",
+                  true
+                ],
+                [
+                  "q",
+                  false
+                ]
+              ],
+              "bios_words": [
+                4209
+              ]
+            }
+          ]
+        },
+        {
+          "status_code": "GR",
+          "status_page": 437,
+          "command": "KEYB GR,437,KEYBOARD.SYS",
+          "reject": false,
+          "cases": [
+            {
+              "name": "literal confirms trigger",
+              "keys": [
+                [
+                  "equal",
+                  true
+                ],
+                [
+                  "equal",
+                  false
+                ],
+                [
+                  "spc",
+                  true
+                ],
+                [
+                  "spc",
+                  false
+                ]
+              ],
+              "bios_words": [
+                39
+              ]
+            },
+            {
+              "name": "arm pending; physical Caps on/off barrier",
+              "keys": [
+                [
+                  "equal",
+                  true
+                ],
+                [
+                  "equal",
+                  false
+                ],
+                [
+                  "caps_lock",
+                  true
+                ],
+                [
+                  "caps_lock",
+                  false
+                ],
+                [
+                  "shift",
+                  true
+                ],
+                [
+                  "shift",
+                  false
+                ]
+              ],
+              "bios_words": [],
+              "ack_after": 4
+            }
+          ]
+        },
+        {
+          "status_code": "GR",
+          "status_page": 437,
+          "command": "KEYB GR,775,MISSING.SYS",
+          "reject": true,
+          "cases": [
+            {
+              "name": "rejection retains pending composition",
+              "keys": [
+                [
+                  "a",
+                  true
+                ],
+                [
+                  "a",
+                  false
+                ]
+              ],
+              "bios_words": [
+                160
+              ]
+            },
+            {
+              "name": "composition consumed once",
+              "keys": [
+                [
+                  "q",
+                  true
+                ],
+                [
+                  "q",
+                  false
+                ]
+              ],
+              "bios_words": [
+                4209
+              ]
+            }
+          ]
+        },
+        {
+          "status_code": "GR",
+          "status_page": 437,
+          "command": "KEYB GR,437,KEYBOARD.SYS",
+          "reject": false,
+          "cases": [
+            {
+              "name": "literal confirms trigger",
+              "keys": [
+                [
+                  "equal",
+                  true
+                ],
+                [
+                  "equal",
+                  false
+                ],
+                [
+                  "spc",
+                  true
+                ],
+                [
+                  "spc",
+                  false
+                ]
+              ],
+              "bios_words": [
+                39
+              ]
+            },
+            {
+              "name": "arm pending; physical Caps on/off barrier",
+              "keys": [
+                [
+                  "equal",
+                  true
+                ],
+                [
+                  "equal",
+                  false
+                ],
+                [
+                  "caps_lock",
+                  true
+                ],
+                [
+                  "caps_lock",
+                  false
+                ],
+                [
+                  "shift",
+                  true
+                ],
+                [
+                  "shift",
+                  false
+                ]
+              ],
+              "bios_words": [],
+              "ack_after": 4
+            }
+          ]
+        },
+        {
+          "status_code": "GR",
+          "status_page": 437,
+          "command": "KEYB GR,775,KEYBRD2.SYS /ID:999",
+          "reject": true,
+          "cases": [
+            {
+              "name": "rejection retains pending composition",
+              "keys": [
+                [
+                  "a",
+                  true
+                ],
+                [
+                  "a",
+                  false
+                ]
+              ],
+              "bios_words": [
+                160
+              ]
+            },
+            {
+              "name": "composition consumed once",
+              "keys": [
+                [
+                  "q",
+                  true
+                ],
+                [
+                  "q",
+                  false
+                ]
+              ],
+              "bios_words": [
+                4209
+              ]
+            }
+          ]
+        }
+      ],
+      "grouped_input": true,
+      "enhanced_bios_input": false,
+      "prepared_pages": [
+        775
+      ],
+      "mutations": {}
+    },
+    {
+      "input": "dos",
+      "emulator_exit": 0,
+      "reads": 28,
+      "steps": [
+        {
+          "name": "literal confirms trigger",
+          "keys": [
+            [
+              "equal",
+              true
+            ],
+            [
+              "equal",
+              false
+            ],
+            [
+              "spc",
+              true
+            ],
+            [
+              "spc",
+              false
+            ]
+          ],
+          "bios_words": [
+            39
+          ]
+        },
+        {
+          "name": "arm pending; physical Caps on/off barrier",
+          "keys": [
+            [
+              "equal",
+              true
+            ],
+            [
+              "equal",
+              false
+            ],
+            [
+              "caps_lock",
+              true
+            ],
+            [
+              "caps_lock",
+              false
+            ],
+            [
+              "caps_lock",
+              true
+            ],
+            [
+              "caps_lock",
+              false
+            ]
+          ],
+          "bios_words": [],
+          "ack_after": 4
+        },
+        {
+          "name": "fresh target input",
+          "keys": [
+            [
+              "q",
+              true
+            ],
+            [
+              "q",
+              false
+            ]
+          ],
+          "bios_words": [
+            4209
+          ]
+        },
+        {
+          "name": "no stale state after return",
+          "keys": [
+            [
+              "q",
+              true
+            ],
+            [
+              "q",
+              false
+            ]
+          ],
+          "bios_words": [
+            4209
+          ]
+        },
+        {
+          "name": "literal confirms trigger",
+          "keys": [
+            [
+              "equal",
+              true
+            ],
+            [
+              "equal",
+              false
+            ],
+            [
+              "spc",
+              true
+            ],
+            [
+              "spc",
+              false
+            ]
+          ],
+          "bios_words": [
+            39
+          ]
+        },
+        {
+          "name": "arm pending; physical Caps on/off barrier",
+          "keys": [
+            [
+              "equal",
+              true
+            ],
+            [
+              "equal",
+              false
+            ],
+            [
+              "caps_lock",
+              true
+            ],
+            [
+              "caps_lock",
+              false
+            ],
+            [
+              "caps_lock",
+              true
+            ],
+            [
+              "caps_lock",
+              false
+            ]
+          ],
+          "bios_words": [],
+          "ack_after": 4
+        },
+        {
+          "name": "fresh target input",
+          "keys": [
+            [
+              "q",
+              true
+            ],
+            [
+              "q",
+              false
+            ]
+          ],
+          "bios_words": [
+            4209
+          ]
+        },
+        {
+          "name": "no stale state after return",
+          "keys": [
+            [
+              "q",
+              true
+            ],
+            [
+              "q",
+              false
+            ]
+          ],
+          "bios_words": [
+            4209
+          ]
+        },
+        {
+          "name": "literal confirms trigger",
+          "keys": [
+            [
+              "equal",
+              true
+            ],
+            [
+              "equal",
+              false
+            ],
+            [
+              "spc",
+              true
+            ],
+            [
+              "spc",
+              false
+            ]
+          ],
+          "bios_words": [
+            39
+          ]
+        },
+        {
+          "name": "arm pending; physical Caps on/off barrier",
+          "keys": [
+            [
+              "equal",
+              true
+            ],
+            [
+              "equal",
+              false
+            ],
+            [
+              "caps_lock",
+              true
+            ],
+            [
+              "caps_lock",
+              false
+            ],
+            [
+              "caps_lock",
+              true
+            ],
+            [
+              "caps_lock",
+              false
+            ]
+          ],
+          "bios_words": [],
+          "ack_after": 4
+        },
+        {
+          "name": "fresh target input",
+          "keys": [
+            [
+              "q",
+              true
+            ],
+            [
+              "q",
+              false
+            ]
+          ],
+          "bios_words": [
+            4209
+          ]
+        },
+        {
+          "name": "no stale state after return",
+          "keys": [
+            [
+              "q",
+              true
+            ],
+            [
+              "q",
+              false
+            ]
+          ],
+          "bios_words": [
+            4209
+          ]
+        },
+        {
+          "name": "literal confirms trigger",
+          "keys": [
+            [
+              "equal",
+              true
+            ],
+            [
+              "equal",
+              false
+            ],
+            [
+              "spc",
+              true
+            ],
+            [
+              "spc",
+              false
+            ]
+          ],
+          "bios_words": [
+            39
+          ]
+        },
+        {
+          "name": "arm pending; physical Caps on/off barrier",
+          "keys": [
+            [
+              "equal",
+              true
+            ],
+            [
+              "equal",
+              false
+            ],
+            [
+              "caps_lock",
+              true
+            ],
+            [
+              "caps_lock",
+              false
+            ],
+            [
+              "caps_lock",
+              true
+            ],
+            [
+              "caps_lock",
+              false
+            ]
+          ],
+          "bios_words": [],
+          "ack_after": 4
+        },
+        {
+          "name": "fresh target input",
+          "keys": [
+            [
+              "q",
+              true
+            ],
+            [
+              "q",
+              false
+            ]
+          ],
+          "bios_words": [
+            4304
+          ]
+        },
+        {
+          "name": "no stale state after return",
+          "keys": [
+            [
+              "q",
+              true
+            ],
+            [
+              "q",
+              false
+            ]
+          ],
+          "bios_words": [
+            4209
+          ]
+        },
+        {
+          "name": "literal confirms trigger",
+          "keys": [
+            [
+              "equal",
+              true
+            ],
+            [
+              "equal",
+              false
+            ],
+            [
+              "spc",
+              true
+            ],
+            [
+              "spc",
+              false
+            ]
+          ],
+          "bios_words": [
+            39
+          ]
+        },
+        {
+          "name": "arm pending; physical Caps on/off barrier",
+          "keys": [
+            [
+              "equal",
+              true
+            ],
+            [
+              "equal",
+              false
+            ],
+            [
+              "caps_lock",
+              true
+            ],
+            [
+              "caps_lock",
+              false
+            ],
+            [
+              "caps_lock",
+              true
+            ],
+            [
+              "caps_lock",
+              false
+            ]
+          ],
+          "bios_words": [],
+          "ack_after": 4
+        },
+        {
+          "name": "legacy self-reload retains pending",
+          "keys": [
+            [
+              "a",
+              true
+            ],
+            [
+              "a",
+              false
+            ]
+          ],
+          "bios_words": [
+            160
+          ]
+        },
+        {
+          "name": "legacy composition consumed once",
+          "keys": [
+            [
+              "q",
+              true
+            ],
+            [
+              "q",
+              false
+            ]
+          ],
+          "bios_words": [
+            4209
+          ]
+        },
+        {
+          "name": "literal confirms trigger",
+          "keys": [
+            [
+              "equal",
+              true
+            ],
+            [
+              "equal",
+              false
+            ],
+            [
+              "spc",
+              true
+            ],
+            [
+              "spc",
+              false
+            ]
+          ],
+          "bios_words": [
+            39
+          ]
+        },
+        {
+          "name": "arm pending; physical Caps on/off barrier",
+          "keys": [
+            [
+              "equal",
+              true
+            ],
+            [
+              "equal",
+              false
+            ],
+            [
+              "caps_lock",
+              true
+            ],
+            [
+              "caps_lock",
+              false
+            ],
+            [
+              "caps_lock",
+              true
+            ],
+            [
+              "caps_lock",
+              false
+            ]
+          ],
+          "bios_words": [],
+          "ack_after": 4
+        },
+        {
+          "name": "rejection retains pending composition",
+          "keys": [
+            [
+              "a",
+              true
+            ],
+            [
+              "a",
+              false
+            ]
+          ],
+          "bios_words": [
+            160
+          ]
+        },
+        {
+          "name": "composition consumed once",
+          "keys": [
+            [
+              "q",
+              true
+            ],
+            [
+              "q",
+              false
+            ]
+          ],
+          "bios_words": [
+            4209
+          ]
+        },
+        {
+          "name": "literal confirms trigger",
+          "keys": [
+            [
+              "equal",
+              true
+            ],
+            [
+              "equal",
+              false
+            ],
+            [
+              "spc",
+              true
+            ],
+            [
+              "spc",
+              false
+            ]
+          ],
+          "bios_words": [
+            39
+          ]
+        },
+        {
+          "name": "arm pending; physical Caps on/off barrier",
+          "keys": [
+            [
+              "equal",
+              true
+            ],
+            [
+              "equal",
+              false
+            ],
+            [
+              "caps_lock",
+              true
+            ],
+            [
+              "caps_lock",
+              false
+            ],
+            [
+              "caps_lock",
+              true
+            ],
+            [
+              "caps_lock",
+              false
+            ]
+          ],
+          "bios_words": [],
+          "ack_after": 4
+        },
+        {
+          "name": "rejection retains pending composition",
+          "keys": [
+            [
+              "a",
+              true
+            ],
+            [
+              "a",
+              false
+            ]
+          ],
+          "bios_words": [
+            160
+          ]
+        },
+        {
+          "name": "composition consumed once",
+          "keys": [
+            [
+              "q",
+              true
+            ],
+            [
+              "q",
+              false
+            ]
+          ],
+          "bios_words": [
+            4209
+          ]
+        }
+      ],
+      "probe_passes": 18,
+      "type_passes": 19,
+      "actions": [
+        [
+          "P372775.COM",
+          false
+        ],
+        [
+          "NLSFUNC",
+          false
+        ],
+        [
+          "MODE CON CP PREPARE=((775) EGA775.CPI)",
+          false
+        ],
+        [
+          "MODE CON CP SELECT=775",
+          false
+        ],
+        [
+          "KEYB ET,775,KEYBRD2.SYS",
+          false
+        ],
+        [
+          "TYPECHK.COM",
+          false
+        ],
+        [
+          "CPCHK.COM",
+          false
+        ],
+        [
+          "P372775.COM",
+          false
+        ],
+        [
+          "ECHO BALTIC_PHASE_00",
+          false
+        ],
+        [
+          "KEYB GR,437,KEYBOARD.SYS",
+          false
+        ],
+        [
+          "TYPECHK.COM",
+          false
+        ],
+        [
+          "KEYB",
+          false
+        ],
+        [
+          "L00.COM 0000",
+          false
+        ],
+        [
+          "ECHO BALTIC_PHASE_01",
+          false
+        ],
+        [
+          "KEYB ET,775,KEYBRD2.SYS",
+          false
+        ],
+        [
+          "TYPECHK.COM",
+          false
+        ],
+        [
+          "KEYB",
+          false
+        ],
+        [
+          "L01.COM 0002",
+          false
+        ],
+        [
+          "ECHO BALTIC_PHASE_02",
+          false
+        ],
+        [
+          "KEYB ET,775,KEYBRD2.SYS",
+          false
+        ],
+        [
+          "TYPECHK.COM",
+          false
+        ],
+        [
+          "KEYB",
+          false
+        ],
+        [
+          "L01.COM 0003",
+          false
+        ],
+        [
+          "ECHO BALTIC_PHASE_03",
+          false
+        ],
+        [
+          "KEYB GR,437,KEYBOARD.SYS",
+          false
+        ],
+        [
+          "TYPECHK.COM",
+          false
+        ],
+        [
+          "KEYB",
+          false
+        ],
+        [
+          "L00.COM 0004",
+          false
+        ],
+        [
+          "ECHO BALTIC_PHASE_04",
+          false
+        ],
+        [
+          "KEYB EE,775,KEYBRD2.SYS",
+          false
+        ],
+        [
+          "TYPECHK.COM",
+          false
+        ],
+        [
+          "KEYB",
+          false
+        ],
+        [
+          "L01.COM 0006",
+          false
+        ],
+        [
+          "ECHO BALTIC_PHASE_05",
+          false
+        ],
+        [
+          "KEYB ET,775,KEYBRD2.SYS",
+          false
+        ],
+        [
+          "TYPECHK.COM",
+          false
+        ],
+        [
+          "KEYB",
+          false
+        ],
+        [
+          "L01.COM 0007",
+          false
+        ],
+        [
+          "ECHO BALTIC_PHASE_06",
+          false
+        ],
+        [
+          "KEYB GR,437,KEYBOARD.SYS",
+          false
+        ],
+        [
+          "TYPECHK.COM",
+          false
+        ],
+        [
+          "KEYB",
+          false
+        ],
+        [
+          "L00.COM 0008",
+          false
+        ],
+        [
+          "ECHO BALTIC_PHASE_07",
+          false
+        ],
+        [
+          "KEYB LV,775,KEYBRD2.SYS",
+          false
+        ],
+        [
+          "TYPECHK.COM",
+          false
+        ],
+        [
+          "KEYB",
+          false
+        ],
+        [
+          "L01.COM 000A",
+          false
+        ],
+        [
+          "ECHO BALTIC_PHASE_08",
+          false
+        ],
+        [
+          "KEYB ET,775,KEYBRD2.SYS",
+          false
+        ],
+        [
+          "TYPECHK.COM",
+          false
+        ],
+        [
+          "KEYB",
+          false
+        ],
+        [
+          "L01.COM 000B",
+          false
+        ],
+        [
+          "ECHO BALTIC_PHASE_09",
+          false
+        ],
+        [
+          "KEYB GR,437,KEYBOARD.SYS",
+          false
+        ],
+        [
+          "TYPECHK.COM",
+          false
+        ],
+        [
+          "KEYB",
+          false
+        ],
+        [
+          "L00.COM 000C",
+          false
+        ],
+        [
+          "ECHO BALTIC_PHASE_10",
+          false
+        ],
+        [
+          "KEYB LT,775,KEYBRD2.SYS",
+          false
+        ],
+        [
+          "TYPECHK.COM",
+          false
+        ],
+        [
+          "KEYB",
+          false
+        ],
+        [
+          "L02.COM 000E",
+          false
+        ],
+        [
+          "ECHO BALTIC_PHASE_11",
+          false
+        ],
+        [
+          "KEYB ET,775,KEYBRD2.SYS",
+          false
+        ],
+        [
+          "TYPECHK.COM",
+          false
+        ],
+        [
+          "KEYB",
+          false
+        ],
+        [
+          "L01.COM 000F",
+          false
+        ],
+        [
+          "ECHO BALTIC_PHASE_12",
+          false
+        ],
+        [
+          "KEYB GR,437,KEYBOARD.SYS",
+          false
+        ],
+        [
+          "TYPECHK.COM",
+          false
+        ],
+        [
+          "KEYB",
+          false
+        ],
+        [
+          "L00.COM 0010",
+          false
+        ],
+        [
+          "ECHO BALTIC_PHASE_13",
+          false
+        ],
+        [
+          "KEYB GR,437,KEYBOARD.SYS",
+          false
+        ],
+        [
+          "TYPECHK.COM",
+          false
+        ],
+        [
+          "KEYB",
+          false
+        ],
+        [
+          "L03.COM 0012",
+          false
+        ],
+        [
+          "ECHO BALTIC_PHASE_14",
+          false
+        ],
+        [
+          "KEYB GR,437,KEYBOARD.SYS",
+          false
+        ],
+        [
+          "TYPECHK.COM",
+          false
+        ],
+        [
+          "KEYB",
+          false
+        ],
+        [
+          "L00.COM 0014",
+          false
+        ],
+        [
+          "ECHO BALTIC_PHASE_15",
+          false
+        ],
+        [
+          "KEYB GR,775,MISSING.SYS",
+          true
+        ],
+        [
+          "TYPECHK.COM",
+          false
+        ],
+        [
+          "KEYB",
+          false
+        ],
+        [
+          "L03.COM 0016",
+          false
+        ],
+        [
+          "ECHO BALTIC_PHASE_16",
+          false
+        ],
+        [
+          "KEYB GR,437,KEYBOARD.SYS",
+          false
+        ],
+        [
+          "TYPECHK.COM",
+          false
+        ],
+        [
+          "KEYB",
+          false
+        ],
+        [
+          "L00.COM 0018",
+          false
+        ],
+        [
+          "ECHO BALTIC_PHASE_17",
+          false
+        ],
+        [
+          "KEYB GR,775,KEYBRD2.SYS /ID:999",
+          true
+        ],
+        [
+          "TYPECHK.COM",
+          false
+        ],
+        [
+          "KEYB",
+          false
+        ],
+        [
+          "L03.COM 001A",
+          false
+        ]
+      ],
+      "startup_reconnects": 7,
+      "log": "pending-gr-acute/dos/serial.log",
+      "log_sha256": "9be977c49782ea47d531cf37d0c0563c233d20947aa48f133a1a240d1ac36972",
+      "config_sha256": "04fc259a69de497046ae6ceda8e50d189c09d1fd8ff337589e2088e0e3adb1fe",
+      "name": "pending-gr-acute",
+      "plan": [
+        {
+          "status_code": "GR",
+          "status_page": 437,
+          "command": "KEYB GR,437,KEYBOARD.SYS",
+          "reject": false,
+          "cases": [
+            {
+              "name": "literal confirms trigger",
+              "keys": [
+                [
+                  "equal",
+                  true
+                ],
+                [
+                  "equal",
+                  false
+                ],
+                [
+                  "spc",
+                  true
+                ],
+                [
+                  "spc",
+                  false
+                ]
+              ],
+              "bios_words": [
+                39
+              ]
+            },
+            {
+              "name": "arm pending; physical Caps on/off barrier",
+              "keys": [
+                [
+                  "equal",
+                  true
+                ],
+                [
+                  "equal",
+                  false
+                ],
+                [
+                  "caps_lock",
+                  true
+                ],
+                [
+                  "caps_lock",
+                  false
+                ],
+                [
+                  "shift",
+                  true
+                ],
+                [
+                  "shift",
+                  false
+                ]
+              ],
+              "bios_words": [],
+              "ack_after": 4
+            }
+          ]
+        },
+        {
+          "status_code": "ET",
+          "status_page": 775,
+          "command": "KEYB ET,775,KEYBRD2.SYS",
+          "reject": false,
+          "cases": [
+            {
+              "name": "fresh target input",
+              "keys": [
+                [
+                  "q",
+                  true
+                ],
+                [
+                  "q",
+                  false
+                ]
+              ],
+              "bios_words": [
+                4209
+              ]
+            }
+          ]
+        },
+        {
+          "status_code": "ET",
+          "status_page": 775,
+          "command": "KEYB ET,775,KEYBRD2.SYS",
+          "reject": false,
+          "cases": [
+            {
+              "name": "no stale state after return",
+              "keys": [
+                [
+                  "q",
+                  true
+                ],
+                [
+                  "q",
+                  false
+                ]
+              ],
+              "bios_words": [
+                4209
+              ]
+            }
+          ]
+        },
+        {
+          "status_code": "GR",
+          "status_page": 437,
+          "command": "KEYB GR,437,KEYBOARD.SYS",
+          "reject": false,
+          "cases": [
+            {
+              "name": "literal confirms trigger",
+              "keys": [
+                [
+                  "equal",
+                  true
+                ],
+                [
+                  "equal",
+                  false
+                ],
+                [
+                  "spc",
+                  true
+                ],
+                [
+                  "spc",
+                  false
+                ]
+              ],
+              "bios_words": [
+                39
+              ]
+            },
+            {
+              "name": "arm pending; physical Caps on/off barrier",
+              "keys": [
+                [
+                  "equal",
+                  true
+                ],
+                [
+                  "equal",
+                  false
+                ],
+                [
+                  "caps_lock",
+                  true
+                ],
+                [
+                  "caps_lock",
+                  false
+                ],
+                [
+                  "shift",
+                  true
+                ],
+                [
+                  "shift",
+                  false
+                ]
+              ],
+              "bios_words": [],
+              "ack_after": 4
+            }
+          ]
+        },
+        {
+          "status_code": "EE",
+          "status_page": 775,
+          "command": "KEYB EE,775,KEYBRD2.SYS",
+          "reject": false,
+          "cases": [
+            {
+              "name": "fresh target input",
+              "keys": [
+                [
+                  "q",
+                  true
+                ],
+                [
+                  "q",
+                  false
+                ]
+              ],
+              "bios_words": [
+                4209
+              ]
+            }
+          ]
+        },
+        {
+          "status_code": "ET",
+          "status_page": 775,
+          "command": "KEYB ET,775,KEYBRD2.SYS",
+          "reject": false,
+          "cases": [
+            {
+              "name": "no stale state after return",
+              "keys": [
+                [
+                  "q",
+                  true
+                ],
+                [
+                  "q",
+                  false
+                ]
+              ],
+              "bios_words": [
+                4209
+              ]
+            }
+          ]
+        },
+        {
+          "status_code": "GR",
+          "status_page": 437,
+          "command": "KEYB GR,437,KEYBOARD.SYS",
+          "reject": false,
+          "cases": [
+            {
+              "name": "literal confirms trigger",
+              "keys": [
+                [
+                  "equal",
+                  true
+                ],
+                [
+                  "equal",
+                  false
+                ],
+                [
+                  "spc",
+                  true
+                ],
+                [
+                  "spc",
+                  false
+                ]
+              ],
+              "bios_words": [
+                39
+              ]
+            },
+            {
+              "name": "arm pending; physical Caps on/off barrier",
+              "keys": [
+                [
+                  "equal",
+                  true
+                ],
+                [
+                  "equal",
+                  false
+                ],
+                [
+                  "caps_lock",
+                  true
+                ],
+                [
+                  "caps_lock",
+                  false
+                ],
+                [
+                  "shift",
+                  true
+                ],
+                [
+                  "shift",
+                  false
+                ]
+              ],
+              "bios_words": [],
+              "ack_after": 4
+            }
+          ]
+        },
+        {
+          "status_code": "LV",
+          "status_page": 775,
+          "command": "KEYB LV,775,KEYBRD2.SYS",
+          "reject": false,
+          "cases": [
+            {
+              "name": "fresh target input",
+              "keys": [
+                [
+                  "q",
+                  true
+                ],
+                [
+                  "q",
+                  false
+                ]
+              ],
+              "bios_words": [
+                4209
+              ]
+            }
+          ]
+        },
+        {
+          "status_code": "ET",
+          "status_page": 775,
+          "command": "KEYB ET,775,KEYBRD2.SYS",
+          "reject": false,
+          "cases": [
+            {
+              "name": "no stale state after return",
+              "keys": [
+                [
+                  "q",
+                  true
+                ],
+                [
+                  "q",
+                  false
+                ]
+              ],
+              "bios_words": [
+                4209
+              ]
+            }
+          ]
+        },
+        {
+          "status_code": "GR",
+          "status_page": 437,
+          "command": "KEYB GR,437,KEYBOARD.SYS",
+          "reject": false,
+          "cases": [
+            {
+              "name": "literal confirms trigger",
+              "keys": [
+                [
+                  "equal",
+                  true
+                ],
+                [
+                  "equal",
+                  false
+                ],
+                [
+                  "spc",
+                  true
+                ],
+                [
+                  "spc",
+                  false
+                ]
+              ],
+              "bios_words": [
+                39
+              ]
+            },
+            {
+              "name": "arm pending; physical Caps on/off barrier",
+              "keys": [
+                [
+                  "equal",
+                  true
+                ],
+                [
+                  "equal",
+                  false
+                ],
+                [
+                  "caps_lock",
+                  true
+                ],
+                [
+                  "caps_lock",
+                  false
+                ],
+                [
+                  "shift",
+                  true
+                ],
+                [
+                  "shift",
+                  false
+                ]
+              ],
+              "bios_words": [],
+              "ack_after": 4
+            }
+          ]
+        },
+        {
+          "status_code": "LT",
+          "status_page": 775,
+          "command": "KEYB LT,775,KEYBRD2.SYS",
+          "reject": false,
+          "cases": [
+            {
+              "name": "fresh target input",
+              "keys": [
+                [
+                  "q",
+                  true
+                ],
+                [
+                  "q",
+                  false
+                ]
+              ],
+              "bios_words": [
+                4304
+              ]
+            }
+          ]
+        },
+        {
+          "status_code": "ET",
+          "status_page": 775,
+          "command": "KEYB ET,775,KEYBRD2.SYS",
+          "reject": false,
+          "cases": [
+            {
+              "name": "no stale state after return",
+              "keys": [
+                [
+                  "q",
+                  true
+                ],
+                [
+                  "q",
+                  false
+                ]
+              ],
+              "bios_words": [
+                4209
+              ]
+            }
+          ]
+        },
+        {
+          "status_code": "GR",
+          "status_page": 437,
+          "command": "KEYB GR,437,KEYBOARD.SYS",
+          "reject": false,
+          "cases": [
+            {
+              "name": "literal confirms trigger",
+              "keys": [
+                [
+                  "equal",
+                  true
+                ],
+                [
+                  "equal",
+                  false
+                ],
+                [
+                  "spc",
+                  true
+                ],
+                [
+                  "spc",
+                  false
+                ]
+              ],
+              "bios_words": [
+                39
+              ]
+            },
+            {
+              "name": "arm pending; physical Caps on/off barrier",
+              "keys": [
+                [
+                  "equal",
+                  true
+                ],
+                [
+                  "equal",
+                  false
+                ],
+                [
+                  "caps_lock",
+                  true
+                ],
+                [
+                  "caps_lock",
+                  false
+                ],
+                [
+                  "shift",
+                  true
+                ],
+                [
+                  "shift",
+                  false
+                ]
+              ],
+              "bios_words": [],
+              "ack_after": 4
+            }
+          ]
+        },
+        {
+          "status_code": "GR",
+          "status_page": 437,
+          "command": "KEYB GR,437,KEYBOARD.SYS",
+          "reject": false,
+          "cases": [
+            {
+              "name": "legacy self-reload retains pending",
+              "keys": [
+                [
+                  "a",
+                  true
+                ],
+                [
+                  "a",
+                  false
+                ]
+              ],
+              "bios_words": [
+                160
+              ]
+            },
+            {
+              "name": "legacy composition consumed once",
+              "keys": [
+                [
+                  "q",
+                  true
+                ],
+                [
+                  "q",
+                  false
+                ]
+              ],
+              "bios_words": [
+                4209
+              ]
+            }
+          ]
+        },
+        {
+          "status_code": "GR",
+          "status_page": 437,
+          "command": "KEYB GR,437,KEYBOARD.SYS",
+          "reject": false,
+          "cases": [
+            {
+              "name": "literal confirms trigger",
+              "keys": [
+                [
+                  "equal",
+                  true
+                ],
+                [
+                  "equal",
+                  false
+                ],
+                [
+                  "spc",
+                  true
+                ],
+                [
+                  "spc",
+                  false
+                ]
+              ],
+              "bios_words": [
+                39
+              ]
+            },
+            {
+              "name": "arm pending; physical Caps on/off barrier",
+              "keys": [
+                [
+                  "equal",
+                  true
+                ],
+                [
+                  "equal",
+                  false
+                ],
+                [
+                  "caps_lock",
+                  true
+                ],
+                [
+                  "caps_lock",
+                  false
+                ],
+                [
+                  "shift",
+                  true
+                ],
+                [
+                  "shift",
+                  false
+                ]
+              ],
+              "bios_words": [],
+              "ack_after": 4
+            }
+          ]
+        },
+        {
+          "status_code": "GR",
+          "status_page": 437,
+          "command": "KEYB GR,775,MISSING.SYS",
+          "reject": true,
+          "cases": [
+            {
+              "name": "rejection retains pending composition",
+              "keys": [
+                [
+                  "a",
+                  true
+                ],
+                [
+                  "a",
+                  false
+                ]
+              ],
+              "bios_words": [
+                160
+              ]
+            },
+            {
+              "name": "composition consumed once",
+              "keys": [
+                [
+                  "q",
+                  true
+                ],
+                [
+                  "q",
+                  false
+                ]
+              ],
+              "bios_words": [
+                4209
+              ]
+            }
+          ]
+        },
+        {
+          "status_code": "GR",
+          "status_page": 437,
+          "command": "KEYB GR,437,KEYBOARD.SYS",
+          "reject": false,
+          "cases": [
+            {
+              "name": "literal confirms trigger",
+              "keys": [
+                [
+                  "equal",
+                  true
+                ],
+                [
+                  "equal",
+                  false
+                ],
+                [
+                  "spc",
+                  true
+                ],
+                [
+                  "spc",
+                  false
+                ]
+              ],
+              "bios_words": [
+                39
+              ]
+            },
+            {
+              "name": "arm pending; physical Caps on/off barrier",
+              "keys": [
+                [
+                  "equal",
+                  true
+                ],
+                [
+                  "equal",
+                  false
+                ],
+                [
+                  "caps_lock",
+                  true
+                ],
+                [
+                  "caps_lock",
+                  false
+                ],
+                [
+                  "shift",
+                  true
+                ],
+                [
+                  "shift",
+                  false
+                ]
+              ],
+              "bios_words": [],
+              "ack_after": 4
+            }
+          ]
+        },
+        {
+          "status_code": "GR",
+          "status_page": 437,
+          "command": "KEYB GR,775,KEYBRD2.SYS /ID:999",
+          "reject": true,
+          "cases": [
+            {
+              "name": "rejection retains pending composition",
+              "keys": [
+                [
+                  "a",
+                  true
+                ],
+                [
+                  "a",
+                  false
+                ]
+              ],
+              "bios_words": [
+                160
+              ]
+            },
+            {
+              "name": "composition consumed once",
+              "keys": [
+                [
+                  "q",
+                  true
+                ],
+                [
+                  "q",
+                  false
+                ]
+              ],
+              "bios_words": [
+                4209
+              ]
+            }
+          ]
+        }
+      ],
+      "grouped_input": true,
+      "enhanced_bios_input": false,
+      "prepared_pages": [
+        775
+      ],
+      "mutations": {}
+    }
+  ]
+}

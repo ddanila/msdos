@@ -709,8 +709,7 @@ preservation and pending accents. German pending tests use physical Caps Lock
 to clear the legacy BIOS flag; Shift clears it only on enhanced keyboards.
 Retained component runs distinguish the initial barrier failure from corrected
 German runs and unchanged successful cases. Every completed probe, phase action
-and resource is checked against its actual guest image. Full XT completion
-remains a separate gate.
+and resource is checked against its actual guest image.
 
 The [XT test-media capacity record](../locales/baltic/legacy-media-qualification.json)
 checks complete Latvian/Lithuanian mutation payloads and batch files on 360 KiB
@@ -718,4 +717,11 @@ images, with unchanged guest files across the checked FAT cluster layouts.
 The host capacity checks intentionally stop before emulator launch. The same
 record separately retains passing Lithuanian BIOS/DOS resource-recovery runs
 on the corrected images, with every mutant and compiled probe checked against
-the actual media. Full XT pending-accent completion remains a separate gate.
+the actual media.
+
+The [complete Baltic AT/XT lifecycle qualification](../locales/baltic/legacy-lifecycle-qualification.json)
+retains all 36 mode, selection, resource and pending-accent cases per machine,
+covering both BIOS and DOS input with successful emulator exits. Retention
+rebuilds probes and checks phase actions and resource bytes against each actual
+guest image. Composite results retain the earlier media-creation failures and
+the successful component runs; they do not claim a single uninterrupted run.
