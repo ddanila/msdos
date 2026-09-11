@@ -244,6 +244,10 @@ cases += [
     for mode in ("low", "high")
 ]
 cases += [
+    ("line-update-" + mode, mode, b"DWED_MARKER\r\n", True)
+    for mode in ("low", "high")
+]
+cases += [
     ("store-save-" + mode, mode, b"DWED_MARKER\r\n", True)
     for mode in ("low", "high")
 ]
@@ -363,6 +367,11 @@ if (
 ):
     parser.error("temporary probes require an editor built with --tests")
 if (
+    any(case[0].startswith("line-update-") for case in cases)
+    and not (args.build / "STRPUT.exe").exists()
+):
+    parser.error("line update probes require an editor built with --tests")
+if (
     any(case[0].startswith("store-save-") for case in cases)
     and not (args.build / "STRSAVE.exe").exists()
 ):
@@ -437,6 +446,7 @@ for name, mode, original, edit in cases:
     xfer_probe = name.startswith("xfer-probe-")
     xms_probe = name.startswith("xms-probe-")
     temporary_probe = name.startswith("temporary-probe-")
+    line_update = name.startswith("line-update-")
     store_save = name.startswith("store-save-")
     record_update = name.startswith("record-update-")
     record_append = name.startswith("record-append-")
@@ -567,6 +577,9 @@ for name, mode, original, edit in cases:
         )
         profile = " /DELETE" if "-delete-" in name else ""
         probe_command = "A:\\TMPPROBE.EXE" + profile + " >C:\\TMPRUN.LOG\r\n"
+    if line_update:
+        put(floppy, "STRPUT.EXE", (args.build.resolve() / "STRPUT.exe").read_bytes())
+        probe_command = "A:\\STRPUT.EXE >C:\\PUTRUN.LOG\r\n"
     if store_save:
         put(floppy, "STRSAVE.EXE", (args.build.resolve() / "STRSAVE.exe").read_bytes())
         probe_command = "A:\\STRSAVE.EXE >C:\\STSRUN.LOG\r\n"
@@ -765,7 +778,7 @@ for name, mode, original, edit in cases:
     row = {"case": name, "mode": mode, "original_hex": original.hex()}
     try:
         q = QMPConnection(str(socket))
-        end = time.monotonic() + (120 if record_read or record_append or record_update or store_save else 30)
+        end = time.monotonic() + (120 if record_read or record_append or record_update or store_save or line_update else 30)
         screen = ""
         memory_notices = 0
         table_refusals = 0
@@ -1147,6 +1160,18 @@ for name, mode, original, edit in cases:
                     == b"TEMPORARY OWNER PASS"
                 )
                 row["temporary_probe"] = probe_log.decode("ascii").strip()
+            if line_update:
+                diagnostic = run(["mtype", "-i", spec, "::PUTRUN.LOG"]).stdout
+                (d / "line-update-runtime.log").write_bytes(diagnostic)
+                assert not diagnostic.strip(), diagnostic
+                probe_log = run(["mtype", "-i", floppy, "::STRPUT.LOG"]).stdout
+                (d / "line-update.log").write_bytes(probe_log)
+                assert b"PASS " in probe_log and b"FAIL" not in probe_log, probe_log
+                assert (
+                    run(["mtype", "-i", floppy, "::STRPUT.OK"]).stdout.strip()
+                    == b"LINE UPDATE PASS"
+                )
+                row["line_update"] = probe_log.decode("ascii").strip()
             if store_save:
                 diagnostic = run(["mtype", "-i", spec, "::STSRUN.LOG"]).stdout
                 (d / "store-save-runtime.log").write_bytes(diagnostic)
