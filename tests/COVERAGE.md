@@ -1093,3 +1093,9 @@ allocation refusal. Read or validation failures combined with close refusal
 retain cleanup ownership without writing an invalid header. See
 [the initialization contract](../dwed/docs/DATABASE-INITIALIZATION.md) and
 [qualification evidence](../dwed/docs/database-open-milestone.json).
+
+The DWED record-read probe checks atomic destination publication across backing
+file read and seek failures, positive short reads, premature EOF, and allocation
+refusal. It checks malformed chained records and cycles, including full-chain
+validation for prefix reads and size queries. See the [API contract](../dwed/docs/DATABASE-READS.md)
+and [qualification evidence](../dwed/docs/record-read-milestone.json).
