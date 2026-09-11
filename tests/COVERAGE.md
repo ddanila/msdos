@@ -938,3 +938,11 @@ EDIT.COM, including outside-directory startup, external commands and restarted
 recovery. See [packaging](../dwed/docs/PACKAGE.md) and
 [generated evidence](../dwed/docs/package-milestone.json). The package remains a
 development artifact until the release gates are complete.
+
+
+The [DWED IBM AT runner](test_dwed_286_86box.py) boots a private floppy with IBM
+AT BIOS and a verified development EDIT package. It checks CPU and HMA state,
+text/indentation assertions and BIOS-keyboard edit/save behavior, requiring exact
+saved and backup bytes after a flushed guest completion signal. The generated
+[BIOS report](../dwed/docs/ibmat-bios-milestone.json) records the exercised mode
+and artifact provenance; unrecorded modes and physical hardware remain open.
