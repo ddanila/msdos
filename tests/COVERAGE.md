@@ -711,3 +711,9 @@ Retained component runs distinguish the initial barrier failure from corrected
 German runs and unchanged successful cases. Every completed probe, phase action
 and resource is checked against its actual guest image. Full XT completion
 remains a separate gate.
+
+The [XT test-media capacity record](../locales/baltic/legacy-media-qualification.json)
+checks complete Latvian/Lithuanian mutation payloads and batch files on 360 KiB
+images, with unchanged guest files across the checked FAT cluster layouts.
+These host checks intentionally stop before emulator launch; remaining XT
+runtime cases provide separate acceptance evidence.

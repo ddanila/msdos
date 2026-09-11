@@ -1,0 +1,53 @@
+{
+  "status": "capacity-passed-no-emulator-launched",
+  "cases": [
+    {
+      "case": "resources-lv",
+      "input": "bios",
+      "private_image": "out/baltic-xt-capacity-rnlv_1ay/resources-lv-bios/bios/test.img",
+      "image_sha256": "2e01f1c6ffddd48d96d24fc6be407659aa8ff09579f5d72a2eeedce2ef6eb2ba",
+      "all_mutations_present": 19,
+      "batch_bytes": 12889,
+      "allocation": [
+        "                              7 680 bytes free",
+        ""
+      ]
+    },
+    {
+      "case": "resources-lv",
+      "input": "dos",
+      "private_image": "out/baltic-xt-capacity-rnlv_1ay/resources-lv-dos/dos/test.img",
+      "image_sha256": "ec7291d62a3d5c0a221bde33a4dd7b5971c5ea30ec5e99c99e10f6e84822ca84",
+      "all_mutations_present": 19,
+      "batch_bytes": 12889,
+      "allocation": [
+        "                              6 144 bytes free",
+        ""
+      ]
+    },
+    {
+      "case": "resources-lt",
+      "input": "bios",
+      "private_image": "out/baltic-xt-capacity-rnlv_1ay/resources-lt-bios/bios/test.img",
+      "image_sha256": "97296fb768d3517abc05795e51d0873d0c7fedf5e2c7dd3a1937fc32452c3b81",
+      "all_mutations_present": 19,
+      "batch_bytes": 12889,
+      "allocation": [
+        "                              2 560 bytes free",
+        ""
+      ]
+    },
+    {
+      "case": "resources-lt",
+      "input": "dos",
+      "private_image": "out/baltic-xt-capacity-rnlv_1ay/resources-lt-dos/dos/test.img",
+      "image_sha256": "ea392b753bc0ada13142b47f0d2ad28c7b1af3d0c617b735db92cdff504e92f3",
+      "all_mutations_present": 19,
+      "batch_bytes": 12889,
+      "allocation": [
+        "                              2 048 bytes free",
+        ""
+      ]
+    }
+  ]
+}

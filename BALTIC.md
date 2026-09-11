@@ -250,3 +250,9 @@ The German control exposed an enhanced-keyboard assumption in the test barrier:
 legacy Caps Lock requires a physical toggle to clear it. The record retains
 the original failure, corrected German runs and unchanged earlier cases, with
 reproduced guest probes and images. The complete XT matrix remains open.
+
+[XT test-media qualification](locales/baltic/legacy-media-qualification.json)
+records capacity and payload parity for the larger malformed-library fixtures.
+Compact private XT images use single-sector clusters and omit unused menu and
+initial-probe files, preserving all mutants and commands. Runtime qualification
+of the remaining XT cases is still required.

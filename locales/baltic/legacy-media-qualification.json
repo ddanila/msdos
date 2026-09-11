@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "status": "xt-media-capacity-and-payload-parity-passed-runtime-pending",
+  "scope": "Private XT 360 KiB resource images only. Remove unused menu/initial-probe files and use one-sector clusters for compact Baltic matrices. Every mutant and guest action remains present. Runtime completion is recorded separately.",
+  "capacity": {
+    "path": "review/legacy-media-capacity.json",
+    "sha256": "9b4e1722ef2980c68b8e0c3f2d257c4e8c9b2143c47994b6f7bcbbbf047a8782"
+  },
+  "capacity_log": {
+    "path": "review/legacy-media-capacity.log",
+    "sha256": "10658e1dd7c098c93ad52d458ae51a627229098c9327c56d5d22886f6157439e"
+  },
+  "checker": {
+    "path": "review/legacy-media-checker.py",
+    "sha256": "2b49a05586612ba40e57192743fef9305a7a503b3e81b00e5bb5aa6518815647"
+  },
+  "parity": {
+    "path": "review/legacy-media-parity.json",
+    "sha256": "1693201d8fd527e170f328728731c5414e65467207836557ddee1d7dafb54d08"
+  },
+  "initial_failure": {
+    "path": "review/legacy-media-before-disk-full.log",
+    "sha256": "a3f9e756dd8665475a949fe71b2f3f375fc3f14078a834d93cf0cdf574220eb8"
+  },
+  "helper": {
+    "path": "review/legacy-media-helper.py",
+    "sha256": "7eb2e4239898a1f9eb8e55bb7ffa913f7f38950d0d9f01c65b432a7edc3b804a"
+  },
+  "invariants": [
+    "360 KiB size and XT track/sector geometry retained; BPB sectors-per-cluster becomes one.",
+    "All 19 malformed-library fixtures remain in every LV/LT BIOS/DOS image.",
+    "All 38 guest files match between checked LV BIOS cluster layouts.",
+    "AT image construction and ordinary Russian image construction do not use these compact XT branches."
+  ],
+  "remaining": [
+    "Complete and retain remaining XT runtime cases before final Baltic acceptance."
+  ]
+}
