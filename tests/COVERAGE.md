@@ -900,6 +900,13 @@ Normal list UI scenarios navigate to and edit another procedure. See the
 [list-memory contract](../dwed/docs/LIST-MEMORY.md) and
 [qualification record](../dwed/docs/list-memory-milestone.json).
 
+`test_dwed_startup_memory.py` uses a test-only TSR to constrain contiguous DOS
+memory before launching the unmodified build. It verifies controlled startup
+refusals and successful edit/save controls while checking source and backup
+preservation. The [startup contract](../dwed/docs/STARTUP-MEMORY.md) and
+[qualification record](../dwed/docs/startup-memory-milestone.json) delimit the
+measured boundary; this does not establish minimum RAM for all commands.
+
 DWED Enter/autoindent cases verify exact saved bytes when mixed tabs/spaces
 precede a split whose suffix also begins with whitespace. TABTEST checks every
 cursor boundary of representative and full-length lines, with undo/redo byte,
