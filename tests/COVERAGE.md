@@ -28,6 +28,11 @@ queued Ctrl-End after modifier release. Editor interaction then checks
 Ctrl-End navigation, Backspace at EOF and Ctrl-S saving through the normal
 event dispatcher.
 
+The menu cases check the top menu bar, Save through F10 navigation and Alt-F,
+selection-preserving Copy/Paste and cancellation, and bar restoration after
+cancelling Open through both menu and F3. Mouse and monochrome qualification,
+remaining command dialogs and undo are still [open](../dwed/docs/MENUS.md).
+
 The optional Russian increment has source, reference and CPI gates:
 `make test-ru-font-sources test-ru-contract test-ru-cpi`. The
 [locale manifest and font audits](../locales/ru/README.md) pin inputs and

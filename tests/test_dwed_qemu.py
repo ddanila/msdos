@@ -82,14 +82,27 @@ cases += [
 cases += [
     ("keyboard-" + mode, mode, b"DWED_MARKER\r\n", True) for mode in ("low", "high")
 ]
+cases += [
+    ("menu-save-" + mode, mode, b"DWED_MARKER\r\nsecond line\r\n", True)
+    for mode in ("low", "high")
+]
+cases += [
+    ("menu-" + kind + "-low", "low", b"DWED_MARKER\r\nsecond line\r\n", True)
+    for kind in ("alt", "copy", "cancel")
+]
+cases += [
+    (kind + "-low", "low", b"DWED_MARKER\r\nsecond line\r\n", True)
+    for kind in ("menu-open", "shortcut-open")
+]
 if args.case:
     unknown = set(args.case) - {case[0] for case in cases}
     if unknown:
         parser.error(f"unknown cases: {sorted(unknown)}")
     cases = [case for case in cases if case[0] in args.case]
-if any(case[0].startswith("keyboard-") for case in cases) and not (
-    args.build.resolve() / "KEYTEST.exe"
-).is_file():
+if (
+    any(case[0].startswith("keyboard-") for case in cases)
+    and not (args.build.resolve() / "KEYTEST.exe").is_file()
+):
     parser.error("keyboard cases require an editor built with --tests")
 for name, mode, original, edit in cases:
     keyboard = name.startswith("keyboard-")
@@ -209,7 +222,7 @@ for name, mode, original, edit in cases:
             screen = read_screen_text(q, str(d / "vram.bin"))
             if (
                 (rejected and "file was not opened" in screen)
-                or (not original and "Press F1 for help" in screen)
+                or (not original and "SAMPLE.TXT" in screen)
                 or "DWED_MARKER" in screen
             ):
                 break
@@ -224,9 +237,14 @@ for name, mode, original, edit in cases:
             assert "SAMPLE.TXT" not in screen, screen
         else:
             assert (
-                not original and "Press F1 for help" in screen
+                not original and "SAMPLE.TXT" in screen
             ) or "DWED_MARKER" in screen, screen
         q.human_cmd(f'screendump "{d}/opened.ppm"')
+        if name.startswith("menu-"):
+            assert all(
+                label in screen.splitlines()[0]
+                for label in ("File", "Edit", "Search", "Options", "Help")
+            ), screen
         if edit:
             send_keys(q, "home+z")
             time.sleep(0.25)
@@ -239,7 +257,52 @@ for name, mode, original, edit in cases:
         if rejected:
             send_keys(q, "home+z")
             time.sleep(0.25)
-        if keyboard:
+        if name.startswith(("menu-open", "shortcut-open")):
+            if name.startswith("menu-open"):
+                send_keys(q, "hmp:sendkey alt-f")
+                time.sleep(0.25)
+                send_keys(q, "o")
+            else:
+                send_keys(q, "f3")
+            time.sleep(0.25)
+            dialog = read_screen_text(q, str(d / "vram.bin"))
+            assert "Load file" in dialog, dialog
+            send_keys(q, "esc")
+            time.sleep(0.25)
+            restored = read_screen_text(q, str(d / "vram.bin"))
+            assert all(
+                label in restored.splitlines()[0]
+                for label in ("File", "Edit", "Search", "Options", "Help")
+            ), restored
+        if name.startswith(("menu-copy", "menu-cancel")):
+            send_keys(q, "home")
+            for _ in range(2):
+                send_keys(q, "hmp:sendkey shift-right 200")
+                time.sleep(0.3)
+            send_keys(q, "hmp:sendkey alt-e")
+            time.sleep(0.25)
+            (d / "menu.txt").write_text(read_screen_text(q, str(d / "vram.bin")))
+            if name.startswith("menu-copy"):
+                send_keys(q, "c")
+                time.sleep(0.25)
+                send_keys(q, "end")
+                send_keys(q, "hmp:sendkey alt-e")
+                time.sleep(0.25)
+                send_keys(q, "p")
+            else:
+                send_keys(q, "esc+backspace")
+            time.sleep(0.25)
+        if name.startswith(("menu-save", "menu-alt")):
+            send_keys(q, "f10" if name.startswith("menu-save") else "hmp:sendkey alt-f")
+            time.sleep(0.25)
+            menu_screen = read_screen_text(q, str(d / "vram.bin"))
+            (d / "menu.txt").write_text(menu_screen)
+            assert "Save as..." in menu_screen and "Windows..." in menu_screen, (
+                menu_screen
+            )
+            q.human_cmd(f'screendump "{d}/menu.ppm"')
+            send_keys(q, "down+down+ret" if name.startswith("menu-save") else "s")
+        elif keyboard:
             send_keys(q, "hmp:sendkey ctrl-end")
             time.sleep(0.25)
             send_keys(q, "backspace")
@@ -300,6 +363,10 @@ for name, mode, original, edit in cases:
         expected = original if failure else b"z" + original if edit else original
         if keyboard:
             expected = b"z" + original[:-2]
+        if name.startswith("menu-copy"):
+            expected = b"z" + original.replace(b"DWED_MARKER", b"DWED_MARKERzD")
+        if name.startswith("menu-cancel"):
+            expected = original[1:]
         if name.startswith("split-whitespace"):
             expected = original + b"\r\n"
         if name.startswith("remove-final"):
