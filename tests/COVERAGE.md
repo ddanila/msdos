@@ -784,3 +784,11 @@ checkpoints, independent documents, byte payloads, cursor state, and forced
 capacity/heap-reserve failures with rollback and heap accounting. These are
 journal tests; editor command integration and atomic storage replay remain
 release gates documented in [UNDO.md](../dwed/docs/UNDO.md).
+
+The DWED storage-replay probes apply undo journal groups to the real
+conventional-memory backend in LOW and HIGH/UMB and compare every line with a
+separate text model. They verify allocation/preimage/ordinal failure rollback
+(in both replay directions), node identity, links, numbering, empty chains and
+heap recovery. The generated [storage report](../dwed/docs/undo-storage-milestone.json)
+includes a negative control with rollback disabled. Live edit capture and
+swap/XMS replay remain separate qualification work.

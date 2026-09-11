@@ -106,6 +106,9 @@ cases += [
 cases += [
     ("undo-journal-" + mode, mode, b"DWED_MARKER\r\n", True) for mode in ("low", "high")
 ]
+cases += [
+    ("undo-storage-" + mode, mode, b"DWED_MARKER\r\n", True) for mode in ("low", "high")
+]
 cases += DIALOG_CASES
 if args.case:
     unknown = set(args.case) - {case[0] for case in cases}
@@ -122,10 +125,16 @@ if (
     and not (args.build.resolve() / "UNDOTEST.exe").is_file()
 ):
     parser.error("undo journal cases require an editor built with --tests")
+if (
+    any(case[0].startswith("undo-storage-") for case in cases)
+    and not (args.build.resolve() / "STORTEST.exe").is_file()
+):
+    parser.error("undo storage cases require an editor built with --tests")
 for name, mode, original, edit in cases:
     startup = name.startswith("dialog-startup-")
     keyboard = name.startswith("keyboard-")
     undo_journal = name.startswith("undo-journal-")
+    undo_storage = name.startswith("undo-storage-")
     rejected = name.startswith("reject-")
     failure = name.startswith(("disk-full", "read-only"))
     filename = "SAMPLE.BAK" if name.startswith("backup-file") else "SAMPLE.TXT"
@@ -186,6 +195,11 @@ for name, mode, original, edit in cases:
             floppy, "UNDOTEST.EXE", (args.build.resolve() / "UNDOTEST.exe").read_bytes()
         )
         probe_command = "A:\\UNDOTEST.EXE\r\n"
+    if undo_storage:
+        put(
+            floppy, "STORTEST.EXE", (args.build.resolve() / "STORTEST.exe").read_bytes()
+        )
+        probe_command = "A:\\STORTEST.EXE\r\n"
     invocation = "CD \\DWED\r\nDWED.COM"
     if name.startswith("outside-directory"):
         invocation = "CD \\\r\nC:\\DWED\\DWED.COM"
@@ -401,6 +415,15 @@ for name, mode, original, edit in cases:
                     == b"UNDO JOURNAL PASS"
                 )
                 row["journal_probe"] = probe_log.decode("ascii").strip()
+            if undo_storage:
+                probe_log = run(["mtype", "-i", floppy, "::STORE.LOG"]).stdout
+                (d / "store.log").write_bytes(probe_log)
+                assert b"PASS " in probe_log and b"FAIL" not in probe_log, probe_log
+                assert (
+                    run(["mtype", "-i", floppy, "::STORE.OK"]).stdout.strip()
+                    == b"ATOMIC STORAGE PASS"
+                )
+                row["storage_probe"] = probe_log.decode("ascii").strip()
             if external:
                 assert (
                     run(["mtype", "-i", spec, "::COMMAND.TXT"]).stdout.strip()
