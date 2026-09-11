@@ -894,6 +894,11 @@ reporting, unchanged dirty text and snapshot ownership, and successful retry.
 DOS-screen scenarios repeatedly return from the console to an unsaved document
 and verify exact saved bytes. See the [screen memory contract](../dwed/docs/SCREEN-MEMORY.md)
 and [qualification record](../dwed/docs/screen-memory-milestone.json).
+Runtime list-memory scenarios exhaust temporary menu-data allocations, check
+partial source-tree cleanup, and reject an oversized menu before size wrapping.
+Normal list UI scenarios navigate to and edit another procedure. See the
+[list-memory contract](../dwed/docs/LIST-MEMORY.md) and
+[qualification record](../dwed/docs/list-memory-milestone.json).
 
 DWED Enter/autoindent cases verify exact saved bytes when mixed tabs/spaces
 precede a split whose suffix also begins with whitespace. TABTEST checks every
