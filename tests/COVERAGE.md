@@ -946,3 +946,8 @@ text/indentation assertions and BIOS-keyboard edit/save behavior, requiring exac
 saved and backup bytes after a flushed guest completion signal. The generated
 [BIOS report](../dwed/docs/ibmat-bios-milestone.json) records the exercised mode
 and artifact provenance; unrecorded modes and physical hardware remain open.
+
+The [HIGH-mode investigation](../dwed/docs/ibmat-high-investigation.json)
+records an unresolved packaged-editor startup failure after the text probe
+passes. The runner records the last guest stage and failure status; a partial
+probe result does not establish a passing editor run.

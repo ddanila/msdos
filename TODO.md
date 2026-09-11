@@ -4,8 +4,10 @@
    throughout the system. An explicit extended format may follow.
 2. Complete the DWED-based EDIT replacement following
    [its implementation gates](dwed/docs/EDIT-PLAN.md). The source-build
-   instructions are in [BUILD.md](dwed/docs/BUILD.md); save/recovery qualification,
-   lossless file handling, undo and classic menus remain open.
+   instructions are in [BUILD.md](dwed/docs/BUILD.md). Remaining work includes
+   safe resolution of retained recovery files, UI allocation failure handling,
+   measured memory limits, remaining runtime qualification, and promotion into
+   the distribution as EDIT.
 3. Treat QBASIC, AccessDOS, the Microsoft Network Client, and remaining
    DOS 6 locale packs as independent epics.
 
