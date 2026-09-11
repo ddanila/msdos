@@ -121,6 +121,8 @@ def main():
         ]
         row = {"free_block_kib": kib}
         edited = False
+        attempted = False
+        edit_refused = False
         with (directory / "qemu.log").open("wb") as stderr:
             process = subprocess.Popen(
                 command, stdout=subprocess.DEVNULL, stderr=stderr
@@ -135,11 +137,37 @@ def main():
                         process.wait(timeout=5)
                         break
                     (directory / "screen.txt").write_text(screen)
-                    if not edited and "DWED_MARKER" in screen:
-                        send_keys(q, "home+z+f2")
-                        time.sleep(0.5)
+                    if not attempted and "DWED_MARKER" in screen:
+                        attempted = True
+                        send_keys(q, "home+z")
+                        edit_deadline = time.monotonic() + 15
+                        while time.monotonic() < edit_deadline:
+                            screen = read_screen_text(q, str(directory / "vram.bin"))
+                            (directory / "edit-result.txt").write_text(screen)
+                            if "#1004:" in screen:
+                                edit_refused = True
+                                send_keys(q, "ret")
+                                time.sleep(0.3)
+                                break
+                            if "*" in screen.splitlines()[-1]:
+                                edited = True
+                                send_keys(q, "f2")
+                                break
+                            time.sleep(0.2)
+                        assert edited or edit_refused, screen
+                        clean_deadline = time.monotonic() + 15
+                        while time.monotonic() < clean_deadline:
+                            screen = read_screen_text(q, str(directory / "vram.bin"))
+                            if (
+                                "File   Edit" in screen
+                                and "#1004:" not in screen
+                                and "*" not in screen.splitlines()[-1]
+                            ):
+                                break
+                            time.sleep(0.2)
+                        else:
+                            raise AssertionError(screen)
                         send_keys(q, "esc")
-                        edited = True
                     time.sleep(0.2)
                 process.wait(timeout=5)
                 assert process.returncode == 33, process.returncode
@@ -155,6 +183,9 @@ def main():
                 if edited:
                     assert actual == b"z" + original and actual_backup == original
                     row["outcome"] = "edited"
+                elif edit_refused:
+                    assert actual == original and actual_backup == backup
+                    row["outcome"] = "opened; edit refused safely (#1004)"
                 else:
                     assert actual == original and actual_backup == backup
                     assert log.startswith(

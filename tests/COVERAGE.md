@@ -1027,3 +1027,11 @@ under DOS LOW. The [qualified HIGH run](../dwed/docs/ibmat-high-a20-milestone.js
 uses IBM AT BIOS and the unchanged editor package with the repaired HIMEM.
 The runner records the last guest stage and failure status; a partial probe
 result does not establish a passing editor run.
+
+The DWED [allocation source review](../dwed/docs/ALLOCATION-REVIEW.md) records
+the local unit dependency closure and explicit heap allocation sites, including
+vendored dependencies. Its inventory detects stale source snapshots; it is not
+a control-flow proof. The [current memory report](../dwed/docs/current-memory-milestone.json)
+records startup refusal, safe first-edit refusal, and successful editing/saving
+under the contiguous DOS memory cap. The harness observes the edit result before
+sending Save, preserving an existing backup when the edit is refused.

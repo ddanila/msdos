@@ -5,8 +5,9 @@
 2. Complete the DWED-based EDIT replacement following
    [its implementation gates](dwed/docs/EDIT-PLAN.md). The source-build
    instructions are in [BUILD.md](dwed/docs/BUILD.md). Remaining work includes
-   final allocation review, measured memory limits, remaining runtime
-   qualification, and promotion into the distribution as EDIT.
+   the optional SXMS allocation fix identified in the
+   [allocation review](dwed/docs/ALLOCATION-REVIEW.md), full-command memory
+   limits, remaining runtime qualification, and distribution promotion as EDIT.
 3. Treat QBASIC, AccessDOS, the Microsoft Network Client, and remaining
    DOS 6 locale packs as independent epics.
 
