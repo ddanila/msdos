@@ -52,6 +52,8 @@ from dwed_mono_scenarios import exercise as exercise_mono
 from dwed_mouse_scenarios import CASES as MOUSE_CASES
 from dwed_mouse_scenarios import exercise as exercise_mouse
 from dwed_mouse_scenarios import validate_driver
+from dwed_save_cut_scenarios import CASES as SAVE_CUT_CASES
+from dwed_save_cut_scenarios import exercise as exercise_save_cut
 from dwed_save_fault_scenarios import CASES as SAVE_ERROR_CASES
 from dwed_save_fault_scenarios import exercise as exercise_save_error
 from dwed_save_lifecycle_scenarios import CASES as SAVE_LIFECYCLE_CASES
@@ -150,6 +152,7 @@ cases += TAB_CASES
 cases += MONO_CASES
 cases += SAVE_ERROR_CASES
 cases += SAVE_LIFECYCLE_CASES
+cases += SAVE_CUT_CASES
 if args.mouse_driver:
     validate_driver(args.mouse_driver)
     cases += MOUSE_CASES
@@ -188,6 +191,11 @@ if (
     and not (args.build / "SAVETEST.exe").is_file()
 ):
     parser.error("save fault probes require an editor built with --tests")
+if (
+    any(case[0].startswith("save-cut-") for case in cases)
+    and not (args.build / "RECVTEST.exe").is_file()
+):
+    parser.error("restart probes require an editor built with --tests")
 for name, mode, original, edit in cases:
     mouse = name.startswith("mouse-edit-")
     monochrome = name.startswith("mono-edit-") or name in (
@@ -321,6 +329,22 @@ for name, mode, original, edit in cases:
         )
         put(floppy, "SFAULT.COM", (d / "SFAULT.COM").read_bytes())
         probe_command += "A:\\SFAULT.COM\r\n"
+    if name.startswith("save-cut-"):
+        stage = int(name.split("-")[2])
+        run(
+            [
+                "nasm",
+                "-f",
+                "bin",
+                f"-DSTAGE={stage}",
+                ROOT / "tests/dwed_save_cut.asm",
+                "-o",
+                d / "SCUT.COM",
+            ]
+        )
+        put(floppy, "SCUT.COM", (d / "SCUT.COM").read_bytes())
+        put(floppy, "RECVTEST.EXE", (args.build / "RECVTEST.exe").read_bytes())
+        probe_command += "A:\\SCUT.COM\r\n"
     invocation = "CD \\DWED\r\nDWED.COM"
     if name.startswith("outside-directory"):
         invocation = "CD \\\r\nC:\\DWED\\DWED.COM"
@@ -408,7 +432,11 @@ for name, mode, original, edit in cases:
                 label in screen.splitlines()[0]
                 for label in ("File", "Edit", "Search", "Options", "Help")
             ), screen
-        if name in SAVE_LIFECYCLE_FAULTS:
+        if name.startswith("save-cut-"):
+            row.update(
+                exercise_save_cut(q, process, d, spec, original, name, argv, floppy)
+            )
+        elif name in SAVE_LIFECYCLE_FAULTS:
             row.update(exercise_save_lifecycle(q, process, d, spec, original, name))
         elif name.startswith("save-error-"):
             row.update(exercise_save_error(q, process, d, spec, original, name))

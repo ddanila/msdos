@@ -10,7 +10,13 @@ from test_compat_bpb_qemu import run
 ORIGINAL = b"DWED_MARKER\r\nsecond line\r\n"
 FAULTS = {
     "save-error-pending-" + kind + "-" + mode: fault
-    for kind, fault in (("close", 3), ("rollback", 4), ("cleanup", 5), ("keep", 4))
+    for kind, fault in (
+        ("close", 3),
+        ("rollback", 4),
+        ("cleanup", 5),
+        ("keep", 4),
+        ("jclose", 6),
+    )
     for mode in ("low", "high")
 }
 FAULTS["save-error-pending-close-mono-low"] = 3
@@ -49,7 +55,8 @@ def exercise(q, process, directory, spec, original, name):
         return run(["mtype", "-i", spec, "::" + path]).stdout
 
     cleanup = "-cleanup-" in name
-    close = "-close-" in name
+    journal_close = "-jclose-" in name
+    close = "-close-" in name or journal_close
     keep = "-keep-" in name
     title = "Saved; cleanup pending" if cleanup else "Save recovery"
     keys("home+z+f2")
@@ -60,7 +67,13 @@ def exercise(q, process, directory, spec, original, name):
     assert "C:\\SAMPLE.TXT" in text, text
     assert "#5" in text, text
     if close:
-        assert "Temporary file is still open." in text, text
+        assert (
+            "Recovery record is still open."
+            if journal_close
+            else "Temporary file is still open."
+        ) in text, text
+        if journal_close:
+            assert "C:\\$ER0000.REC" in text, text
         assert "C:\\$ED0001.TMP" in text, text
     else:
         assert "C:\\$EB0000.TMP" in text, text

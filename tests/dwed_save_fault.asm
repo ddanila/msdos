@@ -5,6 +5,7 @@ org 100h
 jmp install
 old21: dd 0
 telemetry: dw 0,0,0ffffh,0,0 ; injected, renames, owned handle, creates, failures
+journal_handle: dw 0ffffh
 active: db 0
 released: db 0
 handler:
@@ -29,10 +30,14 @@ handler:
  jmp chain
 fault_active:
 %endif
-%if FAULT = 1 || FAULT = 3
+%if FAULT = 1 || FAULT = 3 || FAULT = 6
  cmp ah,3eh
  jne chain
+%if FAULT = 6
+ cmp bx,[cs:journal_handle]
+%else
  cmp bx,[cs:telemetry+4]
+%endif
  jne chain
 %elif FAULT = 2 || FAULT = 4
  cmp ah,56h
@@ -67,6 +72,17 @@ failed:
  pop bp
  iret
 created:
+ ; Only the payload create arms these faults; recovery records are separate.
+ push si
+ mov si,dx
+ cmp byte [si+3],'$'
+ jne created_other
+ cmp word [si+4],'ER'
+ je created_journal
+ cmp word [si+4],'ED'
+created_other:
+ pop si
+ jne chain
  pushf
  call far [cs:old21]
  jc failed
@@ -81,6 +97,13 @@ created_done:
  and word [ss:bp+6],0fffeh
  pop bp
  iret
+created_journal:
+ pop si
+ pushf
+ call far [cs:old21]
+ jc failed
+ mov [cs:journal_handle],ax
+ jmp created_done
 chain:
  jmp far [cs:old21]
 resident_end:

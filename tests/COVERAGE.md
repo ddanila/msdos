@@ -856,3 +856,13 @@ also checks ownership through both document and clipboard writer returns, path
 overflow rejection and completing a save after the current directory changes.
 See the [session recovery contract](../dwed/docs/SAVE-RECOVERY.md) and
 [generated qualification](../dwed/docs/save-lifecycle-milestone.json).
+
+The [interrupted-save scenarios](dwed_save_cut_scenarios.py) stop QEMU after
+selected successful DOS replacement operations, inspect all surviving file
+bytes and reboot the same private images. RECVTEST then validates the persistent
+record and its payload in a fresh DOS instance. SAVETEST also injects record
+creation, short-write, commit, close and cleanup errors; editor scenarios retain
+ownership across a persistent record-close failure. See the
+[record format and limits](../dwed/docs/SAVE-JOURNAL.md) and
+[generated evidence](../dwed/docs/save-journal-milestone.json). Editor startup
+recovery and torn-sector interruption are not established by these probes.
