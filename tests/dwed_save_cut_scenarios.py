@@ -139,6 +139,8 @@ def exercise(
             assert "xzDWED_MARKER" not in text and "*" in text.splitlines()[-1], text
             if stage == 2:
                 keys("f2")
+                expect("Saved recovered document", "saved-cleanup")
+                keys("esc")
                 text = expect("zDWED_MARKER", "saved-recovery")
                 assert "*" not in text.splitlines()[-1], text
                 expected["SAMPLE.TXT"] = b"z" + original

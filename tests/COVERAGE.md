@@ -875,9 +875,9 @@ read-only file attributes and text-byte preservation. The
 a partial read, and persistent close failure with guarded exit/save and retry.
 The previous editor fails the startup-recovery negative control. See the
 [startup recovery contract](../dwed/docs/STARTUP-RECOVERY.md) and
-[generated qualification](../dwed/docs/save-discovery-milestone.json). Retained
-generation cleanup, read-only media, low memory and torn-sector interruption
-remain unqualified.
+[generated qualification](../dwed/docs/save-discovery-milestone.json). These
+startup scenarios do not establish read-only media or torn-sector interruption
+behaviour; the following gates cover cleanup and memory refusal.
 
 Recovery cleanup scenarios check installed-payload verification, confirmation,
 cancellation, retained-backup refusal, post-confirmation read failure and
@@ -890,6 +890,15 @@ backup-verification open/read/seek/close failures, while interruption probes
 validate the fingerprint independently after reboot. Cleanup checks matching,
 changed and read-only older generations and keeps legacy records conservative.
 See the [current-format evidence](../dwed/docs/backup-fingerprint-milestone.json).
+
+Later-save recovery cases edit a recovered document and verify confirmed cleanup,
+keep followed by another save, Save As, read-only cleanup targets, failed saves,
+legacy backup refusal and errors during post-confirmation verification. A
+saved-copy read corruption must prevent deletion even when the original journal
+and temporary remain valid. Saving unchanged recovered contents over a cleanup
+target through a dot-directory alias must also refuse cleanup. The memory probe
+checks allocation refusal and release for the per-document recovery association.
+See [later-save evidence](../dwed/docs/saved-recovery-milestone.json).
 
 The DWED memory probe repeatedly refuses oversized ordinary loads and recovery
 while preserving a dirty document and verifying heap reclamation. It also

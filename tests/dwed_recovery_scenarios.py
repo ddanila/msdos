@@ -10,6 +10,16 @@ from test_compat_bpb_qemu import put, run
 
 ORIGINAL = b"DWED_MARKER\r\nsecond line\r\n"
 KINDS = (
+    "edited-cleanup",
+    "edited-read-failure",
+    "edited-saved-mismatch",
+    "edited-save-failure",
+    "edited-keep",
+    "edited-saveas",
+    "edited-saveas-alias",
+    "edited-readonly-record",
+    "edited-readonly-temp",
+    "edited-legacy-backup",
     "cleanup",
     "cleanup-v2-backup",
     "cleanup-v2-changed-backup",
@@ -42,6 +52,8 @@ CASES = [
     for mode in ("low", "high")
 ]
 FAULTS = {
+    "edited-read-failure": 1,
+    "edited-saved-mismatch": 5,
     "cleanup-read-failure": 1,
     "record-read": 1,
     "payload-read": 2,
@@ -74,7 +86,9 @@ def prepare(spec, name):
     ]
     if kind == "bad-path":
         paths[0] = b"C:\\SAMPLE.TXT\x00OTHER"
-    v2 = kind.startswith("cleanup-v2-")
+    v2 = kind.startswith("cleanup-v2-") or (
+        kind.startswith("edited-") and kind != "edited-legacy-backup"
+    )
     raw = struct.pack("<8sHH", b"DWEDSAVE", 2 if v2 else 1, 1058 if v2 else 1048)
     raw += b"".join(
         bytes([len(path)]) + path + bytes(255 - len(path)) for path in paths
@@ -114,6 +128,13 @@ def prepare(spec, name):
             run(["mattrib", "-i", spec, "+r", "::$ED0001.TMP"])
         if kind == "cleanup-v2-readonly-backup":
             run(["mattrib", "-i", spec, "+r", "::$EB0000.TMP"])
+    if kind == "edited-save-failure":
+        run(["mattrib", "-i", spec, "+r", "::SAMPLE.TXT"])
+    if kind == "edited-legacy-backup":
+        put(spec, "$EB0000.TMP", b"UNVERIFIED OLDER BACKUP\r\n")
+    if kind in ("edited-readonly-record", "edited-readonly-temp"):
+        path = "$ER0000.REC" if kind.endswith("record") else "$ED0001.TMP"
+        run(["mattrib", "-i", spec, "+r", "::" + path])
     if kind == "readonly":
         for path in ("::$ER0000.REC", "::$ED0001.TMP"):
             run(["mattrib", "-i", spec, "+r", path])
@@ -121,6 +142,8 @@ def prepare(spec, name):
 
 def exercise(q, process, directory, spec, original, name):
     kind = kind_of(name)
+    if kind.startswith("edited-"):
+        return exercise_edited(q, process, directory, spec, original, kind)
     if kind.startswith("cleanup"):
         return exercise_cleanup(q, process, directory, spec, original, kind)
     record = run(["mtype", "-i", spec, "::$ER0000.REC"]).stdout
@@ -181,6 +204,8 @@ def exercise(q, process, directory, spec, original, name):
         assert "zDWED_MARKER" in text and "*" in text.splitlines()[-1], text
         if kind == "format":
             keys("f2")
+            expect("Saved recovered document", "saved-cleanup")
+            keys("esc")
             text = expect("zDWED_MARKER", "saved-format")
             assert "*" not in text.splitlines()[-1], text
             keys("esc")
@@ -310,6 +335,164 @@ def exercise_cleanup(q, process, directory, spec, original, kind):
             if kind == "cleanup-v2-changed-backup"
             else b"VERIFIED OLDER BACKUP\r\n"
         )
+    return {
+        "completed": True,
+        "exact_match": True,
+        "backup_matches_expected": True,
+        "recovery_flow": kind,
+        "resolved": removed,
+    }
+
+
+def exercise_edited(q, process, directory, spec, original, kind):
+    def read(name):
+        return run(["mtype", "-i", spec, "::" + name]).stdout
+
+    def keys(value):
+        send_keys(q, value)
+        time.sleep(0.25)
+
+    def expect(needle, label):
+        deadline = time.monotonic() + 15
+        while time.monotonic() < deadline:
+            screen = read_screen_text(q, str(directory / "vram.bin"))
+            (directory / (label + ".txt")).write_text(screen)
+            if needle in screen:
+                return screen
+            time.sleep(0.2)
+        raise AssertionError(screen)
+
+    record = read("$ER0000.REC")
+    older = read("$EB0000.TMP")
+    expect("Interrupted save", "discovery")
+    if kind == "edited-read-failure":
+        expect("Error #5", "initial-read-failure")
+        keys("caps_lock+r")
+        expect("R Recover", "read-retried")
+    keys("r")
+    expect("Recovered SAMPLE.TXT", "recovered")
+    if kind != "edited-saveas-alias":
+        keys("hmp:sendkey shift-x" if kind == "edited-read-failure" else "x")
+        expect("xzDWED_MARKER", "further-edited")
+    if kind in ("edited-saveas", "edited-saveas-alias"):
+        keys("hmp:sendkey shift-f2")
+        expect("Save file to", "save-as")
+        keys("hmp:sendkey ctrl-a")
+        if kind == "edited-saveas-alias":
+            # Save the unchanged recovered payload over an aliased cleanup target.
+            # Matching CRCs must not permit deleting the newly saved document.
+            keys("dot+dot+backslash")
+            keys("hmp:sendkey shift-4")
+            keys("e+d+0+0+0+1+dot+t+m+p+ret")
+            expect("Replace file", "replace-recovery-temporary")
+            keys("y")
+        else:
+            keys("n+e+w+dot+t+x+t+ret")
+    else:
+        keys("f2")
+    if kind == "edited-save-failure":
+        screen = expect("Error", "save-failed")
+        assert "Saved recovered document" not in screen, screen
+        keys("ret")
+        screen = expect("Recovered SAMPLE.TXT", "still-unsaved")
+        assert "*" in screen.splitlines()[-1], screen
+        keys("esc")
+        expect("Unsaved changes", "unsaved-exit")
+        keys("n")
+        process.wait(timeout=15)
+        assert process.returncode == 33
+        assert read("SAMPLE.TXT") == original
+        assert read("SAMPLE.BAK") == b"PREVIOUS_BACKUP\r\n"
+        assert read("$ER0000.REC") == record
+        assert read("$ED0001.TMP") == payload_for(kind)
+        assert read("$EB0000.TMP") == older
+        return {
+            "completed": True,
+            "exact_match": True,
+            "backup_matches_expected": True,
+            "recovery_flow": kind,
+            "resolved": False,
+        }
+    expect("Saved recovered document", "saved-cleanup")
+    if kind in ("edited-legacy-backup", "edited-saveas-alias"):
+        expect(
+            "Error #1014" if kind == "edited-saveas-alias" else "Error #1015",
+            "cleanup-blocked",
+        )
+        keys("esc")
+    else:
+        screen = expect("D Remove listed files", "confirm")
+        assert "$ER0000.REC" in screen and "$EB0000.TMP" in screen, screen
+        if kind == "edited-keep":
+            keys("esc")
+            expect("xzDWED_MARKER", "kept")
+            # Association survives cancellation and further edits in the same session.
+            keys("y+f2")
+            expect("D Remove listed files", "second-save-confirm")
+            keys("esc")
+        else:
+            keys(
+                "caps_lock+d"
+                if kind in ("edited-read-failure", "edited-saved-mismatch")
+                else "d"
+            )
+            if kind in ("edited-read-failure", "edited-saved-mismatch"):
+                expect(
+                    "Error #1014" if kind == "edited-saved-mismatch" else "Error #5",
+                    "revalidation-failed",
+                )
+                keys("caps_lock+r")
+                expect("D Remove listed files", "revalidated")
+                keys("esc")
+            if kind.startswith("edited-readonly-"):
+                expect("Error #5", "deletion-failed")
+                keys("r")
+                expect("D Remove listed files", "retry-checked")
+                keys("esc")
+    screen = expect("zDWED_MARKER", "saved-editor")
+    assert "*" not in screen.splitlines()[-1], screen
+    keys("esc")
+    process.wait(timeout=15)
+    assert process.returncode == 33
+    expected = (
+        b"xy"
+        if kind == "edited-keep"
+        else b""
+        if kind == "edited-saveas-alias"
+        else b"x"
+    ) + payload_for(kind)
+    saved_path = (
+        "DWED/NEW.TXT"
+        if kind == "edited-saveas"
+        else "$ED0001.TMP"
+        if kind == "edited-saveas-alias"
+        else "SAMPLE.TXT"
+    )
+    assert read(saved_path) == expected
+    assert read("SAMPLE.BAK") == (
+        b"PREVIOUS_BACKUP\r\n"
+        if kind in ("edited-saveas", "edited-saveas-alias")
+        else b"x" + payload_for(kind)
+        if kind == "edited-keep"
+        else original
+    )
+    if kind in ("edited-saveas", "edited-saveas-alias"):
+        assert read("SAMPLE.TXT") == original
+    if kind == "edited-saveas-alias":
+        assert read("$ED0001.BAK") == payload_for(kind)
+    assert read("$ED0000.TMP") == b"OTHER_EDITOR_SAVE\r\n"
+    listing = run(["mdir", "-b", "-i", spec, "::"]).stdout.upper()
+    removed = kind in ("edited-cleanup", "edited-saveas")
+    if removed:
+        for path in (b"$ER0000.REC", b"$ED0001.TMP", b"$EB0000.TMP"):
+            assert path not in listing, listing
+    else:
+        assert read("$ER0000.REC") == record
+        if kind == "edited-readonly-record":
+            assert b"$ED0001.TMP" not in listing and b"$EB0000.TMP" not in listing
+        else:
+            assert read("$ED0001.TMP") == payload_for(kind)
+            assert read("$EB0000.TMP") == older
     return {
         "completed": True,
         "exact_match": True,
