@@ -238,3 +238,8 @@ match the runtime-qualified bytes, and installation disk hashes are unchanged.
 The full legacy matrices and final requirement-by-requirement acceptance audit
 remain open.
 Existing Russian evidence does not establish Baltic support.
+
+[Current-core display qualification](locales/baltic/current-display-qualification.json)
+compares the full release suite font planes and screen hashes with the retained
+visual captures at every height and both memory profiles, including deliberate
+wrong-glyph controls. The captures reproduce exactly with the release core.

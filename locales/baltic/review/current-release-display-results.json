@@ -1,0 +1,117 @@
+{
+  "schema_version": 1,
+  "status": "passed",
+  "core_sha256": {
+    "IO.SYS": "34af301387a2f3d11e20590922b3611227e640c26087dbf79ff83f1364fe0b8e",
+    "MSDOS.SYS": "b495ab1ccc6fd3e7672b4724a7cccde519d8a65171c0c0ed6bad73cd331a42e9",
+    "COMMAND.COM": "6742b5889141a9c61d41e336445014d8055c19758febf4263f4f8ebe3c2f2c29",
+    "HIMEM.SYS": "d5ea7b0e775c2eb6eb2b7dab42eb7471a7a84bfb32cf2021215d4ed6f8a7850a",
+    "EMM386.EXE": "58266b6614594de7a9cfde9eda75e3eb241b9e2e941e67b70645a0f8a197dae6"
+  },
+  "base_image_sha256": "a1ce7453dad510790e9bec72c4c99d9d6b72d139917715a7773bcd911f21df28",
+  "cpi_sha256": "ab38fe5b8acae0ba3933ac6b66596c58b32bc23385285b8cc68fec1fa8f15255",
+  "country_sha256": "93c7d35e887e96f8bc7a55a77150b3bfbacd4be7d0c327cc1134e997a57e418c",
+  "scope": "Shared CP775 font, Estonian country selection for HIGH/LOW setup, rendered samples in all three languages. Country API and keyboard behavior require separate gates.",
+  "cases": [
+    {
+      "profile": "high",
+      "page": 775,
+      "height": 16,
+      "emulator_exit": 33,
+      "guest_completion": true,
+      "mismatched_slots": [],
+      "negative_control": false,
+      "font_plane_sha256": "e6e7e9a0adcd899c0a36d9169aa0fb8327625ae8b0c066baa88bd7a785395ff6",
+      "screen": "high/775-16/screen.ppm",
+      "screen_sha256": "486cd2868dd6238b2a721838c7d9eea986e5d19b4ac5478552c931417b60baeb"
+    },
+    {
+      "profile": "high",
+      "page": 775,
+      "height": 14,
+      "emulator_exit": 33,
+      "guest_completion": true,
+      "mismatched_slots": [],
+      "negative_control": false,
+      "font_plane_sha256": "dbdba90804dc05e9f01a81f9deda417542baaa46943c9e87696050d533c1ac95",
+      "screen": "high/775-14/screen.ppm",
+      "screen_sha256": "66773f5c15797f5bfdf8e728a68aa3b6a4f4b03103a21181ccef681d9656b420"
+    },
+    {
+      "profile": "high",
+      "page": 775,
+      "height": 8,
+      "emulator_exit": 33,
+      "guest_completion": true,
+      "mismatched_slots": [],
+      "negative_control": false,
+      "font_plane_sha256": "7e610c123c7a08c8694a20e1befe7711c2c3ae89f789849da4018d8266b96b48",
+      "screen": "high/775-8/screen.ppm",
+      "screen_sha256": "94c0b651f918c039e63dbeb02224c054759a80ca3e235a62c42ccfddf156d335"
+    },
+    {
+      "profile": "high",
+      "page": 775,
+      "height": 16,
+      "emulator_exit": 33,
+      "guest_completion": true,
+      "mismatched_slots": [
+        228
+      ],
+      "negative_control": true,
+      "font_plane_sha256": "ab286c96f68a1d29c6fa4e4a8fcb96fafd2c0cfb59959427bb90cdd8401872b1",
+      "screen": "high/775-16-corrupt/screen.ppm",
+      "screen_sha256": "279a8748dc12ec2aa2e765f42696e5516030cfc18992e894bc26429522ab0772"
+    },
+    {
+      "profile": "low",
+      "page": 775,
+      "height": 16,
+      "emulator_exit": 33,
+      "guest_completion": true,
+      "mismatched_slots": [],
+      "negative_control": false,
+      "font_plane_sha256": "e6e7e9a0adcd899c0a36d9169aa0fb8327625ae8b0c066baa88bd7a785395ff6",
+      "screen": "low/775-16/screen.ppm",
+      "screen_sha256": "35015cf52c89f5a33d46c943e486b4bedda485801da8ccf384ca6ef9ae2fda6a"
+    },
+    {
+      "profile": "low",
+      "page": 775,
+      "height": 14,
+      "emulator_exit": 33,
+      "guest_completion": true,
+      "mismatched_slots": [],
+      "negative_control": false,
+      "font_plane_sha256": "dbdba90804dc05e9f01a81f9deda417542baaa46943c9e87696050d533c1ac95",
+      "screen": "low/775-14/screen.ppm",
+      "screen_sha256": "96b0abc7407a91895f56ebced52286432720e9c2ab63f79ee752e0a6b1df76f5"
+    },
+    {
+      "profile": "low",
+      "page": 775,
+      "height": 8,
+      "emulator_exit": 33,
+      "guest_completion": true,
+      "mismatched_slots": [],
+      "negative_control": false,
+      "font_plane_sha256": "7e610c123c7a08c8694a20e1befe7711c2c3ae89f789849da4018d8266b96b48",
+      "screen": "low/775-8/screen.ppm",
+      "screen_sha256": "33d88a66d5b049f57380c85bfb90a460bede47b908200618820dbf1bcf898b5b"
+    },
+    {
+      "profile": "low",
+      "page": 775,
+      "height": 16,
+      "emulator_exit": 33,
+      "guest_completion": true,
+      "mismatched_slots": [
+        228
+      ],
+      "negative_control": true,
+      "font_plane_sha256": "ab286c96f68a1d29c6fa4e4a8fcb96fafd2c0cfb59959427bb90cdd8401872b1",
+      "screen": "low/775-16-corrupt/screen.ppm",
+      "screen_sha256": "bdac1a25c841f54f72ab7af7311796f5b7480d1fdf466fe71b7aa7532ae25a78"
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "status": "current-core-display-qualified",
+  "scope": "All HIGH/LOW CP775 heights and wrong-glyph controls in the complete pristine release suite. Every font-plane hash and original PPM screen hash equals the matching retained display qualification case. This permits the retained lossless captures to support current-core visual review.",
+  "source_commit": "1c3047e332be958f2b7511a0d7435c726e373d86",
+  "command": "python3 tests/test_baltic_display_qemu.py",
+  "suite_provenance": "release-qualification.json",
+  "prior_captures": "display-qualification.json",
+  "core_sha256": {
+    "IO.SYS": "34af301387a2f3d11e20590922b3611227e640c26087dbf79ff83f1364fe0b8e",
+    "MSDOS.SYS": "b495ab1ccc6fd3e7672b4724a7cccde519d8a65171c0c0ed6bad73cd331a42e9",
+    "COMMAND.COM": "6742b5889141a9c61d41e336445014d8055c19758febf4263f4f8ebe3c2f2c29",
+    "HIMEM.SYS": "d5ea7b0e775c2eb6eb2b7dab42eb7471a7a84bfb32cf2021215d4ed6f8a7850a",
+    "EMM386.EXE": "58266b6614594de7a9cfde9eda75e3eb241b9e2e941e67b70645a0f8a197dae6"
+  },
+  "results": {
+    "path": "review/current-release-display-results.json",
+    "sha256": "9f83ecd7ac6a2765bdee3d49e5ea7b88d06392bdee95def6a35db3af8fd0636a"
+  },
+  "comparison": {
+    "case_identity": [
+      "profile",
+      "height",
+      "negative_control"
+    ],
+    "all_case_identities_equal": true,
+    "font_plane_hashes_equal": true,
+    "screen_ppm_hashes_equal": true,
+    "guest_completion_and_exit_checked": true,
+    "wrong_glyph_detected_at_slot": 228
+  },
+  "visual_review": "Reinspected retained HIGH captures at heights 8, 14 and 16: national diacritics visible, sample words readable, supported borders connected. Short-height glyphs are compact; independent byte oracles check exact glyph identity."
+}

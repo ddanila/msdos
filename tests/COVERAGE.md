@@ -697,3 +697,8 @@ subsequent `make -j1 deploy distribution` log, with matching composed-core,
 deployed-resource and installation-disk hashes. Its source revision and later
 manual legacy-helper changes are recorded separately; this run does not replace
 the dedicated AT/XT lifecycle matrices or final acceptance audit.
+
+The [current-core Baltic display comparison](../locales/baltic/current-display-qualification.json)
+retains the full release suite display results and records exact font-plane and
+screen-hash agreement with the previously reviewed HIGH/LOW captures at every
+height, including the wrong-glyph controls.
