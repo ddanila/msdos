@@ -54,6 +54,9 @@ from dwed_mouse_scenarios import exercise as exercise_mouse
 from dwed_mouse_scenarios import validate_driver
 from dwed_save_fault_scenarios import CASES as SAVE_ERROR_CASES
 from dwed_save_fault_scenarios import exercise as exercise_save_error
+from dwed_save_lifecycle_scenarios import CASES as SAVE_LIFECYCLE_CASES
+from dwed_save_lifecycle_scenarios import FAULTS as SAVE_LIFECYCLE_FAULTS
+from dwed_save_lifecycle_scenarios import exercise as exercise_save_lifecycle
 from dwed_tab_scenarios import CASES as TAB_CASES
 from dwed_tab_scenarios import exercise as exercise_tabs
 from dwed_tab_scenarios import prepare as prepare_tabs
@@ -146,6 +149,7 @@ cases += CLIPBOARD_CASES
 cases += TAB_CASES
 cases += MONO_CASES
 cases += SAVE_ERROR_CASES
+cases += SAVE_LIFECYCLE_CASES
 if args.mouse_driver:
     validate_driver(args.mouse_driver)
     cases += MOUSE_CASES
@@ -186,7 +190,10 @@ if (
     parser.error("save fault probes require an editor built with --tests")
 for name, mode, original, edit in cases:
     mouse = name.startswith("mouse-edit-")
-    monochrome = name.startswith("mono-edit-") or name == "mouse-edit-mono-low"
+    monochrome = name.startswith("mono-edit-") or name in (
+        "mouse-edit-mono-low",
+        "save-error-pending-close-mono-low",
+    )
     screen_expect.VRAM_PHYS = 0xB0000 if monochrome else 0xB8000
     startup = name.startswith("dialog-startup-")
     keyboard = name.startswith("keyboard-")
@@ -300,7 +307,7 @@ for name, mode, original, edit in cases:
         put(floppy, "MTRACE.COM", (d / "MTRACE.COM").read_bytes())
         probe_command += "A:\\CTMOUSE.EXE\r\nA:\\MTRACE.COM\r\n"
     if name.startswith("save-error-"):
-        fault = 1 if "-close-" in name else 2
+        fault = SAVE_LIFECYCLE_FAULTS.get(name, 1 if "-close-" in name else 2)
         run(
             [
                 "nasm",
@@ -401,7 +408,9 @@ for name, mode, original, edit in cases:
                 label in screen.splitlines()[0]
                 for label in ("File", "Edit", "Search", "Options", "Help")
             ), screen
-        if name.startswith("save-error-"):
+        if name in SAVE_LIFECYCLE_FAULTS:
+            row.update(exercise_save_lifecycle(q, process, d, spec, original, name))
+        elif name.startswith("save-error-"):
             row.update(exercise_save_error(q, process, d, spec, original, name))
         elif mouse:
             row.update(exercise_mouse(q, process, d, spec, original, name))

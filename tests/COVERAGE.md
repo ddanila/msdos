@@ -845,3 +845,14 @@ Cancel/Retry/Discard after actual Save failures. The preceding editor build
 loses its previous backup in the rename negative control. See the
 [save contract and remaining recovery gates](../dwed/docs/SAVE-TRANSACTION.md)
 and [generated evidence](../dwed/docs/save-fault-milestone.json).
+
+The [save lifecycle scenarios](dwed_save_lifecycle_scenarios.py) hold close,
+rollback and cleanup faults active across actual editor commands. They check
+that new saves cannot discard transaction ownership, other document lifetimes
+do not lose it, and Exit/Close/external-command cancellation returns to the
+editor. Retrying after fault release and explicitly keeping closed recovery
+files verify the resulting destination, temporary and backup bytes. SAVETEST
+also checks ownership through both document and clipboard writer returns, path
+overflow rejection and completing a save after the current directory changes.
+See the [session recovery contract](../dwed/docs/SAVE-RECOVERY.md) and
+[generated qualification](../dwed/docs/save-lifecycle-milestone.json).
