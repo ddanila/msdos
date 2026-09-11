@@ -103,6 +103,9 @@ cases += [
     (kind + "-low", "low", b"DWED_MARKER\r\nsecond line\r\n", True)
     for kind in ("menu-open", "shortcut-open")
 ]
+cases += [
+    ("undo-journal-" + mode, mode, b"DWED_MARKER\r\n", True) for mode in ("low", "high")
+]
 cases += DIALOG_CASES
 if args.case:
     unknown = set(args.case) - {case[0] for case in cases}
@@ -114,9 +117,15 @@ if (
     and not (args.build.resolve() / "KEYTEST.exe").is_file()
 ):
     parser.error("keyboard cases require an editor built with --tests")
+if (
+    any(case[0].startswith("undo-journal-") for case in cases)
+    and not (args.build.resolve() / "UNDOTEST.exe").is_file()
+):
+    parser.error("undo journal cases require an editor built with --tests")
 for name, mode, original, edit in cases:
     startup = name.startswith("dialog-startup-")
     keyboard = name.startswith("keyboard-")
+    undo_journal = name.startswith("undo-journal-")
     rejected = name.startswith("reject-")
     failure = name.startswith(("disk-full", "read-only"))
     filename = "SAMPLE.BAK" if name.startswith("backup-file") else "SAMPLE.TXT"
@@ -172,6 +181,11 @@ for name, mode, original, edit in cases:
         probe = args.build.resolve() / "KEYTEST.exe"
         put(floppy, "KEYTEST.EXE", probe.read_bytes())
         probe_command = "A:\\KEYTEST.EXE\r\n"
+    if undo_journal:
+        put(
+            floppy, "UNDOTEST.EXE", (args.build.resolve() / "UNDOTEST.exe").read_bytes()
+        )
+        probe_command = "A:\\UNDOTEST.EXE\r\n"
     invocation = "CD \\DWED\r\nDWED.COM"
     if name.startswith("outside-directory"):
         invocation = "CD \\\r\nC:\\DWED\\DWED.COM"
@@ -378,6 +392,15 @@ for name, mode, original, edit in cases:
                     run(["mtype", "-i", floppy, "::KEY.OK"]).stdout.strip()
                     == b"KEYBOARD PASS 13"
                 )
+            if undo_journal:
+                probe_log = run(["mtype", "-i", floppy, "::UNDO.LOG"]).stdout
+                (d / "undo.log").write_bytes(probe_log)
+                assert b"PASS " in probe_log and b"FAIL" not in probe_log, probe_log
+                assert (
+                    run(["mtype", "-i", floppy, "::UNDO.OK"]).stdout.strip()
+                    == b"UNDO JOURNAL PASS"
+                )
+                row["journal_probe"] = probe_log.decode("ascii").strip()
             if external:
                 assert (
                     run(["mtype", "-i", spec, "::COMMAND.TXT"]).stdout.strip()

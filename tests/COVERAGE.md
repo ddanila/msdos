@@ -777,3 +777,10 @@ maps every BALTIC.md requirement to retained evidence, checks each language
 under the required memory and installed profiles, and verifies shared release
 and legacy BIOS gates. Historical source controls and metadata-only changes
 are explicitly scoped; unrelated locale and product epics remain open.
+
+The DWED undo-journal probes replay grouped line deltas against an independent
+text model in LOW and HIGH/UMB. They cover branching, eviction, saved-state
+checkpoints, independent documents, byte payloads, cursor state, and forced
+capacity/heap-reserve failures with rollback and heap accounting. These are
+journal tests; editor command integration and atomic storage replay remain
+release gates documented in [UNDO.md](../dwed/docs/UNDO.md).
