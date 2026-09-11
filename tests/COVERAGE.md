@@ -1065,3 +1065,11 @@ checks retained documents and checkpoint bytes, persistent cleanup ownership,
 and independent document-save ownership. The host exercises the cleanup dialog
 and successful launcher resume separately. See the [session contract](../dwed/docs/SESSION-SAFETY.md)
 and [qualification evidence](../dwed/docs/session-safety-milestone.json).
+
+The DWED metadata probe verifies complete configuration publication and resume
+record validation through checked DOS reads. It injects read, seek, open,
+close, EOF/size, and deletion failures, checks retained checkpoint bytes and
+read ownership, and exercises allocation failure and line boundaries. Later
+document failures retain earlier restored documents and the checkpoint. See
+[the reader contract](../dwed/docs/METADATA-READERS.md) and
+[qualification evidence](../dwed/docs/metadata-reader-milestone.json).

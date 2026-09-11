@@ -239,6 +239,10 @@ cases += [
     ("tab-probe-" + mode, mode, b"DWED_MARKER\r\n", True) for mode in ("low", "high")
 ]
 cases += [
+    ("metadata-probe-" + mode, mode, b"DWED_MARKER\r\n", True)
+    for mode in ("low", "high")
+]
+cases += [
     ("session-probe-" + mode, mode, b"DWED_MARKER\r\n", True)
     for mode in ("low", "high")
 ]
@@ -325,6 +329,11 @@ if (
 ):
     parser.error("XMS probes require an editor built with --tests")
 if (
+    any(case[0].startswith("metadata-probe-") for case in cases)
+    and not (args.build / "INITPROB.exe").exists()
+):
+    parser.error("metadata probes require an editor built with --tests")
+if (
     any(case[0].startswith("session-probe-") for case in cases)
     and not (args.build / "SESSPROB.exe").exists()
 ):
@@ -363,6 +372,7 @@ for name, mode, original, edit in cases:
     real_transfer = name.startswith("real-transfer-")
     xfer_probe = name.startswith("xfer-probe-")
     xms_probe = name.startswith("xms-probe-")
+    metadata_probe = name.startswith("metadata-probe-")
     session_probe = name.startswith("session-probe-")
     tab_probe = name.startswith("tab-probe-")
     save_probe = name.startswith("save-fault-")
@@ -480,6 +490,11 @@ for name, mode, original, edit in cases:
             floppy, "CLIPTEST.EXE", (args.build.resolve() / "CLIPTEST.exe").read_bytes()
         )
         probe_command = "A:\\CLIPTEST.EXE\r\n"
+    if metadata_probe:
+        put(
+            floppy, "INITPROB.EXE", (args.build.resolve() / "INITPROB.exe").read_bytes()
+        )
+        probe_command = "A:\\INITPROB.EXE >C:\\INITRUN.LOG\r\n"
     if session_probe:
         put(
             floppy, "SESSPROB.EXE", (args.build.resolve() / "SESSPROB.exe").read_bytes()
@@ -1025,6 +1040,18 @@ for name, mode, original, edit in cases:
                     run(["mtype", "-i", floppy, "::XMS.OK"]).stdout.strip() == expected
                 )
                 row["xms_probe"] = probe_log.decode("ascii").strip()
+            if metadata_probe:
+                diagnostic = run(["mtype", "-i", spec, "::INITRUN.LOG"]).stdout
+                (d / "metadata-runtime.log").write_bytes(diagnostic)
+                assert not diagnostic.strip(), diagnostic
+                probe_log = run(["mtype", "-i", floppy, "::INIT.LOG"]).stdout
+                (d / "metadata.log").write_bytes(probe_log)
+                assert b"PASS " in probe_log and b"FAIL" not in probe_log, probe_log
+                assert (
+                    run(["mtype", "-i", floppy, "::INIT.OK"]).stdout.strip()
+                    == b"METADATA PASS"
+                )
+                row["metadata_probe"] = probe_log.decode("ascii").strip()
             if session_probe:
                 diagnostic = run(["mtype", "-i", spec, "::SESSRUN.LOG"]).stdout
                 (d / "session-runtime.log").write_bytes(diagnostic)
