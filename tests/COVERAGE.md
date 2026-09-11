@@ -913,6 +913,14 @@ refusal after an accepted match, and undo-capacity rollback. See the
 [search contract](../dwed/docs/SEARCH-REPLACE.md) and
 [generated evidence](../dwed/docs/search-replace-milestone.json).
 
+The [addon scenarios](dwed_addon_scenarios.py) exercise checked ASCII and calculator
+insertion, selection replacement/cancellation, line boundaries, unsupported
+control bytes, saved-file reopening and undo/redo. Calculator cases cover radix
+editing, zero-divisor retry, signed edge values and bitwise operations. Selected
+monochrome cases inspect focus attributes. See the
+[addon contract](../dwed/docs/ADDONS.md) and
+[generated evidence](../dwed/docs/addon-safety-milestone.json).
+
 The DWED memory probe repeatedly refuses oversized ordinary loads and recovery
 while preserving a dirty document and verifying heap reclamation. It also
 fills memory with real documents, checks failed New/Open ownership, releases

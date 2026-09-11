@@ -67,6 +67,8 @@ for required in (overlay, launcher, args.boot_image):
     if not required.is_file():
         parser.error(f"missing input: {required}")
 import screen_expect
+from dwed_addon_scenarios import CASES as ADDON_CASES
+from dwed_addon_scenarios import exercise as exercise_addon
 from dwed_clipboard_scenarios import CASES as CLIPBOARD_CASES
 from dwed_clipboard_scenarios import exercise as exercise_clipboard
 from dwed_clipboard_scenarios import prepare as prepare_clipboard
@@ -235,6 +237,7 @@ cases += [
 cases += [
     ("save-fault-" + mode, mode, b"DWED_MARKER\r\n", True) for mode in ("low", "high")
 ]
+cases += ADDON_CASES
 cases += SEARCH_CASES
 cases += DIALOG_CASES
 cases += UNDO_CASES
@@ -292,6 +295,8 @@ for name, mode, original, edit in cases:
     mouse = name.startswith("mouse-edit-")
     monochrome = name.startswith(("mono-edit-", "help-mono-")) or name in (
         "mouse-edit-mono-low",
+        "addon-ascii-mono-low",
+        "addon-calc-mono-low",
         "mouse-edit-dialog-mono-low",
         "save-error-pending-close-mono-low",
     )
@@ -628,7 +633,9 @@ for name, mode, original, edit in cases:
                 label in screen.splitlines()[0]
                 for label in ("File", "Edit", "Search", "Options", "Help")
             ), screen
-        if name.startswith("search-"):
+        if name.startswith("addon-"):
+            row.update(exercise_addon(q, process, d, spec, original, name))
+        elif name.startswith("search-"):
             row.update(exercise_search(q, process, d, spec, original, name))
         elif name.startswith("help-"):
             row.update(exercise_help(q, process, d, spec, original, name))
