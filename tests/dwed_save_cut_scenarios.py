@@ -18,11 +18,15 @@ CASES = [
 
 
 def decode_record(raw):
-    assert len(raw) == 8 + 4 + 4 * 256 + 3 * 4, len(raw)
+    assert len(raw) == 8 + 4 + 4 * 256 + 5 * 4 + 2, len(raw)
     assert raw[:8] == b"DWEDSAVE"
     version, size = struct.unpack_from("<HH", raw, 8)
-    assert version == 1 and size == len(raw), (version, size)
-    count, checksum, record_checksum = struct.unpack_from("<III", raw, len(raw) - 12)
+    assert version == 2 and size == len(raw), (version, size)
+    count, checksum, old_size, old_crc, known, record_checksum = struct.unpack_from(
+        "<IIIIHI", raw, 1036
+    )
+    assert known == 1 and old_size == len(b"PREVIOUS_BACKUP\r\n")
+    assert old_crc == zlib.crc32(b"PREVIOUS_BACKUP\r\n")
     assert zlib.crc32(raw[:-4]) == record_checksum
     paths = [raw[pos + 1 : pos + 1 + raw[pos]] for pos in range(12, 12 + 4 * 256, 256)]
     return paths, count, checksum

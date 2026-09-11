@@ -6,9 +6,16 @@ jmp install
 old21: dd 0
 telemetry: dw 0,0,0ffffh,0,0 ; injected, renames, owned handle, creates, failures
 journal_handle: dw 0ffffh
+%if FAULT = 7
+backup_handle: dw 0ffffh
+%endif
 active: db 0
 released: db 0
 handler:
+%if FAULT = 7
+ cmp ah,3dh
+ je opened_backup
+%endif
  cmp ah,5bh
  je created
  cmp byte [cs:active],0
@@ -30,10 +37,12 @@ handler:
  jmp chain
 fault_active:
 %endif
-%if FAULT = 1 || FAULT = 3 || FAULT = 6
+%if FAULT = 1 || FAULT = 3 || FAULT = 6 || FAULT = 7
  cmp ah,3eh
  jne chain
-%if FAULT = 6
+%if FAULT = 7
+ cmp bx,[cs:backup_handle]
+%elif FAULT = 6
  cmp bx,[cs:journal_handle]
 %else
  cmp bx,[cs:telemetry+4]
@@ -104,6 +113,24 @@ created_journal:
  jc failed
  mov [cs:journal_handle],ax
  jmp created_done
+%if FAULT = 7
+opened_backup:
+ push si
+ mov si,dx
+ cmp byte [si+9],'.'
+ jne backup_other
+ cmp word [si+10],'BA'
+ jne backup_other
+ cmp word [si+12],'K'
+backup_other:
+ pop si
+ jne chain
+ pushf
+ call far [cs:old21]
+ jc failed
+ mov [cs:backup_handle],ax
+ jmp created_done
+%endif
 chain:
  jmp far [cs:old21]
 resident_end:

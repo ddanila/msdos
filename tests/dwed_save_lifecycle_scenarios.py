@@ -16,6 +16,7 @@ FAULTS = {
         ("cleanup", 5),
         ("keep", 4),
         ("jclose", 6),
+        ("backup-close", 7),
     )
     for mode in ("low", "high")
 }
@@ -56,6 +57,7 @@ def exercise(q, process, directory, spec, original, name):
 
     cleanup = "-cleanup-" in name
     journal_close = "-jclose-" in name
+    backup_close = "-backup-close-" in name
     close = "-close-" in name or journal_close
     keep = "-keep-" in name
     title = "Saved; cleanup pending" if cleanup else "Save recovery"
@@ -68,7 +70,9 @@ def exercise(q, process, directory, spec, original, name):
     assert "#5" in text, text
     if close:
         assert (
-            "Recovery record is still open."
+            "Backup verification handle is still open."
+            if backup_close
+            else "Recovery record is still open."
             if journal_close
             else "Temporary file is still open."
         ) in text, text

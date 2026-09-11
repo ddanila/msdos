@@ -885,6 +885,12 @@ retryable journal deletion failure. See the
 [cleanup contract](../dwed/docs/RECOVERY-CLEANUP.md) and
 [qualification record](../dwed/docs/recovery-cleanup-milestone.json).
 
+New journal records fingerprint the parked previous backup. Save probes inject
+backup-verification open/read/seek/close failures, while interruption probes
+validate the fingerprint independently after reboot. Cleanup checks matching,
+changed and read-only older generations and keeps legacy records conservative.
+See the [current-format evidence](../dwed/docs/backup-fingerprint-milestone.json).
+
 The DWED memory probe repeatedly refuses oversized ordinary loads and recovery
 while preserving a dirty document and verifying heap reclamation. It also
 fills memory with real documents, checks failed New/Open ownership, releases

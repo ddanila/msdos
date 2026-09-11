@@ -11,6 +11,9 @@ from test_compat_bpb_qemu import put, run
 ORIGINAL = b"DWED_MARKER\r\nsecond line\r\n"
 KINDS = (
     "cleanup",
+    "cleanup-v2-backup",
+    "cleanup-v2-changed-backup",
+    "cleanup-v2-readonly-backup",
     "cleanup-large",
     "cleanup-cancel",
     "cleanup-missing-temp",
@@ -71,11 +74,22 @@ def prepare(spec, name):
     ]
     if kind == "bad-path":
         paths[0] = b"C:\\SAMPLE.TXT\x00OTHER"
-    raw = struct.pack("<8sHH", b"DWEDSAVE", 1, 1048)
+    v2 = kind.startswith("cleanup-v2-")
+    raw = struct.pack("<8sHH", b"DWEDSAVE", 2 if v2 else 1, 1058 if v2 else 1048)
     raw += b"".join(
         bytes([len(path)]) + path + bytes(255 - len(path)) for path in paths
     )
     raw += struct.pack("<II", len(payload), zlib.crc32(payload))
+    if v2:
+        older = b"VERIFIED OLDER BACKUP\r\n"
+        raw += struct.pack("<IIH", len(older), zlib.crc32(older), 1)
+        put(
+            spec,
+            "$EB0000.TMP",
+            b"CHANGED OLDER BACKUP\r\n"
+            if kind == "cleanup-v2-changed-backup"
+            else older,
+        )
     raw += struct.pack("<I", zlib.crc32(raw))
     if kind == "bad-crc":
         raw = raw[:-1] + bytes([raw[-1] ^ 1])
@@ -98,6 +112,8 @@ def prepare(spec, name):
             run(["mattrib", "-i", spec, "+r", "::$ER0000.REC"])
         if kind == "cleanup-readonly-temp":
             run(["mattrib", "-i", spec, "+r", "::$ED0001.TMP"])
+        if kind == "cleanup-v2-readonly-backup":
+            run(["mattrib", "-i", spec, "+r", "::$EB0000.TMP"])
     if kind == "readonly":
         for path in ("::$ER0000.REC", "::$ED0001.TMP"):
             run(["mattrib", "-i", spec, "+r", path])
@@ -230,6 +246,7 @@ def exercise_cleanup(q, process, directory, spec, original, kind):
     blocked = kind in (
         "cleanup-changed-dest",
         "cleanup-changed-temp",
+        "cleanup-v2-changed-backup",
         "cleanup-retained-backup",
     )
     if blocked:
@@ -239,7 +256,7 @@ def exercise_cleanup(q, process, directory, spec, original, kind):
         )
         keys("s")
     else:
-        text = expect("D Remove duplicates", "cleanup-confirm")
+        text = expect("D Remove listed files", "cleanup-confirm")
         assert "$ER0000.REC" in text and "$ED0001.TMP" in text, text
         if kind == "cleanup-cancel":
             keys("esc")
@@ -249,12 +266,13 @@ def exercise_cleanup(q, process, directory, spec, original, kind):
             keys("caps_lock+d" if kind == "cleanup-read-failure" else "d")
             if kind in (
                 "cleanup-readonly-record",
+                "cleanup-v2-readonly-backup",
                 "cleanup-readonly-temp",
                 "cleanup-read-failure",
             ):
                 expect("Cleanup unavailable. Error #5", "cleanup-delete-failed")
                 keys("caps_lock+c" if kind == "cleanup-read-failure" else "c")
-                expect("D Remove duplicates", "cleanup-retry")
+                expect("D Remove listed files", "cleanup-retry")
                 keys("esc+s")
     expect("DWED_MARKER", "editor-return")
     keys("esc")
@@ -264,12 +282,17 @@ def exercise_cleanup(q, process, directory, spec, original, kind):
     assert read("SAMPLE.BAK") == backup
     assert read("$ED0000.TMP") == b"OTHER_EDITOR_SAVE\r\n"
     listing = run(["mdir", "-b", "-i", spec, "::"]).stdout.upper()
-    removed = kind in ("cleanup", "cleanup-large", "cleanup-missing-temp")
+    removed = kind in (
+        "cleanup",
+        "cleanup-large",
+        "cleanup-missing-temp",
+        "cleanup-v2-backup",
+    )
     if removed:
         assert b"$ER0000.REC" not in listing and b"$ED0001.TMP" not in listing, listing
     else:
         assert read("$ER0000.REC") == record
-        if kind == "cleanup-readonly-record":
+        if kind in ("cleanup-readonly-record", "cleanup-v2-readonly-backup"):
             assert b"$ED0001.TMP" not in listing, listing
         else:
             assert read("$ED0001.TMP") == (
@@ -279,6 +302,14 @@ def exercise_cleanup(q, process, directory, spec, original, kind):
             )
     if kind == "cleanup-retained-backup":
         assert read("$EB0000.TMP") == b"UNVERIFIED OLDER BACKUP\r\n"
+    if kind == "cleanup-v2-backup":
+        assert b"$EB0000.TMP" not in listing, listing
+    if kind in ("cleanup-v2-changed-backup", "cleanup-v2-readonly-backup"):
+        assert read("$EB0000.TMP") == (
+            b"CHANGED OLDER BACKUP\r\n"
+            if kind == "cleanup-v2-changed-backup"
+            else b"VERIFIED OLDER BACKUP\r\n"
+        )
     return {
         "completed": True,
         "exact_match": True,
