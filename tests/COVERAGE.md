@@ -1112,3 +1112,10 @@ unpublished after write, seek, read, and allocation failures. It checks old
 payloads, root and free-list metadata, repeated failures, retry, reopening, and
 the maximum WORD-sized chained input. See the [append API contract](../dwed/docs/DATABASE-APPENDS.md)
 and [qualification evidence](../dwed/docs/record-append-milestone.json).
+
+The DWED record-update probe verifies the old-record view after partial writes,
+retained rollback ownership, blocked mutations, allocation refusal, and explicit
+temporary discard. It checks maximum-size records and index-sized records that
+straddle buffered pages, plus a real XMS dirty-cache transfer failure. See the
+[update contract](../dwed/docs/DATABASE-UPDATES.md) and
+[qualification evidence](../dwed/docs/record-update-milestone.json).

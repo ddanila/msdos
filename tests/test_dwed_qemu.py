@@ -248,6 +248,10 @@ cases += [
     for mode in ("low", "high")
 ]
 cases += [
+    ("record-update-" + mode, mode, b"DWED_MARKER\r\n", True)
+    for mode in ("low", "high")
+]
+cases += [
     ("record-append-" + mode, mode, b"DWED_MARKER\r\n", True)
     for mode in ("low", "high")
 ]
@@ -364,6 +368,11 @@ if (
 ):
     parser.error("store save probes require an editor built with --tests")
 if (
+    any(case[0].startswith("record-update-") for case in cases)
+    and not (args.build / "DBUPDATE.exe").exists()
+):
+    parser.error("record update probes require an editor built with --tests")
+if (
     any(case[0].startswith("record-append-") for case in cases)
     and not (args.build / "DBAPPEND.exe").exists()
 ):
@@ -429,6 +438,7 @@ for name, mode, original, edit in cases:
     xms_probe = name.startswith("xms-probe-")
     temporary_probe = name.startswith("temporary-probe-")
     store_save = name.startswith("store-save-")
+    record_update = name.startswith("record-update-")
     record_append = name.startswith("record-append-")
     record_read = name.startswith("record-read-")
     database_open = name.startswith("database-open-")
@@ -560,6 +570,9 @@ for name, mode, original, edit in cases:
     if store_save:
         put(floppy, "STRSAVE.EXE", (args.build.resolve() / "STRSAVE.exe").read_bytes())
         probe_command = "A:\\STRSAVE.EXE >C:\\STSRUN.LOG\r\n"
+    if record_update:
+        put(floppy, "DBUPDATE.EXE", (args.build.resolve() / "DBUPDATE.exe").read_bytes())
+        probe_command = "A:\\DBUPDATE.EXE >C:\\UPDRUN.LOG\r\n"
     if record_append:
         put(floppy, "DBAPPEND.EXE", (args.build.resolve() / "DBAPPEND.exe").read_bytes())
         probe_command = "A:\\DBAPPEND.EXE >C:\\APPRUN.LOG\r\n"
@@ -752,7 +765,7 @@ for name, mode, original, edit in cases:
     row = {"case": name, "mode": mode, "original_hex": original.hex()}
     try:
         q = QMPConnection(str(socket))
-        end = time.monotonic() + (120 if record_read or record_append or store_save else 30)
+        end = time.monotonic() + (120 if record_read or record_append or record_update or store_save else 30)
         screen = ""
         memory_notices = 0
         table_refusals = 0
@@ -1146,6 +1159,18 @@ for name, mode, original, edit in cases:
                     == b"STORE SAVE PASS"
                 )
                 row["store_save"] = probe_log.decode("ascii").strip()
+            if record_update:
+                diagnostic = run(["mtype", "-i", spec, "::UPDRUN.LOG"]).stdout
+                (d / "record-update-runtime.log").write_bytes(diagnostic)
+                assert not diagnostic.strip(), diagnostic
+                probe_log = run(["mtype", "-i", floppy, "::DBUPDATE.LOG"]).stdout
+                (d / "record-update.log").write_bytes(probe_log)
+                assert b"PASS " in probe_log and b"FAIL" not in probe_log, probe_log
+                assert (
+                    run(["mtype", "-i", floppy, "::DBUPDATE.OK"]).stdout.strip()
+                    == b"RECORD UPDATE PASS"
+                )
+                row["record_update"] = probe_log.decode("ascii").strip()
             if record_append:
                 diagnostic = run(["mtype", "-i", spec, "::APPRUN.LOG"]).stdout
                 (d / "record-append-runtime.log").write_bytes(diagnostic)
