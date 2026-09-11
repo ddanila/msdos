@@ -927,7 +927,11 @@ Typing at each destination verifies the caret through exact saved bytes;
 undo/redo and the original backup are also checked. See the
 [table contract](../dwed/docs/TABLES.md) and
 [generated evidence](../dwed/docs/table-navigation-milestone.json).
-Row insertion and selection qualification remain separate open work.
+The [row scenarios](dwed_table_row_scenarios.py) cover continuation rows,
+trailing whitespace, tab alignment, single/double borders, full physical lines,
+and selection precedence. The tab probe forces early allocation refusal and
+undo-capacity refusal after changing the old row, then checks rollback and retry.
+See [row evidence](../dwed/docs/table-row-milestone.json).
 
 The DWED memory probe repeatedly refuses oversized ordinary loads and recovery
 while preserving a dirty document and verifying heap reclamation. It also

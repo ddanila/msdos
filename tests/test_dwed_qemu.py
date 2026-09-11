@@ -106,6 +106,8 @@ from dwed_search_scenarios import exercise as exercise_search
 from dwed_tab_scenarios import CASES as TAB_CASES
 from dwed_tab_scenarios import exercise as exercise_tabs
 from dwed_tab_scenarios import prepare as prepare_tabs
+from dwed_table_row_scenarios import CASES as TABLE_ROW_CASES
+from dwed_table_row_scenarios import exercise as exercise_table_row
 from dwed_table_scenarios import CASES as TABLE_CASES
 from dwed_table_scenarios import exercise as exercise_table
 from dwed_undo_scenarios import CASES as UNDO_CASES
@@ -239,6 +241,7 @@ cases += [
 cases += [
     ("save-fault-" + mode, mode, b"DWED_MARKER\r\n", True) for mode in ("low", "high")
 ]
+cases += TABLE_ROW_CASES
 cases += TABLE_CASES
 cases += ADDON_CASES
 cases += SEARCH_CASES
@@ -580,8 +583,16 @@ for name, mode, original, edit in cases:
         end = time.monotonic() + 30
         screen = ""
         memory_notices = 0
+        table_refusals = 0
         while time.monotonic() < end and process.poll() is None:
             screen = read_screen_text(q, str(d / "vram.bin"))
+            if tab_probe and "#1004:" in screen:
+                table_refusals += 1
+                assert table_refusals <= 2, screen
+                (d / f"table-refusal-{table_refusals}.txt").write_text(screen)
+                send_keys(q, "ret")
+                time.sleep(0.5)
+                continue
             if (
                 name.startswith(("screen-memory-", "list-memory-"))
                 and "Not enough memory for this window" in screen
@@ -636,7 +647,9 @@ for name, mode, original, edit in cases:
                 label in screen.splitlines()[0]
                 for label in ("File", "Edit", "Search", "Options", "Help")
             ), screen
-        if name.startswith("table-"):
+        if name.startswith("table-row-"):
+            row.update(exercise_table_row(q, process, d, spec, original, name))
+        elif name.startswith("table-"):
             row.update(exercise_table(q, process, d, spec, original, name))
         elif name.startswith("addon-"):
             row.update(exercise_addon(q, process, d, spec, original, name))
@@ -867,6 +880,8 @@ for name, mode, original, edit in cases:
                 )
                 row["save_probe"] = probe_log.decode("ascii").strip()
             if tab_probe:
+                assert table_refusals == 2, table_refusals
+                row["table_refusals"] = table_refusals
                 probe_log = run(["mtype", "-i", floppy, "::TAB.LOG"]).stdout
                 (d / "tab.log").write_bytes(probe_log)
                 assert b"PASS " in probe_log and b"FAIL" not in probe_log, probe_log
